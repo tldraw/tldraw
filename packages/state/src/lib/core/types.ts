@@ -28,7 +28,11 @@ export interface Signal<Value, Diff = unknown> {
 	 * Any computed signal that depends on this signal will be lazily recomputed if this signal changes.
 	 * Any effect that depends on this signal will be rescheduled if this signal changes.
 	 */
-	readonly value: Value
+	get(): Value
+	/**
+	 * @deprecated Use [[Signal.get]] instead.
+	 */
+	value: Value
 	/**
 	 * The epoch when this signal's value last changed. Note tha this is not the same as when the value was last computed.
 	 * A signal may recopmute it's value without changing it.

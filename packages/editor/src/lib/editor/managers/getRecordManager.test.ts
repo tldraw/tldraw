@@ -18,7 +18,7 @@ describe('atom manager', () => {
 		expect(A.lastChangedEpoch).toBe(2)
 
 		manager.b
-		expect(A.value).toMatchObject({ a: 2, b: 4, c: 3 })
+		expect(A.get()).toMatchObject({ a: 2, b: 4, c: 3 })
 
 		expect(cb).toHaveBeenCalledTimes(2)
 	})

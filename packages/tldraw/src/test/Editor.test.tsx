@@ -151,7 +151,7 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 	editor = new TestEditor()
 	editor.pointerMove(50, 50)
 	editor.click(0, 0)
-	expect(editor.canUndo).toBe(false)
+	expect(editor.getCanUndo()).toBe(false)
 })
 
 describe('Editor.sharedOpacity', () => {
@@ -244,10 +244,10 @@ describe('Editor.setOpacity', () => {
 	it('stores opacity on opacityForNextShape', () => {
 		editor.setOpacityForSelectedShapes(0.5)
 		editor.setOpacityForNextShapes(0.5)
-		expect(editor.instanceState.opacityForNextShape).toBe(0.5)
+		expect(editor.getInstanceState().opacityForNextShape).toBe(0.5)
 		editor.setOpacityForSelectedShapes(0.6)
 		editor.setOpacityForNextShapes(0.6)
-		expect(editor.instanceState.opacityForNextShape).toBe(0.6)
+		expect(editor.getInstanceState().opacityForNextShape).toBe(0.6)
 	})
 })
 
@@ -293,66 +293,66 @@ describe('Editor.TickManager', () => {
 describe("App's default tool", () => {
 	it('Is select for regular app', () => {
 		editor = new TestEditor()
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
 		editor.updateInstanceState({ isReadonly: true })
 		editor.setCurrentTool('hand')
-		expect(editor.currentToolId).toBe('hand')
+		expect(editor.getCurrentToolId()).toBe('hand')
 	})
 })
 
 describe('currentToolId', () => {
 	it('is select by default', () => {
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 	})
 	it('is set to the last used tool', () => {
 		editor.setCurrentTool('draw')
-		expect(editor.currentToolId).toBe('draw')
+		expect(editor.getCurrentToolId()).toBe('draw')
 
 		editor.setCurrentTool('geo')
-		expect(editor.currentToolId).toBe('geo')
+		expect(editor.getCurrentToolId()).toBe('geo')
 	})
 	it('stays the selected tool during shape creation interactions that technically use the select tool', () => {
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
-		expect(editor.currentToolId).toBe('geo')
-		expect(editor.root.path.value).toBe('root.select.resizing')
+		expect(editor.getCurrentToolId()).toBe('geo')
+		expect(editor.root.path.get()).toBe('root.select.resizing')
 	})
 
 	it('reverts back to select if we finish the interaction', () => {
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
-		expect(editor.currentToolId).toBe('geo')
-		expect(editor.root.path.value).toBe('root.select.resizing')
+		expect(editor.getCurrentToolId()).toBe('geo')
+		expect(editor.root.path.get()).toBe('root.select.resizing')
 
 		editor.pointerUp(100, 100)
 
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 	})
 
 	it('stays on the selected tool if we cancel the interaction', () => {
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
-		expect(editor.currentToolId).toBe('geo')
-		expect(editor.root.path.value).toBe('root.select.resizing')
+		expect(editor.getCurrentToolId()).toBe('geo')
+		expect(editor.root.path.get()).toBe('root.select.resizing')
 
 		editor.cancel()
 
-		expect(editor.currentToolId).toBe('geo')
+		expect(editor.getCurrentToolId()).toBe('geo')
 	})
 })
 
@@ -363,7 +363,7 @@ describe('isFocused', () => {
 
 		const updateFocus = debounce(() => {
 			const { activeElement } = document
-			const { isFocused: wasFocused } = editor.instanceState
+			const { isFocused: wasFocused } = editor.getInstanceState()
 			const isFocused =
 				document.hasFocus() && (container === activeElement || container.contains(activeElement))
 
@@ -385,48 +385,48 @@ describe('isFocused', () => {
 	})
 
 	it('is false by default', () => {
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
 	it('becomes true when you call .focus()', () => {
 		editor.updateInstanceState({ isFocused: true })
-		expect(editor.instanceState.isFocused).toBe(true)
+		expect(editor.getInstanceState().isFocused).toBe(true)
 	})
 
 	it('becomes false when you call .blur()', () => {
 		editor.updateInstanceState({ isFocused: true })
-		expect(editor.instanceState.isFocused).toBe(true)
+		expect(editor.getInstanceState().isFocused).toBe(true)
 
 		editor.updateInstanceState({ isFocused: false })
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
 	it('remains false when you call .blur()', () => {
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 		editor.updateInstanceState({ isFocused: false })
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
 		jest.advanceTimersByTime(100)
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 
 		editor.elm.focus()
 
 		jest.advanceTimersByTime(100)
-		expect(editor.instanceState.isFocused).toBe(true)
+		expect(editor.getInstanceState().isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
 		editor.elm.focus()
 
 		jest.advanceTimersByTime(100)
-		expect(editor.instanceState.isFocused).toBe(true)
+		expect(editor.getInstanceState().isFocused).toBe(true)
 
 		editor.elm.blur()
 
 		jest.advanceTimersByTime(100)
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
 	it.skip('becomes true when a child of the app container div receives a focusin event', () => {
@@ -438,13 +438,13 @@ describe('isFocused', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 		jest.advanceTimersByTime(100)
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
 		jest.advanceTimersByTime(100)
-		expect(editor.instanceState.isFocused).toBe(true)
+		expect(editor.getInstanceState().isFocused).toBe(true)
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 		jest.advanceTimersByTime(100)
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
 	it('becomes false when a child of the app container div receives a focusout event', () => {
@@ -453,12 +453,12 @@ describe('isFocused', () => {
 
 		editor.updateInstanceState({ isFocused: true })
 
-		expect(editor.instanceState.isFocused).toBe(true)
+		expect(editor.getInstanceState().isFocused).toBe(true)
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
 		jest.advanceTimersByTime(100)
-		expect(editor.instanceState.isFocused).toBe(false)
+		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 })
 

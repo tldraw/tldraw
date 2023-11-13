@@ -137,7 +137,7 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 		ctx.stroke()
 
 		canvasEl.toBlob((blob) => {
-			if (!blob || debugFlags.throwToBlob.value) {
+			if (!blob || debugFlags.throwToBlob.get()) {
 				reject()
 			} else {
 				resolve(blob)
@@ -184,7 +184,7 @@ const getDefaultPatterns = () => {
 
 function usePattern() {
 	const editor = useEditor()
-	const dpr = editor.instanceState.devicePixelRatio
+	const dpr = editor.getInstanceState().devicePixelRatio
 	const [isReady, setIsReady] = useState(false)
 	const defaultPatterns = useMemo(() => getDefaultPatterns(), [])
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(defaultPatterns)

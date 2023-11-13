@@ -359,7 +359,7 @@ export class TLLocalSyncClient {
 					snapshot: this.store.serialize(),
 					didCancel: () => this.didDispose,
 					sessionId: this.sessionId,
-					sessionStateSnapshot: this.$sessionStateSnapshot.value,
+					sessionStateSnapshot: this.$sessionStateSnapshot.get(),
 				})
 			} else {
 				const diffs = squashRecordDiffs(
@@ -371,7 +371,7 @@ export class TLLocalSyncClient {
 					schema: this.store.schema,
 					didCancel: () => this.didDispose,
 					sessionId: this.sessionId,
-					sessionStateSnapshot: this.$sessionStateSnapshot.value,
+					sessionStateSnapshot: this.$sessionStateSnapshot.get(),
 				})
 			}
 			this.didLastWriteError = false

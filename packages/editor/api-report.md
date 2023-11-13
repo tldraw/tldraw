@@ -579,7 +579,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
+    // @deprecated (undocumented)
     get canRedo(): boolean;
+    // @deprecated (undocumented)
     get canUndo(): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
@@ -617,7 +619,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageShapes(): TLShape[];
     get currentPageShapesSorted(): TLShape[];
     get currentPageState(): TLInstancePageState;
+    // @deprecated (undocumented)
     get currentTool(): StateNode | undefined;
+    // @deprecated (undocumented)
     get currentToolId(): string;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
@@ -633,6 +637,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
+    // @deprecated (undocumented)
     get documentSettings(): TLDocument;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
@@ -670,11 +675,18 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
+    getCanRedo(): boolean;
+    getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    getCurrentTool(): StateNode | undefined;
+    getCurrentToolId(): string;
+    getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
+    getInstanceState(): TLInstance;
+    getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
@@ -752,6 +764,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         pointerVelocity: Vec2d;
     };
+    // @deprecated (undocumented)
     get instanceState(): TLInstance;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
@@ -773,6 +786,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
     get onlySelectedShape(): null | TLShape;
+    // @deprecated (undocumented)
     get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     get pages(): TLPage[];

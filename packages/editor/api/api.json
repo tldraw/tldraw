@@ -7528,7 +7528,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#canRedo:member",
-              "docComment": "/**\n * Whether the app can redo.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCanRedo` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7558,7 +7558,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#canUndo:member",
-              "docComment": "/**\n * Whether the app can undo.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCanUndo` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8280,7 +8280,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentTool:member",
-              "docComment": "/**\n * The current selected tool.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentTool` instead.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8315,7 +8315,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentToolId:member",
-              "docComment": "/**\n * The id of the current selected tool.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentToolId` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8962,7 +8962,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#documentSettings:member",
-              "docComment": "/**\n * The global document settings that apply to all users.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getDocumentSettings` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9968,6 +9968,68 @@
               "name": "getAssetForExternalContent"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCanRedo:member(1)",
+              "docComment": "/**\n * Whether the app can redo.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCanRedo(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCanRedo"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCanUndo:member(1)",
+              "docComment": "/**\n * Whether the app can undo.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCanUndo(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCanUndo"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#getContainer:member",
               "docComment": "/**\n * The current HTML element containing the editor.\n *\n * @example\n * ```ts\n * const container = editor.getContainer()\n * ```\n *\n * @public\n */\n",
@@ -10068,6 +10130,105 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getContentFromCurrentPage"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentTool:member(1)",
+              "docComment": "/**\n * The current selected tool.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentTool(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StateNode",
+                  "canonicalReference": "@tldraw/editor!StateNode:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentTool"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentToolId:member(1)",
+              "docComment": "/**\n * The id of the current selected tool.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentToolId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentToolId"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getDocumentSettings:member(1)",
+              "docComment": "/**\n * The global document settings that apply to all users.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getDocumentSettings(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLDocument",
+                  "canonicalReference": "@tldraw/tlschema!TLDocument:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getDocumentSettings"
             },
             {
               "kind": "Method",
@@ -10260,6 +10421,69 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getInitialMetaForShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getInstanceState:member(1)",
+              "docComment": "/**\n * The current instance's state.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getInstanceState(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstance",
+                  "canonicalReference": "@tldraw/tlschema!TLInstance:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getInstanceState"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getOpenMenus:member(1)",
+              "docComment": "/**\n * A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getOpenMenus(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getOpenMenus"
             },
             {
               "kind": "Method",
@@ -12813,7 +13037,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#instanceState:member",
-              "docComment": "/**\n * The current instance's state.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getInstanceState` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13801,7 +14025,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#openMenus:member",
-              "docComment": "/**\n * A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getOpenMenus` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33176,7 +33400,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#_currentToolIdMask:member",
-              "docComment": "/**\n * This is a hack / escape hatch that will tell the editor to report a different state as active (in `currentToolId`) when this state is active. This is usually used when a tool transitions to a child of a different state for a certain interaction and then returns to the original tool when that interaction completes; and where we would want to show the original tool as active in the UI.\n *\n * @public\n */\n",
+              "docComment": "/**\n * This is a hack / escape hatch that will tell the editor to report a different state as active (in `getCurrentToolId()`) when this state is active. This is usually used when a tool transitions to a child of a different state for a certain interaction and then returns to the original tool when that interaction completes; and where we would want to show the original tool as active in the UI.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

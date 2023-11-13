@@ -170,7 +170,7 @@ export function createSessionStateSnapshotSignal(
 		const instanceState = store.get(TLINSTANCE_ID)
 		if (!instanceState) return null
 
-		const allPageIds = [...$allPageIds.value]
+		const allPageIds = [...$allPageIds.get()]
 		return {
 			version: CURRENT_SESSION_STATE_SNAPSHOT_VERSION,
 			currentPageId: instanceState.currentPageId,

@@ -23,7 +23,7 @@ export function useDPRMultiple() {
 
 	React.useEffect(() => {
 		return react('useDPRMultiple', () => {
-			const dpr = editor.instanceState.devicePixelRatio
+			const dpr = editor.getInstanceState().devicePixelRatio
 			container.style.setProperty('--tl-dpr-multiple', nearestMultiple(dpr).toString())
 		})
 	}, [editor, container])

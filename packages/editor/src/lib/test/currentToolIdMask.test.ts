@@ -32,16 +32,16 @@ beforeEach(() => {
 
 describe('current tool id mask', () => {
 	it('starts with the correct tool id', () => {
-		expect(editor.currentToolId).toBe('A')
+		expect(editor.getCurrentToolId()).toBe('A')
 	})
 
 	it('updates the current tool id', () => {
 		editor.setCurrentTool('B')
-		expect(editor.currentToolId).toBe('B')
+		expect(editor.getCurrentToolId()).toBe('B')
 	})
 
 	it('masks the current tool id', () => {
 		editor.setCurrentTool('C')
-		expect(editor.currentToolId).toBe('A')
+		expect(editor.getCurrentToolId()).toBe('A')
 	})
 })

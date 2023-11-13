@@ -197,7 +197,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			'Store.historyReactor',
 			() => {
 				// deref to make sure we're subscribed regardless of whether we need to propagate
-				this.history.value
+				this.history.get()
 				// If we have accumulated history, flush it and update listeners
 				this._flushHistory()
 			},
@@ -290,7 +290,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (this.listeners.size === 0) {
 			this.historyAccumulator.clear()
 		}
-		this.history.set(this.history.value + 1, changes)
+		this.history.set(this.history.get() + 1, changes)
 	}
 
 	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
@@ -379,7 +379,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				if (recordAtom) {
-					if (beforeUpdate) record = beforeUpdate(recordAtom.value, record, source)
+					if (beforeUpdate) record = beforeUpdate(recordAtom.get(), record, source)
 
 					// If we already have an atom for this record, update its value.
 
@@ -478,7 +478,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					const atom = this.atoms.__unsafe__getWithoutCapture()[id]
 					if (!atom) continue
 
-					if (this.onBeforeDelete(atom.value, source) === false) {
+					if (this.onBeforeDelete(atom.get(), source) === false) {
 						cancelled.push(id)
 					}
 				}
@@ -496,7 +496,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					if (!result) result = { ...atoms }
 					if (!removed) removed = {} as Record<IdOf<R>, R>
 					delete result[id]
-					removed[id] = atoms[id].value
+					removed[id] = atoms[id].get()
 				}
 
 				return result ?? atoms
@@ -526,7 +526,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	get = <K extends IdOf<R>>(id: K): RecFromId<K> | undefined => {
-		return this.atoms.value[id]?.value as any
+		return this.atoms.get()[id]?.get() as any
 	}
 
 	/**
@@ -536,7 +536,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	unsafeGetWithoutCapture = <K extends IdOf<R>>(id: K): RecFromId<K> | undefined => {
-		return this.atoms.value[id]?.__unsafe__getWithoutCapture() as any
+		return this.atoms.get()[id]?.__unsafe__getWithoutCapture() as any
 	}
 
 	/**
@@ -547,8 +547,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	serialize = (scope: RecordScope | 'all' = 'document'): SerializedStore<R> => {
 		const result = {} as SerializedStore<R>
-		for (const [id, atom] of objectMapEntries(this.atoms.value)) {
-			const record = atom.value
+		for (const [id, atom] of objectMapEntries(this.atoms.get())) {
+			const record = atom.get()
 			if (scope === 'all' || this.scopedTypes[scope].has(record.typeName)) {
 				result[id as IdOf<R>] = record
 			}
@@ -631,7 +631,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	allRecords = (): R[] => {
-		return objectMapValues(this.atoms.value).map((atom) => atom.value)
+		return objectMapValues(this.atoms.get()).map((atom) => atom.get())
 	}
 
 	/**
@@ -640,7 +640,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	clear = (): void => {
-		this.remove(objectMapKeys(this.atoms.value))
+		this.remove(objectMapKeys(this.atoms.get()))
 	}
 
 	/**
@@ -651,7 +651,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param updater - A function that updates the record.
 	 */
 	update = <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => {
-		const atom = this.atoms.value[id]
+		const atom = this.atoms.get()[id]
 		if (!atom) {
 			console.error(`Record ${id} not found. This is probably an error`)
 			return
@@ -667,7 +667,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	has = <K extends IdOf<R>>(id: K): boolean => {
-		return !!this.atoms.value[id]
+		return !!this.atoms.get()[id]
 	}
 
 	/**
@@ -772,18 +772,20 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const cache = new Cache<Atom<any>, Computed<T | undefined>>()
 		return {
 			get: (id: IdOf<V>) => {
-				const atom = this.atoms.value[id]
+				const atom = this.atoms.get()[id]
 				if (!atom) {
 					return undefined
 				}
-				return cache.get(atom, () => {
-					const recordSignal = isEqual
-						? computed(atom.name + ':equals', () => atom.value, { isEqual })
-						: atom
-					return computed<T | undefined>(name + ':' + id, () => {
-						return derive(recordSignal.value as V)
+				return cache
+					.get(atom, () => {
+						const recordSignal = isEqual
+							? computed(atom.name + ':equals', () => atom.get(), { isEqual })
+							: atom
+						return computed<T | undefined>(name + ':' + id, () => {
+							return derive(recordSignal.get() as V)
+						})
 					})
-				}).value
+					.get()
 			},
 		}
 	}
@@ -804,17 +806,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const cache = new Cache<Atom<any>, Computed<J | undefined>>()
 		return {
 			get: (id: IdOf<V>) => {
-				const atom = this.atoms.value[id]
+				const atom = this.atoms.get()[id]
 				if (!atom) {
 					return undefined
 				}
 
 				const d = computed<T | undefined>(name + ':' + id + ':selector', () =>
-					selector(atom.value as V)
+					selector(atom.get() as V)
 				)
-				return cache.get(atom, () =>
-					computed<J | undefined>(name + ':' + id, () => derive(d.value as T))
-				).value
+				return cache
+					.get(atom, () => computed<J | undefined>(name + ':' + id, () => derive(d.get() as T)))
+					.get()
 			},
 		}
 	}

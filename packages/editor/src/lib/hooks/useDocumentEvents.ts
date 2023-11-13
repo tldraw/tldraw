@@ -9,7 +9,7 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.instanceState.isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.getInstanceState().isFocused, [editor])
 
 	useEffect(() => {
 		if (typeof matchMedia === undefined) return
@@ -55,7 +55,7 @@ export function useDocumentEvents() {
 			if (
 				e.altKey &&
 				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?
-				(editor.isIn('zoom') || !editor.root.path.value.endsWith('.idle')) &&
+				(editor.isIn('zoom') || !editor.root.path.get().endsWith('.idle')) &&
 				!isFocusingInput()
 			) {
 				// On windows the alt key opens the menu bar.
@@ -107,7 +107,7 @@ export function useDocumentEvents() {
 								ctrlKey: e.metaKey || e.ctrlKey,
 								pointerId: 0,
 								button: 0,
-								isPen: editor.instanceState.isPenMode,
+								isPen: editor.getInstanceState().isPenMode,
 								target: 'canvas',
 							}
 
@@ -131,7 +131,7 @@ export function useDocumentEvents() {
 					}
 
 					// Don't do anything if we open menus open
-					if (editor.openMenus.length > 0) return
+					if (editor.getOpenMenus().length > 0) return
 
 					if (!editor.inputs.keys.has('Escape')) {
 						editor.inputs.keys.add('Escape')
@@ -191,7 +191,7 @@ export function useDocumentEvents() {
 						ctrlKey: e.metaKey || e.ctrlKey,
 						pointerId: 0,
 						button: 0,
-						isPen: editor.instanceState.isPenMode,
+						isPen: editor.getInstanceState().isPenMode,
 						target: 'canvas',
 					}
 					editor.dispatch(info)

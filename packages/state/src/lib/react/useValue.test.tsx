@@ -12,7 +12,7 @@ test('useValue returns a value from a computed', async () => {
 	function Component() {
 		const a = useAtom('a', 1)
 		theAtom = a
-		const b = useComputed('a+1', () => a.value + 1, [])
+		const b = useComputed('a+1', () => a.get() + 1, [])
 		theComputed = b
 		return <>{useValue(b)}</>
 	}
@@ -23,7 +23,7 @@ test('useValue returns a value from a computed', async () => {
 	})
 
 	expect(theComputed).not.toBeNull()
-	expect(theComputed?.value).toBe(2)
+	expect(theComputed?.get()).toBe(2)
 	expect(theComputed?.name).toBe('useComputed(a+1)')
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
 
@@ -62,7 +62,7 @@ test('useValue returns a value from a compute function', async () => {
 		const [b, _setB] = useState(1)
 		setB = _setB
 		theAtom = a
-		const c = useValue('a+b', () => a.value + b, [b])
+		const c = useValue('a+b', () => a.get() + b, [b])
 		return <>{c}</>
 	}
 
@@ -87,7 +87,7 @@ test('useValue returns a value from a compute function', async () => {
 test("useValue doesn't throw when used in a zombie-child component", async () => {
 	const theAtom = atom<Record<string, number>>('map', { a: 1, b: 2, c: 3 })
 	function Parent() {
-		const ids = useValue('ids', () => Object.keys(theAtom.value), [])
+		const ids = useValue('ids', () => Object.keys(theAtom.get()), [])
 		return (
 			<>
 				{ids.map((id) => (
@@ -100,8 +100,8 @@ test("useValue doesn't throw when used in a zombie-child component", async () =>
 		const value = useValue(
 			'value',
 			() => {
-				if (!(id in theAtom.value)) throw new Error('id not found!')
-				return theAtom.value[id]
+				if (!(id in theAtom.get())) throw new Error('id not found!')
+				return theAtom.get()[id]
 			},
 			[id]
 		)

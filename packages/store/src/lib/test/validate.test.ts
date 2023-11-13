@@ -69,7 +69,7 @@ describe('Store with validation', () => {
 	it('Accepts valid records and rejects invalid records', () => {
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
-		expect(store.query.records('author').value).toEqual([
+		expect(store.query.records('author').get()).toEqual([
 			{ id: 'author:tolkein', typeName: 'author', name: 'J.R.R Tolkein', isPseudonym: false },
 		])
 
@@ -85,7 +85,7 @@ describe('Store with validation', () => {
 			])
 		}).toThrow()
 
-		expect(store.query.records('book').value).toEqual([])
+		expect(store.query.records('book').get()).toEqual([])
 	})
 })
 

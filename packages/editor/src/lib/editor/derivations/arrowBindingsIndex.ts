@@ -12,7 +12,7 @@ export const arrowBindingsIndex = (editor: Editor): Computed<TLArrowBindingsInde
 	const shapeHistory = store.query.filterHistory('shape')
 	const arrowQuery = store.query.records('shape', () => ({ type: { eq: 'arrow' as const } }))
 	function fromScratch() {
-		const allArrows = arrowQuery.value as TLArrowShape[]
+		const allArrows = arrowQuery.get() as TLArrowShape[]
 
 		const bindings2Arrows: TLArrowBindingsIndex = {}
 

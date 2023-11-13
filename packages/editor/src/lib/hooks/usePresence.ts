@@ -20,7 +20,8 @@ export function usePresence(userId: string): TLInstancePresence | null {
 	const latestPresence = useValue(
 		`latestPresence:${userId}`,
 		() => {
-			return $presences.value
+			return $presences
+				.get()
 				.slice()
 				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
 		},

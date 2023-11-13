@@ -82,11 +82,11 @@ export function useValue() {
 			return {
 				subscribe: (listen: () => void) => {
 					return react(`useValue(${name})`, () => {
-						$val.value
+						$val.get()
 						listen()
 					})
 				},
-				getSnapshot: () => $val.value,
+				getSnapshot: () => $val.get(),
 			}
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [$val])

@@ -28,8 +28,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this.current = atom<StateNode | undefined>('toolState' + this.id, undefined)
 
 		this.path = computed('toolPath' + this.id, () => {
-			const current = this.current.value
-			return this.id + (current ? `.${current.path.value}` : '')
+			const current = this.current.get()
+			return this.id + (current ? `.${current.path.get()}` : '')
 		})
 
 		this.parent = parent ?? ({} as any)
@@ -81,7 +81,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 		for (let i = 0; i < path.length; i++) {
 			const id = path[i]
-			const prevChildState = currState.current.value
+			const prevChildState = currState.current.get()
 			const nextChildState = currState.children?.[id]
 
 			if (!nextChildState) {
@@ -103,9 +103,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
-		const x = this.current.value
+		const x = this.current.get()
 		this[cbName]?.(info as any)
-		if (this.current.value === x && this.isActive) {
+		if (this.current.get() === x && this.isActive) {
 			x?.handleEvent(info)
 		}
 	}
@@ -124,13 +124,13 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this.isActive = false
 		this.onExit?.(info, from)
 		if (!this.isActive) {
-			this.current.value?.exit(info, from)
+			this.current.get()?.exit(info, from)
 		}
 	}
 
 	/**
 	 * This is a hack / escape hatch that will tell the editor to
-	 * report a different state as active (in `currentToolId`) when
+	 * report a different state as active (in `getCurrentToolId()`) when
 	 * this state is active. This is usually used when a tool transitions
 	 * to a child of a different state for a certain interaction and then
 	 * returns to the original tool when that interaction completes; and
@@ -141,7 +141,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	_currentToolIdMask = atom('curent tool id mask', undefined as string | undefined)
 
 	@computed get currentToolIdMask() {
-		return this._currentToolIdMask.value
+		return this._currentToolIdMask.get()
 	}
 
 	set currentToolIdMask(id: string | undefined) {
