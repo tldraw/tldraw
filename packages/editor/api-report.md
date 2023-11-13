@@ -592,7 +592,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
-    containerBoundsToPageBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel;
     // @internal (undocumented)
     crash(error: unknown): this;
     // @internal
@@ -794,7 +793,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated (undocumented)
     get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
-    pageBoundsToContainerBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel;
     get pages(): TLPage[];
     // @deprecated (undocumented)
     get pageStates(): TLInstancePageState[];

@@ -50,7 +50,6 @@ export function getAssetUrls(opts) {
 			blob: formatAssetUrl('./icons/icon/blob.svg', opts),
 			'bring-forward': formatAssetUrl('./icons/icon/bring-forward.svg', opts),
 			'bring-to-front': formatAssetUrl('./icons/icon/bring-to-front.svg', opts),
-			camera: formatAssetUrl('./icons/icon/camera.svg', opts),
 			check: formatAssetUrl('./icons/icon/check.svg', opts),
 			'checkbox-checked': formatAssetUrl('./icons/icon/checkbox-checked.svg', opts),
 			'checkbox-empty': formatAssetUrl('./icons/icon/checkbox-empty.svg', opts),

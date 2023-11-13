@@ -55,7 +55,6 @@ import iconsAvatar from './icons/icon/avatar.svg'
 import iconsBlob from './icons/icon/blob.svg'
 import iconsBringForward from './icons/icon/bring-forward.svg'
 import iconsBringToFront from './icons/icon/bring-to-front.svg'
-import iconsCamera from './icons/icon/camera.svg'
 import iconsCheck from './icons/icon/check.svg'
 import iconsCheckboxChecked from './icons/icon/checkbox-checked.svg'
 import iconsCheckboxEmpty from './icons/icon/checkbox-empty.svg'
@@ -269,7 +268,6 @@ export function getAssetUrlsByImport(opts) {
 			blob: formatAssetUrl(iconsBlob, opts),
 			'bring-forward': formatAssetUrl(iconsBringForward, opts),
 			'bring-to-front': formatAssetUrl(iconsBringToFront, opts),
-			camera: formatAssetUrl(iconsCamera, opts),
 			check: formatAssetUrl(iconsCheck, opts),
 			'checkbox-checked': formatAssetUrl(iconsCheckboxChecked, opts),
 			'checkbox-empty': formatAssetUrl(iconsCheckboxEmpty, opts),

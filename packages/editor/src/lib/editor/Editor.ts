@@ -1,7 +1,6 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
-	Box2dModel,
 	CameraRecordType,
 	InstancePageStateRecordType,
 	PageRecordType,
@@ -77,7 +76,7 @@ import {
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
-import { Box2d, BoxLike } from '../primitives/Box2d'
+import { Box2d } from '../primitives/Box2d'
 import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
 import { Vec2d, VecLike } from '../primitives/Vec2d'
 import { EASINGS } from '../primitives/easings'
@@ -2902,48 +2901,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			y: (point.y + cy) * cz + screenBounds.y,
 			z: point.z ?? 0.5,
 		}
-	}
-
-	/**
-	 * Convert a bounding box in page space to a bounding box in container space.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.pageBoundsToOverlayBounds(new Box2d(0,0,100,100))
-	 * ```
-	 *
-	 * @param bounds - The bounds to convert.
-	 *
-	 * @public
-	 */
-	pageBoundsToContainerBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel {
-		const { zoomLevel } = this
-		const { x, y } = this.pageToScreen({ x: bounds.x, y: bounds.y })
-		if (bounds instanceof Box2d) {
-			return new Box2d(x, y, bounds.w * zoomLevel, bounds.h * zoomLevel)
-		}
-		return { x, y, w: bounds.w * zoomLevel, h: bounds.h * zoomLevel }
-	}
-
-	/**
-	 * Convert a bounding box in container space to a bounding box in page space.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.overlayBoundsToPageBounds(new Box2d(0,0,100,100))
-	 * ```
-	 *
-	 * @param bounds - The bounds to convert.
-	 *
-	 * @public
-	 */
-	containerBoundsToPageBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel {
-		const { zoomLevel } = this
-		const { x, y } = this.screenToPage({ x: bounds.x, y: bounds.y })
-		if (bounds instanceof Box2d) {
-			return new Box2d(x, y, bounds.w / zoomLevel, bounds.h / zoomLevel)
-		}
-		return { x, y, w: bounds.w / zoomLevel, h: bounds.h / zoomLevel }
 	}
 
 	// Following

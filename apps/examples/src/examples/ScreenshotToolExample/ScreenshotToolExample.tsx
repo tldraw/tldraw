@@ -1,4 +1,5 @@
 import {
+	Box2d,
 	TLEditorComponents,
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
@@ -60,13 +61,15 @@ function ScreenshotBox() {
 			const draggingState = editor.getStateDescendant<ScreenshotDragging>('screenshot.dragging')!
 
 			// Get the box from the screenshot.dragging state node
-			const boxInPageSpace = draggingState.screenshotBox.value
+			const box = draggingState.screenshotBox.get()
 
 			// The box is in "page space", i.e. panned and zoomed with the canvas, but we
 			// want to show it in front of the canvas, so we'll need to convert it to
-			// "container space", i.e. uneffected by scale, and relative to the tldraw
-			// component's top left corner.
-			return editor.pageBoundsToContainerBounds(boxInPageSpace)
+			// "page space", i.e. uneffected by scale, and relative to the tldraw
+			// page's top left corner.
+			const { zoomLevel } = editor
+			const { x, y } = editor.pageToScreen({ x: box.x, y: box.y })
+			return new Box2d(x, y, box.w * zoomLevel, box.h * zoomLevel)
 		},
 		[editor]
 	)
