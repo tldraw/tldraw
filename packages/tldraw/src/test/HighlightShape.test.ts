@@ -19,6 +19,6 @@ describe('Highlight shape', () => {
 		editor.setCurrentTool('highlight').pointerDown(60, 60).pointerUp()
 		editor.setCurrentTool('select').pointerDown(70, 70).pointerUp()
 
-		expect(editor.selectedShapes).toHaveLength(1)
+		expect(editor.getSelectedShapes()).toHaveLength(1)
 	})
 })

@@ -182,7 +182,7 @@ describe('When cloning...', () => {
 		// Start cloning!
 		editor.keyDown('Alt')
 		expect(editor.currentPageShapeIds.size).toBe(4)
-		const newShape = editor.selectedShapes[0]
+		const newShape = editor.getSelectedShapes()[0]
 		expect(newShape.id).not.toBe(ids.box1)
 
 		editor
@@ -1792,19 +1792,19 @@ it('clones a single shape simply', () => {
 		.pointerMove(50, 50)
 		.click()
 
-	expect(editor.onlySelectedShape).toBe(editor.currentPageShapes[0])
+	expect(editor.getOnlySelectedShape()).toBe(editor.currentPageShapes[0])
 	expect(editor.hoveredShape).toBe(editor.currentPageShapes[0])
 
 	// click on the canvas to deselect
 	editor.pointerMove(200, 50).click()
 
-	expect(editor.onlySelectedShape).toBe(null)
+	expect(editor.getOnlySelectedShape()).toBe(null)
 	expect(editor.hoveredShape).toBe(undefined)
 
 	// move back over the the shape
 	editor.pointerMove(50, 50)
 
-	expect(editor.onlySelectedShape).toBe(null)
+	expect(editor.getOnlySelectedShape()).toBe(null)
 	expect(editor.hoveredShape).toBe(editor.currentPageShapes[0])
 
 	// start dragging the shape
@@ -1818,7 +1818,7 @@ it('clones a single shape simply', () => {
 
 	expect(editor.currentPageShapes).toHaveLength(2)
 	const [, sticky2] = editor.currentPageShapes
-	expect(editor.onlySelectedShape).toBe(sticky2)
+	expect(editor.getOnlySelectedShape()).toBe(sticky2)
 	expect(editor.editingShape).toBe(undefined)
 	expect(editor.hoveredShape).toBe(sticky2)
 })

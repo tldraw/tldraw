@@ -94,7 +94,7 @@ describe('TLSelectTool.Translating', () => {
 		editor.pointerDown(150, 150, { target: 'shape', shape })
 		editor.pointerMove(150, 250)
 		editor.pointerUp()
-		const box2Id = editor.onlySelectedShape!.id
+		const box2Id = editor.getOnlySelectedShape()!.id
 		expect(editor.currentPageShapes.length).toStrictEqual(2)
 		expect(ids.box1).not.toEqual(box2Id)
 
@@ -318,11 +318,11 @@ describe('When editing shapes', () => {
 		// start editing the geo shape
 		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.geo1) })
 		expect(editor.editingShapeId).toBe(ids.geo1)
-		expect(editor.onlySelectedShape?.id).toBe(ids.geo1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo1)
 		// point the text shape
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.text1) })
 		expect(editor.editingShapeId).toBe(null)
-		expect(editor.onlySelectedShape?.id).toBe(ids.text1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.text1)
 	})
 
 	// The behavior described here will only work end to end, not with the library,
@@ -334,12 +334,12 @@ describe('When editing shapes', () => {
 		// start editing the geo shape
 		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.geo1) })
 		expect(editor.editingShapeId).toBe(ids.geo1)
-		expect(editor.onlySelectedShape?.id).toBe(ids.geo1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo1)
 		// point the other geo shape
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.geo2) })
 		// that other shape should now be editing and selected!
 		expect(editor.editingShapeId).toBe(ids.geo2)
-		expect(editor.onlySelectedShape?.id).toBe(ids.geo2)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo2)
 	})
 
 	// This works but only end to end — the logic had to move to React
@@ -352,7 +352,7 @@ describe('When editing shapes', () => {
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.text2) })
 		// that other shape should now be editing and selected!
 		expect(editor.editingShapeId).toBe(ids.text2)
-		expect(editor.onlySelectedShape?.id).toBe(ids.text2)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.text2)
 	})
 
 	it('Double clicking the canvas creates a new text shape', () => {

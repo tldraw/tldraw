@@ -214,7 +214,9 @@ function HandlesWrapper() {
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
 	])
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
+		editor,
+	])
 	const isChangingStyle = useValue(
 		'isChangingStyle',
 		() => editor.getInstanceState().isChangingStyle,
@@ -225,13 +227,24 @@ function HandlesWrapper() {
 	])
 	const handles = useValue(
 		'handles',
-		() => (editor.onlySelectedShape ? editor.getShapeHandles(editor.onlySelectedShape) : undefined),
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (onlySelectedShape) {
+				return editor.getShapeHandles(onlySelectedShape)
+			}
+			return undefined
+		},
 		[editor]
 	)
 	const transform = useValue(
 		'transform',
-		() =>
-			editor.onlySelectedShape ? editor.getShapePageTransform(editor.onlySelectedShape) : undefined,
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (onlySelectedShape) {
+				return editor.getShapePageTransform(onlySelectedShape)
+			}
+			return undefined
+		},
 		[editor]
 	)
 

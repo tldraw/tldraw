@@ -476,7 +476,7 @@ function centerSelecitonAroundPoint(editor: Editor, position: VecLike) {
 		const offset = selectionPageBounds!.center.sub(position)
 
 		editor.updateShapes(
-			editor.selectedShapes.map((shape) => {
+			editor.getSelectedShapes().map((shape) => {
 				const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
 				const localDelta = Vec2d.Rot(offset, -localRotation)
 				return {

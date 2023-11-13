@@ -475,9 +475,9 @@ describe('When pasting into frames...', () => {
 		editor.setCamera({ x: -editor.viewportScreenBounds.w, y: -editor.viewportScreenBounds.h, z: 1 })
 		// paste the box
 		editor.paste()
-		const boxId = editor.onlySelectedShape!.id
+		const boxId = editor.getOnlySelectedShape()!.id
 		// it should be a child of the frame
-		expect(editor.onlySelectedShape?.parentId).toBe(ids.frame1)
+		expect(editor.getOnlySelectedShape()?.parentId).toBe(ids.frame1)
 		// it should have pageBounds of 10x10 because it is not rotated relative to the viewport
 		expect(editor.getShapePageBounds(boxId)).toMatchObject({ w: 10, h: 10 })
 		// it should be in the middle of the frame

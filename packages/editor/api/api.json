@@ -9068,7 +9068,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#duplicateShapes:member(1)",
-              "docComment": "/**\n * Duplicate shapes.\n *\n * @param shapes - The shapes (or shape ids) to duplicate.\n *\n * @param offset - The offset (in pixels) to apply to the duplicated shapes.\n *\n * @example\n * ```ts\n * editor.duplicateShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.duplicateShapes(editor.selectedShapes, { x: 8, y: 8 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Duplicate shapes.\n *\n * @param shapes - The shapes (or shape ids) to duplicate.\n *\n * @param offset - The offset (in pixels) to apply to the duplicated shapes.\n *\n * @example\n * ```ts\n * editor.duplicateShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.duplicateShapes(editor.getSelectedShapes(), { x: 8, y: 8 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10519,6 +10519,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getOnlySelectedShape:member(1)",
+              "docComment": "/**\n * The app's only selected shape.\n *\n * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape.\n *\n * @public @readonly\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getOnlySelectedShape(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getOnlySelectedShape"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getOpenMenus:member(1)",
               "docComment": "/**\n * A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -11044,6 +11080,42 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getSelectedShapeIds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectedShapes:member(1)",
+              "docComment": "/**\n * An array containing all of the currently selected shapes.\n *\n * @public @readonly\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectedShapes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectedShapes"
             },
             {
               "kind": "Method",
@@ -14029,7 +14101,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#nudgeShapes:member(1)",
-              "docComment": "/**\n * Move shapes by a delta.\n *\n * @param shapes - The shapes (or shape ids) to move.\n *\n * @param direction - The direction in which to move the shapes.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.nudgeShapes(editor.selectedShapes, { x: 8, y: 8 }, { squashing: true })\n * ```\n *\n */\n",
+              "docComment": "/**\n * Move shapes by a delta.\n *\n * @param shapes - The shapes (or shape ids) to move.\n *\n * @param direction - The direction in which to move the shapes.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.nudgeShapes(editor.getSelectedShapes(), { x: 8, y: 8 }, { squashing: true })\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14125,7 +14197,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#onlySelectedShape:member",
-              "docComment": "/**\n * The app's only selected shape.\n *\n * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape.\n *\n * @example\n * ```ts\n * editor.onlySelectedShape\n * ```\n *\n * @public @readonly\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getOnlySelectedShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15775,7 +15847,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#selectedShapes:member",
-              "docComment": "/**\n * An array containing all of the currently selected shapes.\n *\n * @example\n * ```ts\n * editor.selectedShapes\n * ```\n *\n * @public @readonly\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getSelectedShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

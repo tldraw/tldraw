@@ -67,8 +67,8 @@ export class Idle extends StateNode {
 				}
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				const {
-					onlySelectedShape,
 					inputs: { currentPagePoint },
 				} = this.editor
 
@@ -224,7 +224,7 @@ export class Idle extends StateNode {
 			case 'selection': {
 				if (this.editor.getInstanceState().isReadonly) break
 
-				const { onlySelectedShape } = this.editor
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 				if (onlySelectedShape) {
 					const util = this.editor.getShapeUtil(onlySelectedShape)
@@ -346,8 +346,8 @@ export class Idle extends StateNode {
 				}
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				const {
-					onlySelectedShape,
 					inputs: { currentPagePoint },
 				} = this.editor
 
@@ -425,7 +425,7 @@ export class Idle extends StateNode {
 	override onKeyUp = (info: TLKeyboardEventInfo) => {
 		switch (info.code) {
 			case 'Enter': {
-				const { selectedShapes } = this.editor
+				const selectedShapes = this.editor.getSelectedShapes()
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
 				if (
@@ -438,7 +438,7 @@ export class Idle extends StateNode {
 				}
 
 				// If the only selected shape is editable, then begin editing it
-				const { onlySelectedShape } = this.editor
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
 					this.startEditingShape(onlySelectedShape, {
 						...info,
@@ -457,7 +457,9 @@ export class Idle extends StateNode {
 		}
 	}
 
-	private shouldStartEditingShape(shape: TLShape | null = this.editor.onlySelectedShape): boolean {
+	private shouldStartEditingShape(
+		shape: TLShape | null = this.editor.getOnlySelectedShape()
+	): boolean {
 		if (!shape) return false
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
 		if (!this.canInteractWithShapeInReadOnly(shape)) return false

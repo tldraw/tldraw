@@ -297,7 +297,7 @@ describe('When one shape is selected', () => {
 
 		editor.selectAll()
 		editor.groupShapes(editor.getSelectedShapeIds()) // this will also select the new group
-		const groupBefore = editor.selectedShapes[0]
+		const groupBefore = editor.getSelectedShapes()[0]
 		editor.on('change', fn)
 		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
 

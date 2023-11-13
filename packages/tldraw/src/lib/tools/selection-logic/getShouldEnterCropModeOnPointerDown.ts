@@ -1,7 +1,7 @@
 import { Editor } from '@tldraw/editor'
 
 export function getShouldEnterCropMode(editor: Editor): boolean {
-	const { onlySelectedShape } = editor
+	const onlySelectedShape = editor.getOnlySelectedShape()
 	return !!(
 		onlySelectedShape &&
 		!editor.isShapeOrAncestorLocked(onlySelectedShape) &&

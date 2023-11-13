@@ -1002,7 +1002,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				extras: {
 					activeStateNode: this.root.path.get(),
-					selectedShapes: this.selectedShapes,
+					selectedShapes: this.getSelectedShapes(),
 					editingShape: this.editingShapeId ? this.getShape(this.editingShapeId) : undefined,
 					inputs: this.inputs,
 				},
@@ -1481,17 +1481,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * An array containing all of the currently selected shapes.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.selectedShapes
-	 * ```
-	 *
 	 * @public
 	 * @readonly
 	 */
-	@computed get selectedShapes(): TLShape[] {
+	@computed getSelectedShapes(): TLShape[] {
 		const { selectedShapeIds } = this.getCurrentPageState()
 		return compact(selectedShapeIds.map((id) => this.store.get(id)))
+	}
+
+	/**
+	 * @deprecated Use `getSelectedShapes` instead.
+	 */
+	get selectedShapes() {
+		return this.getSelectedShapes()
 	}
 
 	/**
@@ -1652,20 +1654,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * The app's only selected shape.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.onlySelectedShape
-	 * ```
-	 *
 	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected
 	 *   shape.
 	 *
 	 * @public
 	 * @readonly
 	 */
-	@computed get onlySelectedShape(): TLShape | null {
-		const { selectedShapes } = this
+	@computed getOnlySelectedShape(): TLShape | null {
+		const selectedShapes = this.getSelectedShapes()
 		return selectedShapes.length === 1 ? selectedShapes[0] : null
+	}
+
+	/**
+	 * @deprecated Use `getOnlySelectedShape` instead.
+	 */
+	get onlySelectedShape() {
+		return this.getOnlySelectedShape()
 	}
 
 	/**
@@ -5138,7 +5142,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })
-	 * editor.nudgeShapes(editor.selectedShapes, { x: 8, y: 8 }, { squashing: true })
+	 * editor.nudgeShapes(editor.getSelectedShapes(), { x: 8, y: 8 }, { squashing: true })
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape ids) to move.
@@ -5201,7 +5205,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.duplicateShapes(['box1', 'box2'], { x: 8, y: 8 })
-	 * editor.duplicateShapes(editor.selectedShapes, { x: 8, y: 8 })
+	 * editor.duplicateShapes(editor.getSelectedShapes(), { x: 8, y: 8 })
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape ids) to duplicate.
@@ -7288,7 +7292,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _selectionSharedStyles = computed<ReadonlySharedStyleMap>(
 		'_selectionSharedStyles',
 		() => {
-			const { selectedShapes } = this
+			const selectedShapes = this.getSelectedShapes()
 
 			const sharedStyles = new SharedStyleMap()
 			for (const selectedShape of selectedShapes) {
@@ -7418,7 +7422,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param historyOptions - The history options for the change.
 	 */
 	setOpacityForSelectedShapes(opacity: number, historyOptions?: TLCommandHistoryOptions): this {
-		const { selectedShapes } = this
+		const selectedShapes = this.getSelectedShapes()
 
 		if (selectedShapes.length > 0) {
 			const shapesToUpdate: TLShape[] = []
@@ -7505,7 +7509,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		value: T,
 		historyOptions?: TLCommandHistoryOptions
 	): this {
-		const { selectedShapes } = this
+		const selectedShapes = this.getSelectedShapes()
 
 		if (selectedShapes.length > 0) {
 			const updates: {
@@ -7847,7 +7851,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let lowestAncestors: TLShape[] = []
 
 		// Among the selected shapes, find the shape with the fewest ancestors and use its first ancestor.
-		for (const shape of this.selectedShapes) {
+		for (const shape of this.getSelectedShapes()) {
 			if (lowestDepth === 0) break
 
 			const isFrame = this.isShapeOfType<TLFrameShape>(shape, 'frame')

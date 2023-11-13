@@ -487,7 +487,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// Not a class component, but eslint can't tell that :(
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
-		const onlySelectedShape = this.editor.onlySelectedShape
+		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(
 				'select.idle',

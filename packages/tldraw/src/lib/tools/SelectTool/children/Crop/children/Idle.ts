@@ -11,7 +11,7 @@ export class Idle extends StateNode {
 			{ ephemeral: true }
 		)
 
-		const { onlySelectedShape } = this.editor
+		const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 		// well this fucking sucks. what the fuck.
 		// it's possible for a user to enter cropping, then undo
