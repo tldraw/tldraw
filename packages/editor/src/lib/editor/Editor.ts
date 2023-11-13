@@ -1345,8 +1345,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get isMenuOpen(): boolean {
+	@computed getIsMenuOpen(): boolean {
 		return this.getOpenMenus().length > 0
+	}
+
+	/**
+	 * @deprecated Use `getIsMenuOpen` instead.
+	 */
+	get isMenuOpen() {
+		return this.getIsMenuOpen()
 	}
 
 	/* --------------------- Cursor --------------------- */
@@ -8709,7 +8716,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					this._updateInputsFromEvent(info)
 
-					if (this.isMenuOpen) {
+					if (this.getIsMenuOpen()) {
 						// noop
 					} else {
 						if (inputs.ctrlKey) {
@@ -8843,7 +8850,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing = false
 							inputs.isDragging = false
 
-							if (this.isMenuOpen) {
+							if (this.getIsMenuOpen()) {
 								// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
 								return
 							}

@@ -35,7 +35,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		if (this.editor.isMenuOpen) return
+		if (this.editor.getIsMenuOpen()) return
 
 		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
 
