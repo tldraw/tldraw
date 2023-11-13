@@ -37,7 +37,7 @@ describe(SelectTool, () => {
 
 			editor.pointerDown(150, 150).pointerUp()
 			expect(editor.getCurrentPageState().editingShapeId).toBe(null)
-			expect(editor.getPath()).toEqual('root.select.idle')
+			editor.expectToBeIn('select.idle')
 		})
 	})
 	it('does not allow pressing undo to end up in the editing state', () => {
@@ -55,7 +55,7 @@ describe(SelectTool, () => {
 
 		editor.pointerDown(150, 150).pointerUp()
 		expect(editor.getCurrentPageState().editingShapeId).toBe(null)
-		expect(editor.getPath()).toEqual('root.select.idle')
+		editor.expectToBeIn('select.idle')
 
 		editor.undo()
 
