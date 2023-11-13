@@ -995,6 +995,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	} {
 		try {
+			const editingShapeId = this.getEditingShapeId()
 			return {
 				tags: {
 					origin: origin,
@@ -1003,7 +1004,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				extras: {
 					activeStateNode: this.root.path.get(),
 					selectedShapes: this.getSelectedShapes(),
-					editingShape: this.editingShapeId ? this.getShape(this.editingShapeId) : undefined,
+					editingShape: editingShapeId ? this.getShape(editingShapeId) : undefined,
 					inputs: this.inputs,
 				},
 			}
@@ -1893,8 +1894,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get editingShapeId() {
+	@computed getEditingShapeId(): TLShapeId | null {
 		return this.getCurrentPageState().editingShapeId
+	}
+
+	/**
+	 * @deprecated Use `getEditingShapeId` instead.
+	 */
+	get editingShapeId() {
+		return this.getEditingShapeId()
 	}
 
 	/**
@@ -1903,7 +1911,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get editingShape(): TLShape | undefined {
-		const { editingShapeId } = this
+		const editingShapeId = this.getEditingShapeId()
 		return editingShapeId ? this.getShape(editingShapeId) : undefined
 	}
 
@@ -1922,7 +1930,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (id !== this.editingShapeId) {
+		if (id !== this.getEditingShapeId()) {
 			if (id) {
 				const shape = this.getShape(id)
 				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
@@ -3147,7 +3155,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
 
 		// We only really need these if we're using editor state, but that's ok
-		const editingShapeId = this.editingShapeId
+		const editingShapeId = this.getEditingShapeId()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const erasingShapeIds = this.erasingShapeIds
 		const renderingBoundsExpanded = this.renderingBoundsExpanded

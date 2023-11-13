@@ -97,12 +97,13 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			// default on the evnet) if the user is wheeling over an a shape
 			// that is scrollable which they're currently editing.
 
-			if (editor.editingShapeId) {
-				const shape = editor.getShape(editor.editingShapeId)
+			const editingShapeId = editor.getEditingShapeId()
+			if (editingShapeId) {
+				const shape = editor.getShape(editingShapeId)
 				if (shape) {
 					const util = editor.getShapeUtil(shape)
 					if (util.canScroll(shape)) {
-						const bounds = editor.getShapePageBounds(editor.editingShapeId)
+						const bounds = editor.getShapePageBounds(editingShapeId)
 						if (bounds?.containsPoint(editor.inputs.currentPagePoint)) {
 							return
 						}

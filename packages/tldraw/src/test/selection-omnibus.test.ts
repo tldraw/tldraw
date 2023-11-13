@@ -1026,7 +1026,7 @@ describe('Selects inside of groups', () => {
 		expect(editor.hoveredShapeId).toBe(ids.group1)
 		editor.doubleClick()
 		editor.doubleClick()
-		expect(editor.editingShapeId).toBe(ids.box2)
+		expect(editor.getEditingShapeId()).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')
 	})
 
@@ -1429,14 +1429,14 @@ describe('When double clicking an editable shape', () => {
 	it('starts editing on double click', () => {
 		editor.pointerMove(50, 50).doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.editingShapeId).toBe(ids.box1)
+		expect(editor.getEditingShapeId()).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
 	})
 
 	it('does not start editing on double click if shift is down', () => {
 		editor.pointerMove(50, 50).keyDown('Shift').doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		editor.expectToBeIn('select.idle')
 	})
 
@@ -1445,12 +1445,12 @@ describe('When double clicking an editable shape', () => {
 
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		expect(editor.editingShapeId).toBe(ids.box2)
+		expect(editor.getEditingShapeId()).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')
 
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		expect(editor.editingShapeId).toBe(ids.box2)
+		expect(editor.getEditingShapeId()).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')
 	})
 
@@ -1460,13 +1460,13 @@ describe('When double clicking an editable shape', () => {
 		editor.selectNone()
 		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.editingShapeId).toBe(ids.box1)
+		expect(editor.getEditingShapeId()).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
 	})
 })

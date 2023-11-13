@@ -14,7 +14,7 @@ export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ 
 			// When the editor is editing a shape and hovering that shape,
 			// don't show its indicator; but DO show other hover indicators
 			if (editor.isIn('select.editing_shape')) {
-				return editor.hoveredShapeId !== editor.editingShapeId
+				return editor.hoveredShapeId !== editor.getEditingShapeId()
 			}
 
 			// Otherise, only show the hovered indicator when the editor
