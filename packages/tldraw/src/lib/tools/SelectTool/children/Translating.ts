@@ -306,21 +306,26 @@ function getTranslatingSnapshot(editor: Editor) {
 		})
 	)
 
+	let initialSnapPoints: SnapPoint[] = []
+	if (editor.getSelectedShapeIds().length === 1) {
+		initialSnapPoints = editor.snaps.snapPointsCache.get(editor.getSelectedShapeIds()[0])!
+	} else {
+		const selectionPageBounds = editor.getSelectionPageBounds()
+		if (selectionPageBounds) {
+			initialSnapPoints = selectionPageBounds.snapPoints.map((p, i) => ({
+				id: 'selection:' + i,
+				x: p.x,
+				y: p.y,
+			}))
+		}
+	}
+
 	return {
 		averagePagePoint: Vec2d.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
-		initialPageBounds: editor.selectionPageBounds!,
-		initialSnapPoints:
-			editor.getSelectedShapeIds().length === 1
-				? editor.snaps.snapPointsCache.get(editor.getSelectedShapeIds()[0])!
-				: editor.selectionPageBounds
-				? editor.selectionPageBounds.snapPoints.map((p, i) => ({
-						id: 'selection:' + i,
-						x: p.x,
-						y: p.y,
-				  }))
-				: [],
+		initialPageBounds: editor.getSelectionPageBounds()!,
+		initialSnapPoints,
 	}
 }
 

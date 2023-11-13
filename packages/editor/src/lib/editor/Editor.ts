@@ -1681,11 +1681,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get selectionPageBounds(): Box2d | null {
+	@computed getSelectionPageBounds(): Box2d | null {
 		const selectedShapeIds = this.getCurrentPageState().selectedShapeIds
 		if (selectedShapeIds.length === 0) return null
 
 		return Box2d.Common(compact(selectedShapeIds.map((id) => this.getShapePageBounds(id))))
+	}
+
+	/**
+	 * @deprecated Use `getSelectionPageBounds` instead.
+	 */
+	get selectionPageBounds() {
+		return this.getSelectionPageBounds()
 	}
 
 	/**
@@ -1726,7 +1733,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { selectionRotation } = this
 		if (selectionRotation === 0) {
-			return this.selectionPageBounds!
+			return this.getSelectionPageBounds()!
 		}
 
 		if (selectedShapeIds.length === 1) {
@@ -2226,7 +2233,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToContent(): this {
-		const bounds = this.selectionPageBounds ?? this.currentPageBounds
+		const bounds = this.getSelectionPageBounds() ?? this.currentPageBounds
 
 		if (bounds) {
 			this.zoomToBounds(bounds, Math.min(1, this.zoomLevel), { duration: 220 })
@@ -2383,7 +2390,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToSelection(animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { selectionPageBounds } = this
+		const selectionPageBounds = this.getSelectionPageBounds()
 		if (!selectionPageBounds) return this
 
 		this.zoomToBounds(selectionPageBounds, Math.max(1, this.zoomLevel), animation)
@@ -5378,7 +5385,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If we've offset the duplicated shapes, check to see whether their new bounds is entirely
 				// contained in the current viewport. If not, then animate the camera to be centered on the
 				// new shapes.
-				const { viewportPageBounds, selectionPageBounds: selectionPageBounds } = this
+				const selectionPageBounds = this.getSelectionPageBounds()
+				const { viewportPageBounds } = this
 				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 					this.centerOnPoint(selectionPageBounds.center, {
 						duration: ANIMATION_MEDIUM_MS,

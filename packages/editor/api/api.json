@@ -11119,6 +11119,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectionPageBounds:member(1)",
+              "docComment": "/**\n * The current page bounds of all the selected shapes. If the selection is rotated, then these bounds are the axis-aligned box that the rotated bounds would fit inside of.\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectionPageBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectionPageBounds"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShape:member(1)",
               "docComment": "/**\n * Get a shape by its id.\n *\n * @param id - The id of the shape to get.\n *\n * @example\n * ```ts\n * editor.getShape('box1')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -15882,7 +15918,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#selectionPageBounds:member",
-              "docComment": "/**\n * The current page bounds of all the selected shapes. If the selection is rotated, then these bounds are the axis-aligned box that the rotated bounds would fit inside of.\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getSelectionPageBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
