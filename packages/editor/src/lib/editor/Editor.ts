@@ -464,7 +464,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			const deletedIds = new Set([record.id])
 			const updates = compact(
-				this.pageStates.map((pageState) => {
+				this.getPageStates().map((pageState) => {
 					return cleanupInstancePageState(pageState, deletedIds)
 				})
 			)
@@ -514,7 +514,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					allMovingIds.add(id)
 				})
 
-				for (const instancePageState of this.pageStates) {
+				for (const instancePageState of this.getPageStates()) {
 					if (instancePageState.pageId === next.parentId) continue
 					const nextPageState = cleanupInstancePageState(instancePageState, allMovingIds)
 
@@ -1381,11 +1381,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get pageStates(): TLInstancePageState[] {
-		return this._pageStates.get()
+	@computed getPageStates(): TLInstancePageState[] {
+		return this._getPageStatesQuery().get()
 	}
+
+	/**
+	 * @deprecated Use `getPageStates` instead.
+	 */
+	get pageStates() {
+		return this.getPageStates()
+	}
+
 	/** @internal */
-	@computed private get _pageStates() {
+	@computed private _getPageStatesQuery() {
 		return this.store.query.records('instance_page_state')
 	}
 
@@ -3373,7 +3381,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// in multiplayer contexts this page might have been deleted
 					return
 				}
-				if (!this.pageStates.find((p) => p.pageId === toId)) {
+				if (!this.getPageStates().find((p) => p.pageId === toId)) {
 					const camera = CameraRecordType.create({
 						id: CameraRecordType.createId(toId),
 					})
@@ -3548,7 +3556,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (pages.length === 1) return null
 
 			const deletedPage = this.getPage(id)
-			const deletedPageStates = this.pageStates.filter((s) => s.pageId === id)
+			const deletedPageStates = this.getPageStates().filter((s) => s.pageId === id)
 
 			if (!deletedPage) return null
 

@@ -10737,6 +10737,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getPageStates:member(1)",
+              "docComment": "/**\n * Page states.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPageStates(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstancePageState",
+                  "canonicalReference": "@tldraw/tlschema!TLInstancePageState:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPageStates"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPointInParentSpace:member(1)",
               "docComment": "/**\n * Convert a delta in the current page space to a point in the local space of a shape's parent.\n *\n * @param shape - The shape to get the point in the local space of.\n *\n * @param point - The page point to get in the local space of the shape.\n *\n * @example\n * ```ts\n * editor.getPointInParentSpace(myShape.id, { x: 100, y: 100 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -14199,7 +14235,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#pageStates:member",
-              "docComment": "/**\n * Page states.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getPageStates` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
