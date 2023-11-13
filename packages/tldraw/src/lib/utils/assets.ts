@@ -40,20 +40,27 @@ export function containBoxSize(
 /**
  * Get the size of an image from its source.
  *
+ * @example
+ * ```ts
+ * const size = await getImageSize('https://example.com/image.jpg')
+ * const dataUrl = await getResizedImageDataUrl('https://example.com/image.jpg', size.w, size.h, { type: "image/jpeg", quality: 0.92 })
+ * ```
+ *
  * @param dataURLForImage - The image file as a string.
  * @param width - The desired width.
  * @param height - The desired height.
+ * @param opts - Options for the image.
  * @public
  */
 export async function getResizedImageDataUrl(
 	dataURLForImage: string,
 	width: number,
 	height: number,
-	type = 'image/png',
-	quality = 0.8
+	opts = {} as { type?: string; quality?: number }
 ): Promise<string> {
 	let desiredWidth = width * 2
 	let desiredHeight = height * 2
+	const { type = 'image/jpeg', quality = 0.92 } = opts
 
 	const canvasSizes = await getBrowserCanvasMaxSize()
 

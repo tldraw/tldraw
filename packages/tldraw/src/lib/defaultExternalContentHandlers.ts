@@ -97,7 +97,10 @@ export function registerDefaultExternalContentHandlers(
 
 				// Always rescale the image
 				if (file.type === 'image/jpeg' || file.type === 'image/png') {
-					dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h, file.type, 0.8)
+					dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h, {
+						type: file.type,
+						quality: 0.92,
+					})
 				}
 
 				const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
