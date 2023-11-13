@@ -253,6 +253,7 @@ function computedMethodAnnotation(
 		}
 		return d.get()
 	}
+	descriptor.value[isComputedMethodKey] = true
 
 	return descriptor
 }
@@ -298,6 +299,8 @@ function computedGetterAnnotation(
 	return descriptor
 }
 
+const isComputedMethodKey = '@@__isComputedMethod__@@'
+
 /**
  * Retrieves the underlying computed instance for a given property created with the [[computed]]
  * decorator.
@@ -328,12 +331,15 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	obj: Obj,
 	propertyName: Prop
 ): Computed<Obj[Prop]> {
-	// deref to make sure it exists first
 	const key = Symbol.for('__@tldraw/state__computed__' + propertyName.toString())
 	let inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
 	if (!inst) {
 		// deref to make sure it exists first
-		obj[propertyName]
+		const val = obj[propertyName]
+		if (typeof val === 'function' && (val as any)[isComputedMethodKey]) {
+			val.call(obj)
+		}
+
 		inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
 	}
 	return inst as any
