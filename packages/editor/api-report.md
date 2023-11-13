@@ -618,6 +618,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageShapeIds(): Set<TLShapeId>;
     get currentPageShapes(): TLShape[];
     get currentPageShapesSorted(): TLShape[];
+    // @deprecated (undocumented)
     get currentPageState(): TLInstancePageState;
     // @deprecated (undocumented)
     get currentTool(): StateNode | undefined;
@@ -679,6 +680,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode | undefined;
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;

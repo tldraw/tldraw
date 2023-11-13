@@ -369,7 +369,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				const { selectedShapeIds } = this.editor.currentPageState
+				const { selectedShapeIds } = this.editor.getCurrentPageState()
 				const { shape } = info
 
 				const targetShape = this.editor.getOutermostSelectableShape(

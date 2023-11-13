@@ -516,14 +516,14 @@ describe('frame shapes', () => {
 		const frameId = editor.onlySelectedShape!.id
 
 		expect(editor.selectedShapeIds[0]).toBe(frameId)
-		expect(editor.currentPageState.editingShapeId).toBe(null)
+		expect(editor.getCurrentPageState().editingShapeId).toBe(null)
 
 		editor.setCurrentTool('select')
 
 		editor.keyDown('Enter')
 		editor.keyUp('Enter')
 
-		expect(editor.currentPageState.editingShapeId).toBe(frameId)
+		expect(editor.getCurrentPageState().editingShapeId).toBe(frameId)
 	})
 
 	it('can be selected with box brushing only if the whole frame is selected', () => {

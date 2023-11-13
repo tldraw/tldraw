@@ -335,7 +335,7 @@ function SelectedIdIndicators() {
 	const editor = useEditor()
 	const selectedShapeIds = useValue(
 		'selectedShapeIds',
-		() => editor.currentPageState.selectedShapeIds,
+		() => editor.getCurrentPageState().selectedShapeIds,
 		[editor]
 	)
 	const shouldDisplay = useValue(
@@ -381,7 +381,7 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 		() => editor.getInstanceState().isHoveringCanvas,
 		[editor]
 	)
-	const hoveredShapeId = useValue('hovered id', () => editor.currentPageState.hoveredShapeId, [
+	const hoveredShapeId = useValue('hovered id', () => editor.getCurrentPageState().hoveredShapeId, [
 		editor,
 	])
 

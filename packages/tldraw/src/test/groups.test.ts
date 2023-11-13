@@ -1494,8 +1494,8 @@ describe('erasing', () => {
 
 		// erase D
 		editor.pointerDown(65, 5, ids.boxD)
-		expect(editor.currentPageState.erasingShapeIds.length).toBe(1)
-		expect(editor.currentPageState.erasingShapeIds[0]).toBe(groupCId)
+		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
+		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(groupCId)
 		editor.pointerUp()
 		expect(editor.getShape(groupCId)).toBeFalsy()
 	})
@@ -1515,8 +1515,8 @@ describe('erasing', () => {
 
 		// erase B
 		editor.pointerDown(25, 5, ids.boxB)
-		expect(editor.currentPageState.erasingShapeIds.length).toBe(1)
-		expect(editor.currentPageState.erasingShapeIds[0]).toBe(ids.boxB)
+		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
+		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(ids.boxB)
 		editor.pointerUp()
 
 		// group A disappears
@@ -1531,8 +1531,8 @@ describe('erasing', () => {
 
 		// erase E
 		editor.pointerDown(5, 25, ids.boxE)
-		expect(editor.currentPageState.erasingShapeIds.length).toBe(1)
-		expect(editor.currentPageState.erasingShapeIds[0]).toBe(ids.boxE)
+		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
+		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(ids.boxE)
 
 		// move to group B
 		editor.pointerMove(65, 5)
