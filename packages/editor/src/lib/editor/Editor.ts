@@ -1960,8 +1960,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed get hoveredShapeId() {
+	@computed getHoveredShapeId(): TLShapeId | null {
 		return this.getCurrentPageState().hoveredShapeId
+	}
+
+	/**
+	 * @deprecated Use `getHoveredShapeId` instead.
+	 */
+	get hoveredShapeId() {
+		return this.getHoveredShapeId()
 	}
 
 	/**
@@ -1970,7 +1977,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get hoveredShape(): TLShape | undefined {
-		const { hoveredShapeId } = this
+		const hoveredShapeId = this.getHoveredShapeId()
 		return hoveredShapeId ? this.getShape(hoveredShapeId) : undefined
 	}
 
@@ -1989,7 +1996,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (id === this.hoveredShapeId) return this
+		if (id === this.getHoveredShapeId()) return this
 		this.updateCurrentPageState({ hoveredShapeId: id }, { ephemeral: true })
 		return this
 	}

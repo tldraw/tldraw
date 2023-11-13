@@ -694,6 +694,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
+    getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
@@ -761,6 +762,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get hintingShapes(): NonNullable<TLShape | undefined>[];
     readonly history: HistoryManager<this>;
     get hoveredShape(): TLShape | undefined;
+    // @deprecated (undocumented)
     get hoveredShapeId(): null | TLShapeId;
     inputs: {
         originPagePoint: Vec2d;
