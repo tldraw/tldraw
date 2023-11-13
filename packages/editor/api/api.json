@@ -9283,7 +9283,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#erasingShapes:member",
-              "docComment": "/**\n * The editor's current hinting shapes.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getErasingShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10444,6 +10444,51 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getErasingShapeIds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getErasingShapes:member(1)",
+              "docComment": "/**\n * The editor's current erasing shapes.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getErasingShapes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "NonNullable",
+                  "canonicalReference": "!NonNullable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined>[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getErasingShapes"
             },
             {
               "kind": "Method",

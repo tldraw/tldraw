@@ -649,6 +649,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly environment: EnvironmentManager;
     // @deprecated (undocumented)
     get erasingShapeIds(): TLShapeId[];
+    // @deprecated (undocumented)
     get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -693,6 +694,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
     getErasingShapeIds(): TLShapeId[];
+    getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;

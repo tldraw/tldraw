@@ -2085,13 +2085,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The editor's current hinting shapes.
+	 * The editor's current erasing shapes.
 	 *
 	 * @public
 	 */
-	@computed get erasingShapes() {
+	@computed getErasingShapes() {
 		const erasingShapeIds = this.getErasingShapeIds()
 		return compact(erasingShapeIds.map((id) => this.getShape(id)))
+	}
+
+	/**
+	 * @deprecated Use `getErasingShapes` instead.
+	 */
+	get erasingShapes() {
+		return this.getErasingShapes()
 	}
 
 	/**
