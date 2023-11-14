@@ -54,6 +54,7 @@ async function main() {
 			'-T',
 			'prettier',
 			shouldFix ? '--write' : '--check',
+			'--cache',
 			...prettierFiles,
 		])
 		await exec('yarn', [
