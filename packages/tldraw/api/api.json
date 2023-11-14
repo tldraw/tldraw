@@ -7236,7 +7236,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!getResizedImageDataUrl:function(1)",
-          "docComment": "/**\n * Get the size of an image from its source.\n *\n * @param dataURLForImage - The image file as a string.\n *\n * @param width - The desired width.\n *\n * @param height - The desired height.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Get the size of an image from its source.\n *\n * @param dataURLForImage - The image file as a string.\n *\n * @param width - The desired width.\n *\n * @param height - The desired height.\n *\n * @param opts - Options for the image.\n *\n * @example\n * ```ts\n * const size = await getImageSize('https://example.com/image.jpg')\n * const dataUrl = await getResizedImageDataUrl('https://example.com/image.jpg', size.w, size.h, { type: \"image/jpeg\", quality: 0.92 })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -7264,6 +7264,14 @@
             },
             {
               "kind": "Content",
+              "text": ", opts?: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    type?: string | undefined;\n    quality?: number | undefined;\n}"
+            },
+            {
+              "kind": "Content",
               "text": "): "
             },
             {
@@ -7282,8 +7290,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
           "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 9
+            "startIndex": 9,
+            "endIndex": 11
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -7311,6 +7319,14 @@
                 "endIndex": 6
               },
               "isOptional": false
+            },
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "isOptional": true
             }
           ],
           "name": "getResizedImageDataUrl"
