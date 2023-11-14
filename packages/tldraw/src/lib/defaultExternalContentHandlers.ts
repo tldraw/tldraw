@@ -301,8 +301,8 @@ export function registerDefaultExternalContentHandlers(
 		})
 
 		const minWidth = Math.min(
-			isMultiLine ? editor.viewportPageBounds.width * 0.9 : 920,
-			Math.max(200, editor.viewportPageBounds.width * 0.9)
+			isMultiLine ? editor.getViewportPageBounds().width * 0.9 : 920,
+			Math.max(200, editor.getViewportPageBounds().width * 0.9)
 		)
 
 		if (rawSize.w > minWidth) {
@@ -323,8 +323,8 @@ export function registerDefaultExternalContentHandlers(
 			autoSize = true
 		}
 
-		if (p.y - h / 2 < editor.viewportPageBounds.minY + 40) {
-			p.y = editor.viewportPageBounds.minY + 40 + h / 2
+		if (p.y - h / 2 < editor.getViewportPageBounds().minY + 40) {
+			p.y = editor.getViewportPageBounds().minY + 40 + h / 2
 		}
 
 		editor.createShapes<TLTextShape>([
@@ -475,7 +475,7 @@ export async function createShapesForAssets(
 
 function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	// Re-position shapes so that the center of the group is at the provided point
-	const { viewportPageBounds } = editor
+	const viewportPageBounds = editor.getViewportPageBounds()
 	let selectionPageBounds = editor.getSelectionPageBounds()
 
 	if (selectionPageBounds) {

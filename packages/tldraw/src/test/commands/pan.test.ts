@@ -22,10 +22,10 @@ describe('When panning', () => {
 			screenBounds.w,
 			screenBounds.h
 		)
-		const beforePageBounds = editor.viewportPageBounds.clone()
+		const beforePageBounds = editor.getViewportPageBounds().clone()
 		editor.pan({ x: 200, y: 200 })
 		expect(editor.getViewportScreenBounds()).toMatchObject(beforeScreenBounds.toJson())
-		expect(editor.viewportPageBounds.toJson()).toMatchObject(
+		expect(editor.getViewportPageBounds().toJson()).toMatchObject(
 			beforePageBounds.translate(new Vec2d(-200, -200)).toJson()
 		)
 	})

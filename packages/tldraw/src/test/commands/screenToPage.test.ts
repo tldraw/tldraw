@@ -165,7 +165,7 @@ describe('viewportPageBounds', () => {
 		})
 		editor.setCamera({ x: 0, y: 0, z: 1 })
 
-		expect(editor.viewportPageBounds).toMatchObject({
+		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -0,
 			y: -0,
 			w: 1000,
@@ -179,7 +179,7 @@ describe('viewportPageBounds', () => {
 		})
 		editor.setCamera({ x: 0, y: 0, z: 2 })
 
-		expect(editor.viewportPageBounds).toMatchObject({
+		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -0,
 			y: -0,
 			w: 500,
@@ -187,7 +187,7 @@ describe('viewportPageBounds', () => {
 		})
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
 
-		expect(editor.viewportPageBounds).toMatchObject({
+		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -0,
 			y: -0,
 			w: 2000,
@@ -201,7 +201,7 @@ describe('viewportPageBounds', () => {
 		})
 		editor.setCamera({ x: 100, y: 100, z: 1 })
 
-		expect(editor.viewportPageBounds).toMatchObject({
+		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -100,
 			y: -100,
 			w: 1000,
@@ -217,7 +217,7 @@ describe('viewportPageBounds', () => {
 		})
 		editor.setCamera({ x: 100, y: 100, z: 2 })
 
-		expect(editor.viewportPageBounds).toMatchObject({
+		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -100,
 			y: -100,
 			w: 500,
@@ -234,7 +234,7 @@ describe('viewportPageBounds', () => {
 		editor.setCamera({ x: 0, y: 0, z: 2 })
 
 		// changing the screen bounds should not affect the page bounds
-		expect(editor.viewportPageBounds).toMatchObject({
+		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -0,
 			y: -0,
 			w: 500,

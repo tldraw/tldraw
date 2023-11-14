@@ -81,7 +81,7 @@ const Collaborator = track(function Collaborator({
 	} = useEditorComponents()
 
 	const zoomLevel = editor.getZoomLevel()
-	const { viewportPageBounds } = editor
+	const viewportPageBounds = editor.getViewportPageBounds()
 	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
 		latestPresence
 

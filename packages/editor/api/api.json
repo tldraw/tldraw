@@ -13277,6 +13277,38 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getViewportPageBounds:member(1)",
+              "docComment": "/**\n * The current viewport in the current page space.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getViewportPageBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getViewportPageBounds"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getViewportScreenBounds:member(1)",
               "docComment": "/**\n * The bounds of the editor's viewport in screen space.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -19220,7 +19252,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#viewportPageBounds:member",
-              "docComment": "/**\n * The current viewport in the current page space.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getViewportPageBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

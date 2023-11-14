@@ -763,6 +763,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         darkMode?: boolean | undefined;
         preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     }>): Promise<SVGSVGElement | undefined>;
+    getViewportPageBounds(): Box2d;
     getViewportScreenBounds(): Box2d;
     getViewportScreenCenter(): Vec2d;
     getZoomLevel(): number;
@@ -944,6 +945,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
+    // @deprecated (undocumented)
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
     // @deprecated (undocumented)
