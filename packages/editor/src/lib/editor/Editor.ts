@@ -7107,7 +7107,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	removeFrame(id: TLShapeId): this {
 		const frame = this.getShape(id)
-		if (!frame || frame.type !== 'frame') return this
+		if (!frame || !this.isShapeOfType<TLFrameShape>(frame, 'frame')) return this
 
 		const children = this.getSortedChildIdsForParent(id)
 		if (!children.length) return this
