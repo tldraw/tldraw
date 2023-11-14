@@ -15,7 +15,7 @@ beforeEach(() => {
 
 it('Duplicates a page', () => {
 	const oldPageId = editor.currentPageId
-	const camera = { ...editor.camera }
+	const camera = { ...editor.getCamera() }
 	const n = editor.pages.length
 	expect(editor.currentPageShapes.length).toBe(1)
 
@@ -34,8 +34,8 @@ it('Duplicates a page', () => {
 	expect(editor.currentPageShapes.length).toBe(1)
 
 	// Also duplicates the camera
-	expect(editor.camera.x).toBe(camera.x)
-	expect(editor.camera.y).toBe(camera.y)
+	expect(editor.getCamera().x).toBe(camera.x)
+	expect(editor.getCamera().y).toBe(camera.y)
 	expect(editor.zoomLevel).toBe(camera.z)
 
 	editor.undo()

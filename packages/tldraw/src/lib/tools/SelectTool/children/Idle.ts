@@ -139,7 +139,7 @@ export class Idle extends StateNode {
 						break
 					}
 					default: {
-						const { hoveredShape } = this.editor
+						const hoveredShape = this.editor.getHoveredShape()
 						if (hoveredShape && !this.editor.getSelectedShapeIds().includes(hoveredShape.id)) {
 							this.onPointerDown({
 								...info,
@@ -162,7 +162,7 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredShape } = this.editor
+				const hoveredShape = this.editor.getHoveredShape()
 
 				// todo
 				// double clicking on the middle of a hollow geo shape without a label, or
@@ -324,7 +324,7 @@ export class Idle extends StateNode {
 	override onRightClick: TLEventHandlers['onRightClick'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredShape } = this.editor
+				const hoveredShape = this.editor.getHoveredShape()
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape

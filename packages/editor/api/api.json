@@ -7400,41 +7400,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#camera:member",
-              "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get camera(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/tlschema\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLCamera",
-                  "canonicalReference": "@tldraw/tlschema!TLCamera:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "camera",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#cameraState:member",
               "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -9248,7 +9213,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#erasingShapeIds:member",
-              "docComment": "/**\n * The editor's current erasing ids.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getErasingShapeIds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9283,7 +9248,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#erasingShapes:member",
-              "docComment": "/**\n * The editor's current hinting shapes.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getErasingShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9969,6 +9934,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCamera:member(1)",
+              "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCamera(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCamera",
+                  "canonicalReference": "@tldraw/tlschema!TLCamera:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCamera"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCanRedo:member(1)",
               "docComment": "/**\n * Whether the app can redo.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10411,6 +10412,87 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getErasingShapeIds:member(1)",
+              "docComment": "/**\n * The editor's current erasing ids.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getErasingShapeIds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getErasingShapeIds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getErasingShapes:member(1)",
+              "docComment": "/**\n * The editor's current erasing shapes.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getErasingShapes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "NonNullable",
+                  "canonicalReference": "!NonNullable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined>[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getErasingShapes"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getFocusedGroup:member(1)",
               "docComment": "/**\n * The current focused group.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10552,6 +10634,159 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getHighestIndexForParent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHintingShape:member(1)",
+              "docComment": "/**\n * The editor's current hinting shapes.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHintingShape(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "NonNullable",
+                  "canonicalReference": "!NonNullable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined>[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHintingShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHintingShapeIds:member(1)",
+              "docComment": "/**\n * The editor's current hinting shape ids.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHintingShapeIds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHintingShapeIds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHoveredShape:member(1)",
+              "docComment": "/**\n * The current hovered shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHoveredShape(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHoveredShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHoveredShapeId:member(1)",
+              "docComment": "/**\n * The current hovered shape id.\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHoveredShapeId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHoveredShapeId"
             },
             {
               "kind": "Method",
@@ -13231,47 +13466,12 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#hintingShapeIds:member",
-              "docComment": "/**\n * The editor's current hinting shape ids.\n *\n * @public\n */\n",
+              "canonicalReference": "@tldraw/editor!Editor#hintingShape:member",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHintingShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "get hintingShapeIds(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "hintingShapeIds",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#hintingShapes:member",
-              "docComment": "/**\n * The editor's current hinting shapes.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get hintingShapes(): "
+                  "text": "get hintingShape(): "
                 },
                 {
                   "kind": "Reference",
@@ -13299,10 +13499,45 @@
               "isReadonly": true,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "hintingShapes",
+              "name": "hintingShape",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 5
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#hintingShapeIds:member",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHintingShapeIds` instead.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get hintingShapeIds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hintingShapeIds",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
               },
               "isStatic": false,
               "isProtected": false,
@@ -13346,7 +13581,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#hoveredShape:member",
-              "docComment": "/**\n * The current hovered shape.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHoveredShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13381,7 +13616,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#hoveredShapeId:member",
-              "docComment": "/**\n * The current hovered shape id.\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHoveredShapeId` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

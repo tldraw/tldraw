@@ -16,15 +16,16 @@ export const PositionedOnCanvas = track(function PositionedOnCanvas({
 } & HTMLProps<HTMLDivElement>) {
 	const editor = useEditor()
 	const rContainer = useRef<HTMLDivElement>(null)
+	const camera = editor.getCamera()
 
 	useLayoutEffect(() => {
-		const { x, y, z } = editor.camera
+		const { x, y, z } = editor.getCamera()
 		const elm = rContainer.current
 		if (!elm) return
 		if (x === undefined) return
 
 		elm.style.transform = `translate(${x}px, ${y}px) scale(${z}) rotate(${rotation}rad) translate(${offsetX}px, ${offsetY}px)`
-	}, [editor.camera, offsetX, offsetY, rotation])
+	}, [camera, editor, offsetX, offsetY, rotation])
 
 	return <div ref={rContainer} {...rest} className={classNames('tl-positioned', rest.className)} />
 })

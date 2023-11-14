@@ -575,7 +575,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
-    get camera(): TLCamera;
     get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
@@ -647,7 +646,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated (undocumented)
     get editingShapeId(): null | TLShapeId;
     readonly environment: EnvironmentManager;
+    // @deprecated (undocumented)
     get erasingShapeIds(): TLShapeId[];
+    // @deprecated (undocumented)
     get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -680,6 +681,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
+    getCamera(): TLCamera;
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
@@ -691,9 +693,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
+    getErasingShapeIds(): TLShapeId[];
+    getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
+    getHintingShape(): NonNullable<TLShape | undefined>[];
+    getHintingShapeIds(): TLShapeId[];
+    getHoveredShape(): TLShape | undefined;
+    getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
@@ -758,10 +766,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     }>): Promise<SVGSVGElement | undefined>;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
+    // @deprecated (undocumented)
+    get hintingShape(): NonNullable<TLShape | undefined>[];
+    // @deprecated (undocumented)
     get hintingShapeIds(): TLShapeId[];
-    get hintingShapes(): NonNullable<TLShape | undefined>[];
     readonly history: HistoryManager<this>;
+    // @deprecated (undocumented)
     get hoveredShape(): TLShape | undefined;
+    // @deprecated (undocumented)
     get hoveredShapeId(): null | TLShapeId;
     inputs: {
         originPagePoint: Vec2d;

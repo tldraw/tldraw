@@ -74,16 +74,16 @@ describe(HandTool, () => {
 describe('When in the idle state', () => {
 	it('Returns to select on cancel', () => {
 		editor.setCurrentTool('hand')
-		editor.expectToBeIn('hand.idle')
+		editor.expectPathToBe('root.hand.idle')
 		editor.cancel()
-		editor.expectToBeIn('select.idle')
+		editor.expectPathToBe('root.select.idle')
 	})
 })
 
 describe('When selecting the tool', () => {
 	it('selects the tool and enters the idle state', () => {
 		editor.setCurrentTool('hand')
-		editor.expectToBeIn('hand.idle')
+		editor.expectPathToBe('root.hand.idle')
 	})
 })
 
@@ -91,19 +91,19 @@ describe('When in the idle state', () => {
 	it('Enters pointing state on pointer down', () => {
 		editor.setCurrentTool('hand')
 		editor.pointerDown(100, 100)
-		editor.expectToBeIn('hand.pointing')
+		editor.expectPathToBe('root.hand.pointing')
 	})
 
 	it('Switches back to select tool on cancel', () => {
 		editor.setCurrentTool('hand')
 		editor.cancel()
-		editor.expectToBeIn('select.idle')
+		editor.expectPathToBe('root.select.idle')
 	})
 
 	it('Does nothing on interrupt', () => {
 		editor.setCurrentTool('hand')
 		editor.interrupt()
-		editor.expectToBeIn('hand.idle')
+		editor.expectPathToBe('root.hand.idle')
 	})
 })
 
@@ -111,49 +111,49 @@ describe('When in the pointing state', () => {
 	it('Switches back to idle on cancel', () => {
 		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
-		editor.expectToBeIn('hand.pointing')
+		editor.expectPathToBe('root.hand.pointing')
 		editor.cancel()
-		editor.expectToBeIn('hand.idle')
+		editor.expectPathToBe('root.hand.idle')
 	})
 
 	it('Enters the dragging state on drag start', () => {
 		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(51, 51) // not far enough!
-		editor.expectToBeIn('hand.pointing')
+		editor.expectPathToBe('root.hand.pointing')
 		editor.pointerMove(55, 55)
-		editor.expectToBeIn('hand.dragging')
+		editor.expectPathToBe('root.hand.dragging')
 	})
 
 	it('Returns to the idle state on cancel', () => {
 		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
 		editor.cancel()
-		editor.expectToBeIn('hand.idle')
+		editor.expectPathToBe('root.hand.idle')
 	})
 
 	it('Returns to the idle state on interrupt', () => {
 		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
 		editor.interrupt()
-		editor.expectToBeIn('hand.idle')
+		editor.expectPathToBe('root.hand.idle')
 	})
 })
 
 describe('When in the dragging state', () => {
 	it('Moves the camera', () => {
 		editor.setCurrentTool('hand')
-		expect(editor.camera.x).toBe(0)
-		expect(editor.camera.y).toBe(0)
+		expect(editor.getCamera().x).toBe(0)
+		expect(editor.getCamera().y).toBe(0)
 		editor.pointerDown(50, 50)
-		editor.expectToBeIn('hand.pointing')
+		editor.expectPathToBe('root.hand.pointing')
 		editor.pointerMove(75, 75)
-		expect(editor.camera.x).toBe(25)
-		expect(editor.camera.y).toBe(25)
-		editor.expectToBeIn('hand.dragging')
+		expect(editor.getCamera().x).toBe(25)
+		expect(editor.getCamera().y).toBe(25)
+		editor.expectPathToBe('root.hand.dragging')
 		editor.pointerMove(100, 100)
-		expect(editor.camera.x).toBe(50)
-		expect(editor.camera.y).toBe(50)
+		expect(editor.getCamera().x).toBe(50)
+		expect(editor.getCamera().y).toBe(50)
 		editor.pointerUp()
 	})
 
@@ -186,6 +186,6 @@ describe('When in the dragging state', () => {
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)
 		editor.cancel()
-		editor.expectToBeIn('hand.idle')
+		editor.expectPathToBe('root.hand.idle')
 	})
 })

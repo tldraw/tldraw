@@ -34,7 +34,7 @@ beforeEach(() => {
 it('enters the arrow state', () => {
 	editor.setCurrentTool('arrow')
 	expect(editor.getCurrentToolId()).toBe('arrow')
-	editor.expectToBeIn('arrow.idle')
+	editor.expectPathToBe('root.arrow.idle')
 })
 
 describe('When in the idle state', () => {
@@ -43,7 +43,7 @@ describe('When in the idle state', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		editor.expectToBeIn('arrow.pointing')
+		editor.expectPathToBe('root.arrow.pointing')
 	})
 
 	it('returns to select on cancel', () => {
@@ -59,8 +59,8 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerUp(0, 0)
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
-		expect(editor.hintingShapeIds.length).toBe(0)
-		editor.expectToBeIn('arrow.idle')
+		expect(editor.getHintingShapeIds().length).toBe(0)
+		editor.expectPathToBe('root.arrow.idle')
 	})
 
 	it('bails on cancel', () => {
@@ -68,13 +68,13 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).cancel()
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
-		expect(editor.hintingShapeIds.length).toBe(0)
-		editor.expectToBeIn('arrow.idle')
+		expect(editor.getHintingShapeIds().length).toBe(0)
+		editor.expectPathToBe('root.arrow.idle')
 	})
 
 	it('enters the dragging state on pointer move', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectPathToBe('root.select.dragging_handle')
 	})
 })
 
@@ -93,7 +93,7 @@ describe('When dragging the arrow', () => {
 				end: { type: 'point', x: 10, y: 10 },
 			},
 		})
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectPathToBe('root.select.dragging_handle')
 	})
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {
@@ -101,8 +101,8 @@ describe('When dragging the arrow', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).pointerUp(10, 10)
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingShapeIds.length).toBe(0)
-		editor.expectToBeIn('select.idle')
+		expect(editor.getHintingShapeIds().length).toBe(0)
+		editor.expectPathToBe('root.select.idle')
 	})
 
 	it('returns to arrow.idle, keeping shape, on pointer up when tool lock is active', () => {
@@ -111,8 +111,8 @@ describe('When dragging the arrow', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).pointerUp(10, 10)
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingShapeIds.length).toBe(0)
-		editor.expectToBeIn('arrow.idle')
+		expect(editor.getHintingShapeIds().length).toBe(0)
+		editor.expectPathToBe('root.arrow.idle')
 	})
 
 	it('bails on cancel', () => {
@@ -120,7 +120,7 @@ describe('When dragging the arrow', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).cancel()
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
-		editor.expectToBeIn('arrow.idle')
+		editor.expectPathToBe('root.arrow.idle')
 	})
 })
 
@@ -129,7 +129,7 @@ describe('When pointing a start shape', () => {
 		editor.setCurrentTool('arrow').pointerDown(375, 375)
 
 		// Set hinting ids when moving away
-		expect(editor.hintingShapeIds.length).toBe(1)
+		expect(editor.getHintingShapeIds().length).toBe(1)
 
 		// Fake some velocity
 		editor.inputs.pointerVelocity = new Vec2d(1, 1)
@@ -137,7 +137,7 @@ describe('When pointing a start shape', () => {
 		editor.pointerMove(375, 500)
 
 		// Clear hinting ids when moving away
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 
 		const arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		editor.expectShapeToMatch(arrow, {
@@ -159,7 +159,7 @@ describe('When pointing a start shape', () => {
 		editor.pointerUp()
 
 		// Clear hinting ids on pointer up
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 	})
 })
 
@@ -168,7 +168,7 @@ describe('When pointing an end shape', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 0)
 
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 
 		// Fake some velocity
 		editor.inputs.pointerVelocity = new Vec2d(1, 1)
@@ -177,7 +177,7 @@ describe('When pointing an end shape', () => {
 		editor.pointerMove(375, 375)
 
 		// Set hinting id when pointing the shape
-		expect(editor.hintingShapeIds.length).toBe(1)
+		expect(editor.getHintingShapeIds().length).toBe(1)
 
 		const arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		editor.expectShapeToMatch(arrow, {
@@ -198,7 +198,7 @@ describe('When pointing an end shape', () => {
 
 		// Clear hinting ids on pointer up
 		editor.pointerUp()
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 	})
 
 	it('unbinds and rebinds', () => {
@@ -210,7 +210,7 @@ describe('When pointing an end shape', () => {
 
 		let arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 
-		expect(editor.hintingShapeIds.length).toBe(1)
+		expect(editor.getHintingShapeIds().length).toBe(1)
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -249,7 +249,7 @@ describe('When pointing an end shape', () => {
 		})
 
 		editor.pointerMove(375, 0)
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 		arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 
 		editor.expectShapeToMatch(arrow, {
@@ -266,7 +266,7 @@ describe('When pointing an end shape', () => {
 		// Build up some velocity
 		editor.inputs.pointerVelocity = new Vec2d(1, 1)
 		editor.pointerMove(325, 325)
-		expect(editor.hintingShapeIds.length).toBe(1)
+		expect(editor.getHintingShapeIds().length).toBe(1)
 
 		arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 
@@ -308,7 +308,7 @@ describe('When pointing an end shape', () => {
 		})
 
 		editor.pointerUp()
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 	})
 
 	it('begins imprecise when moving quickly', () => {
@@ -318,7 +318,7 @@ describe('When pointing an end shape', () => {
 
 		const arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 
-		expect(editor.hintingShapeIds.length).toBe(1)
+		expect(editor.getHintingShapeIds().length).toBe(1)
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -353,14 +353,14 @@ describe('When pointing an end shape', () => {
 			},
 		})
 
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 
 		editor.inputs.pointerVelocity = new Vec2d(0.001, 0.001)
 		editor.pointerMove(375, 375)
 
 		arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 
-		expect(editor.hintingShapeIds.length).toBe(1)
+		expect(editor.getHintingShapeIds().length).toBe(1)
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -409,10 +409,10 @@ describe('reparenting issue', () => {
 			handle: { id: 'end', type: 'vertex', index: 'a0', x: 100, y: 100 },
 			shape: editor.getShape(arrowId)!,
 		})
-		editor.expectToBeIn('select.pointing_handle')
+		editor.expectPathToBe('root.select.pointing_handle')
 
 		editor.pointerMove(320, 320) // over box 2
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectPathToBe('root.select.dragging_handle')
 		editor.expectShapeToMatch({
 			id: arrowId,
 			index: 'a3V',

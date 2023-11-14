@@ -97,17 +97,17 @@ describe('When clicking', () => {
 		editor.setCurrentTool('eraser')
 
 		// Starts in idle
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 
 		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(0, 0) // near enough to box1
 
 		// Enters the pointing state
-		editor.expectToBeIn('eraser.pointing')
+		editor.expectPathToBe('root.eraser.pointing')
 
 		// Sets the erasingShapeIds array
-		expect(editor.erasingShapeIds).toEqual([ids.box1])
+		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 
 		editor.pointerUp()
 
@@ -118,10 +118,10 @@ describe('When clicking', () => {
 		expect(shapesAfterCount).toBe(shapesBeforeCount - 1)
 
 		// Also empties the erasingShapeIds array
-		expect(editor.erasingShapeIds).toEqual([])
+		expect(editor.getErasingShapeIds()).toEqual([])
 
 		// Returns to idle
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 
 		editor.undo()
 
@@ -141,7 +141,7 @@ describe('When clicking', () => {
 
 		editor.pointerDown(99, 99) // next to box1 AND in box2
 
-		expect(new Set(editor.erasingShapeIds)).toEqual(new Set([ids.box1, ids.box2]))
+		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2]))
 
 		editor.pointerUp()
 
@@ -160,7 +160,7 @@ describe('When clicking', () => {
 
 		editor.pointerDown(350, 350) // in box3
 
-		expect(new Set(editor.erasingShapeIds)).toEqual(new Set([ids.group1]))
+		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.group1]))
 
 		editor.pointerUp()
 
@@ -240,14 +240,14 @@ describe('When clicking', () => {
 
 	it('Clears erasing ids and does not erase shapes on cancel', () => {
 		editor.setCurrentTool('eraser')
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 
 		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(0, 0) // in box1
-		editor.expectToBeIn('eraser.pointing')
+		editor.expectPathToBe('root.eraser.pointing')
 
-		expect(editor.erasingShapeIds).toEqual([ids.box1])
+		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 
 		editor.cancel()
 
@@ -255,24 +255,24 @@ describe('When clicking', () => {
 
 		const shapesAfterCount = editor.currentPageShapes.length
 
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 
 		// Does NOT erase the shape
-		expect(editor.erasingShapeIds).toEqual([])
+		expect(editor.getErasingShapeIds()).toEqual([])
 		expect(editor.getShape(ids.box1)).toBeDefined()
 		expect(shapesAfterCount).toBe(shapesBeforeCount)
 	})
 
 	it('Clears erasing ids and does not erase shapes on interrupt', () => {
 		editor.setCurrentTool('eraser')
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 
 		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(0, 0) // near to box1
-		editor.expectToBeIn('eraser.pointing')
+		editor.expectPathToBe('root.eraser.pointing')
 
-		expect(editor.erasingShapeIds).toEqual([ids.box1])
+		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 
 		editor.interrupt()
 
@@ -280,10 +280,10 @@ describe('When clicking', () => {
 
 		const shapesAfterCount = editor.currentPageShapes.length
 
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 
 		// Does NOT erase the shape
-		expect(editor.erasingShapeIds).toEqual([])
+		expect(editor.getErasingShapeIds()).toEqual([])
 		expect(editor.getShape(ids.box1)).toBeDefined()
 		expect(shapesAfterCount).toBe(shapesBeforeCount)
 	})
@@ -293,24 +293,24 @@ describe('When clicking and dragging', () => {
 	it('Enters erasing state on pointer move, adds contacted shapes to the apps.erasingShapeIds array, deletes them and clears erasingShapeIds  on pointer up, restores shapes on undo and deletes again on redo', () => {
 		editor.setCurrentTool('eraser')
 
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 
 		editor.pointerDown(-100, -100) // outside of any shapes
 
-		editor.expectToBeIn('eraser.pointing')
+		editor.expectPathToBe('root.eraser.pointing')
 		expect(editor.getInstanceState().scribbles.length).toBe(0)
 
 		editor.pointerMove(50, 50) // inside of box1
 
-		editor.expectToBeIn('eraser.erasing')
+		editor.expectPathToBe('root.eraser.erasing')
 
 		jest.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 
-		expect(editor.erasingShapeIds).toEqual([ids.box1])
+		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 
 		// editor.pointerUp()
-		// editor.expectToBeIn('eraser.idle')
+		// editor.expectPathToBe('root.eraser.idle')
 		// expect(editor.erasingShapeIds).toEqual([])
 		// expect(editor.getShape(ids.box1)).not.toBeDefined()
 
@@ -327,29 +327,29 @@ describe('When clicking and dragging', () => {
 
 	it('Clears erasing ids and does not erase shapes on cancel', () => {
 		editor.setCurrentTool('eraser')
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 		editor.pointerDown(-100, -100) // outside of any shapes
 		editor.pointerMove(50, 50) // inside of box1
 		jest.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
-		expect(editor.erasingShapeIds).toEqual([ids.box1])
+		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 		editor.cancel()
-		editor.expectToBeIn('eraser.idle')
-		expect(editor.erasingShapeIds).toEqual([])
+		editor.expectPathToBe('root.eraser.idle')
+		expect(editor.getErasingShapeIds()).toEqual([])
 		expect(editor.getShape(ids.box1)).toBeDefined()
 	})
 
 	it('Excludes a group if it was hovered when the drag started', () => {
 		editor.groupShapes([ids.box2, ids.box3], ids.group1)
 		editor.setCurrentTool('eraser')
-		editor.expectToBeIn('eraser.idle')
+		editor.expectPathToBe('root.eraser.idle')
 		editor.pointerDown(275, 275) // in between box2 AND box3, so over of the new group
 		editor.pointerMove(280, 280) // still outside of the new group
 		jest.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
-		expect(editor.erasingShapeIds).toEqual([])
+		expect(editor.getErasingShapeIds()).toEqual([])
 		editor.pointerMove(0, 0)
-		expect(editor.erasingShapeIds).toEqual([ids.box1])
+		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 		expect(editor.getShape(ids.box1)).toBeDefined()
 		editor.pointerUp()
 		expect(editor.getShape(ids.group1)).toBeDefined()
@@ -362,7 +362,7 @@ describe('When clicking and dragging', () => {
 		editor.pointerMove(350, 375) // still in the frame, passing through box3
 		jest.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
-		expect(editor.erasingShapeIds).toEqual([ids.box3])
+		expect(editor.getErasingShapeIds()).toEqual([ids.box3])
 		editor.pointerUp()
 		expect(editor.getShape(ids.frame1)).toBeDefined()
 		expect(editor.getShape(ids.box3)).not.toBeDefined()
@@ -372,11 +372,11 @@ describe('When clicking and dragging', () => {
 		editor.setCurrentTool('eraser')
 		editor.pointerMove(425, 0)
 		editor.pointerDown() // Above the masked part of box3
-		expect(editor.erasingShapeIds).toEqual([])
+		expect(editor.getErasingShapeIds()).toEqual([])
 		editor.pointerMove(425, 500) // Through the masked part of box3
 		jest.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
-		expect(editor.erasingShapeIds).toEqual([])
+		expect(editor.getErasingShapeIds()).toEqual([])
 		editor.pointerUp()
 		expect(editor.getShape(ids.box3)).toBeDefined()
 
@@ -384,7 +384,7 @@ describe('When clicking and dragging', () => {
 		editor.pointerDown() // Above the not-masked part of box3
 		editor.pointerMove(375, 500) // Through the masked part of box3
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
-		expect(editor.erasingShapeIds).toEqual([ids.box3])
+		expect(editor.getErasingShapeIds()).toEqual([ids.box3])
 		editor.pointerUp()
 		expect(editor.getShape(ids.box3)).not.toBeDefined()
 	})
@@ -394,7 +394,7 @@ describe('When clicking and dragging', () => {
 		editor.pointerDown(-100, -100)
 		editor.pointerMove(50, 50)
 		editor.interrupt()
-		editor.expectToBeIn('eraser.erasing')
+		editor.expectPathToBe('root.eraser.erasing')
 	})
 
 	it('Starts a scribble on pointer down, updates it on pointer move, stops it on exit', () => {
@@ -424,7 +424,7 @@ describe('Does not erase hollow shapes on click', () => {
 		editor.setCurrentTool('eraser')
 		editor.pointerMove(50, 50)
 		editor.pointerDown()
-		expect(editor.erasingShapeIds).toEqual([])
+		expect(editor.getErasingShapeIds()).toEqual([])
 		editor.pointerUp()
 		expect(editor.currentPageShapes.length).toBe(1)
 	})
@@ -439,8 +439,8 @@ describe('When shift clicking', () => {
 describe('When in the idle state', () => {
 	it('Returns to select on cancel', () => {
 		editor.setCurrentTool('hand')
-		editor.expectToBeIn('hand.idle')
+		editor.expectPathToBe('root.hand.idle')
 		editor.cancel()
-		editor.expectToBeIn('select.idle')
+		editor.expectPathToBe('root.select.idle')
 	})
 })
