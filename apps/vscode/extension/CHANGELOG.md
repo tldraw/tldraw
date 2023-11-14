@@ -5,7 +5,6 @@
 - Fixed the background color of culled shapes when using dark mode.
 - Fixed a bug with exporting shapes that have the same dimensions as their parent frame shape.
 
-
 ## 2.0.16
 - Fixed keyboard shortcuts.
 - Fixed edit link button stopping the mouse events from working.
