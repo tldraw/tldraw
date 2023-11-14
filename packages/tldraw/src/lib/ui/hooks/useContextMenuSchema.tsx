@@ -77,6 +77,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	const hasClipboardWrite = Boolean(window.navigator.clipboard?.write)
 	const showEditLink = useHasLinkShapeSelected()
 	const onlySelectedShape = editor.getOnlySelectedShape()
+	const allowRemoveFrame = onlySelectedShape && onlySelectedShape.type === 'frame'
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
 	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
@@ -88,6 +89,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 				oneSelected && !isShapeLocked && menuItem(actions['duplicate']),
 				allowGroup && !isShapeLocked && menuItem(actions['group']),
 				allowUngroup && !isShapeLocked && menuItem(actions['ungroup']),
+				allowRemoveFrame && !isShapeLocked && menuItem(actions['remove-frame']),
 				oneSelected && menuItem(actions['toggle-lock'])
 			),
 			menuGroup(

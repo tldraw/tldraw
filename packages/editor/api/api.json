@@ -15505,6 +15505,55 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#removeFrame:member(1)",
+              "docComment": "/**\n * Remove frame.\n *\n * @param id - Id of the frame you wish to remove.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "removeFrame(id: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "id",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "removeFrame"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#renamePage:member(1)",
               "docComment": "/**\n * Rename a page.\n *\n * @param id - The id of the page to rename.\n *\n * @param name - The new name.\n *\n * @example\n * ```ts\n * editor.renamePage('page1', 'My Page')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
