@@ -460,7 +460,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				invalidParents.add(record.parentId)
 			}
 			// clean up any arrows bound to this shape
-			const bindings = this._arrowBindingsIndex.get()[record.id]
+			const bindings = this._getArrowBindingsIndex().get()[record.id]
 			if (bindings?.length) {
 				for (const { arrowId, handleId } of bindings) {
 					const arrow = this.getShape<TLArrowShape>(arrowId)
@@ -502,7 +502,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
 			if (prev.parentId !== next.parentId) {
 				const reparentBoundArrows = (id: TLShapeId) => {
-					const boundArrows = this._arrowBindingsIndex.get()[id]
+					const boundArrows = this._getArrowBindingsIndex().get()[id]
 					if (boundArrows?.length) {
 						for (const arrow of boundArrows) {
 							reparentArrow(arrow.arrowId)
@@ -918,7 +918,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private get _arrowBindingsIndex() {
+	private _getArrowBindingsIndex() {
 		return arrowBindingsIndex(this)
 	}
 
@@ -930,11 +930,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		return this._arrowBindingsIndex.get()[shapeId] || EMPTY_ARRAY
+		return this._getArrowBindingsIndex().get()[shapeId] || EMPTY_ARRAY
 	}
 
 	@computed
-	private get arrowInfoCache() {
+	private getArrowInfoCache() {
 		return this.store.createComputedCache<TLArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
 			return getIsArrowStraight(shape)
 				? getStraightArrowInfo(this, shape)
@@ -956,7 +956,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this.arrowInfoCache.get(id)
+		return this.getArrowInfoCache().get(id)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -1037,7 +1037,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	get crashingError() {
+	getCrashingError() {
 		return this._crashingError
 	}
 
@@ -2166,8 +2166,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get croppingShapeId() {
+	getCroppingShapeId() {
 		return this.getCurrentPageState().croppingShapeId
+	}
+
+	/**
+	 * @deprecated Use `getCroppingShapeId` instead.
+	 */
+	get croppingShapeId() {
+		return this.getCroppingShapeId()
 	}
 
 	/**
@@ -2186,7 +2193,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setCroppingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (id !== this.croppingShapeId) {
+		if (id !== this.getCroppingShapeId()) {
 			if (!id) {
 				this.updateCurrentPageState({ croppingShapeId: null })
 			} else {
@@ -7427,7 +7434,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			const deletedIds = [...allIds]
-			const arrowBindings = this._arrowBindingsIndex.get()
+			const arrowBindings = this._getArrowBindingsIndex().get()
 			const snapshots = compact(
 				deletedIds.flatMap((id) => {
 					const shape = this.getShape(id)
@@ -8830,7 +8837,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispatch = (info: TLEventInfo): this => {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
-		if (this.crashingError) return this
+		if (this.getCrashingError()) return this
 
 		const { inputs } = this
 		const { type } = info

@@ -304,7 +304,7 @@ function TldrawEditorWithReadyStore({
 			},
 			[editor]
 		),
-		() => editor?.crashingError ?? null
+		() => editor?.getCrashingError() ?? null
 	)
 
 	if (!editor) {

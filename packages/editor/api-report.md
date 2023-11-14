@@ -592,8 +592,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     complete(): this;
     // @internal (undocumented)
     crash(error: unknown): this;
-    // @internal
-    get crashingError(): unknown;
     createAssets(assets: TLAsset[]): this;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
@@ -611,6 +609,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    // @deprecated (undocumented)
     get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
     // @deprecated (undocumented)
@@ -694,6 +693,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    // @internal
+    getCrashingError(): unknown;
+    getCroppingShapeId(): null | TLShapeId;
     getCurrentPageBounds(): Box2d | undefined;
     getCurrentPageRenderingShapesSorted(): TLShape[];
     getCurrentPageShapes(): TLShape[];
