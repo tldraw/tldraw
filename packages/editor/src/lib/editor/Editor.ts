@@ -4156,7 +4156,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _shapePageBoundsCache(): ComputedCache<Box2d, TLShape> {
+	@computed private _getShapePageBoundsCache(): ComputedCache<Box2d, TLShape> {
 		return this.store.createComputedCache<Box2d, TLShape>('pageBoundsCache', (shape) => {
 			const pageTransform = this._getShapePageTransformCache().get(shape.id)
 
@@ -4184,7 +4184,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapePageBounds(shape: TLShape | TLShapeId): Box2d | undefined {
-		return this._shapePageBoundsCache.get(typeof shape === 'string' ? shape : shape.id)
+		return this._getShapePageBoundsCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/**
@@ -4296,7 +4296,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeMaskedPageBounds(shape: TLShapeId | TLShape): Box2d | undefined {
 		if (typeof shape !== 'string') shape = shape.id
-		const pageBounds = this._shapePageBoundsCache.get(shape)
+		const pageBounds = this._getShapePageBoundsCache().get(shape)
 		if (!pageBounds) return
 		const pageMask = this._shapeMaskCache.get(shape)
 		if (pageMask) {
