@@ -11408,6 +11408,82 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getRenderingShapes:member(1)",
+              "docComment": "/**\n * Get the shapes that should be displayed in the current viewport.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRenderingShapes(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        id: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        util: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ShapeUtil",
+                  "canonicalReference": "@tldraw/editor!ShapeUtil:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUnknownShape",
+                  "canonicalReference": "@tldraw/tlschema!TLUnknownShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">;\n        index: number;\n        backgroundIndex: number;\n        opacity: number;\n        isCulled: boolean;\n        maskedPageBounds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined;\n    }[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 12
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRenderingShapes"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSelectedShapeAtPoint:member(1)",
               "docComment": "/**\n * Get the top-most selected shape at the given point, ignoring groups.\n *\n * @param point - The point to check.\n *\n * @returns The top-most selected shape at the given point, or undefined if there is no shape at the point.\n */\n",
               "excerptTokens": [
@@ -15879,7 +15955,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#renderingShapes:member",
-              "docComment": "/**\n * Get the shapes that should be displayed in the current viewport.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getRenderingShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

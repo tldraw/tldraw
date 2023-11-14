@@ -3337,7 +3337,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get renderingShapes() {
+	@computed getRenderingShapes() {
 		const renderingShapes = this.getUnorderedRenderingShapes(true)
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
@@ -3351,6 +3351,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// same order; but we later use index to set the element's 'z-index'
 		// to change the "rendered" position in z-space.
 		return renderingShapes.sort(sortById)
+	}
+
+	/**
+	 * @deprecated Use `getRenderingShapes` instead.
+	 */
+	get renderingShapes() {
+		return this.getRenderingShapes()
 	}
 
 	/**
@@ -4802,7 +4809,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get currentPageRenderingShapesSorted(): TLShape[] {
-		return this.renderingShapes
+		return this.getRenderingShapes()
 			.filter(({ isCulled }) => !isCulled)
 			.sort((a, b) => a.index - b.index)
 			.map(({ shape }) => shape)

@@ -715,6 +715,16 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageStates(): TLInstancePageState[];
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
+    getRenderingShapes(): {
+        id: TLShapeId;
+        shape: TLShape;
+        util: ShapeUtil<TLUnknownShape>;
+        index: number;
+        backgroundIndex: number;
+        opacity: number;
+        isCulled: boolean;
+        maskedPageBounds: Box2d | undefined;
+    }[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -857,6 +867,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
     renderingBoundsMargin: number;
+    // @deprecated (undocumented)
     get renderingShapes(): {
         id: TLShapeId;
         shape: TLShape;
