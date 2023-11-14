@@ -18,6 +18,7 @@ import AssetPropsExample from './examples/AssetOptionsExample'
 import CanvasEventsExample from './examples/CanvasEventsExample'
 import CustomComponentsExample from './examples/CustomComponentsExample'
 import CustomConfigExample from './examples/CustomConfigExample/CustomConfigExample'
+import CustomeEditorExample from './examples/CustomEditorExample'
 import CustomStylesExample from './examples/CustomStylesExample/CustomStylesExample'
 import CustomUiExample from './examples/CustomUiExample/CustomUiExample'
 import ErrorBoundaryExample from './examples/ErrorBoundaryExample/ErrorBoundaryExample'
@@ -115,6 +116,11 @@ export const allExamples: Example[] = [
 		title: 'Custom UI',
 		path: 'custom-ui',
 		element: <CustomUiExample />,
+	},
+	{
+		title: 'Custom Editor',
+		path: 'custom-editor',
+		element: <CustomeEditorExample />,
 	},
 	{
 		title: 'Hide UI',
