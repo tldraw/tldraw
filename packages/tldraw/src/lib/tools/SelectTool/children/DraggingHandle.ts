@@ -186,7 +186,7 @@ export class DraggingHandle extends StateNode {
 			return
 		}
 
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
@@ -201,7 +201,7 @@ export class DraggingHandle extends StateNode {
 			return
 		}
 
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	private update() {
