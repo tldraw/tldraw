@@ -381,7 +381,8 @@ export function registerDefaultExternalContentHandlers(
 
 			editor.updateShapes([
 				{
-					...shape,
+					type: shape.type,
+					id: shape.id,
 					props: {
 						...shape.props,
 						assetId: asset.id,
