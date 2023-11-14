@@ -4053,7 +4053,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _shapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
+	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
 		return this.store.createComputedCache('handles', (shape) => {
 			return this.getShapeUtil(shape).getHandles?.(shape)
 		})
@@ -4072,7 +4072,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined {
-		return this._shapeHandlesCache.get(typeof shape === 'string' ? shape : shape.id)
+		return this._getShapeHandlesCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/**
