@@ -7534,7 +7534,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed<ReadonlySharedStyleMap>({ isEqual: (a, b) => a.equals(b) })
-	get sharedStyles(): ReadonlySharedStyleMap {
+	getSharedStyles(): ReadonlySharedStyleMap {
 		// If we're in selecting and if we have a selection, return the shared styles from the
 		// current selection
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
@@ -7555,13 +7555,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `editor.sharedStyles` instead.
+	 */
+	get sharedStyles() {
+		return this.getSharedStyles()
+	}
+
+	/**
 	 * Get the currently selected shared opacity.
 	 * If any shapes are selected, this returns the shared opacity of the selected shapes.
 	 * Otherwise, this returns the chosen opacity for the next shape.
 	 *
 	 * @public
 	 */
-	@computed get sharedOpacity(): SharedStyle<number> {
+	@computed get sdoifjoisfjwe2334(): SharedStyle<number> {
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
 			const shapesToCheck: TLShape[] = []
 			const addShape = (shapeId: TLShapeId) => {

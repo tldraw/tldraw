@@ -13477,6 +13477,38 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSharedStyles:member(1)",
+              "docComment": "/**\n * A map of all the current styles either in the current selection, or that are relevant to the current tool.\n *\n * @example\n * ```ts\n * const color = editor.sharedStyles.get(DefaultColorStyle)\n * if (color && color.type === 'shared') {\n *   print('All selected shapes have the same color:', color.value)\n * }\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSharedStyles(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReadonlySharedStyleMap",
+                  "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSharedStyles"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSortedChildIdsForParent:member(1)",
               "docComment": "/**\n * Get an array of all the children of a shape.\n *\n * @param parentId - The id of the parent shape.\n *\n * @example\n * ```ts\n * editor.getSortedChildIdsForParent('frame1')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -18338,7 +18370,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#sharedStyles:member",
-              "docComment": "/**\n * A map of all the current styles either in the current selection, or that are relevant to the current tool.\n *\n * @example\n * ```ts\n * const color = editor.sharedStyles.get(DefaultColorStyle)\n * if (color && color.type === 'shared') {\n *   print('All selected shapes have the same color:', color.value)\n * }\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `editor.sharedStyles` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
