@@ -7093,7 +7093,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#assets:member",
-              "docComment": "/**\n * Get all assets in the editor.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getAssets` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7401,7 +7401,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#cameraState:member",
-              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCameraState` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9934,6 +9934,64 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getAssets:member(1)",
+              "docComment": "/**\n * Get all assets in the editor.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAssets(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLBookmarkAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLBookmarkAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLImageAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLImageAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLVideoAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLVideoAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getAssets"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCamera:member(1)",
               "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -9967,6 +10025,37 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCamera"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCameraState:member(1)",
+              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCameraState(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"idle\" | \"moving\""
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCameraState"
             },
             {
               "kind": "Method",
@@ -11117,6 +11206,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getPages:member(1)",
+              "docComment": "/**\n * Info about the project's current pages.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPages(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPage",
+                  "canonicalReference": "@tldraw/tlschema!TLPage:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPages"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPageShapeIds:member(1)",
               "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')\n * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -11405,6 +11530,146 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getPointInShapeSpace"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getRenderingBounds:member(1)",
+              "docComment": "/**\n * The current rendering bounds in the current page space, used for checking which shapes are \"on screen\".\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRenderingBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRenderingBounds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getRenderingBoundsExpanded:member(1)",
+              "docComment": "/**\n * The current rendering bounds in the current page space, expanded slightly. Used for determining which shapes to render and which to \"cull\".\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRenderingBoundsExpanded(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRenderingBoundsExpanded"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getRenderingShapes:member(1)",
+              "docComment": "/**\n * Get the shapes that should be displayed in the current viewport.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRenderingShapes(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        id: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        util: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ShapeUtil",
+                  "canonicalReference": "@tldraw/editor!ShapeUtil:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUnknownShape",
+                  "canonicalReference": "@tldraw/tlschema!TLUnknownShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">;\n        index: number;\n        backgroundIndex: number;\n        opacity: number;\n        isCulled: boolean;\n        maskedPageBounds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined;\n    }[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 12
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRenderingShapes"
             },
             {
               "kind": "Method",
@@ -15017,7 +15282,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#pages:member",
-              "docComment": "/**\n * Info about the project's current pages.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getPages` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15787,7 +16052,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#renderingBounds:member",
-              "docComment": "/**\n * The current rendering bounds in the current page space, used for checking which shapes are \"on screen\".\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getRenderingBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15818,7 +16083,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#renderingBoundsExpanded:member",
-              "docComment": "/**\n * The current rendering bounds in the current page space, expanded slightly. Used for determining which shapes to render and which to \"cull\".\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getRenderingBoundsExpanded` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15879,7 +16144,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#renderingShapes:member",
-              "docComment": "/**\n * Get the shapes that should be displayed in the current viewport.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getRenderingShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

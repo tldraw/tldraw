@@ -569,12 +569,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         extras?: Record<string, unknown>;
     }): this;
+    // @deprecated (undocumented)
     get assets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // @deprecated (undocumented)
     get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
@@ -681,7 +683,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
+    getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getCamera(): TLCamera;
+    getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
@@ -709,11 +713,24 @@ export class Editor extends EventEmitter<TLEventMap> {
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
+    getPages(): TLPage[];
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
     getPageStates(): TLInstancePageState[];
     getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
+    getRenderingBounds(): Box2d;
+    getRenderingBoundsExpanded(): Box2d;
+    getRenderingShapes(): {
+        id: TLShapeId;
+        shape: TLShape;
+        util: ShapeUtil<TLUnknownShape>;
+        index: number;
+        backgroundIndex: number;
+        opacity: number;
+        isCulled: boolean;
+        maskedPageBounds: Box2d | undefined;
+    }[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -827,6 +844,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated (undocumented)
     get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
+    // @deprecated (undocumented)
     get pages(): TLPage[];
     // @deprecated (undocumented)
     get pageStates(): TLInstancePageState[];
@@ -853,9 +871,12 @@ export class Editor extends EventEmitter<TLEventMap> {
         type: T;
     } : TLExternalContent) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
+    // @deprecated (undocumented)
     get renderingBounds(): Box2d;
+    // @deprecated (undocumented)
     get renderingBoundsExpanded(): Box2d;
     renderingBoundsMargin: number;
+    // @deprecated (undocumented)
     get renderingShapes(): {
         id: TLShapeId;
         shape: TLShape;

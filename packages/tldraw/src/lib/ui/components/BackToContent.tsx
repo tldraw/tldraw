@@ -15,7 +15,8 @@ export function BackToContent() {
 		let showBackToContentPrev = false
 
 		const interval = setInterval(() => {
-			const { renderingShapes, renderingBounds } = editor
+			const renderingShapes = editor.getRenderingShapes()
+			const renderingBounds = editor.getRenderingBounds()
 
 			// renderingShapes will also include shapes that have the canUnmount flag
 			// set to true. These shapes will be on the canvas but may not be in the

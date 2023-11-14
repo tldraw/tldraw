@@ -316,7 +316,7 @@ function HandleWrapper({
 function ShapesWithSVGs() {
 	const editor = useEditor()
 
-	const renderingShapes = useValue('rendering shapes', () => editor.renderingShapes, [editor])
+	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	return (
 		<>
@@ -333,7 +333,7 @@ function ShapesWithSVGs() {
 function ShapesToDisplay() {
 	const editor = useEditor()
 
-	const renderingShapes = useValue('rendering shapes', () => editor.renderingShapes, [editor])
+	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	return (
 		<>

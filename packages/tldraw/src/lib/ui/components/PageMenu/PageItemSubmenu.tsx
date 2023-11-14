@@ -21,7 +21,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 }: PageItemSubmenuProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const pages = editor.pages
+	const pages = editor.getPages()
 
 	const onDuplicate = useCallback(() => {
 		editor.mark('creating page')

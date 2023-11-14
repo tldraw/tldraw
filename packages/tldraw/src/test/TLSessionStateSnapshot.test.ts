@@ -60,7 +60,7 @@ describe('createSessionStateSnapshotSignal', () => {
 		editor.createPage({ name: 'new page' })
 
 		expect(isGridMode).toBe(true)
-		expect(editor.pages.length).toBe(2)
+		expect(editor.getPages().length).toBe(2)
 		expect(numPages).toBe(2)
 	})
 })

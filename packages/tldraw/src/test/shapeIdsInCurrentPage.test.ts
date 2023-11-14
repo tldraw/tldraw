@@ -62,7 +62,7 @@ describe('shapeIdsInCurrentPage', () => {
 
 		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box4, ids.box5, ids.box6]))
 
-		editor.setCurrentPage(editor.pages[0].id)
+		editor.setCurrentPage(editor.getPages()[0].id)
 
 		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 	})
