@@ -215,19 +215,34 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
 		const bounds = this.editor.getShapePageBounds(shape)!
-		const children = this.editor.getSortedChildIdsForParent(shape.id)
 
-		const shapesToReparent: TLShapeId[] = []
+		const shapesToAddToFrame: TLShapeId[] = []
+		const shapesToRemoveFromFrame: TLShapeId[] = []
+		this.editor.currentPageShapes.map((pageShape) => {
+			// We don't want to frame the frame itself
+			if (pageShape.id === shape.id) return
+			if (pageShape.isLocked) return
 
-		for (const childId of children) {
-			const childBounds = this.editor.getShapePageBounds(childId)!
-			if (!bounds.includes(childBounds)) {
-				shapesToReparent.push(childId)
+			const pageShapeBounds = this.editor.getShapePageBounds(pageShape)
+			if (!pageShapeBounds) return
+
+			// Frame shape encloses page shape
+			if (bounds?.includes(pageShapeBounds)) {
+				// We only want to pull in shapes that are direct children of the page
+				// Otherwise we would also reparent shapes within groups and other shapes
+				if (pageShape.parentId === this.editor.currentPageId) {
+					shapesToAddToFrame.push(pageShape.id)
+				}
+			} else {
+				// We only want to remove shapes that are direct children of the frame
+				if (pageShape.parentId === shape.id) {
+					shapesToRemoveFromFrame.push(pageShape.id)
+				}
 			}
-		}
-
-		if (shapesToReparent.length > 0) {
-			this.editor.reparentShapes(shapesToReparent, this.editor.currentPageId)
-		}
+		})
+		this.editor.batch(() => {
+			this.editor.reparentShapes(shapesToAddToFrame, shape.id)
+			this.editor.reparentShapes(shapesToRemoveFromFrame, this.editor.currentPageId)
+		})
 	}
 }
