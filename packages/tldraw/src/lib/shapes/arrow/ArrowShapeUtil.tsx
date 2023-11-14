@@ -803,7 +803,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const color = theme[shape.props.color].solid
