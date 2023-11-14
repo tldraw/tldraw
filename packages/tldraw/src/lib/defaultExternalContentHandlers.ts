@@ -91,10 +91,16 @@ export function registerDefaultExternalContentHandlers(
 				if (isFinite(maxImageDimension)) {
 					const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
 					if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-						// If we created a new size and the type is an image, rescale the image
-						dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h)
+						size = resizedSize
 					}
-					size = resizedSize
+				}
+
+				// Always rescale the image
+				if (file.type === 'image/jpeg' || file.type === 'image/png') {
+					dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h, {
+						type: file.type,
+						quality: 0.92,
+					})
 				}
 
 				const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
