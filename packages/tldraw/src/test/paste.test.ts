@@ -110,7 +110,7 @@ it('Gets pasted shapes correctly', () => {
 	editor.selectNone()
 	let shapes = getShapes()
 
-	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+	expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -124,7 +124,7 @@ it('Gets pasted shapes correctly', () => {
 
 	shapes = getShapes()
 
-	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+	expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -174,7 +174,7 @@ describe('When pasting', () => {
 		expect(shapes.new.box1?.parentId).toBe(editor.currentPageId)
 		expect(shapes.new.box2?.parentId).toBe(editor.currentPageId)
 
-		expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+		expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 			shapes.old.frame1.id,
 			shapes.old.frame2.id,
 			shapes.old.frame3.id,

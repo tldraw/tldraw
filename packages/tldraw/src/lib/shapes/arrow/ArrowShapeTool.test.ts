@@ -390,7 +390,7 @@ describe('reparenting issue', () => {
 		editor.pointerMove(100, 100)
 		editor.pointerUp()
 
-		const arrowId = editor.currentPageShapesSorted[0].id
+		const arrowId = editor.getCurrentPageShapesSorted()[0].id
 
 		// Now create three shapes
 		editor.createShapes([

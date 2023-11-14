@@ -4500,7 +4500,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		return this.currentPageShapesSorted
+		return this.getCurrentPageShapesSorted()
 			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
 			.reverse() // findlast
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
@@ -4542,7 +4542,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const shapesToCheck = (
-			opts.renderingOnly ? this.currentPageRenderingShapesSorted : this.currentPageShapesSorted
+			opts.renderingOnly ? this.currentPageRenderingShapesSorted : this.getCurrentPageShapesSorted()
 		).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
@@ -4792,8 +4792,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * An array containing all of the shapes in the current page.
 	 *
-	 * @readonly
-	 *
 	 * @public
 	 */
 	@computed getCurrentPageShapes(): TLShape[] {
@@ -4804,16 +4802,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapesSorted
-	 * ```
-	 *
-	 * @readonly
-	 *
 	 * @public
 	 */
-	@computed get currentPageShapesSorted(): TLShape[] {
+	@computed getCurrentPageShapesSorted(): TLShape[] {
 		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
 		// todo: consider making a derivation or something, or merging with rendering shapes
 		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
@@ -4844,13 +4835,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapesSorted
-	 * ```
-	 *
-	 * @readonly
 	 *
 	 * @public
 	 */
@@ -5235,7 +5219,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getDroppingOverShape(point: VecLike, droppingShapes: TLShape[] = []) {
 		// starting from the top...
-		const { currentPageShapesSorted } = this
+		const currentPageShapesSorted = this.getCurrentPageShapesSorted()
 		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 			const shape = currentPageShapesSorted[i]
 
@@ -6786,7 +6770,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// page or another shape that exists (or that will exist) in this page.
 
 				// find last parent id
-				const { currentPageShapesSorted } = this
+				const currentPageShapesSorted = this.getCurrentPageShapesSorted()
 
 				partials = partials.map((partial) => {
 					// If the partial does not provide the parentId OR if the provided
