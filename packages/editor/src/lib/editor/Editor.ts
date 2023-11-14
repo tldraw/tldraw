@@ -4026,7 +4026,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _shapeOutlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
+	@computed private _getShapeOutlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
 		return this.store.createComputedCache('outline-segments', (shape) => {
 			return this.getShapeUtil(shape).getOutlineSegments(shape)
 		})
@@ -4047,7 +4047,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec2d[][] {
 		return (
-			this._shapeOutlineSegmentsCache.get(typeof shape === 'string' ? shape : shape.id) ??
+			this._getShapeOutlineSegmentsCache().get(typeof shape === 'string' ? shape : shape.id) ??
 			EMPTY_ARRAY
 		)
 	}
