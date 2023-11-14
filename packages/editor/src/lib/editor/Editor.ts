@@ -4194,7 +4194,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed private _getShapeClipPathCache(): ComputedCache<string, TLShape> {
 		return this.store.createComputedCache<string, TLShape>('clipPathCache', (shape) => {
-			const pageMask = this._shapeMaskCache.get(shape.id)
+			const pageMask = this._getShapeMaskCache().get(shape.id)
 			if (!pageMask) return undefined
 			if (pageMask.length === 0) {
 				return `polygon(0px 0px, 0px 0px, 0px 0px)`
@@ -4229,7 +4229,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _shapeMaskCache(): ComputedCache<Vec2d[], TLShape> {
+	@computed private _getShapeMaskCache(): ComputedCache<Vec2d[], TLShape> {
 		return this.store.createComputedCache('pageMaskCache', (shape) => {
 			if (isPageId(shape.parentId)) {
 				return undefined
@@ -4276,7 +4276,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeMask(shape: TLShapeId | TLShape): VecLike[] | undefined {
-		return this._shapeMaskCache.get(typeof shape === 'string' ? shape : shape.id)
+		return this._getShapeMaskCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/**
@@ -4298,7 +4298,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (typeof shape !== 'string') shape = shape.id
 		const pageBounds = this._getShapePageBoundsCache().get(shape)
 		if (!pageBounds) return
-		const pageMask = this._shapeMaskCache.get(shape)
+		const pageMask = this._getShapeMaskCache().get(shape)
 		if (pageMask) {
 			if (pageMask.length === 0) return undefined
 
