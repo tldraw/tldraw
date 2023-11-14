@@ -4000,7 +4000,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Shapes --------------------- */
 
 	@computed
-	private get _shapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
+	private _getShapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
 		return this.store.createComputedCache(
 			'bounds',
 			(shape) => this.getShapeUtil(shape).getGeometry(shape),
@@ -4022,7 +4022,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T {
-		return this._shapeGeometryCache.get(typeof shape === 'string' ? shape : shape.id)! as T
+		return this._getShapeGeometryCache().get(typeof shape === 'string' ? shape : shape.id)! as T
 	}
 
 	/** @internal */
