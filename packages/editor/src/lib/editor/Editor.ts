@@ -4542,7 +4542,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const shapesToCheck = (
-			opts.renderingOnly ? this.currentPageRenderingShapesSorted : this.getCurrentPageShapesSorted()
+			opts.renderingOnly
+				? this.getCurrentPageRenderingShapesSorted()
+				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
@@ -4799,6 +4801,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getCurrentPageShapes` instead.
+	 */
+	get currentPageShapes() {
+		return this.getCurrentPageShapes()
+	}
+
+	/**
 	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
@@ -4833,16 +4842,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getCurrentPageShapesSorted` instead.
+	 */
+	get currentPageShapesSorted() {
+		return this.getCurrentPageShapesSorted()
+	}
+
+	/**
 	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
 	 * @public
 	 */
-	@computed get currentPageRenderingShapesSorted(): TLShape[] {
+	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		return this.getRenderingShapes()
 			.filter(({ isCulled }) => !isCulled)
 			.sort((a, b) => a.index - b.index)
 			.map(({ shape }) => shape)
+	}
+
+	/**
+	 * @deprecated Use `getCurrentPageRenderingShapesSorted` instead.
+	 */
+	get currentPageRenderingShapesSorted() {
+		return this.getCurrentPageRenderingShapesSorted()
 	}
 
 	/**
