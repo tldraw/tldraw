@@ -460,11 +460,11 @@ describe('When pasting into frames...', () => {
 				{
 					id: ids.frame1,
 					type: 'frame',
-					x: editor.viewportScreenBounds.w,
-					y: editor.viewportScreenBounds.h,
+					x: editor.getViewportScreenBounds().w,
+					y: editor.getViewportScreenBounds().h,
 					props: {
-						w: editor.viewportScreenBounds.w,
-						h: editor.viewportScreenBounds.h,
+						w: editor.getViewportScreenBounds().w,
+						h: editor.getViewportScreenBounds().h,
 					},
 				},
 			])
@@ -472,7 +472,11 @@ describe('When pasting into frames...', () => {
 		// rotate the frame for hard mode
 		editor.rotateSelection(45)
 		// center on the center of the frame
-		editor.setCamera({ x: -editor.viewportScreenBounds.w, y: -editor.viewportScreenBounds.h, z: 1 })
+		editor.setCamera({
+			x: -editor.getViewportScreenBounds().w,
+			y: -editor.getViewportScreenBounds().h,
+			z: 1,
+		})
 		// paste the box
 		editor.paste()
 		const boxId = editor.getOnlySelectedShape()!.id

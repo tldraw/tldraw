@@ -37,8 +37,8 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 	return (
 		<canvas
 			ref={rCanvas}
-			width={editor.viewportScreenBounds.width}
-			height={editor.viewportScreenBounds.height}
+			width={editor.getViewportScreenBounds().width}
+			height={editor.getViewportScreenBounds().height}
 			style={{ width: '100%', height: '100%' }}
 		/>
 	)

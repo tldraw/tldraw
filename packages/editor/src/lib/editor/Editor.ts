@@ -2282,7 +2282,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		if (animation) {
-			const { width, height } = this.viewportScreenBounds
+			const { width, height } = this.getViewportScreenBounds()
 			return this._animateToViewport(new Box2d(-x, -y, width / z, height / z), animation)
 		} else {
 			this._setCamera({ x, y, z })
@@ -2569,7 +2569,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { viewportScreenBounds } = this
+		const viewportScreenBounds = this.getViewportScreenBounds()
 
 		const inset = Math.min(256, viewportScreenBounds.width * 0.28)
 
@@ -2653,7 +2653,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { elapsed, easing, duration, start, end } = this._viewportAnimation
 
 		if (elapsed > duration) {
-			this._setCamera({ x: -end.x, y: -end.y, z: this.viewportScreenBounds.width / end.width })
+			this._setCamera({ x: -end.x, y: -end.y, z: this.getViewportScreenBounds().width / end.width })
 			cancel()
 			return
 		}
@@ -2665,7 +2665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const top = start.minY + (end.minY - start.minY) * t
 		const right = start.maxX + (end.maxX - start.maxX) * t
 
-		this._setCamera({ x: -left, y: -top, z: this.viewportScreenBounds.width / (right - left) })
+		this._setCamera({ x: -left, y: -top, z: this.getViewportScreenBounds().width / (right - left) })
 	}
 
 	/** @internal */
@@ -2687,7 +2687,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this._setCamera({
 				x: -targetViewportPage.x,
 				y: -targetViewportPage.y,
-				z: this.viewportScreenBounds.width / targetViewportPage.width,
+				z: this.getViewportScreenBounds().width / targetViewportPage.width,
 			})
 		}
 
@@ -2818,7 +2818,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const activeArea = this.viewportScreenBounds.clone().expandBy(-32)
+		const activeArea = this.getViewportScreenBounds().clone().expandBy(-32)
 		const viewportAspectRatio = activeArea.width / activeArea.height
 
 		const shapePageBounds = this.getShapePageBounds(shapeId)
@@ -2876,7 +2876,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			Math.max(rect.width, 1),
 			Math.max(rect.height, 1)
 		)
-		const boundsAreEqual = screenBounds.equals(this.viewportScreenBounds)
+		const boundsAreEqual = screenBounds.equals(this.getViewportScreenBounds())
 
 		const { _willSetInitialBounds } = this
 
@@ -2920,9 +2920,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportScreenBounds() {
+	@computed getViewportScreenBounds() {
 		const { x, y, w, h } = this.getInstanceState().screenBounds
 		return new Box2d(x, y, w, h)
+	}
+
+	/**
+	 * @deprecated Use `getViewportScreenBounds` instead.
+	 */
+	get viewportScreenBounds() {
+		return this.getViewportScreenBounds()
 	}
 
 	/**
@@ -2931,7 +2938,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get viewportScreenCenter() {
-		return this.viewportScreenBounds.center
+		return this.getViewportScreenBounds().center
 	}
 
 	/**
@@ -2940,7 +2947,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get viewportPageBounds() {
-		const { w, h } = this.viewportScreenBounds
+		const { w, h } = this.getViewportScreenBounds()
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 		return new Box2d(-cx, -cy, w / cz, h / cz)
 	}
@@ -3082,8 +3089,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: height / desiredHeight
 
 			const targetZoom = clamp(this.getCamera().z * ratio, MIN_ZOOM, MAX_ZOOM)
-			const targetWidth = this.viewportScreenBounds.w / targetZoom
-			const targetHeight = this.viewportScreenBounds.h / targetZoom
+			const targetWidth = this.getViewportScreenBounds().w / targetZoom
+			const targetHeight = this.getViewportScreenBounds().h / targetZoom
 
 			// Figure out where to move the camera
 			const displacement = leaderCenter.sub(center)

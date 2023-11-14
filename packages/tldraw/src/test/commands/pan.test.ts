@@ -15,7 +15,7 @@ describe('When panning', () => {
 	})
 
 	it('Updates the pageBounds', () => {
-		const screenBounds = editor.viewportScreenBounds
+		const screenBounds = editor.getViewportScreenBounds()
 		const beforeScreenBounds = new Box2d(
 			screenBounds.x,
 			screenBounds.y,
@@ -24,7 +24,7 @@ describe('When panning', () => {
 		)
 		const beforePageBounds = editor.viewportPageBounds.clone()
 		editor.pan({ x: 200, y: 200 })
-		expect(editor.viewportScreenBounds).toMatchObject(beforeScreenBounds.toJson())
+		expect(editor.getViewportScreenBounds()).toMatchObject(beforeScreenBounds.toJson())
 		expect(editor.viewportPageBounds.toJson()).toMatchObject(
 			beforePageBounds.translate(new Vec2d(-200, -200)).toJson()
 		)
