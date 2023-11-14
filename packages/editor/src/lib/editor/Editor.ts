@@ -3257,7 +3257,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const editingShapeId = this.getEditingShapeId()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const erasingShapeIds = this.getErasingShapeIds()
-		const renderingBoundsExpanded = this.renderingBoundsExpanded
+		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
 
 		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
 		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
@@ -3386,8 +3386,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get renderingBoundsExpanded() {
+	getRenderingBoundsExpanded() {
 		return this._renderingBoundsExpanded.get()
+	}
+
+	/**
+	 * @deprecated Use `getRenderingBoundsExpanded` instead.
+	 */
+	get renderingBoundsExpanded() {
+		return this.getRenderingBoundsExpanded()
 	}
 
 	/** @internal */
