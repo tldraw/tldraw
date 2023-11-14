@@ -34,7 +34,7 @@ beforeEach(() => {
 it('enters the arrow state', () => {
 	editor.setCurrentTool('arrow')
 	expect(editor.getCurrentToolId()).toBe('arrow')
-	editor.expectPathToBe('root.arrow.idle')
+	editor.expectToBeIn('arrow.idle')
 })
 
 describe('When in the idle state', () => {
@@ -43,7 +43,7 @@ describe('When in the idle state', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		editor.expectPathToBe('root.arrow.pointing')
+		editor.expectToBeIn('arrow.pointing')
 	})
 
 	it('returns to select on cancel', () => {
@@ -60,7 +60,7 @@ describe('When in the pointing state', () => {
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
 		expect(editor.getHintingShapeIds().length).toBe(0)
-		editor.expectPathToBe('root.arrow.idle')
+		editor.expectToBeIn('arrow.idle')
 	})
 
 	it('bails on cancel', () => {
@@ -69,12 +69,12 @@ describe('When in the pointing state', () => {
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
 		expect(editor.getHintingShapeIds().length).toBe(0)
-		editor.expectPathToBe('root.arrow.idle')
+		editor.expectToBeIn('arrow.idle')
 	})
 
 	it('enters the dragging state on pointer move', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
-		editor.expectPathToBe('root.select.dragging_handle')
+		editor.expectToBeIn('select.dragging_handle')
 	})
 })
 
@@ -93,7 +93,7 @@ describe('When dragging the arrow', () => {
 				end: { type: 'point', x: 10, y: 10 },
 			},
 		})
-		editor.expectPathToBe('root.select.dragging_handle')
+		editor.expectToBeIn('select.dragging_handle')
 	})
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {
@@ -102,7 +102,7 @@ describe('When dragging the arrow', () => {
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		expect(editor.getHintingShapeIds().length).toBe(0)
-		editor.expectPathToBe('root.select.idle')
+		editor.expectToBeIn('select.idle')
 	})
 
 	it('returns to arrow.idle, keeping shape, on pointer up when tool lock is active', () => {
@@ -112,7 +112,7 @@ describe('When dragging the arrow', () => {
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		expect(editor.getHintingShapeIds().length).toBe(0)
-		editor.expectPathToBe('root.arrow.idle')
+		editor.expectToBeIn('arrow.idle')
 	})
 
 	it('bails on cancel', () => {
@@ -120,7 +120,7 @@ describe('When dragging the arrow', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).cancel()
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
-		editor.expectPathToBe('root.arrow.idle')
+		editor.expectToBeIn('arrow.idle')
 	})
 })
 
@@ -409,10 +409,10 @@ describe('reparenting issue', () => {
 			handle: { id: 'end', type: 'vertex', index: 'a0', x: 100, y: 100 },
 			shape: editor.getShape(arrowId)!,
 		})
-		editor.expectPathToBe('root.select.pointing_handle')
+		editor.expectToBeIn('select.pointing_handle')
 
 		editor.pointerMove(320, 320) // over box 2
-		editor.expectPathToBe('root.select.dragging_handle')
+		editor.expectToBeIn('select.dragging_handle')
 		editor.expectShapeToMatch({
 			id: arrowId,
 			index: 'a3V',

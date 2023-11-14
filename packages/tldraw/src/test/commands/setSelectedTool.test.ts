@@ -13,11 +13,11 @@ afterEach(() => {
 describe('Set selected tool', () => {
 	it('Selects a tool by its name', () => {
 		editor.setCurrentTool('hand')
-		editor.expectPathToBe('root.hand.idle')
+		editor.expectToBeIn('hand.idle')
 	})
 
 	it('Selects a tool by its deep path', () => {
 		editor.setCurrentTool('hand.pointing')
-		editor.expectPathToBe('root.hand.pointing')
+		editor.expectToBeIn('hand.pointing')
 	})
 })

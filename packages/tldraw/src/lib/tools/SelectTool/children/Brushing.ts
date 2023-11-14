@@ -89,7 +89,7 @@ export class Brushing extends StateNode {
 	}
 
 	private complete() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	private hitTestShapes() {

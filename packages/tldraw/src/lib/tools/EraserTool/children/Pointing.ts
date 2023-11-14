@@ -83,11 +83,11 @@ export class Pointing extends StateNode {
 		}
 
 		this.editor.setErasingShapes([])
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	cancel() {
 		this.editor.setErasingShapes([])
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }

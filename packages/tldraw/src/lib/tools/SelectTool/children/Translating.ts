@@ -172,7 +172,7 @@ export class Translating extends StateNode {
 					this.editor.setCurrentTool('select.editing_shape')
 				}
 			} else {
-				this.parent.transition('idle', {})
+				this.parent.transition('idle')
 			}
 		}
 	}

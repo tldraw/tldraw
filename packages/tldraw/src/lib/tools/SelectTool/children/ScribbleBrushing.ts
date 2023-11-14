@@ -65,7 +65,7 @@ export class ScribbleBrushing extends StateNode {
 
 	override onKeyUp = () => {
 		if (!this.editor.inputs.altKey) {
-			this.parent.transition('brushing', {})
+			this.parent.transition('brushing')
 		} else {
 			this.updateScribbleSelection(false)
 		}
@@ -157,11 +157,11 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private complete() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
 		this.editor.setSelectedShapes([...this.initialSelectedShapeIds], { squashing: true })
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }

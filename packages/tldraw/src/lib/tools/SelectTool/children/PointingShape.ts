@@ -213,6 +213,6 @@ export class PointingShape extends StateNode {
 	}
 
 	private cancel() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }
