@@ -122,12 +122,12 @@ describe('When interacting with a shape...', () => {
 			handle: 'bottom_right',
 		})
 
-		editor.expectPathToBe('root.select.pointing_resize_handle')
+		editor.expectToBeIn('select.pointing_resize_handle')
 		editor.pointerMove(200, 200)
-		editor.expectPathToBe('root.select.resizing')
+		editor.expectToBeIn('select.resizing')
 		editor.pointerMove(200, 210)
 		editor.pointerUp(200, 210)
-		editor.expectPathToBe('root.select.idle')
+		editor.expectToBeIn('select.idle')
 
 		// Once on start (for frame only)
 		expect(fnStart).toHaveBeenCalledTimes(1)

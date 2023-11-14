@@ -124,7 +124,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		this.exactTimeout = setTimeout(() => {
-			if (this.isActive && !this.isPrecise) {
+			if (this.getIsActive() && !this.isPrecise) {
 				this.isPrecise = true
 				this.isPreciseId = this.pointingId
 				this.update()

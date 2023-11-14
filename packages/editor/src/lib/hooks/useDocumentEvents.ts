@@ -55,7 +55,7 @@ export function useDocumentEvents() {
 			if (
 				e.altKey &&
 				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?
-				(editor.isIn('zoom') || !editor.root.path.get().endsWith('.idle')) &&
+				(editor.isIn('zoom') || !editor.root.getPath().endsWith('.idle')) &&
 				!isFocusingInput()
 			) {
 				// On windows the alt key opens the menu bar.
