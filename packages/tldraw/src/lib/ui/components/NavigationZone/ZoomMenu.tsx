@@ -17,7 +17,7 @@ export const ZoomMenu = track(function ZoomMenu() {
 	const isZoomedTo100 = editor.getZoomLevel() === 1
 
 	const handleDoubleClick = React.useCallback(() => {
-		editor.resetZoom(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+		editor.resetZoom(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 	}, [editor])
 
 	return (

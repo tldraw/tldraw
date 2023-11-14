@@ -2381,7 +2381,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	resetZoom(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	resetZoom(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -2408,7 +2408,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomIn(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	zoomIn(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -2446,7 +2446,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomOut(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	zoomOut(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -2937,8 +2937,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportScreenCenter() {
+	@computed getViewportScreenCenter() {
 		return this.getViewportScreenBounds().center
+	}
+
+	/**
+	 * @deprecated Use `getViewportScreenCenter` instead.
+	 */
+	get viewportScreenCenter() {
+		return this.getViewportScreenCenter()
 	}
 
 	/**
