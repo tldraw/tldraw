@@ -2345,7 +2345,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToContent(): this {
-		const bounds = this.getSelectionPageBounds() ?? this.currentPageBounds
+		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
 
 		if (bounds) {
 			this.zoomToBounds(bounds, Math.min(1, this.getZoomLevel()), { duration: 220 })
@@ -4468,7 +4468,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get currentPageBounds(): Box2d | undefined {
+	@computed getCurrentPageBounds(): Box2d | undefined {
 		let commonBounds: Box2d | undefined
 
 		this.currentPageShapeIds.forEach((shapeId) => {
@@ -4482,6 +4482,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		return commonBounds
+	}
+
+	/**
+	 * @deprecated Use `getCurrentPageBounds` instead.
+	 */
+	get currentPageBounds() {
+		return this.getCurrentPageBounds()
 	}
 
 	/**

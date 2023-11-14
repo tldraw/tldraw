@@ -613,6 +613,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
+    // @deprecated (undocumented)
     get currentPageBounds(): Box2d | undefined;
     get currentPageId(): TLPageId;
     get currentPageRenderingShapesSorted(): TLShape[];
@@ -690,6 +691,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    getCurrentPageBounds(): Box2d | undefined;
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode | undefined;
     getCurrentToolId(): string;

@@ -7999,7 +7999,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentPageBounds:member",
-              "docComment": "/**\n * The bounds of the current page (the common bounds of all of the shapes on the page).\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentPageBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10220,6 +10220,42 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getContentFromCurrentPage"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentPageBounds:member(1)",
+              "docComment": "/**\n * The bounds of the current page (the common bounds of all of the shapes on the page).\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentPageBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentPageBounds"
             },
             {
               "kind": "Method",

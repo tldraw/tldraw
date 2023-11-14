@@ -123,7 +123,7 @@ export class MinimapManager {
 		let { x: px, y: py } = this.getPagePoint(x, y)
 
 		if (clampToBounds) {
-			const shapesPageBounds = this.editor.currentPageBounds
+			const shapesPageBounds = this.editor.getCurrentPageBounds()
 			const vpPageBounds = viewportPageBounds
 
 			const minX = (shapesPageBounds?.minX ?? 0) - vpPageBounds.width / 2

@@ -590,7 +590,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 		editor.selectNone()
 		editor.updateViewportScreenBounds()
 
-		const bounds = editor.currentPageBounds
+		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
 			editor.zoomToBounds(bounds, 1)
 		}
