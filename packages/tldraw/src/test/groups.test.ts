@@ -1505,7 +1505,7 @@ describe('erasing', () => {
 	it('does not erase whole groups if you do not hit on one of their shapes', () => {
 		editor.setCurrentTool('eraser')
 		editor.pointerDown(40, 5)
-		expect(editor.erasingShapeIds).toEqual([])
+		expect(editor.getErasingShapeIds()).toEqual([])
 	})
 
 	it('works inside of groups', () => {
@@ -1539,7 +1539,7 @@ describe('erasing', () => {
 		// move to group B
 		editor.pointerMove(65, 5)
 
-		expect(editor.erasingShapeIds.length).toBe(2)
+		expect(editor.getErasingShapeIds().length).toBe(2)
 	})
 })
 

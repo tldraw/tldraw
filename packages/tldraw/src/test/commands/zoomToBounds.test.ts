@@ -25,7 +25,7 @@ describe('When zooming to bounds', () => {
 		})
 
 		editor.zoomToBounds(new Box2d(200, 300, 300, 300))
-		expect(editor.camera.z).toCloselyMatchObject((1000 - 256) / 300)
+		expect(editor.getCamera().z).toCloselyMatchObject((1000 - 256) / 300)
 		expect(editor.viewportPageBounds.width).toCloselyMatchObject(1000 / ((1000 - 256) / 300))
 		expect(editor.viewportPageBounds.height).toCloselyMatchObject(1000 / ((1000 - 256) / 300))
 	})

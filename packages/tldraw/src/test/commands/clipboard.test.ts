@@ -76,8 +76,8 @@ describe('When copying and pasting', () => {
 		const testOffsetX = 100
 		const testOffsetY = 100
 		editor.setCamera({
-			x: editor.camera.x - testOffsetX,
-			y: editor.camera.y - testOffsetY,
+			x: editor.getCamera().x - testOffsetX,
+			y: editor.getCamera().y - testOffsetY,
 			z: editor.zoomLevel,
 		})
 
@@ -121,8 +121,8 @@ describe('When copying and pasting', () => {
 		const testOffsetX = 1800
 		const testOffsetY = 0
 		editor.setCamera({
-			x: editor.camera.x - testOffsetX,
-			y: editor.camera.y - testOffsetY,
+			x: editor.getCamera().x - testOffsetX,
+			y: editor.getCamera().y - testOffsetY,
 			z: editor.zoomLevel,
 		})
 
@@ -163,8 +163,8 @@ describe('When copying and pasting', () => {
 
 		const { w: screenWidth, h: screenHeight } = editor.viewportScreenBounds
 		editor.setCamera({
-			x: editor.camera.x - testOffsetX,
-			y: editor.camera.y - testOffsetY,
+			x: editor.getCamera().x - testOffsetX,
+			y: editor.getCamera().y - testOffsetY,
 			z: editor.zoomLevel,
 		})
 
@@ -293,8 +293,8 @@ describe('When copying and pasting', () => {
 		const testOffsetX = 100
 		const testOffsetY = 100
 		editor.setCamera({
-			x: editor.camera.x - testOffsetX,
-			y: editor.camera.y - testOffsetY,
+			x: editor.getCamera().x - testOffsetX,
+			y: editor.getCamera().y - testOffsetY,
 			z: editor.zoomLevel,
 		})
 
@@ -323,8 +323,8 @@ describe('When copying and pasting', () => {
 		const testOffsetX = 1800
 		const testOffsetY = 0
 		editor.setCamera({
-			x: editor.camera.x - testOffsetX,
-			y: editor.camera.y - testOffsetY,
+			x: editor.getCamera().x - testOffsetX,
+			y: editor.getCamera().y - testOffsetY,
 			z: editor.zoomLevel,
 		})
 
@@ -356,8 +356,8 @@ describe('When copying and pasting', () => {
 
 		const { w: screenWidth, h: screenHeight } = editor.viewportScreenBounds
 		editor.setCamera({
-			x: editor.camera.x - testOffsetX,
-			y: editor.camera.y - testOffsetY,
+			x: editor.getCamera().x - testOffsetX,
+			y: editor.getCamera().y - testOffsetY,
 			z: editor.zoomLevel,
 		})
 

@@ -1966,8 +1966,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed get hoveredShapeId() {
+	@computed getHoveredShapeId(): TLShapeId | null {
 		return this.getCurrentPageState().hoveredShapeId
+	}
+
+	/**
+	 * @deprecated Use `getHoveredShapeId` instead.
+	 */
+	get hoveredShapeId() {
+		return this.getHoveredShapeId()
 	}
 
 	/**
@@ -1975,9 +1982,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hoveredShape(): TLShape | undefined {
-		const { hoveredShapeId } = this
+	@computed getHoveredShape(): TLShape | undefined {
+		const hoveredShapeId = this.getHoveredShapeId()
 		return hoveredShapeId ? this.getShape(hoveredShapeId) : undefined
+	}
+
+	/**
+	 * @deprecated Use `getHoveredShape` instead.
+	 */
+	get hoveredShape() {
+		return this.getHoveredShape()
 	}
 
 	/**
@@ -1995,7 +2009,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (id === this.hoveredShapeId) return this
+		if (id === this.getHoveredShapeId()) return this
 		this.updateCurrentPageState({ hoveredShapeId: id }, { ephemeral: true })
 		return this
 	}
@@ -2007,8 +2021,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hintingShapeIds() {
+	@computed getHintingShapeIds() {
 		return this.getCurrentPageState().hintingShapeIds
+	}
+
+	/**
+	 * @deprecated Use `getHintingShapeIds` instead.
+	 */
+	get hintingShapeIds() {
+		return this.getHintingShapeIds()
 	}
 
 	/**
@@ -2016,9 +2037,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hintingShapes() {
-		const { hintingShapeIds } = this
+	@computed getHintingShape() {
+		const hintingShapeIds = this.getHintingShapeIds()
 		return compact(hintingShapeIds.map((id) => this.getShape(id)))
+	}
+
+	/**
+	 * @deprecated Use `getHintingShape` instead.
+	 */
+	get hintingShape() {
+		return this.getHintingShape()
 	}
 
 	/**
@@ -2051,18 +2079,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get erasingShapeIds() {
+	@computed getErasingShapeIds() {
 		return this.getCurrentPageState().erasingShapeIds
 	}
 
 	/**
-	 * The editor's current hinting shapes.
+	 * @deprecated Use `getErasingShapeIds` instead.
+	 */
+	get erasingShapeIds() {
+		return this.getErasingShapeIds()
+	}
+
+	/**
+	 * The editor's current erasing shapes.
 	 *
 	 * @public
 	 */
-	@computed get erasingShapes() {
-		const { erasingShapeIds } = this
+	@computed getErasingShapes() {
+		const erasingShapeIds = this.getErasingShapeIds()
 		return compact(erasingShapeIds.map((id) => this.getShape(id)))
+	}
+
+	/**
+	 * @deprecated Use `getErasingShapes` instead.
+	 */
+	get erasingShapes() {
+		return this.getErasingShapes()
 	}
 
 	/**
@@ -2084,7 +2126,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
-		const { erasingShapeIds } = this
+		const erasingShapeIds = this.getErasingShapeIds()
 		if (ids.length === erasingShapeIds.length) {
 			// if the new ids are the same length as the current ids, they might be the same.
 			// presuming the current ids are also sorted, check each item to see if it's the same;
@@ -2148,7 +2190,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private get cameraId() {
+	private getCameraId() {
 		return CameraRecordType.createId(this.currentPageId)
 	}
 
@@ -2157,8 +2199,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get camera() {
-		return this.store.get(this.cameraId)!
+	@computed getCamera() {
+		return this.store.get(this.getCameraId())!
 	}
 
 	/**
@@ -2167,12 +2209,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get zoomLevel() {
-		return this.camera.z
+		return this.getCamera().z
 	}
 
 	/** @internal */
 	private _setCamera(point: VecLike): this {
-		const currentCamera = this.camera
+		const currentCamera = this.getCamera()
 
 		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
 			return this
@@ -2261,10 +2303,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const {
 			viewportPageBounds: { width: pw, height: ph },
-			camera,
 		} = this
 
-		this.setCamera({ x: -(point.x - pw / 2), y: -(point.y - ph / 2), z: camera.z }, animation)
+		this.setCamera(
+			{ x: -(point.x - pw / 2), y: -(point.y - ph / 2), z: this.getCamera().z },
+			animation
+		)
 		return this
 	}
 
@@ -2333,7 +2377,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	resetZoom(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 		const { x, y } = point
 		this.setCamera(
 			{ x: cx + (x / 1 - x) - (x / cz - x), y: cy + (y / 1 - y) - (y / cz - y), z: 1 },
@@ -2360,7 +2404,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomIn(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 
 		let zoom = MAX_ZOOM
 
@@ -2398,7 +2442,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomOut(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 
 		let zoom = MIN_ZOOM
 
@@ -2464,7 +2508,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { viewportPageBounds } = this
 
 		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
-			this.zoomToBounds(selectionBounds, this.camera.z, animation)
+			this.zoomToBounds(selectionBounds, this.getCamera().z, animation)
 
 			return this
 		} else {
@@ -2492,7 +2536,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// inside x-bounds
 			}
 
-			const { camera } = this
+			const camera = this.getCamera()
 			this.setCamera({ x: camera.x + offsetX, y: camera.y + offsetY, z: camera.z }, animation)
 		}
 
@@ -2561,7 +2605,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	pan(offset: VecLike, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 		this.setCamera({ x: cx + offset.x / cz, y: cy + offset.y / cz, z: cz }, animation)
 		return this
 	}
@@ -2688,7 +2732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.once('stop-camera-animation', cancel)
 
 		const moveCamera = (elapsed: number) => {
-			const { x: cx, y: cy, z: cz } = this.camera
+			const { x: cx, y: cy, z: cz } = this.getCamera()
 			const movementVec = Vec2d.Mul(direction, (currentSpeed * elapsed) / cz)
 
 			// Apply friction
@@ -2890,7 +2934,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed get viewportPageBounds() {
 		const { w, h } = this.viewportScreenBounds
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 		return new Box2d(-cx, -cy, w / cz, h / cz)
 	}
 
@@ -2917,7 +2961,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	screenToPage(point: VecLike) {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz = 1 } = this.camera
+		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 		return {
 			x: (point.x - screenBounds.x) / cz - cx,
 			y: (point.y - screenBounds.y) / cz - cy,
@@ -2939,7 +2983,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	pageToScreen(point: VecLike) {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz = 1 } = this.camera
+		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 
 		return {
 			x: (point.x + cx) * cz + screenBounds.x,
@@ -3030,7 +3074,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? Math.min(width / desiredWidth, height / desiredHeight)
 				: height / desiredHeight
 
-			const targetZoom = clamp(this.camera.z * ratio, MIN_ZOOM, MAX_ZOOM)
+			const targetZoom = clamp(this.getCamera().z * ratio, MIN_ZOOM, MAX_ZOOM)
 			const targetWidth = this.viewportScreenBounds.w / targetZoom
 			const targetHeight = this.viewportScreenBounds.h / targetZoom
 
@@ -3040,7 +3084,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Now let's assess whether we've caught up to the leader or not
 			const distance = Vec2d.Sub(targetCenter, center).len()
-			const zoomChange = Math.abs(targetZoom - this.camera.z)
+			const zoomChange = Math.abs(targetZoom - this.getCamera().z)
 
 			// If we're chasing the leader...
 			// Stop chasing if we're close enough
@@ -3170,7 +3214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// We only really need these if we're using editor state, but that's ok
 		const editingShapeId = this.getEditingShapeId()
 		const selectedShapeIds = this.getSelectedShapeIds()
-		const erasingShapeIds = this.erasingShapeIds
+		const erasingShapeIds = this.getErasingShapeIds()
 		const renderingBoundsExpanded = this.renderingBoundsExpanded
 
 		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
@@ -3677,7 +3721,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
 
-		const prevCamera = { ...this.camera }
+		const prevCamera = { ...this.getCamera() }
 		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
 
 		this.batch(() => {
@@ -5487,7 +5531,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		const fromPageZ = this.camera.z
+		const fromPageZ = this.getCamera().z
 
 		this.history.batch(() => {
 			// Delete the shapes on the current page
@@ -5510,7 +5554,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Force the new page's camera to be at the same zoom level as the
 			// "from" page's camera, then center the "to" page's camera on the
 			// pasted shapes
-			this.setCamera({ ...this.camera, z: fromPageZ })
+			this.setCamera({ ...this.getCamera(), z: fromPageZ })
 			this.centerOnPoint(this.getSelectionRotatedPageBounds()!.center)
 		})
 
@@ -8483,7 +8527,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: sx, y: sy, z: sz } = info.point
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)
@@ -8735,7 +8779,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (inputs.isPinching) return
 
 							if (!inputs.isEditing) {
-								this._pinchStart = this.camera.z
+								this._pinchStart = this.getCamera().z
 								if (!this._selectedShapeIdsAtPointerDown.length) {
 									this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 								}
@@ -8757,9 +8801,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								delta: { x: dx, y: dy },
 							} = info
 
-							const {
-								camera: { x: cx, y: cy, z: cz },
-							} = this
+							const { x: cx, y: cy, z: cz } = this.getCamera()
 
 							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
 
@@ -8806,7 +8848,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// If the alt or ctrl keys are pressed,
 							// zoom or pan the camera and then return.
 							const { x, y } = this.inputs.currentScreenPoint
-							const { x: cx, y: cy, z: cz } = this.camera
+							const { x: cx, y: cy, z: cz } = this.getCamera()
 
 							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
 

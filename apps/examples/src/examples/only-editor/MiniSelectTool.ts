@@ -27,7 +27,7 @@ class IdleState extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredShape } = this.editor
+				const hoveredShape = editor.getHoveredShape()
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
