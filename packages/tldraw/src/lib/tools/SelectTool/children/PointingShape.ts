@@ -62,8 +62,8 @@ export class PointingShape extends StateNode {
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
+		const zoomLevel = this.editor.getZoomLevel()
 		const {
-			zoomLevel,
 			inputs: { currentPagePoint, shiftKey },
 		} = this.editor
 

@@ -2208,8 +2208,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get zoomLevel() {
+	@computed getZoomLevel() {
 		return this.getCamera().z
+	}
+
+	/**
+	 * @deprecated Use `getZoomLevel` instead.
+	 */
+	get zoomLevel() {
+		return this.getZoomLevel()
 	}
 
 	/** @internal */
@@ -2264,7 +2271,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setCamera(point: VecLike, animation?: TLAnimationOptions): this {
 		const x = Number.isFinite(point.x) ? point.x : 0
 		const y = Number.isFinite(point.y) ? point.y : 0
-		const z = Number.isFinite(point.z) ? point.z! : this.zoomLevel
+		const z = Number.isFinite(point.z) ? point.z! : this.getZoomLevel()
 
 		// Stop any camera animations
 		this.stopCameraAnimation()
@@ -2275,7 +2282,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		if (animation) {
-			const { width, height } = this.viewportScreenBounds
+			const { width, height } = this.getViewportScreenBounds()
 			return this._animateToViewport(new Box2d(-x, -y, width / z, height / z), animation)
 		} else {
 			this._setCamera({ x, y, z })
@@ -2301,9 +2308,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const {
-			viewportPageBounds: { width: pw, height: ph },
-		} = this
+		const { width: pw, height: ph } = this.getViewportPageBounds()
 
 		this.setCamera(
 			{ x: -(point.x - pw / 2), y: -(point.y - ph / 2), z: this.getCamera().z },
@@ -2329,7 +2334,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bounds = this.getSelectionPageBounds() ?? this.currentPageBounds
 
 		if (bounds) {
-			this.zoomToBounds(bounds, Math.min(1, this.zoomLevel), { duration: 220 })
+			this.zoomToBounds(bounds, Math.min(1, this.getZoomLevel()), { duration: 220 })
 		}
 
 		return this
@@ -2374,7 +2379,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	resetZoom(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	resetZoom(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -2401,7 +2406,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomIn(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	zoomIn(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -2439,7 +2444,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomOut(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	zoomOut(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -2486,7 +2491,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (!selectionPageBounds) return this
 
-		this.zoomToBounds(selectionPageBounds, Math.max(1, this.zoomLevel), animation)
+		this.zoomToBounds(selectionPageBounds, Math.max(1, this.getZoomLevel()), animation)
 
 		return this
 	}
@@ -2505,14 +2510,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 		const selectionBounds = Box2d.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
 
-		const { viewportPageBounds } = this
+		const viewportPageBounds = this.getViewportPageBounds()
 
 		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
 			this.zoomToBounds(selectionBounds, this.getCamera().z, animation)
 
 			return this
 		} else {
-			const insetViewport = this.viewportPageBounds.clone().expandBy(-32 / this.zoomLevel)
+			const insetViewport = this.getViewportPageBounds()
+				.clone()
+				.expandBy(-32 / this.getZoomLevel())
 
 			let offsetX = 0
 			let offsetY = 0
@@ -2562,7 +2569,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { viewportScreenBounds } = this
+		const viewportScreenBounds = this.getViewportScreenBounds()
 
 		const inset = Math.min(256, viewportScreenBounds.width * 0.28)
 
@@ -2646,7 +2653,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { elapsed, easing, duration, start, end } = this._viewportAnimation
 
 		if (elapsed > duration) {
-			this._setCamera({ x: -end.x, y: -end.y, z: this.viewportScreenBounds.width / end.width })
+			this._setCamera({ x: -end.x, y: -end.y, z: this.getViewportScreenBounds().width / end.width })
 			cancel()
 			return
 		}
@@ -2658,7 +2665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const top = start.minY + (end.minY - start.minY) * t
 		const right = start.maxX + (end.maxX - start.maxX) * t
 
-		this._setCamera({ x: -left, y: -top, z: this.viewportScreenBounds.width / (right - left) })
+		this._setCamera({ x: -left, y: -top, z: this.getViewportScreenBounds().width / (right - left) })
 	}
 
 	/** @internal */
@@ -2666,8 +2673,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
 		const {
 			user: { animationSpeed },
-			viewportPageBounds,
 		} = this
+		const viewportPageBounds = this.getViewportPageBounds()
 
 		// If we have an existing animation, then stop it; also stop following any user
 		this.stopCameraAnimation()
@@ -2680,7 +2687,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this._setCamera({
 				x: -targetViewportPage.x,
 				y: -targetViewportPage.y,
-				z: this.viewportScreenBounds.width / targetViewportPage.width,
+				z: this.getViewportScreenBounds().width / targetViewportPage.width,
 			})
 		}
 
@@ -2811,7 +2818,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const activeArea = this.viewportScreenBounds.clone().expandBy(-32)
+		const activeArea = this.getViewportScreenBounds().clone().expandBy(-32)
 		const viewportAspectRatio = activeArea.width / activeArea.height
 
 		const shapePageBounds = this.getShapePageBounds(shapeId)
@@ -2869,7 +2876,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			Math.max(rect.width, 1),
 			Math.max(rect.height, 1)
 		)
-		const boundsAreEqual = screenBounds.equals(this.viewportScreenBounds)
+		const boundsAreEqual = screenBounds.equals(this.getViewportScreenBounds())
 
 		const { _willSetInitialBounds } = this
 
@@ -2886,7 +2893,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				if (center && !this.getInstanceState().followingUserId) {
 					// Get the page center before the change, make the change, and restore it
-					const before = this.viewportPageCenter
+					const before = this.getViewportPageCenter()
 					this.updateInstanceState(
 						{ screenBounds: screenBounds.toJson() },
 						{ squashing: true, ephemeral: true }
@@ -2913,9 +2920,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportScreenBounds() {
+	@computed getViewportScreenBounds() {
 		const { x, y, w, h } = this.getInstanceState().screenBounds
 		return new Box2d(x, y, w, h)
+	}
+
+	/**
+	 * @deprecated Use `getViewportScreenBounds` instead.
+	 */
+	get viewportScreenBounds() {
+		return this.getViewportScreenBounds()
 	}
 
 	/**
@@ -2923,8 +2937,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportScreenCenter() {
-		return this.viewportScreenBounds.center
+	@computed getViewportScreenCenter() {
+		return this.getViewportScreenBounds().center
+	}
+
+	/**
+	 * @deprecated Use `getViewportScreenCenter` instead.
+	 */
+	get viewportScreenCenter() {
+		return this.getViewportScreenCenter()
 	}
 
 	/**
@@ -2932,10 +2953,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportPageBounds() {
-		const { w, h } = this.viewportScreenBounds
+	@computed getViewportPageBounds() {
+		const { w, h } = this.getViewportScreenBounds()
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 		return new Box2d(-cx, -cy, w / cz, h / cz)
+	}
+
+	/**
+	 * @deprecated Use `getViewportPageBounds` instead.
+	 */
+	get viewportPageBounds() {
+		return this.getViewportPageBounds()
 	}
 
 	/**
@@ -2943,8 +2971,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportPageCenter() {
-		return this.viewportPageBounds.center
+	@computed getViewportPageCenter() {
+		return this.getViewportPageBounds().center
+	}
+
+	/**
+	 * @deprecated Use `getViewportPageCenter` instead.
+	 */
+	get viewportPageCenter() {
+		return this.getViewportPageCenter()
 	}
 
 	/**
@@ -3053,7 +3088,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Get the bounds of the follower (me) and the leader (them)
-			const { center, width, height } = this.viewportPageBounds
+			const { center, width, height } = this.getViewportPageBounds()
 			const leaderScreen = Box2d.From(leaderPresence.screenBounds)
 			const leaderWidth = leaderScreen.width / leaderPresence.camera.z
 			const leaderHeight = leaderScreen.height / leaderPresence.camera.z
@@ -3075,8 +3110,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: height / desiredHeight
 
 			const targetZoom = clamp(this.getCamera().z * ratio, MIN_ZOOM, MAX_ZOOM)
-			const targetWidth = this.viewportScreenBounds.w / targetZoom
-			const targetHeight = this.viewportScreenBounds.h / targetZoom
+			const targetWidth = this.getViewportScreenBounds().w / targetZoom
+			const targetHeight = this.getViewportScreenBounds().h / targetZoom
 
 			// Figure out where to move the camera
 			const displacement = leaderCenter.sub(center)
@@ -3349,13 +3384,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	updateRenderingBounds(): this {
-		const { viewportPageBounds } = this
+		const viewportPageBounds = this.getViewportPageBounds()
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
 		this._renderingBounds.set(viewportPageBounds.clone())
 
 		if (Number.isFinite(this.renderingBoundsMargin)) {
 			this._renderingBoundsExpanded.set(
-				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.zoomLevel)
+				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.getZoomLevel())
 			)
 		} else {
 			this._renderingBoundsExpanded.set(viewportPageBounds)
@@ -4425,7 +4460,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			filter?: (shape: TLShape) => boolean
 		}
 	): TLShape | undefined {
-		const { viewportPageBounds, zoomLevel } = this
+		const zoomLevel = this.getZoomLevel()
+		const viewportPageBounds = this.getViewportPageBounds()
 		const {
 			filter,
 			margin = 0,
@@ -5479,7 +5515,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// contained in the current viewport. If not, then animate the camera to be centered on the
 				// new shapes.
 				const selectionPageBounds = this.getSelectionPageBounds()
-				const { viewportPageBounds } = this
+				const viewportPageBounds = this.getViewportPageBounds()
 				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 					this.centerOnPoint(selectionPageBounds.center, {
 						duration: ANIMATION_MEDIUM_MS,
@@ -7988,7 +8024,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!isPageId(pasteParentId)) {
 			const parent = this.getShape(pasteParentId)
 			if (parent) {
-				if (!this.viewportPageBounds.includes(this.getShapePageBounds(parent)!)) {
+				if (!this.getViewportPageBounds().includes(this.getShapePageBounds(parent)!)) {
 					pasteParentId = currentPageId
 				} else {
 					if (rootShapeIds.length === 1) {
@@ -8189,7 +8225,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.getShapeGeometry(shape).bounds.center
 					)
 				} else {
-					const { viewportPageBounds } = this
+					const viewportPageBounds = this.getViewportPageBounds()
 					if (preservePosition || viewportPageBounds.includes(Box2d.From(bounds))) {
 						// Otherwise, put shapes where they used to be
 						point = bounds.center
@@ -8872,7 +8908,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing &&
 							originPagePoint.dist(currentPagePoint) >
 								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-									this.zoomLevel
+									this.getZoomLevel()
 						) {
 							inputs.isDragging = true
 						}
@@ -8960,7 +8996,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								inputs.isPointing &&
 								originPagePoint.dist(currentPagePoint) >
 									(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-										this.zoomLevel
+										this.getZoomLevel()
 							) {
 								inputs.isDragging = true
 							}

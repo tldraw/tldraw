@@ -25,8 +25,8 @@ export class HandTool extends StateNode {
 
 	override onQuadrupleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
+			const zoomLevel = this.editor.getZoomLevel()
 			const {
-				zoomLevel,
 				inputs: { currentScreenPoint },
 			} = this.editor
 

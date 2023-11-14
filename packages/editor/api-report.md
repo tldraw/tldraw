@@ -763,6 +763,11 @@ export class Editor extends EventEmitter<TLEventMap> {
         darkMode?: boolean | undefined;
         preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     }>): Promise<SVGSVGElement | undefined>;
+    getViewportPageBounds(): Box2d;
+    getViewportPageCenter(): Vec2d;
+    getViewportScreenBounds(): Box2d;
+    getViewportScreenCenter(): Vec2d;
+    getZoomLevel(): number;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     // @deprecated (undocumented)
@@ -941,12 +946,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
+    // @deprecated (undocumented)
     get viewportPageBounds(): Box2d;
+    // @deprecated (undocumented)
     get viewportPageCenter(): Vec2d;
+    // @deprecated (undocumented)
     get viewportScreenBounds(): Box2d;
+    // @deprecated (undocumented)
     get viewportScreenCenter(): Vec2d;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec2d, animation?: TLAnimationOptions): this;
+    // @deprecated (undocumented)
     get zoomLevel(): number;
     zoomOut(point?: Vec2d, animation?: TLAnimationOptions): this;
     zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this;

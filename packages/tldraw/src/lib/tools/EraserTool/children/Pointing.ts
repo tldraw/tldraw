@@ -11,10 +11,10 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onEnter = () => {
+		const zoomLevel = this.editor.getZoomLevel()
 		const {
 			inputs: { currentPagePoint },
 			currentPageShapesSorted: sortedShapesOnCurrentPage,
-			zoomLevel,
 		} = this.editor
 
 		const erasing = new Set<TLShapeId>()

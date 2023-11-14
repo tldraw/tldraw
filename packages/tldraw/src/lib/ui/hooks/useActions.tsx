@@ -409,8 +409,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								y: 0,
 						  }
 						: {
-								x: 16 / editor.zoomLevel,
-								y: 16 / editor.zoomLevel,
+								x: 16 / editor.getZoomLevel(),
+								y: 16 / editor.getZoomLevel(),
 						  }
 					editor.mark('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
@@ -869,7 +869,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
-					editor.zoomIn(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomIn(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -879,7 +879,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
-					editor.zoomOut(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomOut(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -890,7 +890,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
-					editor.resetZoom(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.resetZoom(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{

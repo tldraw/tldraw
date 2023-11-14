@@ -94,7 +94,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					</div>
 				</div>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
+					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
 			</>
 		)

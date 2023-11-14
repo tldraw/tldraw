@@ -562,7 +562,7 @@ describe('snapping with single shapes', () => {
 		editor.pointerDown(25, 5, ids.box2).pointerMove(36, 5, { ctrlKey: true })
 		expect(editor.snaps.lines!.length).toBe(0)
 
-		editor.updateShapes([{ id: ids.box1, type: 'geo', x: editor.viewportScreenBounds.w + 10 }])
+		editor.updateShapes([{ id: ids.box1, type: 'geo', x: editor.getViewportScreenBounds().w + 10 }])
 		editor.pointerMove(33, 5, { ctrlKey: true })
 
 		expect(editor.snaps.lines!.length).toBe(0)
@@ -572,7 +572,7 @@ describe('snapping with single shapes', () => {
 		expect(editor.snaps.lines!.length).toBe(0)
 
 		editor.updateShapes([
-			{ id: ids.box1, type: 'geo', x: 0, y: editor.viewportScreenBounds.h + 10 },
+			{ id: ids.box1, type: 'geo', x: 0, y: editor.getViewportScreenBounds().h + 10 },
 		])
 
 		editor.pointerMove(5, 5, { ctrlKey: true })

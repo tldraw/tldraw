@@ -87,7 +87,7 @@ export class Drawing extends StateNode {
 			if (inputs.isPen) {
 				if (
 					Vec2d.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
-					1 / this.editor.zoomLevel
+					1 / this.editor.getZoomLevel()
 				) {
 					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.mergeNextPoint = false
@@ -474,7 +474,7 @@ export class Drawing extends StateNode {
 				if (shouldSnap) {
 					if (newSegments.length > 2) {
 						let nearestPoint: Vec2dModel | undefined = undefined
-						let minDistance = 8 / this.editor.zoomLevel
+						let minDistance = 8 / this.editor.getZoomLevel()
 
 						// Don't try to snap to the last two segments
 						for (let i = 0, n = segments.length - 2; i < n; i++) {

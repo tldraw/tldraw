@@ -79,7 +79,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const allowUngroup = useAllowUngroup()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
-	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.zoomLevel === 1, [editor])
+	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.getZoomLevel() === 1, [editor])
 
 	const oneEmbedSelected = useValue(
 		'oneEmbedSelected',

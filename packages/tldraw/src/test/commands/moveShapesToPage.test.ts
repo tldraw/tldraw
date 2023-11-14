@@ -241,6 +241,6 @@ describe('arrows', () => {
 
 		editor.moveShapesToPage([ids.box1, ids.box2], ids.page2)
 		const selectionPageBounds = editor.getSelectionPageBounds()
-		expect(editor.viewportPageCenter).toMatchObject(selectionPageBounds!.center)
+		expect(editor.getViewportPageCenter()).toMatchObject(selectionPageBounds!.center)
 	})
 })

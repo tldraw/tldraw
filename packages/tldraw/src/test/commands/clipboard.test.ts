@@ -78,7 +78,7 @@ describe('When copying and pasting', () => {
 		editor.setCamera({
 			x: editor.getCamera().x - testOffsetX,
 			y: editor.getCamera().y - testOffsetY,
-			z: editor.zoomLevel,
+			z: editor.getZoomLevel(),
 		})
 
 		editor.paste()
@@ -123,7 +123,7 @@ describe('When copying and pasting', () => {
 		editor.setCamera({
 			x: editor.getCamera().x - testOffsetX,
 			y: editor.getCamera().y - testOffsetY,
-			z: editor.zoomLevel,
+			z: editor.getZoomLevel(),
 		})
 
 		editor.paste()
@@ -161,11 +161,11 @@ describe('When copying and pasting', () => {
 		const testOffsetX = 2000
 		const testOffsetY = 3000
 
-		const { w: screenWidth, h: screenHeight } = editor.viewportScreenBounds
+		const { w: screenWidth, h: screenHeight } = editor.getViewportScreenBounds()
 		editor.setCamera({
 			x: editor.getCamera().x - testOffsetX,
 			y: editor.getCamera().y - testOffsetY,
-			z: editor.zoomLevel,
+			z: editor.getZoomLevel(),
 		})
 
 		editor.paste()
@@ -295,7 +295,7 @@ describe('When copying and pasting', () => {
 		editor.setCamera({
 			x: editor.getCamera().x - testOffsetX,
 			y: editor.getCamera().y - testOffsetY,
-			z: editor.zoomLevel,
+			z: editor.getZoomLevel(),
 		})
 
 		editor.paste()
@@ -325,7 +325,7 @@ describe('When copying and pasting', () => {
 		editor.setCamera({
 			x: editor.getCamera().x - testOffsetX,
 			y: editor.getCamera().y - testOffsetY,
-			z: editor.zoomLevel,
+			z: editor.getZoomLevel(),
 		})
 
 		editor.paste()
@@ -354,11 +354,11 @@ describe('When copying and pasting', () => {
 		const testOffsetX = 2000
 		const testOffsetY = 3000
 
-		const { w: screenWidth, h: screenHeight } = editor.viewportScreenBounds
+		const { w: screenWidth, h: screenHeight } = editor.getViewportScreenBounds()
 		editor.setCamera({
 			x: editor.getCamera().x - testOffsetX,
 			y: editor.getCamera().y - testOffsetY,
-			z: editor.zoomLevel,
+			z: editor.getZoomLevel(),
 		})
 
 		editor.paste()

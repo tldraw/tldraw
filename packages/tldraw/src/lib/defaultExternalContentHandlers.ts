@@ -165,7 +165,8 @@ export function registerDefaultExternalContentHandlers(
 	// svg text
 	editor.registerExternalContentHandler('svg-text', async ({ point, text }) => {
 		const position =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg')
 		if (!svg) {
@@ -197,7 +198,8 @@ export function registerDefaultExternalContentHandlers(
 	// embeds
 	editor.registerExternalContentHandler('embed', ({ point, url, embed }) => {
 		const position =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const { width, height } = embed
 
@@ -221,7 +223,8 @@ export function registerDefaultExternalContentHandlers(
 	// files
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
 		const position =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const pagePoint = new Vec2d(position.x, position.y)
 
@@ -272,7 +275,8 @@ export function registerDefaultExternalContentHandlers(
 	// text
 	editor.registerExternalContentHandler('text', async ({ point, text }) => {
 		const p =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
@@ -301,8 +305,8 @@ export function registerDefaultExternalContentHandlers(
 		})
 
 		const minWidth = Math.min(
-			isMultiLine ? editor.viewportPageBounds.width * 0.9 : 920,
-			Math.max(200, editor.viewportPageBounds.width * 0.9)
+			isMultiLine ? editor.getViewportPageBounds().width * 0.9 : 920,
+			Math.max(200, editor.getViewportPageBounds().width * 0.9)
 		)
 
 		if (rawSize.w > minWidth) {
@@ -323,8 +327,8 @@ export function registerDefaultExternalContentHandlers(
 			autoSize = true
 		}
 
-		if (p.y - h / 2 < editor.viewportPageBounds.minY + 40) {
-			p.y = editor.viewportPageBounds.minY + 40 + h / 2
+		if (p.y - h / 2 < editor.getViewportPageBounds().minY + 40) {
+			p.y = editor.getViewportPageBounds().minY + 40 + h / 2
 		}
 
 		editor.createShapes<TLTextShape>([
@@ -359,7 +363,8 @@ export function registerDefaultExternalContentHandlers(
 		}
 
 		const position =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 		const shape = createEmptyBookmarkShape(editor, url, position)
@@ -475,7 +480,7 @@ export async function createShapesForAssets(
 
 function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	// Re-position shapes so that the center of the group is at the provided point
-	const { viewportPageBounds } = editor
+	const viewportPageBounds = editor.getViewportPageBounds()
 	let selectionPageBounds = editor.getSelectionPageBounds()
 
 	if (selectionPageBounds) {
