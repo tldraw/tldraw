@@ -7568,7 +7568,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get sdoifjoisfjwe2334(): SharedStyle<number> {
+	@computed getSharedOpacity(): SharedStyle<number> {
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
 			const shapesToCheck: TLShape[] = []
 			const addShape = (shapeId: TLShapeId) => {
@@ -7601,6 +7601,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
 		return { type: 'shared', value: this.getInstanceState().opacityForNextShape }
+	}
+
+	/**
+	 * @deprecated Use `editor.sharedOpacity` instead.
+	 */
+	get sharedOpacity() {
+		return this.getSharedOpacity()
 	}
 
 	/**

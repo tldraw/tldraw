@@ -31,7 +31,7 @@ export function useRelevantStyles(): {
 			}
 
 			if (styles.size === 0 && !hasShape) return null
-			return { styles, opacity: editor.sdoifjoisfjwe2334 }
+			return { styles, opacity: editor.getSharedOpacity() }
 		},
 		[editor]
 	)

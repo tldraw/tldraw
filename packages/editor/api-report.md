@@ -778,6 +778,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
+    getSharedOpacity(): SharedStyle<number>;
     getSharedStyles(): ReadonlySharedStyleMap;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
@@ -940,6 +941,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
+    // @deprecated (undocumented)
     get sharedOpacity(): SharedStyle<number>;
     // @deprecated (undocumented)
     get sharedStyles(): ReadonlySharedStyleMap;

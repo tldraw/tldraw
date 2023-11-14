@@ -13477,6 +13477,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSharedOpacity:member(1)",
+              "docComment": "/**\n * Get the currently selected shared opacity. If any shapes are selected, this returns the shared opacity of the selected shapes. Otherwise, this returns the chosen opacity for the next shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSharedOpacity(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SharedStyle",
+                  "canonicalReference": "@tldraw/editor!SharedStyle:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSharedOpacity"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSharedStyles:member(1)",
               "docComment": "/**\n * A map of all the current styles either in the current selection, or that are relevant to the current tool.\n *\n * @example\n * ```ts\n * const color = editor.sharedStyles.get(DefaultColorStyle)\n * if (color && color.type === 'shared') {\n *   print('All selected shapes have the same color:', color.value)\n * }\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -18335,7 +18371,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#sharedOpacity:member",
-              "docComment": "/**\n * Get the currently selected shared opacity. If any shapes are selected, this returns the shared opacity of the selected shapes. Otherwise, this returns the chosen opacity for the next shape.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `editor.sharedOpacity` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
