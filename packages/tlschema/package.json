@@ -34,7 +34,7 @@
 		"test": "lazy inherit",
 		"test-coverage": "lazy inherit",
 		"index": "node ./scripts/build-index.js && yarn format",
-		"format": "yarn run -T prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
+		"format": "yarn run -T prettier --write --cache \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
