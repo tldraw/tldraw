@@ -288,7 +288,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			precise =
 				Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
 				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.zoomLevel
+					this.editor.getZoomLevel()
 		}
 
 		if (!isPrecise) {

@@ -409,8 +409,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								y: 0,
 						  }
 						: {
-								x: 16 / editor.zoomLevel,
-								y: 16 / editor.zoomLevel,
+								x: 16 / editor.getZoomLevel(),
+								y: 16 / editor.getZoomLevel(),
 						  }
 					editor.mark('duplicate shapes')
 					editor.duplicateShapes(ids, offset)

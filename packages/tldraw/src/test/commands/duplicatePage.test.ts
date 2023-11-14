@@ -36,7 +36,7 @@ it('Duplicates a page', () => {
 	// Also duplicates the camera
 	expect(editor.getCamera().x).toBe(camera.x)
 	expect(editor.getCamera().y).toBe(camera.y)
-	expect(editor.zoomLevel).toBe(camera.z)
+	expect(editor.getZoomLevel()).toBe(camera.z)
 
 	editor.undo()
 	expect(editor.pages.length).toBe(n)

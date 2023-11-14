@@ -6,7 +6,7 @@ import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 export function DashedOutlineBox({ bounds, className }: { bounds: Box2d; className: string }) {
 	const editor = useEditor()
 
-	const zoomLevel = useValue('zoom level', () => editor.zoomLevel, [editor])
+	const zoomLevel = useValue('zoom level', () => editor.getZoomLevel(), [editor])
 
 	return (
 		<g className={className} pointerEvents="none" strokeLinecap="round" strokeLinejoin="round">

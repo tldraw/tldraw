@@ -11,10 +11,10 @@ describe('When resetting zoom', () => {
 		const center = editor.viewportScreenBounds.center.clone()
 		editor.zoomOut()
 		editor.resetZoom()
-		expect(editor.zoomLevel).toBe(1)
+		expect(editor.getZoomLevel()).toBe(1)
 		editor.zoomIn()
 		editor.resetZoom()
-		expect(editor.zoomLevel).toBe(1)
+		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.viewportScreenBounds.center.clone()).toMatchObject(center)
 	})
 

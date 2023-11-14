@@ -148,7 +148,7 @@ function GridWrapper() {
 function ScribbleWrapper() {
 	const editor = useEditor()
 	const scribbles = useValue('scribbles', () => editor.getInstanceState().scribbles, [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 	const { Scribble } = useEditorComponents()
 
 	if (!(Scribble && scribbles.length)) return null
@@ -190,7 +190,7 @@ function ZoomBrushWrapper() {
 function SnapLinesWrapper() {
 	const editor = useEditor()
 	const lines = useValue('snapLines', () => editor.snaps.lines, [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 	const { SnapLine } = useEditorComponents()
 
 	if (!(SnapLine && lines.length > 0)) return null
@@ -210,7 +210,7 @@ function HandlesWrapper() {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
-	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
 	])

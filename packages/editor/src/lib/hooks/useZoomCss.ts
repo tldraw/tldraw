@@ -15,9 +15,9 @@ export function useZoomCss() {
 		const scheduler = new EffectScheduler('useZoomCss', () => {
 			const numShapes = editor.currentPageShapeIds.size
 			if (numShapes < 300) {
-				setScale(editor.zoomLevel)
+				setScale(editor.getZoomLevel())
 			} else {
-				setScaleDebounced(editor.zoomLevel)
+				setScaleDebounced(editor.getZoomLevel())
 			}
 		})
 

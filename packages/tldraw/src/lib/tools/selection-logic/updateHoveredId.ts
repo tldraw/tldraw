@@ -5,7 +5,7 @@ export function updateHoveredId(editor: Editor) {
 	const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
 		hitInside: false,
 		hitLabels: false,
-		margin: HIT_TEST_MARGIN / editor.zoomLevel,
+		margin: HIT_TEST_MARGIN / editor.getZoomLevel(),
 		renderingOnly: true,
 	})
 

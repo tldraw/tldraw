@@ -2208,8 +2208,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get zoomLevel() {
+	@computed getZoomLevel() {
 		return this.getCamera().z
+	}
+
+	/**
+	 * @deprecated Use `getZoomLevel` instead.
+	 */
+	get zoomLevel() {
+		return this.getZoomLevel()
 	}
 
 	/** @internal */
@@ -2264,7 +2271,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setCamera(point: VecLike, animation?: TLAnimationOptions): this {
 		const x = Number.isFinite(point.x) ? point.x : 0
 		const y = Number.isFinite(point.y) ? point.y : 0
-		const z = Number.isFinite(point.z) ? point.z! : this.zoomLevel
+		const z = Number.isFinite(point.z) ? point.z! : this.getZoomLevel()
 
 		// Stop any camera animations
 		this.stopCameraAnimation()
@@ -2329,7 +2336,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bounds = this.getSelectionPageBounds() ?? this.currentPageBounds
 
 		if (bounds) {
-			this.zoomToBounds(bounds, Math.min(1, this.zoomLevel), { duration: 220 })
+			this.zoomToBounds(bounds, Math.min(1, this.getZoomLevel()), { duration: 220 })
 		}
 
 		return this
@@ -2486,7 +2493,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (!selectionPageBounds) return this
 
-		this.zoomToBounds(selectionPageBounds, Math.max(1, this.zoomLevel), animation)
+		this.zoomToBounds(selectionPageBounds, Math.max(1, this.getZoomLevel()), animation)
 
 		return this
 	}
@@ -2512,7 +2519,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			return this
 		} else {
-			const insetViewport = this.viewportPageBounds.clone().expandBy(-32 / this.zoomLevel)
+			const insetViewport = this.viewportPageBounds.clone().expandBy(-32 / this.getZoomLevel())
 
 			let offsetX = 0
 			let offsetY = 0
@@ -3355,7 +3362,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (Number.isFinite(this.renderingBoundsMargin)) {
 			this._renderingBoundsExpanded.set(
-				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.zoomLevel)
+				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.getZoomLevel())
 			)
 		} else {
 			this._renderingBoundsExpanded.set(viewportPageBounds)
@@ -4425,7 +4432,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			filter?: (shape: TLShape) => boolean
 		}
 	): TLShape | undefined {
-		const { viewportPageBounds, zoomLevel } = this
+		const zoomLevel = this.getZoomLevel()
+		const { viewportPageBounds } = this
 		const {
 			filter,
 			margin = 0,
@@ -8872,7 +8880,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing &&
 							originPagePoint.dist(currentPagePoint) >
 								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-									this.zoomLevel
+									this.getZoomLevel()
 						) {
 							inputs.isDragging = true
 						}
@@ -8960,7 +8968,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								inputs.isPointing &&
 								originPagePoint.dist(currentPagePoint) >
 									(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-										this.zoomLevel
+										this.getZoomLevel()
 							) {
 								inputs.isDragging = true
 							}

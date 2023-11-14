@@ -6,7 +6,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
 		hitInside: false,
-		margin: HIT_TEST_MARGIN / editor.zoomLevel,
+		margin: HIT_TEST_MARGIN / editor.getZoomLevel(),
 		hitLabels: true,
 		renderingOnly: true,
 		filter: (shape) => !shape.isLocked,
