@@ -11148,6 +11148,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getPages:member(1)",
+              "docComment": "/**\n * Info about the project's current pages.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPages(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPage",
+                  "canonicalReference": "@tldraw/tlschema!TLPage:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPages"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPageShapeIds:member(1)",
               "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')\n * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -15157,7 +15193,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#pages:member",
-              "docComment": "/**\n * Info about the project's current pages.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getPages` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

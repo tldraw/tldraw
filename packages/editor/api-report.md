@@ -711,6 +711,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
+    getPages(): TLPage[];
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
     getPageStates(): TLInstancePageState[];
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
@@ -840,6 +841,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated (undocumented)
     get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
+    // @deprecated (undocumented)
     get pages(): TLPage[];
     // @deprecated (undocumented)
     get pageStates(): TLInstancePageState[];

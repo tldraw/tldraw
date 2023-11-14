@@ -172,7 +172,8 @@ export function usePrint() {
 			}
 
 			const selectedShapeIds = editor.getSelectedShapeIds()
-			const { pages, currentPageId } = editor
+			const { currentPageId } = editor
+			const pages = editor.getPages()
 
 			const preserveAspectRatio = 'xMidYMid meet'
 

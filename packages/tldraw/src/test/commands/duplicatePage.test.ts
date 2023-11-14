@@ -16,18 +16,18 @@ beforeEach(() => {
 it('Duplicates a page', () => {
 	const oldPageId = editor.currentPageId
 	const camera = { ...editor.getCamera() }
-	const n = editor.pages.length
+	const n = editor.getPages().length
 	expect(editor.currentPageShapes.length).toBe(1)
 
-	const existingIds = new Set(editor.pages.map((s) => s.id))
+	const existingIds = new Set(editor.getPages().map((s) => s.id))
 
 	editor.duplicatePage(editor.currentPageId)
 
 	// Creates the new page
-	expect(editor.pages.length).toBe(n + 1)
+	expect(editor.getPages().length).toBe(n + 1)
 
 	// Navigates to the new page
-	const newPageId = editor.pages.find((p) => !existingIds.has(p.id))!.id
+	const newPageId = editor.getPages().find((p) => !existingIds.has(p.id))!.id
 	expect(editor.currentPageId).toBe(newPageId)
 
 	// Duplicates the shapes
@@ -39,11 +39,11 @@ it('Duplicates a page', () => {
 	expect(editor.getZoomLevel()).toBe(camera.z)
 
 	editor.undo()
-	expect(editor.pages.length).toBe(n)
+	expect(editor.getPages().length).toBe(n)
 	expect(editor.currentPageId).toBe(oldPageId)
 
 	editor.redo()
-	expect(editor.pages.length).toBe(n + 1)
+	expect(editor.getPages().length).toBe(n + 1)
 	expect(editor.currentPageId).toBe(newPageId)
 })
 
@@ -51,5 +51,5 @@ it("Doesn't duplicate the page if max pages is reached", () => {
 	for (let i = 0; i < MAX_PAGES; i++) {
 		editor.duplicatePage(editor.currentPageId)
 	}
-	expect(editor.pages.length).toBe(MAX_PAGES)
+	expect(editor.getPages().length).toBe(MAX_PAGES)
 })

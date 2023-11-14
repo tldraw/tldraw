@@ -484,7 +484,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// page was deleted, need to check whether it's the current page and select another one if so
 			if (this.getInstanceState().currentPageId !== record.id) return
 
-			const backupPageId = this.pages.find((p) => p.id !== record.id)?.id
+			const backupPageId = this.getPages().find((p) => p.id !== record.id)?.id
 			if (!backupPageId) return
 			this.store.put([{ ...this.getInstanceState(), currentPageId: backupPageId }])
 
@@ -3437,8 +3437,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Pages ---------------------- */
 
-	/** @internal */
-	@computed private get _pages() {
+	@computed private _getAllPagesQuery() {
 		return this.store.query.records('page')
 	}
 
@@ -3447,8 +3446,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get pages(): TLPage[] {
-		return this._pages.get().sort(sortByIndex)
+	@computed getPages(): TLPage[] {
+		return this._getAllPagesQuery().get().sort(sortByIndex)
+	}
+
+	/**
+	 * @deprecated Use `getPages` instead.
+	 */
+	get pages() {
+		return this.getPages()
 	}
 
 	/**
@@ -3661,8 +3667,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		'createPage',
 		(page: Partial<TLPage>) => {
 			if (this.getInstanceState().isReadonly) return null
-			if (this.pages.length >= MAX_PAGES) return null
-			const { pages } = this
+			if (this.getPages().length >= MAX_PAGES) return null
+			const pages = this.getPages()
 
 			const name = getIncrementedName(
 				page.name ?? 'Page',
@@ -3704,7 +3710,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.store.put([newPage, newCamera, newTabPageState])
 			},
 			undo: ({ newPage, newTabPageState, newCamera }) => {
-				if (this.pages.length === 1) return
+				if (this.getPages().length === 1) return
 				this.store.remove([newTabPageState.id, newPage.id, newCamera.id])
 			},
 		}
@@ -3732,7 +3738,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		'delete_page',
 		(id: TLPageId) => {
 			if (this.getInstanceState().isReadonly) return null
-			const { pages } = this
+			const pages = this.getPages()
 			if (pages.length === 1) return null
 
 			const deletedPage = this.getPage(id)
@@ -3750,7 +3756,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ deletedPage, deletedPageStates }) => {
-				const { pages } = this
+				const pages = this.getPages()
 				if (pages.length === 1) return
 
 				if (deletedPage.id === this.currentPageId) {
@@ -3780,7 +3786,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
-		if (this.pages.length >= MAX_PAGES) return this
+		if (this.getPages().length >= MAX_PAGES) return this
 		const id = typeof page === 'string' ? page : page.id
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
@@ -3789,7 +3795,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
 
 		this.batch(() => {
-			const { pages } = this
+			const pages = this.getPages()
 			const index = getIndexBetween(freshPage.index, pages[pages.indexOf(freshPage) + 1]?.index)
 
 			// create the page (also creates the pagestate and camera for the new page)
