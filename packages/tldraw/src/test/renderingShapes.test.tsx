@@ -56,7 +56,7 @@ it('updates the rendering viewport when the camera stops moving', () => {
 	jest.advanceTimersByTime(500)
 
 	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
-	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
+	expect(editor.getRenderingBounds()).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
 	expect(editor.getShapePageBounds(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 

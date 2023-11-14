@@ -715,6 +715,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageStates(): TLInstancePageState[];
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
+    getRenderingBounds(): Box2d;
     getRenderingShapes(): {
         id: TLShapeId;
         shape: TLShape;
@@ -864,6 +865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         type: T;
     } : TLExternalContent) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
+    // @deprecated (undocumented)
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
     renderingBoundsMargin: number;

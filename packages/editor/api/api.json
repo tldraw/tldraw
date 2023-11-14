@@ -11408,6 +11408,38 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getRenderingBounds:member(1)",
+              "docComment": "/**\n * The current rendering bounds in the current page space, used for checking which shapes are \"on screen\".\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRenderingBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRenderingBounds"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getRenderingShapes:member(1)",
               "docComment": "/**\n * Get the shapes that should be displayed in the current viewport.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -15863,7 +15895,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#renderingBounds:member",
-              "docComment": "/**\n * The current rendering bounds in the current page space, used for checking which shapes are \"on screen\".\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getRenderingBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

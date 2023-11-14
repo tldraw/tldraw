@@ -248,7 +248,7 @@ export class SnapManager {
 	// TODO: make this an incremental derivation
 	@computed get snappableShapes(): GapNode[] {
 		const { editor } = this
-		const { renderingBounds: renderingBounds } = editor
+		const renderingBounds = editor.getRenderingBounds()
 		const selectedShapeIds = editor.getSelectedShapeIds()
 
 		const snappableShapes: GapNode[] = []

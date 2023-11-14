@@ -3365,8 +3365,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get renderingBounds() {
+	getRenderingBounds() {
 		return this._renderingBounds.get()
+	}
+
+	/**
+	 * @deprecated Use `getRenderingBounds` instead.
+	 */
+
+	get renderingBounds() {
+		return this.getRenderingBounds()
 	}
 
 	/** @internal */
