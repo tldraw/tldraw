@@ -3174,8 +3174,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get cameraState() {
+	getCameraState() {
 		return this._cameraState.get()
+	}
+
+	/**
+	 * @deprecated Use `getCameraState` instead.
+	 */
+	get cameraState() {
+		return this.getCameraState()
 	}
 
 	// Camera state does two things: first, it allows us to subscribe to whether

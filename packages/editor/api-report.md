@@ -575,6 +575,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // @deprecated (undocumented)
     get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
@@ -682,6 +683,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getCamera(): TLCamera;
+    getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;

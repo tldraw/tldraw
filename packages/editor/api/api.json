@@ -7401,7 +7401,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#cameraState:member",
-              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCameraState` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9967,6 +9967,37 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCamera"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCameraState:member(1)",
+              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCameraState(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"idle\" | \"moving\""
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCameraState"
             },
             {
               "kind": "Method",
