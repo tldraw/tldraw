@@ -34,7 +34,7 @@ beforeEach(() => {
 it('enters the arrow state', () => {
 	editor.setCurrentTool('arrow')
 	expect(editor.getCurrentToolId()).toBe('arrow')
-	editor.expectToBeIn('root.arrow.idle')
+	editor.expectToBeIn('arrow.idle')
 })
 
 describe('When in the idle state', () => {

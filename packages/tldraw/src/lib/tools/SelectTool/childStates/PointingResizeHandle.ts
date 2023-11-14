@@ -76,7 +76,7 @@ export class PointingResizeHandle extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
-			this.parent.transition('idle', {})
+			this.parent.transition('idle')
 		}
 	}
 
@@ -84,7 +84,7 @@ export class PointingResizeHandle extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
-			this.parent.transition('idle', {})
+			this.parent.transition('idle')
 		}
 	}
 }

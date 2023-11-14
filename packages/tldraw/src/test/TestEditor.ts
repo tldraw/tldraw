@@ -189,7 +189,7 @@ export class TestEditor extends Editor {
 	}
 
 	expectToBeIn = (path: string) => {
-		expect(this.root.getCurrent()!.getPath()).toBe(path)
+		expect(this.getPath()).toBe(path)
 		return this
 	}
 

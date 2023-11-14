@@ -32,10 +32,10 @@ export class PointingCanvas extends StateNode {
 	}
 
 	override onInterrupt = () => {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	private complete() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }

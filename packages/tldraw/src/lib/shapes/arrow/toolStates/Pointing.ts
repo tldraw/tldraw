@@ -75,7 +75,7 @@ export class Pointing extends StateNode {
 			this.editor.bailToMark(this.markId)
 		}
 		this.editor.setHintingShapes([])
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	createArrowShape() {

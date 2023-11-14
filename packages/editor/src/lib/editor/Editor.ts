@@ -7412,7 +7412,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If the current tool is associated with a shape, return the styles for that shape.
 		// Otherwise, just return an empty map.
 		const currentTool = this.root.getCurrent()
-
 		const styles = new SharedStyleMap()
 
 		if (!currentTool) return styles

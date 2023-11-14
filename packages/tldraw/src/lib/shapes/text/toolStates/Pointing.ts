@@ -90,11 +90,11 @@ export class Pointing extends StateNode {
 
 		this.editor.setEditingShape(id)
 		this.editor.setCurrentTool('select')
-		this.editor.root.getCurrent()?.transition('editing_shape', {})
+		this.editor.root.getCurrent()?.transition('editing_shape')
 	}
 
 	private cancel() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 		this.editor.bailToMark(this.markId)
 	}
 }

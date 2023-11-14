@@ -713,7 +713,7 @@ export class Drawing extends StateNode {
 			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
 		])
 
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	cancel() {
