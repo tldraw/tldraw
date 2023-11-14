@@ -4192,7 +4192,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	@computed private get _shapeClipPathCache(): ComputedCache<string, TLShape> {
+	@computed private _getShapeClipPathCache(): ComputedCache<string, TLShape> {
 		return this.store.createComputedCache<string, TLShape>('clipPathCache', (shape) => {
 			const pageMask = this._shapeMaskCache.get(shape.id)
 			if (!pageMask) return undefined
@@ -4225,7 +4225,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeClipPath(shape: TLShape | TLShapeId): string | undefined {
-		return this._shapeClipPathCache.get(typeof shape === 'string' ? shape : shape.id)
+		return this._getShapeClipPathCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/** @internal */
