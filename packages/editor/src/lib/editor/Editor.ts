@@ -7099,7 +7099,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Remove frame.
+	 * Remove a frame.
 	 *
 	 * @param id - Id of the frame you wish to remove.
 	 *
@@ -7110,9 +7110,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!frame || frame.type !== 'frame') return this
 
 		const children = this.getSortedChildIdsForParent(id)
+		if (!children.length) return this
+
 		this.batch(() => {
 			this.reparentShapes(children, frame.parentId, frame.index)
 			this.deleteShapes([id])
+			this.setSelectedShapes(children)
 		})
 		return this
 	}

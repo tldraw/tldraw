@@ -15506,7 +15506,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#removeFrame:member(1)",
-              "docComment": "/**\n * Remove frame.\n *\n * @param id - Id of the frame you wish to remove.\n *\n * @public\n */\n",
+              "docComment": "/**\n * Remove a frame.\n *\n * @param id - Id of the frame you wish to remove.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
