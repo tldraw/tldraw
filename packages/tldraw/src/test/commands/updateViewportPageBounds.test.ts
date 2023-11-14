@@ -99,17 +99,17 @@ describe('When center is false', () => {
 
 describe('When center is true', () => {
 	it('keep the same page center when resized', () => {
-		const a = editor.viewportPageCenter.toJson()
+		const a = editor.getViewportPageCenter().toJson()
 		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, true)
-		const b = editor.viewportPageCenter.toJson()
+		const b = editor.getViewportPageCenter().toJson()
 		expect(a).toMatchObject(b)
 	})
 
 	it('keep the same page center when resized while panned / zoomed', () => {
 		editor.setCamera({ x: -100, y: -100, z: 1.2 })
-		const a = editor.viewportPageCenter.toJson()
+		const a = editor.getViewportPageCenter().toJson()
 		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, true)
-		const b = editor.viewportPageCenter.toJson()
+		const b = editor.getViewportPageCenter().toJson()
 		expect(a).toMatchObject(b)
 	})
 })

@@ -2893,7 +2893,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				if (center && !this.getInstanceState().followingUserId) {
 					// Get the page center before the change, make the change, and restore it
-					const before = this.viewportPageCenter
+					const before = this.getViewportPageCenter()
 					this.updateInstanceState(
 						{ screenBounds: screenBounds.toJson() },
 						{ squashing: true, ephemeral: true }
@@ -2971,8 +2971,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportPageCenter() {
+	@computed getViewportPageCenter() {
 		return this.getViewportPageBounds().center
+	}
+
+	/**
+	 * @deprecated Use `getViewportPageCenter` instead.
+	 */
+	get viewportPageCenter() {
+		return this.getViewportPageCenter()
 	}
 
 	/**

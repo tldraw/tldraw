@@ -41,7 +41,7 @@ describe('TLSelectTool.Zooming', () => {
 		editor.keyDown('z')
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
-		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
+		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
 		editor.click()
 		editor.expectToBeIn('zoom.idle')
 		jest.advanceTimersByTime(300)
@@ -53,7 +53,7 @@ describe('TLSelectTool.Zooming', () => {
 		editor.keyDown('Alt')
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
-		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
+		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
 		editor.click()
 		jest.advanceTimersByTime(300)
 		expect(editor.getZoomLevel()).toBe(0.5)
@@ -113,7 +113,7 @@ describe('TLSelectTool.Zooming', () => {
 		const change = 6
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject(originalPageBounds)
-		expect(editor.viewportPageCenter).toMatchObject(originalCenter)
+		expect(editor.getViewportPageCenter()).toMatchObject(originalCenter)
 		editor.keyDown('z')
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(0, 0)
@@ -130,7 +130,7 @@ describe('TLSelectTool.Zooming', () => {
 			w: originalPageBounds.w / 2,
 			h: originalPageBounds.h / 2,
 		})
-		expect(editor.viewportPageCenter).toMatchObject({
+		expect(editor.getViewportPageCenter()).toMatchObject({
 			x: (originalCenter.x + change) / 2,
 			y: (originalCenter.y + change) / 2,
 		})
@@ -144,7 +144,7 @@ describe('TLSelectTool.Zooming', () => {
 		editor.expectToBeIn('select.idle')
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
-		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
+		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
 		editor.keyDown('z')
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(newBoundsX, newBoundsY)
@@ -164,7 +164,7 @@ describe('TLSelectTool.Zooming', () => {
 			w: 837.9310344827586,
 			h: 558.6206896551723,
 		})
-		expect(editor.viewportPageCenter).toMatchObject({
+		expect(editor.getViewportPageCenter()).toMatchObject({
 			x: newBoundsX + newBoundsWidth / 2,
 			y: newBoundsY + newBoundsHeight / 2,
 		})
@@ -180,7 +180,7 @@ describe('TLSelectTool.Zooming', () => {
 		const originalZoomLevel = 1
 		expect(editor.getZoomLevel()).toBe(originalZoomLevel)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
-		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
+		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
 		editor.keyDown('z')
 		editor.expectToBeIn('zoom.idle')
 		editor.keyDown('Alt')
@@ -201,7 +201,7 @@ describe('TLSelectTool.Zooming', () => {
 			w: 2160,
 			h: 1440,
 		})
-		expect(editor.viewportPageCenter).toMatchObject({
+		expect(editor.getViewportPageCenter()).toMatchObject({
 			x: newBoundsX + newBoundsWidth / 2,
 			y: newBoundsY + newBoundsHeight / 2,
 		})

@@ -764,6 +764,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     }>): Promise<SVGSVGElement | undefined>;
     getViewportPageBounds(): Box2d;
+    getViewportPageCenter(): Vec2d;
     getViewportScreenBounds(): Box2d;
     getViewportScreenCenter(): Vec2d;
     getZoomLevel(): number;
@@ -947,6 +948,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly user: UserPreferencesManager;
     // @deprecated (undocumented)
     get viewportPageBounds(): Box2d;
+    // @deprecated (undocumented)
     get viewportPageCenter(): Vec2d;
     // @deprecated (undocumented)
     get viewportScreenBounds(): Box2d;
