@@ -2692,9 +2692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _animateToViewport(targetViewportPage: Box2d, opts = {} as TLAnimationOptions) {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
-		const {
-			user: { animationSpeed },
-		} = this
+		const animationSpeed = this.user.getAnimationSpeed()
 		const viewportPageBounds = this.getViewportPageBounds()
 
 		// If we have an existing animation, then stop it; also stop following any user
@@ -2745,7 +2743,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.stopCameraAnimation()
 
-		const { animationSpeed } = this.user
+		const animationSpeed = this.user.getAnimationSpeed()
 
 		if (animationSpeed === 0) return this
 
@@ -3062,7 +3060,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			userId: { eq: userId },
 		}))
 
-		const thisUserId = this.user.id
+		const thisUserId = this.user.getId()
 
 		if (!thisUserId) {
 			console.warn('You should set the userId for the current instance before following a user')
@@ -8398,7 +8396,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} = opts
 
 		// todo: we shouldn't depend on the public theme here
-		const theme = getDefaultColorTheme({ isDarkMode: this.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.user.getIsDarkMode() })
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)

@@ -308,7 +308,7 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	let initialSnapPoints: SnapPoint[] = []
 	if (editor.getSelectedShapeIds().length === 1) {
-		initialSnapPoints = editor.snaps.snapPointsCache.get(editor.getSelectedShapeIds()[0])!
+		initialSnapPoints = editor.snaps.getSnapPointsCache().get(editor.getSelectedShapeIds()[0])!
 	} else {
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		if (selectionPageBounds) {
@@ -374,7 +374,7 @@ export function moveShapesToPoint({
 	editor.snaps.clear()
 
 	const shouldSnap =
-		(editor.user.isSnapMode ? !inputs.ctrlKey : inputs.ctrlKey) &&
+		(editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey) &&
 		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
 
 	if (shouldSnap) {

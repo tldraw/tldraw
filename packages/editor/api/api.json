@@ -33754,7 +33754,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#currentCommonAncestor:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getCurrentCommonAncestor` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33816,6 +33816,150 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getCurrentCommonAncestor:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentCommonAncestor(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentCommonAncestor"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getOutlinesInPageSpace:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getOutlinesInPageSpace(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec2d",
+                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[][]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getOutlinesInPageSpace"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnappablePoints:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnappablePoints(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SnapPoint",
+                  "canonicalReference": "@tldraw/editor!SnapPoint:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSnappablePoints"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnappableShapes:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnappableShapes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "GapNode",
+                  "canonicalReference": "@tldraw/editor!~GapNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSnappableShapes"
             },
             {
               "kind": "Method",
@@ -33889,6 +34033,144 @@
               "name": "getSnappingHandleDelta"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnapPointsCache:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnapPointsCache(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/store\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ComputedCache",
+                  "canonicalReference": "@tldraw/store!ComputedCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SnapPoint",
+                  "canonicalReference": "@tldraw/editor!SnapPoint:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[], "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSnapPointsCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnapThreshold:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnapThreshold(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSnapThreshold"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getVisibleGaps:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getVisibleGaps(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        horizontal: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Gap",
+                  "canonicalReference": "@tldraw/editor!~Gap:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        vertical: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Gap",
+                  "canonicalReference": "@tldraw/editor!~Gap:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getVisibleGaps"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#lines:member",
               "docComment": "",
@@ -33926,7 +34208,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#outlinesInPageSpace:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getOutlinesInPageSpace` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -34014,7 +34296,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#snappablePoints:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getSnappablePoints` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -34049,7 +34331,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#snappableShapes:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getSnappableShapes` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -34084,7 +34366,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#snapPointsCache:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getSnapPointsCache` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -34235,7 +34517,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#snapThreshold:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getSnapThreshold` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -34341,7 +34623,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#visibleGaps:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getVisibleGaps` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

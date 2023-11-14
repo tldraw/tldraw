@@ -1799,26 +1799,43 @@ export class SnapManager {
     constructor(editor: Editor);
     // (undocumented)
     clear(): void;
-    // (undocumented)
+    // @deprecated (undocumented)
     get currentCommonAncestor(): TLShapeId | undefined;
     // (undocumented)
     readonly editor: Editor;
+    // (undocumented)
+    getCurrentCommonAncestor(): TLShapeId | undefined;
+    // (undocumented)
+    getOutlinesInPageSpace(): Vec2d[][];
+    // (undocumented)
+    getSnappablePoints(): SnapPoint[];
+    // (undocumented)
+    getSnappableShapes(): GapNode[];
     // (undocumented)
     getSnappingHandleDelta({ handlePoint, additionalSegments, }: {
         handlePoint: Vec2d;
         additionalSegments: Vec2d[][];
     }): null | Vec2d;
     // (undocumented)
-    get lines(): SnapLine[];
+    getSnapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
     // (undocumented)
+    getSnapThreshold(): number;
+    // (undocumented)
+    getVisibleGaps(): {
+        horizontal: Gap[];
+        vertical: Gap[];
+    };
+    // (undocumented)
+    get lines(): SnapLine[];
+    // @deprecated (undocumented)
     get outlinesInPageSpace(): Vec2d[][];
     // (undocumented)
     setLines(lines: SnapLine[]): void;
-    // (undocumented)
+    // @deprecated (undocumented)
     get snappablePoints(): SnapPoint[];
-    // (undocumented)
+    // @deprecated (undocumented)
     get snappableShapes(): GapNode[];
-    // (undocumented)
+    // @deprecated (undocumented)
     get snapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
     // (undocumented)
     snapResize({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }: {
@@ -1828,7 +1845,7 @@ export class SnapManager {
         isAspectRatioLocked: boolean;
         isResizingFromCenter: boolean;
     }): SnapData;
-    // (undocumented)
+    // @deprecated (undocumented)
     get snapThreshold(): number;
     // (undocumented)
     snapTranslate({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: {
@@ -1837,7 +1854,7 @@ export class SnapManager {
         initialSelectionPageBounds: Box2d;
         dragDelta: Vec2d;
     }): SnapData;
-    // (undocumented)
+    // @deprecated (undocumented)
     get visibleGaps(): {
         horizontal: Gap[];
         vertical: Gap[];
