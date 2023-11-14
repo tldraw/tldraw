@@ -6,6 +6,7 @@ import {
 	Editor,
 	HTMLContainer,
 	TLBaseShape,
+	TLEditorOptions,
 	TldrawEditor,
 	createShapeId,
 	createTLStore,
@@ -35,6 +36,12 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 	)
 
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
+}
+
+class EditorSubclass extends Editor {}
+
+function createEditor(options: TLEditorOptions) {
+	return new EditorSubclass(options)
 }
 
 describe('<TldrawEditor />', () => {
@@ -102,6 +109,26 @@ describe('<TldrawEditor />', () => {
 			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-1')
+	})
+
+	it('Renders with a custom editor', async () => {
+		let editor: Editor
+		render(
+			<TldrawEditor
+				tools={defaultTools}
+				autoFocus
+				initialState="select"
+				createEditor={createEditor}
+				onMount={(e) => {
+					editor = e
+				}}
+			>
+				<div data-testid="canvas-1" />
+			</TldrawEditor>
+		)
+		await screen.findByTestId('canvas-1')
+		expect(editor!).toBeTruthy()
+		expect(editor! instanceof EditorSubclass).toBe(true)
 	})
 
 	it('throws if the store has different shapes to the ones passed in', async () => {

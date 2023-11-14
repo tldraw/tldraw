@@ -2051,11 +2051,12 @@ export type TLCursorComponent = ComponentType<{
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
-export interface TldrawEditorBaseProps {
+export interface TldrawEditorBaseProps<T extends Editor = Editor> {
     autoFocus?: boolean;
     children?: any;
     className?: string;
     components?: Partial<TLEditorComponents>;
+    createEditor?: (options: TLEditorOptions) => T;
     inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;

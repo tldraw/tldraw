@@ -16,7 +16,7 @@ import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
-import { Editor } from './editor/Editor'
+import { Editor, TLEditorOptions } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
@@ -62,7 +62,7 @@ export type TldrawEditorProps = TldrawEditorBaseProps &
  *
  * @public
  */
-export interface TldrawEditorBaseProps {
+export interface TldrawEditorBaseProps<T extends Editor = Editor> {
 	/**
 	 * The component's children.
 	 */
@@ -112,6 +112,12 @@ export interface TldrawEditorBaseProps {
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+
+	/**
+	 * A function that initialize an editor, allowing for subclassing. Ensure
+	 * that you memoize this function or define it outside of the component.
+	 */
+	createEditor?: (options: TLEditorOptions) => T
 }
 
 /**
@@ -261,6 +267,7 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	createEditor,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -273,7 +280,8 @@ function TldrawEditorWithReadyStore({
 	const [editor, setEditor] = useState<Editor | null>(null)
 
 	useLayoutEffect(() => {
-		const editor = new Editor({
+		let editor: Editor
+		const editorOptions = {
 			store,
 			shapeUtils,
 			tools,
@@ -281,7 +289,13 @@ function TldrawEditorWithReadyStore({
 			user,
 			initialState,
 			inferDarkMode,
-		})
+		}
+
+		if (!createEditor) {
+			editor = new Editor(editorOptions)
+		} else {
+			editor = createEditor(editorOptions)
+		}
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		setEditor(editor)
@@ -289,7 +303,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode])
+	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode, createEditor])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
