@@ -3837,7 +3837,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Assets --------------------- */
 
 	/** @internal */
-	@computed private get _assets() {
+	@computed private _getAllAssetsQuery() {
 		return this.store.query.records('asset')
 	}
 
@@ -3846,8 +3846,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
+	getAssets() {
+		return this._getAllAssetsQuery().get()
+	}
+
+	/**
+	 * @deprecated Use `getAssets` instead.
+	 */
 	get assets() {
-		return this._assets.get()
+		return this.getAssets()
 	}
 
 	/**

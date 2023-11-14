@@ -7093,7 +7093,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#assets:member",
-              "docComment": "/**\n * Get all assets in the editor.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getAssets` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9931,6 +9931,64 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getAssetForExternalContent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getAssets:member(1)",
+              "docComment": "/**\n * Get all assets in the editor.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAssets(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLBookmarkAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLBookmarkAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLImageAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLImageAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLVideoAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLVideoAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getAssets"
             },
             {
               "kind": "Method",
