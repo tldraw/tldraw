@@ -187,10 +187,8 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
-			const {
-				currentPageShapeIds: shapeIdsOnCurrentPage,
-				currentPageBounds: commonBoundsOfAllShapesOnCurrentPage,
-			} = editor
+			const { currentPageShapeIds: shapeIdsOnCurrentPage } = editor
+			const commonBoundsOfAllShapesOnCurrentPage = editor.getCurrentPageBounds()
 			const viewportPageBounds = editor.getViewportPageBounds()
 
 			const _dpr = devicePixelRatio.get() // dereference

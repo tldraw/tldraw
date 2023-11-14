@@ -592,8 +592,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     complete(): this;
     // @internal (undocumented)
     crash(error: unknown): this;
-    // @internal
-    get crashingError(): unknown;
     createAssets(assets: TLAsset[]): this;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
@@ -611,13 +609,18 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    // @deprecated (undocumented)
     get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
+    // @deprecated (undocumented)
     get currentPageBounds(): Box2d | undefined;
     get currentPageId(): TLPageId;
+    // @deprecated (undocumented)
     get currentPageRenderingShapesSorted(): TLShape[];
     get currentPageShapeIds(): Set<TLShapeId>;
+    // @deprecated (undocumented)
     get currentPageShapes(): TLShape[];
+    // @deprecated (undocumented)
     get currentPageShapesSorted(): TLShape[];
     // @deprecated (undocumented)
     get currentPageState(): TLInstancePageState;
@@ -690,6 +693,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    // @internal
+    getCrashingError(): unknown;
+    getCroppingShapeId(): null | TLShapeId;
+    getCurrentPageBounds(): Box2d | undefined;
+    getCurrentPageRenderingShapesSorted(): TLShape[];
+    getCurrentPageShapes(): TLShape[];
+    getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode | undefined;
     getCurrentToolId(): string;
@@ -770,6 +780,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
+    getSharedOpacity(): SharedStyle<number>;
+    getSharedStyles(): ReadonlySharedStyleMap;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
     // @internal (undocumented)
@@ -931,7 +943,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
+    // @deprecated (undocumented)
     get sharedOpacity(): SharedStyle<number>;
+    // @deprecated (undocumented)
     get sharedStyles(): ReadonlySharedStyleMap;
     readonly sideEffects: SideEffectManager<this>;
     slideCamera(opts?: {

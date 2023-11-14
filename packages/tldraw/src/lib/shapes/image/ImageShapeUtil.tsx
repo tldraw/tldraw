@@ -233,7 +233,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const props = shape.props
 		if (!props) return
 
-		if (this.editor.croppingShapeId !== shape.id) {
+		if (this.editor.getCroppingShapeId() !== shape.id) {
 			return
 		}
 

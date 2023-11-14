@@ -23,7 +23,7 @@ beforeEach(() => {
 })
 
 function arrow() {
-	return editor.currentPageShapes.find((s) => s.type === 'arrow') as TLArrowShape
+	return editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
 }
 
 describe('restoring bound arrows', () => {

@@ -156,16 +156,16 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 
 describe('Editor.sharedOpacity', () => {
 	it('should return the current opacity', () => {
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 1 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 1 })
 		editor.setOpacityForSelectedShapes(0.5)
 		editor.setOpacityForNextShapes(0.5)
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.5 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.5 })
 	})
 
 	it('should return opacity for a single selected shape', () => {
 		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
 		editor.setSelectedShapes([A])
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
 	it('should return opacity for multiple selected shapes', () => {
@@ -174,7 +174,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
 		])
 		editor.setSelectedShapes([A, B])
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
 	it('should return mixed when multiple selected shapes have different opacity', () => {
@@ -183,7 +183,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
 		])
 		editor.setSelectedShapes([A, B])
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'mixed' })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'mixed' })
 	})
 
 	it('ignores the opacity of groups and returns the opacity of their children', () => {
@@ -193,7 +193,7 @@ describe('Editor.sharedOpacity', () => {
 			</TL.group>,
 		])
 		editor.setSelectedShapes([ids.group])
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 })
 

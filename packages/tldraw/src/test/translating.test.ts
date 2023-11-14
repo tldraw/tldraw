@@ -277,28 +277,28 @@ describe('When cloning...', () => {
 	it('Clones twice', () => {
 		const groupId = createShapeId('g')
 		editor.groupShapes([ids.box1, ids.box2], groupId)
-		const count1 = editor.currentPageShapes.length
+		const count1 = editor.getCurrentPageShapes().length
 
 		editor.pointerDown(50, 50, { shape: editor.getShape(groupId)!, target: 'shape' })
 		editor.expectToBeIn('select.pointing_shape')
 
 		editor.pointerMove(199, 199)
 		editor.expectToBeIn('select.translating')
-		expect(editor.currentPageShapes.length).toBe(count1) // 2 new box and group
+		expect(editor.getCurrentPageShapes().length).toBe(count1) // 2 new box and group
 
 		editor.keyDown('Alt')
 
 		editor.expectToBeIn('select.translating')
-		expect(editor.currentPageShapes.length).toBe(count1 + 3) // 2 new box and group
+		expect(editor.getCurrentPageShapes().length).toBe(count1 + 3) // 2 new box and group
 
 		editor.keyUp('Alt')
 		jest.advanceTimersByTime(500)
 
-		expect(editor.currentPageShapes.length).toBe(count1) // 2 new box and group
+		expect(editor.getCurrentPageShapes().length).toBe(count1) // 2 new box and group
 
 		editor.keyDown('Alt')
 
-		expect(editor.currentPageShapes.length).toBe(count1 + 3) // 2 new box and group
+		expect(editor.getCurrentPageShapes().length).toBe(count1 + 3) // 2 new box and group
 	})
 })
 
@@ -1649,9 +1649,9 @@ describe('translating a shape with a bound shape', () => {
 			props: { start: { type: 'binding' }, end: { type: 'binding' } },
 		})
 
-		const newArrow = editor.currentPageShapes.find(
-			(s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1
-		)
+		const newArrow = editor
+			.getCurrentPageShapes()
+			.find((s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1)
 		expect(newArrow).toMatchObject({
 			props: { start: { type: 'binding' }, end: { type: 'point' } },
 		})
@@ -1735,12 +1735,12 @@ describe('When dragging a shape onto a parent', () => {
 
 describe('When dragging shapes', () => {
 	it('should drag and undo and redo', () => {
-		editor.deleteShapes(editor.currentPageShapes)
+		editor.deleteShapes(editor.getCurrentPageShapes())
 
 		editor.setCurrentTool('arrow').pointerMove(0, 0).pointerDown().pointerMove(100, 100).pointerUp()
 
 		editor.expectShapeToMatch({
-			id: editor.currentPageShapes[0]!.id,
+			id: editor.getCurrentPageShapes()[0]!.id,
 			x: 0,
 			y: 0,
 		})
@@ -1748,7 +1748,7 @@ describe('When dragging shapes', () => {
 		editor.setCurrentTool('geo').pointerMove(-10, 100).pointerDown().pointerUp()
 
 		editor.expectShapeToMatch({
-			id: editor.currentPageShapes[1]!.id,
+			id: editor.getCurrentPageShapes()[1]!.id,
 			x: -110,
 			y: 0,
 		})
@@ -1760,12 +1760,12 @@ describe('When dragging shapes', () => {
 			.pointerMove(100, 50)
 			.pointerUp()
 			.expectShapeToMatch({
-				id: editor.currentPageShapes[0]!.id,
+				id: editor.getCurrentPageShapes()[0]!.id,
 				x: 50, // 50 to the right
 				y: 0,
 			})
 			.expectShapeToMatch({
-				id: editor.currentPageShapes[1]!.id,
+				id: editor.getCurrentPageShapes()[1]!.id,
 				x: -60, // 50 to the right
 				y: 0,
 			})
@@ -1773,12 +1773,12 @@ describe('When dragging shapes', () => {
 		editor
 			.undo()
 			.expectShapeToMatch({
-				id: editor.currentPageShapes[0]!.id,
+				id: editor.getCurrentPageShapes()[0]!.id,
 				x: 0, // 50 to the right
 				y: 0,
 			})
 			.expectShapeToMatch({
-				id: editor.currentPageShapes[1]!.id,
+				id: editor.getCurrentPageShapes()[1]!.id,
 				x: -110, // 50 to the right
 				y: 0,
 			})
@@ -1792,8 +1792,8 @@ it('clones a single shape simply', () => {
 		.pointerMove(50, 50)
 		.click()
 
-	expect(editor.getOnlySelectedShape()).toBe(editor.currentPageShapes[0])
-	expect(editor.getHoveredShape()).toBe(editor.currentPageShapes[0])
+	expect(editor.getOnlySelectedShape()).toBe(editor.getCurrentPageShapes()[0])
+	expect(editor.getHoveredShape()).toBe(editor.getCurrentPageShapes()[0])
 
 	// click on the canvas to deselect
 	editor.pointerMove(200, 50).click()
@@ -1805,7 +1805,7 @@ it('clones a single shape simply', () => {
 	editor.pointerMove(50, 50)
 
 	expect(editor.getOnlySelectedShape()).toBe(null)
-	expect(editor.getHoveredShape()).toBe(editor.currentPageShapes[0])
+	expect(editor.getHoveredShape()).toBe(editor.getCurrentPageShapes()[0])
 
 	// start dragging the shape
 	editor
@@ -1816,8 +1816,8 @@ it('clones a single shape simply', () => {
 		// stop dragging
 		.pointerUp()
 
-	expect(editor.currentPageShapes).toHaveLength(2)
-	const [, sticky2] = editor.currentPageShapes
+	expect(editor.getCurrentPageShapes()).toHaveLength(2)
+	const [, sticky2] = editor.getCurrentPageShapes()
 	expect(editor.getOnlySelectedShape()).toBe(sticky2)
 	expect(editor.getEditingShape()).toBe(undefined)
 	expect(editor.getHoveredShape()).toBe(sticky2)

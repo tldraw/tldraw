@@ -82,7 +82,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-const getAllShapes = () => editor.currentPageShapes
+const getAllShapes = () => editor.getCurrentPageShapes()
 
 const onlySelectedId = () => {
 	expect(editor.getSelectedShapeIds()).toHaveLength(1)
@@ -528,7 +528,8 @@ describe('ungrouping shapes', () => {
 		editor.groupShapes(editor.getSelectedShapeIds())
 		editor.ungroupShapes(editor.getSelectedShapeIds())
 
-		const sortedShapesOnCurrentPage = editor.currentPageShapes
+		const sortedShapesOnCurrentPage = editor
+			.getCurrentPageShapes()
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
 		expect(sortedShapesOnCurrentPage.length).toBe(4)
@@ -553,7 +554,8 @@ describe('ungrouping shapes', () => {
 		editor.groupShapes(editor.getSelectedShapeIds())
 		editor.ungroupShapes(editor.getSelectedShapeIds())
 
-		const sortedShapesOnCurrentPage = editor.currentPageShapes
+		const sortedShapesOnCurrentPage = editor
+			.getCurrentPageShapes()
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
 		expect(sortedShapesOnCurrentPage.length).toBe(4)

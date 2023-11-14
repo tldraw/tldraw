@@ -460,7 +460,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				invalidParents.add(record.parentId)
 			}
 			// clean up any arrows bound to this shape
-			const bindings = this._arrowBindingsIndex.get()[record.id]
+			const bindings = this._getArrowBindingsIndex().get()[record.id]
 			if (bindings?.length) {
 				for (const { arrowId, handleId } of bindings) {
 					const arrow = this.getShape<TLArrowShape>(arrowId)
@@ -502,7 +502,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
 			if (prev.parentId !== next.parentId) {
 				const reparentBoundArrows = (id: TLShapeId) => {
-					const boundArrows = this._arrowBindingsIndex.get()[id]
+					const boundArrows = this._getArrowBindingsIndex().get()[id]
 					if (boundArrows?.length) {
 						for (const arrow of boundArrows) {
 							reparentArrow(arrow.arrowId)
@@ -918,7 +918,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private get _arrowBindingsIndex() {
+	private _getArrowBindingsIndex() {
 		return arrowBindingsIndex(this)
 	}
 
@@ -930,11 +930,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		return this._arrowBindingsIndex.get()[shapeId] || EMPTY_ARRAY
+		return this._getArrowBindingsIndex().get()[shapeId] || EMPTY_ARRAY
 	}
 
 	@computed
-	private get arrowInfoCache() {
+	private getArrowInfoCache() {
 		return this.store.createComputedCache<TLArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
 			return getIsArrowStraight(shape)
 				? getStraightArrowInfo(this, shape)
@@ -956,7 +956,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this.arrowInfoCache.get(id)
+		return this.getArrowInfoCache().get(id)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -1037,7 +1037,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	get crashingError() {
+	getCrashingError() {
 		return this._crashingError
 	}
 
@@ -2166,8 +2166,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get croppingShapeId() {
+	getCroppingShapeId() {
 		return this.getCurrentPageState().croppingShapeId
+	}
+
+	/**
+	 * @deprecated Use `getCroppingShapeId` instead.
+	 */
+	get croppingShapeId() {
+		return this.getCroppingShapeId()
 	}
 
 	/**
@@ -2186,7 +2193,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setCroppingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (id !== this.croppingShapeId) {
+		if (id !== this.getCroppingShapeId()) {
 			if (!id) {
 				this.updateCurrentPageState({ croppingShapeId: null })
 			} else {
@@ -2345,7 +2352,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToContent(): this {
-		const bounds = this.getSelectionPageBounds() ?? this.currentPageBounds
+		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
 
 		if (bounds) {
 			this.zoomToBounds(bounds, Math.min(1, this.getZoomLevel()), { duration: 220 })
@@ -4468,7 +4475,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get currentPageBounds(): Box2d | undefined {
+	@computed getCurrentPageBounds(): Box2d | undefined {
 		let commonBounds: Box2d | undefined
 
 		this.currentPageShapeIds.forEach((shapeId) => {
@@ -4485,6 +4492,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getCurrentPageBounds` instead.
+	 */
+	get currentPageBounds() {
+		return this.getCurrentPageBounds()
+	}
+
+	/**
 	 * Get the top-most selected shape at the given point, ignoring groups.
 	 *
 	 * @param point - The point to check.
@@ -4493,7 +4507,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		return this.currentPageShapesSorted
+		return this.getCurrentPageShapesSorted()
 			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
 			.reverse() // findlast
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
@@ -4535,7 +4549,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const shapesToCheck = (
-			opts.renderingOnly ? this.currentPageRenderingShapesSorted : this.currentPageShapesSorted
+			opts.renderingOnly
+				? this.getCurrentPageRenderingShapesSorted()
+				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
@@ -4697,7 +4713,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.currentPageShapes.filter((shape) => this.isPointInShape(shape, point, opts))
+		return this.getCurrentPageShapes().filter((shape) => this.isPointInShape(shape, point, opts))
 	}
 
 	/**
@@ -4785,36 +4801,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * An array containing all of the shapes in the current page.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapes
-	 * ```
-	 *
-	 * @readonly
-	 *
 	 * @public
 	 */
-	@computed get currentPageShapes() {
+	@computed getCurrentPageShapes(): TLShape[] {
 		return Array.from(this.currentPageShapeIds, (id) => this.store.get(id)! as TLShape)
+	}
+
+	/**
+	 * @deprecated Use `getCurrentPageShapes` instead.
+	 */
+	get currentPageShapes() {
+		return this.getCurrentPageShapes()
 	}
 
 	/**
 	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapesSorted
-	 * ```
-	 *
-	 * @readonly
-	 *
 	 * @public
 	 */
-	@computed get currentPageShapesSorted(): TLShape[] {
+	@computed getCurrentPageShapesSorted(): TLShape[] {
 		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
 		// todo: consider making a derivation or something, or merging with rendering shapes
-		const shapes = new Set(this.currentPageShapes.sort(sortByIndex))
+		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
 
 		const results: TLShape[] = []
 
@@ -4840,23 +4849,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getCurrentPageShapesSorted` instead.
+	 */
+	get currentPageShapesSorted() {
+		return this.getCurrentPageShapesSorted()
+	}
+
+	/**
 	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapesSorted
-	 * ```
-	 *
-	 * @readonly
-	 *
 	 * @public
 	 */
-	@computed get currentPageRenderingShapesSorted(): TLShape[] {
+	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		return this.getRenderingShapes()
 			.filter(({ isCulled }) => !isCulled)
 			.sort((a, b) => a.index - b.index)
 			.map(({ shape }) => shape)
+	}
+
+	/**
+	 * @deprecated Use `getCurrentPageRenderingShapesSorted` instead.
+	 */
+	get currentPageRenderingShapesSorted() {
+		return this.getCurrentPageRenderingShapesSorted()
 	}
 
 	/**
@@ -5233,7 +5249,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getDroppingOverShape(point: VecLike, droppingShapes: TLShape[] = []) {
 		// starting from the top...
-		const { currentPageShapesSorted } = this
+		const currentPageShapesSorted = this.getCurrentPageShapesSorted()
 		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 			const shape = currentPageShapesSorted[i]
 
@@ -6784,7 +6800,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// page or another shape that exists (or that will exist) in this page.
 
 				// find last parent id
-				const { currentPageShapesSorted } = this
+				const currentPageShapesSorted = this.getCurrentPageShapesSorted()
 
 				partials = partials.map((partial) => {
 					// If the partial does not provide the parentId OR if the provided
@@ -7418,7 +7434,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			const deletedIds = [...allIds]
-			const arrowBindings = this._arrowBindingsIndex.get()
+			const arrowBindings = this._getArrowBindingsIndex().get()
 			const snapshots = compact(
 				deletedIds.flatMap((id) => {
 					const shape = this.getShape(id)
@@ -7525,7 +7541,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed<ReadonlySharedStyleMap>({ isEqual: (a, b) => a.equals(b) })
-	get sharedStyles(): ReadonlySharedStyleMap {
+	getSharedStyles(): ReadonlySharedStyleMap {
 		// If we're in selecting and if we have a selection, return the shared styles from the
 		// current selection
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
@@ -7546,13 +7562,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `editor.sharedStyles` instead.
+	 */
+	get sharedStyles() {
+		return this.getSharedStyles()
+	}
+
+	/**
 	 * Get the currently selected shared opacity.
 	 * If any shapes are selected, this returns the shared opacity of the selected shapes.
 	 * Otherwise, this returns the chosen opacity for the next shape.
 	 *
 	 * @public
 	 */
-	@computed get sharedOpacity(): SharedStyle<number> {
+	@computed getSharedOpacity(): SharedStyle<number> {
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
 			const shapesToCheck: TLShape[] = []
 			const addShape = (shapeId: TLShapeId) => {
@@ -7585,6 +7608,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
 		return { type: 'shared', value: this.getInstanceState().opacityForNextShape }
+	}
+
+	/**
+	 * @deprecated Use `editor.sharedOpacity` instead.
+	 */
+	get sharedOpacity() {
+		return this.getSharedOpacity()
 	}
 
 	/**
@@ -8807,7 +8837,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispatch = (info: TLEventInfo): this => {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
-		if (this.crashingError) return this
+		if (this.getCrashingError()) return this
 
 		const { inputs } = this
 		const { type } = info

@@ -988,7 +988,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
 					const updates = [] as TLShapePartial[]
-					for (const shape of editor.currentPageShapes) {
+					for (const shape of editor.getCurrentPageShapes()) {
 						if (shape.isLocked) {
 							updates.push({ id: shape.id, type: shape.type, isLocked: false })
 						}

@@ -17,7 +17,7 @@ it('Duplicates a page', () => {
 	const oldPageId = editor.currentPageId
 	const camera = { ...editor.getCamera() }
 	const n = editor.getPages().length
-	expect(editor.currentPageShapes.length).toBe(1)
+	expect(editor.getCurrentPageShapes().length).toBe(1)
 
 	const existingIds = new Set(editor.getPages().map((s) => s.id))
 
@@ -31,7 +31,7 @@ it('Duplicates a page', () => {
 	expect(editor.currentPageId).toBe(newPageId)
 
 	// Duplicates the shapes
-	expect(editor.currentPageShapes.length).toBe(1)
+	expect(editor.getCurrentPageShapes().length).toBe(1)
 
 	// Also duplicates the camera
 	expect(editor.getCamera().x).toBe(camera.x)

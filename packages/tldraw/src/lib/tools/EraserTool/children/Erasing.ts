@@ -24,7 +24,8 @@ export class Erasing extends StateNode {
 
 		const { originPagePoint } = this.editor.inputs
 		this.excludedShapeIds = new Set(
-			this.editor.currentPageShapes
+			this.editor
+				.getCurrentPageShapes()
 				.filter((shape) => {
 					//If the shape is locked, we shouldn't erase it
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
@@ -80,8 +81,8 @@ export class Erasing extends StateNode {
 	update() {
 		const erasingShapeIds = this.editor.getErasingShapeIds()
 		const zoomLevel = this.editor.getZoomLevel()
+		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const {
-			currentPageShapes: currentPageShapes,
 			inputs: { currentPagePoint, previousPagePoint },
 		} = this.editor
 

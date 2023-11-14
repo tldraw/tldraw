@@ -92,9 +92,9 @@ describe('Locking', () => {
 
 describe('Locked shapes', () => {
 	it('Cannot be deleted', () => {
-		const numberOfShapesBefore = editor.currentPageShapes.length
+		const numberOfShapesBefore = editor.getCurrentPageShapes().length
 		editor.deleteShapes([ids.lockedShapeA])
-		expect(editor.currentPageShapes.length).toBe(numberOfShapesBefore)
+		expect(editor.getCurrentPageShapes().length).toBe(numberOfShapesBefore)
 	})
 
 	it('Cannot be changed', () => {
@@ -133,20 +133,20 @@ describe('Locked shapes', () => {
 
 	it('Cannot be edited', () => {
 		const shape = editor.getShape(ids.lockedShapeA)!
-		const shapeCount = editor.currentPageShapes.length
+		const shapeCount = editor.getCurrentPageShapes().length
 
 		// We create a new shape and we edit that one
 		editor.doubleClick(10, 10, { target: 'shape', shape }).expectToBeIn('select.editing_shape')
-		expect(editor.currentPageShapes.length).toBe(shapeCount + 1)
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
 		expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
 	})
 
 	it('Cannot be grouped', () => {
-		const shapeCount = editor.currentPageShapes.length
+		const shapeCount = editor.getCurrentPageShapes().length
 		const parentBefore = editor.getShape(ids.lockedShapeA)!.parentId
 
 		editor.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
-		expect(editor.currentPageShapes.length).toBe(shapeCount + 1)
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
 
 		const parentAfter = editor.getShape(ids.lockedShapeA)!.parentId
 		expect(parentAfter).toBe(parentBefore)

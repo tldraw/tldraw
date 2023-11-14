@@ -25,7 +25,8 @@ export function BackToContent() {
 			const visibleShapes = renderingShapes.filter(
 				(s) => s.maskedPageBounds && renderingBounds.includes(s.maskedPageBounds)
 			)
-			const showBackToContentNow = visibleShapes.length === 0 && editor.currentPageShapes.length > 0
+			const showBackToContentNow =
+				visibleShapes.length === 0 && editor.getCurrentPageShapes().length > 0
 
 			if (showBackToContentPrev !== showBackToContentNow) {
 				setShowBackToContent(showBackToContentNow)
