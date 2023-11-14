@@ -13,7 +13,7 @@ afterEach(() => {
 
 describe(TextShapeTool, () => {
 	it('Creates text, edits it, undoes and redoes', () => {
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.setCurrentTool('text')
 		editor.expectToBeIn('text.idle')
 		editor.pointerDown(0, 0)
@@ -22,28 +22,28 @@ describe(TextShapeTool, () => {
 		editor.expectToBeIn('select.editing_shape')
 		// This comes from the component, not the state chart
 		editor.updateShapes([
-			{ ...editor.currentPageShapes[0]!, type: 'text', props: { text: 'Hello' } },
+			{ ...editor.getCurrentPageShapes()[0]!, type: 'text', props: { text: 'Hello' } },
 		])
 		// Deselect the editing shape
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.expectShapeToMatch({
-			id: editor.currentPageShapes[0].id,
+			id: editor.getCurrentPageShapes()[0].id,
 			type: 'text',
 			props: { text: 'Hello' },
 		})
 
 		editor.undo()
 
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 
 		editor.redo()
 
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 
 		editor.expectShapeToMatch({
-			id: editor.currentPageShapes[0].id,
+			id: editor.getCurrentPageShapes()[0].id,
 			type: 'text',
 			props: { text: 'Hello' },
 		})
@@ -71,7 +71,7 @@ describe('When in idle state', () => {
 		editor.pointerDown(0, 0)
 		editor.pointerUp()
 		editor.expectToBeIn('select.editing_shape')
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
 	it('returns to select on cancel', () => {
@@ -87,7 +87,7 @@ describe('When in the pointing state', () => {
 		editor.pointerDown(0, 0)
 		editor.cancel()
 		editor.expectToBeIn('text.idle')
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
 	it('returns to idle on interrupt', () => {
@@ -96,7 +96,7 @@ describe('When in the pointing state', () => {
 		editor.expectToBeIn('text.pointing')
 		editor.interrupt()
 		editor.expectToBeIn('text.idle')
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
 	it('transitions to select.resizing when dragging and edits on pointer up', () => {
@@ -105,7 +105,7 @@ describe('When in the pointing state', () => {
 		editor.pointerMove(10, 10)
 		editor.expectToBeIn('select.resizing')
 		editor.pointerUp()
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.expectToBeIn('select.editing_shape')
 	})
 
@@ -115,8 +115,8 @@ describe('When in the pointing state', () => {
 		const y = 0
 		editor.pointerDown(x, y)
 		editor.pointerUp()
-		const bounds = editor.getShapePageBounds(editor.currentPageShapes[0])!
-		expect(editor.currentPageShapes[0]).toMatchObject({
+		const bounds = editor.getShapePageBounds(editor.getCurrentPageShapes()[0])!
+		expect(editor.getCurrentPageShapes()[0]).toMatchObject({
 			x: x - bounds.width / 2,
 			y: y - bounds.height / 2,
 		})
@@ -131,7 +131,7 @@ describe('When resizing', () => {
 		editor.expectToBeIn('select.resizing')
 		editor.cancel()
 		editor.expectToBeIn('text.idle')
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
 	it('does not bails on interrupt while resizing', () => {
@@ -140,7 +140,7 @@ describe('When resizing', () => {
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
 		editor.interrupt()
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
 	it('preserves the top left when the text has a fixed width', () => {
@@ -149,7 +149,7 @@ describe('When resizing', () => {
 		const y = 0
 		editor.pointerDown(x, y)
 		editor.pointerMove(x + 100, y + 100)
-		expect(editor.currentPageShapes[0]).toMatchObject({
+		expect(editor.getCurrentPageShapes()[0]).toMatchObject({
 			x,
 			y,
 		})

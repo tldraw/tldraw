@@ -302,7 +302,7 @@ describe('Other cases when arrow are moved', () => {
 			.groupShapes(editor.getSelectedShapeIds())
 
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
-		let arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
+		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
 		assert(arrow.props.end.type === 'binding')
 		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
@@ -322,7 +322,7 @@ describe('When a shape it rotated', () => {
 	it('binds correctly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(375, 375)
 
-		const arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
+		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
 		expect(editor.getShape(arrow.id)).toMatchObject({
 			props: {
@@ -371,8 +371,8 @@ describe('resizing', () => {
 			.pointerUp()
 			.setCurrentTool('select')
 
-		const arrow1 = editor.currentPageShapes.at(-2)!
-		const arrow2 = editor.currentPageShapes.at(-1)!
+		const arrow1 = editor.getCurrentPageShapes().at(-2)!
+		const arrow2 = editor.getCurrentPageShapes().at(-1)!
 
 		editor
 			.select(arrow1.id, arrow2.id)
@@ -426,8 +426,8 @@ describe('resizing', () => {
 			.pointerUp()
 			.setCurrentTool('select')
 
-		const arrow1 = editor.currentPageShapes.at(-2)!
-		const arrow2 = editor.currentPageShapes.at(-1)!
+		const arrow1 = editor.getCurrentPageShapes().at(-2)!
+		const arrow2 = editor.getCurrentPageShapes().at(-1)!
 
 		editor.updateShapes([{ id: arrow1.id, type: 'arrow', props: { bend: 50 } }])
 

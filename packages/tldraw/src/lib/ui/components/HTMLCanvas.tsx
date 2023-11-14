@@ -7,7 +7,7 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 	const rCanvas = React.useRef<HTMLCanvasElement>(null)
 
 	const camera = editor.getCamera()
-	const shapes = editor.currentPageShapes
+	const shapes = editor.getCurrentPageShapes()
 	if (rCanvas.current) {
 		const cvs = rCanvas.current
 		const ctx = cvs.getContext('2d')!

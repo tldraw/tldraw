@@ -618,7 +618,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageId(): TLPageId;
     get currentPageRenderingShapesSorted(): TLShape[];
     get currentPageShapeIds(): Set<TLShapeId>;
-    get currentPageShapes(): TLShape[];
     get currentPageShapesSorted(): TLShape[];
     // @deprecated (undocumented)
     get currentPageState(): TLInstancePageState;
@@ -692,6 +691,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     getCurrentPageBounds(): Box2d | undefined;
+    getCurrentPageShapes(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode | undefined;
     getCurrentToolId(): string;

@@ -87,7 +87,7 @@ beforeEach(() => {
 })
 
 function getShapes() {
-	const arr = editor.currentPageShapes as any[]
+	const arr = editor.getCurrentPageShapes() as any[]
 
 	const results = { old: {}, new: {} } as {
 		old: Record<string, TLGeoShape | TLFrameShape>
@@ -424,11 +424,11 @@ describe('When pasting into frames...', () => {
 		// Copy box 1 (should be out of viewport)
 		editor.select(ids.box1).copy()
 
-		const shapesBefore = editor.currentPageShapes
+		const shapesBefore = editor.getCurrentPageShapes()
 		// Paste it
 		editor.paste()
 
-		const newShape = editor.currentPageShapes.find((s) => !shapesBefore.includes(s))!
+		const newShape = editor.getCurrentPageShapes().find((s) => !shapesBefore.includes(s))!
 
 		// it should be on the canvas, NOT a child of frame2
 		expect(newShape.parentId).not.toBe(ids.frame2)

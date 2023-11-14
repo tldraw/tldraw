@@ -12,44 +12,44 @@ afterEach(() => {
 
 describe(FrameShapeTool, () => {
 	it('Creates frame shapes on click-and-drag, supports undo and redo', () => {
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)
 		editor.pointerUp(100, 100)
 
-		expect(editor.currentPageShapes.length).toBe(1)
-		expect(editor.currentPageShapes[0]?.type).toBe('frame')
-		expect(editor.getSelectedShapeIds()[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		expect(editor.getCurrentPageShapes()[0]?.type).toBe('frame')
+		expect(editor.getSelectedShapeIds()[0]).toBe(editor.getCurrentPageShapes()[0]?.id)
 
 		editor.undo()
 
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 
 		editor.redo()
 
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
 	it('Creates frame shapes on click, supports undo and redo', () => {
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 
-		expect(editor.currentPageShapes.length).toBe(1)
-		expect(editor.currentPageShapes[0]?.type).toBe('frame')
-		expect(editor.getSelectedShapeIds()[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
+		expect(editor.getCurrentPageShapes()[0]?.type).toBe('frame')
+		expect(editor.getSelectedShapeIds()[0]).toBe(editor.getCurrentPageShapes()[0]?.id)
 
 		editor.undo()
 
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 
 		editor.redo()
 
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 })
 
@@ -114,22 +114,22 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Creates a frame and returns to select tool on pointer up', () => {
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 		editor.expectToBeIn('select.idle')
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
 	it('Creates a frame and returns to frame.idle on pointer up if tool lock is enabled', () => {
 		editor.updateInstanceState({ isToolLocked: true })
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 		editor.expectToBeIn('frame.idle')
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 })
 

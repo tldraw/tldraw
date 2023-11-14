@@ -1643,7 +1643,7 @@ describe('scribble brushes to add to the selection', () => {
 describe('creating text on double click', () => {
 	it('creates text on double click', () => {
 		editor.doubleClick()
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.pointerMove(0, 100)
 		editor.click()
 	})

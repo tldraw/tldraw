@@ -4704,7 +4704,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.currentPageShapes.filter((shape) => this.isPointInShape(shape, point, opts))
+		return this.getCurrentPageShapes().filter((shape) => this.isPointInShape(shape, point, opts))
 	}
 
 	/**
@@ -4792,16 +4792,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * An array containing all of the shapes in the current page.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapes
-	 * ```
-	 *
 	 * @readonly
 	 *
 	 * @public
 	 */
-	@computed get currentPageShapes() {
+	@computed getCurrentPageShapes(): TLShape[] {
 		return Array.from(this.currentPageShapeIds, (id) => this.store.get(id)! as TLShape)
 	}
 
@@ -4821,7 +4816,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get currentPageShapesSorted(): TLShape[] {
 		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
 		// todo: consider making a derivation or something, or merging with rendering shapes
-		const shapes = new Set(this.currentPageShapes.sort(sortByIndex))
+		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
 
 		const results: TLShape[] = []
 
