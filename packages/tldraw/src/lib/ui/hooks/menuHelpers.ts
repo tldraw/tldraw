@@ -1,6 +1,8 @@
 import {
 	Editor,
 	TLArrowShape,
+	TLShape,
+	TLShapeId,
 	assert,
 	exhaustiveSwitchError,
 	useEditor,
@@ -168,10 +170,38 @@ export const useThreeStackableItems = () => {
 	return useValue('threeStackableItems', () => shapesWithUnboundArrows(editor).length > 2, [editor])
 }
 
+function shapesWithArrowsBoundToThem(editor: Editor) {
+	const selectedShapes = editor.getSelectedShapes()
+	const arrows: TLArrowShape[] = []
+	const otherShapesMap = new Map<TLShapeId, TLShape>()
+	selectedShapes.forEach((shape) => {
+		if (shape.type === 'arrow') {
+			arrows.push(shape as TLArrowShape)
+		} else {
+			otherShapesMap.set(shape.id, shape)
+		}
+	})
+	// We want to get all the arrows that are either unbound or bound to one of the selected shapes
+	const groupableArrows = arrows.filter((arrow) => {
+		if (arrow.props.start.type === 'binding') {
+			if (!otherShapesMap.has(arrow.props.start.boundShapeId)) {
+				return false
+			}
+		}
+		if (arrow.props.end.type === 'binding') {
+			if (!otherShapesMap.has(arrow.props.end.boundShapeId)) {
+				return false
+			}
+		}
+		return true
+	})
+	return Array.from(otherShapesMap.values()).concat(groupableArrows)
+}
+
 /** @internal */
 export const useAllowGroup = () => {
 	const editor = useEditor()
-	return useValue('allowGroup', () => shapesWithUnboundArrows(editor).length > 1, [editor])
+	return useValue('allowGroup', () => shapesWithArrowsBoundToThem(editor).length > 1, [editor])
 }
 
 /** @internal */

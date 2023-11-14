@@ -94,7 +94,7 @@ describe('TLSelectTool.Translating', () => {
 		editor.pointerDown(150, 150, { target: 'shape', shape })
 		editor.pointerMove(150, 250)
 		editor.pointerUp()
-		const box2Id = editor.onlySelectedShape!.id
+		const box2Id = editor.getOnlySelectedShape()!.id
 		expect(editor.currentPageShapes.length).toStrictEqual(2)
 		expect(ids.box1).not.toEqual(box2Id)
 
@@ -263,12 +263,12 @@ describe('When double clicking the selection edge', () => {
 			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		editor.expectShapeToMatch({ id, props: { scale: 1, autoSize: true } })
 
 		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
-		expect(editor.editingShapeId).toBe(id)
+		expect(editor.getEditingShapeId()).toBe(id)
 	})
 
 	it('Selects a geo shape when double clicking on its edge', () => {
@@ -284,11 +284,11 @@ describe('When double clicking the selection edge', () => {
 				},
 			])
 			.select(id)
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 
 		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
-		expect(editor.editingShapeId).toBe(id)
+		expect(editor.getEditingShapeId()).toBe(id)
 	})
 })
 
@@ -312,51 +312,51 @@ describe('When editing shapes', () => {
 	})
 
 	it('Pointing a shape of a different type selects it and leaves editing', () => {
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 
 		// start editing the geo shape
 		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.geo1) })
-		expect(editor.editingShapeId).toBe(ids.geo1)
-		expect(editor.onlySelectedShape?.id).toBe(ids.geo1)
+		expect(editor.getEditingShapeId()).toBe(ids.geo1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo1)
 		// point the text shape
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.text1) })
-		expect(editor.editingShapeId).toBe(null)
-		expect(editor.onlySelectedShape?.id).toBe(ids.text1)
+		expect(editor.getEditingShapeId()).toBe(null)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.text1)
 	})
 
 	// The behavior described here will only work end to end, not with the library,
 	// because useEditableText implements the behavior in React
 	it.skip('Pointing a shape of a different type selects it and leaves editing', () => {
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 
 		// start editing the geo shape
 		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.geo1) })
-		expect(editor.editingShapeId).toBe(ids.geo1)
-		expect(editor.onlySelectedShape?.id).toBe(ids.geo1)
+		expect(editor.getEditingShapeId()).toBe(ids.geo1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo1)
 		// point the other geo shape
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.geo2) })
 		// that other shape should now be editing and selected!
-		expect(editor.editingShapeId).toBe(ids.geo2)
-		expect(editor.onlySelectedShape?.id).toBe(ids.geo2)
+		expect(editor.getEditingShapeId()).toBe(ids.geo2)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo2)
 	})
 
 	// This works but only end to end — the logic had to move to React
 	it.skip('Works with text, too', () => {
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 
 		// start editing the geo shape
 		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.text1) })
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.text2) })
 		// that other shape should now be editing and selected!
-		expect(editor.editingShapeId).toBe(ids.text2)
-		expect(editor.onlySelectedShape?.id).toBe(ids.text2)
+		expect(editor.getEditingShapeId()).toBe(ids.text2)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.text2)
 	})
 
 	it('Double clicking the canvas creates a new text shape', () => {
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 		expect(editor.currentPageShapes.length).toBe(5)
 		editor.doubleClick(750, 750)
@@ -365,7 +365,7 @@ describe('When editing shapes', () => {
 	})
 
 	it('It deletes an empty text shape when your click away', () => {
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 		expect(editor.currentPageShapes.length).toBe(5)
 
@@ -383,7 +383,7 @@ describe('When editing shapes', () => {
 	})
 
 	it('It deletes an empty text shape when your click another text shape', () => {
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 		expect(editor.currentPageShapes.length).toBe(5)
 
@@ -422,17 +422,17 @@ describe('When in readonly mode', () => {
 	})
 
 	it('Begins editing embed when double clicked', () => {
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 		expect(editor.getInstanceState().isReadonly).toBe(true)
 
 		const shape = editor.getShape(ids.embed1)
 		editor.doubleClick(100, 100, { target: 'shape', shape })
-		expect(editor.editingShapeId).toBe(ids.embed1)
+		expect(editor.getEditingShapeId()).toBe(ids.embed1)
 	})
 
 	it('Begins editing embed when pressing Enter on a selected embed', () => {
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 		expect(editor.getInstanceState().isReadonly).toBe(true)
 
@@ -440,6 +440,6 @@ describe('When in readonly mode', () => {
 		expect(editor.getSelectedShapeIds().length).toBe(1)
 
 		editor.keyUp('Enter')
-		expect(editor.editingShapeId).toBe(ids.embed1)
+		expect(editor.getEditingShapeId()).toBe(ids.embed1)
 	})
 })

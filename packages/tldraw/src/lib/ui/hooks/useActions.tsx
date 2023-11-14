@@ -236,7 +236,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-auto-size', { source })
 					editor.mark('toggling auto size')
 					editor.updateShapes(
-						editor.selectedShapes
+						editor
+							.getSelectedShapes()
 							.filter(
 								(shape): shape is TLTextShape =>
 									editor.isShapeOfType<TLTextShape>(shape, 'text') && shape.props.autoSize === false
@@ -302,7 +303,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					editor.batch(() => {
 						trackEvent('convert-to-bookmark', { source })
-						const shapes = editor.selectedShapes
+						const shapes = editor.getSelectedShapes()
 
 						const createList: TLShapePartial[] = []
 						const deleteList: TLShapeId[] = []
@@ -444,7 +445,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('group-shapes', { source })
-					const { onlySelectedShape } = editor
+					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (onlySelectedShape && editor.isShapeOfType<TLGroupShape>(onlySelectedShape, 'group')) {
 						editor.mark('ungroup')
 						editor.ungroupShapes(editor.getSelectedShapeIds())
@@ -837,7 +838,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('rotate-cw', { source })
 					editor.mark('rotate-cw')
-					const offset = editor.selectionRotation % (TAU / 2)
+					const offset = editor.getSelectionRotation() % (TAU / 2)
 					const dontUseOffset = approximately(offset, 0) || approximately(offset, TAU / 2)
 					editor.rotateShapesBy(
 						editor.getSelectedShapeIds(),
@@ -856,7 +857,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('rotate-ccw', { source })
 					editor.mark('rotate-ccw')
-					const offset = editor.selectionRotation % (TAU / 2)
+					const offset = editor.getSelectionRotation() % (TAU / 2)
 					const offsetCloseToZero = approximately(offset, 0)
 					editor.rotateShapesBy(
 						editor.getSelectedShapeIds(),

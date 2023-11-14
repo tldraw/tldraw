@@ -415,7 +415,7 @@ describe('When clicking and dragging', () => {
 
 describe('Does not erase hollow shapes on click', () => {
 	it('Returns to select on cancel', () => {
-		editor.selectAll().deleteShapes(editor.selectedShapes)
+		editor.selectAll().deleteShapes(editor.getSelectedShapes())
 		expect(editor.currentPageShapes.length).toBe(0)
 		editor.createShape({
 			id: createShapeId(),

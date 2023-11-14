@@ -67,8 +67,8 @@ export class Idle extends StateNode {
 				}
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				const {
-					onlySelectedShape,
 					inputs: { currentPagePoint },
 				} = this.editor
 
@@ -180,7 +180,7 @@ export class Idle extends StateNode {
 								hitInside: false,
 						  })
 
-				const { focusedGroupId } = this.editor
+				const focusedGroupId = this.editor.getFocusedGroupId()
 
 				if (hitShape) {
 					if (this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
@@ -224,7 +224,7 @@ export class Idle extends StateNode {
 			case 'selection': {
 				if (this.editor.getInstanceState().isReadonly) break
 
-				const { onlySelectedShape } = this.editor
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 				if (onlySelectedShape) {
 					const util = this.editor.getShapeUtil(onlySelectedShape)
@@ -346,8 +346,8 @@ export class Idle extends StateNode {
 				}
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				const {
-					onlySelectedShape,
 					inputs: { currentPagePoint },
 				} = this.editor
 
@@ -388,7 +388,7 @@ export class Idle extends StateNode {
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
 		if (
-			this.editor.focusedGroupId !== this.editor.currentPageId &&
+			this.editor.getFocusedGroupId() !== this.editor.currentPageId &&
 			this.editor.getSelectedShapeIds().length > 0
 		) {
 			this.editor.popFocusedGroupId()
@@ -425,7 +425,7 @@ export class Idle extends StateNode {
 	override onKeyUp = (info: TLKeyboardEventInfo) => {
 		switch (info.code) {
 			case 'Enter': {
-				const { selectedShapes } = this.editor
+				const selectedShapes = this.editor.getSelectedShapes()
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
 				if (
@@ -438,7 +438,7 @@ export class Idle extends StateNode {
 				}
 
 				// If the only selected shape is editable, then begin editing it
-				const { onlySelectedShape } = this.editor
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
 					this.startEditingShape(onlySelectedShape, {
 						...info,
@@ -457,7 +457,9 @@ export class Idle extends StateNode {
 		}
 	}
 
-	private shouldStartEditingShape(shape: TLShape | null = this.editor.onlySelectedShape): boolean {
+	private shouldStartEditingShape(
+		shape: TLShape | null = this.editor.getOnlySelectedShape()
+	): boolean {
 		if (!shape) return false
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
 		if (!this.canInteractWithShapeInReadOnly(shape)) return false
@@ -560,10 +562,10 @@ export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
 
 function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
-	const { selectionRotatedPageBounds: selectionBounds } = editor
+	const selectionBounds = editor.getSelectionRotatedPageBounds()
 	if (!selectionBounds) return false
 
-	const { selectionRotation } = editor
+	const selectionRotation = editor.getSelectionRotation()
 	if (!selectionRotation) return selectionBounds.containsPoint(point)
 
 	return pointInPolygon(

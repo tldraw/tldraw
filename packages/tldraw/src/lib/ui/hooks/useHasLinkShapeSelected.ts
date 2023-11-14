@@ -5,7 +5,7 @@ export function useHasLinkShapeSelected() {
 	return useValue(
 		'hasLinkShapeSelected',
 		() => {
-			const { selectedShapes } = editor
+			const selectedShapes = editor.getSelectedShapes()
 			return (
 				selectedShapes.length === 1 &&
 				'url' in selectedShapes[0].props &&

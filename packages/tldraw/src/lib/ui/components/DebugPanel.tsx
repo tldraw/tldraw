@@ -175,7 +175,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 							return count
 						}
 
-						const { selectedShapes } = editor
+						const selectedShapes = editor.getSelectedShapes()
 
 						const shapes = selectedShapes.length === 0 ? editor.renderingShapes : selectedShapes
 

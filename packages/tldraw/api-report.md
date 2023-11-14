@@ -40,6 +40,7 @@ import { SelectionEdge } from '@tldraw/editor';
 import { SelectionHandle } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
+import { SnapPoint } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StoreSnapshot } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
@@ -679,7 +680,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public
-export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
+export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number, opts?: {
+    type?: string | undefined;
+    quality?: number | undefined;
+}): Promise<string>;
 
 // @public (undocumented)
 function Group({ children, size, }: {

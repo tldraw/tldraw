@@ -38,7 +38,7 @@ export const FrameHeading = function FrameHeading({
 			const event = getPointerInfo(e)
 
 			// If we're editing the frame label, we shouldn't hijack the pointer event
-			if (editor.editingShapeId === id) return
+			if (editor.getEditingShapeId() === id) return
 
 			editor.dispatch({
 				type: 'pointer',

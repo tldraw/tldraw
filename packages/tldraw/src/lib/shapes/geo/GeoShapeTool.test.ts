@@ -103,7 +103,7 @@ describe('When in the idle state', () => {
 		expect(editor.currentPageShapes.length).toBe(2)
 
 		editor.selectAll()
-		expect(editor.selectedShapes.length).toBe(2)
+		expect(editor.getSelectedShapes().length).toBe(2)
 
 		editor.keyUp('Enter')
 		editor.expectToBeIn('select.idle')

@@ -9100,7 +9100,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#duplicateShapes:member(1)",
-              "docComment": "/**\n * Duplicate shapes.\n *\n * @param shapes - The shapes (or shape ids) to duplicate.\n *\n * @param offset - The offset (in pixels) to apply to the duplicated shapes.\n *\n * @example\n * ```ts\n * editor.duplicateShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.duplicateShapes(editor.selectedShapes, { x: 8, y: 8 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Duplicate shapes.\n *\n * @param shapes - The shapes (or shape ids) to duplicate.\n *\n * @param offset - The offset (in pixels) to apply to the duplicated shapes.\n *\n * @example\n * ```ts\n * editor.duplicateShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.duplicateShapes(editor.getSelectedShapes(), { x: 8, y: 8 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9179,7 +9179,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#editingShape:member",
-              "docComment": "/**\n * The current editing shape.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getEditingShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9214,7 +9214,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#editingShapeId:member",
-              "docComment": "/**\n * The current editing shape's id.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getEditingShapeId` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9617,7 +9617,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#focusedGroup:member",
-              "docComment": "/**\n * The current focused group.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getFocusedGroup` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9652,7 +9652,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#focusedGroupId:member",
-              "docComment": "/**\n * The current focused group id.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getFocusedGroupId` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10367,6 +10367,155 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getEditingShape:member(1)",
+              "docComment": "/**\n * The current editing shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getEditingShape(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getEditingShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getEditingShapeId:member(1)",
+              "docComment": "/**\n * The current editing shape's id.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getEditingShapeId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getEditingShapeId"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getFocusedGroup:member(1)",
+              "docComment": "/**\n * The current focused group.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getFocusedGroup(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getFocusedGroup"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getFocusedGroupId:member(1)",
+              "docComment": "/**\n * The current focused group id.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getFocusedGroupId(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPageId",
+                  "canonicalReference": "@tldraw/tlschema!TLPageId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getFocusedGroupId"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getHighestIndexForParent:member(1)",
               "docComment": "/**\n * Get the index above the highest child of a given parent.\n *\n * @param parentId - The id of the parent.\n *\n * @returns The index.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10544,6 +10693,42 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getIsMenuOpen"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getOnlySelectedShape:member(1)",
+              "docComment": "/**\n * The app's only selected shape.\n *\n * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape.\n *\n * @public @readonly\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getOnlySelectedShape(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getOnlySelectedShape"
             },
             {
               "kind": "Method",
@@ -11103,6 +11288,145 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getSelectedShapeIds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectedShapes:member(1)",
+              "docComment": "/**\n * An array containing all of the currently selected shapes.\n *\n * @public @readonly\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectedShapes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectedShapes"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectionPageBounds:member(1)",
+              "docComment": "/**\n * The current page bounds of all the selected shapes. If the selection is rotated, then these bounds are the axis-aligned box that the rotated bounds would fit inside of.\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectionPageBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectionPageBounds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectionRotatedPageBounds:member(1)",
+              "docComment": "/**\n * The bounds of the selection bounding box in the current page space.\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectionRotatedPageBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectionRotatedPageBounds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectionRotation:member(1)",
+              "docComment": "/**\n * The rotation of the selection bounding box in the current page space.\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectionRotation(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectionRotation"
             },
             {
               "kind": "Method",
@@ -14096,7 +14420,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#nudgeShapes:member(1)",
-              "docComment": "/**\n * Move shapes by a delta.\n *\n * @param shapes - The shapes (or shape ids) to move.\n *\n * @param direction - The direction in which to move the shapes.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.nudgeShapes(editor.selectedShapes, { x: 8, y: 8 }, { squashing: true })\n * ```\n *\n */\n",
+              "docComment": "/**\n * Move shapes by a delta.\n *\n * @param shapes - The shapes (or shape ids) to move.\n *\n * @param direction - The direction in which to move the shapes.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.nudgeShapes(editor.getSelectedShapes(), { x: 8, y: 8 }, { squashing: true })\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14192,7 +14516,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#onlySelectedShape:member",
-              "docComment": "/**\n * The app's only selected shape.\n *\n * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape.\n *\n * @example\n * ```ts\n * editor.onlySelectedShape\n * ```\n *\n * @public @readonly\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getOnlySelectedShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15842,7 +16166,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#selectedShapes:member",
-              "docComment": "/**\n * An array containing all of the currently selected shapes.\n *\n * @example\n * ```ts\n * editor.selectedShapes\n * ```\n *\n * @public @readonly\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getSelectedShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15877,7 +16201,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#selectionPageBounds:member",
-              "docComment": "/**\n * The current page bounds of all the selected shapes. If the selection is rotated, then these bounds are the axis-aligned box that the rotated bounds would fit inside of.\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getSelectionPageBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15912,7 +16236,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#selectionRotatedPageBounds:member",
-              "docComment": "/**\n * The bounds of the selection bounding box in the current page space.\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getSelectionRotatedPageBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15947,7 +16271,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#selectionRotation:member",
-              "docComment": "/**\n * The rotation of the selection bounding box in the current page space.\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getSelectionRotation` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

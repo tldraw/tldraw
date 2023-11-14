@@ -143,7 +143,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	indicator(shape: TLTextShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const editor = useEditor()
-		if (shape.props.autoSize && editor.editingShapeId === shape.id) return null
+		if (shape.props.autoSize && editor.getEditingShapeId() === shape.id) return null
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 

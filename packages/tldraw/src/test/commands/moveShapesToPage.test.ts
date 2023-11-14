@@ -189,9 +189,9 @@ describe('arrows', () => {
 		editor.pointerMove(255, 255)
 		editor.pointerMove(450, 450)
 		editor.pointerUp(450, 450)
-		const arrow = editor.onlySelectedShape!
+		const arrow = editor.getOnlySelectedShape()!
 
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toCloselyMatchObject({
 			// exiting at the bottom right corner of the first box
 			x: 300,
 			y: 300,
@@ -224,7 +224,7 @@ describe('arrows', () => {
 			.pointerMove(255, 255)
 			.pointerMove(450, 450)
 			.pointerUp(450, 450)
-		const arrow = editor.onlySelectedShape!
+		const arrow = editor.getOnlySelectedShape()!
 
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(1)
@@ -240,7 +240,7 @@ describe('arrows', () => {
 		editor.setCurrentTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
 
 		editor.moveShapesToPage([ids.box1, ids.box2], ids.page2)
-		const { selectionPageBounds } = editor
+		const selectionPageBounds = editor.getSelectionPageBounds()
 		expect(editor.viewportPageCenter).toMatchObject(selectionPageBounds!.center)
 	})
 })
