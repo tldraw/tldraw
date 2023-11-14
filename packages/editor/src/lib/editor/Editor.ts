@@ -290,8 +290,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
 				nextParentId = this.findCommonAncestor([startShape, endShape]) ?? parentPageId
 			} else if (startShape || endShape) {
-				// if arrow has one binding, keep arrow on its own page
-				nextParentId = parentPageId
+				const bindingParentId = (startShape || endShape)?.parentId
+				// If the arrow and the shape that it is bound to have the same parent, then keep that parent
+				if (bindingParentId && bindingParentId === arrow.parentId) {
+					nextParentId = arrow.parentId
+				} else {
+					// if arrow has one binding, keep arrow on its own page
+					nextParentId = parentPageId
+				}
 			} else {
 				return
 			}
