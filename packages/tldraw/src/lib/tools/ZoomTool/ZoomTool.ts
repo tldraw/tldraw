@@ -47,7 +47,7 @@ export class ZoomTool extends StateNode {
 		if (this.info.onInteractionEnd && this.info.onInteractionEnd !== 'select') {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.parent.transition('select', {})
+			this.parent.transition('select')
 		}
 	}
 

@@ -43,7 +43,7 @@ export class PointingSelection extends StateNode {
 
 		if (hitShape) {
 			// todo: extract the double click shape logic from idle so that we can share it here
-			this.parent.transition('idle', {})
+			this.parent.transition('idle')
 			this.parent.onDoubleClick?.({
 				...info,
 				target: 'shape',
@@ -66,6 +66,6 @@ export class PointingSelection extends StateNode {
 	}
 
 	private cancel() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }

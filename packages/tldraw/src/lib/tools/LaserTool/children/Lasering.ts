@@ -44,10 +44,10 @@ export class Lasering extends StateNode {
 	}
 
 	private complete() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }

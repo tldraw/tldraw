@@ -11225,6 +11225,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getPath:member(1)",
+              "docComment": "/**\n * The editor's current path of active states.\n *\n * @example\n * ```ts\n * editor.path // \"select.idle\"\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPath(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPath"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPointInParentSpace:member(1)",
               "docComment": "/**\n * Convert a delta in the current page space to a point in the local space of a shape's parent.\n *\n * @param shape - The shape to get the point in the local space of.\n *\n * @param point - The page point to get in the local space of the shape.\n *\n * @example\n * ```ts\n * editor.getPointInParentSpace(myShape.id, { x: 100, y: 100 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -34286,6 +34317,41 @@
               "isAbstract": false
             },
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!StateNode#_path:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_path: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Computed",
+                  "canonicalReference": "@tldraw/state!Computed:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_path",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Constructor",
               "canonicalReference": "@tldraw/editor!StateNode:constructor(1)",
               "docComment": "/**\n * Constructs a new instance of the `StateNode` class\n */\n",
@@ -34420,50 +34486,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!StateNode#current:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "current: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Atom",
-                  "canonicalReference": "@tldraw/state!Atom:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "StateNode",
-                  "canonicalReference": "@tldraw/editor!StateNode:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | undefined>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "current",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#currentToolIdMask:member",
               "docComment": "",
               "excerptTokens": [
@@ -34582,6 +34604,104 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#getCurrent:member(1)",
+              "docComment": "/**\n * This node's current active child node, if any.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrent(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StateNode",
+                  "canonicalReference": "@tldraw/editor!StateNode:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#getIsActive:member(1)",
+              "docComment": "/**\n * Whether this node is active.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getIsActive(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getIsActive"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#getPath:member(1)",
+              "docComment": "/**\n * This node's path of active state nodes\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPath(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPath"
             },
             {
               "kind": "Property",
@@ -34757,36 +34877,6 @@
                 "endIndex": 2
               },
               "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!StateNode#isActive:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "isActive: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "isActive",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
               "isProtected": false,
               "isAbstract": false
             },
@@ -35410,41 +35500,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!StateNode#path:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "path: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Computed",
-                  "canonicalReference": "@tldraw/state!Computed:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "path",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#shapeType:member",
               "docComment": "",
               "excerptTokens": [
@@ -35476,7 +35531,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#transition:member",
-              "docComment": "",
+              "docComment": "/**\n * Transition to a new active child state node.\n *\n * @param id - The id of the child state node to transition to.\n *\n * @param info - Any data to pass to the `onEnter` and `onExit` handlers.\n *\n * @example\n * ```ts\n * parentState.transition('childStateA')\n * parentState.transition('childStateB', { myData: 4 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -35484,7 +35539,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "(id: string, info: any) => this"
+                  "text": "(id: string, info?: any) => this"
                 },
                 {
                   "kind": "Content",

@@ -1034,7 +1034,7 @@ describe('the select tool', () => {
 	// it('should work while focused in a group if you start the drag from within the group', () => {
 	// 	editor.select(ids.boxA)
 	// 	editor.pointerDown(15, 5, groupAId).pointerMove(25, 9, ids.boxB)
-	// 	expect(editor.root.path.value).toBe(`root.select.brushing`)
+	// 	expect(editor.getPath()).toBe(`select.brushing`)
 	// 	expect(editor.selectedShapeIds.includes(ids.boxA)).toBe(false)
 	// 	expect(editor.selectedShapeIds.includes(ids.boxB)).toBe(true)
 
@@ -1048,7 +1048,7 @@ describe('the select tool', () => {
 		expect(editor.getShapesAtPoint({ x: -305, y: -5 })).toMatchObject([])
 		editor.pointerDown(-305, -5, { target: 'canvas' }).pointerMove(35, 9, ids.boxB)
 
-		expect(editor.root.path.get()).toBe(`root.select.brushing`)
+		editor.expectToBeIn(`select.brushing`)
 		expect(editor.getSelectedShapeIds().includes(ids.boxA)).toBe(true)
 		expect(editor.getSelectedShapeIds().includes(ids.boxB)).toBe(true)
 

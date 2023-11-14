@@ -711,6 +711,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPage(page: TLPage | TLPageId): TLPage | undefined;
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
     getPageStates(): TLInstancePageState[];
+    getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
@@ -1848,8 +1849,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     children?: Record<string, StateNode>;
     // (undocumented)
-    current: Atom<StateNode | undefined>;
-    // (undocumented)
     get currentToolIdMask(): string | undefined;
     set currentToolIdMask(id: string | undefined);
     _currentToolIdMask: Atom<string | undefined, unknown>;
@@ -1859,6 +1858,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     enter: (info: any, from: string) => void;
     // (undocumented)
     exit: (info: any, from: string) => void;
+    getCurrent(): StateNode | undefined;
+    getIsActive(): boolean;
+    getPath(): string;
     // (undocumented)
     handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
     // (undocumented)
@@ -1869,8 +1871,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static initial?: string;
     // (undocumented)
     initial?: string;
-    // (undocumented)
-    isActive: boolean;
     // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];
     // (undocumented)
@@ -1908,11 +1908,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     parent: StateNode;
     // (undocumented)
-    path: Computed<string>;
+    _path: Computed<string>;
     // (undocumented)
     shapeType?: string;
-    // (undocumented)
-    transition: (id: string, info: any) => this;
+    transition: (id: string, info?: any) => this;
     // (undocumented)
     type: TLStateNodeType;
 }

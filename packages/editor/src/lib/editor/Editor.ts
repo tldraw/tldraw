@@ -1008,7 +1008,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					willCrashApp,
 				},
 				extras: {
-					activeStateNode: this.root.path.get(),
+					activeStateNode: this.root.getPath(),
 					selectedShapes: this.getSelectedShapes(),
 					editingShape: editingShapeId ? this.getShape(editingShapeId) : undefined,
 					inputs: this.inputs,
@@ -1052,6 +1052,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* ------------------- Statechart ------------------- */
 
 	/**
+	 * The editor's current path of active states.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.path // "select.idle"
+	 * ```
+	 *
+	 * @public
+	 */
+	@computed getPath() {
+		return this.root.getPath().split('root.')[1]
+	}
+
+	/**
 	 * Get whether a certain tool (or other state node) is currently active.
 	 *
 	 * @example
@@ -1070,7 +1084,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		while (ids.length > 0) {
 			const id = ids.pop()
 			if (!id) return true
-			const current = state.current.get()
+			const current = state.getCurrent()
 			if (current?.id === id) {
 				if (ids.length === 0) return true
 				state = current
@@ -1119,7 +1133,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentTool(): StateNode | undefined {
-		return this.root.current.get()
+		return this.root.getCurrent()
 	}
 
 	/**
@@ -7476,7 +7490,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If the current tool is associated with a shape, return the styles for that shape.
 		// Otherwise, just return an empty map.
-		const currentTool = this.root.current.get()!
+		const currentTool = this.root.getCurrent()!
 		const styles = new SharedStyleMap()
 		if (currentTool.shapeType) {
 			for (const style of this.styleProps[currentTool.shapeType].keys()) {

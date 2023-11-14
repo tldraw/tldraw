@@ -40,6 +40,6 @@ export class Dragging extends StateNode {
 			friction: CAMERA_SLIDE_FRICTION,
 		})
 
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }
