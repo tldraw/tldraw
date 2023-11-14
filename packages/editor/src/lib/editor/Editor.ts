@@ -4102,7 +4102,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	@computed private get _shapePageTransformCache(): ComputedCache<Matrix2d, TLShape> {
+	@computed private _getShapePageTransformCache(): ComputedCache<Matrix2d, TLShape> {
 		return this.store.createComputedCache<Matrix2d, TLShape>('pageTransformCache', (shape) => {
 			if (isPageId(shape.parentId)) {
 				return this.getShapeLocalTransform(shape)
@@ -4113,7 +4113,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// In the future we should look at creating a store update mechanism that understands and preserves
 			// ordering.
 			const parentTransform =
-				this._shapePageTransformCache.get(shape.parentId) ?? Matrix2d.Identity()
+				this._getShapePageTransformCache().get(shape.parentId) ?? Matrix2d.Identity()
 			return Matrix2d.Compose(parentTransform, this.getShapeLocalTransform(shape)!)
 		})
 	}
@@ -4134,7 +4134,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.getShape(id)
 		if (!freshShape || isPageId(freshShape.parentId)) return Matrix2d.Identity()
-		return this._shapePageTransformCache.get(freshShape.parentId) ?? Matrix2d.Identity()
+		return this._getShapePageTransformCache().get(freshShape.parentId) ?? Matrix2d.Identity()
 	}
 
 	/**
@@ -4152,13 +4152,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapePageTransform(shape: TLShape | TLShapeId): Matrix2d {
 		const id = typeof shape === 'string' ? shape : this.getShape(shape)!.id
-		return this._shapePageTransformCache.get(id) ?? Matrix2d.Identity()
+		return this._getShapePageTransformCache().get(id) ?? Matrix2d.Identity()
 	}
 
 	/** @internal */
 	@computed private get _shapePageBoundsCache(): ComputedCache<Box2d, TLShape> {
 		return this.store.createComputedCache<Box2d, TLShape>('pageBoundsCache', (shape) => {
-			const pageTransform = this._shapePageTransformCache.get(shape.id)
+			const pageTransform = this._getShapePageTransformCache().get(shape.id)
 
 			if (!pageTransform) return new Box2d()
 
@@ -4200,7 +4200,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return `polygon(0px 0px, 0px 0px, 0px 0px)`
 			}
 
-			const pageTransform = this._shapePageTransformCache.get(shape.id)
+			const pageTransform = this._getShapePageTransformCache().get(shape.id)
 			if (!pageTransform) return undefined
 
 			const localMask = Matrix2d.applyToPoints(Matrix2d.Inverse(pageTransform), pageMask)
@@ -4244,7 +4244,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pageMask = frameAncestors
 				.map<Vec2d[] | undefined>((s) =>
 					// Apply the frame transform to the frame outline to get the frame outline in the current page space
-					this._shapePageTransformCache.get(s.id)!.applyToPoints(this.getShapeGeometry(s).vertices)
+					this._getShapePageTransformCache()
+						.get(s.id)!
+						.applyToPoints(this.getShapeGeometry(s).vertices)
 				)
 				.reduce((acc, b) => {
 					if (!(b && acc)) return undefined
@@ -4739,7 +4741,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this._shapePageTransformCache.get(id)!.clone().invert().applyToPoint(point)
+		return this._getShapePageTransformCache().get(id)!.clone().invert().applyToPoint(point)
 	}
 
 	/**
