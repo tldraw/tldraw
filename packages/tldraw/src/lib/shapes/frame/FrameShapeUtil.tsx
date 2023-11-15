@@ -228,7 +228,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			if (!pageShapeBounds) return
 
 			// Frame shape encloses page shape
-			if (bounds?.includes(pageShapeBounds)) {
+			if (bounds.includes(pageShapeBounds)) {
 				// We don't want to pull in shapes that are ancestors of the frame
 				if (ancestors.includes(pageShape)) {
 					return
