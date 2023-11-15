@@ -129,7 +129,7 @@ import {
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
-import { OptionalKeys, RequiredKeys } from './types/misc-types'
+import { OptionalKeys, RequiredKeys, TLSvgOptions } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -1127,13 +1127,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.root.transition(id, info)
 		return this
 	}
+
 	/**
 	 * The current selected tool.
 	 *
 	 * @public
 	 */
-	@computed getCurrentTool(): StateNode | undefined {
-		return this.root.getCurrent()
+	@computed getCurrentTool(): StateNode {
+		return this.root.getCurrent()!
 	}
 
 	/**
@@ -1175,17 +1176,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getStateDescendant(path: string): StateNode | undefined {
+	getStateDescendant<T extends StateNode>(path: string): T | undefined {
 		const ids = path.split('.').reverse()
 		let state = this.root as StateNode
 		while (ids.length > 0) {
 			const id = ids.pop()
-			if (!id) return state
+			if (!id) return state as T
 			const childState = state.children?.[id]
 			if (!childState) return undefined
 			state = childState
 		}
-		return state
+		return state as T
 	}
 
 	/* ---------------- Document Settings --------------- */
@@ -7550,6 +7551,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Otherwise, just return an empty map.
 		const currentTool = this.root.getCurrent()!
 		const styles = new SharedStyleMap()
+
+		if (!currentTool) return styles
+
 		if (currentTool.shapeType) {
 			for (const style of this.styleProps[currentTool.shapeType].keys()) {
 				styles.applyValue(style, this.getStyleForNextShape(style))
@@ -8370,16 +8374,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvg(
-		shapes: TLShapeId[] | TLShape[],
-		opts = {} as Partial<{
-			scale: number
-			background: boolean
-			padding: number
-			darkMode?: boolean
-			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
-		}>
-	) {
+	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
@@ -8406,12 +8401,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// --- Common bounding box of all shapes
 		let bbox = null
-		for (const { maskedPageBounds } of renderingShapes) {
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
+		if (opts.bounds) {
+			bbox = opts.bounds
+		} else {
+			for (const { maskedPageBounds } of renderingShapes) {
+				if (!maskedPageBounds) continue
+				if (bbox) {
+					bbox.union(maskedPageBounds)
+				} else {
+					bbox = maskedPageBounds.clone()
+				}
 			}
 		}
 

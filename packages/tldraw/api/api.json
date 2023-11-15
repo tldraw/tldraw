@@ -14923,7 +14923,7 @@
               "text": "export interface TLUiContextMenuProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ContextMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiContextMenuProps",
           "preserveMemberOrder": false,
@@ -14946,7 +14946,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
@@ -18150,7 +18149,7 @@
             },
             {
               "kind": "Content",
-              "text": "(ids?: "
+              "text": "(ids: "
             },
             {
               "kind": "Reference",
@@ -18316,7 +18315,7 @@
             },
             {
               "kind": "Content",
-              "text": "(ids?: "
+              "text": "(ids: "
             },
             {
               "kind": "Reference",
@@ -18334,16 +18333,7 @@
             },
             {
               "kind": "Content",
-              "text": ") => "
-            },
-            {
-              "kind": "Reference",
-              "text": "Promise",
-              "canonicalReference": "!Promise:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<void>"
+              "text": ") => void"
             },
             {
               "kind": "Content",
@@ -18353,7 +18343,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useExportAs.ts",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 8
+            "endIndex": 6
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
