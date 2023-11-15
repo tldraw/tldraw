@@ -13,7 +13,6 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
-	isShapeId,
 	last,
 	toDomPrecision,
 } from '@tldraw/editor'
@@ -219,13 +218,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		if (ancestorIds.includes(shape.id)) {
 			return false
 		}
-		// We want to pull in shapes that are direct children of the page
-		// This prevents us from pulling in shapes that are part of a group or another frame
-		if (shape.parentId === this.editor.currentPageId) {
-			return true
-		}
-		// We can also pull in shapes that are siblings of the frame
-		if (isShapeId(shape.parentId) && shape.parentId === frame.parentId) {
+		// We only want to pull in shapes that are siblings of the frame
+		if (shape.parentId === frame.parentId) {
 			return true
 		}
 		return false
