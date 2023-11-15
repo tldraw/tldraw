@@ -540,7 +540,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
 					/>
 					{shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
 				</HTMLContainer>
 			</>
@@ -598,7 +598,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const { id, props } = shape
 		const strokeWidth = STROKE_SIZES[props.size]
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		let svgElm: SVGElement

@@ -64,7 +64,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
 			minimap.originPagePoint.setTo(clampedPoint)
-			minimap.originPageCenter.setTo(editor.viewportPageBounds.center)
+			minimap.originPageCenter.setTo(editor.getViewportPageBounds().center)
 
 			editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
 		},
@@ -85,7 +85,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
-			const _vpPageBounds = editor.viewportPageBounds
+			const _vpPageBounds = editor.getViewportPageBounds()
 
 			minimap.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
 
@@ -187,11 +187,9 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
-			const {
-				currentPageShapeIds: shapeIdsOnCurrentPage,
-				viewportPageBounds,
-				currentPageBounds: commonBoundsOfAllShapesOnCurrentPage,
-			} = editor
+			const { currentPageShapeIds: shapeIdsOnCurrentPage } = editor
+			const commonBoundsOfAllShapesOnCurrentPage = editor.getCurrentPageBounds()
+			const viewportPageBounds = editor.getViewportPageBounds()
 
 			const _dpr = devicePixelRatio.get() // dereference
 

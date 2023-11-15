@@ -5,6 +5,6 @@ export function useLanguages() {
 	const editor = useEditor()
 	return {
 		languages: LANGUAGES as readonly TLLanguage[],
-		currentLanguage: editor.user.locale,
+		currentLanguage: editor.user.getLocale(),
 	}
 }

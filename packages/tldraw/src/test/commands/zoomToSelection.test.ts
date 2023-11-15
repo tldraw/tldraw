@@ -23,20 +23,20 @@ it('does not zoom past max', () => {
 	editor.updateShapes([{ id: ids.box1, type: 'geo', props: { w: 1, h: 1 } }])
 	editor.select(ids.box1)
 	editor.zoomToSelection()
-	expect(editor.zoomLevel).toBe(1) // double check again when we're zooming in hard
+	expect(editor.getZoomLevel()).toBe(1) // double check again when we're zooming in hard
 })
 
 it('does not zoom past min', () => {
 	editor.updateShapes([{ id: ids.box1, type: 'geo', props: { w: 100000, h: 100000 } }])
 	editor.select(ids.box1)
 	editor.zoomToSelection()
-	expect(editor.zoomLevel).toBe(0.1)
+	expect(editor.getZoomLevel()).toBe(0.1)
 })
 
 it('does not zoom to selection when camera is frozen', () => {
-	const cameraBefore = { ...editor.camera }
+	const cameraBefore = { ...editor.getCamera() }
 	editor.updateInstanceState({ canMoveCamera: false })
 	editor.setSelectedShapes([ids.box1, ids.box2])
 	editor.zoomToSelection()
-	expect(editor.camera).toMatchObject(cameraBefore)
+	expect(editor.getCamera()).toMatchObject(cameraBefore)
 })

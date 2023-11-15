@@ -36,13 +36,13 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 		// Cancel any interactions / states
 		editor.cancel().cancel().cancel().cancel()
 
-		const firstPageId = editor.pages[0].id
+		const firstPageId = editor.getPages()[0].id
 
 		// Set the current page to the first page
 		editor.setCurrentPage(firstPageId)
 
 		// Delete all pages except first page
-		for (const page of editor.pages.slice(1)) {
+		for (const page of editor.getPages().slice(1)) {
 			editor.deletePage(page.id)
 		}
 
@@ -590,7 +590,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 		editor.selectNone()
 		editor.updateViewportScreenBounds()
 
-		const bounds = editor.currentPageBounds
+		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
 			editor.zoomToBounds(bounds, 1)
 		}

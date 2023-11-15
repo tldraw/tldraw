@@ -52,7 +52,7 @@ export const ActionsMenuSchemaProvider = ({
 	const allowUngroup = useAllowUngroup()
 	const showEditLink = useHasLinkShapeSelected()
 	const breakpoint = useBreakpoint()
-	const isZoomedTo100 = useValue('zoom is 1', () => editor.zoomLevel === 1, [editor])
+	const isZoomedTo100 = useValue('zoom is 1', () => editor.getZoomLevel() === 1, [editor])
 
 	const actionTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
 		const results = [

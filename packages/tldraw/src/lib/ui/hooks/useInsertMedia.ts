@@ -17,7 +17,7 @@ export function useInsertMedia() {
 			await editor.putExternalContent({
 				type: 'files',
 				files: Array.from(fileList),
-				point: editor.viewportPageBounds.center,
+				point: editor.getViewportPageBounds().center,
 				ignoreParent: false,
 			})
 			input.value = ''

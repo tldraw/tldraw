@@ -20,7 +20,7 @@ export function useRelevantStyles(): {
 	return useValue(
 		'getRelevantStyles',
 		() => {
-			const styles = new SharedStyleMap(editor.sharedStyles)
+			const styles = new SharedStyleMap(editor.getSharedStyles())
 			const hasShape =
 				editor.getSelectedShapeIds().length > 0 || !!editor.root.getCurrent()?.shapeType
 
@@ -31,7 +31,7 @@ export function useRelevantStyles(): {
 			}
 
 			if (styles.size === 0 && !hasShape) return null
-			return { styles, opacity: editor.sharedOpacity }
+			return { styles, opacity: editor.getSharedOpacity() }
 		},
 		[editor]
 	)

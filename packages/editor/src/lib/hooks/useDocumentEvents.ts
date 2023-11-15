@@ -225,7 +225,7 @@ export function useDocumentEvents() {
 				// touchstart event in that case.
 				if (
 					touchXPosition - touchXRadius < 10 ||
-					touchXPosition + touchXRadius > editor.viewportScreenBounds.width - 10
+					touchXPosition + touchXRadius > editor.getViewportScreenBounds().width - 10
 				) {
 					if ((e.target as HTMLElement)?.tagName === 'BUTTON') {
 						// Force a click before bailing

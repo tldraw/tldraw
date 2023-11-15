@@ -15,46 +15,101 @@ export class UserPreferencesManager {
 			...userPreferences,
 		})
 	}
-	@computed get userPreferences() {
+	@computed getUserPreferences() {
 		return {
-			id: this.id,
-			name: this.name,
-			locale: this.locale,
-			color: this.color,
-			isDarkMode: this.isDarkMode,
-			animationSpeed: this.animationSpeed,
-			isSnapMode: this.isSnapMode,
+			id: this.getId(),
+			name: this.getName(),
+			locale: this.getLocale(),
+			color: this.getColor(),
+			isDarkMode: this.getIsDarkMode(),
+			animationSpeed: this.getAnimationSpeed(),
+			isSnapMode: this.getIsSnapMode(),
 		}
 	}
+	/**
+	 * @deprecated use `getUserPreferences` instead
+	 */
+	get userPreferences() {
+		return this.getUserPreferences()
+	}
 
-	@computed get isDarkMode() {
+	@computed getIsDarkMode() {
 		return (
 			this.user.userPreferences.get().isDarkMode ??
 			(this.inferDarkMode ? userPrefersDarkUI() : false)
 		)
 	}
 
-	@computed get animationSpeed() {
+	/**
+	 * @deprecated use `getIsDarkMode` instead
+	 */
+	get isDarkMode() {
+		return this.getIsDarkMode()
+	}
+
+	@computed getAnimationSpeed() {
 		return this.user.userPreferences.get().animationSpeed ?? defaultUserPreferences.animationSpeed
 	}
 
-	@computed get id() {
+	/**
+	 * @deprecated use `getAnimationSpeed` instead
+	 */
+	get animationSpeed() {
+		return this.getAnimationSpeed()
+	}
+
+	@computed getId() {
 		return this.user.userPreferences.get().id
 	}
 
-	@computed get name() {
+	/**
+	 * @deprecated use `getId` instead
+	 */
+	get id() {
+		return this.getId()
+	}
+
+	@computed getName() {
 		return this.user.userPreferences.get().name ?? defaultUserPreferences.name
 	}
 
-	@computed get locale() {
+	/**
+	 * @deprecated use `getName` instead
+	 */
+	get name() {
+		return this.getName()
+	}
+
+	@computed getLocale() {
 		return this.user.userPreferences.get().locale ?? defaultUserPreferences.locale
 	}
 
-	@computed get color() {
+	/**
+	 * @deprecated use `getLocale` instead
+	 */
+	get locale() {
+		return this.getLocale()
+	}
+
+	@computed getColor() {
 		return this.user.userPreferences.get().color ?? defaultUserPreferences.color
 	}
 
-	@computed get isSnapMode() {
+	/**
+	 * @deprecated use `getColor` instead
+	 */
+	get color() {
+		return this.getColor()
+	}
+
+	@computed getIsSnapMode() {
 		return this.user.userPreferences.get().isSnapMode ?? defaultUserPreferences.isSnapMode
+	}
+
+	/**
+	 * @deprecated use `getIsSnapMode` instead
+	 */
+	get isSnapMode() {
+		return this.getIsSnapMode()
 	}
 }

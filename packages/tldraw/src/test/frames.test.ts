@@ -44,7 +44,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).cancel().pointerUp(100, 100)
 		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
-		expect(editor.currentPageShapes).toHaveLength(0)
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 	})
 	it('can be canceled while dragging', () => {
 		editor.setCurrentTool('frame')
@@ -53,19 +53,19 @@ describe('creating frames', () => {
 		editor.cancel()
 		editor.pointerUp()
 		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
-		expect(editor.currentPageShapes).toHaveLength(0)
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 	})
 	it('can be undone', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
 		expect(editor.getOnlySelectedShape()?.type).toBe('frame')
-		expect(editor.currentPageShapes).toHaveLength(1)
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
 
 		editor.undo()
 
 		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
-		expect(editor.currentPageShapes).toHaveLength(0)
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 	})
 	it('can be done inside other frames', () => {
 		editor.setCurrentTool('frame')
@@ -76,7 +76,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		expect(editor.currentPageShapes).toHaveLength(2)
+		expect(editor.getCurrentPageShapes()).toHaveLength(2)
 
 		expect(editor.getOnlySelectedShape()?.parentId).toEqual(frameAId)
 
@@ -98,7 +98,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		expect(editor.currentPageShapes).toHaveLength(2)
+		expect(editor.getCurrentPageShapes()).toHaveLength(2)
 
 		expect(editor.getOnlySelectedShape()?.parentId).toEqual(frameAId)
 
@@ -146,7 +146,7 @@ describe('creating frames', () => {
 describe('frame shapes', () => {
 	it('can receive new children when shapes are drawn on top and the frame is rotated', () => {
 		// We should be starting from an empty canvas
-		expect(editor.currentPageShapes).toHaveLength(0)
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 
 		const frameId = createShapeId('frame')
 
@@ -167,7 +167,7 @@ describe('frame shapes', () => {
 			.pointerUp()
 
 		// The two shapes should have been created
-		expect(editor.currentPageShapes).toHaveLength(3)
+		expect(editor.getCurrentPageShapes()).toHaveLength(3)
 
 		// The shapes should be the child of the frame
 		const childIds = editor.getSortedChildIdsForParent(frameId)
@@ -327,7 +327,7 @@ describe('frame shapes', () => {
 
 		expect(editor.getOnlySelectedShape()!.id).toBe(boxAid)
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
-		expect(editor.hintingShapeIds).toHaveLength(0)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
 		// box A should still be beneath box B
 		expect(editor.getShape(boxAid)!.index.localeCompare(editor.getShape(boxBid)!.index)).toBe(-1)
 	})

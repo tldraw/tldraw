@@ -412,8 +412,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								y: 0,
 						  }
 						: {
-								x: 16 / editor.zoomLevel,
-								y: 16 / editor.zoomLevel,
+								x: 16 / editor.getZoomLevel(),
+								y: 16 / editor.getZoomLevel(),
 						  }
 					editor.mark('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
@@ -872,7 +872,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
-					editor.zoomIn(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomIn(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -882,7 +882,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
-					editor.zoomOut(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomOut(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -893,7 +893,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
-					editor.resetZoom(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.resetZoom(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -926,7 +926,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
-					editor.user.updateUserPreferences({ isSnapMode: !editor.user.isSnapMode })
+					editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
 				},
 				checkbox: true,
 			},
@@ -938,7 +938,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
-					editor.user.updateUserPreferences({ isDarkMode: !editor.user.isDarkMode })
+					editor.user.updateUserPreferences({ isDarkMode: !editor.user.getIsDarkMode() })
 				},
 				checkbox: true,
 			},
@@ -950,7 +950,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
 					editor.user.updateUserPreferences({
-						animationSpeed: editor.user.animationSpeed === 0 ? 1 : 0,
+						animationSpeed: editor.user.getAnimationSpeed() === 0 ? 1 : 0,
 					})
 				},
 				checkbox: true,
@@ -991,7 +991,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
 					const updates = [] as TLShapePartial[]
-					for (const shape of editor.currentPageShapes) {
+					for (const shape of editor.getCurrentPageShapes()) {
 						if (shape.isLocked) {
 							updates.push({ id: shape.id, type: shape.type, isLocked: false })
 						}

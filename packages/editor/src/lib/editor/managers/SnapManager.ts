@@ -228,7 +228,7 @@ export class SnapManager {
 
 	constructor(public readonly editor: Editor) {}
 
-	@computed get snapPointsCache() {
+	@computed getSnapPointsCache() {
 		const { editor } = this
 		return editor.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
 			const pageTransfrorm = editor.getShapePageTransform(shape.id)
@@ -241,14 +241,28 @@ export class SnapManager {
 		})
 	}
 
-	@computed get snapThreshold() {
-		return 8 / this.editor.zoomLevel
+	/**
+	 * @deprecated use `getSnapPointsCache` instead
+	 */
+	get snapPointsCache() {
+		return this.getSnapPointsCache()
+	}
+
+	@computed getSnapThreshold() {
+		return 8 / this.editor.getZoomLevel()
+	}
+
+	/**
+	 * @deprecated use `getSnapThreshold` instead
+	 */
+	get snapThreshold() {
+		return this.getSnapThreshold()
 	}
 
 	// TODO: make this an incremental derivation
-	@computed get snappableShapes(): GapNode[] {
+	@computed getSnappableShapes(): GapNode[] {
 		const { editor } = this
-		const { renderingBounds: renderingBounds } = editor
+		const renderingBounds = editor.getRenderingBounds()
 		const selectedShapeIds = editor.getSelectedShapeIds()
 
 		const snappableShapes: GapNode[] = []
@@ -279,19 +293,35 @@ export class SnapManager {
 			}
 		}
 
-		collectSnappableShapesFromParent(this.currentCommonAncestor ?? editor.currentPageId)
+		collectSnappableShapesFromParent(this.getCurrentCommonAncestor() ?? editor.currentPageId)
 
 		return snappableShapes
 	}
 
+	/**
+	 * @deprecated use `getSnappableShapes` instead
+	 */
+
+	get snappableShapes() {
+		return this.getSnappableShapes()
+	}
+
 	// This needs to be external from any expensive work
-	@computed get currentCommonAncestor() {
+	@computed getCurrentCommonAncestor() {
 		return this.editor.findCommonAncestor(this.editor.getSelectedShapes())
 	}
 
+	/**
+	 * @deprecated use `getCurrentCommonAncestor` instead
+	 */
+	get currentCommonAncestor() {
+		return this.getCurrentCommonAncestor()
+	}
+
 	// Points which belong to snappable shapes
-	@computed get snappablePoints() {
-		const { snappableShapes, snapPointsCache } = this
+	@computed getSnappablePoints() {
+		const snapPointsCache = this.getSnapPointsCache()
+		const snappableShapes = this.getSnappableShapes()
 		const result: SnapPoint[] = []
 
 		snappableShapes.forEach((shape) => {
@@ -304,13 +334,20 @@ export class SnapManager {
 		return result
 	}
 
-	@computed get visibleGaps(): { horizontal: Gap[]; vertical: Gap[] } {
+	/**
+	 * @deprecated use `getSnappablePoints` instead
+	 */
+	get snappablePoints() {
+		return this.getSnappablePoints()
+	}
+
+	@computed getVisibleGaps(): { horizontal: Gap[]; vertical: Gap[] } {
 		const horizontal: Gap[] = []
 		const vertical: Gap[] = []
 
 		let startNode: GapNode, endNode: GapNode
 
-		const sortedShapesOnCurrentPageHorizontal = this.snappableShapes.sort((a, b) => {
+		const sortedShapesOnCurrentPageHorizontal = this.getSnappableShapes().sort((a, b) => {
 			return a.pageBounds.minX - b.pageBounds.minX
 		})
 
@@ -401,6 +438,13 @@ export class SnapManager {
 		return { horizontal, vertical }
 	}
 
+	/**
+	 * @deprecated use `getVisibleGaps` instead
+	 */
+	get visibleGaps() {
+		return this.getVisibleGaps()
+	}
+
 	snapTranslate({
 		lockedAxis,
 		initialSelectionPageBounds,
@@ -412,7 +456,8 @@ export class SnapManager {
 		initialSelectionPageBounds: Box2d
 		dragDelta: Vec2d
 	}): SnapData {
-		const { snappablePoints: visibleSnapPointsNotInSelection, snapThreshold } = this
+		const snapThreshold = this.getSnapThreshold()
+		const visibleSnapPointsNotInSelection = this.getSnappablePoints()
 
 		const selectionPageBounds = initialSelectionPageBounds.clone().translate(dragDelta)
 
@@ -493,14 +538,21 @@ export class SnapManager {
 		return { nudge }
 	}
 
-	@computed get outlinesInPageSpace() {
-		return this.snappableShapes.map(({ id, isClosed }) => {
+	@computed getOutlinesInPageSpace() {
+		return this.getSnappableShapes().map(({ id, isClosed }) => {
 			const outline = deepCopy(this.editor.getShapeGeometry(id).vertices)
 			if (isClosed) outline.push(outline[0])
 			const pageTransform = this.editor.getShapePageTransform(id)
 			if (!pageTransform) throw Error('No page transform')
 			return Matrix2d.applyToPoints(pageTransform, outline)
 		})
+	}
+
+	/**
+	 * @deprecated use `getOutlinesInPageSpace` instead
+	 */
+	get outlinesInPageSpace() {
+		return this.getOutlinesInPageSpace()
 	}
 
 	getSnappingHandleDelta({
@@ -510,7 +562,8 @@ export class SnapManager {
 		handlePoint: Vec2d
 		additionalSegments: Vec2d[][]
 	}): Vec2d | null {
-		const { outlinesInPageSpace, snapThreshold } = this
+		const snapThreshold = this.getSnapThreshold()
+		const outlinesInPageSpace = this.getOutlinesInPageSpace()
 
 		// Find the nearest point that is within the snap threshold
 		let minDistance = snapThreshold
@@ -566,7 +619,7 @@ export class SnapManager {
 		isAspectRatioLocked: boolean
 		isResizingFromCenter: boolean
 	}): SnapData {
-		const { snapThreshold } = this
+		const snapThreshold = this.getSnapThreshold()
 
 		// first figure out the new bounds of the selection
 		const {
@@ -600,7 +653,7 @@ export class SnapManager {
 
 		const selectionSnapPoints = getResizeSnapPointsForHandle(handle, unsnappedResizedPageBounds)
 
-		const otherNodeSnapPoints = this.snappablePoints
+		const otherNodeSnapPoints = this.getSnappablePoints()
 
 		const nearestSnapsX: NearestPointsSnap[] = []
 		const nearestSnapsY: NearestPointsSnap[] = []
@@ -758,7 +811,7 @@ export class SnapManager {
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
 	}) {
-		const { horizontal, vertical } = this.visibleGaps
+		const { horizontal, vertical } = this.getVisibleGaps()
 
 		for (const gap of horizontal) {
 			// ignore this gap if the selection doesn't overlap with it in the y axis
@@ -1092,7 +1145,7 @@ export class SnapManager {
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
 	}): GapsSnapLine[] {
-		const { vertical, horizontal } = this.visibleGaps
+		const { vertical, horizontal } = this.getVisibleGaps()
 
 		const selectionSides: Record<SelectionEdge, [Vec2d, Vec2d]> = {
 			top: selectionPageBounds.sides[0],

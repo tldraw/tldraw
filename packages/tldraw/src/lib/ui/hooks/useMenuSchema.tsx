@@ -49,10 +49,10 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < 5
 
-	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
-	const animationSpeed = useValue('animationSpeed', () => editor.user.animationSpeed, [editor])
+	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
+	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])
 	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
-	const isSnapMode = useValue('isSnapMode', () => editor.user.isSnapMode, [editor])
+	const isSnapMode = useValue('isSnapMode', () => editor.user.getIsSnapMode(), [editor])
 	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
 	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
@@ -79,7 +79,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const allowUngroup = useAllowUngroup()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
-	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.zoomLevel === 1, [editor])
+	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.getZoomLevel() === 1, [editor])
 
 	const oneEmbedSelected = useValue(
 		'oneEmbedSelected',

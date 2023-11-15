@@ -18,7 +18,7 @@ export function BreakPointProvider({
 		'breakpoint',
 		() => {
 			// This will recompute the viewport screen bounds changes...
-			const { width } = editor.viewportScreenBounds
+			const { width } = editor.getViewportScreenBounds()
 
 			const maxBreakpoint = forceMobile ? 3 : PORTRAIT_BREAKPOINTS.length - 1
 

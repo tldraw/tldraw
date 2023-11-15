@@ -7129,7 +7129,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#assets:member",
-              "docComment": "/**\n * Get all assets in the editor.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getAssets` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7436,43 +7436,8 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#camera:member",
-              "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get camera(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/tlschema\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLCamera",
-                  "canonicalReference": "@tldraw/tlschema!TLCamera:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "camera",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#cameraState:member",
-              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCameraState` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8004,7 +7969,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#croppingShapeId:member",
-              "docComment": "/**\n * The current cropping shape's id.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCroppingShapeId` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8070,7 +8035,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentPageBounds:member",
-              "docComment": "/**\n * The bounds of the current page (the common bounds of all of the shapes on the page).\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentPageBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8136,7 +8101,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentPageRenderingShapesSorted:member",
-              "docComment": "/**\n * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting for nested shapes): e.g. A, B, BA, BB, C.\n *\n * @example\n * ```ts\n * editor.currentPageShapesSorted\n * ```\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentPageRenderingShapesSorted` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8215,7 +8180,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentPageShapes:member",
-              "docComment": "/**\n * An array containing all of the shapes in the current page.\n *\n * @example\n * ```ts\n * editor.currentPageShapes\n * ```\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentPageShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8250,7 +8215,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentPageShapesSorted:member",
-              "docComment": "/**\n * An array containing all of the shapes in the current page, sorted in z-index order (accounting for nested shapes): e.g. A, B, BA, BB, C.\n *\n * @example\n * ```ts\n * editor.currentPageShapesSorted\n * ```\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentPageShapesSorted` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9280,7 +9245,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#erasingShapeIds:member",
-              "docComment": "/**\n * The editor's current erasing ids.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getErasingShapeIds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9315,7 +9280,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#erasingShapes:member",
-              "docComment": "/**\n * The editor's current hinting shapes.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getErasingShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10001,6 +9966,131 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getAssets:member(1)",
+              "docComment": "/**\n * Get all assets in the editor.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAssets(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLBookmarkAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLBookmarkAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLImageAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLImageAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLVideoAsset",
+                  "canonicalReference": "@tldraw/tlschema!TLVideoAsset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getAssets"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCamera:member(1)",
+              "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCamera(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCamera",
+                  "canonicalReference": "@tldraw/tlschema!TLCamera:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCamera"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCameraState:member(1)",
+              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCameraState(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"idle\" | \"moving\""
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCameraState"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCanRedo:member(1)",
               "docComment": "/**\n * Whether the app can redo.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10162,6 +10252,186 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getContentFromCurrentPage"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCroppingShapeId:member(1)",
+              "docComment": "/**\n * The current cropping shape's id.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCroppingShapeId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCroppingShapeId"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentPageBounds:member(1)",
+              "docComment": "/**\n * The bounds of the current page (the common bounds of all of the shapes on the page).\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentPageBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentPageBounds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentPageRenderingShapesSorted:member(1)",
+              "docComment": "/**\n * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting for nested shapes): e.g. A, B, BA, BB, C.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentPageRenderingShapesSorted(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentPageRenderingShapesSorted"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentPageShapes:member(1)",
+              "docComment": "/**\n * An array containing all of the shapes in the current page.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentPageShapes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentPageShapes"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentPageShapesSorted:member(1)",
+              "docComment": "/**\n * An array containing all of the shapes in the current page, sorted in z-index order (accounting for nested shapes): e.g. A, B, BA, BB, C.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentPageShapesSorted(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentPageShapesSorted"
             },
             {
               "kind": "Method",
@@ -10439,6 +10709,87 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getErasingShapeIds:member(1)",
+              "docComment": "/**\n * The editor's current erasing ids.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getErasingShapeIds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getErasingShapeIds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getErasingShapes:member(1)",
+              "docComment": "/**\n * The editor's current erasing shapes.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getErasingShapes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "NonNullable",
+                  "canonicalReference": "!NonNullable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined>[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getErasingShapes"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getFocusedGroup:member(1)",
               "docComment": "/**\n * The current focused group.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10580,6 +10931,159 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getHighestIndexForParent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHintingShape:member(1)",
+              "docComment": "/**\n * The editor's current hinting shapes.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHintingShape(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "NonNullable",
+                  "canonicalReference": "!NonNullable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined>[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHintingShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHintingShapeIds:member(1)",
+              "docComment": "/**\n * The editor's current hinting shape ids.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHintingShapeIds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHintingShapeIds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHoveredShape:member(1)",
+              "docComment": "/**\n * The current hovered shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHoveredShape(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHoveredShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHoveredShapeId:member(1)",
+              "docComment": "/**\n * The current hovered shape id.\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHoveredShapeId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHoveredShapeId"
             },
             {
               "kind": "Method",
@@ -10910,6 +11414,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getPages:member(1)",
+              "docComment": "/**\n * Info about the project's current pages.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPages(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPage",
+                  "canonicalReference": "@tldraw/tlschema!TLPage:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPages"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPageShapeIds:member(1)",
               "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')\n * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -11198,6 +11738,146 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getPointInShapeSpace"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getRenderingBounds:member(1)",
+              "docComment": "/**\n * The current rendering bounds in the current page space, used for checking which shapes are \"on screen\".\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRenderingBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRenderingBounds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getRenderingBoundsExpanded:member(1)",
+              "docComment": "/**\n * The current rendering bounds in the current page space, expanded slightly. Used for determining which shapes to render and which to \"cull\".\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRenderingBoundsExpanded(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRenderingBoundsExpanded"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getRenderingShapes:member(1)",
+              "docComment": "/**\n * Get the shapes that should be displayed in the current viewport.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRenderingShapes(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        id: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        util: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ShapeUtil",
+                  "canonicalReference": "@tldraw/editor!ShapeUtil:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUnknownShape",
+                  "canonicalReference": "@tldraw/tlschema!TLUnknownShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">;\n        index: number;\n        backgroundIndex: number;\n        opacity: number;\n        isCulled: boolean;\n        maskedPageBounds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined;\n    }[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 12
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRenderingShapes"
             },
             {
               "kind": "Method",
@@ -12861,6 +13541,74 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSharedOpacity:member(1)",
+              "docComment": "/**\n * Get the currently selected shared opacity. If any shapes are selected, this returns the shared opacity of the selected shapes. Otherwise, this returns the chosen opacity for the next shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSharedOpacity(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SharedStyle",
+                  "canonicalReference": "@tldraw/editor!SharedStyle:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSharedOpacity"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSharedStyles:member(1)",
+              "docComment": "/**\n * A map of all the current styles either in the current selection, or that are relevant to the current tool.\n *\n * @example\n * ```ts\n * const color = editor.sharedStyles.get(DefaultColorStyle)\n * if (color && color.type === 'shared') {\n *   print('All selected shapes have the same color:', color.value)\n * }\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSharedStyles(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReadonlySharedStyleMap",
+                  "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSharedStyles"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSortedChildIdsForParent:member(1)",
               "docComment": "/**\n * Get an array of all the children of a shape.\n *\n * @param parentId - The id of the parent shape.\n *\n * @example\n * ```ts\n * editor.getSortedChildIdsForParent('frame1')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -13109,6 +13857,165 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getViewportPageBounds:member(1)",
+              "docComment": "/**\n * The current viewport in the current page space.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getViewportPageBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getViewportPageBounds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getViewportPageCenter:member(1)",
+              "docComment": "/**\n * The center of the viewport in the current page space.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getViewportPageCenter(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec2d",
+                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getViewportPageCenter"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getViewportScreenBounds:member(1)",
+              "docComment": "/**\n * The bounds of the editor's viewport in screen space.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getViewportScreenBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2d",
+                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getViewportScreenBounds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getViewportScreenCenter:member(1)",
+              "docComment": "/**\n * The center of the editor's viewport in screen space.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getViewportScreenCenter(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec2d",
+                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getViewportScreenCenter"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getZoomLevel:member(1)",
+              "docComment": "/**\n * The current camera zoom level.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getZoomLevel(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getZoomLevel"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#groupShapes:member(1)",
               "docComment": "/**\n * Create a group containing the provided shapes.\n *\n * @param shapes - The shapes (or shape ids) to group. Defaults to the selected shapes.\n *\n * @param groupId - The id of the group to create.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -13267,47 +14174,12 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#hintingShapeIds:member",
-              "docComment": "/**\n * The editor's current hinting shape ids.\n *\n * @public\n */\n",
+              "canonicalReference": "@tldraw/editor!Editor#hintingShape:member",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHintingShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "get hintingShapeIds(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "hintingShapeIds",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#hintingShapes:member",
-              "docComment": "/**\n * The editor's current hinting shapes.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get hintingShapes(): "
+                  "text": "get hintingShape(): "
                 },
                 {
                   "kind": "Reference",
@@ -13335,10 +14207,45 @@
               "isReadonly": true,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "hintingShapes",
+              "name": "hintingShape",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 5
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#hintingShapeIds:member",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHintingShapeIds` instead.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get hintingShapeIds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hintingShapeIds",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
               },
               "isStatic": false,
               "isProtected": false,
@@ -13382,7 +14289,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#hoveredShape:member",
-              "docComment": "/**\n * The current hovered shape.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHoveredShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13417,7 +14324,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#hoveredShapeId:member",
-              "docComment": "/**\n * The current hovered shape id.\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHoveredShapeId` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14659,7 +15566,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#pages:member",
-              "docComment": "/**\n * Info about the project's current pages.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getPages` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15429,7 +16336,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#renderingBounds:member",
-              "docComment": "/**\n * The current rendering bounds in the current page space, used for checking which shapes are \"on screen\".\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getRenderingBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15460,7 +16367,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#renderingBoundsExpanded:member",
-              "docComment": "/**\n * The current rendering bounds in the current page space, expanded slightly. Used for determining which shapes to render and which to \"cull\".\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getRenderingBoundsExpanded` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15521,7 +16428,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#renderingShapes:member",
-              "docComment": "/**\n * Get the shapes that should be displayed in the current viewport.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getRenderingShapes` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17536,7 +18443,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#sharedOpacity:member",
-              "docComment": "/**\n * Get the currently selected shared opacity. If any shapes are selected, this returns the shared opacity of the selected shapes. Otherwise, this returns the chosen opacity for the next shape.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `editor.sharedOpacity` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17571,7 +18478,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#sharedStyles:member",
-              "docComment": "/**\n * A map of all the current styles either in the current selection, or that are relevant to the current tool.\n *\n * @example\n * ```ts\n * const color = editor.sharedStyles.get(DefaultColorStyle)\n * if (color && color.type === 'shared') {\n *   print('All selected shapes have the same color:', color.value)\n * }\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `editor.sharedStyles` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18957,7 +19864,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#viewportPageBounds:member",
-              "docComment": "/**\n * The current viewport in the current page space.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getViewportPageBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18988,7 +19895,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#viewportPageCenter:member",
-              "docComment": "/**\n * The center of the viewport in the current page space.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getViewportPageCenter` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19019,7 +19926,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#viewportScreenBounds:member",
-              "docComment": "/**\n * The bounds of the editor's viewport in screen space.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getViewportScreenBounds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19050,7 +19957,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#viewportScreenCenter:member",
-              "docComment": "/**\n * The center of the editor's viewport in screen space.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getViewportScreenCenter` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19239,7 +20146,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#zoomLevel:member",
-              "docComment": "/**\n * The current camera zoom level.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getZoomLevel` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -32883,7 +33790,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#currentCommonAncestor:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getCurrentCommonAncestor` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -32945,6 +33852,150 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getCurrentCommonAncestor:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentCommonAncestor(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentCommonAncestor"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getOutlinesInPageSpace:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getOutlinesInPageSpace(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec2d",
+                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[][]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getOutlinesInPageSpace"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnappablePoints:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnappablePoints(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SnapPoint",
+                  "canonicalReference": "@tldraw/editor!SnapPoint:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSnappablePoints"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnappableShapes:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnappableShapes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "GapNode",
+                  "canonicalReference": "@tldraw/editor!~GapNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSnappableShapes"
             },
             {
               "kind": "Method",
@@ -33018,6 +34069,144 @@
               "name": "getSnappingHandleDelta"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnapPointsCache:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnapPointsCache(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/store\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ComputedCache",
+                  "canonicalReference": "@tldraw/store!ComputedCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SnapPoint",
+                  "canonicalReference": "@tldraw/editor!SnapPoint:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[], "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSnapPointsCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnapThreshold:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnapThreshold(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSnapThreshold"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getVisibleGaps:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getVisibleGaps(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        horizontal: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Gap",
+                  "canonicalReference": "@tldraw/editor!~Gap:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        vertical: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Gap",
+                  "canonicalReference": "@tldraw/editor!~Gap:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getVisibleGaps"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#lines:member",
               "docComment": "",
@@ -33055,7 +34244,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#outlinesInPageSpace:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getOutlinesInPageSpace` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33143,7 +34332,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#snappablePoints:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getSnappablePoints` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33178,7 +34367,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#snappableShapes:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getSnappableShapes` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33213,7 +34402,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#snapPointsCache:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getSnapPointsCache` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33364,7 +34553,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#snapThreshold:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getSnapThreshold` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33470,7 +34659,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#visibleGaps:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getVisibleGaps` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

@@ -49,7 +49,7 @@ const CollaboratorGuard = track(function CollaboratorGuard({
 			const { highlightedUserIds } = editor.getInstanceState()
 			// If they're idle and following us and unless they have a chat message or are highlighted, hide them
 			if (
-				presence.followingUserId === editor.user.id &&
+				presence.followingUserId === editor.user.getId() &&
 				!(presence.chatMessage || highlightedUserIds.includes(presence.userId))
 			) {
 				return null
@@ -80,7 +80,8 @@ const Collaborator = track(function Collaborator({
 		CollaboratorShapeIndicator,
 	} = useEditorComponents()
 
-	const { viewportPageBounds, zoomLevel } = editor
+	const zoomLevel = editor.getZoomLevel()
+	const viewportPageBounds = editor.getViewportPageBounds()
 	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
 		latestPresence
 

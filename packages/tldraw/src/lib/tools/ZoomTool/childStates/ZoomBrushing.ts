@@ -43,7 +43,7 @@ export class ZoomBrushing extends StateNode {
 
 	private complete() {
 		const { zoomBrush } = this
-		const threshold = 8 / this.editor.zoomLevel
+		const threshold = 8 / this.editor.getZoomLevel()
 		// If the selected area is small then treat it as a click
 		if (zoomBrush.width < threshold && zoomBrush.height < threshold) {
 			const point = this.editor.inputs.currentScreenPoint
@@ -53,7 +53,7 @@ export class ZoomBrushing extends StateNode {
 				this.editor.zoomIn(point, { duration: 220 })
 			}
 		} else {
-			const zoomLevel = this.editor.inputs.altKey ? this.editor.zoomLevel / 2 : undefined
+			const zoomLevel = this.editor.inputs.altKey ? this.editor.getZoomLevel() / 2 : undefined
 			this.editor.zoomToBounds(zoomBrush, zoomLevel, { duration: 220 })
 		}
 

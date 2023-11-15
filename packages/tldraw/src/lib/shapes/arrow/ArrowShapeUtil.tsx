@@ -288,7 +288,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			precise =
 				Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
 				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.zoomLevel
+					this.editor.getZoomLevel()
 		}
 
 		if (!isPrecise) {
@@ -803,7 +803,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const color = theme[shape.props.color].solid

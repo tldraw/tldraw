@@ -56,14 +56,14 @@ it('updates the rendering viewport when the camera stops moving', () => {
 	jest.advanceTimersByTime(500)
 
 	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
-	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
+	expect(editor.getRenderingBounds()).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
 	expect(editor.getShapePageBounds(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
 it('lists shapes in viewport', () => {
 	const ids = createShapes()
 	editor.selectNone()
-	expect(editor.renderingShapes.map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
+	expect(editor.getRenderingShapes().map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
 		[ids.A, false], // A is within the expanded rendering bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
 		[ids.B, false],
 		[ids.C, false],
@@ -74,7 +74,7 @@ it('lists shapes in viewport', () => {
 	editor.pan({ x: -201, y: -201 })
 	jest.advanceTimersByTime(500)
 
-	expect(editor.renderingShapes.map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
+	expect(editor.getRenderingShapes().map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
 		[ids.A, false], // A should not be culled, even though it's no longer in the viewport (because it's still in the EXPANDED viewport)
 		[ids.B, false],
 		[ids.C, false],
@@ -84,7 +84,7 @@ it('lists shapes in viewport', () => {
 	editor.pan({ x: -100, y: -100 })
 	jest.advanceTimersByTime(500)
 
-	expect(editor.renderingShapes.map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
+	expect(editor.getRenderingShapes().map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
 		[ids.A, true], // A should be culled now that it's outside of the expanded viewport too
 		[ids.B, false],
 		[ids.C, false],
@@ -93,7 +93,7 @@ it('lists shapes in viewport', () => {
 
 	editor.pan({ x: -900, y: -900 })
 	jest.advanceTimersByTime(500)
-	expect(editor.renderingShapes.map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
+	expect(editor.getRenderingShapes().map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
 		[ids.A, true],
 		[ids.B, true],
 		[ids.C, true],
@@ -104,7 +104,7 @@ it('lists shapes in viewport', () => {
 it('lists shapes in viewport sorted by id with correct indexes & background indexes', () => {
 	const ids = createShapes()
 	// Expect the results to be sorted correctly by id
-	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
 		[ids.A, 2, 0],
 		[ids.B, 3, 1],
 		[ids.C, 6, 4], // the background of C is above B
@@ -116,7 +116,7 @@ it('lists shapes in viewport sorted by id with correct indexes & background inde
 	editor.sendToBack([ids.B])
 
 	// The items should still be sorted by id
-	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
 		[ids.A, 7, 1],
 		[ids.B, 2, 0],
 		[ids.C, 5, 3],
@@ -138,7 +138,7 @@ it('handles frames in frames', () => {
 		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
 	])
 
-	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
 		[ids.A, 3, 0],
 		[ids.B, 4, 1],
 		[ids.C, 8, 5], // frame B creates a background, so C's background layer is above B's foreground
@@ -162,7 +162,7 @@ it('handles groups in frames', () => {
 		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
 	])
 
-	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
 		[ids.A, 3, 0],
 		[ids.B, 4, 1],
 		[ids.C, 9, 5], // frame B creates a background, so C's background layer is above B's foreground
@@ -186,7 +186,7 @@ it('handles frames in groups', () => {
 		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
 	])
 
-	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
 		[ids.A, 6, 0],
 		[ids.B, 7, 1],
 		[ids.C, 8, 2], // groups don't create backgrounds, so things within the group stay in order
@@ -210,7 +210,7 @@ it('handles groups in groups', () => {
 		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
 	])
 
-	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
 		// as groups don't create backgrounds, everything is consecutive
 		[ids.A, 7, 0],
 		[ids.B, 8, 1],

@@ -11,18 +11,18 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onEnter = () => {
+		const zoomLevel = this.editor.getZoomLevel()
+		const currentPageShapesSorted = this.editor.getCurrentPageShapesSorted()
 		const {
 			inputs: { currentPagePoint },
-			currentPageShapesSorted: sortedShapesOnCurrentPage,
-			zoomLevel,
 		} = this.editor
 
 		const erasing = new Set<TLShapeId>()
 
 		const initialSize = erasing.size
 
-		for (let n = sortedShapesOnCurrentPage.length, i = n - 1; i >= 0; i--) {
-			const shape = sortedShapesOnCurrentPage[i]
+		for (let n = currentPageShapesSorted.length, i = n - 1; i >= 0; i--) {
+			const shape = currentPageShapesSorted[i]
 			if (
 				this.editor.isShapeOrAncestorLocked(shape) ||
 				this.editor.isShapeOfType<TLGroupShape>(shape, 'group')
@@ -75,7 +75,7 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		const { erasingShapeIds } = this.editor
+		const erasingShapeIds = this.editor.getErasingShapeIds()
 
 		if (erasingShapeIds.length) {
 			this.editor.mark('erase end')

@@ -31,7 +31,7 @@ export class PointingSelection extends StateNode {
 	}
 
 	override onDoubleClick?: TLClickEvent | undefined = (info) => {
-		const { hoveredShape } = this.editor
+		const hoveredShape = this.editor.getHoveredShape()
 		const hitShape =
 			hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 				? hoveredShape
