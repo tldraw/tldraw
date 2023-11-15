@@ -218,6 +218,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		const shapesToAddToFrame: TLShapeId[] = []
 		const shapesToRemoveFromFrame: TLShapeId[] = []
+		const ancestors = this.editor.getShapeAncestors(shape)
 		this.editor.currentPageShapes.map((pageShape) => {
 			// We don't want to frame the frame itself
 			if (pageShape.id === shape.id) return
@@ -228,6 +229,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 			// Frame shape encloses page shape
 			if (bounds?.includes(pageShapeBounds)) {
+				// We don't want to pull in shapes that are ancestors of the frame
+				if (ancestors.includes(pageShape)) {
+					return
+				}
 				// We only want to pull in shapes that are direct children of the page
 				// Otherwise we would also reparent shapes within groups and other shapes
 				if (pageShape.parentId === this.editor.currentPageId) {
