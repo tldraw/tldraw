@@ -489,7 +489,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    canEnclose(shape: TLShape, ancestorIds: TLShapeId[]): boolean;
+    canEnclose(shape: TLShape, ancestorIds: TLShapeId[], frame: TLShape): boolean;
     // (undocumented)
     canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
     // (undocumented)

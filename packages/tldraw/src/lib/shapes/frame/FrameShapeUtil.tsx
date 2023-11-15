@@ -214,7 +214,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 	}
 
-	canEnclose(shape: TLShape, ancestorIds: TLShapeId[]): boolean {
+	canEnclose(shape: TLShape, ancestorIds: TLShapeId[], frame: TLShape): boolean {
 		// We don't want to pull in shapes that are ancestors of the frame (can create a cycle)
 		if (ancestorIds.includes(shape.id)) {
 			return false
@@ -224,8 +224,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		if (shape.parentId === this.editor.currentPageId) {
 			return true
 		}
-		// We can also pull in shape that are direct children of the frame
-		if (isShapeId(shape.parentId) && ancestorIds.includes(shape.parentId)) {
+		// We can also pull in shapes that are siblings of the frame
+		if (isShapeId(shape.parentId) && shape.parentId === frame.parentId) {
 			return true
 		}
 		return false
@@ -247,7 +247,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 			// Frame shape encloses page shape
 			if (bounds.includes(pageShapeBounds)) {
-				if (this.canEnclose(pageShape, ancestorIds)) {
+				if (this.canEnclose(pageShape, ancestorIds, shape)) {
 					shapesToAddToFrame.push(pageShape.id)
 				}
 			} else {

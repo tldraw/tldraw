@@ -5537,6 +5537,15 @@
                 },
                 {
                   "kind": "Content",
+                  "text": ", frame: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
                   "text": "): "
                 },
                 {
@@ -5550,8 +5559,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 6,
-                "endIndex": 7
+                "startIndex": 8,
+                "endIndex": 9
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -5570,6 +5579,14 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 3,
                     "endIndex": 5
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "frame",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 7
                   },
                   "isOptional": false
                 }
