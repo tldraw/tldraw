@@ -7101,7 +7101,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Remove a frame.
 	 *
-	 * @param id - Id of the frame you wish to remove.
+	 * @param ids - Ids of the frames you wish to remove.
 	 *
 	 * @public
 	 */
