@@ -13,6 +13,7 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
+	isShapeId,
 	last,
 	toDomPrecision,
 } from '@tldraw/editor'
@@ -213,11 +214,28 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 	}
 
+	canEnclose(shape: TLShape, ancestorIds: TLShapeId[]): boolean {
+		// We don't want to pull in shapes that are ancestors of the frame (can create a cycle)
+		if (ancestorIds.includes(shape.id)) {
+			return false
+		}
+		// We want to pull in shapes that are direct children of the page
+		// This prevents us from pulling in shapes that are part of a group or another frame
+		if (shape.parentId === this.editor.currentPageId) {
+			return true
+		}
+		// We can also pull in shape that are direct children of the frame
+		if (isShapeId(shape.parentId) && ancestorIds.includes(shape.parentId)) {
+			return true
+		}
+		return false
+	}
+
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
 		const bounds = this.editor.getShapePageBounds(shape)!
 		const shapesToAddToFrame: TLShapeId[] = []
 		const shapesToRemoveFromFrame: TLShapeId[] = []
-		const ancestors = this.editor.getShapeAncestors(shape)
+		const ancestorIds = this.editor.getShapeAncestors(shape).map((shape) => shape.id)
 
 		this.editor.currentPageShapes.map((pageShape) => {
 			// We don't want to frame the frame itself
@@ -229,13 +247,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 			// Frame shape encloses page shape
 			if (bounds.includes(pageShapeBounds)) {
-				// We don't want to pull in shapes that are ancestors of the frame
-				if (ancestors.includes(pageShape)) {
-					return
-				}
-				// We only want to pull in shapes that are direct children of the page
-				// Otherwise we would also reparent shapes within groups and other shapes
-				if (pageShape.parentId === this.editor.currentPageId) {
+				if (this.canEnclose(pageShape, ancestorIds)) {
 					shapesToAddToFrame.push(pageShape.id)
 				}
 			} else {
