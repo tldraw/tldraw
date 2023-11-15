@@ -215,10 +215,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
 		const bounds = this.editor.getShapePageBounds(shape)!
-
 		const shapesToAddToFrame: TLShapeId[] = []
 		const shapesToRemoveFromFrame: TLShapeId[] = []
 		const ancestors = this.editor.getShapeAncestors(shape)
+
 		this.editor.currentPageShapes.map((pageShape) => {
 			// We don't want to frame the frame itself
 			if (pageShape.id === shape.id) return
@@ -245,6 +245,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				}
 			}
 		})
+
 		this.editor.batch(() => {
 			this.editor.reparentShapes(shapesToAddToFrame, shape.id)
 			this.editor.reparentShapes(shapesToRemoveFromFrame, this.editor.currentPageId)
