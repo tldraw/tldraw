@@ -686,6 +686,13 @@ export function getResizedImageDataUrl(dataURLForImage: string, width: number, h
 }): Promise<string>;
 
 // @public (undocumented)
+export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
+    type: 'jpeg' | 'png' | 'svg' | 'webp';
+    quality: number;
+    scale: number;
+}): Promise<Blob | null>;
+
+// @public (undocumented)
 function Group({ children, size, }: {
     children: any;
     size?: 'medium' | 'small' | 'tiny' | 'wide';
