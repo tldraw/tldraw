@@ -184,7 +184,7 @@ function ZoomBrushWrapper() {
 
 	if (!(ZoomBrush && zoomBrush)) return null
 
-	return <ZoomBrush className="tl-user-brush" brush={zoomBrush} />
+	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
 }
 
 function SnapLinesWrapper() {

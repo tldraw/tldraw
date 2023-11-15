@@ -275,6 +275,9 @@ export class Box2d {
     zeroFix(): this;
 }
 
+// @public (undocumented)
+export type BoxLike = Box2d | Box2dModel;
+
 // @internal (undocumented)
 export const CAMERA_SLIDE_FRICTION = 0.09;
 
@@ -625,7 +628,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated (undocumented)
     get currentPageState(): TLInstancePageState;
     // @deprecated (undocumented)
-    get currentTool(): StateNode | undefined;
+    get currentTool(): StateNode;
     // @deprecated (undocumented)
     get currentToolId(): string;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
@@ -701,7 +704,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapes(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
-    getCurrentTool(): StateNode | undefined;
+    getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
@@ -783,16 +786,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSharedOpacity(): SharedStyle<number>;
     getSharedStyles(): ReadonlySharedStyleMap;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
-    getStateDescendant(path: string): StateNode | undefined;
+    getStateDescendant<T extends StateNode>(path: string): T | undefined;
     // @internal (undocumented)
     getStyleForNextShape<T>(style: StyleProp<T>): T;
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<{
-        scale: number;
-        background: boolean;
-        padding: number;
-        darkMode?: boolean | undefined;
-        preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
-    }>): Promise<SVGSVGElement | undefined>;
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
     getViewportPageBounds(): Box2d;
     getViewportPageCenter(): Vec2d;
     getViewportScreenBounds(): Box2d;
@@ -2128,7 +2125,7 @@ export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
     children?: any;
     className?: string;
-    components?: Partial<TLEditorComponents>;
+    components?: TLEditorComponents;
     inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;
@@ -2150,13 +2147,9 @@ export type TldrawEditorProps = TldrawEditorBaseProps & ({
 });
 
 // @public (undocumented)
-export type TLEditorComponents = {
+export type TLEditorComponents = Partial<{
     [K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null;
-} & {
-    ErrorFallback: TLErrorFallbackComponent;
-    ShapeErrorFallback: TLShapeErrorFallbackComponent;
-    ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent;
-};
+} & ErrorComponents>;
 
 // @public (undocumented)
 export interface TLEditorOptions {
@@ -2681,6 +2674,16 @@ export type TLStoreWithStatus = {
 
 // @public (undocumented)
 export type TLSvgDefsComponent = React.ComponentType;
+
+// @public (undocumented)
+export type TLSvgOptions = {
+    bounds: Box2d;
+    scale: number;
+    background: boolean;
+    padding: number;
+    darkMode?: boolean;
+    preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+};
 
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;

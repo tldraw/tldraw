@@ -17,9 +17,9 @@ import {
 	getHashForString,
 } from '@tldraw/editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
-import { containBoxSize, getResizedImageDataUrl, isGifAnimated } from './utils/assets'
-import { getEmbedInfo } from './utils/embeds'
-import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text'
+import { containBoxSize, getResizedImageDataUrl, isGifAnimated } from './utils/assets/assets'
+import { getEmbedInfo } from './utils/embeds/embeds'
+import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
 
 /** @public */
 export type TLExternalContentProps = {

@@ -11,10 +11,10 @@ import { Kbd } from './Kbd'
 export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 	loading?: boolean // TODO: loading spinner
 	disabled?: boolean
-	label?: TLUiTranslationKey
-	icon?: TLUiIconType
+	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
+	icon?: TLUiIconType | Exclude<string, TLUiIconType>
 	spinner?: boolean
-	iconLeft?: TLUiIconType
+	iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>
 	smallIcon?: boolean
 	kbd?: string
 	isChecked?: boolean

@@ -13,7 +13,12 @@ import { TLUiToolItem } from './useTools'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export type TLUiMenuChild = TLUiMenuItem | TLUiSubMenu | TLUiMenuGroup | TLUiCustomMenuItem
+export type TLUiMenuChild<TranslationKey extends string = string> =
+	| TLUiMenuItem
+	| TLUiSubMenu<TranslationKey>
+	| TLUiMenuGroup
+	| TLUiCustomMenuItem
+	| null
 
 /** @public */
 export type TLUiCustomMenuItem = {
@@ -44,10 +49,10 @@ export type TLUiMenuGroup = {
 }
 
 /** @public */
-export type TLUiSubMenu = {
+export type TLUiSubMenu<TranslationKey extends string = string> = {
 	id: string
 	type: 'submenu'
-	label: TLUiTranslationKey
+	label: TranslationKey
 	disabled: boolean
 	readonlyOk: boolean
 	children: TLUiMenuChild[]
@@ -64,7 +69,7 @@ export function compactMenuItems<T>(arr: T[]): Exclude<T, null | false | undefin
 /** @public */
 export function menuGroup(
 	id: string,
-	...children: (TLUiMenuChild | null | false)[]
+	...children: (TLUiMenuChild | false)[]
 ): TLUiMenuGroup | null {
 	const childItems = compactMenuItems(children)
 
@@ -83,8 +88,8 @@ export function menuGroup(
 /** @public */
 export function menuSubmenu(
 	id: string,
-	label: TLUiTranslationKey,
-	...children: (TLUiMenuChild | null | false)[]
+	label: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>,
+	...children: (TLUiMenuChild | false)[]
 ): TLUiSubMenu | null {
 	const childItems = compactMenuItems(children)
 	if (childItems.length === 0) return null
@@ -216,14 +221,11 @@ export function findMenuItem(menu: TLUiMenuSchema, path: string[]) {
 	return item
 }
 
-function _findMenuItem(
-	menu: TLUiMenuSchema | TLUiMenuChild[],
-	path: string[]
-): TLUiMenuChild | null {
+function _findMenuItem(menu: TLUiMenuSchema | TLUiMenuChild[], path: string[]): TLUiMenuChild {
 	const [next, ...rest] = path
 	if (!next) return null
 
-	const item = menu.find((item) => item.id === next)
+	const item = menu.find((item) => item?.id === next)
 	if (!item) return null
 
 	switch (item.type) {

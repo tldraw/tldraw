@@ -16,6 +16,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	const isReadonly = useReadonly()
 
 	function getActionMenuItem(item: TLUiMenuChild) {
+		if (!item) return null
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {

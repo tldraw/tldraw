@@ -2191,7 +2191,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 6
@@ -2247,6 +2247,125 @@
           }
         },
         {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!copyAs:function(1)",
+          "docComment": "/**\n * Copy the given shapes to the clipboard.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to copy.\n *\n * @param format - The format to copy as.\n *\n * @param opts - Options for the copy.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function copyAs(editor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": ", ids: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", format?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCopyType",
+              "canonicalReference": "@tldraw/tldraw!~TLCopyType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", opts?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSvgOptions",
+              "canonicalReference": "@tldraw/editor!TLSvgOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<void>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/utils/export/copyAs.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 13,
+            "endIndex": 15
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "editor",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "ids",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "format",
+              "parameterTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 12
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "copyAs"
+        },
+        {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!DEFAULT_ACCEPTED_IMG_TYPE:var",
           "docComment": "/**\n * @public\n */\n",
@@ -2260,7 +2379,7 @@
               "text": "string[]"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DEFAULT_ACCEPTED_IMG_TYPE",
@@ -2283,7 +2402,7 @@
               "text": "string[]"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DEFAULT_ACCEPTED_VID_TYPE",
@@ -4283,6 +4402,24 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiTranslationKey",
+                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> | "
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLUiTranslationKey",
                   "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
                 },
@@ -4306,8 +4443,8 @@
               ],
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 9,
+                "endIndex": 10
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4316,7 +4453,7 @@
                   "parameterName": "{ label, 'data-testid': testId, 'data-direction': dataDirection, }",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
-                    "endIndex": 4
+                    "endIndex": 8
                   },
                   "isOptional": false
                 }
@@ -5179,6 +5316,125 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!exportAs:function(1)",
+          "docComment": "/**\n * Export the given shapes as files.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to export.\n *\n * @param format - The format to export as.\n *\n * @param opts - Options for the export.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function exportAs(editor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": ", ids: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", format?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLExportType",
+              "canonicalReference": "@tldraw/tldraw!~TLExportType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", opts?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSvgOptions",
+              "canonicalReference": "@tldraw/editor!TLSvgOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<void>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/utils/export/exportAs.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 13,
+            "endIndex": 15
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "editor",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "ids",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "format",
+              "parameterTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 12
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "exportAs"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!findMenuItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -5205,8 +5461,39 @@
             },
             {
               "kind": "Reference",
-              "text": "TLUiMenuChild",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuChild:type"
+              "text": "TLUiCustomMenuItem",
+              "canonicalReference": "@tldraw/tldraw!TLUiCustomMenuItem:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiMenuGroup",
+              "canonicalReference": "@tldraw/tldraw!TLUiMenuGroup:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiMenuItem",
+              "canonicalReference": "@tldraw/tldraw!TLUiMenuItem:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiSubMenu",
+              "canonicalReference": "@tldraw/tldraw!TLUiSubMenu:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>"
             },
             {
               "kind": "Content",
@@ -5216,7 +5503,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/menuHelpers.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
-            "endIndex": 6
+            "endIndex": 13
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -7214,7 +7501,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/embeds.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/embeds/embeds.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 4
@@ -7288,7 +7575,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "returnTypeTokenRange": {
             "startIndex": 9,
             "endIndex": 11
@@ -9168,7 +9455,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -10371,7 +10658,7 @@
             },
             {
               "kind": "Content",
-              "text": "(false | null | "
+              "text": "(false | "
             },
             {
               "kind": "Reference",
@@ -10523,6 +10810,24 @@
             },
             {
               "kind": "Reference",
+              "text": "Exclude",
+              "canonicalReference": "!Exclude:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiTranslationKey",
+              "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | "
+            },
+            {
+              "kind": "Reference",
               "text": "TLUiTranslationKey",
               "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
             },
@@ -10532,7 +10837,7 @@
             },
             {
               "kind": "Content",
-              "text": "(false | null | "
+              "text": "(false | "
             },
             {
               "kind": "Reference",
@@ -10563,8 +10868,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/menuHelpers.ts",
           "returnTypeTokenRange": {
-            "startIndex": 9,
-            "endIndex": 11
+            "startIndex": 13,
+            "endIndex": 15
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -10581,15 +10886,15 @@
               "parameterName": "label",
               "parameterTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 8
               },
               "isOptional": false
             },
             {
               "parameterName": "children",
               "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 8
+                "startIndex": 9,
+                "endIndex": 12
               },
               "isOptional": false
             }
@@ -11642,7 +11947,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 11
@@ -11998,7 +12303,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -12058,7 +12363,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 7
@@ -12104,7 +12409,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assetUrls.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/static-assets/assetUrls.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 4
@@ -13185,7 +13490,7 @@
               "text": "\".tldr\""
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "TLDRAW_FILE_EXTENSION",
@@ -13205,93 +13510,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TldrawEditorBaseProps",
-              "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps:interface"
-            },
-            {
-              "kind": "Content",
-              "text": " & ({\n    store: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLStore",
-              "canonicalReference": "@tldraw/tlschema!TLStore:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLStoreWithStatus",
-              "canonicalReference": "@tldraw/editor!TLStoreWithStatus:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n} | {\n    store?: undefined;\n    persistenceKey?: string;\n    sessionId?: string;\n    defaultName?: string;\n    snapshot?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "StoreSnapshot",
-              "canonicalReference": "@tldraw/store!StoreSnapshot:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLRecord",
-              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n}) & "
-            },
-            {
-              "kind": "Reference",
-              "text": "TldrawUiProps",
-              "canonicalReference": "@tldraw/tldraw!TldrawUiProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": " & "
-            },
-            {
-              "kind": "Reference",
-              "text": "Partial",
-              "canonicalReference": "!Partial:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLExternalContentProps",
-              "canonicalReference": "@tldraw/tldraw!~TLExternalContentProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> & {\n    assetUrls?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "RecursivePartial",
-              "canonicalReference": "@tldraw/utils!RecursivePartial:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLEditorAssetUrls",
-              "canonicalReference": "@tldraw/tldraw!~TLEditorAssetUrls:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n}"
+              "text": "TldrawProps",
+              "canonicalReference": "@tldraw/tldraw!TldrawProps:type"
             },
             {
               "kind": "Content",
@@ -13309,8 +13529,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/Tldraw.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 22,
-            "endIndex": 23
+            "startIndex": 3,
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -13319,7 +13539,7 @@
               "parameterName": "props",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 21
+                "endIndex": 2
               },
               "isOptional": false
             }
@@ -13513,7 +13733,7 @@
               "text": "export interface TldrawFile "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "releaseTag": "Public",
           "name": "TldrawFile",
           "preserveMemberOrder": false,
@@ -13657,6 +13877,100 @@
           }
         },
         {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TldrawProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TldrawProps = "
+            },
+            {
+              "kind": "Reference",
+              "text": "TldrawEditorBaseProps",
+              "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " & ({\n    store: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLStore",
+              "canonicalReference": "@tldraw/tlschema!TLStore:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLStoreWithStatus",
+              "canonicalReference": "@tldraw/editor!TLStoreWithStatus:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} | {\n    store?: undefined;\n    persistenceKey?: string;\n    sessionId?: string;\n    defaultName?: string;\n    snapshot?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "StoreSnapshot",
+              "canonicalReference": "@tldraw/store!StoreSnapshot:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLRecord",
+              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n}) & "
+            },
+            {
+              "kind": "Reference",
+              "text": "TldrawUiProps",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": " & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLExternalContentProps",
+              "canonicalReference": "@tldraw/tldraw!~TLExternalContentProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/Tldraw.tsx",
+          "releaseTag": "Public",
+          "name": "TldrawProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 17
+          }
+        },
+        {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!TldrawScribble:var",
           "docComment": "/**\n * @public\n */\n",
@@ -13780,6 +14094,34 @@
           "name": "TldrawUiBaseProps",
           "preserveMemberOrder": false,
           "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiBaseProps#assetUrls:member",
+              "docComment": "/**\n * Asset URL override.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "assetUrls?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiAssetUrlOverrides",
+                  "canonicalReference": "@tldraw/tldraw!TLUiAssetUrlOverrides:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "assetUrls",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TldrawUiBaseProps#children:member",
@@ -14095,7 +14437,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLUiOverrides",
-                  "canonicalReference": "@tldraw/tldraw!TLUiOverrides:interface"
+                  "canonicalReference": "@tldraw/tldraw!TLUiOverrides:type"
                 },
                 {
                   "kind": "Content",
@@ -14104,7 +14446,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLUiOverrides",
-                  "canonicalReference": "@tldraw/tldraw!TLUiOverrides:interface"
+                  "canonicalReference": "@tldraw/tldraw!TLUiOverrides:type"
                 },
                 {
                   "kind": "Content",
@@ -14170,11 +14512,67 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TLUiActionItem "
+              "text": "export interface TLUiActionItem<TransationKey extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", IconType extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "> "
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useActions.tsx",
           "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "TransationKey",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            },
+            {
+              "typeParameterName": "IconType",
+              "constraintTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              }
+            }
+          ],
           "name": "TLUiActionItem",
           "preserveMemberOrder": false,
           "members": [
@@ -14215,9 +14613,8 @@
                   "text": "contextMenuLabel?: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLUiTranslationKey",
-                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                  "kind": "Content",
+                  "text": "TransationKey"
                 },
                 {
                   "kind": "Content",
@@ -14243,9 +14640,8 @@
                   "text": "icon?: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLUiIconType",
-                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
+                  "kind": "Content",
+                  "text": "IconType"
                 },
                 {
                   "kind": "Content",
@@ -14325,9 +14721,8 @@
                   "text": "label?: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLUiTranslationKey",
-                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                  "kind": "Content",
+                  "text": "TransationKey"
                 },
                 {
                   "kind": "Content",
@@ -14353,9 +14748,8 @@
                   "text": "menuLabel?: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLUiTranslationKey",
-                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                  "kind": "Content",
+                  "text": "TransationKey"
                 },
                 {
                   "kind": "Content",
@@ -14453,9 +14847,8 @@
                   "text": "shortcutsLabel?: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLUiTranslationKey",
-                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                  "kind": "Content",
+                  "text": "TransationKey"
                 },
                 {
                   "kind": "Content",
@@ -14569,6 +14962,46 @@
           }
         },
         {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiAssetUrlOverrides:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiAssetUrlOverrides = "
+            },
+            {
+              "kind": "Reference",
+              "text": "RecursivePartial",
+              "canonicalReference": "@tldraw/utils!RecursivePartial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiAssetUrls",
+              "canonicalReference": "@tldraw/tldraw!~TLUiAssetUrls:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/assetUrls.ts",
+          "releaseTag": "Public",
+          "name": "TLUiAssetUrlOverrides",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/tldraw!TLUiButtonProps:interface",
           "docComment": "/**\n * @public\n */\n",
@@ -14643,6 +15076,24 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiIconType",
+                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> | "
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLUiIconType",
                   "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
                 },
@@ -14657,7 +15108,7 @@
               "name": "icon",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 6
               }
             },
             {
@@ -14668,6 +15119,24 @@
                 {
                   "kind": "Content",
                   "text": "iconLeft?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiIconType",
+                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> | "
                 },
                 {
                   "kind": "Reference",
@@ -14685,7 +15154,7 @@
               "name": "iconLeft",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 6
               }
             },
             {
@@ -14780,6 +15249,24 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiTranslationKey",
+                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> | "
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLUiTranslationKey",
                   "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
                 },
@@ -14794,7 +15281,7 @@
               "name": "label",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 6
               }
             },
             {
@@ -15550,6 +16037,24 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiIconType",
+                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> | "
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLUiIconType",
                   "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
                 },
@@ -15564,7 +16069,7 @@
               "name": "icon",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 6
               }
             },
             {
@@ -15843,6 +16348,24 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiIconType",
+                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> | "
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLUiIconType",
                   "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
                 },
@@ -15857,7 +16380,7 @@
               "name": "icon",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 6
               }
             },
             {
@@ -15868,6 +16391,24 @@
                 {
                   "kind": "Content",
                   "text": "iconLeft?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiIconType",
+                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> | "
                 },
                 {
                   "kind": "Reference",
@@ -15885,7 +16426,7 @@
               "name": "iconLeft",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 6
               }
             },
             {
@@ -15896,6 +16437,24 @@
                 {
                   "kind": "Content",
                   "text": "label?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiTranslationKey",
+                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> | "
                 },
                 {
                   "kind": "Reference",
@@ -15913,7 +16472,7 @@
               "name": "label",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 6
               }
             },
             {
@@ -16213,7 +16772,27 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLUiMenuChild = "
+              "text": "export type TLUiMenuChild<TranslationKey extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
             },
             {
               "kind": "Reference",
@@ -16249,15 +16828,32 @@
             },
             {
               "kind": "Content",
+              "text": "<TranslationKey>"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/menuHelpers.ts",
           "releaseTag": "Public",
           "name": "TLUiMenuChild",
+          "typeParameters": [
+            {
+              "typeParameterName": "TranslationKey",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            }
+          ],
           "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 8
+            "startIndex": 5,
+            "endIndex": 14
           }
         },
         {
@@ -16482,454 +17078,260 @@
           }
         },
         {
-          "kind": "Interface",
-          "canonicalReference": "@tldraw/tldraw!TLUiOverrides:interface",
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiOverrides:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TLUiOverrides "
+              "text": "export type TLUiOverrides = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    actionsMenu: "
+            },
+            {
+              "kind": "Reference",
+              "text": "WithDefaultHelpers",
+              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "NonNullable",
+              "canonicalReference": "!NonNullable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "ActionsMenuSchemaProviderProps",
+              "canonicalReference": "@tldraw/tldraw!~ActionsMenuSchemaProviderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides']>>;\n    actions: "
+            },
+            {
+              "kind": "Reference",
+              "text": "WithDefaultHelpers",
+              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "NonNullable",
+              "canonicalReference": "!NonNullable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "ActionsProviderProps",
+              "canonicalReference": "@tldraw/tldraw!~ActionsProviderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides']>>;\n    contextMenu: "
+            },
+            {
+              "kind": "Reference",
+              "text": "WithDefaultHelpers",
+              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "NonNullable",
+              "canonicalReference": "!NonNullable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiContextMenuSchemaProviderProps",
+              "canonicalReference": "@tldraw/tldraw!~TLUiContextMenuSchemaProviderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides']>>;\n    helpMenu: "
+            },
+            {
+              "kind": "Reference",
+              "text": "WithDefaultHelpers",
+              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "NonNullable",
+              "canonicalReference": "!NonNullable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelpMenuSchemaProviderProps",
+              "canonicalReference": "@tldraw/tldraw!~TLUiHelpMenuSchemaProviderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides']>>;\n    menu: "
+            },
+            {
+              "kind": "Reference",
+              "text": "WithDefaultHelpers",
+              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "NonNullable",
+              "canonicalReference": "!NonNullable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiMenuSchemaProviderProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchemaProviderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides']>>;\n    toolbar: "
+            },
+            {
+              "kind": "Reference",
+              "text": "WithDefaultHelpers",
+              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "NonNullable",
+              "canonicalReference": "!NonNullable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolbarSchemaProviderProps",
+              "canonicalReference": "@tldraw/tldraw!~TLUiToolbarSchemaProviderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides']>>;\n    keyboardShortcutsMenu: "
+            },
+            {
+              "kind": "Reference",
+              "text": "WithDefaultHelpers",
+              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "NonNullable",
+              "canonicalReference": "!NonNullable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiKeyboardShortcutsSchemaProviderProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsSchemaProviderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides']>>;\n    tools: "
+            },
+            {
+              "kind": "Reference",
+              "text": "WithDefaultHelpers",
+              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "NonNullable",
+              "canonicalReference": "!NonNullable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolsProviderProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiToolsProviderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides']>>;\n    translations: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiTranslationProviderProps",
+              "canonicalReference": "@tldraw/tldraw!~TLUiTranslationProviderProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "['overrides'];\n}>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/overrides.ts",
           "releaseTag": "Public",
           "name": "TLUiOverrides",
-          "preserveMemberOrder": false,
-          "members": [
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#actions:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "actions?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "WithDefaultHelpers",
-                  "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ActionsProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!~ActionsProviderProps:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "actions",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 7
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#actionsMenu:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "actionsMenu?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "WithDefaultHelpers",
-                  "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ActionsMenuSchemaProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!~ActionsMenuSchemaProviderProps:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "actionsMenu",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 7
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#contextMenu:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "contextMenu?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "WithDefaultHelpers",
-                  "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLUiContextMenuSchemaProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!~TLUiContextMenuSchemaProviderProps:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "contextMenu",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 7
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#helpMenu:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "helpMenu?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "WithDefaultHelpers",
-                  "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLUiHelpMenuSchemaProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!~TLUiHelpMenuSchemaProviderProps:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "helpMenu",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 7
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#keyboardShortcutsMenu:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "keyboardShortcutsMenu?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "WithDefaultHelpers",
-                  "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLUiKeyboardShortcutsSchemaProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsSchemaProviderProps:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "keyboardShortcutsMenu",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 7
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#menu:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "menu?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "WithDefaultHelpers",
-                  "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLUiMenuSchemaProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!TLUiMenuSchemaProviderProps:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "menu",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 7
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#toolbar:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "toolbar?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "WithDefaultHelpers",
-                  "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLUiToolbarSchemaProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!~TLUiToolbarSchemaProviderProps:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "toolbar",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 7
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#tools:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "tools?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "WithDefaultHelpers",
-                  "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLUiToolsProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!TLUiToolsProviderProps:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "tools",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 7
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiOverrides#translations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "translations?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLUiTranslationProviderProps",
-                  "canonicalReference": "@tldraw/tldraw!~TLUiTranslationProviderProps:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['overrides']"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "translations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              }
-            }
-          ],
-          "extendsTokenRanges": []
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 53
+          }
         },
         {
           "kind": "TypeAlias",
@@ -16938,20 +17340,27 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLUiSubMenu = "
+              "text": "export type TLUiSubMenu<TranslationKey extends "
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    type: 'submenu';\n    label: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiTranslationKey",
-              "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+              "text": "string"
             },
             {
               "kind": "Content",
-              "text": ";\n    disabled: boolean;\n    readonlyOk: boolean;\n    children: "
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    id: string;\n    type: 'submenu';\n    label: TranslationKey;\n    disabled: boolean;\n    readonlyOk: boolean;\n    children: "
             },
             {
               "kind": "Reference",
@@ -16970,9 +17379,22 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/menuHelpers.ts",
           "releaseTag": "Public",
           "name": "TLUiSubMenu",
+          "typeParameters": [
+            {
+              "typeParameterName": "TranslationKey",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            }
+          ],
           "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 6
+            "startIndex": 5,
+            "endIndex": 8
           }
         },
         {
@@ -17422,11 +17844,67 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TLUiToolItem "
+              "text": "export interface TLUiToolItem<TranslationKey extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", IconType extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "> "
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTools.tsx",
           "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "TranslationKey",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            },
+            {
+              "typeParameterName": "IconType",
+              "constraintTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              }
+            }
+          ],
           "name": "TLUiToolItem",
           "preserveMemberOrder": false,
           "members": [
@@ -17440,9 +17918,8 @@
                   "text": "icon: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLUiIconType",
-                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
+                  "kind": "Content",
+                  "text": "IconType"
                 },
                 {
                   "kind": "Content",
@@ -17522,9 +17999,8 @@
                   "text": "label: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLUiTranslationKey",
-                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                  "kind": "Content",
+                  "text": "TranslationKey"
                 },
                 {
                   "kind": "Content",
@@ -17640,9 +18116,8 @@
                   "text": "shortcutsLabel?: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLUiTranslationKey",
-                  "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
+                  "kind": "Content",
+                  "text": "TranslationKey"
                 },
                 {
                   "kind": "Content",
@@ -17912,7 +18387,7 @@
               "text": "(str: string, maxLength: number) => string"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/text.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/text/text.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "truncateStringWithEllipsis",
@@ -18150,7 +18625,7 @@
             },
             {
               "kind": "Content",
-              "text": "(ids?: "
+              "text": "(ids: "
             },
             {
               "kind": "Reference",
@@ -18250,16 +18725,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n    msg: (id: import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiTranslationKey",
-              "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
-            },
-            {
-              "kind": "Content",
-              "text": ") => string;\n    isMobile: boolean;\n}"
+              "text": ">) => string;\n    msg: (id: string) => string;\n    isMobile: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -18269,7 +18735,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/overrides.ts",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 16
+            "endIndex": 14
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -18316,7 +18782,7 @@
             },
             {
               "kind": "Content",
-              "text": "(ids?: "
+              "text": "(ids: "
             },
             {
               "kind": "Reference",
@@ -18334,16 +18800,7 @@
             },
             {
               "kind": "Content",
-              "text": ") => "
-            },
-            {
-              "kind": "Reference",
-              "text": "Promise",
-              "canonicalReference": "!Promise:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<void>"
+              "text": ") => void"
             },
             {
               "kind": "Content",
@@ -18353,7 +18810,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useExportAs.ts",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 8
+            "endIndex": 6
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -18867,12 +19324,21 @@
             },
             {
               "kind": "Reference",
+              "text": "Exclude",
+              "canonicalReference": "!Exclude:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
               "text": "TLUiTranslationKey",
               "canonicalReference": "@tldraw/tldraw!TLUiTranslationKey:type"
             },
             {
               "kind": "Content",
-              "text": ") => string"
+              "text": "> | string) => string"
             },
             {
               "kind": "Content",
@@ -18882,7 +19348,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTranslation/useTranslation.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

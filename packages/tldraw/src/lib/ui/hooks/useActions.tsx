@@ -17,7 +17,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
-import { getEmbedInfo } from '../../utils/embeds'
+import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
@@ -32,15 +32,18 @@ import { useToasts } from './useToastsProvider'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export interface TLUiActionItem {
-	icon?: TLUiIconType
+export interface TLUiActionItem<
+	TransationKey extends string = string,
+	IconType extends string = string
+> {
+	icon?: IconType
 	id: string
 	kbd?: string
 	title?: string
-	label?: TLUiTranslationKey
-	menuLabel?: TLUiTranslationKey
-	shortcutsLabel?: TLUiTranslationKey
-	contextMenuLabel?: TLUiTranslationKey
+	label?: TransationKey
+	menuLabel?: TransationKey
+	shortcutsLabel?: TransationKey
+	contextMenuLabel?: TransationKey
 	readonlyOk: boolean
 	checkbox?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
@@ -98,7 +101,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return editor.getSelectedShapeIds().length > 0
 		}
 
-		const actions = makeActions([
+		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'edit-link',
 				label: 'action.edit-link',
@@ -1094,7 +1097,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.toggleLock(editor.getSelectedShapeIds())
 				},
 			},
-		])
+		]
+
+		const actions = makeActions(actionItems)
 
 		if (overrides) {
 			return overrides(editor, actions, undefined)
@@ -1102,9 +1107,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 		return actions
 	}, [
+		editor,
 		trackEvent,
 		overrides,
-		editor,
 		addDialog,
 		insertMedia,
 		exportAs,

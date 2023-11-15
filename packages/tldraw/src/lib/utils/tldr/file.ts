@@ -19,9 +19,9 @@ import {
 	partition,
 	transact,
 } from '@tldraw/editor'
-import { TLUiToastsContextType } from '../ui/hooks/useToastsProvider'
-import { TLUiTranslationKey } from '../ui/hooks/useTranslation/TLUiTranslationKey'
-import { buildFromV1Document } from './buildFromV1Document'
+import { TLUiToastsContextType } from '../../ui/hooks/useToastsProvider'
+import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
+import { buildFromV1Document } from '../tldr/buildFromV1Document'
 
 /** @public */
 export const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json' as const
@@ -216,7 +216,7 @@ export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
 export async function parseAndLoadDocument(
 	editor: Editor,
 	document: string,
-	msg: (id: TLUiTranslationKey) => string,
+	msg: (id: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>) => string,
 	addToast: TLUiToastsContextType['addToast'],
 	onV1FileLoad?: () => void,
 	forceDarkMode?: boolean

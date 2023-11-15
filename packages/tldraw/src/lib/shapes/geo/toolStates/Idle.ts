@@ -23,7 +23,7 @@ export class Idle extends StateNode {
 			) {
 				this.editor.setCurrentTool('select')
 				this.editor.setEditingShape(onlySelectedShape.id)
-				this.editor.root.getCurrent()!.transition('editing_shape', {
+				this.editor.root.getCurrent()?.transition('editing_shape', {
 					...info,
 					target: 'shape',
 					shape: onlySelectedShape,

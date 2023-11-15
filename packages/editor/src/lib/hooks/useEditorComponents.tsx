@@ -74,19 +74,24 @@ export interface BaseEditorComponents {
 	InFrontOfTheCanvas: TLInFrontOfTheCanvas
 }
 
-/** @public */
-export type TLEditorComponents = {
-	[K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null
-} & {
+// These will always have defaults
+type ErrorComponents = {
 	ErrorFallback: TLErrorFallbackComponent
 	ShapeErrorFallback: TLShapeErrorFallbackComponent
 	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent
 }
 
-const EditorComponentsContext = createContext({} as TLEditorComponents)
+/** @public */
+export type TLEditorComponents = Partial<
+	{
+		[K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null
+	} & ErrorComponents
+>
+
+const EditorComponentsContext = createContext({} as TLEditorComponents & ErrorComponents)
 
 type ComponentsContextProviderProps = {
-	overrides?: Partial<TLEditorComponents>
+	overrides?: TLEditorComponents
 	children: any
 }
 
@@ -99,6 +104,7 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 					SvgDefs: DefaultSvgDefs,
 					Brush: DefaultBrush,
 					ZoomBrush: DefaultBrush,
+					ScreenshotBrush: DefaultBrush,
 					CollaboratorBrush: DefaultBrush,
 					Cursor: DefaultCursor,
 					CollaboratorCursor: DefaultCursor,
