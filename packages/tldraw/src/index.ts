@@ -152,6 +152,8 @@ export {
 } from './lib/utils/assets'
 export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export { getEmbedInfo } from './lib/utils/embeds'
+export { copyAs } from './lib/utils/export/copyAs'
+export { exportAs } from './lib/utils/export/exportAs'
 export {
 	TLDRAW_FILE_EXTENSION,
 	parseAndLoadDocument,

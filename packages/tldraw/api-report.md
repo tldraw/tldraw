@@ -99,6 +99,7 @@ import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
+import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -286,6 +287,9 @@ export const ContextMenu: ({ children }: {
     children: any;
 }) => JSX.Element;
 
+// @public
+export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
+
 // @public (undocumented)
 export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 
@@ -460,6 +464,9 @@ export type EventsProviderProps = {
     onEvent?: TLUiEventHandler;
     children: any;
 };
+
+// @public
+export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public (undocumented)
 export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiMenuChild;

@@ -2247,6 +2247,125 @@
           }
         },
         {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!copyAs:function(1)",
+          "docComment": "/**\n * Copy the given shapes to the clipboard.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to copy.\n *\n * @param format - The format to copy as.\n *\n * @param opts - Options for the copy.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function copyAs(editor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": ", ids: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", format?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCopyType",
+              "canonicalReference": "@tldraw/tldraw!~TLCopyType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", opts?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSvgOptions",
+              "canonicalReference": "@tldraw/editor!TLSvgOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<void>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/utils/export/copyAs.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 13,
+            "endIndex": 15
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "editor",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "ids",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "format",
+              "parameterTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 12
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "copyAs"
+        },
+        {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!DEFAULT_ACCEPTED_IMG_TYPE:var",
           "docComment": "/**\n * @public\n */\n",
@@ -5176,6 +5295,125 @@
             "startIndex": 1,
             "endIndex": 4
           }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!exportAs:function(1)",
+          "docComment": "/**\n * Export the given shapes as files.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to export.\n *\n * @param format - The format to export as.\n *\n * @param opts - Options for the export.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function exportAs(editor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": ", ids: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", format?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLExportType",
+              "canonicalReference": "@tldraw/tldraw!~TLExportType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", opts?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSvgOptions",
+              "canonicalReference": "@tldraw/editor!TLSvgOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<void>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/utils/export/exportAs.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 13,
+            "endIndex": 15
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "editor",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "ids",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "format",
+              "parameterTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 12
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "exportAs"
         },
         {
           "kind": "Function",
