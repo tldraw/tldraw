@@ -7105,17 +7105,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	removeFrame(id: TLShapeId): this {
-		const frame = this.getShape(id)
-		if (!frame || !this.isShapeOfType<TLFrameShape>(frame, 'frame')) return this
+	removeFrame(ids: TLShapeId[]): this {
+		const frames = compact(
+			ids
+				.map((id) => this.getShape<TLFrameShape>(id))
+				.filter((f) => f && this.isShapeOfType<TLFrameShape>(f, 'frame'))
+		)
+		if (!frames.length) return this
 
+		const allChildren: TLShapeId[] = []
 		this.batch(() => {
-			const children = this.getSortedChildIdsForParent(id)
-			if (children.length) {
-				this.reparentShapes(children, frame.parentId, frame.index)
-				this.setSelectedShapes(children)
-			}
-			this.deleteShapes([id])
+			frames.map((frame) => {
+				const children = this.getSortedChildIdsForParent(frame.id)
+				if (children.length) {
+					this.reparentShapes(children, frame.parentId, frame.index)
+					allChildren.push(...children)
+				}
+			})
+			this.setSelectedShapes(allChildren)
+			this.deleteShapes(ids)
 		})
 		return this
 	}

@@ -1,4 +1,4 @@
-import { Editor, track, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLFrameShape, track, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import {
 	TLUiMenuSchema,
@@ -55,7 +55,8 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
-	const selectedCount = editor.getSelectedShapeIds().length
+	const selectedShapes = editor.getSelectedShapes()
+	const selectedCount = selectedShapes.length
 
 	const oneSelected = selectedCount > 0
 
@@ -77,7 +78,9 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	const hasClipboardWrite = Boolean(window.navigator.clipboard?.write)
 	const showEditLink = useHasLinkShapeSelected()
 	const onlySelectedShape = editor.getOnlySelectedShape()
-	const allowRemoveFrame = onlySelectedShape && onlySelectedShape.type === 'frame'
+	const allowRemoveFrame =
+		oneSelected &&
+		selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
 	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
@@ -223,6 +226,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		threeStackableItems,
 		allowGroup,
 		allowUngroup,
+		allowRemoveFrame,
 		hasClipboardWrite,
 		showEditLink,
 		// oneEmbedSelected,

@@ -462,10 +462,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!hasSelectedShapes()) return
 
 					trackEvent('remove-frame', { source })
-					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame')) {
+					const selectedShapes = editor.getSelectedShapes()
+					if (
+						selectedShapes.length > 0 &&
+						selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+					) {
 						editor.mark('remove-frame')
-						editor.removeFrame(onlySelectedShape.id)
+						editor.removeFrame(selectedShapes.map((shape) => shape.id))
 					}
 				},
 			},
