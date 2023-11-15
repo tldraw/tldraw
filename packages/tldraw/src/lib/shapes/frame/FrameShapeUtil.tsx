@@ -254,7 +254,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		this.editor.batch(() => {
 			this.editor.reparentShapes(shapesToAddToFrame, shape.id)
-			this.editor.reparentShapes(shapesToRemoveFromFrame, this.editor.currentPageId)
+			this.editor.reparentShapes(shapesToRemoveFromFrame, shape.parentId)
 		})
 	}
 }
