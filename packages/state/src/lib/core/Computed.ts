@@ -311,13 +311,13 @@ const isComputedMethodKey = '@@__isComputedMethod__@@'
  *   max = 100
  *   count = atom(0)
  *
- *   @computed get remaining() {
+ *   @computed getRemaining() {
  *     return this.max - this.count.value
  *   }
  * }
  *
  * const c = new Counter()
- * const remaining = getComputedInstance(c, 'remaining')
+ * const remaining = getComputedInstance(c, 'getRemaining')
  * remaining.value === 100 // true
  * c.count.set(13)
  * remaining.value === 87 // true
@@ -355,7 +355,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  * console.log(greeting.value) // 'Hello John!'
  * ```
  *
- * `computed` may also be used as a decorator for creating computed class properties.
+ * `computed` may also be used as a decorator for creating computed getter methods.
  *
  * @example
  * ```ts
@@ -363,7 +363,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  *   max = 100
  *   count = atom<number>(0)
  *
- *   @computed get remaining() {
+ *   @computed getRemaining() {
  *     return this.max - this.count.value
  *   }
  * }
@@ -378,7 +378,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  *   count = atom<number>(0)
  *
  *   @computed({isEqual: (a, b) => a === b})
- *   get remaining() {
+ *   getRemaining() {
  *     return this.max - this.count.value
  *   }
  * }
