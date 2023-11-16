@@ -1,17 +1,9 @@
-const isDev =
-	(typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') ||
-	(typeof import.meta !== 'undefined' &&
-		// @ts-expect-error
-		import.meta.env?.MODE === 'development')
-const isProd = !isDev
-
 const warnedNames = new Set<string>()
 
 /**
  * @internal
  */
 export function warnDeprecatedGetter(name: string) {
-	if (isProd) return
 	if (warnedNames.has(name)) return
 
 	warnedNames.add(name)
