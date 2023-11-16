@@ -44,7 +44,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 	const groupShapeIdToChildren = new Map<string, TLShapeId[]>()
 	const rotatedElements = new Map<TLShapeId, number>()
 
-	const { currentPageId } = editor
+	const currentPageId = editor.getCurrentPageId()
 
 	const excElementIdsToTldrawShapeIds = new Map<string, TLShapeId>()
 	const rootShapeIds: TLShapeId[] = []

@@ -165,6 +165,7 @@ export function usePrint() {
 					window.print()
 				} else if (editor.environment.isSafari) {
 					beforePrintHandler()
+					// eslint-disable-next-line deprecation/deprecation
 					document.execCommand('print', false)
 				} else {
 					window.print()
@@ -172,7 +173,7 @@ export function usePrint() {
 			}
 
 			const selectedShapeIds = editor.getSelectedShapeIds()
-			const { currentPageId } = editor
+			const currentPageId = editor.getCurrentPageId()
 			const pages = editor.getPages()
 
 			const preserveAspectRatio = 'xMidYMid meet'
@@ -205,7 +206,7 @@ export function usePrint() {
 					}
 					triggerPrint()
 				} else {
-					const page = editor.currentPage
+					const page = editor.getCurrentPage()
 					const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
 					if (svg) {
 						addPageToPrint(`tldraw — ${page.name}`, null, svg)

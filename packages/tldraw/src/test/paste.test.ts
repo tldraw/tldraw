@@ -171,8 +171,8 @@ describe('When pasting', () => {
 		editor.paste()
 
 		const shapes = getShapes()
-		expect(shapes.new.box1?.parentId).toBe(editor.currentPageId)
-		expect(shapes.new.box2?.parentId).toBe(editor.currentPageId)
+		expect(shapes.new.box1?.parentId).toBe(editor.getCurrentPageId())
+		expect(shapes.new.box2?.parentId).toBe(editor.getCurrentPageId())
 
 		expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 			shapes.old.frame1.id,
@@ -265,8 +265,8 @@ describe('When pasting', () => {
 		const shapes = getShapes()
 
 		// Should make the pasted shapes the children of the frame
-		expect(shapes.new.box1?.parentId).toBe(editor.currentPageId)
-		expect(shapes.new.box2?.parentId).toBe(editor.currentPageId)
+		expect(shapes.new.box1?.parentId).toBe(editor.getCurrentPageId())
+		expect(shapes.new.box2?.parentId).toBe(editor.getCurrentPageId())
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
@@ -357,7 +357,7 @@ it('pastes shapes with children', () => {
 	// Should make the pasted shapes the children of the frame
 	expect(shapes.new.box1.parentId).toBe(shapes.new.frame3.id)
 	expect(shapes.new.box2.parentId).toBe(shapes.new.frame3.id)
-	expect(shapes.new.frame3.parentId).toBe(editor.currentPageId)
+	expect(shapes.new.frame3.parentId).toBe(editor.getCurrentPageId())
 })
 
 describe('When pasting into frames...', () => {

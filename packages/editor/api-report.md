@@ -614,12 +614,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     // @deprecated (undocumented)
     get croppingShapeId(): null | TLShapeId;
+    // @deprecated (undocumented)
     get currentPage(): TLPage;
     // @deprecated (undocumented)
     get currentPageBounds(): Box2d | undefined;
+    // @deprecated (undocumented)
     get currentPageId(): TLPageId;
     // @deprecated (undocumented)
     get currentPageRenderingShapesSorted(): TLShape[];
+    // @deprecated (undocumented)
     get currentPageShapeIds(): Set<TLShapeId>;
     // @deprecated (undocumented)
     get currentPageShapes(): TLShape[];
@@ -699,8 +702,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
+    getCurrentPage(): TLPage;
     getCurrentPageBounds(): Box2d | undefined;
+    getCurrentPageId(): TLPageId;
     getCurrentPageRenderingShapesSorted(): TLShape[];
+    getCurrentPageShapeIds(): Set<TLShapeId>;
     getCurrentPageShapes(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;

@@ -301,7 +301,7 @@ export class MinimapManager {
 		const px = 2.5 / sx
 		const py = 2.5 / sy
 
-		const { currentPageId } = editor
+		const currentPageId = editor.getCurrentPageId()
 
 		let collaborator: TLInstancePresence
 		for (let i = 0; i < this.collaborators.length; i++) {

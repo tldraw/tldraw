@@ -109,7 +109,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 			.sort((a, b) => ((a.childIndex ?? 1) < (b.childIndex ?? 1) ? -1 : 1))
 			.forEach((v1Page, i) => {
 				if (i === 0) {
-					v1PageIdsToV2PageIds.set(v1Page.id, editor.currentPageId)
+					v1PageIdsToV2PageIds.set(v1Page.id, editor.getCurrentPageId())
 				} else {
 					const pageId = PageRecordType.createId()
 					v1PageIdsToV2PageIds.set(v1Page.id, pageId)

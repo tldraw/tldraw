@@ -20,55 +20,57 @@ export function exportAs(
 	format: TLExportType = 'png',
 	opts = {} as Partial<TLSvgOptions>
 ) {
-	return editor.getSvg(ids?.length ? ids : [...editor.currentPageShapeIds], opts).then((svg) => {
-		if (!svg) {
-			throw new Error('Could not construct SVG.')
-		}
-
-		let name = 'shapes' + getTimestamp()
-
-		if (ids.length === 1) {
-			const first = editor.getShape(ids[0])!
-			if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
-				name = first.props.name ?? 'frame'
-			} else {
-				name = first.id.replace(/:/, '_')
+	return editor
+		.getSvg(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], opts)
+		.then((svg) => {
+			if (!svg) {
+				throw new Error('Could not construct SVG.')
 			}
-		}
 
-		switch (format) {
-			case 'svg': {
-				getSvgAsDataUrl(svg).then((dataURL) => downloadDataURLAsFile(dataURL, `${name}.svg`))
-				return
+			let name = 'shapes' + getTimestamp()
+
+			if (ids.length === 1) {
+				const first = editor.getShape(ids[0])!
+				if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
+					name = first.props.name ?? 'frame'
+				} else {
+					name = first.id.replace(/:/, '_')
+				}
 			}
-			case 'webp':
-			case 'png': {
-				getSvgAsImage(svg, editor.environment.isSafari, {
-					type: format,
-					quality: 1,
-					scale: 2,
-				}).then((image) => {
-					if (!image) throw Error()
-					const dataURL = URL.createObjectURL(image)
-					downloadDataURLAsFile(dataURL, `${name}.${format}`)
+
+			switch (format) {
+				case 'svg': {
+					getSvgAsDataUrl(svg).then((dataURL) => downloadDataURLAsFile(dataURL, `${name}.svg`))
+					return
+				}
+				case 'webp':
+				case 'png': {
+					getSvgAsImage(svg, editor.environment.isSafari, {
+						type: format,
+						quality: 1,
+						scale: 2,
+					}).then((image) => {
+						if (!image) throw Error()
+						const dataURL = URL.createObjectURL(image)
+						downloadDataURLAsFile(dataURL, `${name}.${format}`)
+						URL.revokeObjectURL(dataURL)
+					})
+					return
+				}
+
+				case 'json': {
+					const data = editor.getContentFromCurrentPage(ids)
+					const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' })
+					const dataURL = URL.createObjectURL(blob)
+					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.json`)
 					URL.revokeObjectURL(dataURL)
-				})
-				return
-			}
+					return
+				}
 
-			case 'json': {
-				const data = editor.getContentFromCurrentPage(ids)
-				const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' })
-				const dataURL = URL.createObjectURL(blob)
-				downloadDataURLAsFile(dataURL, `${name || 'shapes'}.json`)
-				URL.revokeObjectURL(dataURL)
-				return
+				default:
+					throw new Error(`Export type ${format} not supported.`)
 			}
-
-			default:
-				throw new Error(`Export type ${format} not supported.`)
-		}
-	})
+		})
 }
 
 function getTimestamp() {

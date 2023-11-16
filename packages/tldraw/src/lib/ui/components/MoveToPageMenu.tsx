@@ -8,7 +8,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 	const editor = useEditor()
 	const container = useContainer()
 	const pages = editor.getPages()
-	const currentPageId = editor.currentPageId
+	const currentPageId = editor.getCurrentPageId()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 

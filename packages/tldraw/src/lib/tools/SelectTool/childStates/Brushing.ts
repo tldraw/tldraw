@@ -96,8 +96,8 @@ export class Brushing extends StateNode {
 	private hitTestShapes() {
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapes = this.editor.getCurrentPageShapes()
+		const currentPageId = this.editor.getCurrentPageId()
 		const {
-			currentPageId,
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
 		} = this.editor
 

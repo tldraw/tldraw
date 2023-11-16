@@ -12,7 +12,7 @@ export const ZoomMenu = track(function ZoomMenu() {
 	const breakpoint = useBreakpoint()
 
 	const zoom = editor.getZoomLevel()
-	const hasShapes = editor.currentPageShapeIds.size > 0
+	const hasShapes = editor.getCurrentPageShapeIds().size > 0
 	const hasSelected = editor.getSelectedShapeIds().length > 0
 	const isZoomedTo100 = editor.getZoomLevel() === 1
 

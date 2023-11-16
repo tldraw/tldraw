@@ -209,7 +209,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		if (isInGroup) {
 			this.editor.reparentShapes(shapes, parent.id)
 		} else {
-			this.editor.reparentShapes(shapes, this.editor.currentPageId)
+			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
 		}
 	}
 
@@ -227,7 +227,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 
 		if (shapesToReparent.length > 0) {
-			this.editor.reparentShapes(shapesToReparent, this.editor.currentPageId)
+			this.editor.reparentShapes(shapesToReparent, this.editor.getCurrentPageId())
 		}
 	}
 }

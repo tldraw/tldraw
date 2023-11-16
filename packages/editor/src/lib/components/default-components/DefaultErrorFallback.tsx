@@ -86,6 +86,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 		textarea.value = errorStack ?? errorMessage
 		document.body.appendChild(textarea)
 		textarea.select()
+		// eslint-disable-next-line deprecation/deprecation
 		document.execCommand('copy')
 		textarea.remove()
 		setDidCopy(true)

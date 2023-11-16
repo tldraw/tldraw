@@ -122,6 +122,7 @@ export async function getSvgAsDataUrl(svg: SVGElement) {
 
 	const svgStr = new XMLSerializer().serializeToString(clone)
 	// NOTE: `unescape` works everywhere although deprecated
+	// eslint-disable-next-line deprecation/deprecation
 	const base64SVG = window.btoa(unescape(encodeURIComponent(svgStr)))
 	return `data:image/svg+xml;base64,${base64SVG}`
 }

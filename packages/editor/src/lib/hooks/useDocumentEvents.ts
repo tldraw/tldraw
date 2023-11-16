@@ -30,13 +30,17 @@ export function useDocumentEvents() {
 			}
 			if (media.addEventListener) {
 				media.addEventListener('change', updatePixelRatio)
+				// eslint-disable-next-line deprecation/deprecation
 			} else if (media.addListener) {
+				// eslint-disable-next-line deprecation/deprecation
 				media.addListener(safariCb)
 			}
 			remove = () => {
 				if (media.removeEventListener) {
 					media.removeEventListener('change', updatePixelRatio)
+					// eslint-disable-next-line deprecation/deprecation
 				} else if (media.removeListener) {
+					// eslint-disable-next-line deprecation/deprecation
 					media.removeListener(safariCb)
 				}
 			}

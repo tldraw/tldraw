@@ -513,7 +513,7 @@ describe("an arrow's parents", () => {
 				end: { type: 'binding', boundShapeId: frameId },
 			},
 		})
-		expect(editor.getShape(arrowId)?.parentId).toBe(editor.currentPageId)
+		expect(editor.getShape(arrowId)?.parentId).toBe(editor.getCurrentPageId())
 
 		// move arrow to b
 		editor.pointerMove(15, 85)
@@ -527,7 +527,7 @@ describe("an arrow's parents", () => {
 
 		// move back to empty space
 		editor.pointerMove(50, 50)
-		expect(editor.getShape(arrowId)?.parentId).toBe(editor.currentPageId)
+		expect(editor.getShape(arrowId)?.parentId).toBe(editor.getCurrentPageId())
 		expect(editor.getShape(arrowId)).toMatchObject({
 			props: {
 				start: { type: 'binding', boundShapeId: boxAid },
@@ -552,7 +552,7 @@ describe("an arrow's parents", () => {
 		// move b outside of frame
 		editor.select(boxBid).translateSelection(200, 0)
 		expect(editor.getShape(arrowId)).toMatchObject({
-			parentId: editor.currentPageId,
+			parentId: editor.getCurrentPageId(),
 			props: {
 				start: { type: 'binding', boundShapeId: boxAid },
 				end: { type: 'binding', boundShapeId: boxBid },
@@ -566,7 +566,7 @@ describe("an arrow's parents", () => {
 		editor.pointerDown(15, 15).pointerMove(115, 15).pointerUp()
 		const arrowId = editor.getOnlySelectedShape()!.id
 		expect(editor.getShape(arrowId)).toMatchObject({
-			parentId: editor.currentPageId,
+			parentId: editor.getCurrentPageId(),
 			props: {
 				start: { type: 'binding', boundShapeId: boxAid },
 				end: { type: 'binding', boundShapeId: boxCid },

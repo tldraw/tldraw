@@ -173,15 +173,15 @@ describe('When cloning...', () => {
 	})
 
 	it('clones a single shape and restores when stopping cloning', () => {
-		expect(editor.currentPageShapeIds.size).toBe(3)
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.getCurrentPageShapeIds().size).toBe(3)
+		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 
 		// Start cloning!
 		editor.keyDown('Alt')
-		expect(editor.currentPageShapeIds.size).toBe(4)
+		expect(editor.getCurrentPageShapeIds().size).toBe(4)
 		const newShape = editor.getSelectedShapes()[0]
 		expect(newShape.id).not.toBe(ids.box1)
 
@@ -202,13 +202,13 @@ describe('When cloning...', () => {
 
 	it('clones multiple single shape and restores when stopping cloning', () => {
 		editor.select(ids.box1, ids.box2).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 		editor.expectShapeToMatch({ id: ids.box2, x: 200, y: 190 }) // Translated B...
 
 		// Start cloning!
 		editor.keyDown('Alt')
-		expect(editor.currentPageShapeIds.size).toBe(5) // Two new shapes!
+		expect(editor.getCurrentPageShapeIds().size).toBe(5) // Two new shapes!
 		const newShapeA = editor.getShape(editor.getSelectedShapeIds()[0])!
 		const newShapeB = editor.getShape(editor.getSelectedShapeIds()[1])!
 		expect(newShapeA).toBeDefined()
@@ -242,9 +242,9 @@ describe('When cloning...', () => {
 		expect(editor.getShape(ids.line1)!.parentId).toBe(ids.box2)
 		editor.select(ids.box2).pointerDown(250, 250, ids.box2).pointerMove(250, 240) // [0, -10]
 
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		editor.keyDown('Alt', { altKey: true })
-		expect(editor.currentPageShapeIds.size).toBe(5) // Creates a clone of B and C (its descendant)
+		expect(editor.getCurrentPageShapeIds().size).toBe(5) // Creates a clone of B and C (its descendant)
 
 		const newShapeA = editor.getShape(editor.getSelectedShapeIds()[0])!
 		const newShapeB = editor.getShape(editor.getSortedChildIdsForParent(newShapeA.id)[0])!
@@ -1730,7 +1730,7 @@ describe('When dragging a shape onto a parent', () => {
 		editor.pointerDown(550, 550, ids.box1).pointerMove(350, 350).pointerUp()
 
 		// It should not become the child of frame2 because it is clipped
-		expect(editor.getShape(ids.box1)?.parentId).toBe(editor.currentPageId)
+		expect(editor.getShape(ids.box1)?.parentId).toBe(editor.getCurrentPageId())
 	})
 })
 

@@ -67,7 +67,7 @@ function ScreenshotBox() {
 			// want to show it in front of the canvas, so we'll need to convert it to
 			// "page space", i.e. uneffected by scale, and relative to the tldraw
 			// page's top left corner.
-			const { zoomLevel } = editor
+			const zoomLevel = editor.getZoomLevel()
 			const { x, y } = editor.pageToScreen({ x: box.x, y: box.y })
 			return new Box2d(x, y, box.w * zoomLevel, box.h * zoomLevel)
 		},

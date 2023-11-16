@@ -38,6 +38,7 @@ function iOS() {
 	if (!window) return false
 	return (
 		['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(
+			// eslint-disable-next-line deprecation/deprecation
 			window.navigator.platform
 		) ||
 		// iPad on iOS 13 detection

@@ -57,7 +57,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
-			if (!editor.currentPageShapeIds.size) return
+			if (!editor.getCurrentPageShapeIds().size) return
 
 			const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
 
@@ -75,7 +75,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			const elm = e.currentTarget
 			setPointerCapture(elm, e)
-			if (!editor.currentPageShapeIds.size) return
+			if (!editor.getCurrentPageShapeIds().size) return
 
 			rPointing.current = true
 
@@ -187,7 +187,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
-			const { currentPageShapeIds: shapeIdsOnCurrentPage } = editor
+			const shapeIdsOnCurrentPage = editor.getCurrentPageShapeIds()
 			const commonBoundsOfAllShapesOnCurrentPage = editor.getCurrentPageBounds()
 			const viewportPageBounds = editor.getViewportPageBounds()
 

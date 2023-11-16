@@ -1,4 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
+import { warnDeprecatedGetter } from '@tldraw/utils'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
@@ -187,10 +188,12 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentToolIdMask() {
+		warnDeprecatedGetter('currentToolIdMask')
 		return this._currentToolIdMask.get()
 	}
 	// eslint-disable-next-line no-restricted-syntax
 	set currentToolIdMask(id: string | undefined) {
+		warnDeprecatedGetter('currentToolIdMask')
 		this._currentToolIdMask.set(id)
 	}
 

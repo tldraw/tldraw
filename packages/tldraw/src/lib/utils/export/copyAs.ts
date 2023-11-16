@@ -26,9 +26,9 @@ export function copyAs(
 	const write = window.navigator.clipboard?.write
 
 	return editor
-		.getSvg(ids?.length ? ids : [...editor.currentPageShapeIds], {
+		.getSvg(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
 			scale: 1,
-			background: editor.instanceState.exportBackground,
+			background: editor.getInstanceState().exportBackground,
 			...opts,
 		})
 		.then((svg) => {

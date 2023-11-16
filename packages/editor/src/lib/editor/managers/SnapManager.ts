@@ -1,6 +1,6 @@
 import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
 import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
-import { dedupe, deepCopy } from '@tldraw/utils'
+import { dedupe, deepCopy, warnDeprecatedGetter } from '@tldraw/utils'
 import {
 	Box2d,
 	flipSelectionHandleX,
@@ -221,6 +221,7 @@ export class SnapManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get lines() {
+		warnDeprecatedGetter('lines')
 		return this.getLines()
 	}
 
@@ -254,6 +255,7 @@ export class SnapManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get snapPointsCache() {
+		warnDeprecatedGetter('snapPointsCache')
 		return this.getSnapPointsCache()
 	}
 
@@ -266,6 +268,7 @@ export class SnapManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get snapThreshold() {
+		warnDeprecatedGetter('snapThreshold')
 		return this.getSnapThreshold()
 	}
 
@@ -303,7 +306,7 @@ export class SnapManager {
 			}
 		}
 
-		collectSnappableShapesFromParent(this.getCurrentCommonAncestor() ?? editor.currentPageId)
+		collectSnappableShapesFromParent(this.getCurrentCommonAncestor() ?? editor.getCurrentPageId())
 
 		return snappableShapes
 	}
@@ -314,6 +317,7 @@ export class SnapManager {
 
 	// eslint-disable-next-line no-restricted-syntax
 	get snappableShapes() {
+		warnDeprecatedGetter('snappableShapes')
 		return this.getSnappableShapes()
 	}
 
@@ -327,6 +331,7 @@ export class SnapManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentCommonAncestor() {
+		warnDeprecatedGetter('currentCommonAncestor')
 		return this.getCurrentCommonAncestor()
 	}
 
@@ -351,6 +356,7 @@ export class SnapManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get snappablePoints() {
+		warnDeprecatedGetter('snappablePoints')
 		return this.getSnappablePoints()
 	}
 
@@ -456,6 +462,7 @@ export class SnapManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get visibleGaps() {
+		warnDeprecatedGetter('visibleGaps')
 		return this.getVisibleGaps()
 	}
 
@@ -567,6 +574,7 @@ export class SnapManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get outlinesInPageSpace() {
+		warnDeprecatedGetter('outlinesInPageSpace')
 		return this.getOutlinesInPageSpace()
 	}
 
