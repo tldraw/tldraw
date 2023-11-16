@@ -127,7 +127,7 @@ describe('creating frames', () => {
 
 		// x should snap
 		editor.keyDown('Control')
-		expect(editor.snaps.lines).toHaveLength(1)
+		expect(editor.snaps.getLines()).toHaveLength(1)
 		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 50,
 			y: 100,
@@ -346,7 +346,7 @@ describe('frame shapes', () => {
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ y: 49 })
 		editor.keyDown('Control')
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ y: 50 })
-		expect(editor.snaps.lines).toHaveLength(1)
+		expect(editor.snaps.getLines()).toHaveLength(1)
 	})
 
 	it("does not allow outside shapes to snap to the frame's children", () => {
@@ -382,12 +382,12 @@ describe('frame shapes', () => {
 			w: 5,
 			h: 5,
 		})
-		expect(editor.snaps.lines).toHaveLength(0)
+		expect(editor.snaps.getLines()).toHaveLength(0)
 		// and if we unparent the box it should snap
 		editor.reparentShapes([innerBoxId], editor.currentPageId)
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
-		expect(editor.snaps.lines).toHaveLength(1)
+		expect(editor.snaps.getLines()).toHaveLength(1)
 		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 275,
 			y: 125,
@@ -414,12 +414,12 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150, innerBoxId).pointerMove(150, 50).pointerMove(150, 148)
 		editor.keyDown('Control')
-		expect(editor.snaps.lines).toHaveLength(0)
+		expect(editor.snaps.getLines()).toHaveLength(0)
 
 		// move shape inside the frame to make sure it snaps in there
 		editor.reparentShapes([outerBoxId], frameId).pointerMove(150, 149, { ctrlKey: true })
 
-		expect(editor.snaps.lines).toHaveLength(1)
+		expect(editor.snaps.getLines()).toHaveLength(1)
 	})
 
 	it('masks its children', () => {

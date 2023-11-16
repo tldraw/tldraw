@@ -24,13 +24,13 @@ describe('resizing a shape', () => {
 		editor.createShapes([{ id: ids.boxA, type: 'geo', props: { w: 100, h: 100 } }])
 
 		editor.mark('start')
-		const startHistoryLength = editor.history.numUndos
+		const startHistoryLength = editor.history.getNumUndos()
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
+		expect(editor.history.getNumUndos()).toBe(startHistoryLength + 1)
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
+		expect(editor.history.getNumUndos()).toBe(startHistoryLength + 1)
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
+		expect(editor.history.getNumUndos()).toBe(startHistoryLength + 1)
 
 		expect(editor.getShapePageBounds(ids.boxA)).toCloselyMatchObject({
 			w: 800,

@@ -33,12 +33,26 @@ export class HistoryManager<
 
 	private _commands: Record<string, TLCommandHandler<any>> = {}
 
-	get numUndos() {
+	getNumUndos() {
 		return this._undos.get().length
 	}
+	/**
+	 * @deprecated use `getNumUndos` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get numUndos() {
+		return this.getNumUndos()
+	}
 
-	get numRedos() {
+	getNumRedos() {
 		return this._redos.get().length
+	}
+	/**
+	 * @deprecated use `getNumRedos` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get numRedos() {
+		return this.getNumRedos()
 	}
 
 	createCommand = <Name extends string, Constructor extends CommandFn<any>>(

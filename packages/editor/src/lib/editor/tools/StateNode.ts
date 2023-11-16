@@ -75,7 +75,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 *
 	 * @public
 	 */
-	@computed getPath() {
+	getPath() {
 		return this._path.get()
 	}
 	_path: Computed<string>
@@ -85,7 +85,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 *
 	 * @public
 	 */
-	@computed getCurrent() {
+	getCurrent() {
 		return this._current.get()
 	}
 	private _current: Atom<StateNode | undefined>
@@ -95,7 +95,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 *
 	 * @public
 	 */
-	@computed getIsActive() {
+	getIsActive() {
 		return this._isActive.get()
 	}
 	private _isActive: Atom<boolean>
@@ -182,11 +182,23 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 */
 	_currentToolIdMask = atom('curent tool id mask', undefined as string | undefined)
 
-	@computed get currentToolIdMask() {
+	/**
+	 * @deprecated use `getCurrentToolIdMask()` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentToolIdMask() {
+		return this._currentToolIdMask.get()
+	}
+	// eslint-disable-next-line no-restricted-syntax
+	set currentToolIdMask(id: string | undefined) {
+		this._currentToolIdMask.set(id)
+	}
+
+	getCurrentToolIdMask() {
 		return this._currentToolIdMask.get()
 	}
 
-	set currentToolIdMask(id: string | undefined) {
+	setCurrentToolIdMask(id: string | undefined) {
 		this._currentToolIdMask.set(id)
 	}
 

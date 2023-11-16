@@ -73,7 +73,7 @@ type NearestSnap =
 	  }
 	| {
 			// selection snaps to create a new gap of equal size to another gap
-			// on the opposide side of some shape
+			// on the opposite side of some shape
 			type: 'gap_duplicate'
 			gap: Gap
 			protrusionDirection: 'left' | 'right' | 'top' | 'bottom'
@@ -212,12 +212,20 @@ function dedupeGapSnaps(snaps: Array<Extract<SnapLine, { type: 'gaps' }>>) {
 export class SnapManager {
 	private _snapLines = atom<SnapLine[] | undefined>('snapLines', undefined)
 
-	get lines() {
+	getLines() {
 		return this._snapLines.get() ?? (EMPTY_ARRAY as SnapLine[])
 	}
 
+	/**
+	 * @deprecated use `getLines` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get lines() {
+		return this.getLines()
+	}
+
 	clear() {
-		if (this.lines.length) {
+		if (this.getLines().length) {
 			this._snapLines.set(undefined)
 		}
 	}
@@ -244,6 +252,7 @@ export class SnapManager {
 	/**
 	 * @deprecated use `getSnapPointsCache` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get snapPointsCache() {
 		return this.getSnapPointsCache()
 	}
@@ -255,6 +264,7 @@ export class SnapManager {
 	/**
 	 * @deprecated use `getSnapThreshold` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get snapThreshold() {
 		return this.getSnapThreshold()
 	}
@@ -302,6 +312,7 @@ export class SnapManager {
 	 * @deprecated use `getSnappableShapes` instead
 	 */
 
+	// eslint-disable-next-line no-restricted-syntax
 	get snappableShapes() {
 		return this.getSnappableShapes()
 	}
@@ -314,6 +325,7 @@ export class SnapManager {
 	/**
 	 * @deprecated use `getCurrentCommonAncestor` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentCommonAncestor() {
 		return this.getCurrentCommonAncestor()
 	}
@@ -337,6 +349,7 @@ export class SnapManager {
 	/**
 	 * @deprecated use `getSnappablePoints` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get snappablePoints() {
 		return this.getSnappablePoints()
 	}
@@ -441,6 +454,7 @@ export class SnapManager {
 	/**
 	 * @deprecated use `getVisibleGaps` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get visibleGaps() {
 		return this.getVisibleGaps()
 	}
@@ -551,6 +565,7 @@ export class SnapManager {
 	/**
 	 * @deprecated use `getOutlinesInPageSpace` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get outlinesInPageSpace() {
 		return this.getOutlinesInPageSpace()
 	}

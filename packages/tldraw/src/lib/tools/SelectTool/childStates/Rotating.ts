@@ -27,7 +27,7 @@ export class Rotating extends StateNode {
 	) => {
 		// Store the event information
 		this.info = info
-		this.parent.currentToolIdMask = info.onInteractionEnd
+		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 
 		this.markId = 'rotate start'
 		this.editor.mark(this.markId)
@@ -42,7 +42,7 @@ export class Rotating extends StateNode {
 
 	override onExit = () => {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
-		this.parent.currentToolIdMask = undefined
+		this.parent.setCurrentToolIdMask(undefined)
 
 		this.snapshot = {} as TLRotationSnapshot
 	}

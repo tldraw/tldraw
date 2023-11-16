@@ -8,6 +8,7 @@ export type VecLike = Vec2d | Vec2dModel
 export class Vec2d {
 	constructor(public x = 0, public y = 0, public z = 1) {}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get pressure() {
 		return this.z
 	}

@@ -44,6 +44,11 @@ module.exports = {
 		],
 		'local/no-export-star': 'error',
 		'no-only-tests/no-only-tests': 'error',
+		'no-restricted-syntax': [
+			'error',
+			{ selector: "MethodDefinition[kind='set']", message: 'Property setters are not allowed' },
+			{ selector: "MethodDefinition[kind='get']", message: 'Property getters are not allowed' },
+		],
 	},
 	parser: '@typescript-eslint/parser',
 	parserOptions: {

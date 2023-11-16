@@ -799,12 +799,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCanUndo(): boolean {
-		return this.history.numUndos > 0
+		return this.history.getNumUndos() > 0
 	}
 
 	/**
 	 * @deprecated Use `getCanUndo` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get canUndo(): boolean {
 		return this.getCanUndo()
 	}
@@ -830,12 +831,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCanRedo(): boolean {
-		return this.history.numRedos > 0
+		return this.history.getNumRedos() > 0
 	}
 
 	/**
 	 * @deprecated Use `getCanRedo` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get canRedo(): boolean {
 		return this.getCanRedo()
 	}
@@ -1141,6 +1143,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @deprecated Use `getCurrentTool` instead.
 	 * @public
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentTool() {
 		return this.getCurrentTool()
 	}
@@ -1153,12 +1156,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentToolId(): string {
 		const currentTool = this.getCurrentTool()
 		if (!currentTool) return ''
-		return currentTool.currentToolIdMask ?? currentTool.id
+		return currentTool.getCurrentToolIdMask() ?? currentTool.id
 	}
 
 	/**
 	 * @deprecated Use `getCurrentToolId` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentToolId() {
 		return this.getCurrentToolId()
 	}
@@ -1203,6 +1207,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getDocumentSettings` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get documentSettings() {
 		return this.getDocumentSettings()
 	}
@@ -1231,6 +1236,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getInstanceState` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get instanceState() {
 		return this.getInstanceState()
 	}
@@ -1315,6 +1321,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getOpenMenus` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get openMenus() {
 		return this.getOpenMenus()
 	}
@@ -1374,6 +1381,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getIsMenuOpen` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get isMenuOpen() {
 		return this.getIsMenuOpen()
 	}
@@ -1410,6 +1418,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getPageStates` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get pageStates() {
 		return this.getPageStates()
 	}
@@ -1431,6 +1440,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCurrentPageState` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPageState() {
 		return this.getCurrentPageState()
 	}
@@ -1496,6 +1506,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectedShapeIds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectedShapeIds() {
 		return this.getSelectedShapeIds()
 	}
@@ -1514,6 +1525,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectedShapes` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectedShapes() {
 		return this.getSelectedShapes()
 	}
@@ -1690,6 +1702,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getOnlySelectedShape` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get onlySelectedShape() {
 		return this.getOnlySelectedShape()
 	}
@@ -1713,6 +1726,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectionPageBounds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectionPageBounds() {
 		return this.getSelectionPageBounds()
 	}
@@ -1743,6 +1757,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectionRotation` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectionRotation() {
 		return this.getSelectionRotation()
 	}
@@ -1790,6 +1805,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectionRotatedPageBounds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectionRotatedPageBounds() {
 		return this.getSelectionRotatedPageBounds()
 	}
@@ -1808,6 +1824,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getFocusedGroupId` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get focusedGroupId() {
 		return this.getFocusedGroupId()
 	}
@@ -1825,6 +1842,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getFocusedGroup` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get focusedGroup() {
 		return this.getFocusedGroup()
 	}
@@ -1922,6 +1940,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getEditingShapeId` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get editingShapeId() {
 		return this.getEditingShapeId()
 	}
@@ -1939,6 +1958,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getEditingShape` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get editingShape() {
 		return this.getEditingShape()
 	}
@@ -1988,6 +2008,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getHoveredShapeId` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get hoveredShapeId() {
 		return this.getHoveredShapeId()
 	}
@@ -2005,6 +2026,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getHoveredShape` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get hoveredShape() {
 		return this.getHoveredShape()
 	}
@@ -2043,6 +2065,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getHintingShapeIds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get hintingShapeIds() {
 		return this.getHintingShapeIds()
 	}
@@ -2060,6 +2083,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getHintingShape` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get hintingShape() {
 		return this.getHintingShape()
 	}
@@ -2101,6 +2125,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getErasingShapeIds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get erasingShapeIds() {
 		return this.getErasingShapeIds()
 	}
@@ -2118,6 +2143,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getErasingShapes` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get erasingShapes() {
 		return this.getErasingShapes()
 	}
@@ -2174,6 +2200,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCroppingShapeId` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get croppingShapeId() {
 		return this.getCroppingShapeId()
 	}
@@ -2237,6 +2264,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getZoomLevel` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get zoomLevel() {
 		return this.getZoomLevel()
 	}
@@ -2948,6 +2976,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getViewportScreenBounds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get viewportScreenBounds() {
 		return this.getViewportScreenBounds()
 	}
@@ -2964,6 +2993,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getViewportScreenCenter` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get viewportScreenCenter() {
 		return this.getViewportScreenCenter()
 	}
@@ -2982,6 +3012,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getViewportPageBounds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get viewportPageBounds() {
 		return this.getViewportPageBounds()
 	}
@@ -2998,6 +3029,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getViewportPageCenter` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get viewportPageCenter() {
 		return this.getViewportPageCenter()
 	}
@@ -3201,6 +3233,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCameraState` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get cameraState() {
 		return this.getCameraState()
 	}
@@ -3376,6 +3409,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getRenderingShapes` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get renderingShapes() {
 		return this.getRenderingShapes()
 	}
@@ -3393,6 +3427,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @deprecated Use `getRenderingBounds` instead.
 	 */
 
+	// eslint-disable-next-line no-restricted-syntax
 	get renderingBounds() {
 		return this.getRenderingBounds()
 	}
@@ -3413,6 +3448,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getRenderingBoundsExpanded` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get renderingBoundsExpanded() {
 		return this.getRenderingBoundsExpanded()
 	}
@@ -3473,6 +3509,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getPages` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get pages() {
 		return this.getPages()
 	}
@@ -3482,6 +3519,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPage(): TLPage {
 		const page = this.getPage(this.currentPageId)!
 		return page
@@ -3492,6 +3530,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPageId(): TLPageId {
 		return this.getInstanceState().currentPageId
 	}
@@ -3521,6 +3560,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPageShapeIds() {
 		return this._currentPageShapeIds.get()
 	}
@@ -3873,6 +3913,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getAssets` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get assets() {
 		return this.getAssets()
 	}
@@ -4493,6 +4534,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCurrentPageBounds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPageBounds() {
 		return this.getCurrentPageBounds()
 	}
@@ -4809,6 +4851,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCurrentPageShapes` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPageShapes() {
 		return this.getCurrentPageShapes()
 	}
@@ -4850,6 +4893,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCurrentPageShapesSorted` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPageShapesSorted() {
 		return this.getCurrentPageShapesSorted()
 	}
@@ -4870,6 +4914,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCurrentPageRenderingShapesSorted` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPageRenderingShapesSorted() {
 		return this.getCurrentPageRenderingShapesSorted()
 	}
@@ -7566,6 +7611,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `editor.sharedStyles` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get sharedStyles() {
 		return this.getSharedStyles()
 	}
@@ -7615,6 +7661,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `editor.sharedOpacity` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get sharedOpacity() {
 		return this.getSharedOpacity()
 	}
