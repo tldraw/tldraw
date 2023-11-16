@@ -1424,6 +1424,146 @@ export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> 
 }, TLUiEventMap[T]>) => void;
 
 // @public (undocumented)
+export interface TLUiEventMap {
+    // (undocumented)
+    'align-shapes': {
+        operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top';
+    };
+    // (undocumented)
+    'close-menu': {
+        id: string;
+    };
+    // (undocumented)
+    'convert-to-bookmark': null;
+    // (undocumented)
+    'convert-to-embed': null;
+    // (undocumented)
+    'copy-as': {
+        format: 'json' | 'png' | 'svg';
+    };
+    // (undocumented)
+    'create-new-project': null;
+    // (undocumented)
+    'delete-shapes': null;
+    // (undocumented)
+    'distribute-shapes': {
+        operation: 'horizontal' | 'vertical';
+    };
+    // (undocumented)
+    'duplicate-shapes': null;
+    // (undocumented)
+    'edit-link': null;
+    // (undocumented)
+    'exit-pen-mode': null;
+    // (undocumented)
+    'export-as': {
+        format: 'json' | 'png' | 'svg';
+    };
+    // (undocumented)
+    'flip-shapes': {
+        operation: 'horizontal' | 'vertical';
+    };
+    // (undocumented)
+    'group-shapes': null;
+    // (undocumented)
+    'insert-embed': null;
+    // (undocumented)
+    'insert-media': null;
+    // (undocumented)
+    'open-cursor-chat': null;
+    // (undocumented)
+    'open-embed-link': null;
+    // (undocumented)
+    'open-file': null;
+    // (undocumented)
+    'open-menu': {
+        id: string;
+    };
+    // (undocumented)
+    'pack-shapes': null;
+    // (undocumented)
+    'reorder-shapes': {
+        operation: 'backward' | 'forward' | 'toBack' | 'toFront';
+    };
+    // (undocumented)
+    'reset-zoom': null;
+    // (undocumented)
+    'rotate-ccw': null;
+    // (undocumented)
+    'rotate-cw': null;
+    // (undocumented)
+    'save-project-to-file': null;
+    // (undocumented)
+    'select-all-shapes': null;
+    // (undocumented)
+    'select-none-shapes': null;
+    // (undocumented)
+    'select-tool': {
+        id: string;
+    };
+    // (undocumented)
+    'stack-shapes': {
+        operation: 'horizontal' | 'vertical';
+    };
+    // (undocumented)
+    'stop-following': null;
+    // (undocumented)
+    'stretch-shapes': {
+        operation: 'horizontal' | 'vertical';
+    };
+    // (undocumented)
+    'toggle-auto-size': null;
+    // (undocumented)
+    'toggle-dark-mode': null;
+    // (undocumented)
+    'toggle-debug-mode': null;
+    // (undocumented)
+    'toggle-focus-mode': null;
+    // (undocumented)
+    'toggle-grid-mode': null;
+    // (undocumented)
+    'toggle-lock': null;
+    // (undocumented)
+    'toggle-reduce-motion': null;
+    // (undocumented)
+    'toggle-snap-mode': null;
+    // (undocumented)
+    'toggle-tool-lock': null;
+    // (undocumented)
+    'toggle-transparent': null;
+    // (undocumented)
+    'ungroup-shapes': null;
+    // (undocumented)
+    'unlock-all': null;
+    // (undocumented)
+    'zoom-in': null;
+    // (undocumented)
+    'zoom-into-view': null;
+    // (undocumented)
+    'zoom-out': null;
+    // (undocumented)
+    'zoom-to-content': null;
+    // (undocumented)
+    'zoom-to-fit': null;
+    // (undocumented)
+    'zoom-to-selection': null;
+    // (undocumented)
+    'zoom-tool': null;
+    // (undocumented)
+    copy: null;
+    // (undocumented)
+    cut: null;
+    // (undocumented)
+    paste: null;
+    // (undocumented)
+    print: null;
+    // (undocumented)
+    redo: null;
+    // (undocumented)
+    undo: null;
+}
+
+// @public (undocumented)
 export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'toolbar' | 'unknown' | 'zoom-menu';
 
 // @public (undocumented)
