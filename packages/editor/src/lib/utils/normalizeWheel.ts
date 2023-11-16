@@ -1,6 +1,7 @@
 // Reasonable defaults
 const MAX_ZOOM_STEP = 10
 const IS_DARWIN = /Mac|iPod|iPhone|iPad/.test(
+	// eslint-disable-next-line deprecation/deprecation
 	typeof window === 'undefined' ? 'node' : window.navigator.platform
 )
 

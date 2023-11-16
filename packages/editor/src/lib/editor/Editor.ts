@@ -3575,7 +3575,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	// eslint-disable-next-line no-restricted-syntax
 	getCurrentPageId(): TLPageId {
 		return this.getInstanceState().currentPageId
 	}
@@ -3614,7 +3613,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	// eslint-disable-next-line no-restricted-syntax
 	getCurrentPageShapeIds() {
 		return this._currentPageShapeIds.get()
 	}
@@ -6880,7 +6878,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (this.getInstanceState().isReadonly) return null
 			if (partials.length <= 0) return null
 
-			const { currentPageShapeIds } = this
+			const currentPageShapeIds = this.getCurrentPageShapeIds()
 
 			const maxShapesReached = partials.length + currentPageShapeIds.size > MAX_SHAPES_PER_PAGE
 
@@ -8315,7 +8313,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return newShape
 		})
 
-		if (newShapes.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE) {
+		if (newShapes.length + this.getCurrentPageShapeIds().size > MAX_SHAPES_PER_PAGE) {
 			// There's some complexity here involving children
 			// that might be created without their parents, so
 			// if we're going over the limit then just don't paste.

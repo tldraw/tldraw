@@ -165,6 +165,7 @@ export function usePrint() {
 					window.print()
 				} else if (editor.environment.isSafari) {
 					beforePrintHandler()
+					// eslint-disable-next-line deprecation/deprecation
 					document.execCommand('print', false)
 				} else {
 					window.print()

@@ -28,7 +28,7 @@ export function copyAs(
 	return editor
 		.getSvg(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
 			scale: 1,
-			background: editor.instanceState.exportBackground,
+			background: editor.getInstanceState().exportBackground,
 			...opts,
 		})
 		.then((svg) => {

@@ -61,10 +61,10 @@ export class ScreenshotDragging extends StateNode {
 	// [3]
 	override onPointerUp = () => {
 		const { editor } = this
-		const box = this.screenshotBox.value
+		const box = this.screenshotBox.get()
 
 		// get all shapes contained by or intersecting the box
-		const shapes = editor.currentPageShapes.filter((s) => {
+		const shapes = editor.getCurrentPageShapes().filter((s) => {
 			const pageBounds = editor.getShapeMaskedPageBounds(s)
 			if (!pageBounds) return false
 			return box.includes(pageBounds)
@@ -77,7 +77,7 @@ export class ScreenshotDragging extends StateNode {
 					editor,
 					shapes.map((s) => s.id),
 					'png',
-					{ bounds: box, background: editor.instanceState.exportBackground }
+					{ bounds: box, background: editor.getInstanceState().exportBackground }
 				)
 			} else {
 				// Export the shapes as a png
@@ -85,7 +85,7 @@ export class ScreenshotDragging extends StateNode {
 					editor,
 					shapes.map((s) => s.id),
 					'png',
-					{ bounds: box, background: editor.instanceState.exportBackground }
+					{ bounds: box, background: editor.getInstanceState().exportBackground }
 				)
 			}
 		}

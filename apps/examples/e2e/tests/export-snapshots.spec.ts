@@ -198,7 +198,7 @@ test.describe('Export snapshots', () => {
 				editor
 					.updateInstanceState({ exportBackground: false })
 					.selectAll()
-					.deleteShapes(editor.selectedShapeIds)
+					.deleteShapes(editor.getSelectedShapeIds())
 					.createShapes(shapes)
 			}, shapes as any)
 
