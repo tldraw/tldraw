@@ -35318,7 +35318,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#currentToolIdMask:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getCurrentToolIdMask()` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -35471,6 +35471,37 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCurrent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#getCurrentToolIdMask:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentToolIdMask(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentToolIdMask"
             },
             {
               "kind": "Method",
@@ -36328,6 +36359,54 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#setCurrentToolIdMask:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setCurrentToolIdMask(id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "id",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "setCurrentToolIdMask"
             },
             {
               "kind": "Property",

@@ -24,7 +24,7 @@ export class PointingCropHandle extends StateNode {
 
 	override onEnter = (info: TLPointingCropHandleInfo) => {
 		this.info = info
-		this.parent.currentToolIdMask = info.onInteractionEnd
+		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		const selectedShape = this.editor.getSelectedShapes()[0]
 		if (!selectedShape) return
 
@@ -37,7 +37,7 @@ export class PointingCropHandle extends StateNode {
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
-		this.parent.currentToolIdMask = undefined
+		this.parent.setCurrentToolIdMask(undefined)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {

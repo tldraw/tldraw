@@ -13,17 +13,17 @@ export class ZoomTool extends StateNode {
 
 	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
-		this.currentToolIdMask = info.onInteractionEnd
+		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.updateCursor()
 	}
 
 	override onExit = () => {
-		this.currentToolIdMask = undefined
+		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.updateInstanceState(
 			{ zoomBrush: null, cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
-		this.currentToolIdMask = undefined
+		this.parent.setCurrentToolIdMask(undefined)
 	}
 
 	override onKeyDown: TLKeyboardEvent | undefined = () => {

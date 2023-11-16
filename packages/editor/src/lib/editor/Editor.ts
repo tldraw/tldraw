@@ -1153,7 +1153,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentToolId(): string {
 		const currentTool = this.getCurrentTool()
 		if (!currentTool) return ''
-		return currentTool.currentToolIdMask ?? currentTool.id
+		return currentTool.getCurrentToolIdMask() ?? currentTool.id
 	}
 
 	/**

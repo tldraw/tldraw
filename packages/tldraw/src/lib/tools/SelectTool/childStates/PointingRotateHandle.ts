@@ -21,13 +21,13 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	override onEnter = (info: PointingRotateHandleInfo) => {
-		this.parent.currentToolIdMask = info.onInteractionEnd
+		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.info = info
 		this.updateCursor()
 	}
 
 	override onExit = () => {
-		this.parent.currentToolIdMask = undefined
+		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }

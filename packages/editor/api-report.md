@@ -1897,7 +1897,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
-    // (undocumented)
+    // @deprecated (undocumented)
     get currentToolIdMask(): string | undefined;
     set currentToolIdMask(id: string | undefined);
     _currentToolIdMask: Atom<string | undefined, unknown>;
@@ -1908,6 +1908,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     exit: (info: any, from: string) => void;
     getCurrent(): StateNode | undefined;
+    // (undocumented)
+    getCurrentToolIdMask(): string | undefined;
     getIsActive(): boolean;
     getPath(): string;
     // (undocumented)
@@ -1958,6 +1960,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     parent: StateNode;
     // (undocumented)
     _path: Computed<string>;
+    // (undocumented)
+    setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)
     shapeType?: string;
     transition: (id: string, info?: any) => this;
