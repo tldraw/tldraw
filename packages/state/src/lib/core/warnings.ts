@@ -3,10 +3,8 @@ const isDev = typeof process !== 'undefined' && process.env?.NODE_ENV === 'devel
 const isProd = !isDev
 
 // remove this once we've removed all getters from our app
-const ROLLOUT_OVERRIDE_REMOVE_ME = true
 
 export function logDotValueWarning() {
-	if (ROLLOUT_OVERRIDE_REMOVE_ME) return
 	if (isProd) return
 	if (didWarnDotValue) return
 	didWarnDotValue = true
@@ -18,7 +16,6 @@ export function logDotValueWarning() {
 let didWarnComputedGetter = false
 
 export function logComputedGetterWarning() {
-	if (ROLLOUT_OVERRIDE_REMOVE_ME) return
 	if (isProd) return
 	if (didWarnComputedGetter) return
 	didWarnComputedGetter = true
