@@ -388,7 +388,7 @@ export class Idle extends StateNode {
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
 		if (
-			this.editor.getFocusedGroupId() !== this.editor.currentPageId &&
+			this.editor.getFocusedGroupId() !== this.editor.getCurrentPageId() &&
 			this.editor.getSelectedShapeIds().length > 0
 		) {
 			this.editor.popFocusedGroupId()

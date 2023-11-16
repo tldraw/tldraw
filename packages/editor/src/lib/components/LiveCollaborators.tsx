@@ -31,7 +31,7 @@ const CollaboratorGuard = track(function CollaboratorGuard({
 	const presence = usePresence(collaboratorId)
 	const collaboratorState = useCollaboratorState(presence)
 
-	if (!(presence && presence.currentPageId === editor.currentPageId)) {
+	if (!(presence && presence.currentPageId === editor.getCurrentPageId())) {
 		// No need to render if we don't have a presence or if they're on a different page
 		return null
 	}

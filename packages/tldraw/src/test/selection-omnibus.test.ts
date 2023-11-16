@@ -580,7 +580,7 @@ describe('when shape is inside of a frame', () => {
 		editor.deleteShape(ids.box1)
 		editor.createShape({
 			id: ids.box5,
-			parentId: editor.currentPageId,
+			parentId: editor.getCurrentPageId(),
 			type: 'geo',
 			props: {
 				w: 75,
@@ -1330,15 +1330,15 @@ describe('When children / descendants of a group are selected', () => {
 	it('does not allow ancestors and children to be selected, picking the ancestor', () => {
 		editor.select(ids.group3, ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 
 		editor.select(ids.group3, ids.box1, ids.box2)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 
 		editor.select(ids.group3, ids.group2, ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	it('picks the highest common focus layer id', () => {
@@ -1350,16 +1350,16 @@ describe('When children / descendants of a group are selected', () => {
 	it('picks the highest common focus layer id', () => {
 		editor.select(ids.box1, ids.box5) // child of group1 and child of the page
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box5])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	it('sets the parent to the highest common ancestor', () => {
 		editor.selectNone()
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		editor.select(ids.group3)
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		editor.select(ids.group3, ids.box1)
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
 	})
 })
@@ -1382,10 +1382,10 @@ describe('When pressing the enter key with groups selected', () => {
 		editor.select(ids.group1, ids.group2)
 		editor.keyDown('Enter')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1, ids.group2])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		editor.keyUp('Enter')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3, ids.box4])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	it('repeats children of the groups on enter up', () => {

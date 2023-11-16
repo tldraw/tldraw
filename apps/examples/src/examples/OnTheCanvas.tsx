@@ -51,7 +51,7 @@ function MyComponent() {
 // The "InFrontOfTheCanvas" component is rendered on top of the canvas, but behind the UI.
 const MyComponentInFront = track(() => {
 	const editor = useEditor()
-	const selectionRotatedPageBounds = editor.getSelectionRotatedPageBounds()
+	const selectionRotatedPageBounds = editor.selectionRotatedPageBounds
 
 	if (!selectionRotatedPageBounds) return null
 

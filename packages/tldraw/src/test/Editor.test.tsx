@@ -35,7 +35,7 @@ beforeEach(() => {
 		{ id: ids.box3, type: 'geo', x: 500, y: 500, props: { w: 100, h: 100 }, parentId: ids.group1 },
 	])
 
-	const page1 = editor.currentPageId
+	const page1 = editor.getCurrentPageId()
 	editor.createPage({ name: 'page 2', id: ids.page2 })
 	editor.setCurrentPage(page1)
 })
@@ -55,7 +55,7 @@ describe('shapes that are moved to another page', () => {
 		editor.setFocusedGroup(ids.group1)
 		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 		moveShapesToPage2()
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	describe("should be excluded from the previous page's hintingShapeIds", () => {
@@ -492,7 +492,7 @@ describe('getShapeUtil', () => {
 		editor.createShapes([
 			{ id: ids.box1, type: 'blorg', x: 100, y: 100, props: { w: 100, h: 100 } },
 		])
-		const page1 = editor.currentPageId
+		const page1 = editor.getCurrentPageId()
 		editor.createPage({ name: 'page 2', id: ids.page2 })
 		editor.setCurrentPage(page1)
 	})

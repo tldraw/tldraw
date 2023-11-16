@@ -465,7 +465,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 
 	const [html, setHtml] = React.useState('')
 
-	const isInRoot = shape?.parentId === editor.currentPageId
+	const isInRoot = shape?.parentId === editor.getCurrentPageId()
 
 	React.useEffect(() => {
 		if (!isInRoot) return

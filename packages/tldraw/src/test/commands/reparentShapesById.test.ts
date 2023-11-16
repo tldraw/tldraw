@@ -30,11 +30,11 @@ beforeEach(() => {
 })
 
 it('reparents a shape', () => {
-	expect(editor.getShape(ids.box2)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(ids.box2)!.parentId).toBe(editor.getCurrentPageId())
 	editor.reparentShapes([ids.box2], ids.box1)
 	expect(editor.getShape(ids.box2)!.parentId).toBe(ids.box1)
-	editor.reparentShapes([ids.box2], editor.currentPageId)
-	expect(editor.getShape(ids.box2)!.parentId).toBe(editor.currentPageId)
+	editor.reparentShapes([ids.box2], editor.getCurrentPageId())
+	expect(editor.getShape(ids.box2)!.parentId).toBe(editor.getCurrentPageId())
 })
 
 it('preserves shape page transfors', () => {
@@ -63,7 +63,7 @@ it('adds children to the top of the parents children by default', () => {
 	expect(editor.getShape(ids.box2)!.index).toBe('a1')
 	expect(editor.getShape(ids.box3)!.index).toBe('a2')
 
-	editor.reparentShapes([ids.box2], editor.currentPageId)
+	editor.reparentShapes([ids.box2], editor.getCurrentPageId())
 
 	// When moving back, place at the top of the stack
 	expect(editor.getShape(ids.box2)!.index).toBe('a6')
@@ -143,7 +143,7 @@ it('adds children at a given index', () => {
 
 	// Handles collisions (trying to move boxes 2, 3, and 5 to a0, but box1 is there already)
 	// Should order them between box1 and box4
-	editor.reparentShapes([ids.box2, ids.box3, ids.box5], editor.currentPageId, 'a1')
+	editor.reparentShapes([ids.box2, ids.box3, ids.box5], editor.getCurrentPageId(), 'a1')
 
 	// Page
 	// - box1 a1

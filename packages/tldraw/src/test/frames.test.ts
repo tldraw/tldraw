@@ -245,7 +245,7 @@ describe('frame shapes', () => {
 			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
 		])
 
-		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		editor.setCurrentTool('select')
 		editor.pointerDown(275, 275).pointerMove(150, 150)
@@ -258,7 +258,7 @@ describe('frame shapes', () => {
 		editor.pointerMove(275, 275)
 		jest.advanceTimersByTime(250)
 
-		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		editor.pointerMove(150, 150)
 		jest.advanceTimersByTime(250)
@@ -282,14 +282,14 @@ describe('frame shapes', () => {
 		])
 
 		// It should be a child of the page
-		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		// Drag the shape on top of the frame
 		editor.setCurrentTool('select')
 		editor.pointerDown(275, 275, ids.boxA).pointerMove(150, 150)
 
 		// The timeout has not fired yet, so the shape is still a child of the current page
-		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		// On pointer up, the shape should be dropped into the frame
 		editor.pointerUp()
@@ -384,7 +384,7 @@ describe('frame shapes', () => {
 		})
 		expect(editor.snaps.getLines()).toHaveLength(0)
 		// and if we unparent the box it should snap
-		editor.reparentShapes([innerBoxId], editor.currentPageId)
+		editor.reparentShapes([innerBoxId], editor.getCurrentPageId())
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
 		expect(editor.snaps.getLines()).toHaveLength(1)
@@ -441,7 +441,7 @@ describe('frame shapes', () => {
 			`"polygon(-50px -50px,50px -50px,50px 50px,-50px 50px)"`
 		)
 
-		editor.reparentShapes([editor.getOnlySelectedShape()!.id], editor.currentPageId)
+		editor.reparentShapes([editor.getOnlySelectedShape()!.id], editor.getCurrentPageId())
 
 		expect(editor.getShapeClipPath(editor.getOnlySelectedShape()!.id)).toBeUndefined()
 	})
@@ -481,7 +481,7 @@ describe('frame shapes', () => {
 		expect(arrow.props.start).toMatchObject({ boundShapeId: frameId })
 		expect(arrow.props.end).toMatchObject({ type: 'point' })
 
-		expect(arrow.parentId).toBe(editor.currentPageId)
+		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 	})
 
 	it('arrows started within the frame can bind to a shape within the frame ', () => {
@@ -506,7 +506,7 @@ describe('frame shapes', () => {
 		expect(arrow.props.start).toMatchObject({ boundShapeId: boxId })
 		expect(arrow.props.end).toMatchObject({ boundShapeId: frameId })
 
-		expect(arrow.parentId).toBe(editor.currentPageId)
+		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 	})
 
 	it('can be edited', () => {
@@ -706,9 +706,9 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	editor.translateSelection(200, 0)
 
 	// expect group parent to be the page
-	expect(editor.getShape(groupId)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(groupId)!.parentId).toBe(editor.getCurrentPageId())
 	// expect arrow parent to be the page
-	expect(editor.getShape(arrowId)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(arrowId)!.parentId).toBe(editor.getCurrentPageId())
 	// expect arrow index to be greater than group index
 	expect(editor.getShape(arrowId)?.index.localeCompare(editor.getShape(groupId)!.index)).toBe(1)
 })
@@ -772,6 +772,6 @@ describe('When dragging a shape inside a group inside a frame', () => {
 
 		jest.advanceTimersByTime(300)
 
-		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.currentPageId)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
 	})
 })

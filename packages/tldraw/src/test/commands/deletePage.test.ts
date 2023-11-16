@@ -56,14 +56,14 @@ describe('deletePage', () => {
 		editor.mark('before creating page')
 		editor.createPage({ name: 'New Page 2', id: page2Id })
 
-		const currentPageId = editor.currentPageId
+		const currentPageId = editor.getCurrentPageId()
 		editor.deletePage(currentPageId)
 		expect(editor.getPages().length).toBe(1)
-		expect(editor.currentPageId).not.toBe(currentPageId)
-		expect(editor.currentPageId).toBe(editor.getPages()[0].id)
+		expect(editor.getCurrentPageId()).not.toBe(currentPageId)
+		expect(editor.getCurrentPageId()).toBe(editor.getPages()[0].id)
 	})
 	it('switches the page if another user or tab deletes the current page', () => {
-		const currentPageId = editor.currentPageId
+		const currentPageId = editor.getCurrentPageId()
 		const page2Id = PageRecordType.createId('page2')
 		editor.mark('before creating')
 		editor.createPage({ name: 'New Page 2', id: page2Id })
@@ -73,7 +73,7 @@ describe('deletePage', () => {
 		})
 
 		expect(editor.getPages().length).toBe(1)
-		expect(editor.currentPageId).not.toBe(currentPageId)
-		expect(editor.currentPageId).toBe(editor.getPages()[0].id)
+		expect(editor.getCurrentPageId()).not.toBe(currentPageId)
+		expect(editor.getCurrentPageId()).toBe(editor.getPages()[0].id)
 	})
 })

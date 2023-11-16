@@ -8,26 +8,26 @@ beforeEach(() => {
 })
 
 it('Creates a page', () => {
-	const oldPageId = editor.currentPageId
+	const oldPageId = editor.getCurrentPageId()
 	const n = editor.getPages().length
 	editor.mark('creating new page')
 	editor.createPage({ name: 'Page 1' })
 	expect(editor.getPages().length).toBe(n + 1)
 	const newPageId = editor.getPages()[n].id
 	// does not move to the new page right away
-	expect(editor.currentPageId).toBe(oldPageId)
+	expect(editor.getCurrentPageId()).toBe(oldPageId)
 
 	// needs to be done manually
 	editor.setCurrentPage(newPageId)
-	expect(editor.currentPageId).toBe(newPageId)
+	expect(editor.getCurrentPageId()).toBe(newPageId)
 
 	editor.undo()
 	expect(editor.getPages().length).toBe(n)
-	expect(editor.currentPageId).toBe(oldPageId)
+	expect(editor.getCurrentPageId()).toBe(oldPageId)
 
 	editor.redo()
 	expect(editor.getPages().length).toBe(n + 1)
-	expect(editor.currentPageId).toBe(newPageId)
+	expect(editor.getCurrentPageId()).toBe(newPageId)
 })
 
 it("Doesn't create a page if max pages is reached", () => {

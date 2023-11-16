@@ -10,7 +10,7 @@ beforeEach(() => {
 
 it('gets common bounds', () => {
 	// Put the ellipse back on the page to avoid a weird bounding box width
-	editor.reparentShapes([defaultShapesIds.ellipse1], editor.currentPageId)
+	editor.reparentShapes([defaultShapesIds.ellipse1], editor.getCurrentPageId())
 
 	editor.updateShapes([
 		{

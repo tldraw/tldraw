@@ -49,6 +49,7 @@ import {
 	hasOwnProperty,
 	sortById,
 	structuredClone,
+	warnDeprecatedGetter,
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { TLUser, createTLUser } from '../config/createTLUser'
@@ -600,7 +601,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		})
 
-		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
+		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () =>
+			this.getCurrentPageId()
+		)
 		this._parentIdsToChildIds = parentsToChildren(this.store)
 
 		this.disposables.add(
@@ -807,6 +810,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get canUndo(): boolean {
+		warnDeprecatedGetter('canUndo')
 		return this.getCanUndo()
 	}
 
@@ -839,6 +843,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get canRedo(): boolean {
+		warnDeprecatedGetter('canRedo')
 		return this.getCanRedo()
 	}
 
@@ -1141,10 +1146,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * @deprecated Use `getCurrentTool` instead.
-	 * @public
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentTool() {
+		warnDeprecatedGetter('currentTool')
 		return this.getCurrentTool()
 	}
 
@@ -1164,6 +1169,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentToolId() {
+		warnDeprecatedGetter('currentToolId')
 		return this.getCurrentToolId()
 	}
 
@@ -1209,6 +1215,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get documentSettings() {
+		warnDeprecatedGetter('documentSettings')
 		return this.getDocumentSettings()
 	}
 
@@ -1238,6 +1245,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get instanceState() {
+		warnDeprecatedGetter('instanceState')
 		return this.getInstanceState()
 	}
 
@@ -1323,6 +1331,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get openMenus() {
+		warnDeprecatedGetter('openMenus')
 		return this.getOpenMenus()
 	}
 
@@ -1383,6 +1392,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get isMenuOpen() {
+		warnDeprecatedGetter('isMenuOpen')
 		return this.getIsMenuOpen()
 	}
 
@@ -1420,6 +1430,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get pageStates() {
+		warnDeprecatedGetter('pageStates')
 		return this.getPageStates()
 	}
 
@@ -1442,12 +1453,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentPageState() {
+		warnDeprecatedGetter('currentPageState')
 		return this.getCurrentPageState()
 	}
 
 	/** @internal */
 	@computed private _getCurrentPageStateId() {
-		return InstancePageStateRecordType.createId(this.currentPageId)
+		return InstancePageStateRecordType.createId(this.getCurrentPageId())
 	}
 
 	/**
@@ -1508,6 +1520,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get selectedShapeIds() {
+		warnDeprecatedGetter('selectedShapeIds')
 		return this.getSelectedShapeIds()
 	}
 
@@ -1527,6 +1540,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get selectedShapes() {
+		warnDeprecatedGetter('selectedShapes')
 		return this.getSelectedShapes()
 	}
 
@@ -1659,7 +1673,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectAll(): this {
-		const ids = this.getSortedChildIdsForParent(this.currentPageId)
+		const ids = this.getSortedChildIdsForParent(this.getCurrentPageId())
 		// page might have no shapes
 		if (ids.length <= 0) return this
 		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
@@ -1704,6 +1718,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get onlySelectedShape() {
+		warnDeprecatedGetter('onlySelectedShape')
 		return this.getOnlySelectedShape()
 	}
 
@@ -1728,6 +1743,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get selectionPageBounds() {
+		warnDeprecatedGetter('selectionPageBounds')
 		return this.getSelectionPageBounds()
 	}
 
@@ -1759,6 +1775,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get selectionRotation() {
+		warnDeprecatedGetter('selectionRotation')
 		return this.getSelectionRotation()
 	}
 
@@ -1807,6 +1824,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get selectionRotatedPageBounds() {
+		warnDeprecatedGetter('selectionRotatedPageBounds')
 		return this.getSelectionRotatedPageBounds()
 	}
 
@@ -1818,7 +1836,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getFocusedGroupId(): TLShapeId | TLPageId {
-		return this.getCurrentPageState().focusedGroupId ?? this.currentPageId
+		return this.getCurrentPageState().focusedGroupId ?? this.getCurrentPageId()
 	}
 
 	/**
@@ -1826,6 +1844,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get focusedGroupId() {
+		warnDeprecatedGetter('focusedGroupId')
 		return this.getFocusedGroupId()
 	}
 
@@ -1844,6 +1863,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get focusedGroup() {
+		warnDeprecatedGetter('focusedGroup')
 		return this.getFocusedGroup()
 	}
 
@@ -1942,6 +1962,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get editingShapeId() {
+		warnDeprecatedGetter('editingShapeId')
 		return this.getEditingShapeId()
 	}
 
@@ -1960,6 +1981,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get editingShape() {
+		warnDeprecatedGetter('editingShape')
 		return this.getEditingShape()
 	}
 
@@ -2010,6 +2032,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get hoveredShapeId() {
+		warnDeprecatedGetter('hoveredShapeId')
 		return this.getHoveredShapeId()
 	}
 
@@ -2028,6 +2051,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get hoveredShape() {
+		warnDeprecatedGetter('hoveredShape')
 		return this.getHoveredShape()
 	}
 
@@ -2067,6 +2091,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get hintingShapeIds() {
+		warnDeprecatedGetter('hintingShapeIds')
 		return this.getHintingShapeIds()
 	}
 
@@ -2085,6 +2110,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get hintingShape() {
+		warnDeprecatedGetter('hintingShape')
 		return this.getHintingShape()
 	}
 
@@ -2127,6 +2153,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get erasingShapeIds() {
+		warnDeprecatedGetter('erasingShapeIds')
 		return this.getErasingShapeIds()
 	}
 
@@ -2145,6 +2172,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get erasingShapes() {
+		warnDeprecatedGetter('erasingShapes')
 		return this.getErasingShapes()
 	}
 
@@ -2202,6 +2230,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get croppingShapeId() {
+		warnDeprecatedGetter('croppingShapeId')
 		return this.getCroppingShapeId()
 	}
 
@@ -2240,7 +2269,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed
 	private getCameraId() {
-		return CameraRecordType.createId(this.currentPageId)
+		return CameraRecordType.createId(this.getCurrentPageId())
 	}
 
 	/**
@@ -2266,6 +2295,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get zoomLevel() {
+		warnDeprecatedGetter('zoomLevel')
 		return this.getZoomLevel()
 	}
 
@@ -2406,7 +2436,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToFit(animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const ids = [...this.currentPageShapeIds]
+		const ids = [...this.getCurrentPageShapeIds()]
 		if (ids.length <= 0) return this
 
 		const pageBounds = Box2d.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
@@ -2831,7 +2861,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// If we're not on the same page, move to the page they're on
-			const isOnSamePage = presence.currentPageId === this.currentPageId
+			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
 			if (!isOnSamePage) {
 				this.setCurrentPage(presence.currentPageId)
 			}
@@ -2978,6 +3008,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get viewportScreenBounds() {
+		warnDeprecatedGetter('viewportScreenBounds')
 		return this.getViewportScreenBounds()
 	}
 
@@ -2995,6 +3026,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get viewportScreenCenter() {
+		warnDeprecatedGetter('viewportScreenCenter')
 		return this.getViewportScreenCenter()
 	}
 
@@ -3014,6 +3046,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get viewportPageBounds() {
+		warnDeprecatedGetter('viewportPageBounds')
 		return this.getViewportPageBounds()
 	}
 
@@ -3031,6 +3064,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get viewportPageCenter() {
+		warnDeprecatedGetter('viewportPageCenter')
 		return this.getViewportPageCenter()
 	}
 
@@ -3130,7 +3164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Change page if leader is on a different page
-			const isOnSamePage = leaderPresence.currentPageId === this.currentPageId
+			const isOnSamePage = leaderPresence.currentPageId === this.getCurrentPageId()
 			const chaseProportion = isOnSamePage ? FOLLOW_CHASE_PROPORTION : 1
 			if (!isOnSamePage) {
 				this.stopFollowingUser()
@@ -3235,6 +3269,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get cameraState() {
+		warnDeprecatedGetter('cameraState')
 		return this.getCameraState()
 	}
 
@@ -3378,7 +3413,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		for (const childId of this.getSortedChildIdsForParent(this.currentPageId)) {
+		for (const childId of this.getSortedChildIdsForParent(this.getCurrentPageId())) {
 			addShapeById(childId, 1, false)
 		}
 
@@ -3411,6 +3446,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get renderingShapes() {
+		warnDeprecatedGetter('renderingShapes')
 		return this.getRenderingShapes()
 	}
 
@@ -3426,9 +3462,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getRenderingBounds` instead.
 	 */
-
 	// eslint-disable-next-line no-restricted-syntax
 	get renderingBounds() {
+		warnDeprecatedGetter('renderingBounds')
 		return this.getRenderingBounds()
 	}
 
@@ -3450,6 +3486,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get renderingBoundsExpanded() {
+		warnDeprecatedGetter('renderingBoundsExpanded')
 		return this.getRenderingBoundsExpanded()
 	}
 
@@ -3511,6 +3548,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get pages() {
+		warnDeprecatedGetter('pages')
 		return this.getPages()
 	}
 
@@ -3519,10 +3557,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
+	getCurrentPage(): TLPage {
+		return this.getPage(this.getCurrentPageId())!
+	}
+
+	/**
+	 * @deprecated use `getCurrentPage` instead.
+	 */
 	// eslint-disable-next-line no-restricted-syntax
-	get currentPage(): TLPage {
-		const page = this.getPage(this.currentPageId)!
-		return page
+	get currentPage() {
+		warnDeprecatedGetter('currentPage')
+		return this.getCurrentPage()
 	}
 
 	/**
@@ -3531,8 +3576,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	// eslint-disable-next-line no-restricted-syntax
-	get currentPageId(): TLPageId {
+	getCurrentPageId(): TLPageId {
 		return this.getInstanceState().currentPageId
+	}
+
+	/**
+	 * @deprecated Use `getCurrentPageId` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPageId() {
+		warnDeprecatedGetter('currentPageId')
+		return this.getCurrentPageId()
 	}
 
 	/**
@@ -3561,8 +3615,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	// eslint-disable-next-line no-restricted-syntax
-	get currentPageShapeIds() {
+	getCurrentPageShapeIds() {
 		return this._currentPageShapeIds.get()
+	}
+	/**
+	 * @deprecated Use `getCurrentPageShapeIds` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPageShapeIds() {
+		warnDeprecatedGetter('currentPageShapeIds')
+		return this.getCurrentPageShapeIds()
 	}
 
 	/**
@@ -3615,7 +3677,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 
 			return {
-				data: { toId: pageId, fromId: this.currentPageId },
+				data: { toId: pageId, fromId: this.getCurrentPageId() },
 				squashing: true,
 				preservesRedoStack: true,
 				...historyOptions,
@@ -3806,7 +3868,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (!deletedPage) return null
 
-			if (id === this.currentPageId) {
+			if (id === this.getCurrentPageId()) {
 				const index = pages.findIndex((page) => page.id === id)
 				const next = pages[index - 1] ?? pages[index + 1]
 				this.setCurrentPage(next.id)
@@ -3819,7 +3881,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const pages = this.getPages()
 				if (pages.length === 1) return
 
-				if (deletedPage.id === this.currentPageId) {
+				if (deletedPage.id === this.getCurrentPageId()) {
 					const index = pages.findIndex((page) => page.id === deletedPage.id)
 					const next = pages[index - 1] ?? pages[index + 1]
 					this.setCurrentPage(next.id)
@@ -3915,6 +3977,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get assets() {
+		warnDeprecatedGetter('assets')
 		return this.getAssets()
 	}
 
@@ -4518,7 +4581,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentPageBounds(): Box2d | undefined {
 		let commonBounds: Box2d | undefined
 
-		this.currentPageShapeIds.forEach((shapeId) => {
+		this.getCurrentPageShapeIds().forEach((shapeId) => {
 			const bounds = this.getShapeMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
@@ -4536,6 +4599,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentPageBounds() {
+		warnDeprecatedGetter('currentPageBounds')
 		return this.getCurrentPageBounds()
 	}
 
@@ -4845,7 +4909,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapes(): TLShape[] {
-		return Array.from(this.currentPageShapeIds, (id) => this.store.get(id)! as TLShape)
+		return Array.from(this.getCurrentPageShapeIds(), (id) => this.store.get(id)! as TLShape)
 	}
 
 	/**
@@ -4853,6 +4917,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentPageShapes() {
+		warnDeprecatedGetter('currentPageShapes')
 		return this.getCurrentPageShapes()
 	}
 
@@ -4895,6 +4960,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentPageShapesSorted() {
+		warnDeprecatedGetter('currentPageShapesSorted')
 		return this.getCurrentPageShapesSorted()
 	}
 
@@ -4916,6 +4982,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get currentPageRenderingShapesSorted() {
+		warnDeprecatedGetter('currentPageRenderingShapesSorted')
 		return this.getCurrentPageRenderingShapesSorted()
 	}
 
@@ -5022,7 +5089,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeInPage(shape: TLShape | TLShapeId, pageId = this.currentPageId): boolean {
+	isShapeInPage(shape: TLShape | TLShapeId, pageId = this.getCurrentPageId()): boolean {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const shapeToCheck = this.getShape(id)
 		if (!shapeToCheck) return false
@@ -5510,7 +5577,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					oy = vec.y
 				}
 
-				const parentId = shape.parentId ?? this.currentPageId
+				const parentId = shape.parentId ?? this.getCurrentPageId()
 				const siblings = this.getSortedChildIdsForParent(parentId)
 				const currentIndex = siblings.indexOf(shape.id)
 				const siblingAboveId = siblings[currentIndex + 1]
@@ -5613,14 +5680,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.history.batch(() => {
 			const maxShapesReached =
-				shapesToCreate.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE
+				shapesToCreate.length + this.getCurrentPageShapeIds().size > MAX_SHAPES_PER_PAGE
 
 			if (maxShapesReached) {
 				alertMaxShapes(this)
 			}
 
 			const newShapes = maxShapesReached
-				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.currentPageShapeIds.size)
+				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.getCurrentPageShapeIds().size)
 				: shapesToCreate
 
 			const ids = newShapes.map((s) => s.id)
@@ -5667,7 +5734,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length === 0) return this
 		if (this.getInstanceState().isReadonly) return this
 
-		const { currentPageId } = this
+		const currentPageId = this.getCurrentPageId()
 
 		if (pageId === currentPageId) return this
 		if (!this.store.has(pageId)) return this
@@ -6827,7 +6894,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			return {
 				data: {
-					currentPageId: this.currentPageId,
+					currentPageId: this.getCurrentPageId(),
 					partials: partials.map((p) =>
 						p.id ? p : { ...p, id: createShapeId() }
 					) as TLShapePartial[],
@@ -7151,7 +7218,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { x, y } = pageBounds.point
 
-		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.currentPageId
+		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.getCurrentPageId()
 
 		// Only group when the select tool is active
 		if (this.getCurrentToolId() !== 'select') return this
@@ -7613,6 +7680,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get sharedStyles() {
+		warnDeprecatedGetter('sharedStyles')
 		return this.getSharedStyles()
 	}
 
@@ -7663,6 +7731,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get sharedOpacity() {
+		warnDeprecatedGetter('sharedOpacity')
 		return this.getSharedOpacity()
 	}
 
@@ -8060,7 +8129,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shape.x = pagePoint.x
 				shape.y = pagePoint.y
 				shape.rotation = pageRotation
-				shape.parentId = this.currentPageId
+				shape.parentId = this.getCurrentPageId()
 
 				rootShapeIds.push(shape.id)
 			}
@@ -8114,13 +8183,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
-		const { currentPageId } = this
+		const currentPageId = this.getCurrentPageId()
 		const { assets, shapes, rootShapeIds } = content
 
 		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
 
 		// By default, the paste parent will be the current page.
-		let pasteParentId = this.currentPageId as TLPageId | TLShapeId
+		let pasteParentId = this.getCurrentPageId() as TLPageId | TLShapeId
 		let lowestDepth = Infinity
 		let lowestAncestors: TLShape[] = []
 
@@ -9311,7 +9380,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 }
 
-function alertMaxShapes(editor: Editor, pageId = editor.currentPageId) {
+function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
 }

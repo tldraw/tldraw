@@ -1,4 +1,5 @@
 import { computed } from '@tldraw/state'
+import { warnDeprecatedGetter } from '@tldraw/utils'
 import {
 	TLUserPreferences,
 	defaultUserPreferences,
@@ -31,6 +32,7 @@ export class UserPreferencesManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get userPreferences() {
+		warnDeprecatedGetter('userPreferences')
 		return this.getUserPreferences()
 	}
 
@@ -46,6 +48,7 @@ export class UserPreferencesManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get isDarkMode() {
+		warnDeprecatedGetter('isDarkMode')
 		return this.getIsDarkMode()
 	}
 
@@ -58,6 +61,7 @@ export class UserPreferencesManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get animationSpeed() {
+		warnDeprecatedGetter('animationSpeed')
 		return this.getAnimationSpeed()
 	}
 
@@ -70,6 +74,7 @@ export class UserPreferencesManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get id() {
+		warnDeprecatedGetter('id')
 		return this.getId()
 	}
 
@@ -82,6 +87,7 @@ export class UserPreferencesManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get name() {
+		warnDeprecatedGetter('name')
 		return this.getName()
 	}
 
@@ -94,6 +100,7 @@ export class UserPreferencesManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get locale() {
+		warnDeprecatedGetter('locale')
 		return this.getLocale()
 	}
 
@@ -106,6 +113,7 @@ export class UserPreferencesManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get color() {
+		warnDeprecatedGetter('color')
 		return this.getColor()
 	}
 
@@ -118,6 +126,7 @@ export class UserPreferencesManager {
 	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get isSnapMode() {
+		warnDeprecatedGetter('isSnapMode')
 		return this.getIsSnapMode()
 	}
 }

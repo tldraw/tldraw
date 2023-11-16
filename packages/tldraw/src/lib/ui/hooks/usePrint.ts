@@ -172,7 +172,7 @@ export function usePrint() {
 			}
 
 			const selectedShapeIds = editor.getSelectedShapeIds()
-			const { currentPageId } = editor
+			const currentPageId = editor.getCurrentPageId()
 			const pages = editor.getPages()
 
 			const preserveAspectRatio = 'xMidYMid meet'
@@ -205,7 +205,7 @@ export function usePrint() {
 					}
 					triggerPrint()
 				} else {
-					const page = editor.currentPage
+					const page = editor.getCurrentPage()
 					const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
 					if (svg) {
 						addPageToPrint(`tldraw — ${page.name}`, null, svg)

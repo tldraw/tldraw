@@ -23,7 +23,7 @@ function asPlainObject(styles: ReadonlySharedStyleMap | null) {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.createShapes(createDefaultShapes())
-	editor.reparentShapes([defaultShapesIds.ellipse1], editor.currentPageId)
+	editor.reparentShapes([defaultShapesIds.ellipse1], editor.getCurrentPageId())
 })
 
 describe('Editor.styles', () => {

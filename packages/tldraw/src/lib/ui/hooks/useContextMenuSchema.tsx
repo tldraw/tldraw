@@ -64,7 +64,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	const threeStackableItems = useThreeStackableItems()
 	const atLeastOneShapeOnPage = useValue(
 		'atLeastOneShapeOnPage',
-		() => editor.currentPageShapeIds.size > 0,
+		() => editor.getCurrentPageShapeIds().size > 0,
 		[]
 	)
 	const isTransparentBg = useValue(
