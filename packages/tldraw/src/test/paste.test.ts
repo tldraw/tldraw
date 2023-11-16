@@ -224,7 +224,7 @@ describe('When pasting', () => {
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.selectionPageCenter).toMatchObject(
+		expect(editor.getSelectionPageCenter()).toMatchObject(
 			editor.getPageCenter(editor.getShape(ids.frame1)!)!
 		)
 	})
@@ -317,7 +317,7 @@ describe('When pasting', () => {
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.selectionPageCenter).toMatchObject(editor.getPageCenter(shapes.old.frame1)!)
+		expect(editor.getSelectionPageCenter()).toMatchObject(editor.getPageCenter(shapes.old.frame1)!)
 	})
 })
 

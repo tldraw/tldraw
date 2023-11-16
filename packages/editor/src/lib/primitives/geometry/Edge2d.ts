@@ -24,6 +24,7 @@ export class Edge2d extends Geometry2d {
 
 	_length?: number
 
+	// eslint-disable-next-line no-restricted-syntax
 	get length() {
 		if (!this._length) {
 			return this.d.len()

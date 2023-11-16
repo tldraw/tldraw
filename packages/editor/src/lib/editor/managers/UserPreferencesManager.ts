@@ -29,6 +29,7 @@ export class UserPreferencesManager {
 	/**
 	 * @deprecated use `getUserPreferences` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get userPreferences() {
 		return this.getUserPreferences()
 	}
@@ -43,6 +44,7 @@ export class UserPreferencesManager {
 	/**
 	 * @deprecated use `getIsDarkMode` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get isDarkMode() {
 		return this.getIsDarkMode()
 	}
@@ -54,6 +56,7 @@ export class UserPreferencesManager {
 	/**
 	 * @deprecated use `getAnimationSpeed` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get animationSpeed() {
 		return this.getAnimationSpeed()
 	}
@@ -65,6 +68,7 @@ export class UserPreferencesManager {
 	/**
 	 * @deprecated use `getId` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get id() {
 		return this.getId()
 	}
@@ -76,6 +80,7 @@ export class UserPreferencesManager {
 	/**
 	 * @deprecated use `getName` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get name() {
 		return this.getName()
 	}
@@ -87,6 +92,7 @@ export class UserPreferencesManager {
 	/**
 	 * @deprecated use `getLocale` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get locale() {
 		return this.getLocale()
 	}
@@ -98,6 +104,7 @@ export class UserPreferencesManager {
 	/**
 	 * @deprecated use `getColor` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get color() {
 		return this.getColor()
 	}
@@ -109,6 +116,7 @@ export class UserPreferencesManager {
 	/**
 	 * @deprecated use `getIsSnapMode` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get isSnapMode() {
 		return this.getIsSnapMode()
 	}

@@ -15,6 +15,7 @@ export class CubicSpline2d extends Geometry2d {
 
 	_segments?: CubicBezier2d[]
 
+	// eslint-disable-next-line no-restricted-syntax
 	get segments() {
 		if (!this._segments) {
 			this._segments = []
@@ -49,6 +50,7 @@ export class CubicSpline2d extends Geometry2d {
 
 	_length?: number
 
+	// eslint-disable-next-line no-restricted-syntax
 	get length() {
 		if (!this._length) {
 			this._length = this.segments.reduce((acc, segment) => acc + segment.length, 0)

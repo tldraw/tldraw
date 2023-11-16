@@ -33891,6 +33891,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#getLines:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getLines(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SnapLine",
+                  "canonicalReference": "@tldraw/editor!SnapLine:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getLines"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!SnapManager#getOutlinesInPageSpace:member(1)",
               "docComment": "",
               "excerptTokens": [
@@ -34209,7 +34245,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!SnapManager#lines:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * use `getLines` instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

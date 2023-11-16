@@ -1922,14 +1922,14 @@ describe('snapping', () => {
 		editor.select(groupCId)
 		editor.pointerDown(10, 5, groupCId)
 		editor.pointerMove(80, 5, groupCId, { ctrlKey: true })
-		expect(editor.snaps.lines.length).toBe(0)
+		expect(editor.snaps.getLines().length).toBe(0)
 	})
 
 	it('does not happen between children and thier group', () => {
 		editor.select(ids.boxD)
 		editor.pointerDown(65, 5, ids.boxD)
 		editor.pointerMove(80, 105, ids.boxD, { ctrlKey: true })
-		expect(editor.snaps.lines.length).toBe(0)
+		expect(editor.snaps.getLines().length).toBe(0)
 	})
 })
 

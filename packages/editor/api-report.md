@@ -1803,6 +1803,8 @@ export class SnapManager {
     // (undocumented)
     getCurrentCommonAncestor(): TLShapeId | undefined;
     // (undocumented)
+    getLines(): SnapLine[];
+    // (undocumented)
     getOutlinesInPageSpace(): Vec2d[][];
     // (undocumented)
     getSnappablePoints(): SnapPoint[];
@@ -1822,7 +1824,7 @@ export class SnapManager {
         horizontal: Gap[];
         vertical: Gap[];
     };
-    // (undocumented)
+    // @deprecated (undocumented)
     get lines(): SnapLine[];
     // @deprecated (undocumented)
     get outlinesInPageSpace(): Vec2d[][];

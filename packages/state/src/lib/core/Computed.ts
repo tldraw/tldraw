@@ -135,6 +135,7 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 
 	children = new ArraySet<Child>()
 
+	// eslint-disable-next-line no-restricted-syntax
 	get isActivelyListening(): boolean {
 		return !this.children.isEmpty
 	}
@@ -212,6 +213,7 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	/**
 	 * @deprecated Use [[get]] instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get value() {
 		logDotValueWarning()
 		return this.get()

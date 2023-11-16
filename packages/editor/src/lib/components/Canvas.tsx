@@ -189,7 +189,7 @@ function ZoomBrushWrapper() {
 
 function SnapLinesWrapper() {
 	const editor = useEditor()
-	const lines = useValue('snapLines', () => editor.snaps.lines, [editor])
+	const lines = useValue('snapLines', () => editor.snaps.getLines(), [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 	const { SnapLine } = useEditorComponents()
 

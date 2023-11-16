@@ -185,9 +185,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	/**
 	 * @deprecated use `getCurrentToolIdMask()` instead
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentToolIdMask() {
 		return this._currentToolIdMask.get()
 	}
+	// eslint-disable-next-line no-restricted-syntax
 	set currentToolIdMask(id: string | undefined) {
 		this._currentToolIdMask.set(id)
 	}

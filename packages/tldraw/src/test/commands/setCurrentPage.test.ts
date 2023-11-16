@@ -53,7 +53,7 @@ describe('setCurrentPage', () => {
 		editor.setCurrentPage(editor.getPages()[1].id)
 		editor.setCurrentPage(editor.getPages()[0].id)
 		editor.setCurrentPage(editor.getPages()[0].id)
-		expect(editor.history.numUndos).toBe(1)
+		expect(editor.history.getNumUndos()).toBe(1)
 	})
 
 	it('preserves the undo stack', () => {
@@ -68,7 +68,7 @@ describe('setCurrentPage', () => {
 		editor.setCurrentPage(editor.getPages()[0].id)
 		editor.setCurrentPage(editor.getPages()[0].id)
 		expect(editor.getShape(boxId)).toBeUndefined()
-		expect(editor.history.numUndos).toBe(1)
+		expect(editor.history.getNumUndos()).toBe(1)
 		editor.redo()
 		expect(editor.getShape(boxId)).not.toBeUndefined()
 	})
