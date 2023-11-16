@@ -95,6 +95,7 @@ export {
 	type EventsProviderProps,
 	type TLUiEventContextType,
 	type TLUiEventHandler,
+	type TLUiEventMap,
 	type TLUiEventSource,
 } from './lib/ui/hooks/useEventsProvider'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
