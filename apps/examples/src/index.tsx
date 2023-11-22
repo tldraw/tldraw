@@ -23,6 +23,7 @@ import CustomUiExample from './examples/CustomUiExample/CustomUiExample'
 import ErrorBoundaryExample from './examples/ErrorBoundaryExample/ErrorBoundaryExample'
 import ExplodedExample from './examples/ExplodedExample'
 import ExternalContentSourcesExample from './examples/ExternalContentSourcesExample'
+import FloatyExample from './examples/FloatyExample'
 import ForceMobileExample from './examples/ForceBreakpointExample'
 import HideUiExample from './examples/HideUiExample'
 import MetaExample from './examples/MetaExample'
@@ -191,6 +192,11 @@ export const allExamples: Example[] = [
 		title: 'Asset props',
 		path: 'asset-props',
 		element: <AssetPropsExample />,
+	},
+	{
+		title: 'Floaty window',
+		path: 'floaty-window',
+		element: <FloatyExample />,
 	},
 	{
 		title: 'External content sources',
