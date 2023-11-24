@@ -1081,6 +1081,7 @@
 
 .tlui-toast__main:nth-child(1) > .tlui-toast__content {
 	padding-left: var(--space-4);
+	padding-right: var(--space-4);
 }
 
 .tlui-toast__content {
