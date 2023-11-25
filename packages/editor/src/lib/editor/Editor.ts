@@ -5159,6 +5159,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: string) {
 		const ids =
 			typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : shapes.map((s) => (s as TLShape).id)
+		if (ids.length === 0) return this
+
 		const changes: TLShapePartial[] = []
 
 		const parentTransform = isPageId(parentId)

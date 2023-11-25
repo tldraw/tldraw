@@ -1315,6 +1315,11 @@ input,
 	stroke-width: calc(1px * var(--tl-scale));
 }
 
+.tl-frame__creating {
+	stroke: var(--color-selected);
+	fill: none;
+}
+
 .tl-frame__hitarea {
 	border-style: solid;
 	border-width: calc(8px * var(--tl-scale));
