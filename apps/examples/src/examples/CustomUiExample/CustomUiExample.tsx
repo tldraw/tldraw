@@ -1,4 +1,4 @@
-import { Canvas, Tldraw, track, useEditor } from '@tldraw/tldraw'
+import { Tldraw, track, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
 import './custom-ui.css'
@@ -7,7 +7,6 @@ export default function CustomUiExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw hideUi>
-				<Canvas />
 				<CustomUi />
 			</Tldraw>
 		</div>
