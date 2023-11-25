@@ -108,8 +108,9 @@ export class Resizing extends StateNode {
 	private complete() {
 		this.handleResizeEnd()
 
-		if (this.info.isCreating) {
+		if (this.info.isCreating && this.info.onCreate) {
 			this.info.onCreate?.(this.editor.getOnlySelectedShape())
+			return
 		}
 
 		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
