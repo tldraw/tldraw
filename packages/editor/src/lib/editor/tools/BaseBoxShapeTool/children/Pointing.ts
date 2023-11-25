@@ -49,6 +49,7 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creationCursorOffset: { x: 1, y: 1 },
 				onInteractionEnd: this.parent.id,
+				onCreate: (this.parent as BaseBoxShapeTool).onCreate,
 			})
 		}
 	}

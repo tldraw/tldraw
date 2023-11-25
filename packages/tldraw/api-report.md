@@ -78,7 +78,6 @@ import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
 import { TLOnDoubleClickHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleChangeHandler } from '@tldraw/editor';
-import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
@@ -484,6 +483,8 @@ export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    onCreate: (shape: null | TLShape) => void;
+    // (undocumented)
     shapeType: string;
 }
 
@@ -495,8 +496,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
     // (undocumented)
     canEdit: () => boolean;
-    // (undocumented)
-    canEnclose(shape: TLShape, ancestorIds: TLShapeId[], frame: TLShape): boolean;
     // (undocumented)
     canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
     // (undocumented)
@@ -515,8 +514,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => {
         shouldHint: boolean;
     };
-    // (undocumented)
-    onResizeEnd: TLOnResizeEndHandler<TLFrameShape>;
     // (undocumented)
     static props: {
         w: Validator<number>;

@@ -5614,6 +5614,45 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!FrameShapeTool#onCreate:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onCreate: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(shape: null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onCreate",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!FrameShapeTool#shapeType:member",
               "docComment": "",
               "excerptTokens": [
@@ -5794,93 +5833,6 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/tldraw!FrameShapeUtil#canEnclose:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canEnclose(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", ancestorIds: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", frame: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 8,
-                "endIndex": 9
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "ancestorIds",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 5
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "frame",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 6,
-                    "endIndex": 7
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "canEnclose"
             },
             {
               "kind": "Property",
@@ -6242,50 +6194,6 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 6
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!FrameShapeUtil#onResizeEnd:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onResizeEnd: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnResizeEndHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnResizeEndHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLFrameShape",
-                  "canonicalReference": "@tldraw/tlschema!TLFrameShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onResizeEnd",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
               },
               "isStatic": false,
               "isProtected": false,

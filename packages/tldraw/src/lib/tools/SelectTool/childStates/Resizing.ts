@@ -22,7 +22,7 @@ type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
 	handle: SelectionEdge | SelectionCorner
 	isCreating?: boolean
-	editAfterComplete?: boolean
+	onCreate?: (shape: TLShape | null) => void
 	creationCursorOffset?: VecLike
 	onInteractionEnd?: string
 }
@@ -38,21 +38,15 @@ export class Resizing extends StateNode {
 	// so if the user drags x: +50, y: +50 after mouseDown, the shape will be w: 51, h: 51, which is too many pixels, alas
 	// so we allow passing a further offset into this state to negate such issues
 	creationCursorOffset = { x: 0, y: 0 } as VecLike
-	editAfterComplete = false
 
 	private snapshot = {} as any as Snapshot
 
 	override onEnter: TLEnterEventHandler = (info: ResizingInfo) => {
-		const {
-			isCreating = false,
-			editAfterComplete = false,
-			creationCursorOffset = { x: 0, y: 0 },
-		} = info
+		const { isCreating = false, creationCursorOffset = { x: 0, y: 0 } } = info
 
 		this.info = info
 
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
-		this.editAfterComplete = editAfterComplete
 		this.creationCursorOffset = creationCursorOffset
 
 		if (info.isCreating) {
@@ -109,11 +103,8 @@ export class Resizing extends StateNode {
 	private complete() {
 		this.handleResizeEnd()
 
-		const onlySelectedShape = this.editor.getOnlySelectedShape()
-		if (this.editAfterComplete && onlySelectedShape) {
-			this.editor.setEditingShape(onlySelectedShape.id)
-			this.editor.setCurrentTool('select.editing_shape')
-			return
+		if (this.info.isCreating) {
+			this.info.onCreate?.(this.editor.getOnlySelectedShape())
 		}
 
 		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {

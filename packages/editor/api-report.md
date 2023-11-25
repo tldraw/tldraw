@@ -147,6 +147,8 @@ export abstract class BaseBoxShapeTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    onCreate?: (_shape: null | TLShape) => null | void;
+    // (undocumented)
     abstract shapeType: string;
 }
 
