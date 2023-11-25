@@ -1067,7 +1067,6 @@
 	min-width: 200px;
 	display: flex;
 	flex-direction: row;
-	gap: var(--space-3);
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-2);
 	border-radius: var(--radius-3);
@@ -1079,22 +1078,11 @@
 	max-width: 280px;
 }
 
-.tlui-toast__main:nth-child(1) > .tlui-toast__content {
-	padding-left: var(--space-4);
-	padding-right: var(--space-4);
-}
-
 .tlui-toast__content {
-	padding-left: 0px;
-	padding-top: var(--space-4);
-	padding-bottom: var(--space-4);
+	padding: var(--space-4);
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-3);
-}
-
-.tlui-toast__content:not(:only-child) {
-	padding-bottom: var(--space-2);
 }
 
 .tlui-toast__title {
@@ -1110,7 +1098,6 @@
 }
 
 .tlui-toast__icon + .tlui-toast__main > .tlui-toast__actions {
-	margin-left: -12px;
 	padding-left: 0px;
 }
 
