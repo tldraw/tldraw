@@ -1,13 +1,16 @@
 import { EMBED_DEFINITIONS, LANGUAGES, RecursivePartial } from '@tldraw/editor'
 import { version } from '../ui/version'
-import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/assetUrls'
+import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-assets/assetUrls'
 import { TLUiIconType, iconTypes } from './icon-types'
 
 export type TLUiAssetUrls = TLEditorAssetUrls & {
-	icons: Record<TLUiIconType, string>
+	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
 	embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>
 }
+
+/** @public */
+export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>
 
 export let defaultUiAssetUrls: TLUiAssetUrls = {
 	...defaultEditorAssetUrls,

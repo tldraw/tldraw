@@ -26,7 +26,7 @@ export default function UserPresenceExample() {
 
 					const peerPresence = InstancePresenceRecordType.create({
 						id: InstancePresenceRecordType.createId(editor.store.id),
-						currentPageId: editor.currentPageId,
+						currentPageId: editor.getCurrentPageId(),
 						userId: 'peer-1',
 						userName: USER_NAME,
 						cursor: { x: 0, y: 0, type: 'default', rotation: 0 },

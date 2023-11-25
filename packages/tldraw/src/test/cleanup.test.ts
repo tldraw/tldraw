@@ -23,7 +23,7 @@ beforeEach(() => {
 })
 
 function arrow() {
-	return editor.currentPageShapes.find((s) => s.type === 'arrow') as TLArrowShape
+	return editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
 }
 
 describe('restoring bound arrows', () => {
@@ -95,7 +95,7 @@ describe('restoring bound arrows multiplayer', () => {
 		editor.undo() // undo creating the arrow
 
 		// arrow is gone too now
-		expect(editor.currentPageShapeIds.size).toBe(0)
+		expect(editor.getCurrentPageShapeIds().size).toBe(0)
 
 		editor.redo() // redo creating the arrow
 
@@ -106,11 +106,11 @@ describe('restoring bound arrows multiplayer', () => {
 
 		editor.undo() // undo creating arrow
 
-		expect(editor.currentPageShapeIds.size).toBe(0)
+		expect(editor.getCurrentPageShapeIds().size).toBe(0)
 
 		editor.undo() // undo creating box
 
-		expect(editor.currentPageShapeIds.size).toBe(0)
+		expect(editor.getCurrentPageShapeIds().size).toBe(0)
 
 		editor.redo() // redo creating box
 

@@ -75,7 +75,7 @@ export class Pointing extends StateNode {
 			this.editor.bailToMark(this.markId)
 		}
 		this.editor.setHintingShapes([])
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	createArrowShape() {
@@ -180,7 +180,7 @@ export class Pointing extends StateNode {
 	private didTimeout = false
 	private startPreciseTimeout() {
 		this.preciseTimeout = window.setTimeout(() => {
-			if (!this.isActive) return
+			if (!this.getIsActive()) return
 			this.didTimeout = true
 		}, 320)
 	}

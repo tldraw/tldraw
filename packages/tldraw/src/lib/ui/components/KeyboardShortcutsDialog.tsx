@@ -12,6 +12,7 @@ export const KeyboardShortcutsDialog = () => {
 	const shortcutsItems = useKeyboardShortcutsSchema()
 
 	function getKeyboardShortcutItem(item: TLUiMenuChild) {
+		if (!item) return null
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {
@@ -23,7 +24,7 @@ export const KeyboardShortcutsDialog = () => {
 						</h2>
 						<div className="tlui-shortcuts-dialog__group__content">
 							{item.children
-								.filter((item) => item.type === 'item' && item.actionItem.kbd)
+								.filter((item) => item && item.type === 'item' && item.actionItem.kbd)
 								.map(getKeyboardShortcutItem)}
 						</div>
 					</div>

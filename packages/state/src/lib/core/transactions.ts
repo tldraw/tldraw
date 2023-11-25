@@ -22,6 +22,7 @@ class Transaction {
 	 *
 	 * @public
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get isRoot() {
 		return this.parent === null
 	}

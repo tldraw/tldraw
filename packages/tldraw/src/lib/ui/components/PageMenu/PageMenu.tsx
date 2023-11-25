@@ -32,9 +32,9 @@ export const PageMenu = function PageMenu() {
 
 	const rSortableContainer = useRef<HTMLDivElement>(null)
 
-	const pages = useValue('pages', () => editor.pages, [editor])
-	const currentPage = useValue('currentPage', () => editor.currentPage, [editor])
-	const currentPageId = useValue('currentPageId', () => editor.currentPageId, [editor])
+	const pages = useValue('pages', () => editor.getPages(), [editor])
+	const currentPage = useValue('currentPage', () => editor.getCurrentPage(), [editor])
+	const currentPageId = useValue('currentPageId', () => editor.getCurrentPageId(), [editor])
 
 	// When in readonly mode, we don't allow a user to edit the pages
 	const isReadonlyMode = useReadonly()
@@ -42,7 +42,7 @@ export const PageMenu = function PageMenu() {
 	// If the user has reached the max page count, we disable the "add page" button
 	const maxPageCountReached = useValue(
 		'maxPageCountReached',
-		() => editor.pages.length >= MAX_PAGES,
+		() => editor.getPages().length >= MAX_PAGES,
 		[editor]
 	)
 

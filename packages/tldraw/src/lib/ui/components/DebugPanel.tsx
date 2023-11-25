@@ -65,12 +65,14 @@ export const DebugPanel = React.memo(function DebugPanel({
 
 const CurrentState = track(function CurrentState() {
 	const editor = useEditor()
-	return <div className="tlui-debug-panel__current-state">{editor.root.path.get()}</div>
+	return <div className="tlui-debug-panel__current-state">{editor.getPath()}</div>
 })
 
 const ShapeCount = function ShapeCount() {
 	const editor = useEditor()
-	const count = useValue('rendering shapes count', () => editor.renderingShapes.length, [editor])
+	const count = useValue('rendering shapes count', () => editor.getRenderingShapes().length, [
+		editor,
+	])
 
 	return <div>{count} Shapes</div>
 }
@@ -177,7 +179,8 @@ const DebugMenuContent = track(function DebugMenuContent({
 
 						const selectedShapes = editor.getSelectedShapes()
 
-						const shapes = selectedShapes.length === 0 ? editor.renderingShapes : selectedShapes
+						const shapes =
+							selectedShapes.length === 0 ? editor.getRenderingShapes() : selectedShapes
 
 						const elms = shapes.map(
 							(shape) => (document.getElementById(shape.id) as HTMLElement)!.parentElement!

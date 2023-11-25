@@ -86,7 +86,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Overrides for the editor's components, such as handles, collaborator cursors, etc.
 	 */
-	components?: Partial<TLEditorComponents>
+	components?: TLEditorComponents
 
 	/**
 	 * Called when the editor has mounted.
@@ -304,7 +304,7 @@ function TldrawEditorWithReadyStore({
 			},
 			[editor]
 		),
-		() => editor?.crashingError ?? null
+		() => editor?.getCrashingError() ?? null
 	)
 
 	if (!editor) {

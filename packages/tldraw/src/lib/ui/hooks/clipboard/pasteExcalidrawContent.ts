@@ -44,7 +44,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 	const groupShapeIdToChildren = new Map<string, TLShapeId[]>()
 	const rotatedElements = new Map<TLShapeId, number>()
 
-	const { currentPageId } = editor
+	const currentPageId = editor.getCurrentPageId()
 
 	const excElementIdsToTldrawShapeIds = new Map<string, TLShapeId>()
 	const rootShapeIds: TLShapeId[] = []
@@ -345,7 +345,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 
 	const rootShapes = compact(rootShapeIds.map((id) => editor.getShape(id)))
 	const bounds = Box2d.Common(rootShapes.map((s) => editor.getShapePageBounds(s)!))
-	const viewPortCenter = editor.viewportPageBounds.center
+	const viewPortCenter = editor.getViewportPageBounds().center
 	editor.updateShapes(
 		rootShapes.map((s) => {
 			const delta = {

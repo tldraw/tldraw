@@ -69,9 +69,9 @@ export function ToolbarSchemaProvider({ overrides, children }: TLUiToolbarSchema
 			toolbarItem(tools['arrow-up']),
 			toolbarItem(tools['arrow-down']),
 			toolbarItem(tools['arrow-right']),
-			toolbarItem(tools.frame),
 			toolbarItem(tools.line),
 			toolbarItem(tools.highlight),
+			toolbarItem(tools.frame),
 			toolbarItem(tools.laser),
 		])
 

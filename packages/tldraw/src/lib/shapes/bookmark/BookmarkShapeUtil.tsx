@@ -16,9 +16,9 @@ import {
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
-import { getRotatedBoxShadow } from '../../utils/rotated-box-shadow'
-import { truncateStringWithEllipsis } from '../../utils/text'
+import { truncateStringWithEllipsis } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
@@ -67,7 +67,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 						) : (
 							<div className="tl-bookmark__placeholder" />
 						)}
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					</div>
 					<div className="tl-bookmark__copy_container">
 						{asset?.props.title && (

@@ -18,6 +18,7 @@ export class ArraySet<T> {
 	 *
 	 * @returns True if this ArraySet has any elements, false otherwise.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get isEmpty() {
 		if (this.array) {
 			return this.arraySize === 0

@@ -78,6 +78,7 @@ export abstract class Geometry2d {
 
 	_vertices: Vec2d[] | undefined
 
+	// eslint-disable-next-line no-restricted-syntax
 	get vertices(): Vec2d[] {
 		if (!this._vertices) {
 			this._vertices = this.getVertices()
@@ -92,6 +93,7 @@ export abstract class Geometry2d {
 
 	_bounds: Box2d | undefined
 
+	// eslint-disable-next-line no-restricted-syntax
 	get bounds(): Box2d {
 		if (!this._bounds) {
 			this._bounds = this.getBounds()
@@ -101,6 +103,7 @@ export abstract class Geometry2d {
 
 	_snapPoints: Vec2d[] | undefined
 
+	// eslint-disable-next-line no-restricted-syntax
 	get snapPoints() {
 		if (!this._snapPoints) {
 			this._snapPoints = this.bounds.snapPoints
@@ -108,12 +111,14 @@ export abstract class Geometry2d {
 		return this._snapPoints
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get center() {
 		return this.bounds.center
 	}
 
 	_area: number | undefined
 
+	// eslint-disable-next-line no-restricted-syntax
 	get area() {
 		if (!this._area) {
 			this._area = this.getArea()

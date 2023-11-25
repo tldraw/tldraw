@@ -87,7 +87,7 @@ beforeEach(() => {
 })
 
 function getShapes() {
-	const arr = editor.currentPageShapes as any[]
+	const arr = editor.getCurrentPageShapes() as any[]
 
 	const results = { old: {}, new: {} } as {
 		old: Record<string, TLGeoShape | TLFrameShape>
@@ -110,7 +110,7 @@ it('Gets pasted shapes correctly', () => {
 	editor.selectNone()
 	let shapes = getShapes()
 
-	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+	expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -124,7 +124,7 @@ it('Gets pasted shapes correctly', () => {
 
 	shapes = getShapes()
 
-	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+	expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -171,10 +171,10 @@ describe('When pasting', () => {
 		editor.paste()
 
 		const shapes = getShapes()
-		expect(shapes.new.box1?.parentId).toBe(editor.currentPageId)
-		expect(shapes.new.box2?.parentId).toBe(editor.currentPageId)
+		expect(shapes.new.box1?.parentId).toBe(editor.getCurrentPageId())
+		expect(shapes.new.box2?.parentId).toBe(editor.getCurrentPageId())
 
-		expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+		expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 			shapes.old.frame1.id,
 			shapes.old.frame2.id,
 			shapes.old.frame3.id,
@@ -224,7 +224,7 @@ describe('When pasting', () => {
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.selectionPageCenter).toMatchObject(
+		expect(editor.getSelectionPageCenter()).toMatchObject(
 			editor.getPageCenter(editor.getShape(ids.frame1)!)!
 		)
 	})
@@ -265,8 +265,8 @@ describe('When pasting', () => {
 		const shapes = getShapes()
 
 		// Should make the pasted shapes the children of the frame
-		expect(shapes.new.box1?.parentId).toBe(editor.currentPageId)
-		expect(shapes.new.box2?.parentId).toBe(editor.currentPageId)
+		expect(shapes.new.box1?.parentId).toBe(editor.getCurrentPageId())
+		expect(shapes.new.box2?.parentId).toBe(editor.getCurrentPageId())
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
@@ -317,7 +317,7 @@ describe('When pasting', () => {
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.selectionPageCenter).toMatchObject(editor.getPageCenter(shapes.old.frame1)!)
+		expect(editor.getSelectionPageCenter()).toMatchObject(editor.getPageCenter(shapes.old.frame1)!)
 	})
 })
 
@@ -357,7 +357,7 @@ it('pastes shapes with children', () => {
 	// Should make the pasted shapes the children of the frame
 	expect(shapes.new.box1.parentId).toBe(shapes.new.frame3.id)
 	expect(shapes.new.box2.parentId).toBe(shapes.new.frame3.id)
-	expect(shapes.new.frame3.parentId).toBe(editor.currentPageId)
+	expect(shapes.new.frame3.parentId).toBe(editor.getCurrentPageId())
 })
 
 describe('When pasting into frames...', () => {
@@ -424,11 +424,11 @@ describe('When pasting into frames...', () => {
 		// Copy box 1 (should be out of viewport)
 		editor.select(ids.box1).copy()
 
-		const shapesBefore = editor.currentPageShapes
+		const shapesBefore = editor.getCurrentPageShapes()
 		// Paste it
 		editor.paste()
 
-		const newShape = editor.currentPageShapes.find((s) => !shapesBefore.includes(s))!
+		const newShape = editor.getCurrentPageShapes().find((s) => !shapesBefore.includes(s))!
 
 		// it should be on the canvas, NOT a child of frame2
 		expect(newShape.parentId).not.toBe(ids.frame2)
@@ -460,11 +460,11 @@ describe('When pasting into frames...', () => {
 				{
 					id: ids.frame1,
 					type: 'frame',
-					x: editor.viewportScreenBounds.w,
-					y: editor.viewportScreenBounds.h,
+					x: editor.getViewportScreenBounds().w,
+					y: editor.getViewportScreenBounds().h,
 					props: {
-						w: editor.viewportScreenBounds.w,
-						h: editor.viewportScreenBounds.h,
+						w: editor.getViewportScreenBounds().w,
+						h: editor.getViewportScreenBounds().h,
 					},
 				},
 			])
@@ -472,7 +472,11 @@ describe('When pasting into frames...', () => {
 		// rotate the frame for hard mode
 		editor.rotateSelection(45)
 		// center on the center of the frame
-		editor.setCamera({ x: -editor.viewportScreenBounds.w, y: -editor.viewportScreenBounds.h, z: 1 })
+		editor.setCamera({
+			x: -editor.getViewportScreenBounds().w,
+			y: -editor.getViewportScreenBounds().h,
+			z: 1,
+		})
 		// paste the box
 		editor.paste()
 		const boxId = editor.getOnlySelectedShape()!.id

@@ -31,7 +31,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 		() => {
 			try {
 				if (editor) {
-					return editor.user.isDarkMode
+					return editor.user.getIsDarkMode()
 				}
 			} catch {
 				// we're in a funky error state so this might not work for spooky
@@ -86,6 +86,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 		textarea.value = errorStack ?? errorMessage
 		document.body.appendChild(textarea)
 		textarea.select()
+		// eslint-disable-next-line deprecation/deprecation
 		document.execCommand('copy')
 		textarea.remove()
 		setDidCopy(true)

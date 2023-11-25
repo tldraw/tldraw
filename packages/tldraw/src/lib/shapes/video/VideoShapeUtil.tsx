@@ -71,7 +71,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 }) {
 	const { shape, videoUtil } = props
 	const showControls =
-		videoUtil.editor.getShapeGeometry(shape).bounds.w * videoUtil.editor.zoomLevel >= 110
+		videoUtil.editor.getShapeGeometry(shape).bounds.w * videoUtil.editor.getZoomLevel() >= 110
 	const asset = shape.props.assetId ? videoUtil.editor.getAsset(shape.props.assetId) : null
 	const { time, playing } = shape.props
 	const isEditing = useIsEditing(shape.id)
@@ -208,7 +208,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 				</div>
 			</HTMLContainer>
 			{'url' in shape.props && shape.props.url && (
-				<HyperlinkButton url={shape.props.url} zoomLevel={videoUtil.editor.zoomLevel} />
+				<HyperlinkButton url={shape.props.url} zoomLevel={videoUtil.editor.getZoomLevel()} />
 			)}
 		</>
 	)

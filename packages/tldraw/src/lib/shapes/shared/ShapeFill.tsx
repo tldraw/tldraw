@@ -40,10 +40,10 @@ export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }
 
 const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
 	const editor = useEditor()
-	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 
 	const intZoom = Math.ceil(zoomLevel)
-	const teenyTiny = editor.zoomLevel <= 0.18
+	const teenyTiny = editor.getZoomLevel() <= 0.18
 
 	return (
 		<>

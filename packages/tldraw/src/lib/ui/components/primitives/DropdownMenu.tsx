@@ -96,7 +96,7 @@ export function SubTrigger({
 	'data-testid': testId,
 	'data-direction': dataDirection,
 }: {
-	label: TLUiTranslationKey
+	label: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	'data-testid'?: string
 	'data-direction'?: 'left' | 'right'
 }) {

@@ -99,6 +99,7 @@ import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
+import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -286,6 +287,9 @@ export const ContextMenu: ({ children }: {
     children: any;
 }) => JSX.Element;
 
+// @public
+export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
+
 // @public (undocumented)
 export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 
@@ -461,8 +465,11 @@ export type EventsProviderProps = {
     children: any;
 };
 
+// @public
+export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, opts?: Partial<TLSvgOptions>): Promise<void>;
+
 // @public (undocumented)
-export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiMenuChild;
+export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<string>;
 
 // @public (undocumented)
 function Footer({ className, children }: {
@@ -679,6 +686,13 @@ export function getResizedImageDataUrl(dataURLForImage: string, width: number, h
     type?: string | undefined;
     quality?: number | undefined;
 }): Promise<string>;
+
+// @public (undocumented)
+export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
+    type: 'jpeg' | 'png' | 'svg' | 'webp';
+    quality: number;
+    scale: number;
+}): Promise<Blob | null>;
 
 // @public (undocumented)
 function Group({ children, size, }: {
@@ -908,7 +922,7 @@ export function menuCustom(id: string, opts?: Partial<{
 };
 
 // @public (undocumented)
-export function menuGroup(id: string, ...children: (false | null | TLUiMenuChild)[]): null | TLUiMenuGroup;
+export function menuGroup(id: string, ...children: (false | TLUiMenuChild)[]): null | TLUiMenuGroup;
 
 // @public (undocumented)
 export function menuItem(actionItem: TLUiActionItem | TLUiToolItem, opts?: Partial<{
@@ -917,7 +931,7 @@ export function menuItem(actionItem: TLUiActionItem | TLUiToolItem, opts?: Parti
 }>): TLUiMenuItem;
 
 // @public (undocumented)
-export function menuSubmenu(id: string, label: TLUiTranslationKey, ...children: (false | null | TLUiMenuChild)[]): null | TLUiSubMenu;
+export function menuSubmenu(id: string, label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey, ...children: (false | TLUiMenuChild)[]): null | TLUiSubMenu;
 
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
@@ -1022,7 +1036,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 export function OfflineIndicator(): JSX.Element;
 
 // @internal (undocumented)
-export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
+export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
 export function parseTldrawJsonFile({ json, schema, }: {
@@ -1083,7 +1097,7 @@ function SubContent({ alignOffset, sideOffset, children, }: {
 
 // @public (undocumented)
 function SubTrigger({ label, 'data-testid': testId, 'data-direction': dataDirection, }: {
-    label: TLUiTranslationKey;
+    label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     'data-testid'?: string;
     'data-direction'?: 'left' | 'right';
 }): JSX.Element;
@@ -1213,17 +1227,7 @@ function Title({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
-export function Tldraw(props: TldrawEditorBaseProps & ({
-    store: TLStore | TLStoreWithStatus;
-} | {
-    store?: undefined;
-    persistenceKey?: string;
-    sessionId?: string;
-    defaultName?: string;
-    snapshot?: StoreSnapshot<TLRecord>;
-}) & TldrawUiProps & Partial<TLExternalContentProps> & {
-    assetUrls?: RecursivePartial<TLEditorAssetUrls>;
-}): JSX.Element;
+export function Tldraw(props: TldrawProps): JSX.Element;
 
 // @public (undocumented)
 export const TLDRAW_FILE_EXTENSION: ".tldr";
@@ -1260,6 +1264,17 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
+export type TldrawProps = TldrawEditorBaseProps & ({
+    store: TLStore | TLStoreWithStatus;
+} | {
+    store?: undefined;
+    persistenceKey?: string;
+    sessionId?: string;
+    defaultName?: string;
+    snapshot?: StoreSnapshot<TLRecord>;
+}) & TldrawUiProps & Partial<TLExternalContentProps>;
+
+// @public (undocumented)
 export const TldrawScribble: TLScribbleComponent;
 
 // @public (undocumented)
@@ -1273,6 +1288,7 @@ export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;
 
 // @public
 export interface TldrawUiBaseProps {
+    assetUrls?: TLUiAssetUrlOverrides;
     children?: ReactNode;
     hideUi?: boolean;
     renderDebugMenuItems?: () => React_2.ReactNode;
@@ -1297,27 +1313,27 @@ export interface TldrawUiContextProviderProps {
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
 
 // @public (undocumented)
-export interface TLUiActionItem {
+export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
     // (undocumented)
-    contextMenuLabel?: TLUiTranslationKey;
+    contextMenuLabel?: TransationKey;
     // (undocumented)
-    icon?: TLUiIconType;
+    icon?: IconType;
     // (undocumented)
     id: string;
     // (undocumented)
     kbd?: string;
     // (undocumented)
-    label?: TLUiTranslationKey;
+    label?: TransationKey;
     // (undocumented)
-    menuLabel?: TLUiTranslationKey;
+    menuLabel?: TransationKey;
     // (undocumented)
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
     readonlyOk: boolean;
     // (undocumented)
-    shortcutsLabel?: TLUiTranslationKey;
+    shortcutsLabel?: TransationKey;
     // (undocumented)
     title?: string;
 }
@@ -1329,13 +1345,16 @@ export type TLUiActionsContextType = Record<string, TLUiActionItem>;
 export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema;
 
 // @public (undocumented)
+export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
+
+// @public (undocumented)
 export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    icon?: TLUiIconType;
+    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
-    iconLeft?: TLUiIconType;
+    iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
     invertIcon?: boolean;
     // (undocumented)
@@ -1343,7 +1362,7 @@ export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElemen
     // (undocumented)
     kbd?: string;
     // (undocumented)
-    label?: TLUiTranslationKey;
+    label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
     loading?: boolean;
     // (undocumented)
@@ -1407,6 +1426,148 @@ export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> 
 }, TLUiEventMap[T]>) => void;
 
 // @public (undocumented)
+export interface TLUiEventMap {
+    // (undocumented)
+    'align-shapes': {
+        operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top';
+    };
+    // (undocumented)
+    'close-menu': {
+        id: string;
+    };
+    // (undocumented)
+    'convert-to-bookmark': null;
+    // (undocumented)
+    'convert-to-embed': null;
+    // (undocumented)
+    'copy-as': {
+        format: 'json' | 'png' | 'svg';
+    };
+    // (undocumented)
+    'create-new-project': null;
+    // (undocumented)
+    'delete-shapes': null;
+    // (undocumented)
+    'distribute-shapes': {
+        operation: 'horizontal' | 'vertical';
+    };
+    // (undocumented)
+    'duplicate-shapes': null;
+    // (undocumented)
+    'edit-link': null;
+    // (undocumented)
+    'exit-pen-mode': null;
+    // (undocumented)
+    'export-as': {
+        format: 'json' | 'png' | 'svg';
+    };
+    // (undocumented)
+    'flip-shapes': {
+        operation: 'horizontal' | 'vertical';
+    };
+    // (undocumented)
+    'group-shapes': null;
+    // (undocumented)
+    'insert-embed': null;
+    // (undocumented)
+    'insert-media': null;
+    // (undocumented)
+    'open-cursor-chat': null;
+    // (undocumented)
+    'open-embed-link': null;
+    // (undocumented)
+    'open-file': null;
+    // (undocumented)
+    'open-menu': {
+        id: string;
+    };
+    // (undocumented)
+    'pack-shapes': null;
+    // (undocumented)
+    'remove-frame': null;
+    // (undocumented)
+    'reorder-shapes': {
+        operation: 'backward' | 'forward' | 'toBack' | 'toFront';
+    };
+    // (undocumented)
+    'reset-zoom': null;
+    // (undocumented)
+    'rotate-ccw': null;
+    // (undocumented)
+    'rotate-cw': null;
+    // (undocumented)
+    'save-project-to-file': null;
+    // (undocumented)
+    'select-all-shapes': null;
+    // (undocumented)
+    'select-none-shapes': null;
+    // (undocumented)
+    'select-tool': {
+        id: string;
+    };
+    // (undocumented)
+    'stack-shapes': {
+        operation: 'horizontal' | 'vertical';
+    };
+    // (undocumented)
+    'stop-following': null;
+    // (undocumented)
+    'stretch-shapes': {
+        operation: 'horizontal' | 'vertical';
+    };
+    // (undocumented)
+    'toggle-auto-size': null;
+    // (undocumented)
+    'toggle-dark-mode': null;
+    // (undocumented)
+    'toggle-debug-mode': null;
+    // (undocumented)
+    'toggle-focus-mode': null;
+    // (undocumented)
+    'toggle-grid-mode': null;
+    // (undocumented)
+    'toggle-lock': null;
+    // (undocumented)
+    'toggle-reduce-motion': null;
+    // (undocumented)
+    'toggle-snap-mode': null;
+    // (undocumented)
+    'toggle-tool-lock': null;
+    // (undocumented)
+    'toggle-transparent': null;
+    // (undocumented)
+    'ungroup-shapes': null;
+    // (undocumented)
+    'unlock-all': null;
+    // (undocumented)
+    'zoom-in': null;
+    // (undocumented)
+    'zoom-into-view': null;
+    // (undocumented)
+    'zoom-out': null;
+    // (undocumented)
+    'zoom-to-content': null;
+    // (undocumented)
+    'zoom-to-fit': null;
+    // (undocumented)
+    'zoom-to-selection': null;
+    // (undocumented)
+    'zoom-tool': null;
+    // (undocumented)
+    copy: null;
+    // (undocumented)
+    cut: null;
+    // (undocumented)
+    paste: null;
+    // (undocumented)
+    print: null;
+    // (undocumented)
+    redo: null;
+    // (undocumented)
+    undo: null;
+}
+
+// @public (undocumented)
 export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'toolbar' | 'unknown' | 'zoom-menu';
 
 // @public (undocumented)
@@ -1421,7 +1582,7 @@ export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
     // (undocumented)
     crossOrigin?: 'anonymous' | 'use-credentials';
     // (undocumented)
-    icon: TLUiIconType;
+    icon: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
     invertIcon?: boolean;
     // (undocumented)
@@ -1446,11 +1607,11 @@ export interface TLUiInputProps {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    icon?: TLUiIconType;
+    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
-    iconLeft?: TLUiIconType;
+    iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
-    label?: TLUiTranslationKey;
+    label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
     onBlur?: (value: string) => void;
     // (undocumented)
@@ -1479,7 +1640,7 @@ export type TLUiKeyboardShortcutsSchemaProviderProps = {
 };
 
 // @public (undocumented)
-export type TLUiMenuChild = TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu;
+export type TLUiMenuChild<TranslationKey extends string = string> = null | TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<TranslationKey>;
 
 // @public (undocumented)
 export type TLUiMenuGroup = {
@@ -1520,32 +1681,23 @@ export type TLUiMenuSchemaProviderProps = {
 };
 
 // @public (undocumented)
-export interface TLUiOverrides {
-    // (undocumented)
-    actions?: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
-    // (undocumented)
-    actionsMenu?: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>;
-    // (undocumented)
-    contextMenu?: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>;
-    // (undocumented)
-    helpMenu?: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>;
-    // (undocumented)
-    keyboardShortcutsMenu?: WithDefaultHelpers<NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>>;
-    // (undocumented)
-    menu?: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>;
-    // (undocumented)
-    toolbar?: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
-    // (undocumented)
-    tools?: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>;
-    // (undocumented)
-    translations?: TLUiTranslationProviderProps['overrides'];
-}
+export type TLUiOverrides = Partial<{
+    actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>;
+    actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
+    contextMenu: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>;
+    helpMenu: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>;
+    menu: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>;
+    toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
+    keyboardShortcutsMenu: WithDefaultHelpers<NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>>;
+    tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>;
+    translations: TLUiTranslationProviderProps['overrides'];
+}>;
 
 // @public (undocumented)
-export type TLUiSubMenu = {
+export type TLUiSubMenu<TranslationKey extends string = string> = {
     id: string;
     type: 'submenu';
-    label: TLUiTranslationKey;
+    label: TranslationKey;
     disabled: boolean;
     readonlyOk: boolean;
     children: TLUiMenuChild[];
@@ -1601,15 +1753,15 @@ export type TLUiToolbarItem = {
 export type TLUiToolbarSchemaContextType = TLUiToolbarItem[];
 
 // @public (undocumented)
-export interface TLUiToolItem {
+export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
     // (undocumented)
-    icon: TLUiIconType;
+    icon: IconType;
     // (undocumented)
     id: string;
     // (undocumented)
     kbd?: string;
     // (undocumented)
-    label: TLUiTranslationKey;
+    label: TranslationKey;
     // (undocumented)
     meta?: {
         [key: string]: any;
@@ -1619,7 +1771,7 @@ export interface TLUiToolItem {
     // (undocumented)
     readonlyOk: boolean;
     // (undocumented)
-    shortcutsLabel?: TLUiTranslationKey;
+    shortcutsLabel?: TranslationKey;
 }
 
 // @public (undocumented)
@@ -1683,7 +1835,7 @@ export function useCanUndo(): boolean;
 export function useContextMenuSchema(): TLUiMenuSchema;
 
 // @public (undocumented)
-export function useCopyAs(): (ids?: TLShapeId[], format?: TLCopyType) => void;
+export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
 export function useDefaultHelpers(): {
@@ -1698,7 +1850,7 @@ export function useDefaultHelpers(): {
     clearDialogs: () => void;
     removeDialog: (id: string) => string;
     updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-    msg: (id: TLUiTranslationKey) => string;
+    msg: (id: string) => string;
     isMobile: boolean;
 };
 
@@ -1706,7 +1858,7 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => Promise<void>;
+export function useExportAs(): (ids: TLShapeId[], format?: TLExportType) => void;
 
 // @public (undocumented)
 export function useHelpMenuSchema(): TLUiMenuSchema;
@@ -1749,7 +1901,7 @@ export function useToolbarSchema(): TLUiToolbarSchemaContextType;
 export function useTools(): TLUiToolsContextType;
 
 // @public
-export function useTranslation(): (id: TLUiTranslationKey) => string;
+export function useTranslation(): (id: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
 export function useUiEvents(): TLUiEventContextType;

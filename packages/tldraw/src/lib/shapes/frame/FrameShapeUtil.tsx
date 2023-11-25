@@ -76,7 +76,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override toSvg(shape: TLFrameShape): SVGElement | Promise<SVGElement> {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
@@ -209,7 +209,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		if (isInGroup) {
 			this.editor.reparentShapes(shapes, parent.id)
 		} else {
-			this.editor.reparentShapes(shapes, this.editor.currentPageId)
+			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
 		}
 	}
 
@@ -231,7 +231,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const shapesToRemoveFromFrame: TLShapeId[] = []
 		const ancestorIds = this.editor.getShapeAncestors(shape).map((shape) => shape.id)
 
-		this.editor.currentPageShapes.map((pageShape) => {
+		this.editor.getCurrentPageShapes().map((pageShape) => {
 			// We don't want to frame the frame itself
 			if (pageShape.id === shape.id) return
 			if (pageShape.isLocked) return

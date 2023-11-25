@@ -33,7 +33,7 @@ it('lists a sorted shapes array correctly', () => {
 	editor.sendBackward([ids.frame1])
 	editor.sendBackward([ids.frame1])
 
-	expect(editor.currentPageShapesSorted.map((s) => s.id)).toEqual([
+	expect(editor.getCurrentPageShapesSorted().map((s) => s.id)).toEqual([
 		ids.box1,
 		ids.frame1,
 		ids.box4,
@@ -430,8 +430,8 @@ describe('When a shape is behind a frame', () => {
 
 	it('does not select the shape when clicked inside', () => {
 		editor.sendToBack([ids.box1]) // send it to back!
-		expect(editor.currentPageShapesSorted.map((s) => s.index)).toEqual(['a1', 'a2'])
-		expect(editor.currentPageShapesSorted.map((s) => s.id)).toEqual([ids.box1, ids.frame1])
+		expect(editor.getCurrentPageShapesSorted().map((s) => s.index)).toEqual(['a1', 'a2'])
+		expect(editor.getCurrentPageShapesSorted().map((s) => s.id)).toEqual([ids.box1, ids.frame1])
 
 		editor.pointerMove(50, 50)
 		expect(editor.getHoveredShapeId()).toBe(null)
@@ -580,7 +580,7 @@ describe('when shape is inside of a frame', () => {
 		editor.deleteShape(ids.box1)
 		editor.createShape({
 			id: ids.box5,
-			parentId: editor.currentPageId,
+			parentId: editor.getCurrentPageId(),
 			type: 'geo',
 			props: {
 				w: 75,
@@ -663,7 +663,7 @@ describe('when a frame has multiple children', () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		editor.pointerMove(160, 160)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
@@ -673,7 +673,7 @@ describe('when a frame has multiple children', () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		editor.pointerMove(30, 30)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
@@ -683,7 +683,7 @@ describe('when a frame has multiple children', () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		editor.pointerMove(30, 30)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
@@ -696,7 +696,7 @@ describe('when a frame has multiple children', () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		editor.pointerMove(99, 99)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 	})
@@ -709,7 +709,7 @@ describe('when a frame has multiple children', () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		editor.pointerMove(150, 150)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 	})
@@ -722,7 +722,7 @@ describe('when a frame has multiple children', () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		editor.pointerMove(150, 150)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
 	})
@@ -732,7 +732,7 @@ describe('when a frame has multiple children', () => {
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		editor.pointerMove(150, 150)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
 	})
@@ -819,7 +819,7 @@ describe('When shapes are overlapping', () => {
 		editor.bringToFront([ids.box5])
 		editor.bringToFront([ids.box2])
 
-		expect(editor.currentPageShapesSorted.map((s) => s.id)).toEqual([
+		expect(editor.getCurrentPageShapesSorted().map((s) => s.id)).toEqual([
 			ids.box4, // filled
 			ids.box1, // hollow
 			ids.box3, // hollow
@@ -838,7 +838,7 @@ describe('When shapes are overlapping', () => {
 	})
 
 	it('selects the hollow above the filled shapes when in margin', () => {
-		expect(editor.currentPageShapesSorted.map((s) => s.id)).toEqual([
+		expect(editor.getCurrentPageShapesSorted().map((s) => s.id)).toEqual([
 			ids.box4,
 			ids.box1,
 			ids.box3,
@@ -1330,15 +1330,15 @@ describe('When children / descendants of a group are selected', () => {
 	it('does not allow ancestors and children to be selected, picking the ancestor', () => {
 		editor.select(ids.group3, ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 
 		editor.select(ids.group3, ids.box1, ids.box2)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 
 		editor.select(ids.group3, ids.group2, ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	it('picks the highest common focus layer id', () => {
@@ -1350,16 +1350,16 @@ describe('When children / descendants of a group are selected', () => {
 	it('picks the highest common focus layer id', () => {
 		editor.select(ids.box1, ids.box5) // child of group1 and child of the page
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box5])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	it('sets the parent to the highest common ancestor', () => {
 		editor.selectNone()
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		editor.select(ids.group3)
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		editor.select(ids.group3, ids.box1)
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
 	})
 })
@@ -1382,10 +1382,10 @@ describe('When pressing the enter key with groups selected', () => {
 		editor.select(ids.group1, ids.group2)
 		editor.keyDown('Enter')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1, ids.group2])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		editor.keyUp('Enter')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3, ids.box4])
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	it('repeats children of the groups on enter up', () => {
@@ -1643,7 +1643,7 @@ describe('scribble brushes to add to the selection', () => {
 describe('creating text on double click', () => {
 	it('creates text on double click', () => {
 		editor.doubleClick()
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.pointerMove(0, 100)
 		editor.click()
 	})

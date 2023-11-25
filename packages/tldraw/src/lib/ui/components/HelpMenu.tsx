@@ -13,8 +13,8 @@ import { Button } from './primitives/Button'
 import * as M from './primitives/DropdownMenu'
 
 interface HelpMenuLink {
-	label: TLUiTranslationKey
-	icon: TLUiIconType
+	label: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
+	icon: TLUiIconType | Exclude<string, TLUiIconType>
 	url: string
 }
 
@@ -64,6 +64,7 @@ function HelpMenuContent() {
 	const isReadonly = useReadonly()
 
 	function getHelpMenuItem(item: TLUiMenuChild) {
+		if (!item) return null
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {

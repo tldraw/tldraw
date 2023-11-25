@@ -58,31 +58,31 @@ type WithDefaultHelpers<T extends TLUiOverride<any, any>> = T extends TLUiOverri
 	: never
 
 /** @public */
-export interface TLUiOverrides {
-	actionsMenu?: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
-	actions?: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
-	contextMenu?: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>
-	helpMenu?: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>
-	menu?: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>
-	toolbar?: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
-	keyboardShortcutsMenu?: WithDefaultHelpers<
+export type TLUiOverrides = Partial<{
+	actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
+	actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
+	contextMenu: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>
+	helpMenu: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>
+	menu: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>
+	toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
+	keyboardShortcutsMenu: WithDefaultHelpers<
 		NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>
 	>
-	tools?: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>
-	translations?: TLUiTranslationProviderProps['overrides']
-}
+	tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>
+	translations: TLUiTranslationProviderProps['overrides']
+}>
 
-export interface TLUiOverridesWithoutDefaults {
-	actionsMenu?: ActionsMenuSchemaProviderProps['overrides']
-	actions?: ActionsProviderProps['overrides']
-	contextMenu?: TLUiContextMenuSchemaProviderProps['overrides']
-	helpMenu?: TLUiHelpMenuSchemaProviderProps['overrides']
-	menu?: TLUiMenuSchemaProviderProps['overrides']
-	toolbar?: TLUiToolbarSchemaProviderProps['overrides']
-	keyboardShortcutsMenu?: TLUiKeyboardShortcutsSchemaProviderProps['overrides']
-	tools?: TLUiToolsProviderProps['overrides']
-	translations?: TLUiTranslationProviderProps['overrides']
-}
+export type TLUiOverridesWithoutDefaults = Partial<{
+	actionsMenu: ActionsMenuSchemaProviderProps['overrides']
+	actions: ActionsProviderProps['overrides']
+	contextMenu: TLUiContextMenuSchemaProviderProps['overrides']
+	helpMenu: TLUiHelpMenuSchemaProviderProps['overrides']
+	menu: TLUiMenuSchemaProviderProps['overrides']
+	toolbar: TLUiToolbarSchemaProviderProps['overrides']
+	keyboardShortcutsMenu: TLUiKeyboardShortcutsSchemaProviderProps['overrides']
+	tools: TLUiToolsProviderProps['overrides']
+	translations: TLUiTranslationProviderProps['overrides']
+}>
 
 export function mergeOverrides(
 	overrides: TLUiOverrides[],

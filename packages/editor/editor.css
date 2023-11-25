@@ -326,6 +326,11 @@ input,
 	fill: var(--color-brush-fill);
 }
 
+.tl-screenshot-brush {
+	stroke: var(--color-text-0);
+	fill: none;
+}
+
 /* -------------------- Scribble -------------------- */
 
 .tl-scribble {
@@ -1558,7 +1563,6 @@ it from receiving any pointer events or affecting the cursor. */
 	overflow: auto;
 	font-size: 12px;
 	max-height: 320px;
-
 }
 
 .tl-error-boundary__content button {

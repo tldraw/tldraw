@@ -56,7 +56,7 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 
 	component(shape: CardShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 
 		return (
 			<HTMLContainer

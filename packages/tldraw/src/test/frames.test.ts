@@ -44,28 +44,28 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).cancel().pointerUp(100, 100)
 		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
-		expect(editor.currentPageShapes).toHaveLength(0)
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 	})
 	it('can be canceled while dragging', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200)
-		editor.expectPathToBe('root.select.resizing')
+		editor.expectToBeIn('select.resizing')
 		editor.cancel()
 		editor.pointerUp()
 		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
-		expect(editor.currentPageShapes).toHaveLength(0)
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 	})
 	it('can be undone', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
 		expect(editor.getOnlySelectedShape()?.type).toBe('frame')
-		expect(editor.currentPageShapes).toHaveLength(1)
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
 
 		editor.undo()
 
 		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
-		expect(editor.currentPageShapes).toHaveLength(0)
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 	})
 	it('can be done inside other frames', () => {
 		editor.setCurrentTool('frame')
@@ -76,7 +76,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		expect(editor.currentPageShapes).toHaveLength(2)
+		expect(editor.getCurrentPageShapes()).toHaveLength(2)
 
 		expect(editor.getOnlySelectedShape()?.parentId).toEqual(frameAId)
 
@@ -98,7 +98,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		expect(editor.currentPageShapes).toHaveLength(2)
+		expect(editor.getCurrentPageShapes()).toHaveLength(2)
 
 		expect(editor.getOnlySelectedShape()?.parentId).toEqual(frameAId)
 
@@ -127,7 +127,7 @@ describe('creating frames', () => {
 
 		// x should snap
 		editor.keyDown('Control')
-		expect(editor.snaps.lines).toHaveLength(1)
+		expect(editor.snaps.getLines()).toHaveLength(1)
 		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 50,
 			y: 100,
@@ -139,14 +139,14 @@ describe('creating frames', () => {
 	it('switches back to the select tool after creating', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(49, 149).pointerUp()
-		editor.expectPathToBe('root.select.idle')
+		editor.expectToBeIn('select.idle')
 	})
 })
 
 describe('frame shapes', () => {
 	it('can receive new children when shapes are drawn on top and the frame is rotated', () => {
 		// We should be starting from an empty canvas
-		expect(editor.currentPageShapes).toHaveLength(0)
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 
 		const frameId = createShapeId('frame')
 
@@ -167,7 +167,7 @@ describe('frame shapes', () => {
 			.pointerUp()
 
 		// The two shapes should have been created
-		expect(editor.currentPageShapes).toHaveLength(3)
+		expect(editor.getCurrentPageShapes()).toHaveLength(3)
 
 		// The shapes should be the child of the frame
 		const childIds = editor.getSortedChildIdsForParent(frameId)
@@ -245,7 +245,7 @@ describe('frame shapes', () => {
 			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
 		])
 
-		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		editor.setCurrentTool('select')
 		editor.pointerDown(275, 275).pointerMove(150, 150)
@@ -258,7 +258,7 @@ describe('frame shapes', () => {
 		editor.pointerMove(275, 275)
 		jest.advanceTimersByTime(250)
 
-		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		editor.pointerMove(150, 150)
 		jest.advanceTimersByTime(250)
@@ -282,14 +282,14 @@ describe('frame shapes', () => {
 		])
 
 		// It should be a child of the page
-		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		// Drag the shape on top of the frame
 		editor.setCurrentTool('select')
 		editor.pointerDown(275, 275, ids.boxA).pointerMove(150, 150)
 
 		// The timeout has not fired yet, so the shape is still a child of the current page
-		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		// On pointer up, the shape should be dropped into the frame
 		editor.pointerUp()
@@ -346,7 +346,7 @@ describe('frame shapes', () => {
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ y: 49 })
 		editor.keyDown('Control')
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ y: 50 })
-		expect(editor.snaps.lines).toHaveLength(1)
+		expect(editor.snaps.getLines()).toHaveLength(1)
 	})
 
 	it("does not allow outside shapes to snap to the frame's children", () => {
@@ -382,12 +382,12 @@ describe('frame shapes', () => {
 			w: 5,
 			h: 5,
 		})
-		expect(editor.snaps.lines).toHaveLength(0)
+		expect(editor.snaps.getLines()).toHaveLength(0)
 		// and if we unparent the box it should snap
-		editor.reparentShapes([innerBoxId], editor.currentPageId)
+		editor.reparentShapes([innerBoxId], editor.getCurrentPageId())
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
-		expect(editor.snaps.lines).toHaveLength(1)
+		expect(editor.snaps.getLines()).toHaveLength(1)
 		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 275,
 			y: 125,
@@ -414,12 +414,12 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150, innerBoxId).pointerMove(150, 50).pointerMove(150, 148)
 		editor.keyDown('Control')
-		expect(editor.snaps.lines).toHaveLength(0)
+		expect(editor.snaps.getLines()).toHaveLength(0)
 
 		// move shape inside the frame to make sure it snaps in there
 		editor.reparentShapes([outerBoxId], frameId).pointerMove(150, 149, { ctrlKey: true })
 
-		expect(editor.snaps.lines).toHaveLength(1)
+		expect(editor.snaps.getLines()).toHaveLength(1)
 	})
 
 	it('masks its children', () => {
@@ -441,7 +441,7 @@ describe('frame shapes', () => {
 			`"polygon(-50px -50px,50px -50px,50px 50px,-50px 50px)"`
 		)
 
-		editor.reparentShapes([editor.getOnlySelectedShape()!.id], editor.currentPageId)
+		editor.reparentShapes([editor.getOnlySelectedShape()!.id], editor.getCurrentPageId())
 
 		expect(editor.getShapeClipPath(editor.getOnlySelectedShape()!.id)).toBeUndefined()
 	})
@@ -481,7 +481,7 @@ describe('frame shapes', () => {
 		expect(arrow.props.start).toMatchObject({ boundShapeId: frameId })
 		expect(arrow.props.end).toMatchObject({ type: 'point' })
 
-		expect(arrow.parentId).toBe(editor.currentPageId)
+		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 	})
 
 	it('arrows started within the frame can bind to a shape within the frame ', () => {
@@ -506,7 +506,7 @@ describe('frame shapes', () => {
 		expect(arrow.props.start).toMatchObject({ boundShapeId: boxId })
 		expect(arrow.props.end).toMatchObject({ boundShapeId: frameId })
 
-		expect(arrow.parentId).toBe(editor.currentPageId)
+		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 	})
 
 	it('can be edited', () => {
@@ -534,7 +534,7 @@ describe('frame shapes', () => {
 		// select from outside the frame
 		editor.setCurrentTool('select')
 		editor.pointerDown(50, 50).pointerMove(150, 150)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 
 		expect(editor.getSelectedShapeIds()).toHaveLength(0)
 
@@ -547,13 +547,13 @@ describe('frame shapes', () => {
 	it('can be selected with scribble brushing only if the drag starts outside the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		editor.expectPathToBe('root.select.idle')
+		editor.expectToBeIn('select.idle')
 
 		// select from inside the frame
 		editor.selectNone()
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150).pointerMove(250, 250)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 
 		expect(editor.getSelectedShapeIds()).toHaveLength(0)
 	})
@@ -590,7 +590,7 @@ describe('frame shapes', () => {
 		editor.keyDown('alt').pointerDown(500, 500).pointerMove(300, 300)
 
 		// Check if in scribble brushing mode
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectToBeIn('select.brushing')
 
 		// Check if the inner box was selected
 		editor.pointerUp(300, 300)
@@ -706,9 +706,9 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	editor.translateSelection(200, 0)
 
 	// expect group parent to be the page
-	expect(editor.getShape(groupId)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(groupId)!.parentId).toBe(editor.getCurrentPageId())
 	// expect arrow parent to be the page
-	expect(editor.getShape(arrowId)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(arrowId)!.parentId).toBe(editor.getCurrentPageId())
 	// expect arrow index to be greater than group index
 	expect(editor.getShape(arrowId)?.index.localeCompare(editor.getShape(groupId)!.index)).toBe(1)
 })
@@ -772,6 +772,6 @@ describe('When dragging a shape inside a group inside a frame', () => {
 
 		jest.advanceTimersByTime(300)
 
-		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.currentPageId)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
 	})
 })

@@ -23,6 +23,7 @@ import CustomUiExample from './examples/CustomUiExample/CustomUiExample'
 import ErrorBoundaryExample from './examples/ErrorBoundaryExample/ErrorBoundaryExample'
 import ExplodedExample from './examples/ExplodedExample'
 import ExternalContentSourcesExample from './examples/ExternalContentSourcesExample'
+import FloatyExample from './examples/FloatyExample'
 import ForceMobileExample from './examples/ForceBreakpointExample'
 import HideUiExample from './examples/HideUiExample'
 import MetaExample from './examples/MetaExample'
@@ -30,6 +31,7 @@ import MultipleExample from './examples/MultipleExample'
 import OnTheCanvasExample from './examples/OnTheCanvas'
 import PersistenceExample from './examples/PersistenceExample'
 import ReadOnlyExample from './examples/ReadOnlyExample'
+import ScreenshotToolExample from './examples/ScreenshotToolExample/ScreenshotToolExample'
 import ScrollExample from './examples/ScrollExample'
 import ShapeMetaExample from './examples/ShapeMetaExample'
 import SnapshotExample from './examples/SnapshotExample/SnapshotExample'
@@ -117,6 +119,11 @@ export const allExamples: Example[] = [
 		element: <CustomUiExample />,
 	},
 	{
+		title: 'Custom Tool (Screenshot)',
+		path: 'screenshot-tool',
+		element: <ScreenshotToolExample />,
+	},
+	{
 		title: 'Hide UI',
 		path: 'hide-ui',
 		element: <HideUiExample />,
@@ -185,6 +192,11 @@ export const allExamples: Example[] = [
 		title: 'Asset props',
 		path: 'asset-props',
 		element: <AssetPropsExample />,
+	},
+	{
+		title: 'Floaty window',
+		path: 'floaty-window',
+		element: <FloatyExample />,
 	},
 	{
 		title: 'External content sources',

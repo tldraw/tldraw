@@ -108,6 +108,7 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 	/**
 	 * @deprecated Use [[Atom.get]] instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get value() {
 		logDotValueWarning()
 		return this.get()

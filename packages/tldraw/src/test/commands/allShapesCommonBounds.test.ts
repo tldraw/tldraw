@@ -10,7 +10,7 @@ beforeEach(() => {
 
 it('gets common bounds', () => {
 	// Put the ellipse back on the page to avoid a weird bounding box width
-	editor.reparentShapes([defaultShapesIds.ellipse1], editor.currentPageId)
+	editor.reparentShapes([defaultShapesIds.ellipse1], editor.getCurrentPageId())
 
 	editor.updateShapes([
 		{
@@ -39,7 +39,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.currentPageBounds).toCloselyMatchObject({
+	expect(editor.getCurrentPageBounds()).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 600,
@@ -62,7 +62,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.currentPageBounds).toCloselyMatchObject({
+	expect(editor.getCurrentPageBounds()).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 700,
@@ -82,7 +82,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.currentPageBounds).toCloselyMatchObject({
+	expect(editor.getCurrentPageBounds()).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 700,

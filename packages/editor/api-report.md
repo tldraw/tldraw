@@ -275,6 +275,9 @@ export class Box2d {
     zeroFix(): this;
 }
 
+// @public (undocumented)
+export type BoxLike = Box2d | Box2dModel;
+
 // @internal (undocumented)
 export const CAMERA_SLIDE_FRICTION = 0.09;
 
@@ -569,12 +572,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         extras?: Record<string, unknown>;
     }): this;
+    // @deprecated (undocumented)
     get assets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // @deprecated (undocumented)
     get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
@@ -590,8 +595,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     complete(): this;
     // @internal (undocumented)
     crash(error: unknown): this;
-    // @internal
-    get crashingError(): unknown;
     createAssets(assets: TLAsset[]): this;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
@@ -609,18 +612,26 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    // @deprecated (undocumented)
     get croppingShapeId(): null | TLShapeId;
+    // @deprecated (undocumented)
     get currentPage(): TLPage;
+    // @deprecated (undocumented)
     get currentPageBounds(): Box2d | undefined;
+    // @deprecated (undocumented)
     get currentPageId(): TLPageId;
+    // @deprecated (undocumented)
     get currentPageRenderingShapesSorted(): TLShape[];
+    // @deprecated (undocumented)
     get currentPageShapeIds(): Set<TLShapeId>;
+    // @deprecated (undocumented)
     get currentPageShapes(): TLShape[];
+    // @deprecated (undocumented)
     get currentPageShapesSorted(): TLShape[];
     // @deprecated (undocumented)
     get currentPageState(): TLInstancePageState;
     // @deprecated (undocumented)
-    get currentTool(): StateNode | undefined;
+    get currentTool(): StateNode;
     // @deprecated (undocumented)
     get currentToolId(): string;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
@@ -681,13 +692,25 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
+    getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getCamera(): TLCamera;
+    getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    // @internal
+    getCrashingError(): unknown;
+    getCroppingShapeId(): null | TLShapeId;
+    getCurrentPage(): TLPage;
+    getCurrentPageBounds(): Box2d | undefined;
+    getCurrentPageId(): TLPageId;
+    getCurrentPageRenderingShapesSorted(): TLShape[];
+    getCurrentPageShapeIds(): Set<TLShapeId>;
+    getCurrentPageShapes(): TLShape[];
+    getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
-    getCurrentTool(): StateNode | undefined;
+    getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
@@ -709,10 +732,24 @@ export class Editor extends EventEmitter<TLEventMap> {
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
+    getPages(): TLPage[];
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
     getPageStates(): TLInstancePageState[];
+    getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
+    getRenderingBounds(): Box2d;
+    getRenderingBoundsExpanded(): Box2d;
+    getRenderingShapes(): {
+        id: TLShapeId;
+        shape: TLShape;
+        util: ShapeUtil<TLUnknownShape>;
+        index: number;
+        backgroundIndex: number;
+        opacity: number;
+        isCulled: boolean;
+        maskedPageBounds: Box2d | undefined;
+    }[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -752,17 +789,18 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
+    getSharedOpacity(): SharedStyle<number>;
+    getSharedStyles(): ReadonlySharedStyleMap;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
-    getStateDescendant(path: string): StateNode | undefined;
+    getStateDescendant<T extends StateNode>(path: string): T | undefined;
     // @internal (undocumented)
     getStyleForNextShape<T>(style: StyleProp<T>): T;
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<{
-        scale: number;
-        background: boolean;
-        padding: number;
-        darkMode?: boolean | undefined;
-        preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
-    }>): Promise<SVGSVGElement | undefined>;
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
+    getViewportPageBounds(): Box2d;
+    getViewportPageCenter(): Vec2d;
+    getViewportScreenBounds(): Box2d;
+    getViewportScreenCenter(): Vec2d;
+    getZoomLevel(): number;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     // @deprecated (undocumented)
@@ -821,6 +859,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated (undocumented)
     get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
+    // @deprecated (undocumented)
     get pages(): TLPage[];
     // @deprecated (undocumented)
     get pageStates(): TLInstancePageState[];
@@ -848,9 +887,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     } : TLExternalContent) => void) | null): this;
     removeFrame(ids: TLShapeId[]): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
+    // @deprecated (undocumented)
     get renderingBounds(): Box2d;
+    // @deprecated (undocumented)
     get renderingBoundsExpanded(): Box2d;
     renderingBoundsMargin: number;
+    // @deprecated (undocumented)
     get renderingShapes(): {
         id: TLShapeId;
         shape: TLShape;
@@ -905,7 +947,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
+    // @deprecated (undocumented)
     get sharedOpacity(): SharedStyle<number>;
+    // @deprecated (undocumented)
     get sharedStyles(): ReadonlySharedStyleMap;
     readonly sideEffects: SideEffectManager<this>;
     slideCamera(opts?: {
@@ -942,12 +986,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
+    // @deprecated (undocumented)
     get viewportPageBounds(): Box2d;
+    // @deprecated (undocumented)
     get viewportPageCenter(): Vec2d;
+    // @deprecated (undocumented)
     get viewportScreenBounds(): Box2d;
+    // @deprecated (undocumented)
     get viewportScreenCenter(): Vec2d;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec2d, animation?: TLAnimationOptions): this;
+    // @deprecated (undocumented)
     get zoomLevel(): number;
     zoomOut(point?: Vec2d, animation?: TLAnimationOptions): this;
     zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this;
@@ -1754,26 +1803,45 @@ export class SnapManager {
     constructor(editor: Editor);
     // (undocumented)
     clear(): void;
-    // (undocumented)
+    // @deprecated (undocumented)
     get currentCommonAncestor(): TLShapeId | undefined;
     // (undocumented)
     readonly editor: Editor;
+    // (undocumented)
+    getCurrentCommonAncestor(): TLShapeId | undefined;
+    // (undocumented)
+    getLines(): SnapLine[];
+    // (undocumented)
+    getOutlinesInPageSpace(): Vec2d[][];
+    // (undocumented)
+    getSnappablePoints(): SnapPoint[];
+    // (undocumented)
+    getSnappableShapes(): GapNode[];
     // (undocumented)
     getSnappingHandleDelta({ handlePoint, additionalSegments, }: {
         handlePoint: Vec2d;
         additionalSegments: Vec2d[][];
     }): null | Vec2d;
     // (undocumented)
-    get lines(): SnapLine[];
+    getSnapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
     // (undocumented)
+    getSnapThreshold(): number;
+    // (undocumented)
+    getVisibleGaps(): {
+        horizontal: Gap[];
+        vertical: Gap[];
+    };
+    // @deprecated (undocumented)
+    get lines(): SnapLine[];
+    // @deprecated (undocumented)
     get outlinesInPageSpace(): Vec2d[][];
     // (undocumented)
     setLines(lines: SnapLine[]): void;
-    // (undocumented)
+    // @deprecated (undocumented)
     get snappablePoints(): SnapPoint[];
-    // (undocumented)
+    // @deprecated (undocumented)
     get snappableShapes(): GapNode[];
-    // (undocumented)
+    // @deprecated (undocumented)
     get snapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
     // (undocumented)
     snapResize({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }: {
@@ -1783,7 +1851,7 @@ export class SnapManager {
         isAspectRatioLocked: boolean;
         isResizingFromCenter: boolean;
     }): SnapData;
-    // (undocumented)
+    // @deprecated (undocumented)
     get snapThreshold(): number;
     // (undocumented)
     snapTranslate({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: {
@@ -1792,7 +1860,7 @@ export class SnapManager {
         initialSelectionPageBounds: Box2d;
         dragDelta: Vec2d;
     }): SnapData;
-    // (undocumented)
+    // @deprecated (undocumented)
     get visibleGaps(): {
         horizontal: Gap[];
         vertical: Gap[];
@@ -1838,9 +1906,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
-    // (undocumented)
-    current: Atom<StateNode | undefined>;
-    // (undocumented)
+    // @deprecated (undocumented)
     get currentToolIdMask(): string | undefined;
     set currentToolIdMask(id: string | undefined);
     _currentToolIdMask: Atom<string | undefined, unknown>;
@@ -1850,6 +1916,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     enter: (info: any, from: string) => void;
     // (undocumented)
     exit: (info: any, from: string) => void;
+    getCurrent(): StateNode | undefined;
+    // (undocumented)
+    getCurrentToolIdMask(): string | undefined;
+    getIsActive(): boolean;
+    getPath(): string;
     // (undocumented)
     handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
     // (undocumented)
@@ -1860,8 +1931,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static initial?: string;
     // (undocumented)
     initial?: string;
-    // (undocumented)
-    isActive: boolean;
     // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];
     // (undocumented)
@@ -1899,11 +1968,12 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     parent: StateNode;
     // (undocumented)
-    path: Computed<string>;
+    _path: Computed<string>;
+    // (undocumented)
+    setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)
     shapeType?: string;
-    // (undocumented)
-    transition: (id: string, info: any) => this;
+    transition: (id: string, info?: any) => this;
     // (undocumented)
     type: TLStateNodeType;
 }
@@ -2068,7 +2138,7 @@ export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
     children?: any;
     className?: string;
-    components?: Partial<TLEditorComponents>;
+    components?: TLEditorComponents;
     inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;
@@ -2090,13 +2160,9 @@ export type TldrawEditorProps = TldrawEditorBaseProps & ({
 });
 
 // @public (undocumented)
-export type TLEditorComponents = {
+export type TLEditorComponents = Partial<{
     [K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null;
-} & {
-    ErrorFallback: TLErrorFallbackComponent;
-    ShapeErrorFallback: TLShapeErrorFallbackComponent;
-    ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent;
-};
+} & ErrorComponents>;
 
 // @public (undocumented)
 export interface TLEditorOptions {
@@ -2621,6 +2687,16 @@ export type TLStoreWithStatus = {
 
 // @public (undocumented)
 export type TLSvgDefsComponent = React.ComponentType;
+
+// @public (undocumented)
+export type TLSvgOptions = {
+    bounds: Box2d;
+    scale: number;
+    background: boolean;
+    padding: number;
+    darkMode?: boolean;
+    preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+};
 
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;

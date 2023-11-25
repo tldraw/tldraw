@@ -6,13 +6,22 @@ module.exports = {
 		'plugin:@next/next/core-web-vitals',
 	],
 	ignorePatterns: [],
-	plugins: ['@typescript-eslint', 'no-only-tests', 'import', 'local', '@next/next', 'react-hooks'],
+	plugins: [
+		'@typescript-eslint',
+		'no-only-tests',
+		'import',
+		'local',
+		'@next/next',
+		'react-hooks',
+		'deprecation',
+	],
 	settings: {
 		next: {
 			rootDir: ['apps/*/', 'packages/*/'],
 		},
 	},
 	rules: {
+		'deprecation/deprecation': 'error',
 		'@next/next/no-html-link-for-pages': 'off',
 		'react/jsx-key': 'off',
 		'no-non-null-assertion': 'off',
@@ -44,6 +53,11 @@ module.exports = {
 		],
 		'local/no-export-star': 'error',
 		'no-only-tests/no-only-tests': 'error',
+		'no-restricted-syntax': [
+			'error',
+			{ selector: "MethodDefinition[kind='set']", message: 'Property setters are not allowed' },
+			{ selector: "MethodDefinition[kind='get']", message: 'Property getters are not allowed' },
+		],
 	},
 	parser: '@typescript-eslint/parser',
 	parserOptions: {

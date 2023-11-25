@@ -155,7 +155,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						)}
 					</div>
 					{'url' in shape.props && shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
 				</HTMLContainer>
 			</>
@@ -233,7 +233,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const props = shape.props
 		if (!props) return
 
-		if (this.editor.croppingShapeId !== shape.id) {
+		if (this.editor.getCroppingShapeId() !== shape.id) {
 			return
 		}
 
