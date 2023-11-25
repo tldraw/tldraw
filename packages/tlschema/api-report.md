@@ -232,6 +232,16 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
+    readonly type: "near_social";
+    readonly title: "Near Social";
+    readonly hostnames: readonly ["near.social"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly canUnmount: false;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
     readonly type: "val_town";
     readonly title: "Val Town";
     readonly hostnames: readonly ["val.town"];

@@ -109,6 +109,37 @@ export const EMBED_DEFINITIONS = [
 		},
 	},
 	{
+		type: 'near_social',
+		title: 'Near Social',
+		hostnames: ['near.social'],
+		width: 720,
+		height: 500,
+		doesResize: true,
+		canUnmount: false,
+		toEmbedUrl: (url) => {
+			// e.g. extract "efiz.near/widget/Tree" from https://near.social/efiz.near/widget/Tree
+			const urlObj = safeParseUrl(url)
+			console.log('got url', url)
+			const matches = urlObj && urlObj.pathname.match(/\/([^/]+\/.*)$/)
+			console.log('got match: ', matches)
+			if (matches) {
+				const transformedPath = `https://near.social/embed/${matches[1]}`
+				// attach props if they exist
+				return urlObj.search ? `${transformedPath}${urlObj.search}` : transformedPath
+			}
+			return
+		},
+		fromEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			// e.g. extract "efiz.near/widget/Tree" from https://near.social/embed/efiz.near/widget/Tree
+			const matches = urlObj && urlObj.pathname.match(/\/embed\/(.+)/)
+			if (matches) {
+				return `https://near.social/${matches[1]}`
+			}
+			return
+		},
+	},
+	{
 		type: 'val_town',
 		title: 'Val Town',
 		hostnames: ['val.town'],

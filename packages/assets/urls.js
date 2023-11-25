@@ -623,6 +623,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./embed-icons/google_slides.png', import.meta.url).href,
 				opts
 			),
+			near_social: formatAssetUrl(
+				new URL('./embed-icons/near_social.png', import.meta.url).href,
+				opts
+			),
 			observable: formatAssetUrl(
 				new URL('./embed-icons/observable.png', import.meta.url).href,
 				opts
