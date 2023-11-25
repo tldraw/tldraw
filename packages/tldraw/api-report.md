@@ -80,7 +80,6 @@ import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleChangeHandler } from '@tldraw/editor';
 import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
-import { TLOnResizeStartHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
@@ -520,8 +519,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     onResize: TLOnResizeHandler<any>;
     // (undocumented)
     onResizeEnd: TLOnResizeEndHandler<TLFrameShape>;
-    // (undocumented)
-    onResizeStart: TLOnResizeStartHandler<TLFrameShape>;
     // (undocumented)
     static props: {
         w: Validator<number>;
