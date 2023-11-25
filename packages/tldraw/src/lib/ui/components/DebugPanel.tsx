@@ -97,7 +97,40 @@ const DebugMenuContent = track(function DebugMenuContent({
 							id: uniqueId(),
 							title: 'Something happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
-							keepOpen: false,
+							keepOpen: true,
+							// icon?: string
+							// title?: string
+							// description?: string
+							// actions?: TLUiToastAction[]
+						})
+						addToast({
+							id: uniqueId(),
+							title: 'Something happened',
+							description: 'Hey, attend to this thing over here. It might be important!',
+							keepOpen: true,
+							actions: [
+								{
+									label: 'Primary',
+									type: 'primary',
+									onClick: () => {
+										void null
+									},
+								},
+								{
+									label: 'Normal',
+									type: 'normal',
+									onClick: () => {
+										void null
+									},
+								},
+								{
+									label: 'Danger',
+									type: 'danger',
+									onClick: () => {
+										void null
+									},
+								},
+							],
 							// icon?: string
 							// title?: string
 							// description?: string
