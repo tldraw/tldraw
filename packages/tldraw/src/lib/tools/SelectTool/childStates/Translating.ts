@@ -53,8 +53,13 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.onCreate = onCreate
 
-		this.markId = isCreating ? `creating:${this.editor.getOnlySelectedShape()!.id}` : 'translating'
-		this.editor.mark(this.markId)
+		if (isCreating) {
+			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
+		} else {
+			this.markId = 'translating'
+			this.editor.mark(this.markId)
+		}
+
 		this.isCloning = false
 		this.info = info
 

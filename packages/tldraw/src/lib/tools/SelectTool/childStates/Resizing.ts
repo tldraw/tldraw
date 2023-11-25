@@ -54,19 +54,19 @@ export class Resizing extends StateNode {
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.creationCursorOffset = creationCursorOffset
 
-		if (info.isCreating) {
+		this.snapshot = this._createSnapshot()
+
+		if (isCreating) {
+			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
+
 			this.editor.updateInstanceState(
 				{ cursor: { type: 'cross', rotation: 0 } },
 				{ ephemeral: true }
 			)
+		} else {
+			this.markId = 'starting resizing'
+			this.editor.mark(this.markId)
 		}
-
-		this.snapshot = this._createSnapshot()
-		this.markId = isCreating
-			? `creating:${this.editor.getOnlySelectedShape()!.id}`
-			: 'starting resizing'
-
-		if (!isCreating) this.editor.mark(this.markId)
 
 		this.handleResizeStart()
 		this.updateShapes()
