@@ -7,13 +7,17 @@ import {
 	TLFrameShape,
 	TLGroupShape,
 	TLOnResizeEndHandler,
+	TLOnResizeHandler,
+	TLOnResizeStartHandler,
 	TLShape,
 	TLShapeId,
 	canonicalizeRotation,
+	compact,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
 	last,
+	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
@@ -249,4 +253,15 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			this.editor.reparentShapes(shapesToReparent, this.editor.getCurrentPageId())
 		}
 	}
+
+	override onResizeStart: TLOnResizeStartHandler<TLFrameShape> = (shape) => {
+		const children = this.editor.getSortedChildIdsForParent(shape.id)
+		childrenCache.set(shape, compact(children.map((c) => this.editor.getShape(c))))
+	}
+
+	override onResize: TLOnResizeHandler<any> = (shape, info) => {
+		return resizeBox(shape, info)
+	}
 }
+
+const childrenCache = new WeakMap<TLFrameShape, TLShape[]>()

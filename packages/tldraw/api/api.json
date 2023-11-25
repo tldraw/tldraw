@@ -6201,6 +6201,41 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!FrameShapeUtil#onResize:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onResize: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLOnResizeHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnResizeHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<any>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onResize",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!FrameShapeUtil#onResizeEnd:member",
               "docComment": "",
               "excerptTokens": [
@@ -6235,6 +6270,50 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "onResizeEnd",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!FrameShapeUtil#onResizeStart:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onResizeStart: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLOnResizeStartHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnResizeStartHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLFrameShape",
+                  "canonicalReference": "@tldraw/tlschema!TLFrameShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onResizeStart",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 5
