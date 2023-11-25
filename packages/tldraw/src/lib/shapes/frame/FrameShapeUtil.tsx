@@ -6,7 +6,9 @@ import {
 	SelectionEdge,
 	TLFrameShape,
 	TLGroupShape,
+	TLOnResizeEndHandler,
 	TLShape,
+	TLShapeId,
 	canonicalizeRotation,
 	frameShapeMigrations,
 	frameShapeProps,
@@ -227,6 +229,24 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			this.editor.reparentShapes(shapes, parent.id)
 		} else {
 			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
+		}
+	}
+
+	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
+		const bounds = this.editor.getShapePageBounds(shape)!
+		const children = this.editor.getSortedChildIdsForParent(shape.id)
+
+		const shapesToReparent: TLShapeId[] = []
+
+		for (const childId of children) {
+			const childBounds = this.editor.getShapePageBounds(childId)!
+			if (!bounds.includes(childBounds)) {
+				shapesToReparent.push(childId)
+			}
+		}
+
+		if (shapesToReparent.length > 0) {
+			this.editor.reparentShapes(shapesToReparent, this.editor.getCurrentPageId())
 		}
 	}
 }
