@@ -22,7 +22,7 @@ export function useFixSafariDoubleTapZoomPencilEvents(ref: React.RefObject<HTMLE
 				;(e as any).isKilled = true
 				const { target } = e
 
-				// Allow events to propagate if the app is editing a shape, or if the event is occuring in a text area or input
+				// Allow events to propagate if the app is editing a shape, or if the event is occurring in a text area or input
 				if (
 					IGNORED_TAGS.includes((target as Element).tagName?.toLocaleLowerCase()) ||
 					editor.isIn('select.editing_shape')
