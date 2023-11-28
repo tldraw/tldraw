@@ -6,6 +6,9 @@ const { PI } = Math
 // Browser strokes seem to be off if PI is regular, a tiny offset seems to fix it
 const FIXED_PI = PI + 0.0001
 
+/**
+ * @internal
+ */
 export function getStrokeOutlineTracks(
 	strokePoints: StrokePoint[],
 	options: StrokeOptions = {}
