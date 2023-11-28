@@ -45,7 +45,7 @@ export interface AtomOptions<Value, Diff> {
  * ```ts
  * const name = atom('name', 'John')
  *
- * print(name.value) // 'John'
+ * print(name.get()) // 'John'
  * ```
  *
  * @public
@@ -171,11 +171,11 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
  * ```ts
  * const name = atom('name', 'John')
  *
- * name.value // 'John'
+ * name.get() // 'John'
  *
  * name.set('Jane')
  *
- * name.value // 'Jane'
+ * name.get() // 'Jane'
  * ```
  *
  * @public

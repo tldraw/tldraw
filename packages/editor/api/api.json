@@ -11668,7 +11668,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPath:member(1)",
-              "docComment": "/**\n * The editor's current path of active states.\n *\n * @example\n * ```ts\n * editor.path // \"select.idle\"\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * The editor's current path of active states.\n *\n * @example\n * ```ts\n * editor.getPath() // \"select.idle\"\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13687,7 +13687,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSharedStyles:member(1)",
-              "docComment": "/**\n * A map of all the current styles either in the current selection, or that are relevant to the current tool.\n *\n * @example\n * ```ts\n * const color = editor.sharedStyles.get(DefaultColorStyle)\n * if (color && color.type === 'shared') {\n *   print('All selected shapes have the same color:', color.value)\n * }\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * A map of all the current styles either in the current selection, or that are relevant to the current tool.\n *\n * @example\n * ```ts\n * const color = editor.getSharedStyles().get(DefaultColorStyle)\n * if (color && color.type === 'shared') {\n *   print('All selected shapes have the same color:', color.value)\n * }\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -16707,7 +16707,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#resetZoom:member(1)",
-              "docComment": "/**\n * Set the zoom back to 100%.\n *\n * @param point - The screen point to zoom out on. Defaults to the viewport screen center.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.resetZoom()\n * editor.resetZoom(editor.viewportScreenCenter)\n * editor.resetZoom(editor.viewportScreenCenter, { duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Set the zoom back to 100%.\n *\n * @param point - The screen point to zoom out on. Defaults to the viewport screen center.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.resetZoom()\n * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })\n * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -20189,7 +20189,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomIn:member(1)",
-              "docComment": "/**\n * Zoom the camera in.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomIn()\n * editor.zoomIn(editor.viewportScreenCenter, { duration: 120 })\n * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera in.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomIn()\n * editor.zoomIn(editor.getViewportScreenCenter(), { duration: 120 })\n * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -20285,7 +20285,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomOut:member(1)",
-              "docComment": "/**\n * Zoom the camera out.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomOut()\n * editor.zoomOut(editor.viewportScreenCenter, { duration: 120 })\n * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera out.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomOut()\n * editor.zoomOut(editor.getViewportScreenCenter(), { duration: 120 })\n * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
