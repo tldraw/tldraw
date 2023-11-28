@@ -1063,7 +1063,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.path // "select.idle"
+	 * editor.getPath() // "select.idle"
 	 * ```
 	 *
 	 * @public
@@ -2450,8 +2450,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.resetZoom()
-	 * editor.resetZoom(editor.viewportScreenCenter)
-	 * editor.resetZoom(editor.viewportScreenCenter, { duration: 200 })
+	 * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })
+	 * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })
 	 * ```
 	 *
 	 * @param point - The screen point to zoom out on. Defaults to the viewport screen center.
@@ -2478,7 +2478,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.zoomIn()
-	 * editor.zoomIn(editor.viewportScreenCenter, { duration: 120 })
+	 * editor.zoomIn(editor.getViewportScreenCenter(), { duration: 120 })
 	 * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })
 	 * ```
 	 *
@@ -2516,7 +2516,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.zoomOut()
-	 * editor.zoomOut(editor.viewportScreenCenter, { duration: 120 })
+	 * editor.zoomOut(editor.getViewportScreenCenter(), { duration: 120 })
 	 * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })
 	 * ```
 	 *
@@ -7641,7 +7641,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const color = editor.sharedStyles.get(DefaultColorStyle)
+	 * const color = editor.getSharedStyles().get(DefaultColorStyle)
 	 * if (color && color.type === 'shared') {
 	 *   print('All selected shapes have the same color:', color.value)
 	 * }

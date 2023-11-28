@@ -29,7 +29,7 @@ type UNINITIALIZED = typeof UNINITIALIZED
  *   if (isUninitialized(prevValue)) {
  *     print('First time!')
  *   }
- *   return count.value * 2
+ *   return count.get() * 2
  * })
  * ```
  *
@@ -53,7 +53,7 @@ class WithDiff<Value, Diff> {
  * ```ts
  * const count = atom('count', 0)
  * const double = computed('double', (prevValue) => {
- *   const nextValue = count.value * 2
+ *   const nextValue = count.get() * 2
  *   if (isUninitialized(prevValue)) {
  *     return nextValue
  *   }
@@ -220,7 +220,7 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	}
 
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
-		// need to call .value to ensure both that this derivation is up to date
+		// need to call .get() to ensure both that this derivation is up to date
 		// and that tracking happens correctly
 		this.get()
 
@@ -314,15 +314,15 @@ const isComputedMethodKey = '@@__isComputedMethod__@@'
  *   count = atom(0)
  *
  *   @computed getRemaining() {
- *     return this.max - this.count.value
+ *     return this.max - this.count.get()
  *   }
  * }
  *
  * const c = new Counter()
  * const remaining = getComputedInstance(c, 'getRemaining')
- * remaining.value === 100 // true
+ * remaining.get() === 100 // true
  * c.count.set(13)
- * remaining.value === 87 // true
+ * remaining.get() === 87 // true
  * ```
  *
  * @param obj - The object
@@ -353,8 +353,8 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  * @example
  * ```ts
  * const name = atom('name', 'John')
- * const greeting = computed('greeting', () => `Hello ${name.value}!`)
- * console.log(greeting.value) // 'Hello John!'
+ * const greeting = computed('greeting', () => `Hello ${name.get()}!`)
+ * console.log(greeting.get()) // 'Hello John!'
  * ```
  *
  * `computed` may also be used as a decorator for creating computed getter methods.
@@ -366,7 +366,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  *   count = atom<number>(0)
  *
  *   @computed getRemaining() {
- *     return this.max - this.count.value
+ *     return this.max - this.count.get()
  *   }
  * }
  * ```
@@ -381,7 +381,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  *
  *   @computed({isEqual: (a, b) => a === b})
  *   getRemaining() {
- *     return this.max - this.count.value
+ *     return this.max - this.count.get()
  *   }
  * }
  * ```
