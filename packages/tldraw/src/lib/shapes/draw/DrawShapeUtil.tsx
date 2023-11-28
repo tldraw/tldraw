@@ -27,6 +27,7 @@ import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoint
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { svgInk } from '../shared/freehand/svgInk'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -116,8 +117,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 				: getDot(allPointsFromSegments[0], sw)
 
 		if ((!forceSolid && shape.props.dash === 'draw') || strokePoints.length < 2) {
-			setStrokePointRadii(strokePoints, options)
-			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
+			const drawStyleFill = svgInk(allPointsFromSegments, options)
 
 			return (
 				<SVGContainer id={shape.id}>
@@ -127,11 +127,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 						color={shape.props.color}
 						d={solidStrokePath}
 					/>
-					<path
-						d={getSvgPathFromPoints(strokeOutlinePoints, true)}
-						strokeLinecap="round"
-						fill={theme[shape.props.color].solid}
-					/>
+					<path d={drawStyleFill} strokeLinecap="round" fill={theme[shape.props.color].solid} />
 				</SVGContainer>
 			)
 		}
