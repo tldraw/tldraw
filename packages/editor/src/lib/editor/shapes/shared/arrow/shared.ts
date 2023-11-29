@@ -1,4 +1,4 @@
-import { TLArrowShape, TLArrowShapeTerminal, TLShape } from '@tldraw/tlschema'
+import { TLArrowShape, TLArrowShapeTerminal, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Matrix2d } from '../../../../primitives/Matrix2d'
 import { Vec2d } from '../../../../primitives/Vec2d'
 import { Group2d } from '../../../../primitives/geometry/Group2d'
@@ -49,7 +49,7 @@ export function getArrowTerminalInArrowSpace(
 	editor: Editor,
 	arrowPageTransform: Matrix2d,
 	terminal: TLArrowShapeTerminal,
-	doubleBound: boolean
+	forceImprecise: boolean
 ) {
 	if (terminal.type === 'point') {
 		return Vec2d.From(terminal)
@@ -69,7 +69,7 @@ export function getArrowTerminalInArrowSpace(
 			point,
 			Vec2d.MulV(
 				// if the parent is the bound shape, then it's ALWAYS precise
-				terminal.isPrecise || doubleBound ? terminal.normalizedAnchor : { x: 0.5, y: 0.5 },
+				terminal.isPrecise || forceImprecise ? terminal.normalizedAnchor : { x: 0.5, y: 0.5 },
 				size
 			)
 		)
@@ -83,29 +83,32 @@ export function getArrowTerminalInArrowSpace(
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape) {
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
-	let doubleBound = false
+	let startBoundShapeId: TLShapeId | undefined
+	let endBoundShapeId: TLShapeId | undefined
 
 	if (shape.props.start.type === 'binding' && shape.props.end.type === 'binding') {
-		const { boundShapeId: startBoundShapeId } = shape.props.start
-		const { boundShapeId: endBoundShapeId } = shape.props.end
-
-		if (startBoundShapeId === endBoundShapeId) {
-			doubleBound = true
-		} else if (
-			editor.findShapeAncestor(startBoundShapeId, (p) => p.id === endBoundShapeId) ||
-			editor.findShapeAncestor(endBoundShapeId, (p) => p.id === startBoundShapeId)
-		) {
-			doubleBound = true
-		}
+		startBoundShapeId = shape.props.start.boundShapeId
+		endBoundShapeId = shape.props.end.boundShapeId
 	}
+	const boundShapeRelationships = getBoundShapeRelationships(
+		editor,
+		startBoundShapeId,
+		endBoundShapeId
+	)
 
 	const start = getArrowTerminalInArrowSpace(
 		editor,
 		arrowPageTransform,
 		shape.props.start,
-		doubleBound
+		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'start-above-end'
 	)
-	const end = getArrowTerminalInArrowSpace(editor, arrowPageTransform, shape.props.end, doubleBound)
+
+	const end = getArrowTerminalInArrowSpace(
+		editor,
+		arrowPageTransform,
+		shape.props.end,
+		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'end-above-start'
+	)
 
 	return { start, end }
 }
@@ -126,16 +129,14 @@ export const STROKE_SIZES: Record<string, number> = {
 }
 
 /** @internal */
-export function isBoundBetweenDescendants(
+export function getBoundShapeRelationships(
 	editor: Editor,
-	startInfo: BoundShapeInfo<TLShape>,
-	endInfo: BoundShapeInfo<TLShape>
+	startShapeId?: TLShapeId,
+	endShapeId?: TLShapeId
 ) {
-	const { id: startShapeId } = startInfo.shape
-	const { id: endShapeId } = endInfo.shape
-	return (
-		startShapeId === endShapeId ||
-		!!editor.findShapeAncestor(startShapeId, (p) => p.id === endShapeId) ||
-		!!editor.findShapeAncestor(endShapeId, (p) => p.id === startShapeId)
-	)
+	if (!startShapeId || !endShapeId) return 'safe'
+	if (startShapeId === endShapeId) return 'double-bound'
+	if (editor.findShapeAncestor(startShapeId, (p) => p.id === endShapeId)) return 'end-above-start'
+	if (editor.findShapeAncestor(endShapeId, (p) => p.id === startShapeId)) return 'start-above-end'
+	return 'safe'
 }

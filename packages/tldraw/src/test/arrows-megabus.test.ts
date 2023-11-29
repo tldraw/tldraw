@@ -578,3 +578,75 @@ describe('When starting an arrow inside of multiple shapes', () => {
 it.todo(
 	'after creating an arrow while tool lock is enabled, pressing enter will begin editing that shape'
 )
+
+describe.only('When binding an arrow to an ancestor', () => {
+	it('binds precisely from child to parent', () => {
+		const ids = {
+			frame: createShapeId(),
+			box1: createShapeId(),
+		}
+
+		editor.createShapes([
+			{
+				id: ids.frame,
+				type: 'frame',
+			},
+			{
+				id: ids.box1,
+				type: 'geo',
+				parentId: ids.frame,
+			},
+		])
+
+		editor.setCurrentTool('arrow')
+		editor.pointerMove(25, 25)
+		editor.pointerDown()
+		editor.pointerMove(150, 50)
+		editor.pointerUp()
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
+		if (!arrow) throw Error('No arrow')
+		if (arrow.props.start.type !== 'binding') throw Error('no binding')
+		if (arrow.props.end.type !== 'binding') throw Error('no binding')
+
+		expect(arrow.props.start.boundShapeId).toBe(ids.box1)
+		expect(arrow.props.end.boundShapeId).toBe(ids.frame)
+		expect(arrow.props.start.isPrecise).toBe(false)
+		expect(arrow.props.end.isPrecise).toBe(true)
+	})
+
+	it('binds precisely from parent to child', () => {
+		const ids = {
+			frame: createShapeId(),
+			box1: createShapeId(),
+		}
+
+		editor.createShapes([
+			{
+				id: ids.frame,
+				type: 'frame',
+			},
+			{
+				id: ids.box1,
+				type: 'geo',
+				parentId: ids.frame,
+			},
+		])
+
+		editor.setCurrentTool('arrow')
+		editor.pointerMove(150, 50)
+		editor.pointerDown()
+		editor.pointerMove(25, 25)
+		editor.pointerUp()
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
+		if (!arrow) throw Error('No arrow')
+		if (arrow.props.start.type !== 'binding') throw Error('no binding')
+		if (arrow.props.end.type !== 'binding') throw Error('no binding')
+
+		expect(arrow.props.start.boundShapeId).toBe(ids.frame)
+		expect(arrow.props.end.boundShapeId).toBe(ids.box1)
+		expect(arrow.props.start.isPrecise).toBe(false)
+		expect(arrow.props.end.isPrecise).toBe(true)
+	})
+})

@@ -15,7 +15,7 @@ import {
 	STROKE_SIZES,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
-	isBoundBetweenDescendants,
+	getBoundShapeRelationships,
 } from './shared'
 
 export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArrowInfo {
@@ -77,7 +77,13 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 	const isSelfIntersection =
 		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
 
+	const relationship =
+		startShapeInfo && endShapeInfo
+			? getBoundShapeRelationships(editor, startShapeInfo.shape.id, endShapeInfo.shape.id)
+			: 'safe'
+
 	if (
+		relationship === 'safe' &&
 		startShapeInfo &&
 		endShapeInfo &&
 		!isSelfIntersection &&
@@ -87,10 +93,8 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		if (endShapeInfo.didIntersect && !startShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, then make it
 			// a short arrow ending at the end shape intersection.
-			if (
-				startShapeInfo.isClosed &&
-				!isBoundBetweenDescendants(editor, startShapeInfo, endShapeInfo)
-			) {
+
+			if (startShapeInfo.isClosed) {
 				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH)))
 			}
 		} else if (!endShapeInfo.didIntersect) {
@@ -107,9 +111,14 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 	const didFlip = !Vec2d.Equals(u, uAB)
 
 	// If the arrow is bound non-exact to a start shape and the
-	// start point has an arrowhead offset the start point
+	// start point has an arrowhead, then offset the start point
 	if (!isSelfIntersection) {
-		if (startShapeInfo && arrowheadStart !== 'none' && !startShapeInfo.isExact) {
+		if (
+			relationship !== 'start-above-end' &&
+			startShapeInfo &&
+			arrowheadStart !== 'none' &&
+			!startShapeInfo.isExact
+		) {
 			offsetA =
 				BOUND_ARROW_OFFSET +
 				STROKE_SIZES[shape.props.size] / 2 +
@@ -120,7 +129,12 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 		// If the arrow is bound non-exact to an end shape and the
 		// end point has an arrowhead offset the end point
-		if (endShapeInfo && arrowheadEnd !== 'none' && !endShapeInfo.isExact) {
+		if (
+			relationship !== 'end-above-start' &&
+			endShapeInfo &&
+			arrowheadEnd !== 'none' &&
+			!endShapeInfo.isExact
+		) {
 			offsetB =
 				BOUND_ARROW_OFFSET +
 				STROKE_SIZES[shape.props.size] / 2 +

@@ -19,7 +19,7 @@ import {
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
-	isBoundBetweenDescendants,
+	getBoundShapeRelationships,
 } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
@@ -293,15 +293,17 @@ export function getCurvedArrowInfo(
 		aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
 		dAB = distFn(aCA, aCB) // angle distance between a and b
 		lAB = dAB * handleArc.radius // length of arc between a and b
+		const relationship = getBoundShapeRelationships(
+			editor,
+			startShapeInfo.shape.id,
+			endShapeInfo.shape.id
+		)
 
-		const isDoubleBound = isBoundBetweenDescendants(editor, startShapeInfo, endShapeInfo)
-		if (isDoubleBound) {
-			if (lAB < 100) {
-				tempA.setTo(a)
-				tempB.setTo(b)
-				tempC.setTo(c)
-			}
-		} else {
+		if (relationship === 'double-bound' && lAB < 30) {
+			tempA.setTo(a)
+			tempB.setTo(b)
+			tempC.setTo(c)
+		} else if (relationship === 'safe') {
 			if (startShapeInfo && !startShapeInfo.didIntersect) {
 				tempA.setTo(a)
 			}
