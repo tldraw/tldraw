@@ -344,9 +344,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					boundShapeId: ids.box1,
 					normalizedAnchor: {
 						// bound to the center, imprecise!
-						x: 0.5,
-						y: 0.5,
+						x: 0.2,
+						y: 0.2,
 					},
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',
@@ -520,9 +521,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box1,
 					normalizedAnchor: {
-						x: 0.5,
-						y: 0.5,
+						x: 0.25,
+						y: 0.25,
 					},
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',

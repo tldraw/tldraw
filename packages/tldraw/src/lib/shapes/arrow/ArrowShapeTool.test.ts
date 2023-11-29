@@ -284,7 +284,7 @@ describe('When pointing an end shape', () => {
 				end: {
 					type: 'binding',
 					isExact: false,
-					normalizedAnchor: { x: 0.5, y: 0.5 }, // center!
+					normalizedAnchor: { x: 0.25, y: 0.25 }, // center!
 					isPrecise: false,
 					boundShapeId: ids.box2,
 				},
@@ -335,7 +335,7 @@ describe('When pointing an end shape', () => {
 				end: {
 					type: 'binding',
 					isExact: false,
-					normalizedAnchor: { x: 0.5, y: 0.5 },
+					normalizedAnchor: { x: 0.4, y: 0.4 },
 					isPrecise: false,
 					boundShapeId: ids.box3,
 				},
