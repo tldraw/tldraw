@@ -7,26 +7,17 @@ const { PI } = Math
 const FIXED_PI = PI + 0.0001
 
 /**
- * ## getStrokeOutlinePoints
- *
- * Get an array of points (as `[x, y]`) representing the outline of a stroke.
- *
- * @param points - An array of StrokePoints as returned from `getStrokePoints`.
- * @param options - An object with options.
- * @public
+ * @internal
  */
-export function getStrokeOutlinePoints(
+export function getStrokeOutlineTracks(
 	strokePoints: StrokePoint[],
 	options: StrokeOptions = {}
-): Vec2d[] {
-	const { size = 16, smoothing = 0.5, start = {}, end = {}, last: isComplete = false } = options
-
-	const { cap: capStart = true } = start
-	const { cap: capEnd = true } = end
+): { left: Vec2d[]; right: Vec2d[] } {
+	const { size = 16, smoothing = 0.5 } = options
 
 	// We can't do anything with an empty array or a stroke with negative size.
 	if (strokePoints.length === 0 || size <= 0) {
-		return []
+		return { left: [], right: [] }
 	}
 
 	const firstStrokePoint = strokePoints[0]
@@ -34,20 +25,6 @@ export function getStrokeOutlinePoints(
 
 	// The total length of the line
 	const totalLength = lastStrokePoint.runningLength
-
-	const taperStart =
-		start.taper === false
-			? 0
-			: start.taper === true
-			? Math.max(size, totalLength)
-			: (start.taper as number)
-
-	const taperEnd =
-		end.taper === false
-			? 0
-			: end.taper === true
-			? Math.max(size, totalLength)
-			: (end.taper as number)
 
 	// The minimum allowed distance between points (squared)
 	const minDistance = Math.pow(size * smoothing, 2)
@@ -184,6 +161,65 @@ export function getStrokeOutlinePoints(
 
 		continue
 	}
+
+	/*
+    Return the points in the correct winding order: begin on the left side, then 
+    continue around the end cap, then come back along the right side, and finally 
+    complete the start cap.
+  */
+
+	return {
+		left: leftPts,
+		right: rightPts,
+	}
+}
+
+/**
+ * ## getStrokeOutlinePoints
+ *
+ * Get an array of points (as `[x, y]`) representing the outline of a stroke.
+ *
+ * @param points - An array of StrokePoints as returned from `getStrokePoints`.
+ * @param options - An object with options.
+ * @public
+ */
+export function getStrokeOutlinePoints(
+	strokePoints: StrokePoint[],
+	options: StrokeOptions = {}
+): Vec2d[] {
+	const { size = 16, start = {}, end = {}, last: isComplete = false } = options
+
+	const { cap: capStart = true } = start
+	const { cap: capEnd = true } = end
+
+	// We can't do anything with an empty array or a stroke with negative size.
+	if (strokePoints.length === 0 || size <= 0) {
+		return []
+	}
+
+	const firstStrokePoint = strokePoints[0]
+	const lastStrokePoint = strokePoints[strokePoints.length - 1]
+
+	// The total length of the line
+	const totalLength = lastStrokePoint.runningLength
+
+	const taperStart =
+		start.taper === false
+			? 0
+			: start.taper === true
+			? Math.max(size, totalLength)
+			: (start.taper as number)
+
+	const taperEnd =
+		end.taper === false
+			? 0
+			: end.taper === true
+			? Math.max(size, totalLength)
+			: (end.taper as number)
+
+	// The minimum allowed distance between points (squared)
+	// Our collected left and right points
+	const { left: leftPts, right: rightPts } = getStrokeOutlineTracks(strokePoints, options)
 
 	/*
     Drawing caps
