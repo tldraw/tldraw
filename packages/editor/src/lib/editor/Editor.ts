@@ -1467,8 +1467,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' })
-	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' }, { ephemeral: true })
+	 * editor.updateCurrentPageState({ id: 'page1', editingShapeId: 'shape:123' })
+	 * editor.updateCurrentPageState({ id: 'page1', editingShapeId: 'shape:123' }, { ephemeral: true })
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
@@ -5159,6 +5159,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: string) {
 		const ids =
 			typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : shapes.map((s) => (s as TLShape).id)
+		if (ids.length === 0) return this
+
 		const changes: TLShapePartial[] = []
 
 		const parentTransform = isPageId(parentId)
@@ -7314,6 +7316,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.select(...idsToSelect)
 		})
 
+		return this
+	}
+
+	/**
+	 * Remove a frame.
+	 *
+	 * @param ids - Ids of the frames you wish to remove.
+	 *
+	 * @public
+	 */
+	removeFrame(ids: TLShapeId[]): this {
+		const frames = compact(
+			ids
+				.map((id) => this.getShape<TLFrameShape>(id))
+				.filter((f) => f && this.isShapeOfType<TLFrameShape>(f, 'frame'))
+		)
+		if (!frames.length) return this
+
+		const allChildren: TLShapeId[] = []
+		this.batch(() => {
+			frames.map((frame) => {
+				const children = this.getSortedChildIdsForParent(frame.id)
+				if (children.length) {
+					this.reparentShapes(children, frame.parentId, frame.index)
+					allChildren.push(...children)
+				}
+			})
+			this.setSelectedShapes(allChildren)
+			this.deleteShapes(ids)
+		})
 		return this
 	}
 

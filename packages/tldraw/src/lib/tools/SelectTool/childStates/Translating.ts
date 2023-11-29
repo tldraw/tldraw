@@ -22,7 +22,7 @@ export class Translating extends StateNode {
 	info = {} as TLPointerEventInfo & {
 		target: 'shape'
 		isCreating?: boolean
-		editAfterComplete?: boolean
+		onCreate?: () => void
 		onInteractionEnd?: string
 	}
 
@@ -34,7 +34,7 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
-	editAfterComplete = false
+	onCreate: (shape: TLShape | null) => void = () => void null
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
@@ -42,19 +42,24 @@ export class Translating extends StateNode {
 		info: TLPointerEventInfo & {
 			target: 'shape'
 			isCreating?: boolean
-			editAfterComplete?: boolean
+			onCreate?: () => void
 			onInteractionEnd?: string
 		}
 	) => {
-		const { isCreating = false, editAfterComplete = false } = info
+		const { isCreating = false, onCreate = () => void null } = info
 
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
-		this.editAfterComplete = editAfterComplete
+		this.onCreate = onCreate
 
-		this.markId = isCreating ? `creating:${this.editor.getOnlySelectedShape()!.id}` : 'translating'
-		this.editor.mark(this.markId)
+		if (isCreating) {
+			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
+		} else {
+			this.markId = 'translating'
+			this.editor.mark(this.markId)
+		}
+
 		this.isCloning = false
 		this.info = info
 
@@ -165,12 +170,8 @@ export class Translating extends StateNode {
 		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
-			if (this.editAfterComplete) {
-				const onlySelected = this.editor.getOnlySelectedShape()
-				if (onlySelected) {
-					this.editor.setEditingShape(onlySelected.id)
-					this.editor.setCurrentTool('select.editing_shape')
-				}
+			if (this.isCreating) {
+				this.onCreate?.(this.editor.getOnlySelectedShape())
 			} else {
 				this.parent.transition('idle')
 			}

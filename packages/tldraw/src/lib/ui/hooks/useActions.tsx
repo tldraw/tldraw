@@ -5,6 +5,7 @@ import {
 	TAU,
 	TLBookmarkShape,
 	TLEmbedShape,
+	TLFrameShape,
 	TLGroupShape,
 	TLShapeId,
 	TLShapePartial,
@@ -452,6 +453,25 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					} else {
 						editor.mark('group')
 						editor.groupShapes(editor.getSelectedShapeIds())
+					}
+				},
+			},
+			{
+				id: 'remove-frame',
+				label: 'action.remove-frame',
+				kbd: '$!f',
+				readonlyOk: false,
+				onSelect(source) {
+					if (!hasSelectedShapes()) return
+
+					trackEvent('remove-frame', { source })
+					const selectedShapes = editor.getSelectedShapes()
+					if (
+						selectedShapes.length > 0 &&
+						selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+					) {
+						editor.mark('remove-frame')
+						editor.removeFrame(selectedShapes.map((shape) => shape.id))
 					}
 				},
 			},

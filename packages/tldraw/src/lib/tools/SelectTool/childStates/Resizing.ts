@@ -16,13 +16,14 @@ import {
 	Vec2d,
 	VecLike,
 	areAnglesCompatible,
+	compact,
 } from '@tldraw/editor'
 
 type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
 	handle: SelectionEdge | SelectionCorner
 	isCreating?: boolean
-	editAfterComplete?: boolean
+	onCreate?: (shape: TLShape | null) => void
 	creationCursorOffset?: VecLike
 	onInteractionEnd?: string
 }
@@ -34,40 +35,38 @@ export class Resizing extends StateNode {
 
 	markId = ''
 
+	// A switch to detect when the user is holding ctrl
+	private didHoldCommand = false
+
 	// we transition into the resizing state from the geo pointing state, which starts with a shape of size w: 1, h: 1,
 	// so if the user drags x: +50, y: +50 after mouseDown, the shape will be w: 51, h: 51, which is too many pixels, alas
 	// so we allow passing a further offset into this state to negate such issues
 	creationCursorOffset = { x: 0, y: 0 } as VecLike
-	editAfterComplete = false
 
 	private snapshot = {} as any as Snapshot
 
 	override onEnter: TLEnterEventHandler = (info: ResizingInfo) => {
-		const {
-			isCreating = false,
-			editAfterComplete = false,
-			creationCursorOffset = { x: 0, y: 0 },
-		} = info
+		const { isCreating = false, creationCursorOffset = { x: 0, y: 0 } } = info
 
 		this.info = info
+		this.didHoldCommand = false
 
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
-		this.editAfterComplete = editAfterComplete
 		this.creationCursorOffset = creationCursorOffset
 
-		if (info.isCreating) {
+		this.snapshot = this._createSnapshot()
+
+		if (isCreating) {
+			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
+
 			this.editor.updateInstanceState(
 				{ cursor: { type: 'cross', rotation: 0 } },
 				{ ephemeral: true }
 			)
+		} else {
+			this.markId = 'starting resizing'
+			this.editor.mark(this.markId)
 		}
-
-		this.snapshot = this._createSnapshot()
-		this.markId = isCreating
-			? `creating:${this.editor.getOnlySelectedShape()!.id}`
-			: 'starting resizing'
-
-		if (!isCreating) this.editor.mark(this.markId)
 
 		this.handleResizeStart()
 		this.updateShapes()
@@ -109,10 +108,8 @@ export class Resizing extends StateNode {
 	private complete() {
 		this.handleResizeEnd()
 
-		const onlySelectedShape = this.editor.getOnlySelectedShape()
-		if (this.editAfterComplete && onlySelectedShape) {
-			this.editor.setEditingShape(onlySelectedShape.id)
-			this.editor.setCurrentTool('select.editing_shape')
+		if (this.info.isCreating && this.info.onCreate) {
+			this.info.onCreate?.(this.editor.getOnlySelectedShape())
 			return
 		}
 
@@ -164,6 +161,7 @@ export class Resizing extends StateNode {
 	private updateShapes() {
 		const { altKey, shiftKey } = this.editor.inputs
 		const {
+			frames,
 			shapeSnapshots,
 			selectionBounds,
 			cursorHandleOffset,
@@ -316,6 +314,48 @@ export class Resizing extends StateNode {
 				scaleAxisRotation: selectionRotation,
 			})
 		}
+
+		if (this.editor.inputs.ctrlKey) {
+			this.didHoldCommand = true
+
+			for (const { id, children } of frames) {
+				if (!children.length) continue
+				const initial = shapeSnapshots.get(id)!.shape
+				const current = this.editor.getShape(id)!
+				if (!(initial && current)) continue
+
+				// If the user is holding ctrl, then preseve the position of the frame's children
+				const dx = current.x - initial.x
+				const dy = current.y - initial.y
+
+				const delta = new Vec2d(dx, dy).rot(-initial.rotation)
+
+				if (delta.x !== 0 || delta.y !== 0) {
+					for (const child of children) {
+						this.editor.updateShape({
+							id: child.id,
+							type: child.type,
+							x: child.x - delta.x,
+							y: child.y - delta.y,
+						})
+					}
+				}
+			}
+		} else if (this.didHoldCommand) {
+			this.didHoldCommand = false
+
+			for (const { children } of frames) {
+				if (!children.length) continue
+				for (const child of children) {
+					this.editor.updateShape({
+						id: child.id,
+						type: child.type,
+						x: child.x,
+						y: child.y,
+					})
+				}
+			}
+		}
 	}
 
 	// ---
@@ -385,9 +425,19 @@ export class Resizing extends StateNode {
 
 		const shapeSnapshots = new Map<TLShapeId, ShapeSnapshot>()
 
+		const frames: { id: TLShapeId; children: TLShape[] }[] = []
+
 		selectedShapeIds.forEach((id) => {
 			const shape = this.editor.getShape(id)
 			if (shape) {
+				if (shape.type === 'frame') {
+					frames.push({
+						id,
+						children: compact(
+							this.editor.getSortedChildIdsForParent(shape).map((id) => this.editor.getShape(id))
+						),
+					})
+				}
 				shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
 				if (
 					this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
@@ -419,6 +469,7 @@ export class Resizing extends StateNode {
 			selectedShapeIds,
 			canShapesDeform,
 			initialSelectionPageBounds: this.editor.getSelectionPageBounds()!,
+			frames,
 		}
 	}
 

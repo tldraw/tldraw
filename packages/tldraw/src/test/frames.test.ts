@@ -1,4 +1,10 @@
-import { DefaultFillStyle, TLArrowShape, TLFrameShape, createShapeId } from '@tldraw/editor'
+import {
+	DefaultFillStyle,
+	TLArrowShape,
+	TLFrameShape,
+	TLShapeId,
+	createShapeId,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -108,6 +114,22 @@ describe('creating frames', () => {
 			w: 50,
 			h: 50,
 		})
+	})
+
+	it('parents a shape when drag-creating a frame over it', () => {
+		const rectId: TLShapeId = createRect({ pos: [10, 10], size: [20, 20] })
+		const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const parent = editor.getShape(rectId)?.parentId
+		expect(parent).toBe(frameId)
+	})
+
+	it('does not parent a shape when click-creating a frame over it', () => {
+		const rectId: TLShapeId = createRect({ pos: [10, 10], size: [20, 20] })
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerUp(0, 0)
+		const parent = editor.getShape(rectId)?.parentId
+		expect(parent).toBe('page:page')
 	})
 
 	it('can snap', () => {
@@ -233,6 +255,61 @@ describe('frame shapes', () => {
 			w: 50,
 			h: 50,
 		})
+	})
+	it('unparents a shape when resize causes it to be out of bounds', () => {
+		const rectId: TLShapeId = createRect({ pos: [70, 10], size: [20, 20] })
+		dragCreateFrame({ down: [10, 10], move: [100, 100], up: [100, 100] })
+		// resize the frame so the shape is out of bounds
+		editor.pointerDown(100, 50, { target: 'selection', handle: 'right' })
+		editor.pointerMove(50, 50)
+		editor.pointerUp(50, 50)
+		const parent = editor.getShape(rectId)?.parentId
+		expect(parent).toBe('page:page')
+	})
+
+	it('doesnt unparent a shape that is only partially out of bounds', () => {
+		const rectId: TLShapeId = createRect({ pos: [70, 10], size: [20, 20] })
+		const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const parentBefore = editor.getShape(rectId)?.parentId
+		expect(parentBefore).toBe(frameId)
+		// resize the frame so the shape is partially out of bounds
+		editor.pointerDown(100, 50, { target: 'selection', handle: 'right' })
+		editor.pointerMove(70, 50)
+		editor.pointerUp(70, 50)
+		const parentAfter = editor.getShape(rectId)?.parentId
+		expect(parentAfter).toBe(frameId)
+	})
+
+	it('does not parent a shape when resizing over it', () => {
+		const rectId = createRect({ pos: [70, 10], size: [20, 20] })
+		// create frame next to shape
+		dragCreateFrame({ down: [10, 10], move: [60, 100], up: [60, 100] })
+		// resize the frame so the shape is totally covered
+		editor.pointerDown(60, 50, { target: 'selection', handle: 'right' })
+		editor.pointerMove(100, 50)
+		editor.pointerUp(100, 50)
+		const parent = editor.getShape(rectId)?.parentId
+		expect(parent).toBe('page:page')
+	})
+
+	it('moves children when resizing a parent frame', () => {
+		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
+		dragCreateFrame({ down: [10, 10], move: [100, 100], up: [100, 100] })
+		editor.pointerDown(0, 0, { target: 'selection', handle: 'top_left' })
+		expect(editor.getShape(rectId)?.y).toBe(10)
+		editor.pointerMove(-50, -50)
+		editor.pointerUp(-50, -50)
+		expect(editor.getShape(rectId)?.y).toBe(10)
+	})
+
+	it('does not move children when resizing with cmd key held down', () => {
+		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		editor.pointerDown(0, 0, { target: 'selection', handle: 'top_left' })
+		editor.keyDown('Control')
+		editor.pointerMove(-50, -50)
+		editor.pointerUp(-50, -50)
+		expect(editor.getShape(rectId)?.x).toBe(60)
 	})
 
 	it('can have shapes dragged on top and back out', () => {
@@ -775,3 +852,79 @@ describe('When dragging a shape inside a group inside a frame', () => {
 		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
 	})
 })
+
+describe('When deleting/removing a frame', () => {
+	it('deletes a frame and its children', () => {
+		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
+		const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		editor.deleteShape(frameId)
+		expect(editor.getShape(rectId)).toBeUndefined()
+	})
+	it('removes a frame but not its children', () => {
+		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
+		const frameId = dragCreateFrame({ down: [10, 10], move: [100, 100], up: [100, 100] })
+		editor.removeFrame([frameId])
+		expect(editor.getShape(rectId)).toBeDefined()
+	})
+	it('reparents the children of a frame when removing it', () => {
+		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
+		const frame1Id = dragCreateFrame({ down: [10, 10], move: [100, 100], up: [100, 100] })
+		const frame2Id = dragCreateFrame({ down: [0, 0], move: [110, 110], up: [110, 110] })
+		editor.removeFrame([frame1Id])
+		expect(editor.getShape(rectId)?.parentId).toBe(frame2Id)
+	})
+})
+
+describe('When dragging a shape', () => {
+	it('parents a shape when dragging it into a frame', () => {
+		const rectId: TLShapeId = createRect({ pos: [70, 10], size: [20, 20] })
+		// create frame next to shape
+		const frameId = dragCreateFrame({ down: [0, 0], move: [60, 100], up: [60, 100] })
+		// drag shape into frame
+		editor.pointerDown(80, 15)
+		editor.pointerMove(30, 50)
+		editor.pointerUp(30, 50)
+		const parent = editor.getShape(rectId)?.parentId
+		expect(parent).toBe(frameId)
+	})
+	it('Unparents a shape when dragging it out of a frame', () => {
+		const rectId: TLShapeId = createRect({ pos: [10, 10], size: [20, 20] })
+		editor.pointerDown(15, 15, { target: 'selection' })
+		editor.pointerMove(-100, -100)
+		editor.pointerUp(-100, -100)
+		const parent = editor.getShape(rectId)?.parentId
+		expect(parent).toBe('page:page')
+	})
+})
+
+function dragCreateFrame({
+	down,
+	move,
+	up,
+}: {
+	down: [number, number]
+	move: [number, number]
+	up: [number, number]
+}): TLShapeId {
+	editor.setCurrentTool('frame')
+	editor.pointerDown(...down)
+	editor.pointerMove(...move)
+	editor.pointerUp(...up)
+	const shapes = editor.getSelectedShapes()
+	const frameId = shapes[0].id
+	return frameId
+}
+
+function createRect({ pos, size }: { pos: [number, number]; size: [number, number] }) {
+	const rectId: TLShapeId = createShapeId()
+	editor.createShapes([
+		{
+			id: rectId,
+			x: pos[0],
+			y: pos[1],
+			props: { w: size[0], h: size[1] },
+			type: 'geo',
+		},
+	])
+	return rectId
+}

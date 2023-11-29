@@ -7,6 +7,7 @@ import {
 	TLFrameShape,
 	TLGroupShape,
 	TLOnResizeEndHandler,
+	TLOnResizeHandler,
 	TLShape,
 	TLShapeId,
 	canonicalizeRotation,
@@ -14,8 +15,11 @@ import {
 	frameShapeProps,
 	getDefaultColorTheme,
 	last,
+	resizeBox,
 	toDomPrecision,
+	useValue,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FrameHeading } from './components/FrameHeading'
@@ -54,23 +58,40 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isCreating = useValue(
+			'is creating this shape',
+			() => {
+				const resizingState = this.editor.getStateDescendant('select.resizing')
+				if (!resizingState) return false
+				if (!resizingState.getIsActive()) return false
+				const info = (resizingState as typeof resizingState & { info: { isCreating: boolean } })
+					?.info
+				if (!info) return false
+				return info.isCreating && this.editor.getOnlySelectedShape()?.id === shape.id
+			},
+			[shape.id]
+		)
+
 		return (
 			<>
 				<SVGContainer>
 					<rect
-						className="tl-frame__body"
+						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
 						width={bounds.width}
 						height={bounds.height}
 						fill={theme.solid}
 						stroke={theme.text}
 					/>
 				</SVGContainer>
-				<FrameHeading
-					id={shape.id}
-					name={shape.props.name}
-					width={bounds.width}
-					height={bounds.height}
-				/>
+				{isCreating ? null : (
+					<FrameHeading
+						id={shape.id}
+						name={shape.props.name}
+						width={bounds.width}
+						height={bounds.height}
+					/>
+				)}
 			</>
 		)
 	}
@@ -229,5 +250,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		if (shapesToReparent.length > 0) {
 			this.editor.reparentShapes(shapesToReparent, this.editor.getCurrentPageId())
 		}
+	}
+
+	override onResize: TLOnResizeHandler<any> = (shape, info) => {
+		return resizeBox(shape, info)
 	}
 }
