@@ -31646,6 +31646,41 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#canBeMasked:member",
+              "docComment": "/**\n * Whether the shape can be masked.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "canBeMasked: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeUtilFlag",
+                  "canonicalReference": "@tldraw/editor!TLShapeUtilFlag:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "canBeMasked",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#canBind:member",
               "docComment": "/**\n * Whether the shape can be bound to by an arrow.\n *\n * @param _otherShape - The other shape attempting to bind to this shape.\n *\n * @public\n */\n",
               "excerptTokens": [

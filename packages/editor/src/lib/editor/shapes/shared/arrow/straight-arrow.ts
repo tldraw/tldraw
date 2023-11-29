@@ -15,6 +15,7 @@ import {
 	STROKE_SIZES,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
+	isBoundBetweenDescendants,
 } from './shared'
 
 export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArrowInfo {
@@ -86,7 +87,10 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		if (endShapeInfo.didIntersect && !startShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, then make it
 			// a short arrow ending at the end shape intersection.
-			if (startShapeInfo.isClosed) {
+			if (
+				startShapeInfo.isClosed &&
+				!isBoundBetweenDescendants(editor, startShapeInfo, endShapeInfo)
+			) {
 				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH)))
 			}
 		} else if (!endShapeInfo.didIntersect) {

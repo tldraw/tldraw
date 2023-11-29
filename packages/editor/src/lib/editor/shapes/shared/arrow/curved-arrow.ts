@@ -19,6 +19,7 @@ import {
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
+	isBoundBetweenDescendants,
 } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
@@ -293,7 +294,8 @@ export function getCurvedArrowInfo(
 		dAB = distFn(aCA, aCB) // angle distance between a and b
 		lAB = dAB * handleArc.radius // length of arc between a and b
 
-		if (startShapeInfo.shape === endShapeInfo.shape) {
+		const isDoubleBound = isBoundBetweenDescendants(editor, startShapeInfo, endShapeInfo)
+		if (isDoubleBound) {
 			if (lAB < 100) {
 				tempA.setTo(a)
 				tempB.setTo(b)

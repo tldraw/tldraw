@@ -242,6 +242,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 									type: 'binding',
 									boundShapeId: startTargetId,
 									normalizedAnchor: { x: 0.5, y: 0.5 },
+									isPrecise: false,
 									isExact: false,
 							  }
 							: {
@@ -254,6 +255,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 									type: 'binding',
 									boundShapeId: endTargetId,
 									normalizedAnchor: { x: 0.5, y: 0.5 },
+									isPrecise: false,
 									isExact: false,
 							  }
 							: {

@@ -22,7 +22,6 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec2d,
-	Vec2dModel,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	deepCopy,
@@ -66,6 +65,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override canEdit = () => true
 	override canBind = () => false
 	override canSnap = () => false
+	override canBeMasked = () => false
 	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
@@ -302,7 +302,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			if (
 				otherHandle.type === 'binding' &&
 				target.id === otherHandle.boundShapeId &&
-				Vec2d.Equals(otherHandle.normalizedAnchor, { x: 0.5, y: 0.5 })
+				otherHandle.isPrecise
 			) {
 				precise = true
 			}
@@ -311,12 +311,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		next.props[handleId] = {
 			type: 'binding',
 			boundShapeId: target.id,
-			normalizedAnchor: precise
-				? {
-						x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-						y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-				  }
-				: { x: 0.5, y: 0.5 },
+			normalizedAnchor: {
+				x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+				y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+			},
+			isPrecise: precise,
 			isExact: this.editor.inputs.altKey,
 		}
 
@@ -542,7 +541,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							shape.props.start.type === 'binding'
 								? shape.props.start.isExact
 									? ''
-									: isPrecise(shape.props.start.normalizedAnchor)
+									: shape.props.start.isPrecise
 									? 'url(#arrowhead-cross)'
 									: 'url(#arrowhead-dot)'
 								: ''
@@ -551,7 +550,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							shape.props.end.type === 'binding'
 								? shape.props.end.isExact
 									? ''
-									: isPrecise(shape.props.end.normalizedAnchor)
+									: shape.props.end.isPrecise
 									? 'url(#arrowhead-cross)'
 									: 'url(#arrowhead-dot)'
 								: ''
@@ -1029,8 +1028,4 @@ function getArrowheadSvgPath(
 		// Otherwise, just return the path
 		return path
 	}
-}
-
-function isPrecise(normalizedAnchor: Vec2dModel) {
-	return normalizedAnchor.x !== 0.5 || normalizedAnchor.y !== 0.5
 }

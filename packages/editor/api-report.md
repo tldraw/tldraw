@@ -1705,6 +1705,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
+    canBeMasked: TLShapeUtilFlag<Shape>;
     canBind: <K>(_shape: Shape, _otherShape?: K | undefined) => boolean;
     canCrop: TLShapeUtilFlag<Shape>;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;

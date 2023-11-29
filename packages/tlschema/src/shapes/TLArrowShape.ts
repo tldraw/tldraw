@@ -43,6 +43,7 @@ const ArrowShapeTerminal = T.union('type', {
 		boundShapeId: shapeIdValidator,
 		normalizedAnchor: vec2dModelValidator,
 		isExact: T.boolean,
+		isPrecise: T.boolean,
 	}),
 	point: T.object({
 		type: T.literal('point'),
@@ -78,11 +79,12 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
 const Versions = {
 	AddLabelColor: 1,
+	AddIsPrecise: 2,
 } as const
 
 /** @internal */
 export const arrowShapeMigrations = defineMigrations({
-	currentVersion: Versions.AddLabelColor,
+	currentVersion: Versions.AddIsPrecise,
 	migrators: {
 		[Versions.AddLabelColor]: {
 			up: (record) => {
@@ -99,6 +101,56 @@ export const arrowShapeMigrations = defineMigrations({
 				return {
 					...record,
 					props,
+				}
+			},
+		},
+		[Versions.AddIsPrecise]: {
+			up: (record) => {
+				const { start, end } = record.props
+				return {
+					...record,
+					props: {
+						...record.props,
+						start:
+							(start as TLArrowShapeTerminal).type === 'binding'
+								? {
+										...start,
+										isPrecise: start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5,
+								  }
+								: start,
+						end:
+							(end as TLArrowShapeTerminal).type === 'binding'
+								? {
+										...end,
+										isPrecise: end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5,
+								  }
+								: end,
+					},
+				}
+			},
+			down: (record: any) => {
+				const { start, end } = record.props
+				const nStart = { ...start }
+				const nEnd = { ...end }
+				if (nStart.type === 'binding') {
+					if (nStart.isPrecise) {
+						nStart.normalizedAnchor = { x: 0.5, y: 0.5 }
+					}
+					delete nStart.isPrecise
+				}
+				if (nEnd.type === 'binding') {
+					if (nEnd.isPrecise) {
+						nEnd.normalizedAnchor = { x: 0.5, y: 0.5 }
+					}
+					delete nEnd.isPrecise
+				}
+				return {
+					...record,
+					props: {
+						...record.props,
+						start: nStart,
+						end: nEnd,
+					},
 				}
 			},
 		},

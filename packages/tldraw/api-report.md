@@ -125,6 +125,8 @@ export class ArrowShapeTool extends StateNode {
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
+    canBeMasked: () => boolean;
+    // (undocumented)
     canBind: () => boolean;
     // (undocumented)
     canEdit: () => boolean;
@@ -178,6 +180,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         boundShapeId: TLShapeId;
         normalizedAnchor: Vec2dModel;
         isExact: boolean;
+        isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
         type: "point";
@@ -191,6 +194,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         boundShapeId: TLShapeId;
         normalizedAnchor: Vec2dModel;
         isExact: boolean;
+        isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
         type: "point";

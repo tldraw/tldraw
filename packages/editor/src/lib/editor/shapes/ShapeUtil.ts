@@ -94,6 +94,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canUnmount: TLShapeUtilFlag<Shape> = () => true
 
 	/**
+	 * Whether the shape can be masked.
+	 *
+	 * @public
+	 */
+	canBeMasked: TLShapeUtilFlag<Shape> = () => true
+
+	/**
 	 * Whether the shape can be bound to by an arrow.
 	 *
 	 * @param _otherShape - The other shape attempting to bind to this shape.

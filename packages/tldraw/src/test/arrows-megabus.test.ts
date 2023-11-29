@@ -156,6 +156,7 @@ describe('When binding an arrow to a shape', () => {
 			type: 'binding',
 			boundShapeId: ids.box1,
 			normalizedAnchor: { x: 0.5, y: 0.5 },
+			isPrecise: false,
 		})
 		editor.pointerMove(250, 50)
 		expect(arrow().props.end.type).toBe('point')
