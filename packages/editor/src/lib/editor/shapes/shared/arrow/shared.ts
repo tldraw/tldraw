@@ -90,6 +90,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 		startBoundShapeId = shape.props.start.boundShapeId
 		endBoundShapeId = shape.props.end.boundShapeId
 	}
+
 	const boundShapeRelationships = getBoundShapeRelationships(
 		editor,
 		startBoundShapeId,
@@ -100,14 +101,14 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 		editor,
 		arrowPageTransform,
 		shape.props.start,
-		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'start-above-end'
+		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'start-contains-end'
 	)
 
 	const end = getArrowTerminalInArrowSpace(
 		editor,
 		arrowPageTransform,
 		shape.props.end,
-		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'end-above-start'
+		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'end-contains-start'
 	)
 
 	return { start, end }
@@ -128,7 +129,19 @@ export const STROKE_SIZES: Record<string, number> = {
 	xl: 10,
 }
 
-/** @internal */
+/**
+ * Get the relationships for an arrow that has two bound shape terminals.
+ * If the arrow has only one bound shape, then it is always "safe" to apply
+ * standard offsets and precision behavior. If the shape is bound to the same
+ * shape on both ends, then that is an exception. If one of the shape's
+ * terminals is bound to a shape that contains / is contained by the shape that
+ * is bound to the other terminal, then that is also an exception.
+ *
+ * @param editor - the editor instance
+ * @param startShapeId - the bound shape from the arrow's start
+ * @param endShapeId - the bound shape from the arrow's end
+ *
+ *  @internal */
 export function getBoundShapeRelationships(
 	editor: Editor,
 	startShapeId?: TLShapeId,
@@ -136,7 +149,11 @@ export function getBoundShapeRelationships(
 ) {
 	if (!startShapeId || !endShapeId) return 'safe'
 	if (startShapeId === endShapeId) return 'double-bound'
-	if (editor.findShapeAncestor(startShapeId, (p) => p.id === endShapeId)) return 'end-above-start'
-	if (editor.findShapeAncestor(endShapeId, (p) => p.id === startShapeId)) return 'start-above-end'
+	const startBounds = editor.getShapePageBounds(startShapeId)
+	const endBounds = editor.getShapePageBounds(endShapeId)
+	if (startBounds && endBounds) {
+		if (startBounds.contains(endBounds)) return 'start-contains-end'
+		if (endBounds.contains(startBounds)) return 'end-contains-start'
+	}
 	return 'safe'
 }

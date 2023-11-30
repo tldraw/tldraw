@@ -114,7 +114,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 	// start point has an arrowhead, then offset the start point
 	if (!isSelfIntersection) {
 		if (
-			relationship !== 'start-above-end' &&
+			relationship !== 'start-contains-end' &&
 			startShapeInfo &&
 			arrowheadStart !== 'none' &&
 			!startShapeInfo.isExact
@@ -130,7 +130,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		// If the arrow is bound non-exact to an end shape and the
 		// end point has an arrowhead offset the end point
 		if (
-			relationship !== 'end-above-start' &&
+			relationship !== 'end-contains-start' &&
 			endShapeInfo &&
 			arrowheadEnd !== 'none' &&
 			!endShapeInfo.isExact

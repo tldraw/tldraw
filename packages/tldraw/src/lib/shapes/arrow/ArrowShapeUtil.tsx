@@ -281,16 +281,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 
-		if (precise) {
-			// Turn off precision if we're within a certain distance to the center of the shape.
-			// Funky math but we want the snap distance to be 4 at the minimum and either
-			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-			precise =
-				Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
-				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.getZoomLevel()
-		}
-
 		if (!isPrecise) {
 			if (!targetGeometry.isClosed) {
 				precise = true
@@ -308,13 +298,29 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 
+		const normalizedAnchor = {
+			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+		}
+
+		if (precise) {
+			// Turn off precision if we're within a certain distance to the center of the shape.
+			// Funky math but we want the snap distance to be 4 at the minimum and either
+			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
+			if (
+				Vec2d.Dist(pointInTargetSpace, targetBounds.center) <
+				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
+					this.editor.getZoomLevel()
+			) {
+				normalizedAnchor.x = 0.5
+				normalizedAnchor.y = 0.5
+			}
+		}
+
 		next.props[handleId] = {
 			type: 'binding',
 			boundShapeId: target.id,
-			normalizedAnchor: {
-				x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-				y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-			},
+			normalizedAnchor: normalizedAnchor,
 			isPrecise: precise,
 			isExact: this.editor.inputs.altKey,
 		}
