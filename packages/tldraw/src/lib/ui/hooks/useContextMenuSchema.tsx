@@ -232,6 +232,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		allowGroup,
 		allowUngroup,
 		allowRemoveFrame,
+		allowFitFrameToContent,
 		hasClipboardWrite,
 		showEditLink,
 		// oneEmbedSelected,
