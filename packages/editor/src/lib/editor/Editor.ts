@@ -7366,8 +7366,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const padding = 100
 		const paddingHalf = padding / 2
 
-		const deltaX = bounds.x - paddingHalf - frame.x
-		const deltaY = bounds.y - paddingHalf - frame.y
+		const dx = bounds.x - paddingHalf - frame.x
+		const dy = bounds.y - paddingHalf - frame.y
 		this.batch(() => {
 			this.updateShape({
 				id: frame.id,
@@ -7384,8 +7384,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.updateShape({
 					id: shape.id,
 					type: shape.type,
-					x: shape.x - deltaX,
-					y: shape.y - deltaY,
+					x: shape.x - dx,
+					y: shape.y - dy,
 				})
 			})
 		})
