@@ -579,7 +579,7 @@ it.todo(
 	'after creating an arrow while tool lock is enabled, pressing enter will begin editing that shape'
 )
 
-describe.only('When binding an arrow to an ancestor', () => {
+describe('When binding an arrow to an ancestor', () => {
 	it('binds precisely from child to parent', () => {
 		const ids = {
 			frame: createShapeId(),

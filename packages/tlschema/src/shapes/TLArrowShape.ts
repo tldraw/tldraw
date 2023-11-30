@@ -77,16 +77,16 @@ export type TLArrowShapeProps = ShapePropsType<typeof arrowShapeProps>
 /** @public */
 export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
-const Versions = {
+export const ArrowMigrationVersions = {
 	AddLabelColor: 1,
 	AddIsPrecise: 2,
 } as const
 
 /** @internal */
 export const arrowShapeMigrations = defineMigrations({
-	currentVersion: Versions.AddIsPrecise,
+	currentVersion: ArrowMigrationVersions.AddIsPrecise,
 	migrators: {
-		[Versions.AddLabelColor]: {
+		[ArrowMigrationVersions.AddLabelColor]: {
 			up: (record) => {
 				return {
 					...record,
@@ -104,7 +104,7 @@ export const arrowShapeMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.AddIsPrecise]: {
+		[ArrowMigrationVersions.AddIsPrecise]: {
 			up: (record) => {
 				const { start, end } = record.props
 				return {
@@ -115,14 +115,16 @@ export const arrowShapeMigrations = defineMigrations({
 							(start as TLArrowShapeTerminal).type === 'binding'
 								? {
 										...start,
-										isPrecise: start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5,
+										isPrecise: !(
+											start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5
+										),
 								  }
 								: start,
 						end:
 							(end as TLArrowShapeTerminal).type === 'binding'
 								? {
 										...end,
-										isPrecise: end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5,
+										isPrecise: !(end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5),
 								  }
 								: end,
 					},
@@ -133,13 +135,13 @@ export const arrowShapeMigrations = defineMigrations({
 				const nStart = { ...start }
 				const nEnd = { ...end }
 				if (nStart.type === 'binding') {
-					if (nStart.isPrecise) {
+					if (!nStart.isPrecise) {
 						nStart.normalizedAnchor = { x: 0.5, y: 0.5 }
 					}
 					delete nStart.isPrecise
 				}
 				if (nEnd.type === 'binding') {
-					if (nEnd.isPrecise) {
+					if (!nEnd.isPrecise) {
 						nEnd.normalizedAnchor = { x: 0.5, y: 0.5 }
 					}
 					delete nEnd.isPrecise
