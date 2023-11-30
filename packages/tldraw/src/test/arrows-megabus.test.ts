@@ -156,7 +156,7 @@ describe('When binding an arrow to a shape', () => {
 			type: 'binding',
 			boundShapeId: ids.box1,
 			normalizedAnchor: { x: 0.5, y: 0.5 },
-			isPrecise: false,
+			isPrecise: true, // enclosed
 		})
 		editor.pointerMove(250, 50)
 		expect(arrow().props.end.type).toBe('point')
@@ -427,8 +427,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -461,8 +461,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -566,8 +566,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
