@@ -39,8 +39,8 @@ export function copyAs(
 			switch (format) {
 				case 'svg': {
 					if (window.navigator.clipboard) {
-						if (write) {
-							write([
+						if (window.navigator.clipboard.write) {
+							window.navigator.clipboard.write([
 								new ClipboardItem({
 									'text/plain': new Blob([getSvgAsString(svg)], { type: 'text/plain' }),
 								}),
