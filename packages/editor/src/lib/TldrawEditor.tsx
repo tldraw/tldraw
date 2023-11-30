@@ -228,6 +228,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 			container.classList.add('tl-theme__dark')
 		}
 	}, [container, user])
+
 	switch (store.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
