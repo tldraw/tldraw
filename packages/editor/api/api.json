@@ -9542,6 +9542,55 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#fitFrameToContent:member(1)",
+              "docComment": "/**\n * Fit a frame to its content.\n *\n * @param id - Id of the frame you wish to fit to content.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "fitFrameToContent(id: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "id",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "fitFrameToContent"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#flipShapes:member(1)",
               "docComment": "/**\n * Flip shape positions.\n *\n * @param shapes - The ids of the shapes to flip.\n *\n * @param operation - Whether to flip horizontally or vertically.\n *\n * @example\n * ```ts\n * editor.flipShapes([box1, box2], 'horizontal', 32)\n * editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal', 32)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [

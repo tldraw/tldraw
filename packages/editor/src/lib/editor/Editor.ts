@@ -7350,6 +7350,49 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Fit a frame to its content.
+	 *
+	 * @param id - Id of the frame you wish to fit to content.
+	 *
+	 * @public
+	 */
+	fitFrameToContent(id: TLShapeId): this {
+		const frame = this.getShape<TLFrameShape>(id)
+		if (!frame) return this
+
+		const childIds = this.getSortedChildIdsForParent(frame.id)
+		const bounds = Box2d.Common(childIds.map((s) => this.getShapePageBounds(s)!))
+
+		const padding = 100
+		const paddingHalf = padding / 2
+
+		const deltaX = bounds.x - paddingHalf - frame.x
+		const deltaY = bounds.y - paddingHalf - frame.y
+		this.batch(() => {
+			this.updateShape({
+				id: frame.id,
+				type: frame.type,
+				x: bounds.x - paddingHalf,
+				y: bounds.y - paddingHalf,
+				props: {
+					w: bounds.w + padding,
+					h: bounds.h + padding,
+				},
+			})
+			childIds.forEach((child) => {
+				const shape = this.getShape(child)!
+				this.updateShape({
+					id: shape.id,
+					type: shape.type,
+					x: shape.x - deltaX,
+					y: shape.y - deltaY,
+				})
+			})
+		})
+		return this
+	}
+
+	/**
 	 * Update a shape using a partial of the shape.
 	 *
 	 * @example

@@ -713,6 +713,38 @@ describe('frame shapes', () => {
 		arrow = editor.getOnlySelectedShape()! as TLArrowShape
 		expect(arrow.props.end).toMatchObject({ boundShapeId: innerBoxId })
 	})
+
+	it('correctly fits to its content', () => {
+		// Create two rects, their bounds are from [100, 100] to [400, 400],
+		// so the frame that fits them (with 50px offset) should be from [50, 50] to [450, 450].
+		const rectAId = createRect({ pos: [100, 100], size: [100, 100] })
+		const rectBId = createRect({ pos: [300, 300], size: [100, 100] })
+
+		// Create the frame that encloses both rects
+		const frameId = dragCreateFrame({ down: [0, 0], move: [700, 700], up: [700, 700] })
+		const frame = editor.getShape(frameId)! as TLFrameShape
+
+		const rectA = editor.getShape(rectAId)!
+		const rectB = editor.getShape(rectBId)!
+		expect(rectA.parentId).toBe(frameId)
+		expect(rectB.parentId).toBe(frameId)
+
+		editor.fitFrameToContent(frame.id)
+		const newFrame = editor.getShape(frameId)! as TLFrameShape
+		expect(newFrame.x).toBe(50)
+		expect(newFrame.y).toBe(50)
+		expect(newFrame.props.w).toBe(400)
+		expect(newFrame.props.h).toBe(400)
+
+		const newRectA = editor.getShape(rectAId)!
+		const newRectB = editor.getShape(rectBId)!
+		// Rect positions should change by 50px since the frame moved
+		// This keeps them in the same relative position
+		expect(newRectA.x).toBe(50)
+		expect(newRectA.y).toBe(50)
+		expect(newRectB.x).toBe(250)
+		expect(newRectB.y).toBe(250)
+	})
 })
 
 test('arrows bound to a shape within a group within a frame are reparented if the group is moved outside of the frame', () => {

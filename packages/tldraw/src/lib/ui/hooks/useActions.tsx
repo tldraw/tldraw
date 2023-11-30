@@ -476,6 +476,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'fit-frame-to-content',
+				label: 'action.fit-frame-to-content',
+				readonlyOk: false,
+				onSelect(source) {
+					if (!hasSelectedShapes()) return
+
+					trackEvent('remove-frame', { source })
+					const onlySelectedShape = editor.getOnlySelectedShape()
+					if (onlySelectedShape && editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame')) {
+						editor.mark('fit-frame-to-content')
+						editor.fitFrameToContent(onlySelectedShape.id)
+					}
+				},
+			},
+			{
 				id: 'align-left',
 				label: 'action.align-left',
 				kbd: '?A',

@@ -681,6 +681,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
+    fitFrameToContent(id: TLShapeId): this;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // @deprecated (undocumented)
     get focusedGroup(): TLShape | undefined;
