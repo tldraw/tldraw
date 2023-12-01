@@ -95,6 +95,8 @@ export function getCurvedArrowInfo(
 	let offsetA = 0
 	let offsetB = 0
 
+	let minLength = MIN_ARROW_LENGTH
+
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
@@ -152,12 +154,13 @@ export function getCurvedArrowInfo(
 			startShapeInfo.didIntersect = true
 
 			if (arrowheadStart !== 'none') {
-				offsetA =
-					BOUND_ARROW_OFFSET +
+				const strokeOffset =
 					STROKE_SIZES[shape.props.size] / 2 +
 					('size' in startShapeInfo.shape.props
 						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 						: 0)
+				offsetA = BOUND_ARROW_OFFSET + strokeOffset
+				minLength += strokeOffset
 			}
 		}
 	}
@@ -225,10 +228,11 @@ export function getCurvedArrowInfo(
 			endShapeInfo.didIntersect = true
 
 			if (arrowheadEnd !== 'none') {
-				offsetB =
-					BOUND_ARROW_OFFSET +
+				const strokeOffset =
 					STROKE_SIZES[shape.props.size] / 2 +
 					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+				offsetB = BOUND_ARROW_OFFSET + strokeOffset
+				minLength += strokeOffset
 			}
 		}
 	}
@@ -259,7 +263,7 @@ export function getCurvedArrowInfo(
 	}
 
 	const distAB = Vec2d.Dist(tA, tB)
-	if (distAB < MIN_ARROW_LENGTH) {
+	if (distAB < minLength) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
 			offsetB *= -1.5
@@ -268,10 +272,7 @@ export function getCurvedArrowInfo(
 		} else if (offsetB !== 0) {
 			offsetB *= -2
 		} else {
-			if (distAB < 10) {
-				if (startShapeInfo) offsetA = -(10 - distAB)
-				else if (endShapeInfo) offsetB = -(10 - distAB)
-			}
+			// noop
 		}
 	}
 

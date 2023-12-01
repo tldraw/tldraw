@@ -115,7 +115,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 }
 
 /** @internal */
-export const MIN_ARROW_LENGTH = 20
+export const MIN_ARROW_LENGTH = 10
 /** @internal */
 export const BOUND_ARROW_OFFSET = 10
 /** @internal */

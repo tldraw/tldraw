@@ -139,7 +139,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 			arrowheadEnd !== 'none' &&
 			!endShapeInfo.isExact
 		) {
-			const strokeOffsetB =
+			strokeOffsetB =
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
 			offsetB = BOUND_ARROW_OFFSET + strokeOffsetB
