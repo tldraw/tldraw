@@ -175,7 +175,7 @@ export class EffectScheduler<Result> {
  * ```ts
  * const color = atom('color', 'red')
  * const stop = react('set style', () => {
- *   divElem.style.color = color.value
+ *   divElem.style.color = color.get()
  * })
  * color.set('blue')
  * // divElem.style.color === 'blue'
@@ -190,7 +190,7 @@ export class EffectScheduler<Result> {
  * @example
  * ```ts
  * useEffect(() => react('set style', () => {
- *   divRef.current.style.color = color.value
+ *   divRef.current.style.color = color.get()
  * }), [])
  * ```
  *
