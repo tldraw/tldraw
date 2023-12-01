@@ -73,6 +73,9 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	let offsetA = 0
 	let offsetB = 0
+	let strokeOffsetA = 0
+	let strokeOffsetB = 0
+	let minLength = MIN_ARROW_LENGTH
 
 	const isSelfIntersection =
 		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
@@ -119,12 +122,13 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 			arrowheadStart !== 'none' &&
 			!startShapeInfo.isExact
 		) {
-			offsetA =
-				BOUND_ARROW_OFFSET +
+			strokeOffsetA =
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in startShapeInfo.shape.props
 					? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 					: 0)
+			offsetA = BOUND_ARROW_OFFSET + strokeOffsetA
+			minLength += strokeOffsetA
 		}
 
 		// If the arrow is bound non-exact to an end shape and the
@@ -135,29 +139,33 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 			arrowheadEnd !== 'none' &&
 			!endShapeInfo.isExact
 		) {
-			offsetB =
-				BOUND_ARROW_OFFSET +
+			const strokeOffsetB =
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+			offsetB = BOUND_ARROW_OFFSET + strokeOffsetB
+			minLength += strokeOffsetB
 		}
 	}
+
+	// Adjust offsets if the length of the arrow is too small
 
 	const tA = a.clone().add(u.clone().mul(offsetA * (didFlip ? -1 : 1)))
 	const tB = b.clone().sub(u.clone().mul(offsetB * (didFlip ? -1 : 1)))
 	const distAB = Vec2d.Dist(tA, tB)
-	if (distAB < MIN_ARROW_LENGTH) {
+
+	if (distAB < minLength) {
 		if (offsetA !== 0 && offsetB !== 0) {
+			// both bound + offset
 			offsetA *= -1.5
 			offsetB *= -1.5
 		} else if (offsetA !== 0) {
-			offsetA *= -2
+			// start bound + offset
+			offsetA *= -1
 		} else if (offsetB !== 0) {
-			offsetB *= -2
+			// end bound + offset
+			offsetB *= -1
 		} else {
-			if (distAB < 10) {
-				if (startShapeInfo) offsetA = -(10 - distAB)
-				else if (endShapeInfo) offsetB = -(10 - distAB)
-			}
+			// noop, its just a really short arrow
 		}
 	}
 
