@@ -71,3 +71,15 @@ export function partition<T>(arr: T[], predicate: (item: T) => boolean): [T[], T
 	}
 	return [satisfies, doesNotSatisfy]
 }
+
+/** @internal */
+export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[]): boolean {
+	if (arr1 === arr2) return true
+	if (arr1.length !== arr2.length) return false
+	for (let i = 0; i < arr1.length; i++) {
+		if (!Object.is(arr1[i], arr2[i])) {
+			return false
+		}
+	}
+	return true
+}

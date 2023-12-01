@@ -33,3 +33,22 @@ Object.defineProperty(global.URL, 'createObjectURL', {
 	writable: true,
 	value: jest.fn(),
 })
+
+window.fetch = async (input, init) => {
+	if (input === 'https://unpkg.com/@tldraw/assets@2.0.0-alpha.12/translations/en.json') {
+		const json = await import('@tldraw/assets/translations/main.json')
+		return {
+			ok: true,
+			json: async () => json.default,
+		}
+	}
+
+	if (input === '/icons/icon/icon-names.json') {
+		return {
+			ok: true,
+			json: async () => [],
+		}
+	}
+
+	throw new Error(`Unhandled request: ${input}`)
+}

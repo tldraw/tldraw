@@ -144,7 +144,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	user: _user,
 	...rest
 }: TldrawEditorProps) {
-	const [container, rContainer] = React.useState<HTMLDivElement | null>(null)
+	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
 	const user = useMemo(() => _user ?? createTLUser(), [_user])
 
 	const ErrorFallback =
@@ -162,7 +162,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 	return (
 		<div
-			ref={rContainer}
+			ref={setContainer}
 			draggable={false}
 			className={classNames('tl-container tl-theme__light', className)}
 			onPointerDown={stopEventPropagation}

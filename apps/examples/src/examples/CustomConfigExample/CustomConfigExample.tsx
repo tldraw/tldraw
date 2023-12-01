@@ -11,6 +11,7 @@ export default function CustomConfigExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				persistenceKey="custom-config-example"
 				// Pass in the array of custom shape classes
 				shapeUtils={customShapeUtils}
 				// Pass in the array of custom tool classes
