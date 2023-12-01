@@ -1317,7 +1317,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                normalizedAnchor: "
+                  "text": ";\n                normalizedAnchor: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1326,7 +1326,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                isExact: boolean;\n            }>;\n            point: import(\"@tldraw/editor\")."
+                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }>;\n            point: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1362,7 +1362,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                normalizedAnchor: "
+                  "text": ";\n                normalizedAnchor: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1371,7 +1371,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                isExact: boolean;\n            }>;\n            point: import(\"@tldraw/editor\")."
+                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }>;\n            point: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",

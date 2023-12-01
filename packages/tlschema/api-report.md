@@ -43,6 +43,7 @@ export const arrowShapeProps: {
             boundShapeId: TLShapeId;
             normalizedAnchor: Vec2dModel;
             isExact: boolean;
+            isPrecise: boolean;
         }>;
         point: T.ObjectValidator<{
             type: "point";
@@ -56,6 +57,7 @@ export const arrowShapeProps: {
             boundShapeId: TLShapeId;
             normalizedAnchor: Vec2dModel;
             isExact: boolean;
+            isPrecise: boolean;
         }>;
         point: T.ObjectValidator<{
             type: "point";
