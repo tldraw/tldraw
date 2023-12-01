@@ -13,6 +13,8 @@ import {
 	TldrawEditorProps,
 	assert,
 	useEditor,
+	useShallowArrayIdentity,
+	useShallowObjectIdentity,
 } from '@tldraw/editor'
 import { useCallback, useDebugValue, useLayoutEffect, useMemo, useRef } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
@@ -65,6 +67,10 @@ export function Tldraw(props: TldrawProps) {
 		...rest
 	} = props
 
+	const components = useShallowObjectIdentity(rest.components ?? {})
+	const shapeUtils = useShallowArrayIdentity(rest.shapeUtils ?? [])
+	const tools = useShallowArrayIdentity(rest.tools ?? [])
+
 	const withDefaults: TldrawEditorProps = {
 		initialState: 'select',
 		...rest,
@@ -76,18 +82,12 @@ export function Tldraw(props: TldrawProps) {
 				SelectionBackground: TldrawSelectionBackground,
 				Handles: TldrawHandles,
 				HoveredShapeIndicator: TldrawHoveredShapeIndicator,
-				...rest.components,
+				...components,
 			}),
-			[rest.components]
+			[components]
 		),
-		shapeUtils: useMemo(
-			() => [...defaultShapeUtils, ...(rest.shapeUtils ?? [])],
-			[rest.shapeUtils]
-		),
-		tools: useMemo(
-			() => [...defaultTools, ...defaultShapeTools, ...(rest.tools ?? [])],
-			[rest.tools]
-		),
+		shapeUtils: useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils]),
+		tools: useMemo(() => [...defaultTools, ...defaultShapeTools, ...tools], [tools]),
 	}
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
