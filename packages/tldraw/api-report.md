@@ -1464,6 +1464,8 @@ export interface TLUiEventMap {
         format: 'json' | 'png' | 'svg';
     };
     // (undocumented)
+    'fit-frame-to-content': null;
+    // (undocumented)
     'flip-shapes': {
         operation: 'horizontal' | 'vertical';
     };
