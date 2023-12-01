@@ -482,7 +482,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					if (!hasSelectedShapes()) return
 
-					trackEvent('remove-frame', { source })
+					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (onlySelectedShape && editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame')) {
 						editor.mark('fit-frame-to-content')
