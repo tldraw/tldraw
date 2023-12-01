@@ -382,36 +382,6 @@
           "members": [
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#canBeMasked:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canBeMasked: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "() => boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "canBeMasked",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#canBind:member",
               "docComment": "",
               "excerptTokens": [

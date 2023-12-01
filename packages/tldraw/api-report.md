@@ -125,8 +125,6 @@ export class ArrowShapeTool extends StateNode {
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
-    canBeMasked: () => boolean;
-    // (undocumented)
     canBind: () => boolean;
     // (undocumented)
     canEdit: () => boolean;
