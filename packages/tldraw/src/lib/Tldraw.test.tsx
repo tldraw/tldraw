@@ -18,7 +18,7 @@ describe('<Tldraw />', () => {
 
 	it('Doesnt cause re-render loops with unstable shape utils + tools', async () => {
 		function TestComponent() {
-			const [editor, setEditor] = useState<Editor | null>(null)
+			const [_, setEditor] = useState<Editor | null>(null)
 
 			return (
 				<Tldraw onMount={setEditor} shapeUtils={[]} tools={[]}>
@@ -37,10 +37,10 @@ describe('<Tldraw />', () => {
 			override getDefaultProps() {
 				throw new Error('Method not implemented.')
 			}
-			override component(shape: any) {
+			override component(_: any) {
 				throw new Error('Method not implemented.')
 			}
-			override indicator(shape: any) {
+			override indicator(_: any) {
 				throw new Error('Method not implemented.')
 			}
 		}
@@ -49,10 +49,10 @@ describe('<Tldraw />', () => {
 			override getDefaultProps() {
 				throw new Error('Method not implemented.')
 			}
-			override component(shape: any) {
+			override component(_: any) {
 				throw new Error('Method not implemented.')
 			}
-			override indicator(shape: any) {
+			override indicator(_: any) {
 				throw new Error('Method not implemented.')
 			}
 		}
