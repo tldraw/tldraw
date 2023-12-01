@@ -14,6 +14,7 @@ import classNames from 'classnames'
 import { Canvas } from './components/Canvas'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
+import { DefaultLoadingScreen } from './components/default-components/DefaultLoadingScreen'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
@@ -156,6 +157,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
+		components,
 	}
 
 	return (
@@ -235,7 +237,8 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 			throw store.error
 		}
 		case 'loading': {
-			return <LoadingScreen>Connecting...</LoadingScreen>
+			const LoadingScreen = rest.components?.LoadingScreen ?? DefaultLoadingScreen
+			return <LoadingScreen />
 		}
 		case 'not-synced': {
 			break
