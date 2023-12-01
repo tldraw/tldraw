@@ -7369,7 +7369,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const dx = bounds.x - paddingHalf - frame.x
 		const dy = bounds.y - paddingHalf - frame.y
 		this.batch(() => {
-			this.updateShape({
+			const changes: TLShapePartial[] = childIds.map((child) => {
+				const shape = this.getShape(child)!
+				return {
+					id: shape.id,
+					type: shape.type,
+					x: shape.x - dx,
+					y: shape.y - dy,
+				}
+			})
+
+			changes.push({
 				id: frame.id,
 				type: frame.type,
 				x: bounds.x - paddingHalf,
@@ -7379,15 +7389,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					h: bounds.h + padding,
 				},
 			})
-			childIds.forEach((child) => {
-				const shape = this.getShape(child)!
-				this.updateShape({
-					id: shape.id,
-					type: shape.type,
-					x: shape.x - dx,
-					y: shape.y - dy,
-				})
-			})
+
+			this.updateShapes(changes)
 		})
 		return this
 	}
