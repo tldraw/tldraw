@@ -41,7 +41,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 		public documentData: TldrawFile,
 		backupId: string | undefined
 	) {
-		this.isBlankDocument = backupId === 'undefined'
+		this.isBlankDocument = backupId === undefined
 	}
 
 	static async create(uri: vscode.Uri, backupId: string | undefined) {
