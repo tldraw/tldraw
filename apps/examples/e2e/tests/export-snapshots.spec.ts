@@ -207,7 +207,7 @@ test.describe('Export snapshots', () => {
 	}
 
 	async function snapshotTest(page: Page) {
-		page.waitForEvent('download').then(async (download) => {
+		const downloadAndSnapshot = page.waitForEvent('download').then(async (download) => {
 			const path = (await download.path()) as string
 			assert(path)
 			await rename(path, path + '.svg')
@@ -230,5 +230,6 @@ test.describe('Export snapshots', () => {
 			})
 		})
 		await page.evaluate(() => (window as any)['tldraw-export']())
+		await downloadAndSnapshot
 	}
 })
