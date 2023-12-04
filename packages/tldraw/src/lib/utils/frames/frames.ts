@@ -4,7 +4,7 @@ import { Editor, TLFrameShape, TLShapeId, TLShapePartial, Vec2d, compact } from 
  * Remove a frame.
  *
  * @param ids - Ids of the frames you wish to remove.
- * @param Editor - Editor instance.
+ * @param editor - tlraw editor instance.
  *
  * @public
  */
@@ -34,7 +34,7 @@ export function removeFrame(ids: TLShapeId[], editor: Editor) {
  * Fit a frame to its content.
  *
  * @param id - Id of the frame you wish to fit to content.
- * @param Editor - Editor instance.
+ * @param editor - tlraw editor instance.
  *
  * @public
  */
