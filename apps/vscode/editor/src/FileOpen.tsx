@@ -33,6 +33,7 @@ export function FileOpen({
 			await parseAndLoadDocument(editor, fileContents, msg, addToast, onV1FileLoad, forceDarkMode)
 		}
 
+		editor.user.updateUserPreferences({ isDarkMode: forceDarkMode })
 		loadFile()
 		setIsFileLoaded(true)
 		return () => {

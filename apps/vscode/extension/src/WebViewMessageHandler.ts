@@ -43,9 +43,8 @@ export class WebViewMessageHandler {
 						userId: this.userId,
 						assetSrc: this.assetSrc,
 						isDarkMode:
-							this.document.isBlankDocument &&
-							(vscode.window.activeColorTheme.kind === 2 ||
-								vscode.window.activeColorTheme.kind === 3),
+							vscode.window.activeColorTheme.kind === 2 ||
+							vscode.window.activeColorTheme.kind === 3,
 					},
 				} as VscodeMessage)
 				break
