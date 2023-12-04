@@ -7364,34 +7364,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const children = compact(childIds.map((id) => this.getShape(id)))
 		if (!children.length) return this
 
-		const points: Vec2d[] = []
+		const bounds = {
+			minX: Number.MAX_VALUE,
+			minY: Number.MAX_VALUE,
+			maxX: Number.MIN_VALUE,
+			maxY: Number.MIN_VALUE,
+		}
 		children.forEach((shape) => {
-			const geo = this.getShapeGeometry(shape.id)
-			points.push(...this.getShapeLocalTransform(shape)!.applyToPoints(geo.vertices))
+			const geometry = this.getShapeGeometry(shape.id)
+			const points = this.getShapeLocalTransform(shape)!.applyToPoints(geometry.vertices)
+			points.forEach((point) => {
+				bounds.minX = Math.min(bounds.minX, point.x)
+				bounds.minY = Math.min(bounds.minY, point.y)
+				bounds.maxX = Math.max(bounds.maxX, point.x)
+				bounds.maxY = Math.max(bounds.maxY, point.y)
+			})
 		})
-
-		const bounds = points.reduce(
-			({ minX, minY, maxX, maxY }, { x, y }) => {
-				return {
-					minX: Math.min(minX, x),
-					minY: Math.min(minY, y),
-					maxX: Math.max(maxX, x),
-					maxY: Math.max(maxY, y),
-				}
-			},
-			{
-				minX: Number.MAX_VALUE,
-				minY: Number.MAX_VALUE,
-				maxX: Number.MIN_VALUE,
-				maxY: Number.MIN_VALUE,
-			}
-		)
 
 		const padding = 50
 		const w = bounds.maxX - bounds.minX + 2 * padding
 		const h = bounds.maxY - bounds.minY + 2 * padding
 		const dx = padding - bounds.minX
 		const dy = padding - bounds.minY
+		// The shapes already perfectly fit the frame.
 		if (dx === 0 && dy === 0 && frame.props.w === w && frame.props.h === h) return this
 
 		const diff = new Vec2d(dx, dy).rot(frame.rotation)
