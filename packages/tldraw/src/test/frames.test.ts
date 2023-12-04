@@ -5,7 +5,7 @@ import {
 	TLShapeId,
 	createShapeId,
 } from '@tldraw/editor'
-import { fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
+import { FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -741,8 +741,8 @@ describe('frame shapes', () => {
 		const newRectB = editor.getShape(rectBId)!
 		// Rect positions should change by 50px since the frame moved
 		// This keeps them in the same relative position
-		expect(newRectA.x).toBe(50)
-		expect(newRectA.y).toBe(50)
+		expect(newRectA.x).toBe(FRAME_PADDING)
+		expect(newRectA.y).toBe(FRAME_PADDING)
 		expect(newRectB.x).toBe(250)
 		expect(newRectB.y).toBe(250)
 	})

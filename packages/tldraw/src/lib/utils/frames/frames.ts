@@ -30,6 +30,8 @@ export function removeFrame(ids: TLShapeId[], editor: Editor) {
 	})
 }
 
+export const FRAME_PADDING = 50
+
 /**
  * Fit a frame to its content.
  *
@@ -70,11 +72,10 @@ export function fitFrameToContent(id: TLShapeId, editor: Editor) {
 	)
 		return
 
-	const padding = 50
-	const w = bounds.maxX - bounds.minX + 2 * padding
-	const h = bounds.maxY - bounds.minY + 2 * padding
-	const dx = padding - bounds.minX
-	const dy = padding - bounds.minY
+	const w = bounds.maxX - bounds.minX + 2 * FRAME_PADDING
+	const h = bounds.maxY - bounds.minY + 2 * FRAME_PADDING
+	const dx = FRAME_PADDING - bounds.minX
+	const dy = FRAME_PADDING - bounds.minY
 	// The shapes already perfectly fit the frame.
 	if (dx === 0 && dy === 0 && frame.props.w === w && frame.props.h === h) return
 
