@@ -7387,19 +7387,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		)
 
-		// const shapeBounds = children.map((shape) => {
-		// 	const geo = this.getShapeGeometry(shape.id)
-		// 	const tranform = this.getShapeLocalTransform(shape)!
-		// 	const bounds = geo.bounds
-		// 	console.log(bounds)
-		// 	const new2 = Matrix2d.applyToBounds(tranform, bounds)
-		// 	console.log(new2)
-		//
-		// 	return new2
-		// })
-		// const bounds2 = Box2d.Common(shapeBounds)
-		// console.log(bounds, bounds2)
-
 		const padding = 50
 		const w = bounds.maxX - bounds.minX + 2 * padding
 		const h = bounds.maxY - bounds.minY + 2 * padding
