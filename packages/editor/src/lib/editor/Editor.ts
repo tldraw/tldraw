@@ -7380,6 +7380,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				bounds.maxY = Math.max(bounds.maxY, point.y)
 			})
 		})
+		if (
+			bounds.minX === Number.MAX_VALUE ||
+			bounds.minY === Number.MAX_VALUE ||
+			bounds.maxX === Number.MIN_VALUE ||
+			bounds.maxY === Number.MAX_VALUE
+		)
+			return this
 
 		const padding = 50
 		const w = bounds.maxX - bounds.minX + 2 * padding
