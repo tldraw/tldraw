@@ -22,6 +22,7 @@ class Transaction {
 	 *
 	 * @public
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get isRoot() {
 		return this.parent === null
 	}
@@ -143,7 +144,7 @@ export let currentTransaction = null as Transaction | null
  * const lastName = atom('Doe')
  *
  * react('greet', () => {
- *   print(`Hello, ${firstName.value} ${lastName.value}!`)
+ *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
  * })
  *
  * // Logs "Hello, John Doe!"
@@ -164,7 +165,7 @@ export let currentTransaction = null as Transaction | null
  * const lastName = atom('Doe')
  *
  * react('greet', () => {
- *   print(`Hello, ${firstName.value} ${lastName.value}!`)
+ *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
  * })
  *
  * // Logs "Hello, John Doe!"
@@ -175,7 +176,7 @@ export let currentTransaction = null as Transaction | null
  * })
  *
  * // Does not log
- * // firstName.value === 'John'
+ * // firstName.get() === 'John'
  * ```
  *
  * A `rollback` callback is passed into the function.
@@ -187,7 +188,7 @@ export let currentTransaction = null as Transaction | null
  * const lastName = atom('Doe')
  *
  * react('greet', () => {
- *   print(`Hello, ${firstName.value} ${lastName.value}!`)
+ *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
  * })
  *
  * // Logs "Hello, John Doe!"
@@ -199,8 +200,8 @@ export let currentTransaction = null as Transaction | null
  * })
  *
  * // Does not log
- * // firstName.value === 'John'
- * // lastName.value === 'Doe'
+ * // firstName.get() === 'John'
+ * // lastName.get() === 'Doe'
  * ```
  *
  * @param fn - The function to run in a transaction, called with a function to roll back the change.

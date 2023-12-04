@@ -5,6 +5,7 @@ import {
 	TAU,
 	TLBookmarkShape,
 	TLEmbedShape,
+	TLFrameShape,
 	TLGroupShape,
 	TLShapeId,
 	TLShapePartial,
@@ -17,7 +18,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
-import { getEmbedInfo } from '../../utils/embeds'
+import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
@@ -32,15 +33,18 @@ import { useToasts } from './useToastsProvider'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export interface TLUiActionItem {
-	icon?: TLUiIconType
+export interface TLUiActionItem<
+	TransationKey extends string = string,
+	IconType extends string = string
+> {
+	icon?: IconType
 	id: string
 	kbd?: string
 	title?: string
-	label?: TLUiTranslationKey
-	menuLabel?: TLUiTranslationKey
-	shortcutsLabel?: TLUiTranslationKey
-	contextMenuLabel?: TLUiTranslationKey
+	label?: TransationKey
+	menuLabel?: TransationKey
+	shortcutsLabel?: TransationKey
+	contextMenuLabel?: TransationKey
 	readonlyOk: boolean
 	checkbox?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
@@ -98,7 +102,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return editor.getSelectedShapeIds().length > 0
 		}
 
-		const actions = makeActions([
+		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'edit-link',
 				label: 'action.edit-link',
@@ -279,12 +283,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: 'z',
 				onSelect(source) {
-					if (editor.root.current.get()?.id === 'zoom') return
+					if (editor.root.getCurrent()?.id === 'zoom') return
 
 					trackEvent('zoom-tool', { source })
 					if (!(editor.inputs.shiftKey || editor.inputs.ctrlKey)) {
-						const currentTool = editor.root.current.get()
-						if (currentTool && currentTool.current.get()?.id === 'idle') {
+						const currentTool = editor.root.getCurrent()
+						if (currentTool && currentTool.getCurrent()?.id === 'idle') {
 							editor.setCurrentTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
 						}
 					}
@@ -409,8 +413,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								y: 0,
 						  }
 						: {
-								x: 16 / editor.zoomLevel,
-								y: 16 / editor.zoomLevel,
+								x: 16 / editor.getZoomLevel(),
+								y: 16 / editor.getZoomLevel(),
 						  }
 					editor.mark('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
@@ -449,6 +453,25 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					} else {
 						editor.mark('group')
 						editor.groupShapes(editor.getSelectedShapeIds())
+					}
+				},
+			},
+			{
+				id: 'remove-frame',
+				label: 'action.remove-frame',
+				kbd: '$!f',
+				readonlyOk: false,
+				onSelect(source) {
+					if (!hasSelectedShapes()) return
+
+					trackEvent('remove-frame', { source })
+					const selectedShapes = editor.getSelectedShapes()
+					if (
+						selectedShapes.length > 0 &&
+						selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+					) {
+						editor.mark('remove-frame')
+						editor.removeFrame(selectedShapes.map((shape) => shape.id))
 					}
 				},
 			},
@@ -869,7 +892,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
-					editor.zoomIn(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomIn(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -879,7 +902,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
-					editor.zoomOut(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomOut(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -890,7 +913,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
-					editor.resetZoom(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.resetZoom(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -923,7 +946,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
-					editor.user.updateUserPreferences({ isSnapMode: !editor.user.isSnapMode })
+					editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
 				},
 				checkbox: true,
 			},
@@ -935,7 +958,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
-					editor.user.updateUserPreferences({ isDarkMode: !editor.user.isDarkMode })
+					editor.user.updateUserPreferences({ isDarkMode: !editor.user.getIsDarkMode() })
 				},
 				checkbox: true,
 			},
@@ -947,7 +970,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
 					editor.user.updateUserPreferences({
-						animationSpeed: editor.user.animationSpeed === 0 ? 1 : 0,
+						animationSpeed: editor.user.getAnimationSpeed() === 0 ? 1 : 0,
 					})
 				},
 				checkbox: true,
@@ -988,7 +1011,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
 					const updates = [] as TLShapePartial[]
-					for (const shape of editor.currentPageShapes) {
+					for (const shape of editor.getCurrentPageShapes()) {
 						if (shape.isLocked) {
 							updates.push({ id: shape.id, type: shape.type, isLocked: false })
 						}
@@ -1094,7 +1117,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.toggleLock(editor.getSelectedShapeIds())
 				},
 			},
-		])
+		]
+
+		const actions = makeActions(actionItems)
 
 		if (overrides) {
 			return overrides(editor, actions, undefined)
@@ -1102,9 +1127,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 		return actions
 	}, [
+		editor,
 		trackEvent,
 		overrides,
-		editor,
 		addDialog,
 		insertMedia,
 		exportAs,

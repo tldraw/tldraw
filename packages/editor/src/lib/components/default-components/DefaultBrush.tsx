@@ -12,7 +12,7 @@ export type TLBrushComponent = ComponentType<{
 }>
 
 /** @public */
-export const DefaultBrush: TLBrushComponent = ({ brush, color, opacity }) => {
+export const DefaultBrush: TLBrushComponent = ({ brush, color, opacity, className }) => {
 	const rSvg = useRef<SVGSVGElement>(null)
 	useTransform(rSvg, brush.x, brush.y)
 
@@ -27,7 +27,7 @@ export const DefaultBrush: TLBrushComponent = ({ brush, color, opacity }) => {
 					<rect width={w} height={h} fill="none" stroke={color} opacity={0.1} />
 				</g>
 			) : (
-				<rect className="tl-brush tl-brush__default" width={w} height={h} />
+				<rect className={`tl-brush tl-brush__default ${className}`} width={w} height={h} />
 			)}
 		</svg>
 	)

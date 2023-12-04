@@ -1,7 +1,7 @@
 import { EASINGS, StateNode, TLClickEvent } from '@tldraw/editor'
-import { Dragging } from './children/Dragging'
-import { Idle } from './children/Idle'
-import { Pointing } from './children/Pointing'
+import { Dragging } from './childStates/Dragging'
+import { Idle } from './childStates/Idle'
+import { Pointing } from './childStates/Pointing'
 
 /** @public */
 export class HandTool extends StateNode {
@@ -25,8 +25,8 @@ export class HandTool extends StateNode {
 
 	override onQuadrupleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
+			const zoomLevel = this.editor.getZoomLevel()
 			const {
-				zoomLevel,
 				inputs: { currentScreenPoint },
 			} = this.editor
 

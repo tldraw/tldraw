@@ -1,6 +1,6 @@
 import { EMBED_DEFINITIONS, EmbedDefinition, track, useEditor } from '@tldraw/editor'
 import { useRef, useState } from 'react'
-import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds'
+import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../hooks/useAssetUrls'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -108,7 +108,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								editor.putExternalContent({
 									type: 'embed',
 									url,
-									point: editor.viewportPageCenter,
+									point: editor.getViewportPageCenter(),
 									embed: embedInfoForUrl.definition,
 								})
 

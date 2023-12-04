@@ -16,7 +16,7 @@ class C extends StateNode {
 	static override id = 'C'
 
 	override onEnter = () => {
-		this.currentToolIdMask = 'A'
+		this.setCurrentToolIdMask('A')
 	}
 }
 

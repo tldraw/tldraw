@@ -52,6 +52,7 @@ export class ReadonlySharedStyleMap {
 		return value.value
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get size() {
 		return this.map.size
 	}

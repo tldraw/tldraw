@@ -3,6 +3,9 @@ import { Vec2d, VecLike } from './Vec2d'
 import { PI, PI2, toPrecision } from './utils'
 
 /** @public */
+export type BoxLike = Box2dModel | Box2d
+
+/** @public */
 export type SelectionEdge = 'top' | 'right' | 'bottom' | 'left'
 
 /** @public */
@@ -33,76 +36,94 @@ export class Box2d {
 	w = 0
 	h = 0
 
+	// eslint-disable-next-line no-restricted-syntax
 	get point() {
 		return new Vec2d(this.x, this.y)
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	set point(val: Vec2d) {
 		this.x = val.x
 		this.y = val.y
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get minX() {
 		return this.x
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	set minX(n: number) {
 		this.x = n
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get midX() {
 		return this.x + this.w / 2
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get maxX() {
 		return this.x + this.w
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get minY() {
 		return this.y
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	set minY(n: number) {
 		this.y = n
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get midY() {
 		return this.y + this.h / 2
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get maxY() {
 		return this.y + this.h
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get width() {
 		return this.w
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	set width(n: number) {
 		this.w = n
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get height() {
 		return this.h
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	set height(n: number) {
 		this.h = n
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get aspectRatio() {
 		return this.width / this.height
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get center() {
 		return new Vec2d(this.midX, this.midY)
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	set center(v: Vec2d) {
 		this.minX = v.x - this.width / 2
 		this.minY = v.y - this.height / 2
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get corners() {
 		return [
 			new Vec2d(this.minX, this.minY),
@@ -112,6 +133,7 @@ export class Box2d {
 		]
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get snapPoints() {
 		return [
 			new Vec2d(this.minX, this.minY),
@@ -122,6 +144,7 @@ export class Box2d {
 		]
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get sides(): Array<[Vec2d, Vec2d]> {
 		const { corners } = this
 		return [
@@ -132,6 +155,7 @@ export class Box2d {
 		]
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get size(): Vec2d {
 		return new Vec2d(this.w, this.h)
 	}

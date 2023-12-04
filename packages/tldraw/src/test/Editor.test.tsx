@@ -35,7 +35,7 @@ beforeEach(() => {
 		{ id: ids.box3, type: 'geo', x: 500, y: 500, props: { w: 100, h: 100 }, parentId: ids.group1 },
 	])
 
-	const page1 = editor.currentPageId
+	const page1 = editor.getCurrentPageId()
 	editor.createPage({ name: 'page 2', id: ids.page2 })
 	editor.setCurrentPage(page1)
 })
@@ -55,21 +55,21 @@ describe('shapes that are moved to another page', () => {
 		editor.setFocusedGroup(ids.group1)
 		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 		moveShapesToPage2()
-		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	describe("should be excluded from the previous page's hintingShapeIds", () => {
 		test('[boxes]', () => {
 			editor.setHintingShapes([ids.box1, ids.box2, ids.box3])
-			expect(editor.hintingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
+			expect(editor.getHintingShapeIds()).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.hintingShapeIds).toEqual([])
+			expect(editor.getHintingShapeIds()).toEqual([])
 		})
 		test('[frame that does not move]', () => {
 			editor.setHintingShapes([ids.frame1])
-			expect(editor.hintingShapeIds).toEqual([ids.frame1])
+			expect(editor.getHintingShapeIds()).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.hintingShapeIds).toEqual([ids.frame1])
+			expect(editor.getHintingShapeIds()).toEqual([ids.frame1])
 		})
 	})
 
@@ -103,15 +103,15 @@ describe('shapes that are moved to another page', () => {
 	describe("should be excluded from the previous page's erasingShapeIds", () => {
 		test('[boxes]', () => {
 			editor.setErasingShapes([ids.box1, ids.box2, ids.box3])
-			expect(editor.erasingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
+			expect(editor.getErasingShapeIds()).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.erasingShapeIds).toEqual([])
+			expect(editor.getErasingShapeIds()).toEqual([])
 		})
 		test('[frame that does not move]', () => {
 			editor.setErasingShapes([ids.frame1])
-			expect(editor.erasingShapeIds).toEqual([ids.frame1])
+			expect(editor.getErasingShapeIds()).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.erasingShapeIds).toEqual([ids.frame1])
+			expect(editor.getErasingShapeIds()).toEqual([ids.frame1])
 		})
 	})
 
@@ -156,16 +156,16 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 
 describe('Editor.sharedOpacity', () => {
 	it('should return the current opacity', () => {
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 1 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 1 })
 		editor.setOpacityForSelectedShapes(0.5)
 		editor.setOpacityForNextShapes(0.5)
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.5 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.5 })
 	})
 
 	it('should return opacity for a single selected shape', () => {
 		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
 		editor.setSelectedShapes([A])
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
 	it('should return opacity for multiple selected shapes', () => {
@@ -174,7 +174,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
 		])
 		editor.setSelectedShapes([A, B])
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
 	it('should return mixed when multiple selected shapes have different opacity', () => {
@@ -183,7 +183,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
 		])
 		editor.setSelectedShapes([A, B])
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'mixed' })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'mixed' })
 	})
 
 	it('ignores the opacity of groups and returns the opacity of their children', () => {
@@ -193,7 +193,7 @@ describe('Editor.sharedOpacity', () => {
 			</TL.group>,
 		])
 		editor.setSelectedShapes([ids.group])
-		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 })
 
@@ -322,7 +322,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		expect(editor.root.path.get()).toBe('root.select.resizing')
+		editor.expectToBeIn('select.resizing')
 	})
 
 	it('reverts back to select if we finish the interaction', () => {
@@ -333,7 +333,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		expect(editor.root.path.get()).toBe('root.select.resizing')
+		editor.expectToBeIn('select.resizing')
 
 		editor.pointerUp(100, 100)
 
@@ -348,7 +348,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		expect(editor.root.path.get()).toBe('root.select.resizing')
+		editor.expectToBeIn('select.resizing')
 
 		editor.cancel()
 
@@ -492,7 +492,7 @@ describe('getShapeUtil', () => {
 		editor.createShapes([
 			{ id: ids.box1, type: 'blorg', x: 100, y: 100, props: { w: 100, h: 100 } },
 		])
-		const page1 = editor.currentPageId
+		const page1 = editor.getCurrentPageId()
 		editor.createPage({ name: 'page 2', id: ids.page2 })
 		editor.setCurrentPage(page1)
 	})
@@ -607,15 +607,15 @@ describe('when the user prefers dark UI', () => {
 	})
 	it('isDarkMode should be false by default', () => {
 		editor = new TestEditor({})
-		expect(editor.user.isDarkMode).toBe(false)
+		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 	it('isDarkMode should be false when inferDarkMode is false', () => {
 		editor = new TestEditor({ inferDarkMode: false })
-		expect(editor.user.isDarkMode).toBe(false)
+		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 	it('should be true if the editor was instantiated with inferDarkMode', () => {
 		editor = new TestEditor({ inferDarkMode: true })
-		expect(editor.user.isDarkMode).toBe(true)
+		expect(editor.user.getIsDarkMode()).toBe(true)
 	})
 })
 
@@ -634,14 +634,14 @@ describe('when the user prefers light UI', () => {
 	})
 	it('isDarkMode should be false by default', () => {
 		editor = new TestEditor({})
-		expect(editor.user.isDarkMode).toBe(false)
+		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 	it('isDarkMode should be false when inferDarkMode is false', () => {
 		editor = new TestEditor({ inferDarkMode: false })
-		expect(editor.user.isDarkMode).toBe(false)
+		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 	it('should be false if the editor was instantiated with inferDarkMode', () => {
 		editor = new TestEditor({ inferDarkMode: true })
-		expect(editor.user.isDarkMode).toBe(false)
+		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 })

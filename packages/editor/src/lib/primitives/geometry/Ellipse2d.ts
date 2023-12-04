@@ -24,6 +24,7 @@ export class Ellipse2d extends Geometry2d {
 
 	_edges?: Edge2d[]
 
+	// eslint-disable-next-line no-restricted-syntax
 	get edges() {
 		if (!this._edges) {
 			const { vertices } = this

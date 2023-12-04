@@ -7,8 +7,8 @@ import { Button } from './primitives/Button'
 export const MoveToPageMenu = track(function MoveToPageMenu() {
 	const editor = useEditor()
 	const container = useContainer()
-	const pages = editor.pages
-	const currentPageId = editor.currentPageId
+	const pages = editor.getPages()
+	const currentPageId = editor.getCurrentPageId()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 

@@ -45,7 +45,7 @@ export function Canvas({ className }: { className?: string }) {
 			const htmlElm2 = rHtmlLayer2.current
 			if (!htmlElm2) return
 
-			const { x, y, z } = editor.camera
+			const { x, y, z } = editor.getCamera()
 
 			// Because the html container has a width/height of 1px, we
 			// need to create a small offset when zoomed to ensure that
@@ -136,7 +136,7 @@ export function Canvas({ className }: { className?: string }) {
 function GridWrapper() {
 	const editor = useEditor()
 	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
-	const { x, y, z } = useValue('camera', () => editor.camera, [editor])
+	const { x, y, z } = useValue('camera', () => editor.getCamera(), [editor])
 	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const { Grid } = useEditorComponents()
 
@@ -148,7 +148,7 @@ function GridWrapper() {
 function ScribbleWrapper() {
 	const editor = useEditor()
 	const scribbles = useValue('scribbles', () => editor.getInstanceState().scribbles, [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 	const { Scribble } = useEditorComponents()
 
 	if (!(Scribble && scribbles.length)) return null
@@ -184,13 +184,13 @@ function ZoomBrushWrapper() {
 
 	if (!(ZoomBrush && zoomBrush)) return null
 
-	return <ZoomBrush className="tl-user-brush" brush={zoomBrush} />
+	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
 }
 
 function SnapLinesWrapper() {
 	const editor = useEditor()
-	const lines = useValue('snapLines', () => editor.snaps.lines, [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const lines = useValue('snapLines', () => editor.snaps.getLines(), [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 	const { SnapLine } = useEditorComponents()
 
 	if (!(SnapLine && lines.length > 0)) return null
@@ -210,7 +210,7 @@ function HandlesWrapper() {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
-	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
 	])
@@ -316,7 +316,7 @@ function HandleWrapper({
 function ShapesWithSVGs() {
 	const editor = useEditor()
 
-	const renderingShapes = useValue('rendering shapes', () => editor.renderingShapes, [editor])
+	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	return (
 		<>
@@ -333,7 +333,7 @@ function ShapesWithSVGs() {
 function ShapesToDisplay() {
 	const editor = useEditor()
 
-	const renderingShapes = useValue('rendering shapes', () => editor.renderingShapes, [editor])
+	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	return (
 		<>
@@ -406,7 +406,7 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	const editor = useEditor()
 
-	const ids = dedupe(editor.hintingShapeIds)
+	const ids = dedupe(editor.getHintingShapeIds())
 
 	if (!ids.length) return null
 
@@ -465,7 +465,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 
 	const [html, setHtml] = React.useState('')
 
-	const isInRoot = shape?.parentId === editor.currentPageId
+	const isInRoot = shape?.parentId === editor.getCurrentPageId()
 
 	React.useEffect(() => {
 		if (!isInRoot) return

@@ -12,7 +12,7 @@ export function usePeerIds() {
 	const editor = useEditor()
 	const $presences = useMemo(() => {
 		return editor.store.query.records('instance_presence', () => ({
-			userId: { neq: editor.user.id },
+			userId: { neq: editor.user.getId() },
 		}))
 	}, [editor])
 

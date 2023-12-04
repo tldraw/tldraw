@@ -20,9 +20,9 @@ export function useRelevantStyles(): {
 	return useValue(
 		'getRelevantStyles',
 		() => {
-			const styles = new SharedStyleMap(editor.sharedStyles)
+			const styles = new SharedStyleMap(editor.getSharedStyles())
 			const hasShape =
-				editor.getSelectedShapeIds().length > 0 || !!editor.root.current.get()?.shapeType
+				editor.getSelectedShapeIds().length > 0 || !!editor.root.getCurrent()?.shapeType
 
 			if (styles.size === 0 && editor.isIn('select') && editor.getSelectedShapeIds().length === 0) {
 				for (const style of selectToolStyles) {
@@ -31,7 +31,7 @@ export function useRelevantStyles(): {
 			}
 
 			if (styles.size === 0 && !hasShape) return null
-			return { styles, opacity: editor.sharedOpacity }
+			return { styles, opacity: editor.getSharedOpacity() }
 		},
 		[editor]
 	)

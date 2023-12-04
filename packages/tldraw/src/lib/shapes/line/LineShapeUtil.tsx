@@ -330,7 +330,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override toSvg(shape: TLLineShape) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		const color = theme[shape.props.color].solid
 		const spline = getGeometryForLineShape(shape)
 		const strokeWidth = STROKE_SIZES[shape.props.size]

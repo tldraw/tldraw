@@ -1,4 +1,4 @@
-import { TLArrowShape, TLGeoShape, TLShapeId } from '@tldraw/editor'
+import { TLArrowShape, TLGeoShape, TLShapeId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -36,9 +36,14 @@ describe('arrowBindingsIndex', () => {
 	})
 
 	it('works if there are many arrows', () => {
-		const ids = editor.createShapesFromJsx([
-			<TL.geo ref="box1" x={0} y={0} w={100} h={100} />,
-			<TL.geo ref="box2" x={200} y={0} w={100} h={100} />,
+		const ids = {
+			box1: createShapeId('box1'),
+			box2: createShapeId('box2'),
+		}
+
+		editor.createShapes([
+			{ type: 'geo', id: ids.box1, x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ type: 'geo', id: ids.box2, x: 200, y: 0, props: { w: 100, h: 100 } },
 		])
 
 		editor.setCurrentTool('arrow')
@@ -54,14 +59,14 @@ describe('arrowBindingsIndex', () => {
 		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([{ arrowId: arrow1.id, handleId: 'start' }])
 		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([{ arrowId: arrow1.id, handleId: 'end' }])
 
-		editor.pointerUp(250, 50)
+		editor.pointerUp()
 
 		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([{ arrowId: arrow1.id, handleId: 'start' }])
 		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([{ arrowId: arrow1.id, handleId: 'end' }])
 
 		// start at box 1 and end on the page
 		editor.setCurrentTool('arrow')
-		editor.pointerDown(50, 50).pointerMove(50, -50).pointerUp(50, -50)
+		editor.pointerMove(50, 50).pointerDown().pointerMove(50, -50).pointerUp()
 		const arrow2 = editor.getOnlySelectedShape()!
 		expect(arrow2.type).toBe('arrow')
 
@@ -276,6 +281,7 @@ describe('arrowBindingsIndex', () => {
 							isExact: false,
 							boundShapeId: box3,
 							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isPrecise: false,
 						},
 					},
 				},

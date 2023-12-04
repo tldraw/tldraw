@@ -241,12 +241,13 @@ export {
 	type TLHistoryEntry,
 	type TLHistoryMark,
 } from './lib/editor/types/history-types'
-export { type RequiredKeys } from './lib/editor/types/misc-types'
+export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
 export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
@@ -260,6 +261,7 @@ export {
 	Box2d,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	rotateSelectionHandle,
+	type BoxLike,
 	type RotateCorner,
 	type SelectionCorner,
 	type SelectionEdge,

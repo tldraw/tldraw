@@ -34,22 +34,24 @@ it('creates new bindings for arrows when pasting', async () => {
 						boundShapeId: ids.box1,
 						isExact: false,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 					end: {
 						type: 'binding',
 						boundShapeId: ids.box2,
 						isExact: false,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 				},
 			},
 		])
 
-	const shapesBefore = editor.currentPageShapes
+	const shapesBefore = editor.getCurrentPageShapes()
 
 	editor.selectAll().duplicateShapes(editor.getSelectedShapeIds())
 
-	const shapesAfter = editor.currentPageShapes
+	const shapesAfter = editor.getCurrentPageShapes()
 
 	// We should not have changed the original shapes
 	expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -119,12 +121,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -140,12 +144,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -161,12 +167,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box3,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -187,7 +195,8 @@ describe('When duplicating shapes that include arrows', () => {
 			.deleteShapes(editor.getSelectedShapeIds())
 			.createShapes(shapes)
 			.select(
-				...editor.currentPageShapes
+				...editor
+					.getCurrentPageShapes()
 					.filter((s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow'))
 					.map((s) => s.id)
 			)

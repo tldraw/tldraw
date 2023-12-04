@@ -3,7 +3,7 @@ import { Editor, getIndexAbove, getIndexBelow, getIndexBetween, TLPageId } from 
 export const onMovePage = (editor: Editor, id: TLPageId, from: number, to: number) => {
 	let index: string
 
-	const pages = editor.pages
+	const pages = editor.getPages()
 
 	const below = from > to ? pages[to - 1] : pages[to]
 	const above = from > to ? pages[to] : pages[to + 1]

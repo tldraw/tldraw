@@ -49,6 +49,7 @@ import {
 	hasOwnProperty,
 	sortById,
 	structuredClone,
+	warnDeprecatedGetter,
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { TLUser, createTLUser } from '../config/createTLUser'
@@ -129,7 +130,7 @@ import {
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
-import { OptionalKeys, RequiredKeys } from './types/misc-types'
+import { OptionalKeys, RequiredKeys, TLSvgOptions } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -460,7 +461,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				invalidParents.add(record.parentId)
 			}
 			// clean up any arrows bound to this shape
-			const bindings = this._arrowBindingsIndex.get()[record.id]
+			const bindings = this._getArrowBindingsIndex().get()[record.id]
 			if (bindings?.length) {
 				for (const { arrowId, handleId } of bindings) {
 					const arrow = this.getShape<TLArrowShape>(arrowId)
@@ -484,7 +485,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// page was deleted, need to check whether it's the current page and select another one if so
 			if (this.getInstanceState().currentPageId !== record.id) return
 
-			const backupPageId = this.pages.find((p) => p.id !== record.id)?.id
+			const backupPageId = this.getPages().find((p) => p.id !== record.id)?.id
 			if (!backupPageId) return
 			this.store.put([{ ...this.getInstanceState(), currentPageId: backupPageId }])
 
@@ -502,7 +503,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
 			if (prev.parentId !== next.parentId) {
 				const reparentBoundArrows = (id: TLShapeId) => {
-					const boundArrows = this._arrowBindingsIndex.get()[id]
+					const boundArrows = this._getArrowBindingsIndex().get()[id]
 					if (boundArrows?.length) {
 						for (const arrow of boundArrows) {
 							reparentArrow(arrow.arrowId)
@@ -600,7 +601,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		})
 
-		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
+		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () =>
+			this.getCurrentPageId()
+		)
 		this._parentIdsToChildIds = parentsToChildren(this.store)
 
 		this.disposables.add(
@@ -799,13 +802,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCanUndo(): boolean {
-		return this.history.numUndos > 0
+		return this.history.getNumUndos() > 0
 	}
 
 	/**
 	 * @deprecated Use `getCanUndo` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get canUndo(): boolean {
+		warnDeprecatedGetter('canUndo')
 		return this.getCanUndo()
 	}
 
@@ -830,13 +835,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCanRedo(): boolean {
-		return this.history.numRedos > 0
+		return this.history.getNumRedos() > 0
 	}
 
 	/**
 	 * @deprecated Use `getCanRedo` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get canRedo(): boolean {
+		warnDeprecatedGetter('canRedo')
 		return this.getCanRedo()
 	}
 
@@ -918,7 +925,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private get _arrowBindingsIndex() {
+	private _getArrowBindingsIndex() {
 		return arrowBindingsIndex(this)
 	}
 
@@ -930,11 +937,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		return this._arrowBindingsIndex.get()[shapeId] || EMPTY_ARRAY
+		return this._getArrowBindingsIndex().get()[shapeId] || EMPTY_ARRAY
 	}
 
 	@computed
-	private get arrowInfoCache() {
+	private getArrowInfoCache() {
 		return this.store.createComputedCache<TLArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
 			return getIsArrowStraight(shape)
 				? getStraightArrowInfo(this, shape)
@@ -956,7 +963,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this.arrowInfoCache.get(id)
+		return this.getArrowInfoCache().get(id)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -1008,7 +1015,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					willCrashApp,
 				},
 				extras: {
-					activeStateNode: this.root.path.get(),
+					activeStateNode: this.root.getPath(),
 					selectedShapes: this.getSelectedShapes(),
 					editingShape: editingShapeId ? this.getShape(editingShapeId) : undefined,
 					inputs: this.inputs,
@@ -1037,7 +1044,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	get crashingError() {
+	getCrashingError() {
 		return this._crashingError
 	}
 
@@ -1050,6 +1057,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/* ------------------- Statechart ------------------- */
+
+	/**
+	 * The editor's current path of active states.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPath() // "select.idle"
+	 * ```
+	 *
+	 * @public
+	 */
+	@computed getPath() {
+		return this.root.getPath().split('root.')[1]
+	}
 
 	/**
 	 * Get whether a certain tool (or other state node) is currently active.
@@ -1070,7 +1091,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		while (ids.length > 0) {
 			const id = ids.pop()
 			if (!id) return true
-			const current = state.current.get()
+			const current = state.getCurrent()
 			if (current?.id === id) {
 				if (ids.length === 0) return true
 				state = current
@@ -1113,20 +1134,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.root.transition(id, info)
 		return this
 	}
+
 	/**
 	 * The current selected tool.
 	 *
 	 * @public
 	 */
-	@computed getCurrentTool(): StateNode | undefined {
-		return this.root.current.get()
+	@computed getCurrentTool(): StateNode {
+		return this.root.getCurrent()!
 	}
 
 	/**
 	 * @deprecated Use `getCurrentTool` instead.
-	 * @public
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentTool() {
+		warnDeprecatedGetter('currentTool')
 		return this.getCurrentTool()
 	}
 
@@ -1138,13 +1161,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentToolId(): string {
 		const currentTool = this.getCurrentTool()
 		if (!currentTool) return ''
-		return currentTool.currentToolIdMask ?? currentTool.id
+		return currentTool.getCurrentToolIdMask() ?? currentTool.id
 	}
 
 	/**
 	 * @deprecated Use `getCurrentToolId` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentToolId() {
+		warnDeprecatedGetter('currentToolId')
 		return this.getCurrentToolId()
 	}
 
@@ -1161,17 +1186,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getStateDescendant(path: string): StateNode | undefined {
+	getStateDescendant<T extends StateNode>(path: string): T | undefined {
 		const ids = path.split('.').reverse()
 		let state = this.root as StateNode
 		while (ids.length > 0) {
 			const id = ids.pop()
-			if (!id) return state
+			if (!id) return state as T
 			const childState = state.children?.[id]
 			if (!childState) return undefined
 			state = childState
 		}
-		return state
+		return state as T
 	}
 
 	/* ---------------- Document Settings --------------- */
@@ -1188,7 +1213,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getDocumentSettings` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get documentSettings() {
+		warnDeprecatedGetter('documentSettings')
 		return this.getDocumentSettings()
 	}
 
@@ -1216,7 +1243,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getInstanceState` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get instanceState() {
+		warnDeprecatedGetter('instanceState')
 		return this.getInstanceState()
 	}
 
@@ -1300,7 +1329,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getOpenMenus` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get openMenus() {
+		warnDeprecatedGetter('openMenus')
 		return this.getOpenMenus()
 	}
 
@@ -1359,7 +1390,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getIsMenuOpen` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get isMenuOpen() {
+		warnDeprecatedGetter('isMenuOpen')
 		return this.getIsMenuOpen()
 	}
 
@@ -1395,7 +1428,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getPageStates` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get pageStates() {
+		warnDeprecatedGetter('pageStates')
 		return this.getPageStates()
 	}
 
@@ -1416,13 +1451,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCurrentPageState` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get currentPageState() {
+		warnDeprecatedGetter('currentPageState')
 		return this.getCurrentPageState()
 	}
 
 	/** @internal */
 	@computed private _getCurrentPageStateId() {
-		return InstancePageStateRecordType.createId(this.currentPageId)
+		return InstancePageStateRecordType.createId(this.getCurrentPageId())
 	}
 
 	/**
@@ -1430,8 +1467,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' })
-	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' }, { ephemeral: true })
+	 * editor.updateCurrentPageState({ id: 'page1', editingShapeId: 'shape:123' })
+	 * editor.updateCurrentPageState({ id: 'page1', editingShapeId: 'shape:123' }, { ephemeral: true })
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
@@ -1481,7 +1518,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectedShapeIds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectedShapeIds() {
+		warnDeprecatedGetter('selectedShapeIds')
 		return this.getSelectedShapeIds()
 	}
 
@@ -1499,7 +1538,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectedShapes` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectedShapes() {
+		warnDeprecatedGetter('selectedShapes')
 		return this.getSelectedShapes()
 	}
 
@@ -1632,7 +1673,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectAll(): this {
-		const ids = this.getSortedChildIdsForParent(this.currentPageId)
+		const ids = this.getSortedChildIdsForParent(this.getCurrentPageId())
 		// page might have no shapes
 		if (ids.length <= 0) return this
 		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
@@ -1675,7 +1716,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getOnlySelectedShape` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get onlySelectedShape() {
+		warnDeprecatedGetter('onlySelectedShape')
 		return this.getOnlySelectedShape()
 	}
 
@@ -1698,7 +1741,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectionPageBounds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectionPageBounds() {
+		warnDeprecatedGetter('selectionPageBounds')
 		return this.getSelectionPageBounds()
 	}
 
@@ -1728,7 +1773,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectionRotation` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectionRotation() {
+		warnDeprecatedGetter('selectionRotation')
 		return this.getSelectionRotation()
 	}
 
@@ -1775,7 +1822,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getSelectionRotatedPageBounds` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get selectionRotatedPageBounds() {
+		warnDeprecatedGetter('selectionRotatedPageBounds')
 		return this.getSelectionRotatedPageBounds()
 	}
 
@@ -1787,13 +1836,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getFocusedGroupId(): TLShapeId | TLPageId {
-		return this.getCurrentPageState().focusedGroupId ?? this.currentPageId
+		return this.getCurrentPageState().focusedGroupId ?? this.getCurrentPageId()
 	}
 
 	/**
 	 * @deprecated Use `getFocusedGroupId` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get focusedGroupId() {
+		warnDeprecatedGetter('focusedGroupId')
 		return this.getFocusedGroupId()
 	}
 
@@ -1810,7 +1861,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getFocusedGroup` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get focusedGroup() {
+		warnDeprecatedGetter('focusedGroup')
 		return this.getFocusedGroup()
 	}
 
@@ -1907,7 +1960,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getEditingShapeId` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get editingShapeId() {
+		warnDeprecatedGetter('editingShapeId')
 		return this.getEditingShapeId()
 	}
 
@@ -1924,7 +1979,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getEditingShape` instead.
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get editingShape() {
+		warnDeprecatedGetter('editingShape')
 		return this.getEditingShape()
 	}
 
@@ -1966,8 +2023,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed get hoveredShapeId() {
+	@computed getHoveredShapeId(): TLShapeId | null {
 		return this.getCurrentPageState().hoveredShapeId
+	}
+
+	/**
+	 * @deprecated Use `getHoveredShapeId` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get hoveredShapeId() {
+		warnDeprecatedGetter('hoveredShapeId')
+		return this.getHoveredShapeId()
 	}
 
 	/**
@@ -1975,9 +2041,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hoveredShape(): TLShape | undefined {
-		const { hoveredShapeId } = this
+	@computed getHoveredShape(): TLShape | undefined {
+		const hoveredShapeId = this.getHoveredShapeId()
 		return hoveredShapeId ? this.getShape(hoveredShapeId) : undefined
+	}
+
+	/**
+	 * @deprecated Use `getHoveredShape` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get hoveredShape() {
+		warnDeprecatedGetter('hoveredShape')
+		return this.getHoveredShape()
 	}
 
 	/**
@@ -1995,7 +2070,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (id === this.hoveredShapeId) return this
+		if (id === this.getHoveredShapeId()) return this
 		this.updateCurrentPageState({ hoveredShapeId: id }, { ephemeral: true })
 		return this
 	}
@@ -2007,8 +2082,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hintingShapeIds() {
+	@computed getHintingShapeIds() {
 		return this.getCurrentPageState().hintingShapeIds
+	}
+
+	/**
+	 * @deprecated Use `getHintingShapeIds` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get hintingShapeIds() {
+		warnDeprecatedGetter('hintingShapeIds')
+		return this.getHintingShapeIds()
 	}
 
 	/**
@@ -2016,9 +2100,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hintingShapes() {
-		const { hintingShapeIds } = this
+	@computed getHintingShape() {
+		const hintingShapeIds = this.getHintingShapeIds()
 		return compact(hintingShapeIds.map((id) => this.getShape(id)))
+	}
+
+	/**
+	 * @deprecated Use `getHintingShape` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get hintingShape() {
+		warnDeprecatedGetter('hintingShape')
+		return this.getHintingShape()
 	}
 
 	/**
@@ -2051,18 +2144,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get erasingShapeIds() {
+	@computed getErasingShapeIds() {
 		return this.getCurrentPageState().erasingShapeIds
 	}
 
 	/**
-	 * The editor's current hinting shapes.
+	 * @deprecated Use `getErasingShapeIds` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get erasingShapeIds() {
+		warnDeprecatedGetter('erasingShapeIds')
+		return this.getErasingShapeIds()
+	}
+
+	/**
+	 * The editor's current erasing shapes.
 	 *
 	 * @public
 	 */
-	@computed get erasingShapes() {
-		const { erasingShapeIds } = this
+	@computed getErasingShapes() {
+		const erasingShapeIds = this.getErasingShapeIds()
 		return compact(erasingShapeIds.map((id) => this.getShape(id)))
+	}
+
+	/**
+	 * @deprecated Use `getErasingShapes` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get erasingShapes() {
+		warnDeprecatedGetter('erasingShapes')
+		return this.getErasingShapes()
 	}
 
 	/**
@@ -2084,7 +2195,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
-		const { erasingShapeIds } = this
+		const erasingShapeIds = this.getErasingShapeIds()
 		if (ids.length === erasingShapeIds.length) {
 			// if the new ids are the same length as the current ids, they might be the same.
 			// presuming the current ids are also sorted, check each item to see if it's the same;
@@ -2110,8 +2221,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get croppingShapeId() {
+	getCroppingShapeId() {
 		return this.getCurrentPageState().croppingShapeId
+	}
+
+	/**
+	 * @deprecated Use `getCroppingShapeId` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get croppingShapeId() {
+		warnDeprecatedGetter('croppingShapeId')
+		return this.getCroppingShapeId()
 	}
 
 	/**
@@ -2130,7 +2250,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setCroppingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (id !== this.croppingShapeId) {
+		if (id !== this.getCroppingShapeId()) {
 			if (!id) {
 				this.updateCurrentPageState({ croppingShapeId: null })
 			} else {
@@ -2148,8 +2268,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private get cameraId() {
-		return CameraRecordType.createId(this.currentPageId)
+	private getCameraId() {
+		return CameraRecordType.createId(this.getCurrentPageId())
 	}
 
 	/**
@@ -2157,8 +2277,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get camera() {
-		return this.store.get(this.cameraId)!
+	@computed getCamera() {
+		return this.store.get(this.getCameraId())!
 	}
 
 	/**
@@ -2166,13 +2286,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get zoomLevel() {
-		return this.camera.z
+	@computed getZoomLevel() {
+		return this.getCamera().z
+	}
+
+	/**
+	 * @deprecated Use `getZoomLevel` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get zoomLevel() {
+		warnDeprecatedGetter('zoomLevel')
+		return this.getZoomLevel()
 	}
 
 	/** @internal */
 	private _setCamera(point: VecLike): this {
-		const currentCamera = this.camera
+		const currentCamera = this.getCamera()
 
 		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
 			return this
@@ -2222,7 +2351,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setCamera(point: VecLike, animation?: TLAnimationOptions): this {
 		const x = Number.isFinite(point.x) ? point.x : 0
 		const y = Number.isFinite(point.y) ? point.y : 0
-		const z = Number.isFinite(point.z) ? point.z! : this.zoomLevel
+		const z = Number.isFinite(point.z) ? point.z! : this.getZoomLevel()
 
 		// Stop any camera animations
 		this.stopCameraAnimation()
@@ -2233,7 +2362,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		if (animation) {
-			const { width, height } = this.viewportScreenBounds
+			const { width, height } = this.getViewportScreenBounds()
 			return this._animateToViewport(new Box2d(-x, -y, width / z, height / z), animation)
 		} else {
 			this._setCamera({ x, y, z })
@@ -2259,12 +2388,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const {
-			viewportPageBounds: { width: pw, height: ph },
-			camera,
-		} = this
+		const { width: pw, height: ph } = this.getViewportPageBounds()
 
-		this.setCamera({ x: -(point.x - pw / 2), y: -(point.y - ph / 2), z: camera.z }, animation)
+		this.setCamera(
+			{ x: -(point.x - pw / 2), y: -(point.y - ph / 2), z: this.getCamera().z },
+			animation
+		)
 		return this
 	}
 
@@ -2282,10 +2411,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToContent(): this {
-		const bounds = this.getSelectionPageBounds() ?? this.currentPageBounds
+		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
 
 		if (bounds) {
-			this.zoomToBounds(bounds, Math.min(1, this.zoomLevel), { duration: 220 })
+			this.zoomToBounds(bounds, Math.min(1, this.getZoomLevel()), { duration: 220 })
 		}
 
 		return this
@@ -2307,7 +2436,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToFit(animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const ids = [...this.currentPageShapeIds]
+		const ids = [...this.getCurrentPageShapeIds()]
 		if (ids.length <= 0) return this
 
 		const pageBounds = Box2d.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
@@ -2321,8 +2450,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.resetZoom()
-	 * editor.resetZoom(editor.viewportScreenCenter)
-	 * editor.resetZoom(editor.viewportScreenCenter, { duration: 200 })
+	 * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })
+	 * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })
 	 * ```
 	 *
 	 * @param point - The screen point to zoom out on. Defaults to the viewport screen center.
@@ -2330,10 +2459,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	resetZoom(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	resetZoom(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 		const { x, y } = point
 		this.setCamera(
 			{ x: cx + (x / 1 - x) - (x / cz - x), y: cy + (y / 1 - y) - (y / cz - y), z: 1 },
@@ -2349,7 +2478,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.zoomIn()
-	 * editor.zoomIn(editor.viewportScreenCenter, { duration: 120 })
+	 * editor.zoomIn(editor.getViewportScreenCenter(), { duration: 120 })
 	 * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })
 	 * ```
 	 *
@@ -2357,10 +2486,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomIn(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	zoomIn(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 
 		let zoom = MAX_ZOOM
 
@@ -2387,7 +2516,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.zoomOut()
-	 * editor.zoomOut(editor.viewportScreenCenter, { duration: 120 })
+	 * editor.zoomOut(editor.getViewportScreenCenter(), { duration: 120 })
 	 * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })
 	 * ```
 	 *
@@ -2395,10 +2524,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomOut(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
+	zoomOut(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 
 		let zoom = MIN_ZOOM
 
@@ -2442,7 +2571,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (!selectionPageBounds) return this
 
-		this.zoomToBounds(selectionPageBounds, Math.max(1, this.zoomLevel), animation)
+		this.zoomToBounds(selectionPageBounds, Math.max(1, this.getZoomLevel()), animation)
 
 		return this
 	}
@@ -2461,14 +2590,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 		const selectionBounds = Box2d.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
 
-		const { viewportPageBounds } = this
+		const viewportPageBounds = this.getViewportPageBounds()
 
 		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
-			this.zoomToBounds(selectionBounds, this.camera.z, animation)
+			this.zoomToBounds(selectionBounds, this.getCamera().z, animation)
 
 			return this
 		} else {
-			const insetViewport = this.viewportPageBounds.clone().expandBy(-32 / this.zoomLevel)
+			const insetViewport = this.getViewportPageBounds()
+				.clone()
+				.expandBy(-32 / this.getZoomLevel())
 
 			let offsetX = 0
 			let offsetY = 0
@@ -2492,7 +2623,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// inside x-bounds
 			}
 
-			const { camera } = this
+			const camera = this.getCamera()
 			this.setCamera({ x: camera.x + offsetX, y: camera.y + offsetY, z: camera.z }, animation)
 		}
 
@@ -2518,7 +2649,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { viewportScreenBounds } = this
+		const viewportScreenBounds = this.getViewportScreenBounds()
 
 		const inset = Math.min(256, viewportScreenBounds.width * 0.28)
 
@@ -2561,7 +2692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	pan(offset: VecLike, animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 		this.setCamera({ x: cx + offset.x / cz, y: cy + offset.y / cz, z: cz }, animation)
 		return this
 	}
@@ -2602,7 +2733,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { elapsed, easing, duration, start, end } = this._viewportAnimation
 
 		if (elapsed > duration) {
-			this._setCamera({ x: -end.x, y: -end.y, z: this.viewportScreenBounds.width / end.width })
+			this._setCamera({ x: -end.x, y: -end.y, z: this.getViewportScreenBounds().width / end.width })
 			cancel()
 			return
 		}
@@ -2614,16 +2745,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const top = start.minY + (end.minY - start.minY) * t
 		const right = start.maxX + (end.maxX - start.maxX) * t
 
-		this._setCamera({ x: -left, y: -top, z: this.viewportScreenBounds.width / (right - left) })
+		this._setCamera({ x: -left, y: -top, z: this.getViewportScreenBounds().width / (right - left) })
 	}
 
 	/** @internal */
 	private _animateToViewport(targetViewportPage: Box2d, opts = {} as TLAnimationOptions) {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
-		const {
-			user: { animationSpeed },
-			viewportPageBounds,
-		} = this
+		const animationSpeed = this.user.getAnimationSpeed()
+		const viewportPageBounds = this.getViewportPageBounds()
 
 		// If we have an existing animation, then stop it; also stop following any user
 		this.stopCameraAnimation()
@@ -2636,7 +2765,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this._setCamera({
 				x: -targetViewportPage.x,
 				y: -targetViewportPage.y,
-				z: this.viewportScreenBounds.width / targetViewportPage.width,
+				z: this.getViewportScreenBounds().width / targetViewportPage.width,
 			})
 		}
 
@@ -2673,7 +2802,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.stopCameraAnimation()
 
-		const { animationSpeed } = this.user
+		const animationSpeed = this.user.getAnimationSpeed()
 
 		if (animationSpeed === 0) return this
 
@@ -2688,7 +2817,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.once('stop-camera-animation', cancel)
 
 		const moveCamera = (elapsed: number) => {
-			const { x: cx, y: cy, z: cz } = this.camera
+			const { x: cx, y: cy, z: cz } = this.getCamera()
 			const movementVec = Vec2d.Mul(direction, (currentSpeed * elapsed) / cz)
 
 			// Apply friction
@@ -2732,7 +2861,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// If we're not on the same page, move to the page they're on
-			const isOnSamePage = presence.currentPageId === this.currentPageId
+			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
 			if (!isOnSamePage) {
 				this.setCurrentPage(presence.currentPageId)
 			}
@@ -2767,7 +2896,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const activeArea = this.viewportScreenBounds.clone().expandBy(-32)
+		const activeArea = this.getViewportScreenBounds().clone().expandBy(-32)
 		const viewportAspectRatio = activeArea.width / activeArea.height
 
 		const shapePageBounds = this.getShapePageBounds(shapeId)
@@ -2825,7 +2954,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			Math.max(rect.width, 1),
 			Math.max(rect.height, 1)
 		)
-		const boundsAreEqual = screenBounds.equals(this.viewportScreenBounds)
+		const boundsAreEqual = screenBounds.equals(this.getViewportScreenBounds())
 
 		const { _willSetInitialBounds } = this
 
@@ -2842,7 +2971,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				if (center && !this.getInstanceState().followingUserId) {
 					// Get the page center before the change, make the change, and restore it
-					const before = this.viewportPageCenter
+					const before = this.getViewportPageCenter()
 					this.updateInstanceState(
 						{ screenBounds: screenBounds.toJson() },
 						{ squashing: true, ephemeral: true }
@@ -2869,9 +2998,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportScreenBounds() {
+	@computed getViewportScreenBounds() {
 		const { x, y, w, h } = this.getInstanceState().screenBounds
 		return new Box2d(x, y, w, h)
+	}
+
+	/**
+	 * @deprecated Use `getViewportScreenBounds` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get viewportScreenBounds() {
+		warnDeprecatedGetter('viewportScreenBounds')
+		return this.getViewportScreenBounds()
 	}
 
 	/**
@@ -2879,8 +3017,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportScreenCenter() {
-		return this.viewportScreenBounds.center
+	@computed getViewportScreenCenter() {
+		return this.getViewportScreenBounds().center
+	}
+
+	/**
+	 * @deprecated Use `getViewportScreenCenter` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get viewportScreenCenter() {
+		warnDeprecatedGetter('viewportScreenCenter')
+		return this.getViewportScreenCenter()
 	}
 
 	/**
@@ -2888,10 +3035,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportPageBounds() {
-		const { w, h } = this.viewportScreenBounds
-		const { x: cx, y: cy, z: cz } = this.camera
+	@computed getViewportPageBounds() {
+		const { w, h } = this.getViewportScreenBounds()
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 		return new Box2d(-cx, -cy, w / cz, h / cz)
+	}
+
+	/**
+	 * @deprecated Use `getViewportPageBounds` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get viewportPageBounds() {
+		warnDeprecatedGetter('viewportPageBounds')
+		return this.getViewportPageBounds()
 	}
 
 	/**
@@ -2899,8 +3055,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get viewportPageCenter() {
-		return this.viewportPageBounds.center
+	@computed getViewportPageCenter() {
+		return this.getViewportPageBounds().center
+	}
+
+	/**
+	 * @deprecated Use `getViewportPageCenter` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get viewportPageCenter() {
+		warnDeprecatedGetter('viewportPageCenter')
+		return this.getViewportPageCenter()
 	}
 
 	/**
@@ -2917,7 +3082,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	screenToPage(point: VecLike) {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz = 1 } = this.camera
+		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 		return {
 			x: (point.x - screenBounds.x) / cz - cx,
 			y: (point.y - screenBounds.y) / cz - cy,
@@ -2939,7 +3104,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	pageToScreen(point: VecLike) {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz = 1 } = this.camera
+		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 
 		return {
 			x: (point.x + cx) * cz + screenBounds.x,
@@ -2962,7 +3127,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			userId: { eq: userId },
 		}))
 
-		const thisUserId = this.user.id
+		const thisUserId = this.user.getId()
 
 		if (!thisUserId) {
 			console.warn('You should set the userId for the current instance before following a user')
@@ -2999,7 +3164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Change page if leader is on a different page
-			const isOnSamePage = leaderPresence.currentPageId === this.currentPageId
+			const isOnSamePage = leaderPresence.currentPageId === this.getCurrentPageId()
 			const chaseProportion = isOnSamePage ? FOLLOW_CHASE_PROPORTION : 1
 			if (!isOnSamePage) {
 				this.stopFollowingUser()
@@ -3009,7 +3174,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Get the bounds of the follower (me) and the leader (them)
-			const { center, width, height } = this.viewportPageBounds
+			const { center, width, height } = this.getViewportPageBounds()
 			const leaderScreen = Box2d.From(leaderPresence.screenBounds)
 			const leaderWidth = leaderScreen.width / leaderPresence.camera.z
 			const leaderHeight = leaderScreen.height / leaderPresence.camera.z
@@ -3030,9 +3195,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? Math.min(width / desiredWidth, height / desiredHeight)
 				: height / desiredHeight
 
-			const targetZoom = clamp(this.camera.z * ratio, MIN_ZOOM, MAX_ZOOM)
-			const targetWidth = this.viewportScreenBounds.w / targetZoom
-			const targetHeight = this.viewportScreenBounds.h / targetZoom
+			const targetZoom = clamp(this.getCamera().z * ratio, MIN_ZOOM, MAX_ZOOM)
+			const targetWidth = this.getViewportScreenBounds().w / targetZoom
+			const targetHeight = this.getViewportScreenBounds().h / targetZoom
 
 			// Figure out where to move the camera
 			const displacement = leaderCenter.sub(center)
@@ -3040,7 +3205,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Now let's assess whether we've caught up to the leader or not
 			const distance = Vec2d.Sub(targetCenter, center).len()
-			const zoomChange = Math.abs(targetZoom - this.camera.z)
+			const zoomChange = Math.abs(targetZoom - this.getCamera().z)
 
 			// If we're chasing the leader...
 			// Stop chasing if we're close enough
@@ -3095,8 +3260,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get cameraState() {
+	getCameraState() {
 		return this._cameraState.get()
+	}
+
+	/**
+	 * @deprecated Use `getCameraState` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get cameraState() {
+		warnDeprecatedGetter('cameraState')
+		return this.getCameraState()
 	}
 
 	// Camera state does two things: first, it allows us to subscribe to whether
@@ -3170,8 +3344,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// We only really need these if we're using editor state, but that's ok
 		const editingShapeId = this.getEditingShapeId()
 		const selectedShapeIds = this.getSelectedShapeIds()
-		const erasingShapeIds = this.erasingShapeIds
-		const renderingBoundsExpanded = this.renderingBoundsExpanded
+		const erasingShapeIds = this.getErasingShapeIds()
+		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
 
 		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
 		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
@@ -3239,7 +3413,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		for (const childId of this.getSortedChildIdsForParent(this.currentPageId)) {
+		for (const childId of this.getSortedChildIdsForParent(this.getCurrentPageId())) {
 			addShapeById(childId, 1, false)
 		}
 
@@ -3251,7 +3425,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get renderingShapes() {
+	@computed getRenderingShapes() {
 		const renderingShapes = this.getUnorderedRenderingShapes(true)
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
@@ -3268,12 +3442,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getRenderingShapes` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get renderingShapes() {
+		warnDeprecatedGetter('renderingShapes')
+		return this.getRenderingShapes()
+	}
+
+	/**
 	 * The current rendering bounds in the current page space, used for checking which shapes are "on screen".
 	 *
 	 * @public
 	 */
-	@computed get renderingBounds() {
+	getRenderingBounds() {
 		return this._renderingBounds.get()
+	}
+
+	/**
+	 * @deprecated Use `getRenderingBounds` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get renderingBounds() {
+		warnDeprecatedGetter('renderingBounds')
+		return this.getRenderingBounds()
 	}
 
 	/** @internal */
@@ -3285,8 +3477,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get renderingBoundsExpanded() {
+	getRenderingBoundsExpanded() {
 		return this._renderingBoundsExpanded.get()
+	}
+
+	/**
+	 * @deprecated Use `getRenderingBoundsExpanded` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get renderingBoundsExpanded() {
+		warnDeprecatedGetter('renderingBoundsExpanded')
+		return this.getRenderingBoundsExpanded()
 	}
 
 	/** @internal */
@@ -3305,13 +3506,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	updateRenderingBounds(): this {
-		const { viewportPageBounds } = this
+		const viewportPageBounds = this.getViewportPageBounds()
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
 		this._renderingBounds.set(viewportPageBounds.clone())
 
 		if (Number.isFinite(this.renderingBoundsMargin)) {
 			this._renderingBoundsExpanded.set(
-				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.zoomLevel)
+				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.getZoomLevel())
 			)
 		} else {
 			this._renderingBoundsExpanded.set(viewportPageBounds)
@@ -3329,8 +3530,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Pages ---------------------- */
 
-	/** @internal */
-	@computed private get _pages() {
+	@computed private _getAllPagesQuery() {
 		return this.store.query.records('page')
 	}
 
@@ -3339,8 +3539,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get pages(): TLPage[] {
-		return this._pages.get().sort(sortByIndex)
+	@computed getPages(): TLPage[] {
+		return this._getAllPagesQuery().get().sort(sortByIndex)
+	}
+
+	/**
+	 * @deprecated Use `getPages` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get pages() {
+		warnDeprecatedGetter('pages')
+		return this.getPages()
 	}
 
 	/**
@@ -3348,9 +3557,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get currentPage(): TLPage {
-		const page = this.getPage(this.currentPageId)!
-		return page
+	getCurrentPage(): TLPage {
+		return this.getPage(this.getCurrentPageId())!
+	}
+
+	/**
+	 * @deprecated use `getCurrentPage` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPage() {
+		warnDeprecatedGetter('currentPage')
+		return this.getCurrentPage()
 	}
 
 	/**
@@ -3358,8 +3575,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get currentPageId(): TLPageId {
+	getCurrentPageId(): TLPageId {
 		return this.getInstanceState().currentPageId
+	}
+
+	/**
+	 * @deprecated Use `getCurrentPageId` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPageId() {
+		warnDeprecatedGetter('currentPageId')
+		return this.getCurrentPageId()
 	}
 
 	/**
@@ -3387,8 +3613,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get currentPageShapeIds() {
+	getCurrentPageShapeIds() {
 		return this._currentPageShapeIds.get()
+	}
+	/**
+	 * @deprecated Use `getCurrentPageShapeIds` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPageShapeIds() {
+		warnDeprecatedGetter('currentPageShapeIds')
+		return this.getCurrentPageShapeIds()
 	}
 
 	/**
@@ -3441,7 +3675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 
 			return {
-				data: { toId: pageId, fromId: this.currentPageId },
+				data: { toId: pageId, fromId: this.getCurrentPageId() },
 				squashing: true,
 				preservesRedoStack: true,
 				...historyOptions,
@@ -3553,8 +3787,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		'createPage',
 		(page: Partial<TLPage>) => {
 			if (this.getInstanceState().isReadonly) return null
-			if (this.pages.length >= MAX_PAGES) return null
-			const { pages } = this
+			if (this.getPages().length >= MAX_PAGES) return null
+			const pages = this.getPages()
 
 			const name = getIncrementedName(
 				page.name ?? 'Page',
@@ -3596,7 +3830,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.store.put([newPage, newCamera, newTabPageState])
 			},
 			undo: ({ newPage, newTabPageState, newCamera }) => {
-				if (this.pages.length === 1) return
+				if (this.getPages().length === 1) return
 				this.store.remove([newTabPageState.id, newPage.id, newCamera.id])
 			},
 		}
@@ -3624,7 +3858,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		'delete_page',
 		(id: TLPageId) => {
 			if (this.getInstanceState().isReadonly) return null
-			const { pages } = this
+			const pages = this.getPages()
 			if (pages.length === 1) return null
 
 			const deletedPage = this.getPage(id)
@@ -3632,7 +3866,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (!deletedPage) return null
 
-			if (id === this.currentPageId) {
+			if (id === this.getCurrentPageId()) {
 				const index = pages.findIndex((page) => page.id === id)
 				const next = pages[index - 1] ?? pages[index + 1]
 				this.setCurrentPage(next.id)
@@ -3642,10 +3876,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ deletedPage, deletedPageStates }) => {
-				const { pages } = this
+				const pages = this.getPages()
 				if (pages.length === 1) return
 
-				if (deletedPage.id === this.currentPageId) {
+				if (deletedPage.id === this.getCurrentPageId()) {
 					const index = pages.findIndex((page) => page.id === deletedPage.id)
 					const next = pages[index - 1] ?? pages[index + 1]
 					this.setCurrentPage(next.id)
@@ -3672,16 +3906,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
-		if (this.pages.length >= MAX_PAGES) return this
+		if (this.getPages().length >= MAX_PAGES) return this
 		const id = typeof page === 'string' ? page : page.id
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
 
-		const prevCamera = { ...this.camera }
+		const prevCamera = { ...this.getCamera() }
 		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
 
 		this.batch(() => {
-			const { pages } = this
+			const pages = this.getPages()
 			const index = getIndexBetween(freshPage.index, pages[pages.indexOf(freshPage) + 1]?.index)
 
 			// create the page (also creates the pagestate and camera for the new page)
@@ -3723,7 +3957,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Assets --------------------- */
 
 	/** @internal */
-	@computed private get _assets() {
+	@computed private _getAllAssetsQuery() {
 		return this.store.query.records('asset')
 	}
 
@@ -3732,8 +3966,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
+	getAssets() {
+		return this._getAllAssetsQuery().get()
+	}
+
+	/**
+	 * @deprecated Use `getAssets` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get assets() {
-		return this._assets.get()
+		warnDeprecatedGetter('assets')
+		return this.getAssets()
 	}
 
 	/**
@@ -3879,7 +4122,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Shapes --------------------- */
 
 	@computed
-	private get _shapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
+	private _getShapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
 		return this.store.createComputedCache(
 			'bounds',
 			(shape) => this.getShapeUtil(shape).getGeometry(shape),
@@ -3901,11 +4144,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T {
-		return this._shapeGeometryCache.get(typeof shape === 'string' ? shape : shape.id)! as T
+		return this._getShapeGeometryCache().get(typeof shape === 'string' ? shape : shape.id)! as T
 	}
 
 	/** @internal */
-	@computed private get _shapeOutlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
+	@computed private _getShapeOutlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
 		return this.store.createComputedCache('outline-segments', (shape) => {
 			return this.getShapeUtil(shape).getOutlineSegments(shape)
 		})
@@ -3926,13 +4169,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec2d[][] {
 		return (
-			this._shapeOutlineSegmentsCache.get(typeof shape === 'string' ? shape : shape.id) ??
+			this._getShapeOutlineSegmentsCache().get(typeof shape === 'string' ? shape : shape.id) ??
 			EMPTY_ARRAY
 		)
 	}
 
 	/** @internal */
-	@computed private get _shapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
+	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
 		return this.store.createComputedCache('handles', (shape) => {
 			return this.getShapeUtil(shape).getHandles?.(shape)
 		})
@@ -3951,7 +4194,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined {
-		return this._shapeHandlesCache.get(typeof shape === 'string' ? shape : shape.id)
+		return this._getShapeHandlesCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/**
@@ -3981,7 +4224,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	@computed private get _shapePageTransformCache(): ComputedCache<Matrix2d, TLShape> {
+	@computed private _getShapePageTransformCache(): ComputedCache<Matrix2d, TLShape> {
 		return this.store.createComputedCache<Matrix2d, TLShape>('pageTransformCache', (shape) => {
 			if (isPageId(shape.parentId)) {
 				return this.getShapeLocalTransform(shape)
@@ -3992,7 +4235,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// In the future we should look at creating a store update mechanism that understands and preserves
 			// ordering.
 			const parentTransform =
-				this._shapePageTransformCache.get(shape.parentId) ?? Matrix2d.Identity()
+				this._getShapePageTransformCache().get(shape.parentId) ?? Matrix2d.Identity()
 			return Matrix2d.Compose(parentTransform, this.getShapeLocalTransform(shape)!)
 		})
 	}
@@ -4013,7 +4256,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.getShape(id)
 		if (!freshShape || isPageId(freshShape.parentId)) return Matrix2d.Identity()
-		return this._shapePageTransformCache.get(freshShape.parentId) ?? Matrix2d.Identity()
+		return this._getShapePageTransformCache().get(freshShape.parentId) ?? Matrix2d.Identity()
 	}
 
 	/**
@@ -4031,13 +4274,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapePageTransform(shape: TLShape | TLShapeId): Matrix2d {
 		const id = typeof shape === 'string' ? shape : this.getShape(shape)!.id
-		return this._shapePageTransformCache.get(id) ?? Matrix2d.Identity()
+		return this._getShapePageTransformCache().get(id) ?? Matrix2d.Identity()
 	}
 
 	/** @internal */
-	@computed private get _shapePageBoundsCache(): ComputedCache<Box2d, TLShape> {
+	@computed private _getShapePageBoundsCache(): ComputedCache<Box2d, TLShape> {
 		return this.store.createComputedCache<Box2d, TLShape>('pageBoundsCache', (shape) => {
-			const pageTransform = this._shapePageTransformCache.get(shape.id)
+			const pageTransform = this._getShapePageTransformCache().get(shape.id)
 
 			if (!pageTransform) return new Box2d()
 
@@ -4063,7 +4306,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapePageBounds(shape: TLShape | TLShapeId): Box2d | undefined {
-		return this._shapePageBoundsCache.get(typeof shape === 'string' ? shape : shape.id)
+		return this._getShapePageBoundsCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/**
@@ -4071,15 +4314,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	@computed private get _shapeClipPathCache(): ComputedCache<string, TLShape> {
+	@computed private _getShapeClipPathCache(): ComputedCache<string, TLShape> {
 		return this.store.createComputedCache<string, TLShape>('clipPathCache', (shape) => {
-			const pageMask = this._shapeMaskCache.get(shape.id)
+			const pageMask = this._getShapeMaskCache().get(shape.id)
 			if (!pageMask) return undefined
 			if (pageMask.length === 0) {
 				return `polygon(0px 0px, 0px 0px, 0px 0px)`
 			}
 
-			const pageTransform = this._shapePageTransformCache.get(shape.id)
+			const pageTransform = this._getShapePageTransformCache().get(shape.id)
 			if (!pageTransform) return undefined
 
 			const localMask = Matrix2d.applyToPoints(Matrix2d.Inverse(pageTransform), pageMask)
@@ -4104,15 +4347,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeClipPath(shape: TLShape | TLShapeId): string | undefined {
-		return this._shapeClipPathCache.get(typeof shape === 'string' ? shape : shape.id)
+		return this._getShapeClipPathCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/** @internal */
-	@computed private get _shapeMaskCache(): ComputedCache<Vec2d[], TLShape> {
+	@computed private _getShapeMaskCache(): ComputedCache<Vec2d[], TLShape> {
 		return this.store.createComputedCache('pageMaskCache', (shape) => {
-			if (isPageId(shape.parentId)) {
-				return undefined
-			}
+			if (isPageId(shape.parentId)) return undefined
 
 			const frameAncestors = this.getShapeAncestors(shape.id).filter((shape) =>
 				this.isShapeOfType<TLFrameShape>(shape, 'frame')
@@ -4123,7 +4364,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pageMask = frameAncestors
 				.map<Vec2d[] | undefined>((s) =>
 					// Apply the frame transform to the frame outline to get the frame outline in the current page space
-					this._shapePageTransformCache.get(s.id)!.applyToPoints(this.getShapeGeometry(s).vertices)
+					this._getShapePageTransformCache()
+						.get(s.id)!
+						.applyToPoints(this.getShapeGeometry(s).vertices)
 				)
 				.reduce((acc, b) => {
 					if (!(b && acc)) return undefined
@@ -4153,7 +4396,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeMask(shape: TLShapeId | TLShape): VecLike[] | undefined {
-		return this._shapeMaskCache.get(typeof shape === 'string' ? shape : shape.id)
+		return this._getShapeMaskCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/**
@@ -4173,9 +4416,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeMaskedPageBounds(shape: TLShapeId | TLShape): Box2d | undefined {
 		if (typeof shape !== 'string') shape = shape.id
-		const pageBounds = this._shapePageBoundsCache.get(shape)
+		const pageBounds = this._getShapePageBoundsCache().get(shape)
 		if (!pageBounds) return
-		const pageMask = this._shapeMaskCache.get(shape)
+		const pageMask = this._getShapeMaskCache().get(shape)
 		if (pageMask) {
 			if (pageMask.length === 0) return undefined
 
@@ -4331,10 +4574,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get currentPageBounds(): Box2d | undefined {
+	@computed getCurrentPageBounds(): Box2d | undefined {
 		let commonBounds: Box2d | undefined
 
-		this.currentPageShapeIds.forEach((shapeId) => {
+		this.getCurrentPageShapeIds().forEach((shapeId) => {
 			const bounds = this.getShapeMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
@@ -4348,6 +4591,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getCurrentPageBounds` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPageBounds() {
+		warnDeprecatedGetter('currentPageBounds')
+		return this.getCurrentPageBounds()
+	}
+
+	/**
 	 * Get the top-most selected shape at the given point, ignoring groups.
 	 *
 	 * @param point - The point to check.
@@ -4356,7 +4608,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		return this.currentPageShapesSorted
+		return this.getCurrentPageShapesSorted()
 			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
 			.reverse() // findlast
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
@@ -4381,7 +4633,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			filter?: (shape: TLShape) => boolean
 		}
 	): TLShape | undefined {
-		const { viewportPageBounds, zoomLevel } = this
+		const zoomLevel = this.getZoomLevel()
+		const viewportPageBounds = this.getViewportPageBounds()
 		const {
 			filter,
 			margin = 0,
@@ -4397,7 +4650,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const shapesToCheck = (
-			opts.renderingOnly ? this.currentPageRenderingShapesSorted : this.currentPageShapesSorted
+			opts.renderingOnly
+				? this.getCurrentPageRenderingShapesSorted()
+				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
@@ -4559,7 +4814,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.currentPageShapes.filter((shape) => this.isPointInShape(shape, point, opts))
+		return this.getCurrentPageShapes().filter((shape) => this.isPointInShape(shape, point, opts))
 	}
 
 	/**
@@ -4617,7 +4872,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this._shapePageTransformCache.get(id)!.clone().invert().applyToPoint(point)
+		return this._getShapePageTransformCache().get(id)!.clone().invert().applyToPoint(point)
 	}
 
 	/**
@@ -4647,36 +4902,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * An array containing all of the shapes in the current page.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapes
-	 * ```
-	 *
-	 * @readonly
-	 *
 	 * @public
 	 */
-	@computed get currentPageShapes() {
-		return Array.from(this.currentPageShapeIds, (id) => this.store.get(id)! as TLShape)
+	@computed getCurrentPageShapes(): TLShape[] {
+		return Array.from(this.getCurrentPageShapeIds(), (id) => this.store.get(id)! as TLShape)
+	}
+
+	/**
+	 * @deprecated Use `getCurrentPageShapes` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPageShapes() {
+		warnDeprecatedGetter('currentPageShapes')
+		return this.getCurrentPageShapes()
 	}
 
 	/**
 	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapesSorted
-	 * ```
-	 *
-	 * @readonly
-	 *
 	 * @public
 	 */
-	@computed get currentPageShapesSorted(): TLShape[] {
+	@computed getCurrentPageShapesSorted(): TLShape[] {
 		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
 		// todo: consider making a derivation or something, or merging with rendering shapes
-		const shapes = new Set(this.currentPageShapes.sort(sortByIndex))
+		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
 
 		const results: TLShape[] = []
 
@@ -4702,23 +4952,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getCurrentPageShapesSorted` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPageShapesSorted() {
+		warnDeprecatedGetter('currentPageShapesSorted')
+		return this.getCurrentPageShapesSorted()
+	}
+
+	/**
 	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.currentPageShapesSorted
-	 * ```
-	 *
-	 * @readonly
-	 *
 	 * @public
 	 */
-	@computed get currentPageRenderingShapesSorted(): TLShape[] {
-		return this.renderingShapes
+	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
+		return this.getRenderingShapes()
 			.filter(({ isCulled }) => !isCulled)
 			.sort((a, b) => a.index - b.index)
 			.map(({ shape }) => shape)
+	}
+
+	/**
+	 * @deprecated Use `getCurrentPageRenderingShapesSorted` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentPageRenderingShapesSorted() {
+		warnDeprecatedGetter('currentPageRenderingShapesSorted')
+		return this.getCurrentPageRenderingShapesSorted()
 	}
 
 	/**
@@ -4824,7 +5085,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeInPage(shape: TLShape | TLShapeId, pageId = this.currentPageId): boolean {
+	isShapeInPage(shape: TLShape | TLShapeId, pageId = this.getCurrentPageId()): boolean {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const shapeToCheck = this.getShape(id)
 		if (!shapeToCheck) return false
@@ -4896,6 +5157,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: string) {
 		const ids =
 			typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : shapes.map((s) => (s as TLShape).id)
+		if (ids.length === 0) return this
+
 		const changes: TLShapePartial[] = []
 
 		const parentTransform = isPageId(parentId)
@@ -5095,7 +5358,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getDroppingOverShape(point: VecLike, droppingShapes: TLShape[] = []) {
 		// starting from the top...
-		const { currentPageShapesSorted } = this
+		const currentPageShapesSorted = this.getCurrentPageShapesSorted()
 		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 			const shape = currentPageShapesSorted[i]
 
@@ -5312,7 +5575,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					oy = vec.y
 				}
 
-				const parentId = shape.parentId ?? this.currentPageId
+				const parentId = shape.parentId ?? this.getCurrentPageId()
 				const siblings = this.getSortedChildIdsForParent(parentId)
 				const currentIndex = siblings.indexOf(shape.id)
 				const siblingAboveId = siblings[currentIndex + 1]
@@ -5415,14 +5678,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.history.batch(() => {
 			const maxShapesReached =
-				shapesToCreate.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE
+				shapesToCreate.length + this.getCurrentPageShapeIds().size > MAX_SHAPES_PER_PAGE
 
 			if (maxShapesReached) {
 				alertMaxShapes(this)
 			}
 
 			const newShapes = maxShapesReached
-				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.currentPageShapeIds.size)
+				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.getCurrentPageShapeIds().size)
 				: shapesToCreate
 
 			const ids = newShapes.map((s) => s.id)
@@ -5435,7 +5698,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// contained in the current viewport. If not, then animate the camera to be centered on the
 				// new shapes.
 				const selectionPageBounds = this.getSelectionPageBounds()
-				const { viewportPageBounds } = this
+				const viewportPageBounds = this.getViewportPageBounds()
 				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 					this.centerOnPoint(selectionPageBounds.center, {
 						duration: ANIMATION_MEDIUM_MS,
@@ -5469,7 +5732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length === 0) return this
 		if (this.getInstanceState().isReadonly) return this
 
-		const { currentPageId } = this
+		const currentPageId = this.getCurrentPageId()
 
 		if (pageId === currentPageId) return this
 		if (!this.store.has(pageId)) return this
@@ -5487,7 +5750,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		const fromPageZ = this.camera.z
+		const fromPageZ = this.getCamera().z
 
 		this.history.batch(() => {
 			// Delete the shapes on the current page
@@ -5510,7 +5773,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Force the new page's camera to be at the same zoom level as the
 			// "from" page's camera, then center the "to" page's camera on the
 			// pasted shapes
-			this.setCamera({ ...this.camera, z: fromPageZ })
+			this.setCamera({ ...this.getCamera(), z: fromPageZ })
 			this.centerOnPoint(this.getSelectionRotatedPageBounds()!.center)
 		})
 
@@ -6615,7 +6878,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (this.getInstanceState().isReadonly) return null
 			if (partials.length <= 0) return null
 
-			const { currentPageShapeIds } = this
+			const currentPageShapeIds = this.getCurrentPageShapeIds()
 
 			const maxShapesReached = partials.length + currentPageShapeIds.size > MAX_SHAPES_PER_PAGE
 
@@ -6629,7 +6892,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			return {
 				data: {
-					currentPageId: this.currentPageId,
+					currentPageId: this.getCurrentPageId(),
 					partials: partials.map((p) =>
 						p.id ? p : { ...p, id: createShapeId() }
 					) as TLShapePartial[],
@@ -6646,7 +6909,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// page or another shape that exists (or that will exist) in this page.
 
 				// find last parent id
-				const { currentPageShapesSorted } = this
+				const currentPageShapesSorted = this.getCurrentPageShapesSorted()
 
 				partials = partials.map((partial) => {
 					// If the partial does not provide the parentId OR if the provided
@@ -6953,7 +7216,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { x, y } = pageBounds.point
 
-		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.currentPageId
+		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.getCurrentPageId()
 
 		// Only group when the select tool is active
 		if (this.getCurrentToolId() !== 'select') return this
@@ -7051,6 +7314,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.select(...idsToSelect)
 		})
 
+		return this
+	}
+
+	/**
+	 * Remove a frame.
+	 *
+	 * @param ids - Ids of the frames you wish to remove.
+	 *
+	 * @public
+	 */
+	removeFrame(ids: TLShapeId[]): this {
+		const frames = compact(
+			ids
+				.map((id) => this.getShape<TLFrameShape>(id))
+				.filter((f) => f && this.isShapeOfType<TLFrameShape>(f, 'frame'))
+		)
+		if (!frames.length) return this
+
+		const allChildren: TLShapeId[] = []
+		this.batch(() => {
+			frames.map((frame) => {
+				const children = this.getSortedChildIdsForParent(frame.id)
+				if (children.length) {
+					this.reparentShapes(children, frame.parentId, frame.index)
+					allChildren.push(...children)
+				}
+			})
+			this.setSelectedShapes(allChildren)
+			this.deleteShapes(ids)
+		})
 		return this
 	}
 
@@ -7280,7 +7573,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			const deletedIds = [...allIds]
-			const arrowBindings = this._arrowBindingsIndex.get()
+			const arrowBindings = this._getArrowBindingsIndex().get()
 			const snapshots = compact(
 				deletedIds.flatMap((id) => {
 					const shape = this.getShape(id)
@@ -7378,7 +7671,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const color = editor.sharedStyles.get(DefaultColorStyle)
+	 * const color = editor.getSharedStyles().get(DefaultColorStyle)
 	 * if (color && color.type === 'shared') {
 	 *   print('All selected shapes have the same color:', color.value)
 	 * }
@@ -7387,7 +7680,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed<ReadonlySharedStyleMap>({ isEqual: (a, b) => a.equals(b) })
-	get sharedStyles(): ReadonlySharedStyleMap {
+	getSharedStyles(): ReadonlySharedStyleMap {
 		// If we're in selecting and if we have a selection, return the shared styles from the
 		// current selection
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
@@ -7396,8 +7689,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If the current tool is associated with a shape, return the styles for that shape.
 		// Otherwise, just return an empty map.
-		const currentTool = this.root.current.get()!
+		const currentTool = this.root.getCurrent()!
 		const styles = new SharedStyleMap()
+
+		if (!currentTool) return styles
+
 		if (currentTool.shapeType) {
 			for (const style of this.styleProps[currentTool.shapeType].keys()) {
 				styles.applyValue(style, this.getStyleForNextShape(style))
@@ -7408,13 +7704,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `editor.sharedStyles` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get sharedStyles() {
+		warnDeprecatedGetter('sharedStyles')
+		return this.getSharedStyles()
+	}
+
+	/**
 	 * Get the currently selected shared opacity.
 	 * If any shapes are selected, this returns the shared opacity of the selected shapes.
 	 * Otherwise, this returns the chosen opacity for the next shape.
 	 *
 	 * @public
 	 */
-	@computed get sharedOpacity(): SharedStyle<number> {
+	@computed getSharedOpacity(): SharedStyle<number> {
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
 			const shapesToCheck: TLShape[] = []
 			const addShape = (shapeId: TLShapeId) => {
@@ -7447,6 +7752,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
 		return { type: 'shared', value: this.getInstanceState().opacityForNextShape }
+	}
+
+	/**
+	 * @deprecated Use `editor.sharedOpacity` instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get sharedOpacity() {
+		warnDeprecatedGetter('sharedOpacity')
+		return this.getSharedOpacity()
 	}
 
 	/**
@@ -7843,7 +8157,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shape.x = pagePoint.x
 				shape.y = pagePoint.y
 				shape.rotation = pageRotation
-				shape.parentId = this.currentPageId
+				shape.parentId = this.getCurrentPageId()
 
 				rootShapeIds.push(shape.id)
 			}
@@ -7897,13 +8211,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
-		const { currentPageId } = this
+		const currentPageId = this.getCurrentPageId()
 		const { assets, shapes, rootShapeIds } = content
 
 		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
 
 		// By default, the paste parent will be the current page.
-		let pasteParentId = this.currentPageId as TLPageId | TLShapeId
+		let pasteParentId = this.getCurrentPageId() as TLPageId | TLShapeId
 		let lowestDepth = Infinity
 		let lowestAncestors: TLShape[] = []
 
@@ -7944,7 +8258,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!isPageId(pasteParentId)) {
 			const parent = this.getShape(pasteParentId)
 			if (parent) {
-				if (!this.viewportPageBounds.includes(this.getShapePageBounds(parent)!)) {
+				if (!this.getViewportPageBounds().includes(this.getShapePageBounds(parent)!)) {
 					pasteParentId = currentPageId
 				} else {
 					if (rootShapeIds.length === 1) {
@@ -8029,7 +8343,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return newShape
 		})
 
-		if (newShapes.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE) {
+		if (newShapes.length + this.getCurrentPageShapeIds().size > MAX_SHAPES_PER_PAGE) {
 			// There's some complexity here involving children
 			// that might be created without their parents, so
 			// if we're going over the limit then just don't paste.
@@ -8145,7 +8459,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.getShapeGeometry(shape).bounds.center
 					)
 				} else {
-					const { viewportPageBounds } = this
+					const viewportPageBounds = this.getViewportPageBounds()
 					if (preservePosition || viewportPageBounds.includes(Box2d.From(bounds))) {
 						// Otherwise, put shapes where they used to be
 						point = bounds.center
@@ -8204,16 +8518,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvg(
-		shapes: TLShapeId[] | TLShape[],
-		opts = {} as Partial<{
-			scale: number
-			background: boolean
-			padding: number
-			darkMode?: boolean
-			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
-		}>
-	) {
+	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
@@ -8230,7 +8535,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} = opts
 
 		// todo: we shouldn't depend on the public theme here
-		const theme = getDefaultColorTheme({ isDarkMode: this.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.user.getIsDarkMode() })
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
@@ -8240,12 +8545,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// --- Common bounding box of all shapes
 		let bbox = null
-		for (const { maskedPageBounds } of renderingShapes) {
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
+		if (opts.bounds) {
+			bbox = opts.bounds
+		} else {
+			for (const { maskedPageBounds } of renderingShapes) {
+				if (!maskedPageBounds) continue
+				if (bbox) {
+					bbox.union(maskedPageBounds)
+				} else {
+					bbox = maskedPageBounds.clone()
+				}
 			}
 		}
 
@@ -8483,7 +8792,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: sx, y: sy, z: sz } = info.point
-		const { x: cx, y: cy, z: cz } = this.camera
+		const { x: cx, y: cy, z: cz } = this.getCamera()
 
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)
@@ -8669,7 +8978,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispatch = (info: TLEventInfo): this => {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
-		if (this.crashingError) return this
+		if (this.getCrashingError()) return this
 
 		const { inputs } = this
 		const { type } = info
@@ -8735,7 +9044,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (inputs.isPinching) return
 
 							if (!inputs.isEditing) {
-								this._pinchStart = this.camera.z
+								this._pinchStart = this.getCamera().z
 								if (!this._selectedShapeIdsAtPointerDown.length) {
 									this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 								}
@@ -8757,9 +9066,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								delta: { x: dx, y: dy },
 							} = info
 
-							const {
-								camera: { x: cx, y: cy, z: cz },
-							} = this
+							const { x: cx, y: cy, z: cz } = this.getCamera()
 
 							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
 
@@ -8806,7 +9113,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// If the alt or ctrl keys are pressed,
 							// zoom or pan the camera and then return.
 							const { x, y } = this.inputs.currentScreenPoint
-							const { x: cx, y: cy, z: cz } = this.camera
+							const { x: cx, y: cy, z: cz } = this.getCamera()
 
 							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
 
@@ -8830,7 +9137,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing &&
 							originPagePoint.dist(currentPagePoint) >
 								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-									this.zoomLevel
+									this.getZoomLevel()
 						) {
 							inputs.isDragging = true
 						}
@@ -8918,7 +9225,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								inputs.isPointing &&
 								originPagePoint.dist(currentPagePoint) >
 									(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-										this.zoomLevel
+										this.getZoomLevel()
 							) {
 								inputs.isDragging = true
 							}
@@ -9101,7 +9408,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 }
 
-function alertMaxShapes(editor: Editor, pageId = editor.currentPageId) {
+function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
 }

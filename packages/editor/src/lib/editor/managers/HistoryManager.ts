@@ -1,5 +1,6 @@
 import { atom, transact } from '@tldraw/state'
 import { devFreeze } from '@tldraw/store'
+import { warnDeprecatedGetter } from '@tldraw/utils'
 import { uniqueId } from '../../utils/uniqueId'
 import { TLCommandHandler, TLCommandHistoryOptions, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
@@ -33,12 +34,28 @@ export class HistoryManager<
 
 	private _commands: Record<string, TLCommandHandler<any>> = {}
 
-	get numUndos() {
+	getNumUndos() {
 		return this._undos.get().length
 	}
+	/**
+	 * @deprecated use `getNumUndos` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get numUndos() {
+		warnDeprecatedGetter('numUndos')
+		return this.getNumUndos()
+	}
 
-	get numRedos() {
+	getNumRedos() {
 		return this._redos.get().length
+	}
+	/**
+	 * @deprecated use `getNumRedos` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get numRedos() {
+		warnDeprecatedGetter('numRedos')
+		return this.getNumRedos()
 	}
 
 	createCommand = <Name extends string, Constructor extends CommandFn<any>>(

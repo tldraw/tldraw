@@ -14,11 +14,11 @@ beforeEach(() => {
 
 describe('user', () => {
 	it('gets a user with the correct color', () => {
-		expect(editor.user.isDarkMode).toBe(false)
+		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 
 	it('gets a user with the correct', () => {
 		editor.user.updateUserPreferences({ isDarkMode: true })
-		expect(editor.user.isDarkMode).toBe(true)
+		expect(editor.user.getIsDarkMode()).toBe(true)
 	})
 })

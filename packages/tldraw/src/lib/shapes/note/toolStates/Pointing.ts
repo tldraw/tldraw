@@ -37,9 +37,12 @@ export class Pointing extends StateNode {
 				...info,
 				target: 'shape',
 				shape: this.shape,
-				isCreating: true,
-				editAfterComplete: true,
 				onInteractionEnd: 'note',
+				isCreating: true,
+				onCreate: () => {
+					this.editor.setEditingShape(this.shape.id)
+					this.editor.setCurrentTool('select.editing_shape')
+				},
 			})
 		}
 	}
@@ -63,7 +66,7 @@ export class Pointing extends StateNode {
 	private complete() {
 		if (this.wasFocusedOnEnter) {
 			if (this.editor.getInstanceState().isToolLocked) {
-				this.parent.transition('idle', {})
+				this.parent.transition('idle')
 			} else {
 				this.editor.setEditingShape(this.shape.id)
 				this.editor.setCurrentTool('select.editing_shape', {

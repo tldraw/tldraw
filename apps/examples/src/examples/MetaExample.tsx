@@ -12,9 +12,9 @@ export default function MetaExample() {
 					// all shapes created by the user.
 					editor.getInitialMetaForShape = (_shape) => {
 						return {
-							createdBy: editor.user.id,
+							createdBy: editor.user.getId(),
 							createdAt: Date.now(),
-							updatedBy: editor.user.id,
+							updatedBy: editor.user.getId(),
 							updatedAt: Date.now(),
 						}
 					}
@@ -25,7 +25,7 @@ export default function MetaExample() {
 						if (source !== 'user') return record
 						record.meta = {
 							...record.meta,
-							updatedBy: editor.user.id,
+							updatedBy: editor.user.getId(),
 							updatedAt: Date.now(),
 						}
 						return record

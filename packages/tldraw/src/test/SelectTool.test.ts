@@ -45,29 +45,29 @@ describe('TLSelectTool.Translating', () => {
 		editor.pointerDown(150, 150, { target: 'shape', shape })
 		editor.pointerMove(200, 200)
 
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.expectShapeToMatch({ id: ids.box1, x: 150, y: 150 })
-		const t1 = [...editor.currentPageShapeIds.values()]
+		const t1 = [...editor.getCurrentPageShapeIds().values()]
 
 		editor.keyDown('Alt')
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		editor.expectShapeToMatch({ id: ids.box1, x: 100, y: 100 })
 		// const t2 = [...editor.shapeIds.values()]
 
 		editor.keyUp('Alt')
 
 		// There's a timer here! We shouldn't end the clone until the timer is done
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 
 		jest.advanceTimersByTime(250) // tick tock
 
 		// Timer is done! We should have ended the clone.
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.expectToBeIn('select.translating')
 
 		editor.expectShapeToMatch({ id: ids.box1, x: 150, y: 150 })
 
-		expect([...editor.currentPageShapeIds.values()]).toMatchObject(t1)
+		expect([...editor.getCurrentPageShapeIds().values()]).toMatchObject(t1)
 
 		// todo: Should cloning again duplicate new shapes, or restore the last clone?
 		// editor.keyDown('Alt')
@@ -95,7 +95,7 @@ describe('TLSelectTool.Translating', () => {
 		editor.pointerMove(150, 250)
 		editor.pointerUp()
 		const box2Id = editor.getOnlySelectedShape()!.id
-		expect(editor.currentPageShapes.length).toStrictEqual(2)
+		expect(editor.getCurrentPageShapes().length).toStrictEqual(2)
 		expect(ids.box1).not.toEqual(box2Id)
 
 		// shift-alt-drag the original, we shouldn't duplicate the copy too:
@@ -103,7 +103,7 @@ describe('TLSelectTool.Translating', () => {
 		expect(editor.getSelectedShapeIds()).toStrictEqual([ids.box1])
 		editor.pointerMove(250, 150)
 		editor.pointerUp()
-		expect(editor.currentPageShapes.length).toStrictEqual(3)
+		expect(editor.getCurrentPageShapes().length).toStrictEqual(3)
 	})
 })
 
@@ -173,7 +173,7 @@ describe('When double clicking a shape', () => {
 			.deleteShapes(editor.getSelectedShapeIds())
 			.selectNone()
 			.createShapes([{ id: createShapeId(), type: 'geo' }])
-			.doubleClick(50, 50, { target: 'shape', shape: editor.currentPageShapes[0] })
+			.doubleClick(50, 50, { target: 'shape', shape: editor.getCurrentPageShapes()[0] })
 			.expectToBeIn('select.editing_shape')
 	})
 })
@@ -358,46 +358,46 @@ describe('When editing shapes', () => {
 	it('Double clicking the canvas creates a new text shape', () => {
 		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
-		expect(editor.currentPageShapes.length).toBe(5)
+		expect(editor.getCurrentPageShapes().length).toBe(5)
 		editor.doubleClick(750, 750)
-		expect(editor.currentPageShapes.length).toBe(6)
-		expect(editor.currentPageShapes[5].type).toBe('text')
+		expect(editor.getCurrentPageShapes().length).toBe(6)
+		expect(editor.getCurrentPageShapes()[5].type).toBe('text')
 	})
 
 	it('It deletes an empty text shape when your click away', () => {
 		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
-		expect(editor.currentPageShapes.length).toBe(5)
+		expect(editor.getCurrentPageShapes().length).toBe(5)
 
 		// Create a new shape by double clicking
 		editor.doubleClick(750, 750)
 		expect(editor.getSelectedShapeIds().length).toBe(1)
-		expect(editor.currentPageShapes.length).toBe(6)
+		expect(editor.getCurrentPageShapes().length).toBe(6)
 		const shapeId = editor.getSelectedShapeIds()[0]
 
 		// Click away
 		editor.click(1000, 1000)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
-		expect(editor.currentPageShapes.length).toBe(5)
+		expect(editor.getCurrentPageShapes().length).toBe(5)
 		expect(editor.getShape(shapeId)).toBe(undefined)
 	})
 
 	it('It deletes an empty text shape when your click another text shape', () => {
 		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
-		expect(editor.currentPageShapes.length).toBe(5)
+		expect(editor.getCurrentPageShapes().length).toBe(5)
 
 		// Create a new shape by double clicking
 		editor.doubleClick(750, 750)
 		expect(editor.getSelectedShapeIds().length).toBe(1)
-		expect(editor.currentPageShapes.length).toBe(6)
+		expect(editor.getCurrentPageShapes().length).toBe(6)
 		const shapeId = editor.getSelectedShapeIds()[0]
 
 		// Click another text shape
 		editor.pointerMove(50, 50)
 		editor.click()
 		expect(editor.getSelectedShapeIds().length).toBe(1)
-		expect(editor.currentPageShapes.length).toBe(5)
+		expect(editor.getCurrentPageShapes().length).toBe(5)
 		expect(editor.getShape(shapeId)).toBe(undefined)
 	})
 

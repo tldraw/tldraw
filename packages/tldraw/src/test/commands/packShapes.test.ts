@@ -44,9 +44,9 @@ describe('editor.packShapes', () => {
 		const centerBefore = editor.getSelectionRotatedPageBounds()!.center.clone()
 		editor.packShapes(editor.getSelectedShapeIds(), 16)
 		jest.advanceTimersByTime(1000)
-		expect(editor.currentPageShapes.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
-			'packed shapes'
-		)
+		expect(
+			editor.getCurrentPageShapes().map((s) => ({ ...s, parentId: 'wahtever' }))
+		).toMatchSnapshot('packed shapes')
 		const centerAfter = editor.getSelectionRotatedPageBounds()!.center.clone()
 		expect(centerBefore).toMatchObject(centerAfter)
 	})
@@ -55,8 +55,8 @@ describe('editor.packShapes', () => {
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: Math.PI }])
 		editor.selectAll().packShapes(editor.getSelectedShapeIds(), 16)
 		jest.advanceTimersByTime(1000)
-		expect(editor.currentPageShapes.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
-			'packed shapes'
-		)
+		expect(
+			editor.getCurrentPageShapes().map((s) => ({ ...s, parentId: 'wahtever' }))
+		).toMatchSnapshot('packed shapes')
 	})
 })

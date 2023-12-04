@@ -35,8 +35,8 @@ export const ReactForwardRefSymbol = Symbol.for('react.forward_ref')
  * ```ts
  * const Counter = track(function Counter(props: CounterProps) {
  *   const count = useAtom('count', 0)
- *   const increment = useCallback(() => count.set(count.value + 1), [count])
- *   return <button onClick={increment}>{count.value}</button>
+ *   const increment = useCallback(() => count.set(count.get() + 1), [count])
+ *   return <button onClick={increment}>{count.get()}</button>
  * })
  * ```
  *

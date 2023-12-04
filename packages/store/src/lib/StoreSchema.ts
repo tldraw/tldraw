@@ -69,6 +69,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		private readonly options: StoreSchemaOptions<R, P>
 	) {}
 
+	// eslint-disable-next-line no-restricted-syntax
 	get currentStoreVersion(): number {
 		return this.options.snapshotMigrations?.currentVersion ?? 0
 	}

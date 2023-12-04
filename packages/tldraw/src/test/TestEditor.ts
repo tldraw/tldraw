@@ -189,17 +189,12 @@ export class TestEditor extends Editor {
 	}
 
 	expectToBeIn = (path: string) => {
-		expect(this.root.current.get()!.path.get()).toBe(path)
-		return this
-	}
-
-	expectPathToBe = (path: string) => {
-		expect(this.root.path.get()).toBe(path)
+		expect(this.getPath()).toBe(path)
 		return this
 	}
 
 	expectCameraToBe(x: number, y: number, z: number) {
-		const camera = this.camera
+		const camera = this.getCamera()
 
 		expect({
 			x: +camera.x.toFixed(2),
@@ -482,7 +477,11 @@ export class TestEditor extends Editor {
 			.clone()
 			.rotWith(this.getSelectionRotatedPageBounds()!.point, this.getSelectionRotation())
 
-		const targetHandlePoint = Vec2d.RotWith(handlePoint, this.selectionPageCenter!, angleRadians)
+		const targetHandlePoint = Vec2d.RotWith(
+			handlePoint,
+			this.getSelectionPageCenter()!,
+			angleRadians
+		)
 
 		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle })
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, { shiftKey })
@@ -496,7 +495,7 @@ export class TestEditor extends Editor {
 	 * @readonly
 	 * @public
 	 */
-	get selectionPageCenter() {
+	getSelectionPageCenter() {
 		const selectionRotation = this.getSelectionRotation()
 		const selectionBounds = this.getSelectionRotatedPageBounds()
 		if (!selectionBounds) return null
@@ -509,7 +508,7 @@ export class TestEditor extends Editor {
 		}
 		this.setCurrentTool('select')
 
-		const center = this.selectionPageCenter!
+		const center = this.getSelectionPageCenter()!
 
 		this.pointerDown(center.x, center.y, this.getSelectedShapeIds()[0])
 		const numSteps = 10

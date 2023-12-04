@@ -30,13 +30,17 @@ export function useDocumentEvents() {
 			}
 			if (media.addEventListener) {
 				media.addEventListener('change', updatePixelRatio)
+				// eslint-disable-next-line deprecation/deprecation
 			} else if (media.addListener) {
+				// eslint-disable-next-line deprecation/deprecation
 				media.addListener(safariCb)
 			}
 			remove = () => {
 				if (media.removeEventListener) {
 					media.removeEventListener('change', updatePixelRatio)
+					// eslint-disable-next-line deprecation/deprecation
 				} else if (media.removeListener) {
+					// eslint-disable-next-line deprecation/deprecation
 					media.removeListener(safariCb)
 				}
 			}
@@ -55,7 +59,7 @@ export function useDocumentEvents() {
 			if (
 				e.altKey &&
 				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?
-				(editor.isIn('zoom') || !editor.root.path.get().endsWith('.idle')) &&
+				(editor.isIn('zoom') || !editor.getPath().endsWith('.idle')) &&
 				!isFocusingInput()
 			) {
 				// On windows the alt key opens the menu bar.
@@ -225,7 +229,7 @@ export function useDocumentEvents() {
 				// touchstart event in that case.
 				if (
 					touchXPosition - touchXRadius < 10 ||
-					touchXPosition + touchXRadius > editor.viewportScreenBounds.width - 10
+					touchXPosition + touchXRadius > editor.getViewportScreenBounds().width - 10
 				) {
 					if ((e.target as HTMLElement)?.tagName === 'BUTTON') {
 						// Force a click before bailing
