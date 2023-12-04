@@ -681,7 +681,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
-    fitFrameToContent(id: TLShapeId): this;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // @deprecated (undocumented)
     get focusedGroup(): TLShape | undefined;
@@ -888,7 +887,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
         type: T;
     } : TLExternalContent) => void) | null): this;
-    removeFrame(ids: TLShapeId[]): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     // @deprecated (undocumented)
     get renderingBounds(): Box2d;

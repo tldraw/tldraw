@@ -5,6 +5,7 @@ import {
 	TLShapeId,
 	createShapeId,
 } from '@tldraw/editor'
+import { fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -729,7 +730,7 @@ describe('frame shapes', () => {
 		expect(rectA.parentId).toBe(frameId)
 		expect(rectB.parentId).toBe(frameId)
 
-		editor.fitFrameToContent(frame.id)
+		fitFrameToContent(frame.id, editor)
 		const newFrame = editor.getShape(frameId)! as TLFrameShape
 		expect(newFrame.x).toBe(50)
 		expect(newFrame.y).toBe(50)
@@ -895,14 +896,14 @@ describe('When deleting/removing a frame', () => {
 	it('removes a frame but not its children', () => {
 		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
 		const frameId = dragCreateFrame({ down: [10, 10], move: [100, 100], up: [100, 100] })
-		editor.removeFrame([frameId])
+		removeFrame([frameId], editor)
 		expect(editor.getShape(rectId)).toBeDefined()
 	})
 	it('reparents the children of a frame when removing it', () => {
 		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
 		const frame1Id = dragCreateFrame({ down: [10, 10], move: [100, 100], up: [100, 100] })
 		const frame2Id = dragCreateFrame({ down: [0, 0], move: [110, 110], up: [110, 110] })
-		editor.removeFrame([frame1Id])
+		removeFrame([frame1Id], editor)
 		expect(editor.getShape(rectId)?.parentId).toBe(frame2Id)
 	})
 })

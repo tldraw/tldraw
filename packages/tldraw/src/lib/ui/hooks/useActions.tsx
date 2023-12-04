@@ -19,6 +19,7 @@ import {
 } from '@tldraw/editor'
 import * as React from 'react'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
+import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
@@ -471,7 +472,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
 					) {
 						editor.mark('remove-frame')
-						editor.removeFrame(selectedShapes.map((shape) => shape.id))
+						removeFrame(
+							selectedShapes.map((shape) => shape.id),
+							editor
+						)
 					}
 				},
 			},
@@ -486,7 +490,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (onlySelectedShape && editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame')) {
 						editor.mark('fit-frame-to-content')
-						editor.fitFrameToContent(onlySelectedShape.id)
+						fitFrameToContent(onlySelectedShape.id, editor)
 					}
 				},
 			},
