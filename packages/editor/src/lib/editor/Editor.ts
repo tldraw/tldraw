@@ -7361,32 +7361,72 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!frame) return this
 
 		const childIds = this.getSortedChildIdsForParent(frame.id)
-		const bounds = Box2d.Common(childIds.map((s) => this.getShapePageBounds(s)!))
+		const children = compact(childIds.map((id) => this.getShape(id)))
+		if (!children.length) return this
 
-		const padding = 100
-		const paddingHalf = padding / 2
+		const points: Vec2d[] = []
+		children.forEach((shape) => {
+			const geo = this.getShapeGeometry(shape.id)
+			points.push(...this.getShapeLocalTransform(shape)!.applyToPoints(geo.vertices))
+		})
 
-		const dx = bounds.x - paddingHalf - frame.x
-		const dy = bounds.y - paddingHalf - frame.y
+		const bounds = points.reduce(
+			({ minX, minY, maxX, maxY }, { x, y }) => {
+				return {
+					minX: Math.min(minX, x),
+					minY: Math.min(minY, y),
+					maxX: Math.max(maxX, x),
+					maxY: Math.max(maxY, y),
+				}
+			},
+			{
+				minX: Number.MAX_VALUE,
+				minY: Number.MAX_VALUE,
+				maxX: Number.MIN_VALUE,
+				maxY: Number.MIN_VALUE,
+			}
+		)
+
+		// const shapeBounds = children.map((shape) => {
+		// 	const geo = this.getShapeGeometry(shape.id)
+		// 	const tranform = this.getShapeLocalTransform(shape)!
+		// 	const bounds = geo.bounds
+		// 	console.log(bounds)
+		// 	const new2 = Matrix2d.applyToBounds(tranform, bounds)
+		// 	console.log(new2)
+		//
+		// 	return new2
+		// })
+		// const bounds2 = Box2d.Common(shapeBounds)
+		// console.log(bounds, bounds2)
+
+		const padding = 50
+		const w = bounds.maxX - bounds.minX + 2 * padding
+		const h = bounds.maxY - bounds.minY + 2 * padding
+		const dx = padding - bounds.minX
+		const dy = padding - bounds.minY
+		if (dx === 0 && dy === 0 && frame.props.w === w && frame.props.h === h) return this
+
+		const diff = new Vec2d(dx, dy).rot(frame.rotation)
 		this.batch(() => {
 			const changes: TLShapePartial[] = childIds.map((child) => {
 				const shape = this.getShape(child)!
 				return {
 					id: shape.id,
 					type: shape.type,
-					x: shape.x - dx,
-					y: shape.y - dy,
+					x: shape.x + dx,
+					y: shape.y + dy,
 				}
 			})
 
 			changes.push({
 				id: frame.id,
 				type: frame.type,
-				x: bounds.x - paddingHalf,
-				y: bounds.y - paddingHalf,
+				x: frame.x - diff.x,
+				y: frame.y - diff.y,
 				props: {
-					w: bounds.w + padding,
-					h: bounds.h + padding,
+					w,
+					h,
 				},
 			})
 
