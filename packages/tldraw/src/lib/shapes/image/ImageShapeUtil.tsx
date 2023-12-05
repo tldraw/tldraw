@@ -188,14 +188,28 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			const { transform, width, height } = containerStyle
 			const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
 			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
+
+			const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+			clipPath.setAttribute('id', 'cropClipPath')
+
 			const points = [
 				new Vec2d(0, 0),
 				new Vec2d(croppedWidth, 0),
 				new Vec2d(croppedWidth, croppedHeight),
 				new Vec2d(0, croppedHeight),
 			]
+
+			const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+			polygon.setAttribute('points', points.map((p) => `${p.x},${p.y}`).join(' '))
+
+			clipPath.appendChild(polygon)
+
+			const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+			defs.appendChild(clipPath)
+			g.appendChild(defs)
+
 			const innerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-			innerElement.style.clipPath = `polygon(${points.map((p) => `${p.x}px ${p.y}px`).join(',')})`
+			innerElement.setAttribute('clip-path', 'url(#cropClipPath)')
 			image.setAttribute('width', width.toString())
 			image.setAttribute('height', height.toString())
 			image.style.transform = transform
