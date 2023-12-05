@@ -3791,7 +3791,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pages = this.getPages()
 
 			const name = getIncrementedName(
-				page.name ?? 'Page',
+				page.name ?? 'Page 1',
 				pages.map((p) => p.name)
 			)
 

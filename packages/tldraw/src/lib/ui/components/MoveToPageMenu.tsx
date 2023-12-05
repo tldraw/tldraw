@@ -82,7 +82,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 								const ids = editor.getSelectedShapeIds()
 								editor.batch(() => {
 									editor.mark('move_shapes_to_page')
-									editor.createPage({ name: 'Page', id: newPageId })
+									editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
 									editor.moveShapesToPage(ids, newPageId)
 								})
 							}}
