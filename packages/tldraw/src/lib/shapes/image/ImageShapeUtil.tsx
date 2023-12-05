@@ -189,9 +189,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
 			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
 
-			const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
-			clipPath.setAttribute('id', 'cropClipPath')
-
 			const points = [
 				new Vec2d(0, 0),
 				new Vec2d(croppedWidth, 0),
@@ -202,6 +199,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
 			polygon.setAttribute('points', points.map((p) => `${p.x},${p.y}`).join(' '))
 
+			const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+			clipPath.setAttribute('id', 'cropClipPath')
 			clipPath.appendChild(polygon)
 
 			const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
