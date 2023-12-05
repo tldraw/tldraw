@@ -4353,9 +4353,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapeMaskCache(): ComputedCache<Vec2d[], TLShape> {
 		return this.store.createComputedCache('pageMaskCache', (shape) => {
-			if (isPageId(shape.parentId)) {
-				return undefined
-			}
+			if (isPageId(shape.parentId)) return undefined
 
 			const frameAncestors = this.getShapeAncestors(shape.id).filter((shape) =>
 				this.isShapeOfType<TLFrameShape>(shape, 'frame')

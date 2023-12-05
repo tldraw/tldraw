@@ -281,6 +281,7 @@ describe('arrowBindingsIndex', () => {
 							isExact: false,
 							boundShapeId: box3,
 							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isPrecise: false,
 						},
 					},
 				},

@@ -178,6 +178,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         boundShapeId: TLShapeId;
         normalizedAnchor: Vec2dModel;
         isExact: boolean;
+        isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
         type: "point";
@@ -191,6 +192,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         boundShapeId: TLShapeId;
         normalizedAnchor: Vec2dModel;
         isExact: boolean;
+        isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
         type: "point";

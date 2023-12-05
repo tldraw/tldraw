@@ -156,6 +156,7 @@ describe('When binding an arrow to a shape', () => {
 			type: 'binding',
 			boundShapeId: ids.box1,
 			normalizedAnchor: { x: 0.5, y: 0.5 },
+			isPrecise: true, // enclosed
 		})
 		editor.pointerMove(250, 50)
 		expect(arrow().props.end.type).toBe('point')
@@ -343,9 +344,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					boundShapeId: ids.box1,
 					normalizedAnchor: {
 						// bound to the center, imprecise!
-						x: 0.5,
-						y: 0.5,
+						x: 0.2,
+						y: 0.2,
 					},
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',
@@ -425,8 +427,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -459,8 +461,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -519,9 +521,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box1,
 					normalizedAnchor: {
-						x: 0.5,
-						y: 0.5,
+						x: 0.25,
+						y: 0.25,
 					},
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',
@@ -563,8 +566,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -575,3 +578,75 @@ describe('When starting an arrow inside of multiple shapes', () => {
 it.todo(
 	'after creating an arrow while tool lock is enabled, pressing enter will begin editing that shape'
 )
+
+describe('When binding an arrow to an ancestor', () => {
+	it('binds precisely from child to parent', () => {
+		const ids = {
+			frame: createShapeId(),
+			box1: createShapeId(),
+		}
+
+		editor.createShapes([
+			{
+				id: ids.frame,
+				type: 'frame',
+			},
+			{
+				id: ids.box1,
+				type: 'geo',
+				parentId: ids.frame,
+			},
+		])
+
+		editor.setCurrentTool('arrow')
+		editor.pointerMove(25, 25)
+		editor.pointerDown()
+		editor.pointerMove(150, 50)
+		editor.pointerUp()
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
+		if (!arrow) throw Error('No arrow')
+		if (arrow.props.start.type !== 'binding') throw Error('no binding')
+		if (arrow.props.end.type !== 'binding') throw Error('no binding')
+
+		expect(arrow.props.start.boundShapeId).toBe(ids.box1)
+		expect(arrow.props.end.boundShapeId).toBe(ids.frame)
+		expect(arrow.props.start.isPrecise).toBe(false)
+		expect(arrow.props.end.isPrecise).toBe(true)
+	})
+
+	it('binds precisely from parent to child', () => {
+		const ids = {
+			frame: createShapeId(),
+			box1: createShapeId(),
+		}
+
+		editor.createShapes([
+			{
+				id: ids.frame,
+				type: 'frame',
+			},
+			{
+				id: ids.box1,
+				type: 'geo',
+				parentId: ids.frame,
+			},
+		])
+
+		editor.setCurrentTool('arrow')
+		editor.pointerMove(150, 50)
+		editor.pointerDown()
+		editor.pointerMove(25, 25)
+		editor.pointerUp()
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
+		if (!arrow) throw Error('No arrow')
+		if (arrow.props.start.type !== 'binding') throw Error('no binding')
+		if (arrow.props.end.type !== 'binding') throw Error('no binding')
+
+		expect(arrow.props.start.boundShapeId).toBe(ids.frame)
+		expect(arrow.props.end.boundShapeId).toBe(ids.box1)
+		expect(arrow.props.start.isPrecise).toBe(false)
+		expect(arrow.props.end.isPrecise).toBe(true)
+	})
+})

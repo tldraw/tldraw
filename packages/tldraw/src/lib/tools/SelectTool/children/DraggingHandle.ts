@@ -98,7 +98,7 @@ export class DraggingHandle extends StateNode {
 		if (initialTerminal?.type === 'binding') {
 			this.editor.setHintingShapes([initialTerminal.boundShapeId])
 
-			this.isPrecise = !Vec2d.Equals(initialTerminal.normalizedAnchor, { x: 0.5, y: 0.5 })
+			this.isPrecise = initialTerminal.isPrecise
 			if (this.isPrecise) {
 				this.isPreciseId = initialTerminal.boundShapeId
 			} else {

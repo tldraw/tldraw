@@ -8,6 +8,12 @@
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
 // @internal (undocumented)
+export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[]): boolean;
+
+// @internal (undocumented)
+export function areObjectsShallowEqual<T extends Record<string, unknown>>(obj1: T, obj2: T): boolean;
+
+// @internal (undocumented)
 export const assert: (value: unknown, message?: string) => asserts value;
 
 // @internal (undocumented)
