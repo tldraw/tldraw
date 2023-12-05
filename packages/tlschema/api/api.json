@@ -355,7 +355,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n        }>;\n        point: "
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -400,7 +400,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n        }>;\n        point: "
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
             },
             {
               "kind": "Reference",

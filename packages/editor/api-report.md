@@ -2806,6 +2806,12 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
     onPointerUp: PointerEventHandler<Element>;
 };
 
+// @internal (undocumented)
+export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
+
+// @internal (undocumented)
+export function useShallowObjectIdentity<T extends Record<string, unknown>>(arr: T): T;
+
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {
     snapshot?: StoreSnapshot<TLRecord>;

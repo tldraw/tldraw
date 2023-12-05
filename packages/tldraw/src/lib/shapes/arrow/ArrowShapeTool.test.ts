@@ -150,6 +150,7 @@ describe('When pointing a start shape', () => {
 					type: 'binding',
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 }, // center!
+					isPrecise: false,
 					boundShapeId: ids.box3,
 				},
 				end: { type: 'point', x: 0, y: 125 },
@@ -191,6 +192,7 @@ describe('When pointing an end shape', () => {
 					type: 'binding',
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 }, // center!
+					isPrecise: false,
 					boundShapeId: ids.box3,
 				},
 			},
@@ -223,6 +225,7 @@ describe('When pointing an end shape', () => {
 					type: 'binding',
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
 					boundShapeId: ids.box3,
 				},
 			},
@@ -243,6 +246,7 @@ describe('When pointing an end shape', () => {
 					type: 'binding',
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: true,
 					boundShapeId: ids.box3,
 				},
 			},
@@ -280,7 +284,8 @@ describe('When pointing an end shape', () => {
 				end: {
 					type: 'binding',
 					isExact: false,
-					normalizedAnchor: { x: 0.5, y: 0.5 }, // center!
+					normalizedAnchor: { x: 0.25, y: 0.25 }, // center!
+					isPrecise: false,
 					boundShapeId: ids.box2,
 				},
 			},
@@ -330,7 +335,8 @@ describe('When pointing an end shape', () => {
 				end: {
 					type: 'binding',
 					isExact: false,
-					normalizedAnchor: { x: 0.5, y: 0.5 },
+					normalizedAnchor: { x: 0.4, y: 0.4 },
+					isPrecise: false,
 					boundShapeId: ids.box3,
 				},
 			},
@@ -373,6 +379,7 @@ describe('When pointing an end shape', () => {
 					type: 'binding',
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: true,
 					boundShapeId: ids.box3,
 				},
 			},

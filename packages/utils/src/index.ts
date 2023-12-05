@@ -1,4 +1,12 @@
-export { compact, dedupe, last, minBy, partition, rotateArray } from './lib/array'
+export {
+	areArraysShallowEqual,
+	compact,
+	dedupe,
+	last,
+	minBy,
+	partition,
+	rotateArray,
+} from './lib/array'
 export {
 	Result,
 	assert,
@@ -18,6 +26,7 @@ export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json
 export { MediaHelpers } from './lib/media'
 export { lerp, modulate, rng } from './lib/number'
 export {
+	areObjectsShallowEqual,
 	deepCopy,
 	filterEntries,
 	getOwnProperty,
