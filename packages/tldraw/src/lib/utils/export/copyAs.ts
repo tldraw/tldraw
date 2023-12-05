@@ -23,7 +23,6 @@ export function copyAs(
 	// Note:  it's important that this function itself isn't async - we need to create the relevant
 	// `ClipboardItem`s synchronously to make sure safari knows that the user _wants_ to copy
 	// See https://bugs.webkit.org/show_bug.cgi?id=222262
-	const write = window.navigator.clipboard?.write
 
 	return editor
 		.getSvg(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
@@ -39,8 +38,8 @@ export function copyAs(
 			switch (format) {
 				case 'svg': {
 					if (window.navigator.clipboard) {
-						if (write) {
-							write([
+						if (window.navigator.clipboard.write) {
+							window.navigator.clipboard.write([
 								new ClipboardItem({
 									'text/plain': new Blob([getSvgAsString(svg)], { type: 'text/plain' }),
 								}),
@@ -71,27 +70,29 @@ export function copyAs(
 					})
 
 					const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png'
-					if (write) {
-						write([
-							new ClipboardItem({
-								[mimeType]: blobPromise,
-							}),
-						]).catch((err: any) => {
-							// Firefox will fail with the above if `dom.events.asyncClipboard.clipboardItem` is enabled.
-							// See <https://github.com/tldraw/tldraw/issues/1325>
-							if (!err.toString().match(/^TypeError: DOMString not supported/)) {
-								console.error(err)
-							}
+					if (window.navigator.clipboard.write) {
+						window.navigator.clipboard
+							.write([
+								new ClipboardItem({
+									[mimeType]: blobPromise,
+								}),
+							])
+							.catch((err: any) => {
+								// Firefox will fail with the above if `dom.events.asyncClipboard.clipboardItem` is enabled.
+								// See <https://github.com/tldraw/tldraw/issues/1325>
+								if (!err.toString().match(/^TypeError: DOMString not supported/)) {
+									console.error(err)
+								}
 
-							blobPromise.then((blob) => {
-								window.navigator.clipboard.write([
-									new ClipboardItem({
-										// Note: This needs to use the promise based approach for safari/ios to not bail on a permissions error.
-										[mimeType]: blob,
-									}),
-								])
+								blobPromise.then((blob) => {
+									window.navigator.clipboard.write([
+										new ClipboardItem({
+											// Note: This needs to use the promise based approach for safari/ios to not bail on a permissions error.
+											[mimeType]: blob,
+										}),
+									])
+								})
 							})
-						})
 					}
 
 					break
@@ -101,8 +102,8 @@ export function copyAs(
 					const data = editor.getContentFromCurrentPage(ids)
 					const jsonStr = JSON.stringify(data)
 
-					if (write) {
-						write([
+					if (window.navigator.clipboard.write) {
+						window.navigator.clipboard.write([
 							new ClipboardItem({
 								'text/plain': new Blob([jsonStr], { type: 'text/plain' }),
 							}),
