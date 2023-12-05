@@ -473,6 +473,9 @@ export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType
 // @public (undocumented)
 export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<string>;
 
+// @public
+export function fitFrameToContent(id: TLShapeId, editor: Editor): void;
+
 // @public (undocumented)
 function Footer({ className, children }: {
     className?: string;
@@ -1050,6 +1053,9 @@ export function parseTldrawJsonFile({ json, schema, }: {
 
 // @public (undocumented)
 function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX.Element;
+
+// @public
+export function removeFrame(ids: TLShapeId[], editor: Editor): void;
 
 // @public (undocumented)
 function Root({ id, children, modal, debugOpen, }: {
