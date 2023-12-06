@@ -9437,7 +9437,7 @@ function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 }
 
 function getScrollOffset(position: number, extreme: number, zoomLevel: number) {
-	// Determines how far from the edges we start the scrol behaviour
+	// Determines how far from the edges we start the scroll behaviour
 	const scrollOffset = extreme < 1000 ? 50 : 30
 	// Determines the base speed of the scroll
 	const pxSpeed = 20
