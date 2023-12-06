@@ -9443,7 +9443,7 @@ function getScrollOffset(position: number, extreme: number, zoomLevel: number) {
 	const pxSpeed = 20
 	// Determines how much the speed is affected by the screen size
 	const screenSizeFactor = extreme < 1000 ? 0.8 : 1
-	// The closer we are to the edge, the faster we scroll
+	// Determines how much the speed is affected by the distance from the edge
 	let proximityFactor = 0
 	if (position < 0) {
 		proximityFactor = 1
