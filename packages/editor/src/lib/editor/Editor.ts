@@ -797,10 +797,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			affectedRecordIds.map((id) => (isShapeId(id) ? this.getShape(id) : null))
 		)
 		if (!shapes.length) return this
-		const bounds = new Box2d()
-		for (const shape of shapes) {
-			bounds.expand(this.getShapePageBounds(shape.id) ?? bounds)
-		}
+		const bounds = Box2d.Common(compact(shapes.map((shape) => this.getShapePageBounds(shape))))
 		const viewport = this.getViewportPageBounds()
 		if (!viewport.contains(bounds)) {
 			this.zoomToBounds(bounds, this.getCamera().z, { duration: 220 })
