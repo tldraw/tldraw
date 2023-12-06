@@ -9438,17 +9438,21 @@ function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 
 function getScrollOffset(position: number, extreme: number, zoomLevel: number) {
 	// Determines how far from the edges we start the scrol behaviour
-	const scrollOffset = 100
-	// Determines how fast the scroll behaviour is
-	const factor = 0.3
+	const scrollOffset = extreme < 1000 ? 50 : 30
+	// Determines the base speed of the scroll
+	const pxSpeed = 20
+	// Determines how much the speed is affected by the screen size
+	const screenSizeFactor = extreme < 1000 ? 0.8 : 1
+	// The closer we are to the edge, the faster we scroll
+	let proximityFactor = 0
 	if (position < 0) {
-		return (scrollOffset * factor) / zoomLevel
+		proximityFactor = 1
 	} else if (position > extreme) {
-		return -(scrollOffset * factor) / zoomLevel
+		proximityFactor = -1
 	} else if (position < scrollOffset) {
-		return ((scrollOffset - position) * factor) / zoomLevel
+		proximityFactor = (scrollOffset - position) / scrollOffset
 	} else if (position > extreme - scrollOffset) {
-		return ((extreme - position - scrollOffset) * factor) / zoomLevel
+		proximityFactor = -(scrollOffset - extreme + position) / scrollOffset
 	}
-	return 0
+	return (proximityFactor * pxSpeed * screenSizeFactor) / zoomLevel
 }
