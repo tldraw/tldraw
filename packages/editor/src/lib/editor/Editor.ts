@@ -9454,5 +9454,5 @@ function getScrollOffset(position: number, extreme: number, zoomLevel: number) {
 	} else if (position > extreme - scrollOffset) {
 		proximityFactor = -(scrollOffset - extreme + position) / scrollOffset
 	}
-	return (proximityFactor * pxSpeed * screenSizeFactor) / zoomLevel
+	return (pxSpeed * proximityFactor * screenSizeFactor) / zoomLevel
 }
