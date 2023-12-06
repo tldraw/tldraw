@@ -146,7 +146,10 @@ const InnerShape = React.memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		return useStateTracking('InnerShape:' + shape.type, () => util.component(shape))
 	},
-	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
+	(prev, next) =>
+		prev.shape.props === next.shape.props &&
+		prev.shape.meta === next.shape.meta &&
+		prev.util === next.util
 )
 
 const InnerShapeBackground = React.memo(
