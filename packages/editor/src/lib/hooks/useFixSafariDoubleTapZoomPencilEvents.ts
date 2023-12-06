@@ -38,7 +38,7 @@ export function useFixSafariDoubleTapZoomPencilEvents(ref: React.RefObject<HTMLE
 		elm.addEventListener('touchend', handleEvent)
 		return () => {
 			elm.removeEventListener('touchstart', handleEvent)
-			elm.addEventListener('touchend', handleEvent)
+			elm.removeEventListener('touchend', handleEvent)
 		}
 	}, [editor, ref])
 }
