@@ -14596,7 +14596,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n    }"
+                  "text": ";\n        scrollDelta: {\n            x: number;\n            y: number;\n        };\n    }"
                 },
                 {
                   "kind": "Content",

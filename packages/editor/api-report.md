@@ -833,6 +833,10 @@ export class Editor extends EventEmitter<TLEventMap> {
         isEditing: boolean;
         isPanning: boolean;
         pointerVelocity: Vec2d;
+        scrollDelta: {
+            x: number;
+            y: number;
+        };
     };
     // @deprecated (undocumented)
     get instanceState(): TLInstance;

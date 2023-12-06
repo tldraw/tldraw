@@ -639,6 +639,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
+
+		this.addListener('tick', this._scrollSides)
 	}
 
 	/**
@@ -2717,6 +2719,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
+	private _scrollSides(_ms: number) {
+		if (!this.inputs.isDragging || this.isIn('hand') || this.inputs.isPanning) return
+		if (this.inputs.scrollDelta.x === 0 && this.inputs.scrollDelta.y === 0) return
+
+		const camera = this.getCamera()
+		this.setCamera({
+			x: camera.x + this.inputs.scrollDelta.x,
+			y: camera.y + this.inputs.scrollDelta.y,
+		})
+	}
+
 	private _animateViewport(ms: number) {
 		if (!this._viewportAnimation) return
 
@@ -8777,6 +8790,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isPanning: false,
 		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec2d(),
+		/** How much should we scroll when the cursor since the cursor is close to the edges */
+		scrollDelta: { x: 0, y: 0 },
 	}
 
 	/**
@@ -9213,6 +9228,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 								return
 							}
 
+							const windowWidth = window.innerWidth
+							const windowHeight = window.innerHeight
+							const zoomLevel = this.getZoomLevel()
+							this.inputs.scrollDelta = {
+								x: getScrollOffset(info.point.x, windowWidth, zoomLevel),
+								y: getScrollOffset(info.point.y, windowHeight, zoomLevel),
+							}
+
 							if (this.inputs.isPanning && this.inputs.isPointing) {
 								// Handle panning
 								const { currentScreenPoint, previousScreenPoint } = this.inputs
@@ -9411,4 +9434,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
+}
+
+function getScrollOffset(position: number, extreme: number, zoomLevel: number) {
+	// Determines how far from the edges we start the scrol behaviour
+	const scrollOffset = 100
+	// Determines how fast the scroll behaviour is
+	const factor = 0.3
+	if (position < 0) {
+		return (scrollOffset * factor) / zoomLevel
+	} else if (position > extreme) {
+		return -(scrollOffset * factor) / zoomLevel
+	} else if (position < scrollOffset) {
+		return ((scrollOffset - position) * factor) / zoomLevel
+	} else if (position > extreme - scrollOffset) {
+		return ((extreme - position - scrollOffset) * factor) / zoomLevel
+	}
+	return 0
 }
