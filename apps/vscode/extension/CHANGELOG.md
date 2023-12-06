@@ -1,4 +1,13 @@
+## 2.0.18
+
+- Adds the option to remove frames, but keep the children.
+- Add the option to add existing shapes when creating a frame. Just create the frame over the shapes and they will get added to the frame.
+- Improves the appearance of drawings.
+- Improves the way arrows bind inside of shapes.
+- Fixes an issue with new pages not being named correctly.
+
 ## 2.0.17
+
 - Improved grouping of shapes. You can now group a shape with an arrow bound to it.
 - Improved handling of images. We now downscale them, which should improve performance.
 - Improved Japanese translations.
