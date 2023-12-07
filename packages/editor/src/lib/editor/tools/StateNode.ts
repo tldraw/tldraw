@@ -250,6 +250,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 			x: this.getScrollOffset(this.editor.inputs.currentScreenPoint.x, windowWidth, zoomLevel),
 			y: this.getScrollOffset(this.editor.inputs.currentScreenPoint.y, windowHeight, zoomLevel),
 		}
+		if (scrollDelta.x === 0 && scrollDelta.y === 0) return
 
 		const camera = this.editor.getCamera()
 		this.editor.setCamera({
