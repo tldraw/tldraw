@@ -1938,6 +1938,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     initial?: string;
     // (undocumented)
+    moveCameraWhenCloseToEdge: () => void;
+    // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];
     // (undocumented)
     onComplete?: TLEventHandlers['onComplete'];

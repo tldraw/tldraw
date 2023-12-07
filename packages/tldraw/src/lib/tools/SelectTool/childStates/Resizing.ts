@@ -70,6 +70,7 @@ export class Resizing extends StateNode {
 
 		this.handleResizeStart()
 		this.updateShapes()
+		this.editor.on('tick', this.moveCameraWhenCloseToEdge)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
@@ -404,6 +405,7 @@ export class Resizing extends StateNode {
 			{ ephemeral: true }
 		)
 		this.editor.snaps.clear()
+		this.editor.off('tick', this.moveCameraWhenCloseToEdge)
 	}
 
 	_createSnapshot = () => {

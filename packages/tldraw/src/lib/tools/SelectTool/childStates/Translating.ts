@@ -78,11 +78,13 @@ export class Translating extends StateNode {
 		this.handleStart()
 		this.updateShapes()
 		this.editor.on('tick', this.updateParent)
+		this.editor.on('tick', this.moveCameraWhenCloseToEdge)
 	}
 
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.off('tick', this.updateParent)
+		this.editor.off('tick', this.moveCameraWhenCloseToEdge)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clear()

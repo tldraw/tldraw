@@ -205,6 +205,17 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this._currentToolIdMask.set(id)
 	}
 
+	moveCameraWhenCloseToEdge = () => {
+		if (!this.editor.inputs.isDragging || this.editor.inputs.isPanning) return
+		if (this.editor.inputs.scrollDelta.x === 0 && this.editor.inputs.scrollDelta.y === 0) return
+
+		const camera = this.editor.getCamera()
+		this.editor.setCamera({
+			x: camera.x + this.editor.inputs.scrollDelta.x,
+			y: camera.y + this.editor.inputs.scrollDelta.y,
+		})
+	}
+
 	onWheel?: TLEventHandlers['onWheel']
 	onPointerDown?: TLEventHandlers['onPointerDown']
 	onPointerMove?: TLEventHandlers['onPointerMove']

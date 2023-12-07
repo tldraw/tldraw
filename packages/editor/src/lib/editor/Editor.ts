@@ -639,8 +639,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
-
-		this.addListener('tick', this._scrollSides)
 	}
 
 	/**
@@ -2716,18 +2714,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		easing: (t: number) => number
 		start: Box2d
 		end: Box2d
-	}
-
-	/** @internal */
-	private _scrollSides(_ms: number) {
-		if (!this.inputs.isDragging || this.isIn('hand') || this.inputs.isPanning) return
-		if (this.inputs.scrollDelta.x === 0 && this.inputs.scrollDelta.y === 0) return
-
-		const camera = this.getCamera()
-		this.setCamera({
-			x: camera.x + this.inputs.scrollDelta.x,
-			y: camera.y + this.inputs.scrollDelta.y,
-		})
 	}
 
 	private _animateViewport(ms: number) {
