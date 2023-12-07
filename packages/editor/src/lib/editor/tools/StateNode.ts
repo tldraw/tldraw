@@ -205,14 +205,42 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this._currentToolIdMask.set(id)
 	}
 
+	getScrollOffset(position: number, extreme: number, zoomLevel: number) {
+		// Determines how far from the edges we start the scroll behaviour
+		const scrollOffset = extreme < 1000 ? 50 : 30
+		// Determines the base speed of the scroll
+		const pxSpeed = 20
+		// Determines how much the speed is affected by the screen size
+		const screenSizeFactor = extreme < 1000 ? 0.8 : 1
+		// Determines how much the speed is affected by the distance from the edge
+		let proximityFactor = 0
+		if (position < 0) {
+			proximityFactor = 1
+		} else if (position > extreme) {
+			proximityFactor = -1
+		} else if (position < scrollOffset) {
+			proximityFactor = (scrollOffset - position) / scrollOffset
+		} else if (position > extreme - scrollOffset) {
+			proximityFactor = -(scrollOffset - extreme + position) / scrollOffset
+		}
+		return (pxSpeed * proximityFactor * screenSizeFactor) / zoomLevel
+	}
+
 	moveCameraWhenCloseToEdge = () => {
 		if (!this.editor.inputs.isDragging || this.editor.inputs.isPanning) return
-		if (this.editor.inputs.scrollDelta.x === 0 && this.editor.inputs.scrollDelta.y === 0) return
+
+		const windowWidth = window.innerWidth
+		const windowHeight = window.innerHeight
+		const zoomLevel = this.editor.getZoomLevel()
+		const scrollDelta = {
+			x: this.getScrollOffset(this.editor.inputs.currentScreenPoint.x, windowWidth, zoomLevel),
+			y: this.getScrollOffset(this.editor.inputs.currentScreenPoint.y, windowHeight, zoomLevel),
+		}
 
 		const camera = this.editor.getCamera()
 		this.editor.setCamera({
-			x: camera.x + this.editor.inputs.scrollDelta.x,
-			y: camera.y + this.editor.inputs.scrollDelta.y,
+			x: camera.x + scrollDelta.x,
+			y: camera.y + scrollDelta.y,
 		})
 	}
 

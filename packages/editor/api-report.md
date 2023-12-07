@@ -833,10 +833,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         isEditing: boolean;
         isPanning: boolean;
         pointerVelocity: Vec2d;
-        scrollDelta: {
-            x: number;
-            y: number;
-        };
     };
     // @deprecated (undocumented)
     get instanceState(): TLInstance;
@@ -1927,6 +1923,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     getCurrentToolIdMask(): string | undefined;
     getIsActive(): boolean;
     getPath(): string;
+    // (undocumented)
+    getScrollOffset(position: number, extreme: number, zoomLevel: number): number;
     // (undocumented)
     handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
     // (undocumented)

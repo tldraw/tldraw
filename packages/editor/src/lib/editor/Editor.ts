@@ -8777,8 +8777,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isPanning: false,
 		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec2d(),
-		/** How much should we scroll when the cursor since the cursor is close to the edges */
-		scrollDelta: { x: 0, y: 0 },
 	}
 
 	/**
@@ -9215,14 +9213,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 								return
 							}
 
-							const windowWidth = window.innerWidth
-							const windowHeight = window.innerHeight
-							const zoomLevel = this.getZoomLevel()
-							this.inputs.scrollDelta = {
-								x: getScrollOffset(info.point.x, windowWidth, zoomLevel),
-								y: getScrollOffset(info.point.y, windowHeight, zoomLevel),
-							}
-
 							if (this.inputs.isPanning && this.inputs.isPointing) {
 								// Handle panning
 								const { currentScreenPoint, previousScreenPoint } = this.inputs
@@ -9421,25 +9411,4 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
-}
-
-function getScrollOffset(position: number, extreme: number, zoomLevel: number) {
-	// Determines how far from the edges we start the scroll behaviour
-	const scrollOffset = extreme < 1000 ? 50 : 30
-	// Determines the base speed of the scroll
-	const pxSpeed = 20
-	// Determines how much the speed is affected by the screen size
-	const screenSizeFactor = extreme < 1000 ? 0.8 : 1
-	// Determines how much the speed is affected by the distance from the edge
-	let proximityFactor = 0
-	if (position < 0) {
-		proximityFactor = 1
-	} else if (position > extreme) {
-		proximityFactor = -1
-	} else if (position < scrollOffset) {
-		proximityFactor = (scrollOffset - position) / scrollOffset
-	} else if (position > extreme - scrollOffset) {
-		proximityFactor = -(scrollOffset - extreme + position) / scrollOffset
-	}
-	return (pxSpeed * proximityFactor * screenSizeFactor) / zoomLevel
 }
