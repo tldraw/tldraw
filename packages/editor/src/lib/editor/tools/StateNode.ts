@@ -208,10 +208,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	/**
 	 * Helper function to get the scroll offset for a given position.
 	 * The closer the mouse is to the edge of the screen the faster we scroll.
+	 * We also adjust the speed and the start offset based on the screen size and zoom level.
 	 *
 	 * @param position - The mouse position on the screen in pixels
 	 * @param extreme - The width or height of the screen in pixels
-	 * @param zoomLevel -The current zoom level
+	 * @param zoomLevel - The current zoom level
 	 * @returns How much we should scroll in pixels
 	 * @internal
 	 */
