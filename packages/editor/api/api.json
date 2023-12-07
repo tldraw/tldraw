@@ -16392,59 +16392,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#removeFrame:member(1)",
-              "docComment": "/**\n * Remove a frame.\n *\n * @param ids - Ids of the frames you wish to remove.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "removeFrame(ids: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "this"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 4,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "ids",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 3
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "removeFrame"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#renamePage:member(1)",
               "docComment": "/**\n * Rename a page.\n *\n * @param id - The id of the page to rename.\n *\n * @param name - The new name.\n *\n * @example\n * ```ts\n * editor.renamePage('page1', 'My Page')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [

@@ -7318,36 +7318,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Remove a frame.
-	 *
-	 * @param ids - Ids of the frames you wish to remove.
-	 *
-	 * @public
-	 */
-	removeFrame(ids: TLShapeId[]): this {
-		const frames = compact(
-			ids
-				.map((id) => this.getShape<TLFrameShape>(id))
-				.filter((f) => f && this.isShapeOfType<TLFrameShape>(f, 'frame'))
-		)
-		if (!frames.length) return this
-
-		const allChildren: TLShapeId[] = []
-		this.batch(() => {
-			frames.map((frame) => {
-				const children = this.getSortedChildIdsForParent(frame.id)
-				if (children.length) {
-					this.reparentShapes(children, frame.parentId, frame.index)
-					allChildren.push(...children)
-				}
-			})
-			this.setSelectedShapes(allChildren)
-			this.deleteShapes(ids)
-		})
-		return this
-	}
-
-	/**
 	 * Update a shape using a partial of the shape.
 	 *
 	 * @example

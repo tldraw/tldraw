@@ -5,6 +5,7 @@ import {
 	TLShapeId,
 	createShapeId,
 } from '@tldraw/editor'
+import { DEFAULT_FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -713,6 +714,70 @@ describe('frame shapes', () => {
 		arrow = editor.getOnlySelectedShape()! as TLArrowShape
 		expect(arrow.props.end).toMatchObject({ boundShapeId: innerBoxId })
 	})
+
+	it('correctly fits to its content', () => {
+		// Create two rects, their bounds are from [100, 100] to [400, 400],
+		// so the frame that fits them (with 50px offset) should be from [50, 50] to [450, 450].
+		const rectAId = createRect({ pos: [100, 100], size: [100, 100] })
+		const rectBId = createRect({ pos: [300, 300], size: [100, 100] })
+
+		// Create the frame that encloses both rects
+		const frameId = dragCreateFrame({ down: [0, 0], move: [700, 700], up: [700, 700] })
+		const frame = editor.getShape(frameId)! as TLFrameShape
+
+		const rectA = editor.getShape(rectAId)!
+		const rectB = editor.getShape(rectBId)!
+		expect(rectA.parentId).toBe(frameId)
+		expect(rectB.parentId).toBe(frameId)
+
+		fitFrameToContent(editor, frame.id)
+		const newFrame = editor.getShape(frameId)! as TLFrameShape
+		expect(newFrame.x).toBe(50)
+		expect(newFrame.y).toBe(50)
+		expect(newFrame.props.w).toBe(400)
+		expect(newFrame.props.h).toBe(400)
+
+		const newRectA = editor.getShape(rectAId)!
+		const newRectB = editor.getShape(rectBId)!
+		// Rect positions should change by 50px since the frame moved
+		// This keeps them in the same relative position
+		expect(newRectA.x).toBe(DEFAULT_FRAME_PADDING)
+		expect(newRectA.y).toBe(DEFAULT_FRAME_PADDING)
+		expect(newRectB.x).toBe(250)
+		expect(newRectB.y).toBe(250)
+	})
+
+	it('uses padding option', () => {
+		// Create two rects, their bounds are from [100, 100] to [400, 400],
+		// so the frame that fits them (with 50px offset) should be from [50, 50] to [450, 450].
+		const rectAId = createRect({ pos: [100, 100], size: [100, 100] })
+		const rectBId = createRect({ pos: [300, 300], size: [100, 100] })
+
+		// Create the frame that encloses both rects
+		const frameId = dragCreateFrame({ down: [0, 0], move: [700, 700], up: [700, 700] })
+		const frame = editor.getShape(frameId)! as TLFrameShape
+
+		const rectA = editor.getShape(rectAId)!
+		const rectB = editor.getShape(rectBId)!
+		expect(rectA.parentId).toBe(frameId)
+		expect(rectB.parentId).toBe(frameId)
+
+		fitFrameToContent(editor, frame.id, { padding: 100 })
+		const newFrame = editor.getShape(frameId)! as TLFrameShape
+		expect(newFrame.x).toBe(0)
+		expect(newFrame.y).toBe(0)
+		expect(newFrame.props.w).toBe(500)
+		expect(newFrame.props.h).toBe(500)
+
+		const newRectA = editor.getShape(rectAId)!
+		const newRectB = editor.getShape(rectBId)!
+
+		// frame is at 0,0 so positions should be the same for this test
+		expect(newRectA.x).toBe(100)
+		expect(newRectA.y).toBe(100)
+		expect(newRectB.x).toBe(300)
+		expect(newRectB.y).toBe(300)
+	})
 })
 
 test('arrows bound to a shape within a group within a frame are reparented if the group is moved outside of the frame', () => {
@@ -863,14 +928,14 @@ describe('When deleting/removing a frame', () => {
 	it('removes a frame but not its children', () => {
 		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
 		const frameId = dragCreateFrame({ down: [10, 10], move: [100, 100], up: [100, 100] })
-		editor.removeFrame([frameId])
+		removeFrame(editor, [frameId])
 		expect(editor.getShape(rectId)).toBeDefined()
 	})
 	it('reparents the children of a frame when removing it', () => {
 		const rectId: TLShapeId = createRect({ size: [20, 20], pos: [10, 10] })
 		const frame1Id = dragCreateFrame({ down: [10, 10], move: [100, 100], up: [100, 100] })
 		const frame2Id = dragCreateFrame({ down: [0, 0], move: [110, 110], up: [110, 110] })
-		editor.removeFrame([frame1Id])
+		removeFrame(editor, [frame1Id])
 		expect(editor.getShape(rectId)?.parentId).toBe(frame2Id)
 	})
 })
