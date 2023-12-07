@@ -2716,6 +2716,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		end: Box2d
 	}
 
+	/** @internal */
 	private _animateViewport(ms: number) {
 		if (!this._viewportAnimation) return
 
