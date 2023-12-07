@@ -771,12 +771,12 @@ describe('frame shapes', () => {
 
 		const newRectA = editor.getShape(rectAId)!
 		const newRectB = editor.getShape(rectBId)!
-		// Rect positions should change by 50px since the frame moved
-		// This keeps them in the same relative position
+
+		// frame is at 0,0 so positions should be the same for this test
 		expect(newRectA.x).toBe(100)
 		expect(newRectA.y).toBe(100)
-		expect(newRectB.x).toBe(250)
-		expect(newRectB.y).toBe(250)
+		expect(newRectB.x).toBe(300)
+		expect(newRectB.y).toBe(300)
 	})
 })
 
