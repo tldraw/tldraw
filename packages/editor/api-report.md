@@ -1923,7 +1923,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     getCurrentToolIdMask(): string | undefined;
     getIsActive(): boolean;
     getPath(): string;
-    // (undocumented)
+    // @internal
     getScrollOffset(position: number, extreme: number, zoomLevel: number): number;
     // (undocumented)
     handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
@@ -1935,7 +1935,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static initial?: string;
     // (undocumented)
     initial?: string;
-    // (undocumented)
     moveCameraWhenCloseToEdge: () => void;
     // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];

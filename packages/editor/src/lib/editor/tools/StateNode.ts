@@ -205,6 +205,16 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this._currentToolIdMask.set(id)
 	}
 
+	/**
+	 * Helper function to get the scroll offset for a given position.
+	 * The closer the mouse is to the edge of the screen the faster we scroll.
+	 *
+	 * @param position - The mouse position on the screen in pixels
+	 * @param extreme - The width or height of the screen in pixels
+	 * @param zoomLevel -The current zoom level
+	 * @returns How much we should scroll in pixels
+	 * @internal
+	 */
 	getScrollOffset(position: number, extreme: number, zoomLevel: number) {
 		// Determines how far from the edges we start the scroll behaviour
 		const scrollOffset = extreme < 1000 ? 50 : 30
@@ -226,6 +236,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		return (pxSpeed * proximityFactor * screenSizeFactor) / zoomLevel
 	}
 
+	/**
+	 * Moves the camera when the mouse is close to the edge of the screen.
+	 * @public
+	 */
 	moveCameraWhenCloseToEdge = () => {
 		if (!this.editor.inputs.isDragging || this.editor.inputs.isPanning) return
 
