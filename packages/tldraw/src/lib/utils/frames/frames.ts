@@ -11,12 +11,12 @@ import {
 /**
  * Remove a frame.
  *
- * @param ids - Ids of the frames you wish to remove.
  * @param editor - tlraw editor instance.
+ * @param ids - Ids of the frames you wish to remove.
  *
  * @public
  */
-export function removeFrame(ids: TLShapeId[], editor: Editor) {
+export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 	const frames = compact(
 		ids
 			.map((id) => editor.getShape<TLFrameShape>(id))
@@ -38,17 +38,19 @@ export function removeFrame(ids: TLShapeId[], editor: Editor) {
 	})
 }
 
-export const FRAME_PADDING = 50
+/** @internal */
+export const DEFAULT_FRAME_PADDING = 50
 
 /**
  * Fit a frame to its content.
  *
  * @param id - Id of the frame you wish to fit to content.
  * @param editor - tlraw editor instance.
+ * @param opts - Options for fitting the frame.
  *
  * @public
  */
-export function fitFrameToContent(id: TLShapeId, editor: Editor) {
+export function fitFrameToContent(editor: Editor, id: TLShapeId, opts = {} as { padding: number }) {
 	const frame = editor.getShape<TLFrameShape>(id)
 	if (!frame) return
 
@@ -63,10 +65,11 @@ export function fitFrameToContent(id: TLShapeId, editor: Editor) {
 		})
 	)
 
-	const w = bounds.w + 2 * FRAME_PADDING
-	const h = bounds.h + 2 * FRAME_PADDING
-	const dx = FRAME_PADDING - bounds.minX
-	const dy = FRAME_PADDING - bounds.minY
+	const { padding = DEFAULT_FRAME_PADDING } = opts
+	const w = bounds.w + 2 * padding
+	const h = bounds.h + 2 * padding
+	const dx = padding - bounds.minX
+	const dy = padding - bounds.minY
 	// The shapes already perfectly fit the frame.
 	if (dx === 0 && dy === 0 && frame.props.w === w && frame.props.h === h) return
 

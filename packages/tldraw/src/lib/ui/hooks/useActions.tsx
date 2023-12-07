@@ -473,8 +473,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					) {
 						editor.mark('remove-frame')
 						removeFrame(
-							selectedShapes.map((shape) => shape.id),
-							editor
+							editor,
+							selectedShapes.map((shape) => shape.id)
 						)
 					}
 				},
@@ -490,7 +490,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (onlySelectedShape && editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame')) {
 						editor.mark('fit-frame-to-content')
-						fitFrameToContent(onlySelectedShape.id, editor)
+						fitFrameToContent(editor, onlySelectedShape.id)
 					}
 				},
 			},
