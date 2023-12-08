@@ -238,16 +238,17 @@ const router = createBrowserRouter([
 	...allExamples,
 ])
 
-const rootElement = document.getElementById('root')
-const root = createRoot(rootElement!)
-
-root.render(
-	<StrictMode>
-		<ErrorBoundary
-			fallback={(error) => <DefaultErrorFallback error={error} />}
-			onError={(error) => console.error(error)}
-		>
-			<RouterProvider router={router} />
-		</ErrorBoundary>
-	</StrictMode>
-)
+document.addEventListener('DOMContentLoaded', () => {
+	const rootElement = document.getElementById('root')!
+	const root = createRoot(rootElement!)
+	root.render(
+		<StrictMode>
+			<ErrorBoundary
+				fallback={(error) => <DefaultErrorFallback error={error} />}
+				onError={(error) => console.error(error)}
+			>
+				<RouterProvider router={router} />
+			</ErrorBoundary>
+		</StrictMode>
+	)
+})
