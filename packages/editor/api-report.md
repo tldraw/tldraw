@@ -6,8 +6,14 @@
 
 /// <reference types="react" />
 
+import { AfterChangeHandler } from '@tldraw/store';
+import { AfterCreateHandler } from '@tldraw/store';
+import { AfterDeleteHandler } from '@tldraw/store';
 import { Atom } from '@tldraw/state';
 import { atom } from '@tldraw/state';
+import { BeforeChangeHandler } from '@tldraw/store';
+import { BeforeCreateHandler } from '@tldraw/store';
+import { BeforeDeleteHandler } from '@tldraw/store';
 import { Box2dModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';

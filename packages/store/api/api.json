@@ -174,6 +174,177 @@
       "members": [
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!AfterChangeHandler:type",
+          "docComment": "/**\n * A function that is called after a record is changed. It is passed the old and new record.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type AfterChangeHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(prev: R, next: R, source: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChangeSource",
+              "canonicalReference": "@tldraw/store!ChangeSource:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/StoreSideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "AfterChangeHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!AfterCreateHandler:type",
+          "docComment": "/**\n * A function that is called after a record is created.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type AfterCreateHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(record: R, source: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChangeSource",
+              "canonicalReference": "@tldraw/store!ChangeSource:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/StoreSideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "AfterCreateHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!AfterDeleteHandler:type",
+          "docComment": "/**\n * A function that is called after a record is deleted.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type AfterDeleteHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(record: R, source: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChangeSource",
+              "canonicalReference": "@tldraw/store!ChangeSource:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/StoreSideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "AfterDeleteHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/store!AllRecords:type",
           "docComment": "/**\n * Get the type of all records in a record store.\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -469,6 +640,203 @@
             }
           ],
           "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!BeforeChangeHandler:type",
+          "docComment": "/**\n * A function that is called before a record is changed. It is passed the old and new record, and can return a different record to be used instead of the new one.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type BeforeChangeHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(prev: R, next: R, source: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChangeSource",
+              "canonicalReference": "@tldraw/store!ChangeSource:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => R"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/StoreSideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "BeforeChangeHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!BeforeCreateHandler:type",
+          "docComment": "/**\n * A function that is called before a record is created. It can return a new record to be created instead of the one that was passed in.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type BeforeCreateHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(record: R, source: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChangeSource",
+              "canonicalReference": "@tldraw/store!ChangeSource:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => R"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/StoreSideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "BeforeCreateHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!BeforeDeleteHandler:type",
+          "docComment": "/**\n * A function that is called before a record is deleted. It can return `false` to prevent the record from being deleted.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type BeforeDeleteHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(record: R, source: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChangeSource",
+              "canonicalReference": "@tldraw/store!ChangeSource:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => false | void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/StoreSideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "BeforeDeleteHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!ChangeSource:type",
+          "docComment": "/**\n * Where did a change come from?\n *\n * - 'user' changes are the result of the current user of the app. - 'remote' changes are the result of another user in a multiplayer session, and are synced into the store.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type ChangeSource = "
+            },
+            {
+              "kind": "Content",
+              "text": "'remote' | 'user'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/Store.ts",
+          "releaseTag": "Public",
+          "name": "ChangeSource",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
         },
         {
           "kind": "TypeAlias",
@@ -1210,7 +1578,7 @@
             {
               "kind": "Reference",
               "text": "ChangeSource",
-              "canonicalReference": "@tldraw/store!~ChangeSource:type"
+              "canonicalReference": "@tldraw/store!ChangeSource:type"
             },
             {
               "kind": "Content",
@@ -4110,186 +4478,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/store!Store#onAfterChange:member",
-              "docComment": "/**\n * A callback fired after each record's change.\n *\n * @param prev - The previous value, if any.\n *\n * @param next - The next value.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onAfterChange?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(prev: R, next: R, source: 'remote' | 'user') => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onAfterChange",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/store!Store#onAfterCreate:member",
-              "docComment": "/**\n * A callback fired after a record is created. Use this to perform related updates to other records in the store.\n *\n * @param record - The record to be created\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onAfterCreate?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(record: R, source: 'remote' | 'user') => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onAfterCreate",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/store!Store#onAfterDelete:member",
-              "docComment": "/**\n * A callback fired after a record is deleted.\n *\n * @param prev - The record that will be deleted.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onAfterDelete?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(prev: R, source: 'remote' | 'user') => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onAfterDelete",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/store!Store#onBeforeChange:member",
-              "docComment": "/**\n * A callback before after each record's change.\n *\n * @param prev - The previous value, if any.\n *\n * @param next - The next value.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onBeforeChange?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(prev: R, next: R, source: 'remote' | 'user') => R"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onBeforeChange",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/store!Store#onBeforeCreate:member",
-              "docComment": "/**\n * A callback fired after each record's change.\n *\n * @param prev - The previous value, if any.\n *\n * @param next - The next value.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onBeforeCreate?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(next: R, source: 'remote' | 'user') => R"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onBeforeCreate",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/store!Store#onBeforeDelete:member",
-              "docComment": "/**\n * A callback fired before a record is deleted.\n *\n * @param prev - The record that will be deleted.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onBeforeDelete?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(prev: R, source: 'remote' | 'user') => false | void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onBeforeDelete",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/store!Store#props:member",
               "docComment": "",
               "excerptTokens": [
@@ -4382,6 +4570,546 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!Store#registerAfterChangeHandler:member(1)",
+              "docComment": "/**\n * Register a callback to be fired after a record is changed.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerAfterChangeHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AfterChangeHandler",
+                  "canonicalReference": "@tldraw/store!AfterChangeHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerAfterChangeHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!Store#registerAfterCreateHandler:member(1)",
+              "docComment": "/**\n * Register a callback to be fired after a record is changed.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerAfterCreateHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AfterCreateHandler",
+                  "canonicalReference": "@tldraw/store!AfterCreateHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerAfterCreateHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!Store#registerAfterDeleteHandler:member(1)",
+              "docComment": "/**\n * Register a callback to be fired after a record is deleted.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerAfterDeleteHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AfterDeleteHandler",
+                  "canonicalReference": "@tldraw/store!AfterDeleteHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerAfterDeleteHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!Store#registerBeforeChangeHandler:member(1)",
+              "docComment": "/**\n * Register a callback to be fired before a record is changed.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerBeforeChangeHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "BeforeChangeHandler",
+                  "canonicalReference": "@tldraw/store!BeforeChangeHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerBeforeChangeHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!Store#registerBeforeCreateHandler:member(1)",
+              "docComment": "/**\n * Register a callback to be fired before a record is changed.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerBeforeCreateHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "BeforeCreateHandler",
+                  "canonicalReference": "@tldraw/store!BeforeCreateHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerBeforeCreateHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!Store#registerBeforeDeleteHandler:member(1)",
+              "docComment": "/**\n * Register a callback to be fired before a record is deleted.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerBeforeDeleteHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "BeforeDeleteHandler",
+                  "canonicalReference": "@tldraw/store!BeforeDeleteHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerBeforeDeleteHandler"
             },
             {
               "kind": "Property",

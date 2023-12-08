@@ -13,6 +13,15 @@ import { Cache } from './Cache'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
+import {
+	AfterChangeHandler,
+	AfterCreateHandler,
+	AfterDeleteHandler,
+	BeforeChangeHandler,
+	BeforeCreateHandler,
+	BeforeDeleteHandler,
+	StoreSideEffectManager,
+} from './StoreSideEffectManager'
 import { devFreeze } from './devFreeze'
 
 type RecFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> ? R : never
@@ -35,6 +44,15 @@ export type RecordsDiff<R extends UnknownRecord> = {
  */
 export type CollectionDiff<T> = { added?: Set<T>; removed?: Set<T> }
 
+/**
+ * Where did a change come from?
+ *
+ * - 'user' changes are the result of the current user of the app.
+ * - 'remote' changes are the result of another user in a multiplayer session, and are synced into
+ *   the store.
+ *
+ * @public
+ */
 export type ChangeSource = 'user' | 'remote'
 
 export type StoreListenerFilters = {
@@ -167,6 +185,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	public readonly scopedTypes: { readonly [K in RecordScope]: ReadonlySet<R['typeName']> }
 
+	private readonly sideEffects = new StoreSideEffectManager<R>()
+
 	constructor(config: {
 		/** The store's initial data. */
 		initialData?: SerializedStore<R>
@@ -297,53 +317,54 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.allRecords().forEach((record) => this.schema.validateRecord(this, record, phase, null))
 	}
 
-	/**
-	 * A callback fired after each record's change.
-	 *
-	 * @param prev - The previous value, if any.
-	 * @param next - The next value.
-	 */
-	onBeforeCreate?: (next: R, source: 'remote' | 'user') => R
+	/** Register a callback to be fired before a record is changed. */
+	registerBeforeCreateHandler<T extends R['typeName']>(
+		typeName: T,
+		handler: BeforeCreateHandler<R & { typeName: T }>
+	) {
+		return this.sideEffects.registerBeforeCreateHandler(typeName, handler)
+	}
 
-	/**
-	 * A callback fired after a record is created. Use this to perform related updates to other
-	 * records in the store.
-	 *
-	 * @param record - The record to be created
-	 */
-	onAfterCreate?: (record: R, source: 'remote' | 'user') => void
+	/** Register a callback to be fired after a record is changed. */
+	registerAfterCreateHandler<T extends R['typeName']>(
+		typeName: T,
+		handler: AfterCreateHandler<R & { typeName: T }>
+	) {
+		return this.sideEffects.registerAfterCreateHandler(typeName, handler)
+	}
 
-	/**
-	 * A callback before after each record's change.
-	 *
-	 * @param prev - The previous value, if any.
-	 * @param next - The next value.
-	 */
-	onBeforeChange?: (prev: R, next: R, source: 'remote' | 'user') => R
+	/** Register a callback to be fired before a record is changed. */
+	registerBeforeChangeHandler<T extends R['typeName']>(
+		typeName: T,
+		handler: BeforeChangeHandler<R & { typeName: T }>
+	) {
+		return this.sideEffects.registerBeforeChangeHandler(typeName, handler)
+	}
 
-	/**
-	 * A callback fired after each record's change.
-	 *
-	 * @param prev - The previous value, if any.
-	 * @param next - The next value.
-	 */
-	onAfterChange?: (prev: R, next: R, source: 'remote' | 'user') => void
+	/** Register a callback to be fired after a record is changed. */
+	registerAfterChangeHandler<T extends R['typeName']>(
+		typeName: T,
+		handler: AfterChangeHandler<R & { typeName: T }>
+	) {
+		return this.sideEffects.registerAfterChangeHandler(typeName, handler)
+	}
 
-	/**
-	 * A callback fired before a record is deleted.
-	 *
-	 * @param prev - The record that will be deleted.
-	 */
-	onBeforeDelete?: (prev: R, source: 'remote' | 'user') => false | void
+	/** Register a callback to be fired before a record is deleted. */
+	registerBeforeDeleteHandler<T extends R['typeName']>(
+		typeName: T,
+		handler: BeforeDeleteHandler<R & { typeName: T }>
+	) {
+		return this.sideEffects.registerBeforeDeleteHandler(typeName, handler)
+	}
 
-	/**
-	 * A callback fired after a record is deleted.
-	 *
-	 * @param prev - The record that will be deleted.
-	 */
-	onAfterDelete?: (prev: R, source: 'remote' | 'user') => void
+	/** Register a callback to be fired after a record is deleted. */
+	registerAfterDeleteHandler<T extends R['typeName']>(
+		typeName: T,
+		handler: AfterDeleteHandler<R & { typeName: T }>
+	) {
+		return this.sideEffects.registerAfterDeleteHandler(typeName, handler)
+	}
 
-	// used to avoid running callbacks when rolling back changes in sync client
 	private _runCallbacks = true
 
 	/**
@@ -369,8 +390,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// changes (e.g. additions, deletions, or updates that produce a new value).
 			let didChange = false
 
-			const beforeCreate = this.onBeforeCreate && this._runCallbacks ? this.onBeforeCreate : null
-			const beforeUpdate = this.onBeforeChange && this._runCallbacks ? this.onBeforeChange : null
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
 			for (let i = 0, n = records.length; i < n; i++) {
@@ -379,7 +398,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				if (recordAtom) {
-					if (beforeUpdate) record = beforeUpdate(recordAtom.get(), record, source)
+					if (this._runCallbacks)
+						record = this.sideEffects.onBeforeChange(recordAtom.get(), record, source)
 
 					// If we already have an atom for this record, update its value.
 
@@ -404,7 +424,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						updates[record.id] = [initialValue, finalValue]
 					}
 				} else {
-					if (beforeCreate) record = beforeCreate(record, source)
+					if (this._runCallbacks) record = this.sideEffects.onBeforeCreate(record, source)
 
 					didChange = true
 
@@ -443,21 +463,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			})
 
 			if (this._runCallbacks) {
-				const { onAfterCreate, onAfterChange } = this
+				// Run the onAfterChange callback for addition.
+				Object.values(additions).forEach((record) => {
+					this.sideEffects.onAfterCreate(record, source)
+				})
 
-				if (onAfterCreate) {
-					// Run the onAfterChange callback for addition.
-					Object.values(additions).forEach((record) => {
-						onAfterCreate(record, source)
-					})
-				}
-
-				if (onAfterChange) {
-					// Run the onAfterChange callback for update.
-					Object.values(updates).forEach(([from, to]) => {
-						onAfterChange(from, to, source)
-					})
-				}
+				// Run the onAfterChange callback for update.
+				Object.values(updates).forEach(([from, to]) => {
+					this.sideEffects.onAfterChange(from, to, source)
+				})
 			}
 		})
 	}
@@ -473,12 +487,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const cancelled = [] as IdOf<R>[]
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
-			if (this.onBeforeDelete && this._runCallbacks) {
+			if (this._runCallbacks) {
 				for (const id of ids) {
 					const atom = this.atoms.__unsafe__getWithoutCapture()[id]
 					if (!atom) continue
 
-					if (this.onBeforeDelete(atom.get(), source) === false) {
+					if (this.sideEffects.onBeforeDelete(atom.get(), source) === false) {
 						cancelled.push(id)
 					}
 				}
@@ -507,12 +521,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			this.updateHistory({ added: {}, updated: {}, removed } as RecordsDiff<R>)
 
 			// If we have an onAfterChange, run it for each removed record.
-			if (this.onAfterDelete && this._runCallbacks) {
+			if (this._runCallbacks) {
 				let record: R
 				for (let i = 0, n = ids.length; i < n; i++) {
 					record = removed[ids[i]]
 					if (record) {
-						this.onAfterDelete(record, source)
+						this.sideEffects.onAfterDelete(record, source)
 					}
 				}
 			}

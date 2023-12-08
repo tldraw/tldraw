@@ -5,6 +5,7 @@ export {
 	last,
 	minBy,
 	partition,
+	removeFromArray,
 	rotateArray,
 } from './lib/array'
 export {

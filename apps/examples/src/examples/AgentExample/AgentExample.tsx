@@ -1,5 +1,4 @@
 import { TLShape, TLShapeId, Tldraw } from '@tldraw/tldraw'
-import console from 'console'
 import { useEffect } from 'react'
 import { AgentCursor } from './AgentCursor'
 import { useAgent } from './useAgent'

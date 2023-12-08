@@ -83,3 +83,11 @@ export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[])
 	}
 	return true
 }
+
+/** @internal */
+export function removeFromArray<T>(array: T[], valueToRemove: T) {
+	const index = array.indexOf(valueToRemove)
+	if (index >= 0) {
+		array.splice(index, 1)
+	}
+}

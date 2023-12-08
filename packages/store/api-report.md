@@ -8,6 +8,15 @@ import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
 
 // @public
+export type AfterChangeHandler<R extends UnknownRecord> = (prev: R, next: R, source: ChangeSource) => void;
+
+// @public
+export type AfterCreateHandler<R extends UnknownRecord> = (record: R, source: ChangeSource) => void;
+
+// @public
+export type AfterDeleteHandler<R extends UnknownRecord> = (record: R, source: ChangeSource) => void;
+
+// @public
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
 
 // @public
@@ -20,6 +29,18 @@ export interface BaseRecord<TypeName extends string, Id extends RecordId<Unknown
     // (undocumented)
     readonly typeName: TypeName;
 }
+
+// @public
+export type BeforeChangeHandler<R extends UnknownRecord> = (prev: R, next: R, source: ChangeSource) => R;
+
+// @public
+export type BeforeCreateHandler<R extends UnknownRecord> = (record: R, source: ChangeSource) => R;
+
+// @public
+export type BeforeDeleteHandler<R extends UnknownRecord> = (record: R, source: ChangeSource) => false | void;
+
+// @public
+export type ChangeSource = 'remote' | 'user';
 
 // @public
 export type CollectionDiff<T> = {
@@ -258,16 +279,28 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges: (fn: () => void) => void;
     migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R>;
-    onAfterChange?: (prev: R, next: R, source: 'remote' | 'user') => void;
-    onAfterCreate?: (record: R, source: 'remote' | 'user') => void;
-    onAfterDelete?: (prev: R, source: 'remote' | 'user') => void;
-    onBeforeChange?: (prev: R, next: R, source: 'remote' | 'user') => R;
-    onBeforeCreate?: (next: R, source: 'remote' | 'user') => R;
-    onBeforeDelete?: (prev: R, source: 'remote' | 'user') => false | void;
     // (undocumented)
     readonly props: Props;
     put: (records: R[], phaseOverride?: 'initialize') => void;
     readonly query: StoreQueries<R>;
+    registerAfterChangeHandler<T extends R['typeName']>(typeName: T, handler: AfterChangeHandler<R & {
+        typeName: T;
+    }>): () => void;
+    registerAfterCreateHandler<T extends R['typeName']>(typeName: T, handler: AfterCreateHandler<R & {
+        typeName: T;
+    }>): () => void;
+    registerAfterDeleteHandler<T extends R['typeName']>(typeName: T, handler: AfterDeleteHandler<R & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeChangeHandler<T extends R['typeName']>(typeName: T, handler: BeforeChangeHandler<R & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeCreateHandler<T extends R['typeName']>(typeName: T, handler: BeforeCreateHandler<R & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeDeleteHandler<T extends R['typeName']>(typeName: T, handler: BeforeDeleteHandler<R & {
+        typeName: T;
+    }>): () => void;
     remove: (ids: IdOf<R>[]) => void;
     // (undocumented)
     readonly schema: StoreSchema<R, Props>;

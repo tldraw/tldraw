@@ -221,6 +221,9 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
+export function removeFromArray<T>(array: T[], valueToRemove: T): void;
+
+// @internal (undocumented)
 type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>>>;
 export { Required_2 as Required }
 

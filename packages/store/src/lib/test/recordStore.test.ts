@@ -213,40 +213,39 @@ describe('Store', () => {
 
 	it('allows adding onAfterChange callbacks that see the final state of the world', () => {
 		/* ADDING */
-		store.onAfterCreate = jest.fn((current) => {
+		const onAfterCreate = jest.fn((current) => {
 			expect(current).toEqual(
 				Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })
 			)
 			expect([...store.query.ids('author').get()]).toEqual([Author.createId('tolkein')])
 		})
+		store.registerAfterCreateHandler('author', onAfterCreate)
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
-		expect(store.onAfterCreate).toHaveBeenCalledTimes(1)
+		expect(onAfterCreate).toHaveBeenCalledTimes(1)
 
 		/* UPDATING */
-		store.onAfterChange = jest.fn((prev, current) => {
-			if (prev.typeName === 'author' && current.typeName === 'author') {
-				expect(prev.name).toBe('J.R.R Tolkein')
-				expect(current.name).toBe('Butch Cassidy')
+		const onAfterChange = jest.fn((prev, current) => {
+			expect(prev.name).toBe('J.R.R Tolkein')
+			expect(current.name).toBe('Butch Cassidy')
 
-				expect(store.get(Author.createId('tolkein'))!.name).toBe('Butch Cassidy')
-			}
+			expect(store.get(Author.createId('tolkein'))!.name).toBe('Butch Cassidy')
 		})
+		store.registerAfterChangeHandler('author', onAfterChange)
 
 		store.update(Author.createId('tolkein'), (r) => ({ ...r, name: 'Butch Cassidy' }))
 
-		expect(store.onAfterChange).toHaveBeenCalledTimes(1)
+		expect(onAfterChange).toHaveBeenCalledTimes(1)
 
 		/* REMOVING */
-		store.onAfterDelete = jest.fn((prev) => {
-			if (prev.typeName === 'author') {
-				expect(prev.name).toBe('Butch Cassidy')
-			}
+		const onAfterDelete = jest.fn((prev) => {
+			expect(prev.name).toBe('Butch Cassidy')
 		})
+		store.registerAfterDeleteHandler('author', onAfterDelete)
 
 		store.remove([Author.createId('tolkein')])
 
-		expect(store.onAfterDelete).toHaveBeenCalledTimes(1)
+		expect(onAfterDelete).toHaveBeenCalledTimes(1)
 	})
 
 	it('allows finding and filtering records with a predicate', () => {

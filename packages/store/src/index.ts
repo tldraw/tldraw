@@ -3,6 +3,7 @@ export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
 export { RecordType, assertIdType, createRecordType } from './lib/RecordType'
 export { Store, reverseRecordsDiff, squashRecordDiffs } from './lib/Store'
 export type {
+	ChangeSource,
 	CollectionDiff,
 	ComputedCache,
 	HistoryEntry,
@@ -16,6 +17,14 @@ export type {
 } from './lib/Store'
 export { StoreSchema } from './lib/StoreSchema'
 export type { SerializedSchema, StoreSchemaOptions } from './lib/StoreSchema'
+export type {
+	AfterChangeHandler,
+	AfterCreateHandler,
+	AfterDeleteHandler,
+	BeforeChangeHandler,
+	BeforeCreateHandler,
+	BeforeDeleteHandler,
+} from './lib/StoreSideEffectManager'
 export { compareSchemas } from './lib/compareSchemas'
 export { devFreeze } from './lib/devFreeze'
 export {

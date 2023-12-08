@@ -342,12 +342,10 @@ function runTest(seed: number) {
 			}
 		),
 	})
-	store.onBeforeDelete = (record) => {
-		if (record.typeName === 'author') {
-			const books = store.query.index('book', 'authorId').get().get(record.id)
-			if (books) store.remove([...books])
-		}
-	}
+	store.registerBeforeDeleteHandler('author', (record) => {
+		const books = store.query.index('book', 'authorId').get().get(record.id)
+		if (books) store.remove([...books])
+	})
 	const getRandomNumber = rng(seed)
 	const authorNameIndex = store.query.index('author', 'name')
 	const authorIdIndex = store.query.index('book', 'authorId')
