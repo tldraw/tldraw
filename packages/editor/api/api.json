@@ -6747,7 +6747,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: "
+                  "text": "constructor(opts: "
                 },
                 {
                   "kind": "Reference",
@@ -6764,7 +6764,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }",
+                  "parameterName": "opts",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -15625,6 +15625,37 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "openMenus",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#opts:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly opts: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLEditorOptions",
+                  "canonicalReference": "@tldraw/editor!TLEditorOptions:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "opts",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

@@ -557,7 +557,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: TLEditorOptions);
+    constructor(opts: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
@@ -860,6 +860,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     get onlySelectedShape(): null | TLShape;
     // @deprecated (undocumented)
     get openMenus(): string[];
+    // (undocumented)
+    readonly opts: TLEditorOptions;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     // @deprecated (undocumented)
     get pages(): TLPage[];

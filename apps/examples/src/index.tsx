@@ -14,6 +14,7 @@ import { ListLink } from './components/ListLink'
 
 import BasicExample from './BasicExample'
 import APIExample from './examples/APIExample'
+import { AgentExample } from './examples/AgentExample/AgentExample'
 import AssetPropsExample from './examples/AssetOptionsExample'
 import CanvasEventsExample from './examples/CanvasEventsExample'
 import CustomComponentsExample from './examples/CustomComponentsExample'
@@ -202,6 +203,11 @@ export const allExamples: Example[] = [
 		title: 'External content sources',
 		path: 'external-content-sources',
 		element: <ExternalContentSourcesExample />,
+	},
+	{
+		title: 'Agent / virtual collaborator',
+		path: 'agent',
+		element: <AgentExample />,
 	},
 	// not listed
 	{

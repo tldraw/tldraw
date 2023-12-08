@@ -186,16 +186,10 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({
-		store,
-		user,
-		shapeUtils,
-		tools,
-		getContainer,
-		initialState,
-		inferDarkMode,
-	}: TLEditorOptions) {
+	constructor(public readonly opts: TLEditorOptions) {
 		super()
+
+		const { store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode } = opts
 
 		this.store = store
 
