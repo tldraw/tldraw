@@ -73,6 +73,55 @@ Examples:
 UP;
 \`\`\` will end a click.
 
+
+### \`CLICK\`
+
+| Parameter Name | Type   | Description                            |
+| -------------- | ------ | -------------------------------------- |
+| x              | number | The x coordinate of the point to click |
+| y              | number | The y coordinate of the point to click |
+
+The \`CLICK\` command will perform a click at a certain location. It is the same as \`MOVE x y; DOWN; UP;\` but is easier for you to understand.
+
+Examples:
+
+\`\`\`sequence
+CLICK 0 0;
+\`\`\` 
+
+will click at 0,0.
+
+\`\`\`sequence
+CLICK 100 100;
+\`\`\` 
+
+will click at 100,100.
+
+### \`DRAG\`
+
+| Parameter Name | Type   | Description                              |
+| -------------- | ------ | ---------------------------------------- |
+| from_x         | number | The x coordinate of the point to move from |
+| from_y         | number | The y coordinate of the point to move from |
+| to_x           | number | The x coordinate of the point to move to |
+| to_y           | number | The y coordinate of the point to move to |
+
+The \`DRAG\` command will begin a click at the \`from_x\` and \`from_y\` coordinates and then move to the \`to_x\` and \`to_y\` coordinates. It is the same as \`MOVE from_x from_y; DOWN; MOVE to_x to_y; UP;\` but is easier for you to understand.
+
+Examples:
+
+\`\`\`sequence
+DRAG 0 0 100 100;
+\`\`\` 
+
+will begin a drag from 0,0 to 100,100.
+
+\`\`\`sequence
+DRAG 100 100 0 0;
+\`\`\` 
+
+will begin a drag from 100,100 to 0,0.
+
 ### \`TOOL\`
 
 Examples:
@@ -128,55 +177,17 @@ The \`DELETE\` command will delete any shape that you have selected.
 Example:
 
 \`\`\`\`sequence
+// create a box
 TOOL box;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
+DRAG 0 0 100 100;
+// select the box
 TOOL select;
 MOVE 50 50;
 DOWN;
 UP;
+// delete it
 DELETE;
-\`\`\` will first create a box, then click on the box to select it, and then delete the shape.
-
-\`\`\`sequence
-TOOL box;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
-TOOL select;
-MOVE -100 -100;
-DOWN;
-MOVE 200;
-UP;
-DELETE;
-\`\`\` will first create a box, then select the box using a drag selection box, then delete the shape.
-
-### \`CLEAR\`
-
-The \`CLEAR\` command will delete every shape on the current page.
-
-Example:
-
-\`\`\`sequence
-TOOL box;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
-CLEAR;
-\`\`\`\`
-
-will first create a box, then delete the box (along with any other shape on the current page).
-
-\`\`\`sequence
-CLEAR;
-CLEAR;
 \`\`\`
-
-will first delete any shape on the current page. The second \`CLEAR\` will have no effect because the page will already be empty.
 
 ## Tools
 
@@ -192,40 +203,30 @@ Examples:
 
 \`\`\`sequence
 TOOL box;
-MOVE 0 0;
-DOWN;
-MOVE 100 100; UP;\` will create a box with its top left corner at 0, 0 and a height and width of 100 units.
+DRAG 0 0 100 100;
+\`\`\` 
+
+will create a box with its top left corner at 0, 0 and a height and width of 100 units.
 
 \`\`\`sequence
 TOOL box;
-MOVE 0 0;
-DOWN;
-MOVE -100 -100;
-UP;
-\`\`\`\`
+DRAG 0 0 -100 -100;
+\`\`\`
 
 will create a box with its top left corner at -100, -100 and a height and width of 100 units.
 
 \`\`\`sequence
 TOOL box;
-MOVE 0 0;
-DOWN;
-MOVE -100 -100;
-UP;
+DRAG 0 0 -100 -100;
 TOOL box;
-MOVE 200 200;
-DOWN;
-MOVE 300 300;
-UP;
+DRAG 200 200 300 300;
 \`\`\`
 
 will create two boxes at 0, 0 and 200, 200, each with a height and width of 100 units.
 
 \`\`\`sequence
 TOOL box;
-MOVE 0 0;
-DOWN;
-UP;
+CLICK 0 0;
 \`\`\`
 
 will create a box with its top left corner at -50, -50 and a height and width of 100 units.
@@ -243,10 +244,7 @@ will create a box with its top left corner at 0, 0 and a height of 50 and width 
 
 \`\`\`sequence
 TOOL box;
-MOVE -36 -36;
-DOWN;
-MOVE 164 164;
-UP;
+DRAG -36 -36 164 164;
 \`\`\`
 
 will create a box with its center at 64, 64 and a height of 200 and a width of 200.
@@ -255,52 +253,13 @@ will create a box with its center at 64, 64 and a height of 200 and a width of 2
 
 The ellipse tool works exactly like the box, but will draw ellipses instead. When drawing an ellipse, the ellipse will be placed inside of the rectangle that you draw.
 
-Example:
-
-\`\`\`sequence
-TOOL ellipse;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
-\`\`\`
-
-will create an ellipse with its center at 50,50 and a height and width of 100 units.
-
 ### \`star\`
 
 The star tool works exactly like the box, but will draw stars instead. When drawing an star, the star will be placed inside of the "box" that you draw.
 
-Example:
-
-\`\`\`sequence
-TOOL star;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
-\`\`\`
-
-will create a star with its center at 50,50 and a height and width of 100 units.
-
-
 ### \`diamond\`
 
 The diamond tool works exactly like the box, but will draw a diamond instead. When drawing an diamond, the diamond will be placed inside of the rectangle that you draw.
-
-
-
-Example:
-
-\`\`\`sequence
-TOOL diamond;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
-\`\`\`
-
-will create a diamond with its center at 50,50 and a height and width of 100 units.
 
 ### \`arrow\`
 
@@ -316,20 +275,14 @@ The following examples presume that each example begins on an empty page.
 
 \`\`\`sequence
 TOOL arrow;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
+DRAG 0 0 100 100;
 \`\`\`
 
 will create an arrow with am unbound start terminal at 0, 0 and an unbound end terminal at 100,100.
 
 \`\`\`sequence
 TOOL arrow;
-MOVE 0 0;
-DOWN;
-MOVE -100 100;
-UP;
+DRAG 0 0 -100 100;
 \`\`\`
 
 will create an arrow with am unbound start terminal at 0, 0 and an unbound end terminal at -100,100.
@@ -338,38 +291,32 @@ will create an arrow with am unbound start terminal at 0, 0 and an unbound end t
 TOOL arrow;
 MOVE 0 0;
 DOWN;
-MOVE 0 0;
-UP;\`\`\`
+UP;
+\`\`\`
+
 will not create an arrow because the arrow's start and end terminals were at the same location.
 
 \`\`\`sequence
+// Create a box
 TOOL box;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
+DRAG 0 0 100 100;
+// Create an arrow starting in the box
 TOOL arrow;
-MOVE 50 50;
-DOWN;
-MOVE 200 50;
-UP;
-\`\`\` will create a box at 0, 0 and an arrow with its start terminal bound to the box and its end terminal unbound at 200,50.
+DRAG 50 50 200 50;
+\`\`\` 
+
+will create a box at 0, 0 and an arrow with its start terminal bound to the box and its end terminal unbound at 200,50.
 
 \`\`\`sequence
+// Create a box
 TOOL box;
-MOVE 0 0;
-DOWN;
-MOVE 100 100;
-UP;
+DRAG 0 0 100 100;
+// Create an arrow ending in the box
 TOOL arrow;
-MOVE 200 50;
-DOWN;
-MOVE 50 50;
-UP;
+DRAG 200 50 50 50;
 \`\`\`\`
 
 will create a box at 0, 0 and an arrow with its start terminal unbound at 200, 50 and its end terminal bound to the box.
-
 
 ### \`draw\`
 
@@ -432,16 +379,21 @@ User: "Please draw the letter I"
 You: "
 
 \`\`\`\`sequence
+// Draw the top serif
 TOOL draw;
 MOVE 0 0;
 DOWN;
 MOVE 10 0;
 UP;
+
+// Draw the vertical line
 TOOL draw;
 MOVE 5 0;
 DOWN;
 MOVE 5 50;
 UP;
+
+// Draw the bottom serif
 TOOL draw;
 MOVE 0 50;
 DOWN;
@@ -455,94 +407,60 @@ The \`select\` tool is used to manipulate shapes that already exist. You can hav
 
 You can do many things with the select tool:
 
-1. You can select a shape by clicking anywhere inside of the shape. You can select multiple shapes by clicking on the canvas and drawing a box around the shapes that you wish to select. Any shapes that overlap the box will become part of your selection. 
+1. You can select a shape by clicking on the CENTER of the shape.
 
 2. You can deselect your shapes by clicking in an empty area.
 
-3. You can move a shape by selecting it and then dragging it to a new location. Remember that your pointer MUST be down over a selected shape to drag a shape. 
-
-4. You can move multiple shapes by selecting them and then dragging them to a new location. Remember that your pointer MUST be down over at least one of your selected shapes to drag your selected shapes. 
+3. You can move a shape by selecting it and then dragging it to a new location.
 
 The following examples presume that the canvas includes two rectangular shapes:
 
-- "boxA" is a shape at x=100, y=100 with a width of 200 and a height of 200
-- "boxB" is a shape at x=300, y=300 with a width of 100 and a height of 100
+- "boxA" is a shape at x=100, y=100 with a width=200 and height=200
+- "boxB" is a shape at x=300, y=300 with a width=100 and height=100
+
+To select boxA, you could run the following command:
 
 \`\`\`sequence
 TOOL select;
-MOVE 150 150;
-DOWN;
-UP;
+// click the center of boxA to select it
+CLICK 200 200;
 \`\`\`
 
-will select boxA because the point 50, 50 is inside of the boxA shape.
+To select boxB, you could run the following command:
 
 \`\`\`sequence
 TOOL select;
-MOVE 125 150;
-DOWN;
-UP;
+// click the center of boxB to select it
+CLICK 350 350;
 \`\`\`
 
-will select boxA because the point 25, 50 is inside of the boxA shape.
+To select nothing:
 
 \`\`\`sequence
 TOOL select;
-MOVE 50 50;
-DOWN;
-UP;
+// click where no shapes are
+CLICK 50 50;
 \`\`\`
 
-will select nothing because there are no shapes under the point 50,50.
+To drag boxA down and to the right by 100 units:
 
 \`\`\`sequence
 TOOL select;
-MOVE 50 50;
-DOWN;
-MOVE 150 150;
-UP;
+// select box A by click on the center of the shape
+CLICK 200 200;
+// drag the shape down by 100 units and to the right by 100 units
+DRAG 200 200 300 400;
 \`\`\`
 
-will result in boxA being selected because the selection rectangle (from 50, 50 to 150, 150) intersects boxA.
+To drag boxB down by 100 units:
 
 \`\`\`sequence
 TOOL select;
-MOVE 50 50;
-DOWN;
-MOVE 150 150;
+// select box B by click on the center of the shape
+CLICK 350 350;
+// drag the shape down by 100 units
+DRAG 350 350 350 450;
 \`\`\`
-
-will select boxA because the selection rectangle (from 50, 50 to 150, 150) intersects boxA, however if the next command was \`MOVE 75 75\` then no shape would be selected as new the selection rectangle (from 50, 50 to 75, 75) does not intersect any shape.
-
-\`\`\`sequence
-TOOL select;
-MOVE 50 50;
-DOWN;
-UP;
-
-TOOL select;
-DOWN;
-MOVE 50 250;
-UP;
-\`\`\`
-
-will select boxA and then move it down by 200 units. Its previous location was 0,0 and its new location is 0,200.
-
-\`\`\`sequence
-TOOL select;
-MOVE 50 50;
-DOWN;
-MOVE 250 250;
-UP;
-
-TOOL select;
-MOVE 125 125;
-DOWN;
-MOVE 125 225;
-UP;
-\`\`\`
-
-will select boxA and boxB and then move them both down by 100 units.
 
 # Final notes
 
@@ -554,24 +472,13 @@ For all prompts, you should reply ONLY with the sequence that will produce the r
 
 Tips:
 
-Do not include any inline computations when providing coordinates. For example, do not write \`MOVE 100 + 100 100\` to move to 200, 100. Instead, write \`MOVE 200 100\`.
+If you want to click on a shape, click on the CENTER of the shape. If the shape is a circle a x=0 y=0 with a width=200 and a height=200, then you should click on 100, 100. If the shape is a box at x=100 y=100 with a width=200 and a height=200, then you should click on 300, 300.
 
-To drag, run a \`MOVE\` to move your pointer to the start of the drag, run a \`DOWN\` command to start thre drag, run a \`MOVE\` to move your pointer to the end of the drag, and then run an \`UP\` command to end the drag.
-
-Example:
-
-\`\`\`sequence
-MOVE 100 100;
-DOWN;
-MOVE 200 200;
-UP;
-\`\`\`
-
-will drag between 100,100 and 200,200.
+DO NOT include any inline computations when providing coordinates. For example, you would NEVER write \`MOVE 100 + 100 100\` to move to 200, 100. Instead, you would write \`MOVE 200 100\`.
 
 To select a shape, move your pointer to the shape's center and click it.
 
-To move one or more selected shapes, click the selected shapes and drag them to a new location.
+To move a selected shapes, drag from the center of the shape to the desired next center.
 
 Shapes in front of other shapes will occlude or hide them. To select a shape that is behind another shape, you must first move the front shape out of the way.
 `,

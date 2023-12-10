@@ -23,5 +23,6 @@ export default defineConfig({
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
 		'process.env.VITE_OPENAI_API_KEY': JSON.stringify(process.env.VITE_OPENAI_API_KEY),
+		'process.env.VITE_ASSISTANT_ID': JSON.stringify(process.env.VITE_ASSISTANT_ID),
 	},
 })

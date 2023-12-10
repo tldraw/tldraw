@@ -8,6 +8,7 @@ import {
 	TLTextShape,
 	Tldraw,
 	Vec2d,
+	VecLike,
 	createShapeId,
 	stopEventPropagation,
 	uniqueId,
@@ -39,7 +40,7 @@ function InFrontOfTheCanvas() {
 	const [thread, setThread] = useState<OpenAI.Beta.Threads.Thread | null>(null)
 
 	const setup = useCallback(async function setup() {
-		const assistant = await openai.beta.assistants.create({
+		const assistant = await openai.beta.assistants.update(process.env.VITE_ASSISTANT_ID!, {
 			instructions: aistuff.prompt,
 			model: 'gpt-4-32k-0613',
 			tools: [
@@ -156,7 +157,7 @@ ${getCurrentPageDescription(editor)}`
 			style={{
 				position: 'absolute',
 				width: 600,
-				top: 100,
+				top: 64,
 				left: 16,
 				zIndex: 10000,
 				pointerEvents: 'all',
@@ -336,21 +337,81 @@ async function parseSequence(editor: Editor, text: string) {
 					continue
 				}
 
+				if (line.startsWith('CLICK')) {
+					const regex = /CLICK (.*) (.*)/
+					const match = line.match(regex)
+					if (!match) throw Error('Could not parse click')
+
+					const [, x1, y1] = match
+
+					const point = editor.pageToScreen({ x: eval(x1), y: eval(y1) })
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_move',
+						point,
+					})
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_down',
+						point,
+					})
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_up',
+						point: point,
+					})
+
+					await new Promise((resolve) => setTimeout(resolve, 450))
+
+					continue
+				}
+
+				if (line.startsWith('DRAG')) {
+					const regex = /DRAG (.*) (.*) (.*) (.*)/
+					const match = line.match(regex)
+					if (!match) throw Error('Could not parse drag')
+
+					const [, x1, y1, x2, y2] = match
+
+					const from = editor.pageToScreen({ x: eval(x1), y: eval(y1) })
+					const to = editor.pageToScreen({ x: eval(x2), y: eval(y2) })
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_move',
+						point: from,
+					})
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_down',
+						point: from,
+					})
+
+					await movePointer(editor, to)
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_up',
+						point: to,
+					})
+
+					await new Promise((resolve) => setTimeout(resolve, 450))
+
+					continue
+				}
+
 				if (line.startsWith('DOWN')) {
 					// extract the x and y from "MOVE 50 50;"
 					const { x, y } = editor.inputs.currentScreenPoint
 
 					editor.dispatch({
-						type: 'pointer',
+						...basePoint,
 						name: 'pointer_down',
 						point: { x, y },
-						target: 'canvas',
-						pointerId: 1,
-						button: 0,
-						isPen: false,
-						shiftKey: false,
-						altKey: false,
-						ctrlKey: false,
 					})
 					continue
 				}
@@ -360,16 +421,9 @@ async function parseSequence(editor: Editor, text: string) {
 					const { x, y } = editor.inputs.currentScreenPoint
 
 					editor.dispatch({
-						type: 'pointer',
+						...basePoint,
 						name: 'pointer_up',
 						point: { x, y },
-						target: 'canvas',
-						pointerId: 1,
-						button: 0,
-						isPen: false,
-						shiftKey: false,
-						altKey: false,
-						ctrlKey: false,
 					})
 
 					await new Promise((resolve) => setTimeout(resolve, 450))
@@ -385,26 +439,8 @@ async function parseSequence(editor: Editor, text: string) {
 					// convert from page to screen
 					const [, px, py] = match
 					const next = editor.pageToScreen({ x: eval(px), y: eval(py) })
+					await movePointer(editor, next)
 
-					const curr = editor.inputs.currentScreenPoint
-					const dist = Vec2d.Dist(curr, next)
-					const steps = Math.ceil(dist / 16)
-
-					for (let i = 0; i < steps; i++) {
-						await new Promise((resolve) => setTimeout(resolve, 16))
-						editor.dispatch({
-							type: 'pointer',
-							name: 'pointer_move',
-							point: Vec2d.Lrp(curr, next, i / steps),
-							target: 'canvas',
-							pointerId: 1,
-							button: 0,
-							isPen: false,
-							shiftKey: false,
-							altKey: false,
-							ctrlKey: false,
-						})
-					}
 					continue
 				}
 			}
@@ -439,3 +475,29 @@ function getCurrentPageDescription(editor: Editor) {
 
 	return result
 }
+
+async function movePointer(editor: Editor, to: VecLike) {
+	const curr = editor.inputs.currentScreenPoint
+	const dist = Vec2d.Dist(curr, to)
+	const steps = Math.ceil(dist / 16)
+
+	for (let i = 0; i < steps; i++) {
+		await new Promise((resolve) => setTimeout(resolve, 16))
+		editor.dispatch({
+			...basePoint,
+			name: 'pointer_move',
+			point: Vec2d.Lrp(curr, to, i / steps),
+		})
+	}
+}
+const basePoint = {
+	type: 'pointer',
+	name: 'pointer_down',
+	target: 'canvas',
+	pointerId: 1,
+	button: 0,
+	isPen: false,
+	shiftKey: false,
+	altKey: false,
+	ctrlKey: false,
+} as const
