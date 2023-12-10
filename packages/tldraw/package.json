@@ -57,7 +57,8 @@
 		"classnames": "^2.3.2",
 		"downscale": "^1.0.6",
 		"hotkeys-js": "^3.11.2",
-		"lz-string": "^1.4.4"
+		"lz-string": "^1.4.4",
+		"openai": "^4.20.1"
 	},
 	"peerDependencies": {
 		"react": "^18",
