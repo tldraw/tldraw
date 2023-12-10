@@ -25,6 +25,7 @@ import ExplodedExample from './examples/ExplodedExample'
 import ExternalContentSourcesExample from './examples/ExternalContentSourcesExample'
 import FloatyExample from './examples/FloatyExample'
 import ForceMobileExample from './examples/ForceBreakpointExample'
+import GPTExample from './examples/GPTExample/GPTExample'
 import HideUiExample from './examples/HideUiExample'
 import MetaExample from './examples/MetaExample'
 import MultipleExample from './examples/MultipleExample'
@@ -147,6 +148,11 @@ export const allExamples: Example[] = [
 		title: 'Store events',
 		path: 'store-events',
 		element: <StoreEventsExample />,
+	},
+	{
+		title: 'Chat GPT',
+		path: 'gpt',
+		element: <GPTExample />,
 	},
 	{
 		title: 'User presence',
