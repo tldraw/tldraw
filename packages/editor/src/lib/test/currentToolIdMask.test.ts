@@ -24,6 +24,7 @@ beforeEach(() => {
 	editor = new Editor({
 		initialState: 'A',
 		shapeUtils: [],
+		bindingUtils: [],
 		tools: [A, B, C],
 		store: createTLStore({ shapeUtils: [] }),
 		getContainer: () => document.body,

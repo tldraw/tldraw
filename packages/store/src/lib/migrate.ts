@@ -24,9 +24,7 @@ export function defineMigrations<
 
 	// Some basic guards against impossible version combinations, some of which will be caught by TypeScript
 	if (typeof currentVersion === 'number' && typeof firstVersion === 'number') {
-		if ((currentVersion as number) === (firstVersion as number)) {
-			throw Error(`Current version is equal to initial version.`)
-		} else if (currentVersion < firstVersion) {
+		if (currentVersion < firstVersion) {
 			throw Error(`Current version is lower than initial version.`)
 		}
 	}

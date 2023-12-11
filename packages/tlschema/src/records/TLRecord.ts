@@ -1,4 +1,5 @@
 import { TLAsset } from './TLAsset'
+import { TLBinding } from './TLBinding'
 import { TLCamera } from './TLCamera'
 import { TLDocument } from './TLDocument'
 import { TLInstance } from './TLInstance'
@@ -16,6 +17,7 @@ export type TLRecord =
 	| TLInstance
 	| TLInstancePageState
 	| TLPage
+	| TLBinding
 	| TLShape
 	| TLInstancePresence
 	| TLPointer

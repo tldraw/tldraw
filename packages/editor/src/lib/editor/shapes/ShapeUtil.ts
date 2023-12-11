@@ -280,7 +280,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 
 	/**
 	 * A callback called just before a shape is created. This method provides a last chance to modify
-	 * the created shape.
+	 * the created shape. This method only applies to shapes created by the user, not shapes created
+	 * by multiplayer peers or through direct manipulation of the store.
 	 *
 	 * @example
 	 *
@@ -295,6 +296,46 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onBeforeCreate?: TLOnBeforeCreateHandler<Shape>
+
+	/**
+	 * A callback called just after a shape is created.
+	 *
+	 * This applies to both shapes created locally by the user and shapes created by
+	 * multiplayer peers or through direct manipulation of the store.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * onAfterCreate = (next) => {
+	 *   // do something
+	 * }
+	 * ```
+	 *
+	 * @param next - The next shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
+	onAfterAddedToStore?: TLOnAfterAddedToStoreHandler<Shape>
+
+	/**
+	 * A callback called just after a shape is created.
+	 *
+	 * This applies to both shapes created locally by the user and shapes created by
+	 * multiplayer peers or through direct manipulation of the store.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * onAfterCreate = (next) => {
+	 *   // do something
+	 * }
+	 * ```
+	 *
+	 * @param next - The next shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
+	onAfterChange?: TLOnAfterChangeHandler<Shape>
 
 	/**
 	 * A callback called just before a shape is updated. This method provides a last chance to modify
@@ -441,14 +482,51 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onRotateEnd?: TLOnRotateEndHandler<Shape>
 
 	/**
-	 * A callback called when a shape's handle changes.
+	 * A callback called when a shape's handle changes during a drag interaction.
 	 *
 	 * @param shape - The current shape.
-	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @param info - An object containing the handle id, and a state object that can be used to store arbitrary data related to the interaction.
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onHandleChange?: TLOnHandleChangeHandler<Shape>
+	/**
+	 * A callback called when the drag interaction for a handle begins.
+	 *
+	 * @param shape - The current shape.
+	 * @param info - An object containing the handle id, and a state object that can be used to store arbitrary data related to the interaction.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleChangeStart?: TLOnHandleChangeHandler<Shape>
+	/**
+	 * A callback called when the drag interaction for a handle completes successfully.
+	 *
+	 * @param shape - The current shape.
+	 * @param info - An object containing the handle id, and a state object that can be used to store arbitrary data related to the interaction.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleChangeComplete?: TLOnHandleChangeHandler<Shape>
+	/**
+	 * A callback called when the drag interaction for a handle is cancelled and rolled back.
+	 *
+	 * @param shape - The current shape.
+	 * @param info - An object containing the handle id, and a state object that can be used to store arbitrary data related to the interaction.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleChangeCancel?: TLOnHandleChangeHandler<Shape>
+	/**
+	 * A callback called when the drag interaction for a handle ends (either via cancellation or completion). This is called after
+	 * either `onHandleChangeComplete` or `onHandleChangeCancel`.
+	 *
+	 * @param shape - The current shape.
+	 * @param info - An object containing the handle id, and a state object that can be used to store arbitrary data related to the interaction.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleChangeEnd?: TLOnHandleChangeHandler<Shape>
 
 	/**
 	 * Not currently used.
@@ -514,6 +592,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 
 /** @public */
 export type TLOnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void
+/** @public */
+export type TLOnAfterAddedToStoreHandler<T extends TLShape> = (next: T) => void
+/** @public */
+export type TLOnAfterChangeHandler<T extends TLShape> = (prev: T, next: T) => void
 /** @public */
 export type TLOnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void
 /** @public */

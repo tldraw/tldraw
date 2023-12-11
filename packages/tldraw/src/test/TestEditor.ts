@@ -28,6 +28,7 @@ import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { shapesFromJsx } from './test-jsx'
+import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 
 jest.useFakeTimers()
 
@@ -62,6 +63,7 @@ export class TestEditor extends Editor {
 		super({
 			...options,
 			shapeUtils: [...shapeUtilsWithDefaults],
+			bindingUtils: [...defaultBindingUtils],
 			tools: [...defaultTools, ...defaultShapeTools, ...(options.tools ?? [])],
 			store: createTLStore({ shapeUtils: [...shapeUtilsWithDefaults] }),
 			getContainer: () => elm,

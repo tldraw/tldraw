@@ -519,6 +519,104 @@
         },
         {
           "kind": "Variable",
+          "canonicalReference": "@tldraw/tlschema!bindingIdValidator:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "bindingIdValidator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBindingId",
+              "canonicalReference": "@tldraw/tlschema!TLBindingId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/TLBaseBinding.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "bindingIdValidator",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!BindingProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type BindingProps<Binding extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBaseBinding",
+              "canonicalReference": "@tldraw/tlschema!TLBaseBinding:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<any, any>"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    [K in keyof Binding['props']]: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validatable",
+              "canonicalReference": "@tldraw/validate!Validatable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<Binding['props'][K]>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/TLBaseBinding.ts",
+          "releaseTag": "Public",
+          "name": "BindingProps",
+          "typeParameters": [
+            {
+              "typeParameterName": "Binding",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 4,
+            "endIndex": 7
+          }
+        },
+        {
+          "kind": "Variable",
           "canonicalReference": "@tldraw/tlschema!bookmarkShapeProps:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -948,6 +1046,222 @@
           "name": "createAssetValidator"
         },
         {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tlschema!createBindingId:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function createBindingId(id?: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBindingId",
+              "canonicalReference": "@tldraw/tlschema!TLBindingId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "id",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "createBindingId"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tlschema!createBindingValidator:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function createBindingValidator<Type extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", Props extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "JsonObject",
+              "canonicalReference": "@tldraw/utils!JsonObject:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", Meta extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "JsonObject",
+              "canonicalReference": "@tldraw/utils!JsonObject:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">(type: "
+            },
+            {
+              "kind": "Content",
+              "text": "Type"
+            },
+            {
+              "kind": "Content",
+              "text": ", props?: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    [K in keyof Props]: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validatable",
+              "canonicalReference": "@tldraw/validate!Validatable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<Props[K]>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ", meta?: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    [K in keyof Meta]: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validatable",
+              "canonicalReference": "@tldraw/validate!Validatable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<Meta[K]>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.ObjectValidator",
+              "canonicalReference": "@tldraw/validate!ObjectValidator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBaseBinding",
+              "canonicalReference": "@tldraw/tlschema!TLBaseBinding:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<Type, Props>>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/TLBaseBinding.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 17,
+            "endIndex": 21
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "type",
+              "parameterTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "props",
+              "parameterTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 12
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "meta",
+              "parameterTypeTokenRange": {
+                "startIndex": 13,
+                "endIndex": 16
+              },
+              "isOptional": true
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "Type",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            },
+            {
+              "typeParameterName": "Props",
+              "constraintTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            },
+            {
+              "typeParameterName": "Meta",
+              "constraintTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "createBindingValidator"
+        },
+        {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tlschema!createPresenceStateDerivation:var",
           "docComment": "/**\n * @public\n */\n",
@@ -1238,7 +1552,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function createTLSchema({ shapes }: "
+              "text": "export declare function createTLSchema({ shapes, bindings, }: "
             },
             {
               "kind": "Content",
@@ -1260,6 +1574,24 @@
             },
             {
               "kind": "Content",
+              "text": ">;\n    bindings: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "SchemaBindingInfo",
+              "canonicalReference": "@tldraw/tlschema!SchemaBindingInfo:type"
+            },
+            {
+              "kind": "Content",
               "text": ">;\n}"
             },
             {
@@ -1278,17 +1610,17 @@
           ],
           "fileUrlPath": "packages/tlschema/src/createTLSchema.ts",
           "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 8
+            "startIndex": 11,
+            "endIndex": 12
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ shapes }",
+              "parameterName": "{ shapes, bindings, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 10
               },
               "isOptional": false
             }
@@ -2513,6 +2845,117 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tlschema!isBinding:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function isBinding(record?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "record",
+              "canonicalReference": "@tldraw/tlschema!~record"
+            },
+            {
+              "kind": "Content",
+              "text": " is "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBinding",
+              "canonicalReference": "@tldraw/tlschema!TLBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "record",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "isBinding"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tlschema!isBindingId:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function isBindingId(id?: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "id",
+              "canonicalReference": "@tldraw/tlschema!~id"
+            },
+            {
+              "kind": "Content",
+              "text": " is "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBindingId",
+              "canonicalReference": "@tldraw/tlschema!TLBindingId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "id",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "isBindingId"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tlschema!isPageId:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -3021,6 +3464,59 @@
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 6
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!SchemaBindingInfo:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type SchemaBindingInfo = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    migrations?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Migrations",
+              "canonicalReference": "@tldraw/store!Migrations:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    props?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, {\n        validate: (prop: any) => any;\n    }>;\n    meta?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, {\n        validate: (prop: any) => any;\n    }>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/createTLSchema.ts",
+          "releaseTag": "Public",
+          "name": "SchemaBindingInfo",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 8
           }
         },
         {
@@ -4228,6 +4724,229 @@
         },
         {
           "kind": "Interface",
+          "canonicalReference": "@tldraw/tlschema!TLBaseBinding:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface TLBaseBinding<Type extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", Props extends "
+            },
+            {
+              "kind": "Content",
+              "text": "object"
+            },
+            {
+              "kind": "Content",
+              "text": "> extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseRecord",
+              "canonicalReference": "@tldraw/store!BaseRecord:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<'binding', "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBindingId",
+              "canonicalReference": "@tldraw/tlschema!TLBindingId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/TLBaseBinding.ts",
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "Type",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            },
+            {
+              "typeParameterName": "Props",
+              "constraintTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "TLBaseBinding",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLBaseBinding#fromShapeId:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "fromShapeId: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "fromShapeId",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLBaseBinding#meta:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "meta: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonObject",
+                  "canonicalReference": "@tldraw/utils!JsonObject:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "meta",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLBaseBinding#props:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "props: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Props"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "props",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLBaseBinding#toShapeId:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "toShapeId: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "toShapeId",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLBaseBinding#type:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "type: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "type",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": [
+            {
+              "startIndex": 5,
+              "endIndex": 9
+            }
+          ]
+        },
+        {
+          "kind": "Interface",
           "canonicalReference": "@tldraw/tlschema!TLBaseShape:interface",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -4583,6 +5302,264 @@
               "endIndex": 9
             }
           ]
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLBinding:type",
+          "docComment": "/**\n * The set of all shapes that are available in the editor, including unknown shapes.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBinding = "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultBinding",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUnknownBinding",
+              "canonicalReference": "@tldraw/tlschema!TLUnknownBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "releaseTag": "Public",
+          "name": "TLBinding",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLBindingId:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBindingId = "
+            },
+            {
+              "kind": "Reference",
+              "text": "RecordId",
+              "canonicalReference": "@tldraw/store!RecordId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUnknownBinding",
+              "canonicalReference": "@tldraw/tlschema!TLUnknownBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "releaseTag": "Public",
+          "name": "TLBindingId",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLBindingPartial:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBindingPartial<T extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBinding",
+              "canonicalReference": "@tldraw/tlschema!TLBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBinding",
+              "canonicalReference": "@tldraw/tlschema!TLBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "T extends T ? {\n    id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBindingId",
+              "canonicalReference": "@tldraw/tlschema!TLBindingId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    type: T['type'];\n    props?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<T['props']>;\n    meta?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<T['meta']>;\n} & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<T, 'id' | 'meta' | 'props' | 'type'>> : never"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "releaseTag": "Public",
+          "name": "TLBindingPartial",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 16
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLBindingProp:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBindingProp = "
+            },
+            {
+              "kind": "Content",
+              "text": "keyof "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBindingProps",
+              "canonicalReference": "@tldraw/tlschema!TLBindingProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "releaseTag": "Public",
+          "name": "TLBindingProp",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLBindingProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBindingProps = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Identity",
+              "canonicalReference": "@tldraw/tlschema!~Identity:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "UnionToIntersection",
+              "canonicalReference": "@tldraw/tlschema!~UnionToIntersection:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultBinding",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['props']>>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "releaseTag": "Public",
+          "name": "TLBindingProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 7
+          }
         },
         {
           "kind": "TypeAlias",
@@ -5000,6 +5977,33 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLDefaultBinding:type",
+          "docComment": "/**\n * The default set of shapes that are available in the editor.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLDefaultBinding = "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLArrowBinding",
+              "canonicalReference": "@tldraw/tlschema!~TLArrowBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "releaseTag": "Public",
+          "name": "TLDefaultBinding",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
           }
         },
         {
@@ -8427,6 +9431,15 @@
             },
             {
               "kind": "Reference",
+              "text": "TLBinding",
+              "canonicalReference": "@tldraw/tlschema!TLBinding:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
               "text": "TLCamera",
               "canonicalReference": "@tldraw/tlschema!TLCamera:interface"
             },
@@ -8503,7 +9516,7 @@
           "name": "TLRecord",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 18
+            "endIndex": 20
           }
         },
         {
@@ -8878,7 +9891,7 @@
             {
               "kind": "Reference",
               "text": "Identity",
-              "canonicalReference": "@tldraw/tlschema!~Identity:type"
+              "canonicalReference": "@tldraw/tlschema!~Identity_2:type"
             },
             {
               "kind": "Content",
@@ -8887,7 +9900,7 @@
             {
               "kind": "Reference",
               "text": "UnionToIntersection",
-              "canonicalReference": "@tldraw/tlschema!~UnionToIntersection:type"
+              "canonicalReference": "@tldraw/tlschema!~UnionToIntersection_2:type"
             },
             {
               "kind": "Content",
@@ -9157,6 +10170,37 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLUnknownBinding:type",
+          "docComment": "/**\n * A type for a shape that is available in the editor but whose type is unknown—either one of the editor's default shapes or else a custom shape.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUnknownBinding = "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBaseBinding",
+              "canonicalReference": "@tldraw/tlschema!TLBaseBinding:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, object>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLBinding.ts",
+          "releaseTag": "Public",
+          "name": "TLUnknownBinding",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
           }
         },
         {

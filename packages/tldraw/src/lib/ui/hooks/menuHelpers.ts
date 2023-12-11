@@ -5,6 +5,7 @@ import {
 	TLShapeId,
 	assert,
 	exhaustiveSwitchError,
+	getArrowBindings,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -151,16 +152,9 @@ function shapesWithUnboundArrows(editor: Editor) {
 
 	return selectedShapes.filter((shape) => {
 		if (!shape) return false
-		if (
-			editor.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
-			shape.props.start.type === 'binding'
-		) {
-			return false
-		}
-		if (editor.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.end.type === 'binding') {
-			return false
-		}
-		return true
+		if (!editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) return true
+		const { startBinding, endBinding } = getArrowBindings(editor, shape)
+		return !(startBinding || endBinding)
 	})
 }
 
@@ -183,13 +177,14 @@ function shapesWithArrowsBoundToThem(editor: Editor) {
 	})
 	// We want to get all the arrows that are either unbound or bound to one of the selected shapes
 	const groupableArrows = arrows.filter((arrow) => {
-		if (arrow.props.start.type === 'binding') {
-			if (!otherShapesMap.has(arrow.props.start.boundShapeId)) {
+		const { startBinding, endBinding } = getArrowBindings(editor, arrow)
+		if (startBinding) {
+			if (!otherShapesMap.has(startBinding.toShapeId)) {
 				return false
 			}
 		}
-		if (arrow.props.end.type === 'binding') {
-			if (!otherShapesMap.has(arrow.props.end.boundShapeId)) {
+		if (endBinding) {
+			if (!otherShapesMap.has(endBinding.toShapeId)) {
 				return false
 			}
 		}

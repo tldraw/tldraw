@@ -81,6 +81,14 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 // @internal (undocumented)
 export const assetValidator: T.Validator<TLAsset>;
 
+// @public (undocumented)
+export const bindingIdValidator: T.Validator<TLBindingId>;
+
+// @public (undocumented)
+export type BindingProps<Binding extends TLBaseBinding<any, any>> = {
+    [K in keyof Binding['props']]: T.Validatable<Binding['props'][K]>;
+};
+
 // @internal (undocumented)
 export const bookmarkShapeMigrations: Migrations;
 
@@ -123,6 +131,16 @@ export function createAssetValidator<Type extends string, Props extends JsonObje
 }>;
 
 // @public (undocumented)
+export function createBindingId(id?: string): TLBindingId;
+
+// @public (undocumented)
+export function createBindingValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject>(type: Type, props?: {
+    [K in keyof Props]: T.Validatable<Props[K]>;
+}, meta?: {
+    [K in keyof Meta]: T.Validatable<Meta[K]>;
+}): T.ObjectValidator<TLBaseBinding<Type, Props>>;
+
+// @public (undocumented)
 export const createPresenceStateDerivation: ($user: Signal<{
     id: string;
     color: string;
@@ -140,8 +158,9 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<TLBaseShape<Type, Props>>;
 
 // @public
-export function createTLSchema({ shapes }: {
+export function createTLSchema({ shapes, bindings, }: {
     shapes: Record<string, SchemaShapeInfo>;
+    bindings: Record<string, SchemaBindingInfo>;
 }): TLSchema;
 
 // @public (undocumented)
@@ -544,6 +563,12 @@ export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageI
 export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "userId" | "userName">;
 
 // @public (undocumented)
+export function isBinding(record?: UnknownRecord): record is TLBinding;
+
+// @public (undocumented)
+export function isBindingId(id?: string): id is TLBindingId;
+
+// @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
 
 // @public (undocumented)
@@ -700,7 +725,21 @@ export const parentIdValidator: T.Validator<TLParentId>;
 export const PointerRecordType: RecordType<TLPointer, never>;
 
 // @internal (undocumented)
+export const rootBindingMigrations: Migrations;
+
+// @internal (undocumented)
 export const rootShapeMigrations: Migrations;
+
+// @public (undocumented)
+export type SchemaBindingInfo = {
+    migrations?: Migrations;
+    props?: Record<string, {
+        validate: (prop: any) => any;
+    }>;
+    meta?: Record<string, {
+        validate: (prop: any) => any;
+    }>;
+};
 
 // @public (undocumented)
 export type SchemaShapeInfo = {
@@ -808,6 +847,20 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 }
 
 // @public (undocumented)
+export interface TLBaseBinding<Type extends string, Props extends object> extends BaseRecord<'binding', TLBindingId> {
+    // (undocumented)
+    fromShapeId: TLShapeId;
+    // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
+    props: Props;
+    // (undocumented)
+    toShapeId: TLShapeId;
+    // (undocumented)
+    type: Type;
+}
+
+// @public (undocumented)
 export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
     index: string;
@@ -830,6 +883,26 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     // (undocumented)
     y: number;
 }
+
+// @public
+export type TLBinding = TLDefaultBinding | TLUnknownBinding;
+
+// @public (undocumented)
+export type TLBindingId = RecordId<TLUnknownBinding>;
+
+// @public (undocumented)
+export type TLBindingPartial<T extends TLBinding = TLBinding> = T extends T ? {
+    id: TLBindingId;
+    type: T['type'];
+    props?: Partial<T['props']>;
+    meta?: Partial<T['meta']>;
+} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+
+// @public (undocumented)
+export type TLBindingProp = keyof TLBindingProps;
+
+// @public (undocumented)
+export type TLBindingProps = Identity<UnionToIntersection<TLDefaultBinding['props']>>;
 
 // @public
 export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
@@ -870,6 +943,9 @@ export interface TLCursor {
 
 // @public
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
+
+// @public
+export type TLDefaultBinding = TLArrowBinding;
 
 // @public (undocumented)
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
@@ -1150,7 +1226,7 @@ export type TLParentId = TLPageId | TLShapeId;
 export const TLPOINTER_ID: TLPointerId;
 
 // @public (undocumented)
-export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
+export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
 
 // @public (undocumented)
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
@@ -1189,7 +1265,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 export type TLShapeProp = keyof TLShapeProps;
 
 // @public (undocumented)
-export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
+export type TLShapeProps = Identity_2<UnionToIntersection_2<TLDefaultShape['props']>>;
 
 // @public (undocumented)
 export type TLStore = Store<TLRecord, TLStoreProps>;
@@ -1210,6 +1286,9 @@ export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
 
 // @public (undocumented)
 export type TLTextShapeProps = ShapePropsType<typeof textShapeProps>;
+
+// @public
+export type TLUnknownBinding = TLBaseBinding<string, object>;
 
 // @public
 export type TLUnknownShape = TLBaseShape<string, object>;

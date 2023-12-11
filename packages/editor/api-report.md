@@ -8,6 +8,7 @@
 
 import { Atom } from '@tldraw/state';
 import { atom } from '@tldraw/state';
+import { BindingProps } from '@tldraw/tlschema';
 import { Box2dModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
@@ -61,6 +62,7 @@ import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
+import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { track } from '@tldraw/state';
@@ -2660,6 +2662,7 @@ export type TLStoreOptions = {
     schema?: StoreSchema<TLRecord, TLStoreProps>;
 } | {
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
 });
 
 // @public (undocumented)

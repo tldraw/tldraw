@@ -2,6 +2,7 @@ import { Migrations, StoreSchema } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { AssetRecordType } from './records/TLAsset'
+import { createBindingRecordType } from './records/TLBinding'
 import { CameraRecordType } from './records/TLCamera'
 import { DocumentRecordType } from './records/TLDocument'
 import { createInstanceRecordType } from './records/TLInstance'
@@ -22,6 +23,13 @@ export type SchemaShapeInfo = {
 }
 
 /** @public */
+export type SchemaBindingInfo = {
+	migrations?: Migrations
+	props?: Record<string, { validate: (prop: any) => any }>
+	meta?: Record<string, { validate: (prop: any) => any }>
+}
+
+/** @public */
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
 
 /**
@@ -30,7 +38,13 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  * @param opts - Options
  *
  * @public */
-export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeInfo> }): TLSchema {
+export function createTLSchema({
+	shapes,
+	bindings,
+}: {
+	shapes: Record<string, SchemaShapeInfo>
+	bindings: Record<string, SchemaBindingInfo>
+}): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {
 		for (const style of getShapePropKeysByStyle(shape.props ?? {}).keys()) {
@@ -41,6 +55,7 @@ export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeI
 		}
 	}
 
+	const BindingRecordType = createBindingRecordType(bindings)
 	const ShapeRecordType = createShapeRecordType(shapes)
 	const InstanceRecordType = createInstanceRecordType(stylesById)
 
@@ -52,6 +67,7 @@ export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeI
 			instance: InstanceRecordType,
 			instance_page_state: InstancePageStateRecordType,
 			page: PageRecordType,
+			binding: BindingRecordType,
 			shape: ShapeRecordType,
 			instance_presence: InstancePresenceRecordType,
 			pointer: PointerRecordType,

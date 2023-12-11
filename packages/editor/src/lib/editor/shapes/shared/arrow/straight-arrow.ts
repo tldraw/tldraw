@@ -14,12 +14,12 @@ import {
 	MIN_ARROW_LENGTH,
 	STROKE_SIZES,
 	getArrowTerminalsInArrowSpace,
-	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
+	getBoundShapeInfo,
 } from './shared'
 
 export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArrowInfo {
-	const { start, end, arrowheadStart, arrowheadEnd } = shape.props
+	const { arrowheadStart, arrowheadEnd } = shape.props
 
 	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
 
@@ -50,8 +50,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	// Update the arrowhead points using intersections with the bound shapes, if any.
 
-	const startShapeInfo = getBoundShapeInfoForTerminal(editor, start)
-	const endShapeInfo = getBoundShapeInfoForTerminal(editor, end)
+	const { startShapeInfo, endShapeInfo } = getBoundShapeInfo(editor, shape)
 
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 

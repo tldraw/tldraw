@@ -2,6 +2,8 @@ import {
 	AssetRecordType,
 	Box2d,
 	Editor,
+	TLArrowBinding,
+	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLAssetId,
 	TLContent,
@@ -16,6 +18,7 @@ import {
 	Vec2d,
 	VecLike,
 	compact,
+	createBindingId,
 	createShapeId,
 	getIndexAbove,
 	getIndices,
@@ -35,7 +38,9 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 	const { elements, files } = clipboard
 
 	const tldrawContent: TLContent = {
+		version: 1,
 		shapes: [],
+		bindings: [],
 		rootShapeIds: [],
 		assets: [],
 		schema: editor.store.schema.serialize(),
@@ -228,6 +233,39 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 				const startTargetId = excElementIdsToTldrawShapeIds.get(element.startBinding?.elementId)
 				const endTargetId = excElementIdsToTldrawShapeIds.get(element.endBinding?.elementId)
 
+				if (startTargetId) {
+					tldrawContent.bindings.push({
+						id: createBindingId(),
+						typeName: 'binding',
+						fromShapeId: base.id,
+						toShapeId: startTargetId,
+						meta: {},
+						type: 'arrow',
+						props: {
+							terminal: 'start',
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isExact: false,
+							isPrecise: false
+						},
+					} satisfies TLArrowBinding)
+				}
+				if (endTargetId) {
+					tldrawContent.bindings.push({
+						id: createBindingId(),
+						typeName: 'binding',
+						fromShapeId: base.id,
+						toShapeId: endTargetId,
+						meta: {},
+						type: 'arrow',
+						props: {
+							terminal: 'end',
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isExact: false,
+							isPrecise: false,
+						},
+					} satisfies TLArrowBinding)
+				}
+
 				tldrawContent.shapes.push({
 					...base,
 					type: 'arrow',
@@ -237,36 +275,21 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth] ?? 'm',
 						color: colorsToColors[element.strokeColor] ?? 'black',
-						start: startTargetId
-							? {
-									type: 'binding',
-									boundShapeId: startTargetId,
-									normalizedAnchor: { x: 0.5, y: 0.5 },
-									isPrecise: false,
-									isExact: false,
-							  }
-							: {
-									type: 'point',
-									x: start[0],
-									y: start[1],
-							  },
-						end: endTargetId
-							? {
-									type: 'binding',
-									boundShapeId: endTargetId,
-									normalizedAnchor: { x: 0.5, y: 0.5 },
-									isPrecise: false,
-									isExact: false,
-							  }
-							: {
-									type: 'point',
-									x: end[0],
-									y: end[1],
-							  },
+						start: {
+							x: start[0],
+							y: start[1],
+						},
+						end: {
+							x: end[0],
+							y: end[1],
+						},
 						arrowheadEnd: arrowheadsToArrowheadTypes[element.endArrowhead] ?? 'none',
 						arrowheadStart: arrowheadsToArrowheadTypes[element.startArrowhead] ?? 'none',
+						fill: 'none',
+						font: 'draw',
+						labelColor: 'black',
 					},
-				})
+				} satisfies TLArrowShape)
 				break
 			}
 			case 'text': {

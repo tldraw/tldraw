@@ -9,6 +9,7 @@ export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndi
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
+export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'
