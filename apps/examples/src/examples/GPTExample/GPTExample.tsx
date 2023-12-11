@@ -1,10 +1,12 @@
 import OpenAI from 'openai'
 
 import {
+	EASINGS,
 	Editor,
 	GeoShapeGeoStyle,
 	TLEditorComponents,
 	TLGeoShape,
+	TLKeyboardEventInfo,
 	TLTextShape,
 	Tldraw,
 	Vec2d,
@@ -13,10 +15,10 @@ import {
 	stopEventPropagation,
 	uniqueId,
 	useEditor,
+	useLocalStorageState,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import aistuff from './aistuff'
 
 const { log: oklog } = console
 
@@ -35,34 +37,22 @@ function InFrontOfTheCanvas() {
 	const editor = useEditor()
 
 	const [state, setState] = useState<'ready' | 'working'>('ready')
+	const [text, setText] = useLocalStorageState(
+		'gpt input',
+		'Create a box at the center of the viewport.'
+	)
 
 	const [assistant, setAssistant] = useState<OpenAI.Beta.Assistants.Assistant | null>(null)
 	const [thread, setThread] = useState<OpenAI.Beta.Threads.Thread | null>(null)
 
 	const setup = useCallback(async function setup() {
+		// const assistant = await openai.beta.assistants.retrieve(process.env.VITE_ASSISTANT_ID!)
+
+		const prompt = await fetch('./prompt.md').then((r) => r.text())
+		console.log(prompt)
 		const assistant = await openai.beta.assistants.update(process.env.VITE_ASSISTANT_ID!, {
-			instructions: aistuff.prompt,
+			instructions: prompt,
 			model: 'gpt-4-32k-0613',
-			tools: [
-				{
-					type: 'function',
-					function: {
-						name: 'getSequence',
-						description: 'Get the sequence of commands based on the prompt.',
-						parameters: {
-							type: 'object',
-							properties: {
-								response: {
-									type: 'string',
-									description:
-										'The sequence of commands to run in order to achieve the desired outcome.',
-								},
-							},
-							required: ['prompt'],
-						},
-					},
-				},
-			],
 		})
 		setAssistant(assistant)
 
@@ -78,7 +68,7 @@ function InFrontOfTheCanvas() {
 
 	const handleButtonClick = useCallback(
 		async function handleButtonClick() {
-			// parseSequence(editor, test2)
+			// parseSequence(editor, test3)
 			// return
 
 			if (!thread || !assistant) return
@@ -89,14 +79,18 @@ function InFrontOfTheCanvas() {
 				setState('working')
 
 				const { x, y, w, h } = editor.getViewportPageBounds()
-				const prompt = `
-Return a sequence that will achieve the following action: ${myPrompt}
+				const prompt = `Current viewport: 
+	x: ${x.toFixed(0)} 
+	y: ${y.toFixed(0)} 
+	w: ${w.toFixed(0)} 
+	h: ${h.toFixed(0)}
 
-Here's some info to help you: 
+Current page:
+${getCurrentPageDescription(editor)}
 
-The current viewport is at x=${x.toFixed(0)} y=${y.toFixed(0)} w=${w.toFixed(0)} h=${h.toFixed(0)}
-
-${getCurrentPageDescription(editor)}`
+Prompt:
+${myPrompt}
+`
 
 				await openai.beta.threads.messages.create(thread.id, {
 					role: 'user',
@@ -109,35 +103,60 @@ ${getCurrentPageDescription(editor)}`
 					assistant_id: assistant.id,
 				})
 
-				let i = 0
-				while (i < 20000) {
-					oklog('waiting...', i)
-					await new Promise((resolve) => setTimeout(resolve, 1000))
-					const status = await openai.beta.threads.runs.retrieve(thread.id, run.id)
+				const start_time = Date.now()
 
-					if (status.status === 'completed') {
-						const messages = await openai.beta.threads.messages.list(thread.id)
+				// eslint-disable-next-line no-constant-condition
+				while (true) {
+					await new Promise((resolve) => setTimeout(resolve, 500))
 
-						const mostRecent = messages.data[0]
-						const content = mostRecent.content[0]
-						if (content.type === 'text') {
-							const text = content.text.value
-							oklog(text)
-							parseSequence(editor, text)
-						}
+					const duration = Date.now() - start_time
+
+					// Break after 30 seconds
+					if (duration > 30 * 1000) {
+						oklog('Cancelling')
+						await openai.beta.threads.runs.cancel(thread.id, run.id)
 						setState('ready')
-						return
-					} else if (status.status === 'failed') {
-						setState('ready')
-						return
+						break
 					}
-					i += 1000
+
+					const runningRun = await openai.beta.threads.runs.retrieve(thread.id, run.id)
+
+					switch (runningRun.status) {
+						case 'requires_action': {
+							oklog(runningRun)
+							oklog('requires action')
+							setState('ready')
+							return
+						}
+						case 'expired': {
+							oklog(runningRun)
+							oklog('expired')
+							setState('ready')
+							return
+						}
+						case 'failed': {
+							oklog(runningRun)
+							oklog('failed', runningRun.last_error)
+							setState('ready')
+							return
+						}
+						case 'completed': {
+							const messages = await openai.beta.threads.messages.list(thread.id)
+							const mostRecent = messages.data[0]
+							oklog(mostRecent)
+							for (const content of mostRecent.content) {
+								if (content.type === 'text') {
+									const text = content.text.value
+									oklog(text)
+									parseSequence(editor, text)
+								}
+							}
+							setState('ready')
+							return
+						}
+					}
 				}
-
-				await openai.beta.threads.runs.cancel(thread.id, run.id)
-
 				// didn't work
-				setState('ready')
 			} catch (e) {
 				console.error(e)
 			}
@@ -168,7 +187,8 @@ ${getCurrentPageDescription(editor)}`
 			<input
 				ref={rInput}
 				style={{ flexGrow: 2, fontSize: 20 }}
-				defaultValue="Create a box at the center of the viewport."
+				value={text}
+				onChange={(e) => setText(e.currentTarget.value)}
 			/>
 			<button onClick={handleButtonClick}>{state === 'ready' ? 'Send' : 'Working...'}</button>
 			<button onClick={handleRestart}>Restart</button>
@@ -226,35 +246,69 @@ export default function GPTExample() {
 
 // `
 
+const test3 = `\`\`\`sequence
+// select the bottom shape
+TOOL select; 
+CLICK -836 126;
+
+// move the shape to desired location for bottom of snowman
+TOOL select; 
+DRAG -836 126 -650 100;
+
+// select the middle shape
+TOOL select; 
+CLICK -630 94;
+
+// move the shape to align center with bottom shape and place on top
+TOOL select; 
+DRAG -630 94 -650 50;
+
+// select the top shape
+TOOL select; 
+CLICK -313 -71.5;
+
+// move the shape to align center with middle shape and place on top
+TOOL select; 
+DRAG -313 -71.5 -650 10;
+\`\`\``
+
 async function parseSequence(editor: Editor, text: string) {
 	const biglines = text.split('\n')
 	let isInSequence = false
 	for (const bigline of biglines) {
+		// Skip empty lines and comments
+		if (!bigline || bigline.startsWith('// ')) continue
+
+		// Split multiple commands per line
 		const lines = bigline.split(';').map((l) => l.trim())
-		for (const line of lines) {
-			if (!line) continue
-			await new Promise((resolve) => setTimeout(resolve, 32))
+
+		for (const command of lines) {
+			// Skip empty lines and comments
+			if (!command || command.startsWith('// ')) continue
 
 			if (!isInSequence) {
-				if (line.startsWith('```')) {
+				if (command.startsWith('```')) {
 					editor.mark(uniqueId())
 					isInSequence = true
 					continue
 				}
 			} else {
-				if (line.startsWith('```')) {
+				if (command.startsWith('```')) {
 					isInSequence = false
 					continue
 				}
 
-				if (line.startsWith('DELETE')) {
+				// Wait just a bit between commands
+				await new Promise((resolve) => setTimeout(resolve, 32))
+
+				if (command.startsWith('DELETE')) {
 					editor.deleteShapes(editor.getSelectedShapeIds())
 					continue
 				}
 
-				if (line.startsWith('LABEL')) {
+				if (command.startsWith('LABEL')) {
 					const regex = /LABEL "(.*)"/
-					const match = line.match(regex)
+					const match = command.match(regex)
 					if (!match) throw Error('Could not parse label')
 
 					const [, text] = match
@@ -282,13 +336,9 @@ async function parseSequence(editor: Editor, text: string) {
 					})
 				}
 
-				if (line.startsWith('TOOL')) {
+				if (command.startsWith('TOOL')) {
 					// extract the tool name from "TOOL box;"
-					const regex = /TOOL (.*)/
-					const match = line.match(regex)
-					if (!match) throw Error('Could not parse tool')
-
-					const [, tool] = match
+					const [, tool] = command.split(' ')
 
 					switch (tool) {
 						case 'select': {
@@ -337,12 +387,49 @@ async function parseSequence(editor: Editor, text: string) {
 					continue
 				}
 
-				if (line.startsWith('CLICK')) {
-					const regex = /CLICK (.*) (.*)/
-					const match = line.match(regex)
-					if (!match) throw Error('Could not parse click')
+				if (command.startsWith('CLICK')) {
+					const [, x1, y1, modifiers = ''] = command.split(' ')
 
-					const [, x1, y1] = match
+					const point = editor.pageToScreen({ x: eval(x1), y: eval(y1) })
+
+					const altKey = modifiers.toLowerCase().includes('alt')
+					const shiftKey = modifiers.toLowerCase().includes('shift')
+					const ctrlKey = modifiers.toLowerCase().includes('control')
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_move',
+						point,
+						altKey,
+						shiftKey,
+						ctrlKey,
+					})
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_down',
+						point,
+						altKey,
+						shiftKey,
+						ctrlKey,
+					})
+
+					editor.dispatch({
+						...basePoint,
+						name: 'pointer_up',
+						point: point,
+						altKey,
+						shiftKey,
+						ctrlKey,
+					})
+
+					editor.cancelDoubleClick()
+
+					continue
+				}
+
+				if (command.startsWith('DOUBLE_CLICK')) {
+					const [, x1, y1, _modifiers = ''] = command.split(' ')
 
 					const point = editor.pageToScreen({ x: eval(x1), y: eval(y1) })
 
@@ -354,92 +441,113 @@ async function parseSequence(editor: Editor, text: string) {
 
 					editor.dispatch({
 						...basePoint,
-						name: 'pointer_down',
+						type: 'click',
+						name: 'double_click',
+						phase: 'settle',
 						point,
 					})
 
-					editor.dispatch({
-						...basePoint,
-						name: 'pointer_up',
-						point: point,
-					})
-
-					await new Promise((resolve) => setTimeout(resolve, 450))
+					editor.cancelDoubleClick()
 
 					continue
 				}
 
-				if (line.startsWith('DRAG')) {
-					const regex = /DRAG (.*) (.*) (.*) (.*)/
-					const match = line.match(regex)
-					if (!match) throw Error('Could not parse drag')
-
-					const [, x1, y1, x2, y2] = match
+				if (command.startsWith('DRAG')) {
+					const [, x1, y1, x2, y2, modifiers = ''] = command.split(' ')
 
 					const from = editor.pageToScreen({ x: eval(x1), y: eval(y1) })
 					const to = editor.pageToScreen({ x: eval(x2), y: eval(y2) })
+
+					const altKey = modifiers.toLowerCase().includes('alt')
+					const shiftKey = modifiers.toLowerCase().includes('shift')
+					const ctrlKey = modifiers.toLowerCase().includes('control')
 
 					editor.dispatch({
 						...basePoint,
 						name: 'pointer_move',
 						point: from,
+						altKey,
+						shiftKey,
+						ctrlKey,
 					})
 
 					editor.dispatch({
 						...basePoint,
 						name: 'pointer_down',
 						point: from,
+						altKey,
+						shiftKey,
+						ctrlKey,
 					})
 
-					await movePointer(editor, to)
+					await movePointer(editor, to, { altKey, shiftKey, ctrlKey })
 
 					editor.dispatch({
 						...basePoint,
 						name: 'pointer_up',
 						point: to,
+						altKey,
+						shiftKey,
+						ctrlKey,
 					})
 
-					await new Promise((resolve) => setTimeout(resolve, 450))
+					editor.cancelDoubleClick()
 
 					continue
 				}
 
-				if (line.startsWith('DOWN')) {
+				if (command.startsWith('DOWN')) {
+					const [, modifiers = ''] = command.split(' ')
 					// extract the x and y from "MOVE 50 50;"
 					const { x, y } = editor.inputs.currentScreenPoint
+
+					const altKey = modifiers.toLowerCase().includes('alt')
+					const shiftKey = modifiers.toLowerCase().includes('shift')
+					const ctrlKey = modifiers.toLowerCase().includes('control')
 
 					editor.dispatch({
 						...basePoint,
 						name: 'pointer_down',
 						point: { x, y },
+						altKey,
+						shiftKey,
+						ctrlKey,
 					})
 					continue
 				}
 
-				if (line.startsWith('UP')) {
+				if (command.startsWith('UP')) {
+					const [, modifiers = ''] = command.split(' ')
 					// extract the x and y from "MOVE 50 50;"
 					const { x, y } = editor.inputs.currentScreenPoint
+
+					const altKey = modifiers.toLowerCase().includes('alt')
+					const shiftKey = modifiers.toLowerCase().includes('shift')
+					const ctrlKey = modifiers.toLowerCase().includes('control')
 
 					editor.dispatch({
 						...basePoint,
 						name: 'pointer_up',
 						point: { x, y },
+						altKey,
+						shiftKey,
+						ctrlKey,
 					})
 
-					await new Promise((resolve) => setTimeout(resolve, 450))
+					editor.cancelDoubleClick()
 					continue
 				}
 
-				if (line.startsWith('MOVE')) {
-					// extract the x and y from "MOVE 50 50;"
-					const regex = /MOVE (.*) (.*)/
-					const match = line.match(regex)
-					if (!match) throw Error('Could not move')
+				if (command.startsWith('MOVE')) {
+					const [, x, y, modifiers = ''] = command.split(' ')
 
-					// convert from page to screen
-					const [, px, py] = match
-					const next = editor.pageToScreen({ x: eval(px), y: eval(py) })
-					await movePointer(editor, next)
+					const next = editor.pageToScreen({ x: eval(x), y: eval(y) })
+
+					const altKey = modifiers.toLowerCase().includes('alt')
+					const shiftKey = modifiers.toLowerCase().includes('shift')
+					const ctrlKey = modifiers.toLowerCase().includes('control')
+
+					await movePointer(editor, next, { altKey, shiftKey, ctrlKey })
 
 					continue
 				}
@@ -458,17 +566,17 @@ function getCurrentPageDescription(editor: Editor) {
 
 	for (const shape of shapes) {
 		const pageBounds = editor.getShapePageBounds(shape)!
-		result += `\n- A ${
+		result += `\n- type=${
 			shape.type === 'geo' ? `geo (${(shape as TLGeoShape).props.geo})` : shape.type
-		} shape at x=${pageBounds.x.toFixed(0)} y=${pageBounds.y.toFixed(
+		} center=${pageBounds.midX.toFixed(0)},${pageBounds.midY.toFixed(
 			0
-		)} width=${pageBounds.w.toFixed(0)} height=${pageBounds.h.toFixed(0)}`
+		)} size=${pageBounds.w.toFixed(0)},${pageBounds.h.toFixed(0)}`
 
 		if (shape.type === 'text') {
-			result += ` with the text "${(shape as TLTextShape).props.text}"`
+			result += ` text="${(shape as TLTextShape).props.text}"`
 		} else {
 			if ('text' in shape.props && shape.props.text) {
-				result += ` with the label "${(shape as TLGeoShape).props.text}"`
+				result += ` label="${(shape as TLGeoShape).props.text}"`
 			}
 		}
 	}
@@ -476,20 +584,31 @@ function getCurrentPageDescription(editor: Editor) {
 	return result
 }
 
-async function movePointer(editor: Editor, to: VecLike) {
+async function movePointer(
+	editor: Editor,
+	to: VecLike,
+	opts = {} as { altKey: boolean; shiftKey: boolean; ctrlKey: boolean }
+) {
 	const curr = editor.inputs.currentScreenPoint
 	const dist = Vec2d.Dist(curr, to)
-	const steps = Math.ceil(dist / 16)
+	const steps = Math.max(32, Math.ceil(dist / 8))
+
+	const { altKey, shiftKey, ctrlKey } = opts
 
 	for (let i = 0; i < steps; i++) {
 		await new Promise((resolve) => setTimeout(resolve, 16))
+		const t = EASINGS.easeInOutExpo(i / steps)
 		editor.dispatch({
 			...basePoint,
 			name: 'pointer_move',
-			point: Vec2d.Lrp(curr, to, i / steps),
+			point: Vec2d.Lrp(curr, to, t),
+			altKey,
+			shiftKey,
+			ctrlKey,
 		})
 	}
 }
+
 const basePoint = {
 	type: 'pointer',
 	name: 'pointer_down',
@@ -501,3 +620,35 @@ const basePoint = {
 	altKey: false,
 	ctrlKey: false,
 } as const
+
+function getKeyboardEventInfo(
+	key: string,
+	name: TLKeyboardEventInfo['name'],
+	options = {} as Partial<Exclude<TLKeyboardEventInfo, 'point'>>
+): TLKeyboardEventInfo {
+	return {
+		shiftKey: key === 'Shift',
+		ctrlKey: key === 'Control' || key === 'Meta',
+		altKey: key === 'Alt',
+		...options,
+		name,
+		code:
+			key === 'Shift'
+				? 'ShiftLeft'
+				: key === 'Alt'
+				? 'AltLeft'
+				: key === 'Control' || key === 'Meta'
+				? 'CtrlLeft'
+				: key === ' '
+				? 'Space'
+				: key === 'Enter' ||
+				  key === 'ArrowRight' ||
+				  key === 'ArrowLeft' ||
+				  key === 'ArrowUp' ||
+				  key === 'ArrowDown'
+				? key
+				: 'Key' + key[0].toUpperCase() + key.slice(1),
+		type: 'keyboard',
+		key,
+	}
+}
