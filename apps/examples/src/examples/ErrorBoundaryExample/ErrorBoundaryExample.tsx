@@ -18,7 +18,7 @@ export default function ErrorBoundaryExample() {
 						type: 'error',
 						id: createShapeId(),
 						x: 0,
-						y: 0,
+						y: 300,
 						props: { message: 'Something has gone wrong' },
 					}
 

@@ -44,6 +44,8 @@ export default function UserPresenceExample() {
 							let cursor = peerPresence.cursor
 							let chatMessage = peerPresence.chatMessage
 
+							const center = editor.getViewportPageCenter()
+
 							const now = Date.now()
 
 							if (MOVING_CURSOR_SPEED > 0) {
@@ -52,8 +54,8 @@ export default function UserPresenceExample() {
 
 								cursor = {
 									...peerPresence.cursor,
-									x: 150 + Math.cos(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
-									y: 150 + Math.sin(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
+									x: center.x - 250 + Math.cos(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
+									y: center.y + Math.sin(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
 								}
 							}
 

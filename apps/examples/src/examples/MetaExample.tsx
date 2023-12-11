@@ -21,14 +21,17 @@ export default function MetaExample() {
 					// We can also use the sideEffects API to modify a shape before
 					// its change is committed to the database. This will run for
 					// all shapes whenever they are updated.
-					editor.sideEffects.registerBeforeChangeHandler('shape', (record, _prev, source) => {
-						if (source !== 'user') return record
-						record.meta = {
-							...record.meta,
-							updatedBy: editor.user.getId(),
-							updatedAt: Date.now(),
+					editor.sideEffects.registerBeforeChangeHandler('shape', (before, after, source) => {
+						if (source !== 'user') return after
+
+						return {
+							...after,
+							meta: {
+								...after.meta,
+								updatedBy: editor.user.getId(),
+								updatedAt: Date.now(),
+							},
 						}
-						return record
 					})
 				}}
 			/>

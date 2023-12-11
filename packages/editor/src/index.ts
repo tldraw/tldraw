@@ -255,6 +255,7 @@ export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
+export { SneakyExampleContentProvider } from './lib/hooks/useSneekyExampleContent'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export {

@@ -12,6 +12,7 @@ import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoub
 import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
 import { useScreenBounds } from '../hooks/useScreenBounds'
+import { useSneakyExampleContent } from '../hooks/useSneekyExampleContent'
 import { Matrix2d } from '../primitives/Matrix2d'
 import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
@@ -87,6 +88,8 @@ export function Canvas({ className }: { className?: string }) {
 		debugFlags,
 	])
 
+	const sneakyExampleContent = useSneakyExampleContent()
+
 	return (
 		<div
 			ref={rCanvas}
@@ -129,6 +132,7 @@ export function Canvas({ className }: { className?: string }) {
 				</div>
 				<InFrontOfTheCanvasWrapper />
 			</div>
+			{sneakyExampleContent}
 		</div>
 	)
 }

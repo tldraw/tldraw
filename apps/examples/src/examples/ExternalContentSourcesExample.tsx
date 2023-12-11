@@ -25,8 +25,12 @@ class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
 
 	override component(shape: IDangerousHtmlShape) {
 		return (
-			<HTMLContainer style={{ overflow: 'auto' }}>
-				<div dangerouslySetInnerHTML={{ __html: shape.props.html }}></div>
+			<HTMLContainer>
+				<iframe
+					style={{ width: '100%', height: '100%', border: 'none' }}
+					sandbox=""
+					srcDoc={shape.props.html}
+				/>
 			</HTMLContainer>
 		)
 	}

@@ -23,9 +23,11 @@ import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { PointerEventHandler } from 'react';
+import { Provider } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { ReactNode } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -1879,6 +1881,9 @@ export interface SnapPoint {
     // (undocumented)
     y: number;
 }
+
+// @internal (undocumented)
+export const SneakyExampleContentProvider: Provider<ReactNode>;
 
 // @public
 export function sortByIndex<T extends {

@@ -7,7 +7,7 @@ export default function AssetPropsExample() {
 			<Tldraw
 				// only allow jpegs
 				acceptedImageMimeTypes={['image/jpeg']}
-				// don't allow any images
+				// don't allow any videos
 				acceptedVideoMimeTypes={[]}
 				// accept images of any dimension
 				maxImageDimension={Infinity}
