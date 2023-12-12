@@ -1025,7 +1025,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	unbindArrowTerminal = (arrow: TLArrowShape, handleId: 'start' | 'end') => {
 		const { x, y } = getArrowTerminalsInArrowSpace(this.editor, arrow)[handleId]
 		this.editor.store.put([
-			{ ...arrow, props: { ...arrow.props, [handleId]: { type: 'point', x, y } } },
+			{ ...arrow, props: { ...arrow.props, [handleId]: { x, y } } },
 		])
 	}
 
