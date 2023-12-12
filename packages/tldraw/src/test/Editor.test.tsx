@@ -1,7 +1,6 @@
 import {
 	AssetRecordType,
 	BaseBoxShapeUtil,
-	Box2d,
 	PageRecordType,
 	TLShape,
 	createShapeId,
@@ -644,91 +643,5 @@ describe('when the user prefers light UI', () => {
 	it('should be false if the editor was instantiated with inferDarkMode', () => {
 		editor = new TestEditor({ inferDarkMode: true })
 		expect(editor.user.getIsDarkMode()).toBe(false)
-	})
-})
-
-describe('undo and redo', () => {
-	test('cause the camera to move if the affected shapes are offscreen', () => {
-		editor = new TestEditor({})
-		editor.setScreenBounds(new Box2d(0, 0, 1000, 1000))
-		editor.user.updateUserPreferences({ animationSpeed: 0 })
-
-		const boxId = createShapeId('box')
-		editor.createShapes([{ id: boxId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
-		editor.panZoomIntoView([boxId])
-		editor.mark()
-		const cameraBefore = editor.getCamera()
-
-		editor.updateShapes([
-			{
-				id: boxId,
-				type: 'geo',
-				x: 100,
-				y: 100,
-				props: {
-					geo: 'cloud',
-					w: 100,
-					h: 100,
-				},
-			},
-		])
-
-		expect(editor.getCamera()).toMatchInlineSnapshot(`
-		Object {
-		  "id": "camera:page:page",
-		  "meta": Object {},
-		  "typeName": "camera",
-		  "x": 0,
-		  "y": 0,
-		  "z": 1,
-		}
-	`)
-
-		editor.undo()
-		expect(editor.getCamera()).toEqual(cameraBefore)
-
-		editor.updateShapes([
-			{
-				id: boxId,
-				type: 'geo',
-				x: -500,
-				y: -500,
-			},
-		])
-		editor.mark()
-		editor.updateShapes([
-			{
-				id: boxId,
-				type: 'geo',
-				x: 500,
-				y: 500,
-			},
-		])
-		editor.undo()
-
-		expect(editor.getCamera()).not.toEqual(cameraBefore)
-		expect(editor.getCamera()).toMatchInlineSnapshot(`
-		Object {
-		  "id": "camera:page:page",
-		  "meta": Object {},
-		  "typeName": "camera",
-		  "x": 950,
-		  "y": 950,
-		  "z": 1,
-		}
-	`)
-
-		editor.redo()
-
-		expect(editor.getCamera()).toMatchInlineSnapshot(`
-		Object {
-		  "id": "camera:page:page",
-		  "meta": Object {},
-		  "typeName": "camera",
-		  "x": -50,
-		  "y": -50,
-		  "z": 1,
-		}
-	`)
 	})
 })
