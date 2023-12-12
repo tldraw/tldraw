@@ -99,7 +99,6 @@ import {
 	sortByIndex,
 } from '../utils/reordering/reordering'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
-import { uniq } from '../utils/uniq'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildren } from './derivations/parentsToChildren'
@@ -782,29 +781,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	)
 
-	private _ensureAffectedShapesAreMadeVisible(fn: () => void) {
-		// here we collect all the ids of shapes that are created or updated by the function
-		// along with the selectedIds of the current page
-		// then we attempt to make sure that they are all visible in the viewport after
-		// the function is run.
-		const changes = this.store.extractingChanges(fn)
-		const affectedRecordIds = uniq(
-			Object.keys(changes.added)
-				.concat(Object.keys(changes.updated))
-				.concat(this.getSelectedShapeIds())
-		)
-		const shapes = compact(
-			affectedRecordIds.map((id) => (isShapeId(id) ? this.getShape(id) : null))
-		)
-		if (!shapes.length) return this
-		const bounds = Box2d.Common(compact(shapes.map((shape) => this.getShapePageBounds(shape))))
-		const viewport = this.getViewportPageBounds()
-		if (!viewport.contains(bounds)) {
-			this.zoomToBounds(bounds, this.getCamera().z, { duration: 220 })
-		}
-		return this
-	}
-
 	/**
 	 * Undo to the last mark.
 	 *
@@ -816,9 +792,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	undo(): this {
-		this._ensureAffectedShapesAreMadeVisible(() => {
-			this.history.undo()
-		})
+		this.history.undo()
 		return this
 	}
 
@@ -851,9 +825,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	redo(): this {
-		this._ensureAffectedShapesAreMadeVisible(() => {
-			this.history.redo()
-		})
+		this.history.redo()
 		return this
 	}
 
