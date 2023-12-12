@@ -1,3 +1,45 @@
+# v2.0.0-alpha.19 (Tue Dec 12 2023)
+
+### Release Notes
+
+#### Fix migrations. ([#2302](https://github.com/tldraw/tldraw/pull/2302))
+
+- Fix migrations of `instance_page_state`.
+
+#### [improvements] arrows x enclosing shapes x precision. ([#2265](https://github.com/tldraw/tldraw/pull/2265))
+
+- Improves the logic about when to draw "precise" arrows between the center of bound shapes.
+
+#### Add prettier caching ([#2212](https://github.com/tldraw/tldraw/pull/2212))
+
+- Speed up formatting of files via `yarn format`.
+
+---
+
+#### 💥 Breaking Change
+
+- No impure getters pt 1 [#2189](https://github.com/tldraw/tldraw/pull/2189) ([@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+
+#### 🚀 Enhancement
+
+- [improvements] arrows x enclosing shapes x precision. [#2265](https://github.com/tldraw/tldraw/pull/2265) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Fix migrations. [#2302](https://github.com/tldraw/tldraw/pull/2302) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🏠 Internal
+
+- Add prettier caching [#2212](https://github.com/tldraw/tldraw/pull/2212) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### Authors: 3
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.18 (Fri Nov 10 2023)
 
 ### Release Notes
