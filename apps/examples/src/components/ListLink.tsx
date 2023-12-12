@@ -5,6 +5,7 @@ export interface ListLinkProps {
 	route: string
 }
 
+
 export function ListLink({ title, route }: ListLinkProps) {
 	return (
 		<li className="examples__list__item">
