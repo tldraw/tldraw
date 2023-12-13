@@ -40,10 +40,10 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  * @public */
 export function createTLSchema({
 	shapes,
-	bindings,
+	bindings = {},
 }: {
 	shapes: Record<string, SchemaShapeInfo>
-	bindings: Record<string, SchemaBindingInfo>
+	bindings?: Record<string, SchemaBindingInfo>
 }): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {

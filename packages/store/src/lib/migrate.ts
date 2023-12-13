@@ -1,5 +1,6 @@
 import { UnknownRecord, isRecord } from './BaseRecord'
 import { SerializedSchema } from './StoreSchema'
+import { NewMigration } from './newMigrations'
 
 type EMPTY_SYMBOL = symbol
 
