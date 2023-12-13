@@ -290,6 +290,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (startShape && endShape) {
 				// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
 				nextParentId = this.findCommonAncestor([startShape, endShape]) ?? parentPageId
+
+				// if arrow has two bindings to the same shape, parrent arrow to it
+				if (startShape.parentId === endShape.parentId) {
+					nextParentId = startShape.id
+				}
 			} else if (startShape || endShape) {
 				const bindingParentId = (startShape || endShape)?.parentId
 				// If the arrow and the shape that it is bound to have the same parent, then keep that parent
@@ -4538,7 +4543,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const [nodeA, ...others] = freshShapes
-		let ancestor = this.getShapeParent(nodeA)
+		let ancestor: TLShape | undefined = nodeA
 		while (ancestor) {
 			// TODO: this is not ideal, optimize
 			if (predicate && !predicate(ancestor)) {
