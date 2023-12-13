@@ -1,17 +1,6 @@
 import { attach, detach } from './helpers'
 import { Child, Signal } from './types'
 
-const tldrawStateGlobalKey = Symbol.for('__@tldraw/state__')
-const tldrawStateGlobal = globalThis as { [tldrawStateGlobalKey]?: true }
-
-if (tldrawStateGlobal[tldrawStateGlobalKey]) {
-	console.error(
-		'Multiple versions of @tldraw/state detected. This will cause unexpected behavior. Please add "resolutions" (yarn/pnpm) or "overrides" (npm) in your package.json to ensure only one version of @tldraw/state is loaded.'
-	)
-} else {
-	tldrawStateGlobal[tldrawStateGlobalKey] = true
-}
-
 class CaptureStackFrame {
 	offset = 0
 	numNewParents = 0

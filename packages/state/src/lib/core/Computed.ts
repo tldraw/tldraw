@@ -8,14 +8,18 @@ import { globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning, logDotValueWarning } from './warnings'
 
-const UNINITIALIZED = Symbol('UNINITIALIZED')
+
+/**
+ * @public
+ */
+export const UNINITIALIZED = Symbol('UNINITIALIZED')
 /**
  * The type of the first value passed to a computed signal function as the 'prevValue' parameter.
  *
  * @see [[isUninitialized]].
  * @public
  */
-type UNINITIALIZED = typeof UNINITIALIZED
+export type UNINITIALIZED = typeof UNINITIALIZED
 
 /**
  * Call this inside a computed signal function to determine whether it is the first time the function is being called.
