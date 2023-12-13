@@ -8,11 +8,10 @@ import { globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning, logDotValueWarning } from './warnings'
 
-
 /**
  * @public
  */
-export const UNINITIALIZED = Symbol('UNINITIALIZED')
+export const UNINITIALIZED = Symbol.for('com.tldraw.state/UNINITIALIZED')
 /**
  * The type of the first value passed to a computed signal function as the 'prevValue' parameter.
  *
