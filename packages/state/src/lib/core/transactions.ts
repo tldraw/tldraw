@@ -135,7 +135,6 @@ export function atomDidChange(atom: _Atom<any>, previousValue: any) {
  */
 export let currentTransaction = null as Transaction | null
 
-
 export function transaction<T>(fn: (rollback: () => void) => T) {
 	const txn = new Transaction(currentTransaction)
 

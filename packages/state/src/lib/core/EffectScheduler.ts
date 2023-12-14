@@ -37,7 +37,6 @@ interface EffectSchedulerOptions {
 	scheduleEffect?: (execute: () => void) => void
 }
 
-
 export class EffectScheduler<Result> {
 	private _isActivelyListening = false
 	/**
@@ -150,7 +149,6 @@ export class EffectScheduler<Result> {
 	}
 }
 
-
 export function react(
 	name: string,
 	fn: (lastReactedEpoch: number) => any,
@@ -195,7 +193,6 @@ export interface Reactor<T = unknown> {
 	 */
 	stop(): void
 }
-
 
 export function reactor<Result>(
 	name: string,

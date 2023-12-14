@@ -12,7 +12,6 @@ class CaptureStackFrame {
 
 let stack: CaptureStackFrame | null = null
 
-
 export function unsafe__withoutCapture<T>(fn: () => T): T {
 	const oldStack = stack
 	stack = null
@@ -91,7 +90,6 @@ export function maybeCaptureParent(p: Signal<any, any>) {
 		}
 	}
 }
-
 
 export function whyAmIRunning() {
 	const child = stack?.child
