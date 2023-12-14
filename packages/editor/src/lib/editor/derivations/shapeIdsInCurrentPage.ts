@@ -40,7 +40,7 @@ export const deriveShapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: ()
 		const currentPageId = getCurrentPageId()
 		lastPageId = currentPageId
 		return new Set(
-			[...shapesIndex.value].filter((id) => isShapeInPage(store, currentPageId, store.get(id)!))
+			[...shapesIndex.get()].filter((id) => isShapeInPage(store, currentPageId, store.get(id)!))
 		)
 	}
 	return computed<Set<TLShapeId>>('_shapeIdsInCurrentPage', (prevValue, lastComputedEpoch) => {

@@ -27,6 +27,8 @@ export interface TLUiEventMap {
 	redo: null
 	'group-shapes': null
 	'ungroup-shapes': null
+	'remove-frame': null
+	'fit-frame-to-content': null
 	'convert-to-embed': null
 	'convert-to-bookmark': null
 	'open-embed-link': null

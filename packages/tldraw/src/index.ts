@@ -1,11 +1,14 @@
 /// <reference types="react" />
 
-import * as Dialog from './lib/ui/components/primitives/Dialog'
-import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
-
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
-export { Tldraw } from './lib/Tldraw'
+export { Tldraw, type TldrawProps } from './lib/Tldraw'
+export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
+export { TldrawHandles } from './lib/canvas/TldrawHandles'
+export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
+export { TldrawScribble } from './lib/canvas/TldrawScribble'
+export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
+export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'
@@ -40,7 +43,7 @@ export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
 } from './lib/ui/TldrawUiContextProvider'
-export { setDefaultUiAssetUrls } from './lib/ui/assetUrls'
+export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
@@ -92,6 +95,7 @@ export {
 	type EventsProviderProps,
 	type TLUiEventContextType,
 	type TLUiEventHandler,
+	type TLUiEventMap,
 	type TLUiEventSource,
 } from './lib/ui/hooks/useEventsProvider'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
@@ -139,16 +143,24 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export { setDefaultEditorAssetUrls } from './lib/utils/assetUrls'
 export {
 	DEFAULT_ACCEPTED_IMG_TYPE,
 	DEFAULT_ACCEPTED_VID_TYPE,
 	containBoxSize,
 	getResizedImageDataUrl,
 	isGifAnimated,
-} from './lib/utils/assets'
-export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
-export { getEmbedInfo } from './lib/utils/embeds'
+} from './lib/utils/assets/assets'
+export { getEmbedInfo } from './lib/utils/embeds/embeds'
+export { copyAs } from './lib/utils/export/copyAs'
+export { getSvgAsImage } from './lib/utils/export/export'
+export { exportAs } from './lib/utils/export/exportAs'
+export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
+export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
+export { truncateStringWithEllipsis } from './lib/utils/text/text'
+export {
+	buildFromV1Document,
+	type LegacyTldrawDocument,
+} from './lib/utils/tldr/buildFromV1Document'
 export {
 	TLDRAW_FILE_EXTENSION,
 	parseAndLoadDocument,
@@ -156,6 +168,7 @@ export {
 	serializeTldrawJson,
 	serializeTldrawJsonBlob,
 	type TldrawFile,
-} from './lib/utils/file'
-export { truncateStringWithEllipsis } from './lib/utils/text'
+} from './lib/utils/tldr/file'
 export { Dialog, DropdownMenu }
+import * as Dialog from './lib/ui/components/primitives/Dialog'
+import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'

@@ -116,7 +116,7 @@ describe(HistoryManager, () => {
 		editor.decrement()
 		expect(editor.getCount()).toBe(3)
 
-		const undos = [...editor.history._undos.value]
+		const undos = [...editor.history._undos.get()]
 		const parsedUndos = JSON.parse(JSON.stringify(undos))
 		editor.history._undos.set(stack(parsedUndos))
 
@@ -207,7 +207,7 @@ describe(HistoryManager, () => {
 
 		expect(editor.getCount()).toBe(5)
 
-		expect(editor.history.numUndos).toBe(3)
+		expect(editor.history.getNumUndos()).toBe(3)
 	})
 
 	it('allows ephemeral commands that do not affect the stack', () => {
@@ -250,11 +250,11 @@ describe(HistoryManager, () => {
 
 	it('does not allow new history entries to be pushed if a command invokes them while doing or undoing', () => {
 		editor.incrementTwice()
-		expect(editor.history.numUndos).toBe(1)
+		expect(editor.history.getNumUndos()).toBe(1)
 		expect(editor.getCount()).toBe(2)
 		editor.history.undo()
 		expect(editor.getCount()).toBe(0)
-		expect(editor.history.numUndos).toBe(0)
+		expect(editor.history.getNumUndos()).toBe(0)
 	})
 
 	it('does not allow new history entries to be pushed if a command invokes them while bailing', () => {
@@ -263,13 +263,13 @@ describe(HistoryManager, () => {
 		editor.history.mark('2')
 		editor.incrementTwice()
 		editor.incrementTwice()
-		expect(editor.history.numUndos).toBe(5)
+		expect(editor.history.getNumUndos()).toBe(5)
 		expect(editor.getCount()).toBe(6)
 		editor.history.bail()
 		expect(editor.getCount()).toBe(2)
-		expect(editor.history.numUndos).toBe(2)
+		expect(editor.history.getNumUndos()).toBe(2)
 		editor.history.bailToMark('0')
-		expect(editor.history.numUndos).toBe(0)
+		expect(editor.history.getNumUndos()).toBe(0)
 		expect(editor.getCount()).toBe(0)
 	})
 

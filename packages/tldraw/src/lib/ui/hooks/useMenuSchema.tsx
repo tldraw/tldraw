@@ -1,6 +1,6 @@
 import { Editor, TLBookmarkShape, TLEmbedShape, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
-import { getEmbedInfo } from '../../utils/embeds'
+import { getEmbedInfo } from '../../utils/embeds/embeds'
 import {
 	TLUiMenuSchema,
 	compactMenuItems,
@@ -49,22 +49,26 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < 5
 
-	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
-	const animationSpeed = useValue('animationSpeed', () => editor.user.animationSpeed, [editor])
-	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
-	const isSnapMode = useValue('isSnapMode', () => editor.user.isSnapMode, [editor])
-	const isToolLock = useValue('isToolLock', () => editor.instanceState.isToolLocked, [editor])
-	const isFocusMode = useValue('isFocusMode', () => editor.instanceState.isFocusMode, [editor])
-	const isDebugMode = useValue('isDebugMode', () => editor.instanceState.isDebugMode, [editor])
+	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
+	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])
+	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
+	const isSnapMode = useValue('isSnapMode', () => editor.user.getIsSnapMode(), [editor])
+	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
+	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
+	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
 	const exportBackground = useValue(
 		'exportBackground',
-		() => editor.instanceState.exportBackground,
+		() => editor.getInstanceState().exportBackground,
 		[editor]
 	)
 
-	const emptyPage = useValue('emptyPage', () => editor.currentPageShapeIds.size === 0, [editor])
+	const emptyPage = useValue('emptyPage', () => editor.getCurrentPageShapeIds().size === 0, [
+		editor,
+	])
 
-	const selectedCount = useValue('selectedCount', () => editor.selectedShapeIds.length, [editor])
+	const selectedCount = useValue('selectedCount', () => editor.getSelectedShapeIds().length, [
+		editor,
+	])
 	const noneSelected = selectedCount === 0
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -77,12 +81,12 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const allowUngroup = useAllowUngroup()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
-	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.zoomLevel === 1, [editor])
+	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.getZoomLevel() === 1, [editor])
 
 	const oneEmbedSelected = useValue(
 		'oneEmbedSelected',
 		() => {
-			const { onlySelectedShape } = editor
+			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return !!(
 				editor.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed') &&
@@ -96,7 +100,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
 		() => {
-			const { onlySelectedShape } = editor
+			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return !!(
 				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
@@ -109,7 +113,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	)
 
 	const menuSchema = useMemo<TLUiMenuSchema>(() => {
-		const menuSchema = compactMenuItems([
+		const menuSchema: TLUiMenuSchema = compactMenuItems([
 			menuGroup(
 				'menu',
 				menuSubmenu(

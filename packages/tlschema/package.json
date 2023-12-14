@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tlschema",
 	"description": "A tiny little drawing app (schema).",
-	"version": "2.0.0-beta.0",
+	"version": "2.0.0-alpha.19",
 	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw Inc.",
@@ -34,7 +34,7 @@
 		"test": "lazy inherit",
 		"test-coverage": "lazy inherit",
 		"index": "node ./scripts/build-index.js && yarn format",
-		"format": "yarn run -T prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
+		"format": "yarn run -T prettier --write --cache \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",

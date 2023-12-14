@@ -43,9 +43,9 @@ test.describe('Focus', () => {
 				({ id }) => {
 					if (
 						!(
-							EDITOR_A.instanceState.isFocused === (id === 'A') &&
-							EDITOR_B.instanceState.isFocused === (id === 'B') &&
-							EDITOR_C.instanceState.isFocused === (id === 'C')
+							EDITOR_A.getInstanceState().isFocused === (id === 'A') &&
+							EDITOR_B.getInstanceState().isFocused === (id === 'B') &&
+							EDITOR_C.getInstanceState().isFocused === (id === 'C')
 						)
 					) {
 						throw Error('isFocused is not correct')
@@ -87,14 +87,14 @@ test.describe('Focus', () => {
 		await page.waitForSelector('.tl-canvas')
 
 		// Should not have any shapes on the page
-		expect(await page.evaluate(() => EDITOR_A.currentPageShapes.length)).toBe(0)
+		expect(await page.evaluate(() => EDITOR_A.getCurrentPageShapes().length)).toBe(0)
 
 		const EditorA = (await page.$(`.A`))!
 		await page.keyboard.press('r')
 		await EditorA.click({ position: { x: 100, y: 100 } })
 
 		// Should not have created a shape
-		expect(await page.evaluate(() => EDITOR_A.currentPageShapes.length)).toBe(1)
+		expect(await page.evaluate(() => EDITOR_A.getCurrentPageShapes().length)).toBe(1)
 
 		const TextArea = page.getByTestId(`textarea`)
 		await TextArea.focus()
@@ -103,7 +103,7 @@ test.describe('Focus', () => {
 		await page.keyboard.press('Delete')
 
 		// Should not have deleted the page
-		expect(await page.evaluate(() => EDITOR_A.currentPageShapes.length)).toBe(1)
+		expect(await page.evaluate(() => EDITOR_A.getCurrentPageShapes().length)).toBe(1)
 	})
 
 	test('kbds when focused', async ({ page }) => {

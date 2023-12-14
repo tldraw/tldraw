@@ -344,7 +344,7 @@ function runTest(seed: number) {
 	})
 	store.onBeforeDelete = (record) => {
 		if (record.typeName === 'author') {
-			const books = store.query.index('book', 'authorId').value.get(record.id)
+			const books = store.query.index('book', 'authorId').get().get(record.id)
 			if (books) store.remove([...books])
 		}
 	}
@@ -359,16 +359,16 @@ function runTest(seed: number) {
 	const bookTitleQueryParam = atom('bookTitle', getRandomBookName(getRandomNumber))
 
 	const booksByAuthorQuery = store.query.records('book', () => ({
-		authorId: { eq: authorIdQueryParam.value },
+		authorId: { eq: authorIdQueryParam.get() },
 	}))
 
 	const booksByTitleQuery = store.query.records('book', () => ({
-		title: { eq: bookTitleQueryParam.value },
+		title: { eq: bookTitleQueryParam.get() },
 	}))
 
 	const authorNameQueryParam = atom('authorName', getRandomAuthorName(getRandomNumber))
 	const authorIdsByNameQuery = store.query.ids('author', () => ({
-		name: { neq: authorNameQueryParam.value },
+		name: { neq: authorNameQueryParam.get() },
 	}))
 
 	const ops = []
@@ -384,9 +384,9 @@ function runTest(seed: number) {
 			const authorNameIndexDiff = authorNameIndex.getDiffSince(lastReactedEpoch)
 			const authorIdIndexDiff = authorIdIndex.getDiffSince(lastReactedEpoch)
 			const authorIdsByNameDiff = authorIdsByNameQuery.getDiffSince(lastReactedEpoch)
-			latestBooksByAuthorQueryResult = booksByAuthorQuery.value
-			latestBooksByTitleQueryResult = booksByTitleQuery.value
-			latestAuthorIdsByNameQueryResult = authorIdsByNameQuery.value
+			latestBooksByAuthorQueryResult = booksByAuthorQuery.get()
+			latestBooksByTitleQueryResult = booksByTitleQuery.get()
+			latestAuthorIdsByNameQueryResult = authorIdsByNameQuery.get()
 			if (
 				authorNameIndexDiff === RESET_VALUE ||
 				authorIdIndexDiff === RESET_VALUE ||
@@ -419,7 +419,7 @@ function runTest(seed: number) {
 					store.remove([op.id])
 
 					if (op.id === 'book:0.5525377229080933') {
-						store.query.index('book', 'title').value
+						store.query.index('book', 'title').get()
 					}
 					break
 				}
@@ -440,16 +440,14 @@ function runTest(seed: number) {
 				effect.execute()
 				// these tests create a version of the index from scratch and check it against
 				// the incrementally-updated version to make sure the logic matches.
-				const authorNameIndexFromScratch = store.query.__uncached_createIndex(
-					'author',
-					'name'
-				).value
-				const authorIdIndexFromScratch = store.query.__uncached_createIndex(
-					'book',
-					'authorId'
-				).value
-				expect(authorNameIndex.value).toEqual(authorNameIndexFromScratch)
-				expect(authorIdIndex.value).toEqual(authorIdIndexFromScratch)
+				const authorNameIndexFromScratch = store.query
+					.__uncached_createIndex('author', 'name')
+					.get()
+				const authorIdIndexFromScratch = store.query
+					.__uncached_createIndex('book', 'authorId')
+					.get()
+				expect(authorNameIndex.get()).toEqual(authorNameIndexFromScratch)
+				expect(authorIdIndex.get()).toEqual(authorIdIndexFromScratch)
 				// these tests recreate the index from scratch based on the diffs so far and
 				// check it against the gold standard version to make sure the diff logic matches.
 				expect(recreateIndexFromDiffs(authorNameIndexDiffs)).toEqual(authorNameIndexFromScratch)
@@ -459,36 +457,36 @@ function runTest(seed: number) {
 					store
 						.allRecords()
 						.filter(
-							(r): r is Book => r.typeName === 'book' && r.authorId === authorIdQueryParam.value
+							(r): r is Book => r.typeName === 'book' && r.authorId === authorIdQueryParam.get()
 						)
 						.sort(bookComparator)
 				)
 				expect(new Set(latestBooksByAuthorQueryResult.map((b) => b.id))).toEqual(
-					executeQuery(store.query, 'book', { authorId: { eq: authorIdQueryParam.value } })
+					executeQuery(store.query, 'book', { authorId: { eq: authorIdQueryParam.get() } })
 				)
 				expect(latestBooksByTitleQueryResult.sort(bookComparator)).toEqual(
 					store
 						.allRecords()
 						.filter(
-							(r): r is Book => r.typeName === 'book' && r.title === bookTitleQueryParam.value
+							(r): r is Book => r.typeName === 'book' && r.title === bookTitleQueryParam.get()
 						)
 						.sort(bookComparator)
 				)
 				expect(new Set(latestBooksByTitleQueryResult.map((b) => b.id))).toEqual(
-					executeQuery(store.query, 'book', { title: { eq: bookTitleQueryParam.value } })
+					executeQuery(store.query, 'book', { title: { eq: bookTitleQueryParam.get() } })
 				)
 				expect(latestAuthorIdsByNameQueryResult).toEqual(
 					new Set(
 						store
 							.allRecords()
 							.filter(
-								(r): r is Author => r.typeName === 'author' && r.name !== authorNameQueryParam.value
+								(r): r is Author => r.typeName === 'author' && r.name !== authorNameQueryParam.get()
 							)
 							.map((r) => r.id)
 					)
 				)
 				expect(latestAuthorIdsByNameQueryResult).toEqual(
-					executeQuery(store.query, 'author', { name: { neq: authorNameQueryParam.value } })
+					executeQuery(store.query, 'author', { name: { neq: authorNameQueryParam.get() } })
 				)
 				// this test checks that the authorIdsByName set matches what you get when you reassemble it from the diffs
 				expect(reacreateSetFromDiffs(authorIdsByNameDiffs)).toEqual(

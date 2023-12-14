@@ -6,8 +6,8 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 	const editor = useEditor()
 	const rCanvas = React.useRef<HTMLCanvasElement>(null)
 
-	const camera = editor.camera
-	const shapes = editor.currentPageShapes
+	const camera = editor.getCamera()
+	const shapes = editor.getCurrentPageShapes()
 	if (rCanvas.current) {
 		const cvs = rCanvas.current
 		const ctx = cvs.getContext('2d')!
@@ -37,8 +37,8 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 	return (
 		<canvas
 			ref={rCanvas}
-			width={editor.viewportScreenBounds.width}
-			height={editor.viewportScreenBounds.height}
+			width={editor.getViewportScreenBounds().width}
+			height={editor.getViewportScreenBounds().height}
 			style={{ width: '100%', height: '100%' }}
 		/>
 	)

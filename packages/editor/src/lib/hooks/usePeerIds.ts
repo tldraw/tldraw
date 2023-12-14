@@ -12,13 +12,13 @@ export function usePeerIds() {
 	const editor = useEditor()
 	const $presences = useMemo(() => {
 		return editor.store.query.records('instance_presence', () => ({
-			userId: { neq: editor.user.id },
+			userId: { neq: editor.user.getId() },
 		}))
 	}, [editor])
 
 	const $userIds = useComputed(
 		'userIds',
-		() => uniq($presences.value.map((p) => p.userId)).sort(),
+		() => uniq($presences.get().map((p) => p.userId)).sort(),
 		{ isEqual: (a, b) => a.join(',') === b.join?.(',') },
 		[$presences]
 	)

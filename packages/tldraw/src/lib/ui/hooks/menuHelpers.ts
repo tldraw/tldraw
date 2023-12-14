@@ -1,6 +1,8 @@
 import {
 	Editor,
 	TLArrowShape,
+	TLShape,
+	TLShapeId,
 	assert,
 	exhaustiveSwitchError,
 	useEditor,
@@ -11,7 +13,12 @@ import { TLUiToolItem } from './useTools'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export type TLUiMenuChild = TLUiMenuItem | TLUiSubMenu | TLUiMenuGroup | TLUiCustomMenuItem
+export type TLUiMenuChild<TranslationKey extends string = string> =
+	| TLUiMenuItem
+	| TLUiSubMenu<TranslationKey>
+	| TLUiMenuGroup
+	| TLUiCustomMenuItem
+	| null
 
 /** @public */
 export type TLUiCustomMenuItem = {
@@ -42,10 +49,10 @@ export type TLUiMenuGroup = {
 }
 
 /** @public */
-export type TLUiSubMenu = {
+export type TLUiSubMenu<TranslationKey extends string = string> = {
 	id: string
 	type: 'submenu'
-	label: TLUiTranslationKey
+	label: TranslationKey
 	disabled: boolean
 	readonlyOk: boolean
 	children: TLUiMenuChild[]
@@ -62,7 +69,7 @@ export function compactMenuItems<T>(arr: T[]): Exclude<T, null | false | undefin
 /** @public */
 export function menuGroup(
 	id: string,
-	...children: (TLUiMenuChild | null | false)[]
+	...children: (TLUiMenuChild | false)[]
 ): TLUiMenuGroup | null {
 	const childItems = compactMenuItems(children)
 
@@ -81,8 +88,8 @@ export function menuGroup(
 /** @public */
 export function menuSubmenu(
 	id: string,
-	label: TLUiTranslationKey,
-	...children: (TLUiMenuChild | null | false)[]
+	label: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>,
+	...children: (TLUiMenuChild | false)[]
 ): TLUiSubMenu | null {
 	const childItems = compactMenuItems(children)
 	if (childItems.length === 0) return null
@@ -137,7 +144,7 @@ export function menuItem(
 }
 
 function shapesWithUnboundArrows(editor: Editor) {
-	const { selectedShapeIds } = editor
+	const selectedShapeIds = editor.getSelectedShapeIds()
 	const selectedShapes = selectedShapeIds.map((id) => {
 		return editor.getShape(id)
 	})
@@ -163,10 +170,38 @@ export const useThreeStackableItems = () => {
 	return useValue('threeStackableItems', () => shapesWithUnboundArrows(editor).length > 2, [editor])
 }
 
+function shapesWithArrowsBoundToThem(editor: Editor) {
+	const selectedShapes = editor.getSelectedShapes()
+	const arrows: TLArrowShape[] = []
+	const otherShapesMap = new Map<TLShapeId, TLShape>()
+	selectedShapes.forEach((shape) => {
+		if (shape.type === 'arrow') {
+			arrows.push(shape as TLArrowShape)
+		} else {
+			otherShapesMap.set(shape.id, shape)
+		}
+	})
+	// We want to get all the arrows that are either unbound or bound to one of the selected shapes
+	const groupableArrows = arrows.filter((arrow) => {
+		if (arrow.props.start.type === 'binding') {
+			if (!otherShapesMap.has(arrow.props.start.boundShapeId)) {
+				return false
+			}
+		}
+		if (arrow.props.end.type === 'binding') {
+			if (!otherShapesMap.has(arrow.props.end.boundShapeId)) {
+				return false
+			}
+		}
+		return true
+	})
+	return Array.from(otherShapesMap.values()).concat(groupableArrows)
+}
+
 /** @internal */
 export const useAllowGroup = () => {
 	const editor = useEditor()
-	return useValue('allowGroup', () => shapesWithUnboundArrows(editor).length > 1, [editor])
+	return useValue('allowGroup', () => shapesWithArrowsBoundToThem(editor).length > 1, [editor])
 }
 
 /** @internal */
@@ -174,8 +209,8 @@ export const useAllowUngroup = () => {
 	const editor = useEditor()
 	return useValue(
 		'allowUngroup',
-		() => editor.selectedShapeIds.some((id) => editor.getShape(id)?.type === 'group'),
-		[]
+		() => editor.getSelectedShapeIds().some((id) => editor.getShape(id)?.type === 'group'),
+		[editor]
 	)
 }
 
@@ -186,14 +221,11 @@ export function findMenuItem(menu: TLUiMenuSchema, path: string[]) {
 	return item
 }
 
-function _findMenuItem(
-	menu: TLUiMenuSchema | TLUiMenuChild[],
-	path: string[]
-): TLUiMenuChild | null {
+function _findMenuItem(menu: TLUiMenuSchema | TLUiMenuChild[], path: string[]): TLUiMenuChild {
 	const [next, ...rest] = path
 	if (!next) return null
 
-	const item = menu.find((item) => item.id === next)
+	const item = menu.find((item) => item?.id === next)
 	if (!item) return null
 
 	switch (item.type) {

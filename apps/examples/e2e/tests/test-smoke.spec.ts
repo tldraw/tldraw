@@ -65,7 +65,7 @@ test.describe('smoke tests', () => {
 		expect(await getAllShapeTypes(page)).toEqual(['geo'])
 
 		const getSelectedShapeColor = async () =>
-			await page.evaluate(() => (editor.selectedShapes[0] as TLGeoShape).props.color)
+			await page.evaluate(() => (editor.getSelectedShapes()[0] as TLGeoShape).props.color)
 
 		// change style
 		expect(await getSelectedShapeColor()).toBe('black')

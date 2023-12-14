@@ -4,5 +4,5 @@ import { useEditor } from './useEditor'
 /** @public */
 export function useIsDarkMode() {
 	const editor = useEditor()
-	return useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
+	return useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
 }

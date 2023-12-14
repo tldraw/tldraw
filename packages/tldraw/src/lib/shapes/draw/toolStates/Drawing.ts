@@ -53,7 +53,7 @@ export class Drawing extends StateNode {
 	override onEnter = (info: TLPointerEventInfo) => {
 		this.markId = null
 		this.info = info
-		this.canDraw = !this.editor.isMenuOpen
+		this.canDraw = !this.editor.getIsMenuOpen()
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 		if (this.canDraw) {
 			this.startShape()
@@ -87,7 +87,7 @@ export class Drawing extends StateNode {
 			if (inputs.isPen) {
 				if (
 					Vec2d.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
-					1 / this.editor.zoomLevel
+					1 / this.editor.getZoomLevel()
 				) {
 					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.mergeNextPoint = false
@@ -469,12 +469,12 @@ export class Drawing extends StateNode {
 				let didSnap = false
 				let snapSegment: TLDrawShapeSegment | undefined = undefined
 
-				const shouldSnap = this.editor.user.isSnapMode ? !ctrlKey : ctrlKey
+				const shouldSnap = this.editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
 
 				if (shouldSnap) {
 					if (newSegments.length > 2) {
 						let nearestPoint: Vec2dModel | undefined = undefined
-						let minDistance = 8 / this.editor.zoomLevel
+						let minDistance = 8 / this.editor.getZoomLevel()
 
 						// Don't try to snap to the last two segments
 						for (let i = 0, n = segments.length - 2; i < n; i++) {
@@ -713,7 +713,7 @@ export class Drawing extends StateNode {
 			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
 		])
 
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 
 	cancel() {

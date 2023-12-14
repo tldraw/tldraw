@@ -1,8 +1,8 @@
 import { Editor, HIT_TEST_MARGIN, TLShape } from '@tldraw/editor'
 
 export function getHitShapeOnCanvasPointerDown(editor: Editor): TLShape | undefined {
+	const zoomLevel = editor.getZoomLevel()
 	const {
-		zoomLevel,
 		inputs: { currentPagePoint },
 	} = editor
 

@@ -16,6 +16,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	const isReadonly = useReadonly()
 
 	function getActionMenuItem(item: TLUiMenuChild) {
+		if (!item) return null
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {
@@ -57,7 +58,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 					smallIcon
 				/>
 			</PopoverTrigger>
-			<PopoverPrimitive.Portal dir="ltr" container={container}>
+			<PopoverPrimitive.Portal container={container}>
 				<PopoverPrimitive.Content
 					className="tlui-popover__content"
 					side="bottom"

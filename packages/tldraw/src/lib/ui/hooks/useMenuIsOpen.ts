@@ -25,7 +25,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 					editor.addOpenMenu(id)
 				} else {
 					editor.updateInstanceState({
-						openMenus: editor.openMenus.filter((m) => !m.startsWith(id)),
+						openMenus: editor.getOpenMenus().filter((m) => !m.startsWith(id)),
 					})
 				}
 
@@ -35,7 +35,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		[editor, id, cb]
 	)
 
-	const isOpen = useValue('is menu open', () => editor.openMenus.includes(id), [editor, id])
+	const isOpen = useValue('is menu open', () => editor.getOpenMenus().includes(id), [editor, id])
 
 	useEffect(() => {
 		// When the effect runs, if the menu is open then
@@ -57,7 +57,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 				editor.deleteOpenMenu(id)
 
 				// Close menu and all submenus when the parent is closed
-				editor.openMenus.forEach((menuId) => {
+				editor.getOpenMenus().forEach((menuId) => {
 					if (menuId.startsWith(id)) {
 						trackEvent('close-menu', { source: 'unknown', id })
 						editor.deleteOpenMenu(menuId)

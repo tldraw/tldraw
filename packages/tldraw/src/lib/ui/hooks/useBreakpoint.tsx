@@ -5,22 +5,30 @@ import { PORTRAIT_BREAKPOINTS } from '../constants'
 const BreakpointContext = React.createContext(0)
 
 /** @public */
-export function BreakPointProvider({ children }: { children: any }) {
+export function BreakPointProvider({
+	forceMobile = false,
+	children,
+}: {
+	forceMobile?: boolean
+	children: any
+}) {
 	const editor = useEditor()
 
 	const breakpoint = useValue(
 		'breakpoint',
 		() => {
-			const { width } = editor.viewportScreenBounds
-			const breakpoints = PORTRAIT_BREAKPOINTS
+			// This will recompute the viewport screen bounds changes...
+			const { width } = editor.getViewportScreenBounds()
 
-			for (let i = 0; i < breakpoints.length - 1; i++) {
-				if (width > breakpoints[i] && width <= breakpoints[i + 1]) {
+			const maxBreakpoint = forceMobile ? 3 : PORTRAIT_BREAKPOINTS.length - 1
+
+			for (let i = 0; i < maxBreakpoint; i++) {
+				if (width > PORTRAIT_BREAKPOINTS[i] && width <= PORTRAIT_BREAKPOINTS[i + 1]) {
 					return i
 				}
 			}
 
-			return breakpoints.length
+			return maxBreakpoint
 		},
 		[editor]
 	)
@@ -30,14 +38,5 @@ export function BreakPointProvider({ children }: { children: any }) {
 
 /** @public */
 export function useBreakpoint() {
-	let breakpoint = useContext(BreakpointContext)
-	const layoutQuery = new URL(window.location.href).searchParams.get('layout')
-
-	if (layoutQuery === 'desktop') {
-		breakpoint = 7
-	} else if (layoutQuery === 'mobile') {
-		breakpoint = 1
-	}
-
-	return breakpoint
+	return useContext(BreakpointContext)
 }

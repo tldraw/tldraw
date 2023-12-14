@@ -17,7 +17,7 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes(editor.selectedShapeIds)
+	editor.deleteShapes(editor.getSelectedShapeIds())
 	editor.createShapes([
 		{
 			id: ids.lockedShapeA,
@@ -83,18 +83,18 @@ beforeEach(() => {
 describe('Locking', () => {
 	it('Can lock shapes', () => {
 		editor.setSelectedShapes([ids.unlockedShapeA])
-		editor.toggleLock(editor.selectedShapeIds)
+		editor.toggleLock(editor.getSelectedShapeIds())
 		expect(editor.getShape(ids.unlockedShapeA)!.isLocked).toBe(true)
 		// Locking deselects the shape
-		expect(editor.selectedShapeIds).toEqual([])
+		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })
 
 describe('Locked shapes', () => {
 	it('Cannot be deleted', () => {
-		const numberOfShapesBefore = editor.currentPageShapes.length
+		const numberOfShapesBefore = editor.getCurrentPageShapes().length
 		editor.deleteShapes([ids.lockedShapeA])
-		expect(editor.currentPageShapes.length).toBe(numberOfShapesBefore)
+		expect(editor.getCurrentPageShapes().length).toBe(numberOfShapesBefore)
 	})
 
 	it('Cannot be changed', () => {
@@ -106,10 +106,10 @@ describe('Locked shapes', () => {
 	it('Cannot be moved', () => {
 		const shape = editor.getShape(ids.lockedShapeA)
 		editor.pointerDown(150, 150, { target: 'shape', shape })
-		editor.expectToBeIn('select.idle')
+		editor.expectToBeIn('select.pointing_canvas')
 
 		editor.pointerMove(10, 10)
-		editor.expectToBeIn('select.idle')
+		editor.expectToBeIn('select.brushing')
 
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
@@ -117,7 +117,7 @@ describe('Locked shapes', () => {
 
 	it('Cannot be selected with select all', () => {
 		editor.selectAll()
-		expect(editor.selectedShapeIds).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
 	})
 
 	it('Cannot be selected by clicking', () => {
@@ -125,28 +125,28 @@ describe('Locked shapes', () => {
 
 		editor
 			.pointerDown(10, 10, { target: 'shape', shape })
-			.expectToBeIn('select.idle')
+			.expectToBeIn('select.pointing_canvas')
 			.pointerUp()
 			.expectToBeIn('select.idle')
-		expect(editor.selectedShapeIds).not.toContain(shape.id)
+		expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
 	})
 
 	it('Cannot be edited', () => {
 		const shape = editor.getShape(ids.lockedShapeA)!
-		const shapeCount = editor.currentPageShapes.length
+		const shapeCount = editor.getCurrentPageShapes().length
 
 		// We create a new shape and we edit that one
 		editor.doubleClick(10, 10, { target: 'shape', shape }).expectToBeIn('select.editing_shape')
-		expect(editor.currentPageShapes.length).toBe(shapeCount + 1)
-		expect(editor.selectedShapeIds).not.toContain(shape.id)
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
+		expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
 	})
 
 	it('Cannot be grouped', () => {
-		const shapeCount = editor.currentPageShapes.length
+		const shapeCount = editor.getCurrentPageShapes().length
 		const parentBefore = editor.getShape(ids.lockedShapeA)!.parentId
 
 		editor.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
-		expect(editor.currentPageShapes.length).toBe(shapeCount + 1)
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
 
 		const parentAfter = editor.getShape(ids.lockedShapeA)!.parentId
 		expect(parentAfter).toBe(parentBefore)
@@ -169,7 +169,7 @@ describe('Unlocking', () => {
 			(id) => editor.getShape(id)!.isLocked
 		)
 		expect(lockedStatus).toStrictEqual([true, true])
-		editor.toggleLock(editor.selectedShapeIds)
+		editor.toggleLock(editor.getSelectedShapeIds())
 		lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map((id) => editor.getShape(id)!.isLocked)
 		expect(lockedStatus).toStrictEqual([false, false])
 	})

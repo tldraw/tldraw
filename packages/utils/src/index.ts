@@ -1,4 +1,12 @@
-export { compact, dedupe, last, minBy, partition, rotateArray } from './lib/array'
+export {
+	areArraysShallowEqual,
+	compact,
+	dedupe,
+	last,
+	minBy,
+	partition,
+	rotateArray,
+} from './lib/array'
 export {
 	Result,
 	assert,
@@ -18,6 +26,7 @@ export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json
 export { MediaHelpers } from './lib/media'
 export { lerp, modulate, rng } from './lib/number'
 export {
+	areObjectsShallowEqual,
 	deepCopy,
 	filterEntries,
 	getOwnProperty,
@@ -34,3 +43,4 @@ export { sortById } from './lib/sort'
 export type { Expand, RecursivePartial, Required } from './lib/types'
 export { isValidUrl } from './lib/url'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'
+export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'

@@ -88,6 +88,7 @@ export class ClickManager {
 	 *
 	 * @public
 	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get clickState() {
 		return this._clickState
 	}
@@ -227,7 +228,7 @@ export class ClickManager {
 			this._clickState !== 'idle' &&
 			this._clickScreenPoint &&
 			this._clickScreenPoint.dist(this.editor.inputs.currentScreenPoint) >
-				(this.editor.instanceState.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
+				(this.editor.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
 		) {
 			this.cancelDoubleClickTimeout()
 		}

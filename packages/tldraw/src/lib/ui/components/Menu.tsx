@@ -45,6 +45,7 @@ function MenuContent() {
 		parent: TLUiMenuChild | null,
 		depth: number
 	) {
+		if (!item) return null
 		switch (item.type) {
 			case 'custom': {
 				if (isReadonly && !item.readonlyOk) return null

@@ -27,6 +27,7 @@ import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoint
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { svgInk } from '../shared/freehand/svgInk'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -108,27 +109,23 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		}
 
 		const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
-		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
-		const solidStrokePath =
-			strokePoints.length > 1
-				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
-				: getDot(allPointsFromSegments[0], sw)
-
-		if ((!forceSolid && shape.props.dash === 'draw') || strokePoints.length < 2) {
-			setStrokePointRadii(strokePoints, options)
-			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
-
+		if (!forceSolid && shape.props.dash === 'draw') {
 			return (
 				<SVGContainer id={shape.id}>
-					<ShapeFill
-						theme={theme}
-						fill={shape.props.isClosed ? shape.props.fill : 'none'}
-						color={shape.props.color}
-						d={solidStrokePath}
-					/>
+					{shape.props.isClosed && shape.props.fill && allPointsFromSegments.length > 1 ? (
+						<ShapeFill
+							theme={theme}
+							fill={shape.props.isClosed ? shape.props.fill : 'none'}
+							color={shape.props.color}
+							d={getSvgPathFromStrokePoints(
+								getStrokePoints(allPointsFromSegments, options),
+								shape.props.isClosed
+							)}
+						/>
+					) : null}
 					<path
-						d={getSvgPathFromPoints(strokeOutlinePoints, true)}
+						d={svgInk(allPointsFromSegments, options)}
 						strokeLinecap="round"
 						fill={theme[shape.props.color].solid}
 					/>
@@ -136,21 +133,27 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			)
 		}
 
+		const strokePoints = getStrokePoints(allPointsFromSegments, options)
+		const isDot = strokePoints.length < 2
+		const solidStrokePath = isDot
+			? getDot(allPointsFromSegments[0], 0)
+			: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
+
 		return (
 			<SVGContainer id={shape.id}>
 				<ShapeFill
 					theme={theme}
 					color={shape.props.color}
-					fill={shape.props.isClosed ? shape.props.fill : 'none'}
+					fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
 					d={solidStrokePath}
 				/>
 				<path
 					d={solidStrokePath}
 					strokeLinecap="round"
-					fill="none"
+					fill={isDot ? theme[shape.props.color].solid : 'none'}
 					stroke={theme[shape.props.color].solid}
 					strokeWidth={strokeWidth}
-					strokeDasharray={getDrawShapeStrokeDashArray(shape, strokeWidth)}
+					strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, strokeWidth)}
 					strokeDashoffset="0"
 				/>
 			</SVGContainer>
@@ -184,7 +187,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const { color } = shape.props

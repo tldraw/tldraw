@@ -1,4 +1,4 @@
-import { Editor, track, useEditor } from '@tldraw/editor'
+import { Editor, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import {
 	TLUiMenuSchema,
@@ -33,14 +33,16 @@ export type ActionsMenuSchemaProviderProps = {
 }
 
 /** @internal */
-export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvider({
+export const ActionsMenuSchemaProvider = ({
 	overrides,
 	children,
-}: ActionsMenuSchemaProviderProps) {
+}: ActionsMenuSchemaProviderProps) => {
 	const editor = useEditor()
 	const actions = useActions()
 
-	const selectedCount = editor.selectedShapeIds.length
+	const selectedCount = useValue('selected count', () => editor.getSelectedShapeIds().length, [
+		editor,
+	])
 
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -50,7 +52,7 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	const allowUngroup = useAllowUngroup()
 	const showEditLink = useHasLinkShapeSelected()
 	const breakpoint = useBreakpoint()
-	const isZoomedTo100 = editor.zoomLevel === 1
+	const isZoomedTo100 = useValue('zoom is 1', () => editor.getZoomLevel() === 1, [editor])
 
 	const actionTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
 		const results = [
@@ -107,7 +109,7 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 			{children}
 		</ActionsMenuSchemaContext.Provider>
 	)
-})
+}
 
 /** @public */
 export function useActionsMenuSchema(): TLUiMenuSchema {

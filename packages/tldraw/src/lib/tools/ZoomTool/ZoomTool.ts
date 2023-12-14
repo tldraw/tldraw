@@ -1,7 +1,7 @@
 import { StateNode, TLInterruptEvent, TLKeyboardEvent, TLPointerEventInfo } from '@tldraw/editor'
-import { Idle } from './children/Idle'
-import { Pointing } from './children/Pointing'
-import { ZoomBrushing } from './children/ZoomBrushing'
+import { Idle } from './childStates/Idle'
+import { Pointing } from './childStates/Pointing'
+import { ZoomBrushing } from './childStates/ZoomBrushing'
 
 /** @public */
 export class ZoomTool extends StateNode {
@@ -13,17 +13,17 @@ export class ZoomTool extends StateNode {
 
 	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
-		this.currentToolIdMask = info.onInteractionEnd
+		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.updateCursor()
 	}
 
 	override onExit = () => {
-		this.currentToolIdMask = undefined
+		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.updateInstanceState(
 			{ zoomBrush: null, cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
-		this.currentToolIdMask = undefined
+		this.parent.setCurrentToolIdMask(undefined)
 	}
 
 	override onKeyDown: TLKeyboardEvent | undefined = () => {
@@ -47,7 +47,7 @@ export class ZoomTool extends StateNode {
 		if (this.info.onInteractionEnd && this.info.onInteractionEnd !== 'select') {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.parent.transition('select', {})
+			this.parent.transition('select')
 		}
 	}
 

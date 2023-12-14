@@ -10,7 +10,7 @@ import { StyleValuesForUi } from './styles'
 
 interface DropdownPickerProps<T extends string> {
 	id: string
-	label?: TLUiTranslationKey
+	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	uiType: string
 	style: StyleProp<T>
 	value: SharedStyle<T>

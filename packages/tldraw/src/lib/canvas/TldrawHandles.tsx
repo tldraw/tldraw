@@ -1,5 +1,6 @@
 import { TLHandlesComponent, useEditor, useValue } from '@tldraw/editor'
 
+/** @public */
 export const TldrawHandles: TLHandlesComponent = ({ children }) => {
 	const editor = useEditor()
 	const shouldDisplayHandles = useValue(

@@ -14,12 +14,12 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 
-	editor.selectAll().deleteShapes(editor.selectedShapeIds)
+	editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 })
 it('creates new bindings for arrows when pasting', async () => {
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedShapeIds)
+		.deleteShapes(editor.getSelectedShapeIds())
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -34,22 +34,24 @@ it('creates new bindings for arrows when pasting', async () => {
 						boundShapeId: ids.box1,
 						isExact: false,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 					end: {
 						type: 'binding',
 						boundShapeId: ids.box2,
 						isExact: false,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 				},
 			},
 		])
 
-	const shapesBefore = editor.currentPageShapes
+	const shapesBefore = editor.getCurrentPageShapes()
 
-	editor.selectAll().duplicateShapes(editor.selectedShapeIds)
+	editor.selectAll().duplicateShapes(editor.getSelectedShapeIds())
 
-	const shapesAfter = editor.currentPageShapes
+	const shapesAfter = editor.getCurrentPageShapes()
 
 	// We should not have changed the original shapes
 	expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -119,12 +121,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -140,12 +144,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -161,12 +167,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box3,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -174,27 +182,28 @@ describe('When duplicating shapes that include arrows', () => {
 	})
 
 	it('Preserves the same selection bounds', () => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes).selectAll()
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes).selectAll()
 
-		const boundsBefore = editor.selectionRotatedPageBounds!
-		editor.duplicateShapes(editor.selectedShapeIds)
-		expect(editor.selectionRotatedPageBounds).toCloselyMatchObject(boundsBefore)
+		const boundsBefore = editor.getSelectionRotatedPageBounds()!
+		editor.duplicateShapes(editor.getSelectedShapeIds())
+		expect(editor.getSelectionRotatedPageBounds()).toCloselyMatchObject(boundsBefore)
 	})
 
 	it('Preserves the same selection bounds when only duplicating the arrows', () => {
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedShapeIds)
+			.deleteShapes(editor.getSelectedShapeIds())
 			.createShapes(shapes)
 			.select(
-				...editor.currentPageShapes
+				...editor
+					.getCurrentPageShapes()
 					.filter((s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow'))
 					.map((s) => s.id)
 			)
 
-		const boundsBefore = editor.selectionRotatedPageBounds!
-		editor.duplicateShapes(editor.selectedShapeIds)
-		const boundsAfter = editor.selectionRotatedPageBounds!
+		const boundsBefore = editor.getSelectionRotatedPageBounds()!
+		editor.duplicateShapes(editor.getSelectedShapeIds())
+		const boundsAfter = editor.getSelectionRotatedPageBounds()!
 
 		// It's not exactly exact, but close enough is plenty close
 		expect(Math.abs(boundsAfter.x - boundsBefore.x)).toBeLessThan(1)

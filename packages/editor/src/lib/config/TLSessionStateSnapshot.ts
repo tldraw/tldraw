@@ -38,6 +38,7 @@ function iOS() {
 	if (!window) return false
 	return (
 		['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(
+			// eslint-disable-next-line deprecation/deprecation
 			window.navigator.platform
 		) ||
 		// iPad on iOS 13 detection
@@ -170,7 +171,7 @@ export function createSessionStateSnapshotSignal(
 		const instanceState = store.get(TLINSTANCE_ID)
 		if (!instanceState) return null
 
-		const allPageIds = [...$allPageIds.value]
+		const allPageIds = [...$allPageIds.get()]
 		return {
 			version: CURRENT_SESSION_STATE_SNAPSHOT_VERSION,
 			currentPageId: instanceState.currentPageId,

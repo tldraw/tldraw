@@ -117,8 +117,8 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		if (this.editor.instanceState.isToolLocked) {
-			this.parent.transition('idle', {})
+		if (this.editor.getInstanceState().isToolLocked) {
+			this.parent.transition('idle')
 		} else {
 			this.editor.setCurrentTool('select', {})
 		}
@@ -126,6 +126,6 @@ export class Pointing extends StateNode {
 
 	private cancel() {
 		// we should not have created any shapes yet, so no need to bail
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }

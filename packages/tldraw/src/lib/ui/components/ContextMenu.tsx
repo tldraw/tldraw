@@ -1,13 +1,15 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { Editor, preventDefault, useContainer, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useCallback, useState } from 'react'
+import { forwardRef, useCallback, useState } from 'react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
 import { useReadonly } from '../hooks/useReadonly'
+import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { TLUiIconType } from '../icon-types'
 import { MoveToPageMenu } from './MoveToPageMenu'
 import { Button } from './primitives/Button'
 import { Icon } from './primitives/Icon'
@@ -27,16 +29,16 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const cb = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
-				const { onlySelectedShape } = editor
+				const onlySelectedShape = editor.getOnlySelectedShape()
 
 				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
 					editor.setSelectedShapes([])
 				}
 			} else {
 				// Weird route: selecting locked shapes on long press
-				if (editor.instanceState.isCoarsePointer) {
+				if (editor.getInstanceState().isCoarsePointer) {
+					const selectedShapes = editor.getSelectedShapes()
 					const {
-						selectedShapes,
 						inputs: { currentPagePoint },
 					} = editor
 
@@ -45,7 +47,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 
 					if (
 						// if there are no selected shapes
-						!editor.selectedShapes.length ||
+						!editor.getSelectedShapes().length ||
 						// OR if none of the shapes at the point include the selected shape
 						!shapesAtPoint.some((s) => selectedShapes.includes(s))
 					) {
@@ -74,9 +76,11 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 		contextTLUiMenuSchema.length === 0 ||
 		(isReadonly && contextTLUiMenuSchema.every((item) => !item.readonlyOk))
 
-	const selectToolActive = useValue('isSelectToolActive', () => editor.currentToolId === 'select', [
-		editor,
-	])
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
 
 	const disabled = !selectToolActive || noItemsToShow
 
@@ -96,7 +100,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	)
 }
 
-function ContextMenuContent() {
+const ContextMenuContent = forwardRef(function ContextMenuContent() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const menuSchema = useContextMenuSchema()
@@ -114,6 +118,7 @@ function ContextMenuContent() {
 		parent: TLUiMenuChild | null,
 		depth: number
 	) {
+		if (!item) return null
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {
@@ -145,12 +150,12 @@ function ContextMenuContent() {
 						<_ContextMenu.SubTrigger dir="ltr" disabled={item.disabled} asChild>
 							<Button
 								type="menu"
-								label={item.label}
+								label={item.label as TLUiTranslationKey}
 								data-testid={`menu-item.${item.id}`}
 								icon="chevron-right"
 							/>
 						</_ContextMenu.SubTrigger>
-						<_ContextMenu.Portal container={container} dir="ltr">
+						<_ContextMenu.Portal container={container}>
 							<_ContextMenu.SubContent className="tlui-menu" sideOffset={-4} collisionPadding={4}>
 								{item.children.map((child) => getContextMenuItem(editor, child, item, depth + 1))}
 							</_ContextMenu.SubContent>
@@ -163,7 +168,7 @@ function ContextMenuContent() {
 
 				const { id, checkbox, contextMenuLabel, label, onSelect, kbd, icon } = item.actionItem
 				const labelToUse = contextMenuLabel ?? label
-				const labelStr = labelToUse ? msg(labelToUse) : undefined
+				const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 				if (checkbox) {
 					// Item is in a checkbox group
@@ -197,9 +202,9 @@ function ContextMenuContent() {
 							type="menu"
 							data-testid={`menu-item.${id}`}
 							kbd={kbd}
-							label={labelToUse}
+							label={labelToUse as TLUiTranslationKey}
 							disabled={item.disabled}
-							iconLeft={breakpoint < 3 && depth > 2 ? icon : undefined}
+							iconLeft={breakpoint < 3 && depth > 2 ? (icon as TLUiIconType) : undefined}
 							onClick={() => {
 								if (disableClicks) {
 									setDisableClicks(false)
@@ -215,7 +220,7 @@ function ContextMenuContent() {
 	}
 
 	return (
-		<_ContextMenu.Portal dir="ltr" container={container}>
+		<_ContextMenu.Portal container={container}>
 			<_ContextMenu.Content
 				className="tlui-menu scrollable"
 				alignOffset={-4}
@@ -226,4 +231,4 @@ function ContextMenuContent() {
 			</_ContextMenu.Content>
 		</_ContextMenu.Portal>
 	)
-}
+})

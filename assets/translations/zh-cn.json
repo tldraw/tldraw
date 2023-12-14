@@ -344,5 +344,8 @@
 	"shortcuts-dialog.collaboration": "协作",
 	"cursor-chat.type-to-chat": "输入以开始聊天...",
 	"geo-style.cloud": "云",
-	"tool.cloud": "云"
+	"tool.cloud": "云",
+	"action.unlock-all": "全部解锁",
+	"status.offline": "离线",
+	"status.online": "在线"
 }

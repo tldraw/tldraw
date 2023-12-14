@@ -57,10 +57,10 @@ describe('editor.rotateShapes', () => {
 		// Select the shape...
 		editor.select(ids.box1, ids.box2)
 
-		const { selectionPageCenter } = editor
+		const selectionPageCenter = editor.getSelectionPageCenter()
 
 		// Rotate the shape...
-		editor.rotateShapesBy(editor.selectedShapeIds, Math.PI)
+		editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI)
 
 		// Once for each shape
 		expect(fnStart).toHaveBeenCalledTimes(2)
@@ -77,6 +77,6 @@ describe('editor.rotateShapes', () => {
 			.expectShapeToMatch({ id: ids.box2, rotation: Math.PI })
 
 		// Are the centers the same?
-		expect(selectionPageCenter).toCloselyMatchObject(editor.selectionPageCenter!)
+		expect(selectionPageCenter).toCloselyMatchObject(editor.getSelectionPageCenter()!)
 	})
 })

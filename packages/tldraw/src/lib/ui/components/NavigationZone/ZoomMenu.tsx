@@ -11,13 +11,13 @@ export const ZoomMenu = track(function ZoomMenu() {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
-	const zoom = editor.zoomLevel
-	const hasShapes = editor.currentPageShapeIds.size > 0
-	const hasSelected = editor.selectedShapeIds.length > 0
-	const isZoomedTo100 = editor.zoomLevel === 1
+	const zoom = editor.getZoomLevel()
+	const hasShapes = editor.getCurrentPageShapeIds().size > 0
+	const hasSelected = editor.getSelectedShapeIds().length > 0
+	const isZoomedTo100 = editor.getZoomLevel() === 1
 
 	const handleDoubleClick = React.useCallback(() => {
-		editor.resetZoom(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+		editor.resetZoom(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 	}, [editor])
 
 	return (

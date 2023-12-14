@@ -15,8 +15,8 @@ import { Computed, ComputedOptions, computed } from '../core'
  * }
  *
  * const Greeter = track(function Greeter ({firstName, lastName}: GreeterProps) {
- *   const fullName = useComputed('fullName', () => `${firstName.value} ${lastName.value}`)
- *   return <div>Hello {fullName.value}!</div>
+ *   const fullName = useComputed('fullName', () => `${firstName.get()} ${lastName.get()}`)
+ *   return <div>Hello {fullName.get()}!</div>
  * })
  * ```
  *

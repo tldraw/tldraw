@@ -40,7 +40,11 @@ export function useCanvasEvents() {
 					...getPointerInfo(e),
 				})
 
-				if (editor.openMenus.length > 0) {
+				if (editor.getOpenMenus().length > 0) {
+					editor.updateInstanceState({
+						openMenus: [],
+					})
+
 					document.body.click()
 					editor.getContainer().focus()
 				}
@@ -79,14 +83,14 @@ export function useCanvasEvents() {
 
 			function onPointerEnter(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
-				if (editor.instanceState.isPenMode && e.pointerType !== 'pen') return
+				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
 				editor.updateInstanceState({ isHoveringCanvas: canHover ? true : null })
 			}
 
 			function onPointerLeave(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
-				if (editor.instanceState.isPenMode && e.pointerType !== 'pen') return
+				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
 				editor.updateInstanceState({ isHoveringCanvas: canHover ? false : null })
 			}

@@ -1,5 +1,6 @@
 import { atom, transact } from '@tldraw/state'
 import { devFreeze } from '@tldraw/store'
+import { warnDeprecatedGetter } from '@tldraw/utils'
 import { uniqueId } from '../../utils/uniqueId'
 import { TLCommandHandler, TLCommandHistoryOptions, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
@@ -33,12 +34,28 @@ export class HistoryManager<
 
 	private _commands: Record<string, TLCommandHandler<any>> = {}
 
+	getNumUndos() {
+		return this._undos.get().length
+	}
+	/**
+	 * @deprecated use `getNumUndos` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get numUndos() {
-		return this._undos.value.length
+		warnDeprecatedGetter('numUndos')
+		return this.getNumUndos()
 	}
 
+	getNumRedos() {
+		return this._redos.get().length
+	}
+	/**
+	 * @deprecated use `getNumRedos` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
 	get numRedos() {
-		return this._redos.value.length
+		warnDeprecatedGetter('numRedos')
+		return this.getNumRedos()
 	}
 
 	createCommand = <Name extends string, Constructor extends CommandFn<any>>(
@@ -72,7 +89,7 @@ export class HistoryManager<
 			})
 
 			if (!ephemeral) {
-				const prev = this._undos.value.head
+				const prev = this._undos.get().head
 				if (
 					squashing &&
 					prev &&
@@ -119,9 +136,9 @@ export class HistoryManager<
 			this._batchDepth++
 			if (this._batchDepth === 1) {
 				transact(() => {
-					const mostRecentActionId = this._undos.value.head?.id
+					const mostRecentActionId = this._undos.get().head?.id
 					fn()
-					if (mostRecentActionId !== this._undos.value.head?.id) {
+					if (mostRecentActionId !== this._undos.get().head?.id) {
 						this.onBatchComplete()
 					}
 				})
@@ -144,8 +161,8 @@ export class HistoryManager<
 			redos: Stack<TLHistoryEntry>
 		) => { undos: Stack<TLHistoryEntry>; redos: Stack<TLHistoryEntry> }
 	) => {
-		let undos = this._undos.value
-		let redos = this._redos.value
+		let undos = this._undos.get()
+		let redos = this._redos.get()
 
 		this._undos.set(stack())
 		this._redos.set(stack())
@@ -286,7 +303,7 @@ export class HistoryManager<
 	}
 
 	mark = (id = uniqueId(), onUndo = true, onRedo = true) => {
-		const mostRecent = this._undos.value.head
+		const mostRecent = this._undos.get().head
 		// dedupe marks, why not
 		if (mostRecent && mostRecent.type === 'STOP') {
 			if (mostRecent.id === id && mostRecent.onUndo === onUndo && mostRecent.onRedo === onRedo) {

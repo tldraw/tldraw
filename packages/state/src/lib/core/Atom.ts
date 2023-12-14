@@ -1,9 +1,10 @@
 import { ArraySet } from './ArraySet'
+import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent } from './capture'
 import { EMPTY_ARRAY, equals } from './helpers'
-import { HistoryBuffer } from './HistoryBuffer'
 import { advanceGlobalEpoch, atomDidChange, globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
+import { logDotValueWarning } from './warnings'
 
 /**
  * The options to configure an atom, passed into the [[atom]] function.
@@ -44,7 +45,7 @@ export interface AtomOptions<Value, Diff> {
  * ```ts
  * const name = atom('name', 'John')
  *
- * print(name.value) // 'John'
+ * print(name.get()) // 'John'
  * ```
  *
  * @public
@@ -99,9 +100,18 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 		return this.current
 	}
 
-	get value() {
+	get() {
 		maybeCaptureParent(this)
 		return this.current
+	}
+
+	/**
+	 * @deprecated Use [[Atom.get]] instead.
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get value() {
+		logDotValueWarning()
+		return this.get()
 	}
 
 	set(value: Value, diff?: Diff): Value {
@@ -161,11 +171,11 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
  * ```ts
  * const name = atom('name', 'John')
  *
- * name.value // 'John'
+ * name.get() // 'John'
  *
  * name.set('Jane')
  *
- * name.value // 'Jane'
+ * name.get() // 'Jane'
  * ```
  *
  * @public

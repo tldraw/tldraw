@@ -47,7 +47,7 @@ describe('parentsToChildrenWithIndexes', () => {
 			{ type: 'geo', id: ids.box3 },
 		])
 
-		expect(editor.getSortedChildIdsForParent(editor.currentPageId)).toEqual([
+		expect(editor.getSortedChildIdsForParent(editor.getCurrentPageId())).toEqual([
 			ids.box1,
 			ids.box2,
 			ids.box3,
@@ -61,7 +61,7 @@ describe('parentsToChildrenWithIndexes', () => {
 			{ type: 'geo', id: ids.box3 },
 		])
 
-		expect(editor.getSortedChildIdsForParent(editor.currentPageId)).toEqual([
+		expect(editor.getSortedChildIdsForParent(editor.getCurrentPageId())).toEqual([
 			ids.box1,
 			ids.box2,
 			ids.box3,
@@ -74,7 +74,7 @@ describe('parentsToChildrenWithIndexes', () => {
 				index: getIndexBetween(editor.getShape(ids.box2)!.index, editor.getShape(ids.box3)!.index),
 			},
 		])
-		expect(editor.getSortedChildIdsForParent(editor.currentPageId)).toEqual([
+		expect(editor.getSortedChildIdsForParent(editor.getCurrentPageId())).toEqual([
 			ids.box2,
 			ids.box1,
 			ids.box3,
@@ -84,7 +84,7 @@ describe('parentsToChildrenWithIndexes', () => {
 			{ id: ids.box2, type: 'geo', index: getIndexAbove(editor.getShape(ids.box3)!.index) },
 		])
 
-		expect(editor.getSortedChildIdsForParent(editor.currentPageId)).toEqual([
+		expect(editor.getSortedChildIdsForParent(editor.getCurrentPageId())).toEqual([
 			ids.box1,
 			ids.box3,
 			ids.box2,

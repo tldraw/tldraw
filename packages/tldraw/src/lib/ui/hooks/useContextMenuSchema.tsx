@@ -1,4 +1,4 @@
-import { Editor, track, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLFrameShape, track, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import {
 	TLUiMenuSchema,
@@ -55,7 +55,8 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
-	const selectedCount = editor.selectedShapeIds.length
+	const selectedShapes = editor.getSelectedShapes()
+	const selectedCount = selectedShapes.length
 
 	const oneSelected = selectedCount > 0
 
@@ -64,19 +65,26 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	const threeStackableItems = useThreeStackableItems()
 	const atLeastOneShapeOnPage = useValue(
 		'atLeastOneShapeOnPage',
-		() => editor.currentPageShapeIds.size > 0,
+		() => editor.getCurrentPageShapeIds().size > 0,
 		[]
 	)
 	const isTransparentBg = useValue(
 		'isTransparentBg',
-		() => editor.instanceState.exportBackground,
+		() => editor.getInstanceState().exportBackground,
 		[]
 	)
 	const allowGroup = useAllowGroup()
 	const allowUngroup = useAllowUngroup()
 	const hasClipboardWrite = Boolean(window.navigator.clipboard?.write)
 	const showEditLink = useHasLinkShapeSelected()
-	const { onlySelectedShape } = editor
+	const onlySelectedShape = editor.getOnlySelectedShape()
+	const allowRemoveFrame =
+		oneSelected &&
+		selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+	const allowFitFrameToContent =
+		onlySelectedShape &&
+		editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame') &&
+		editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
 	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
@@ -88,6 +96,8 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 				oneSelected && !isShapeLocked && menuItem(actions['duplicate']),
 				allowGroup && !isShapeLocked && menuItem(actions['group']),
 				allowUngroup && !isShapeLocked && menuItem(actions['ungroup']),
+				allowRemoveFrame && !isShapeLocked && menuItem(actions['remove-frame']),
+				allowFitFrameToContent && !isShapeLocked && menuItem(actions['fit-frame-to-content']),
 				oneSelected && menuItem(actions['toggle-lock'])
 			),
 			menuGroup(
@@ -221,6 +231,8 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		threeStackableItems,
 		allowGroup,
 		allowUngroup,
+		allowRemoveFrame,
+		allowFitFrameToContent,
 		hasClipboardWrite,
 		showEditLink,
 		// oneEmbedSelected,

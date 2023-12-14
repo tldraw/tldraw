@@ -32,7 +32,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedShapeIds)
+		.deleteShapes(editor.getSelectedShapeIds())
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -47,12 +47,14 @@ beforeEach(() => {
 						isExact: false,
 						boundShapeId: ids.box1,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 					end: {
 						type: 'binding',
 						isExact: false,
 						boundShapeId: ids.box2,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 				},
 			},
@@ -80,12 +82,14 @@ describe('When translating a bound shape', () => {
 					isExact: false,
 					boundShapeId: ids.box1,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',
 					isExact: false,
 					boundShapeId: ids.box2,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
 				},
 			},
 		})
@@ -112,12 +116,14 @@ describe('When translating a bound shape', () => {
 					isExact: false,
 					boundShapeId: ids.box1,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',
 					isExact: false,
 					boundShapeId: ids.box2,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
 				},
 			},
 		})
@@ -143,7 +149,7 @@ describe('When translating the arrow', () => {
 
 	it('retains all handles if either bound shape is also translating', () => {
 		editor.select(ids.arrow1, ids.box2)
-		expect(editor.selectionPageBounds).toMatchObject({
+		expect(editor.getSelectionPageBounds()).toMatchObject({
 			x: 200,
 			y: 200,
 			w: 200,
@@ -162,12 +168,14 @@ describe('When translating the arrow', () => {
 					isExact: false,
 					boundShapeId: ids.box1,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',
 					isExact: false,
 					boundShapeId: ids.box2,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
 				},
 			},
 		})
@@ -179,7 +187,7 @@ describe('Other cases when arrow are moved', () => {
 		editor.select(ids.arrow1, ids.box2)
 
 		// When box one is not selected, unbinds box1 and keeps binding to box2
-		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: -1 })
+		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: -1 })
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
 			props: {
@@ -190,7 +198,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// unbinds when only the arrow is selected (not its bound shapes)
 		editor.select(ids.arrow1)
-		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: -1 })
+		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: -1 })
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
 			props: { start: { type: 'point' }, end: { type: 'point' } },
@@ -202,7 +210,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.select(ids.arrow1, ids.box2, ids.box3)
-		editor.alignShapes(editor.selectedShapeIds, 'right')
+		editor.alignShapes(editor.getSelectedShapeIds(), 'right')
 		jest.advanceTimersByTime(1000)
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
@@ -214,7 +222,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// unbinds when only the arrow is selected (not its bound shapes)
 		editor.select(ids.arrow1, ids.box3)
-		editor.alignShapes(editor.selectedShapeIds, 'top')
+		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
 		jest.advanceTimersByTime(1000)
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
@@ -237,7 +245,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.select(ids.arrow1, ids.box2, ids.box3)
-		editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
+		editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
 		jest.advanceTimersByTime(1000)
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
@@ -255,7 +263,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// unbinds when only the arrow is selected (not its bound shapes) if the arrow itself has moved
 		editor.select(ids.arrow1, ids.box3, ids.box4)
-		editor.distributeShapes(editor.selectedShapeIds, 'vertical')
+		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
 		jest.advanceTimersByTime(1000)
 
 		// The arrow didn't actually move
@@ -274,7 +282,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// The arrow will move this time, so it should unbind
 		editor.updateShapes([{ id: ids.box4, type: 'geo', y: -600 }])
-		editor.distributeShapes(editor.selectedShapeIds, 'vertical')
+		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
 		jest.advanceTimersByTime(1000)
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
@@ -293,22 +301,22 @@ describe('Other cases when arrow are moved', () => {
 		// create shapes in a group:
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedShapeIds)
+			.deleteShapes(editor.getSelectedShapeIds())
 			.createShapes([
 				{ id: ids.box3, type: 'geo', x: 0, y: 300, props: { w: 100, h: 100 } },
 				{ id: ids.box4, type: 'geo', x: 0, y: 600, props: { w: 100, h: 100 } },
 			])
 			.selectAll()
-			.groupShapes(editor.selectedShapeIds)
+			.groupShapes(editor.getSelectedShapeIds())
 
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
-		let arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
+		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
 		assert(arrow.props.end.type === 'binding')
 		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
 
 		// translate:
-		editor.selectAll().nudgeShapes(editor.selectedShapeIds, { x: 0, y: 1 })
+		editor.selectAll().nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: 1 })
 
 		// arrow should still be bound to box3
 		arrow = editor.getShape(arrow.id)!
@@ -322,7 +330,7 @@ describe('When a shape it rotated', () => {
 	it('binds correctly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(375, 375)
 
-		const arrow = editor.currentPageShapes[editor.currentPageShapes.length - 1]
+		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
 		expect(editor.getShape(arrow.id)).toMatchObject({
 			props: {
@@ -360,7 +368,7 @@ describe('resizing', () => {
 	it('resizes', () => {
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedShapeIds)
+			.deleteShapes(editor.getSelectedShapeIds())
 			.setCurrentTool('arrow')
 			.pointerDown(0, 0)
 			.pointerMove(200, 200)
@@ -371,15 +379,15 @@ describe('resizing', () => {
 			.pointerUp()
 			.setCurrentTool('select')
 
-		const arrow1 = editor.currentPageShapes.at(-2)!
-		const arrow2 = editor.currentPageShapes.at(-1)!
+		const arrow1 = editor.getCurrentPageShapes().at(-2)!
+		const arrow2 = editor.getCurrentPageShapes().at(-1)!
 
 		editor
 			.select(arrow1.id, arrow2.id)
 			.pointerDown(150, 300, { target: 'selection', handle: 'bottom' })
 			.pointerMove(150, 600)
 
-			.expectPathToBe('root.select.resizing')
+			.expectToBeIn('select.resizing')
 
 		expect(editor.getShape(arrow1.id)).toMatchObject({
 			x: 0,
@@ -415,7 +423,7 @@ describe('resizing', () => {
 	it('flips bend when flipping x or y', () => {
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedShapeIds)
+			.deleteShapes(editor.getSelectedShapeIds())
 			.setCurrentTool('arrow')
 			.pointerDown(0, 0)
 			.pointerMove(200, 200)
@@ -426,8 +434,8 @@ describe('resizing', () => {
 			.pointerUp()
 			.setCurrentTool('select')
 
-		const arrow1 = editor.currentPageShapes.at(-2)!
-		const arrow2 = editor.currentPageShapes.at(-1)!
+		const arrow1 = editor.getCurrentPageShapes().at(-2)!
+		const arrow2 = editor.getCurrentPageShapes().at(-1)!
 
 		editor.updateShapes([{ id: arrow1.id, type: 'arrow', props: { bend: 50 } }])
 
@@ -436,7 +444,7 @@ describe('resizing', () => {
 			.pointerDown(150, 300, { target: 'selection', handle: 'bottom' })
 			.pointerMove(150, -300)
 
-			.expectPathToBe('root.select.resizing')
+			.expectToBeIn('select.resizing')
 
 		expect(editor.getShape(arrow1.id)).toCloselyMatchObject({
 			props: {
@@ -484,28 +492,28 @@ describe("an arrow's parents", () => {
 	let boxCid: TLShapeId
 
 	beforeEach(() => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 
 		editor.setCurrentTool('frame')
 		editor.pointerDown(0, 0).pointerMove(100, 100).pointerUp()
-		frameId = editor.onlySelectedShape!.id
+		frameId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(10, 10).pointerMove(20, 20).pointerUp()
-		boxAid = editor.onlySelectedShape!.id
+		boxAid = editor.getOnlySelectedShape()!.id
 		editor.setCurrentTool('geo')
 		editor.pointerDown(10, 80).pointerMove(20, 90).pointerUp()
-		boxBid = editor.onlySelectedShape!.id
+		boxBid = editor.getOnlySelectedShape()!.id
 		editor.setCurrentTool('geo')
 		editor.pointerDown(110, 10).pointerMove(120, 20).pointerUp()
-		boxCid = editor.onlySelectedShape!.id
+		boxCid = editor.getOnlySelectedShape()!.id
 	})
 
 	it("are updated when the arrow's bound shapes change", () => {
 		// draw arrow from a to empty space within frame, but don't pointer up yet
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(50, 50)
-		const arrowId = editor.onlySelectedShape!.id
+		const arrowId = editor.getOnlySelectedShape()!.id
 
 		expect(editor.getShape(arrowId)).toMatchObject({
 			props: {
@@ -513,7 +521,7 @@ describe("an arrow's parents", () => {
 				end: { type: 'binding', boundShapeId: frameId },
 			},
 		})
-		expect(editor.getShape(arrowId)?.parentId).toBe(editor.currentPageId)
+		expect(editor.getShape(arrowId)?.parentId).toBe(editor.getCurrentPageId())
 
 		// move arrow to b
 		editor.pointerMove(15, 85)
@@ -527,7 +535,7 @@ describe("an arrow's parents", () => {
 
 		// move back to empty space
 		editor.pointerMove(50, 50)
-		expect(editor.getShape(arrowId)?.parentId).toBe(editor.currentPageId)
+		expect(editor.getShape(arrowId)?.parentId).toBe(editor.getCurrentPageId())
 		expect(editor.getShape(arrowId)).toMatchObject({
 			props: {
 				start: { type: 'binding', boundShapeId: boxAid },
@@ -540,7 +548,7 @@ describe("an arrow's parents", () => {
 		// draw arrow from a to b
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(15, 85).pointerUp()
-		const arrowId = editor.onlySelectedShape!.id
+		const arrowId = editor.getOnlySelectedShape()!.id
 
 		expect(editor.getShape(arrowId)).toMatchObject({
 			parentId: frameId,
@@ -552,7 +560,7 @@ describe("an arrow's parents", () => {
 		// move b outside of frame
 		editor.select(boxBid).translateSelection(200, 0)
 		expect(editor.getShape(arrowId)).toMatchObject({
-			parentId: editor.currentPageId,
+			parentId: editor.getCurrentPageId(),
 			props: {
 				start: { type: 'binding', boundShapeId: boxAid },
 				end: { type: 'binding', boundShapeId: boxBid },
@@ -564,9 +572,9 @@ describe("an arrow's parents", () => {
 		// draw arrow from a to c
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(115, 15).pointerUp()
-		const arrowId = editor.onlySelectedShape!.id
+		const arrowId = editor.getOnlySelectedShape()!.id
 		expect(editor.getShape(arrowId)).toMatchObject({
-			parentId: editor.currentPageId,
+			parentId: editor.getCurrentPageId(),
 			props: {
 				start: { type: 'binding', boundShapeId: boxAid },
 				end: { type: 'binding', boundShapeId: boxCid },

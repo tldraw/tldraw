@@ -149,6 +149,7 @@ export const instancePageStateMigrations = defineMigrations({
 					erasingIds,
 					hoveredId,
 					editingId,
+					croppingShapeId,
 					croppingId,
 					focusLayerId,
 					...rest
@@ -160,7 +161,7 @@ export const instancePageStateMigrations = defineMigrations({
 					erasingShapeIds: erasingIds,
 					hoveredShapeId: hoveredId,
 					editingShapeId: editingId,
-					croppingShapeId: croppingId,
+					croppingShapeId: croppingShapeId ?? croppingId ?? null,
 					focusedGroupId: focusLayerId,
 				}
 			},

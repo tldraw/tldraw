@@ -118,12 +118,12 @@ export class MinimapManager {
 		clampToBounds = false
 	) => {
 		const { editor } = this
-		const { viewportPageBounds } = editor
+		const viewportPageBounds = editor.getViewportPageBounds()
 
 		let { x: px, y: py } = this.getPagePoint(x, y)
 
 		if (clampToBounds) {
-			const shapesPageBounds = this.editor.currentPageBounds
+			const shapesPageBounds = this.editor.getCurrentPageBounds()
 			const vpPageBounds = viewportPageBounds
 
 			const minX = (shapesPageBounds?.minX ?? 0) - vpPageBounds.width / 2
@@ -178,7 +178,9 @@ export class MinimapManager {
 		const { editor, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
 			this
 		const { width: cw, height: ch } = canvasScreenBounds
-		const { viewportPageBounds, selectedShapeIds } = editor
+
+		const selectedShapeIds = editor.getSelectedShapeIds()
+		const viewportPageBounds = editor.getViewportPageBounds()
 
 		if (!cvs || !pageBounds) {
 			return
@@ -255,7 +257,7 @@ export class MinimapManager {
 
 		// Brush
 		{
-			const { brush } = editor.instanceState
+			const { brush } = editor.getInstanceState()
 			if (brush) {
 				const { x, y, w, h } = brush
 				ctx.beginPath()
@@ -299,7 +301,7 @@ export class MinimapManager {
 		const px = 2.5 / sx
 		const py = 2.5 / sy
 
-		const { currentPageId } = editor
+		const currentPageId = editor.getCurrentPageId()
 
 		let collaborator: TLInstancePresence
 		for (let i = 0; i < this.collaborators.length; i++) {

@@ -51,7 +51,7 @@ function MyComponent() {
 // The "InFrontOfTheCanvas" component is rendered on top of the canvas, but behind the UI.
 const MyComponentInFront = track(() => {
 	const editor = useEditor()
-	const { selectionRotatedPageBounds } = editor
+	const selectionRotatedPageBounds = editor.getSelectionRotatedPageBounds()
 
 	if (!selectionRotatedPageBounds) return null
 
@@ -72,7 +72,7 @@ const MyComponentInFront = track(() => {
 	)
 })
 
-const components: Partial<TLEditorComponents> = {
+const components: TLEditorComponents = {
 	OnTheCanvas: MyComponent,
 	InFrontOfTheCanvas: MyComponentInFront,
 	SnapLine: null,

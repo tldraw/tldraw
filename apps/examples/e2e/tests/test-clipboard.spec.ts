@@ -23,8 +23,8 @@ test.describe.skip('clipboard tests', () => {
 		await page.mouse.down()
 		await page.mouse.up()
 
-		expect(await page.evaluate(() => editor.currentPageShapes.length)).toBe(1)
-		expect(await page.evaluate(() => editor.selectedShapes.length)).toBe(1)
+		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(1)
+		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 
 		await page.keyboard.down('Control')
 		await page.keyboard.press('KeyC')
@@ -32,8 +32,8 @@ test.describe.skip('clipboard tests', () => {
 		await page.keyboard.press('KeyV')
 		await page.keyboard.up('Control')
 
-		expect(await page.evaluate(() => editor.currentPageShapes.length)).toBe(2)
-		expect(await page.evaluate(() => editor.selectedShapes.length)).toBe(1)
+		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(2)
+		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 	})
 
 	test('copy and paste from main menu', async ({ page }) => {
@@ -42,8 +42,8 @@ test.describe.skip('clipboard tests', () => {
 		await page.mouse.down()
 		await page.mouse.up()
 
-		expect(await page.evaluate(() => editor.currentPageShapes.length)).toBe(1)
-		expect(await page.evaluate(() => editor.selectedShapes.length)).toBe(1)
+		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(1)
+		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 
 		await page.getByTestId('main.menu').click()
 		await page.getByTestId('menu-item.edit').click()
@@ -53,8 +53,8 @@ test.describe.skip('clipboard tests', () => {
 		await page.getByTestId('menu-item.edit').click()
 		await page.getByTestId('menu-item.paste').click()
 
-		expect(await page.evaluate(() => editor.currentPageShapes.length)).toBe(2)
-		expect(await page.evaluate(() => editor.selectedShapes.length)).toBe(1)
+		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(2)
+		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 	})
 
 	test('copy and paste from context menu', async ({ page }) => {
@@ -63,8 +63,8 @@ test.describe.skip('clipboard tests', () => {
 		await page.mouse.down()
 		await page.mouse.up()
 
-		expect(await page.evaluate(() => editor.currentPageShapes.length)).toBe(1)
-		expect(await page.evaluate(() => editor.selectedShapes.length)).toBe(1)
+		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(1)
+		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 
 		await page.mouse.click(100, 100, { button: 'right' })
 		await page.getByTestId('menu-item.copy').click()
@@ -73,7 +73,7 @@ test.describe.skip('clipboard tests', () => {
 		await page.mouse.click(100, 100, { button: 'right' })
 		await page.getByTestId('menu-item.paste').click()
 
-		expect(await page.evaluate(() => editor.currentPageShapes.length)).toBe(2)
-		expect(await page.evaluate(() => editor.selectedShapes.length)).toBe(1)
+		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(2)
+		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 	})
 })

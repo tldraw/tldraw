@@ -92,7 +92,7 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 
 	const theme = useValue(
 		'theme',
-		() => getDefaultColorTheme({ isDarkMode: editor.user.isDarkMode }),
+		() => getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() }),
 		[editor]
 	)
 

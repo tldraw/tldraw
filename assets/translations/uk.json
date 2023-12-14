@@ -322,6 +322,7 @@
 	"share-menu.upload-failed": "На жаль, наразі ми не можемо завантажити ваш проєкт. Спробуйте ще раз або повідомте нам, якщо проблема не зникне.",
 	"style-panel.vertical-align": "Вертикальне вирівнювання",
 	"tool.laser": "Лазер",
+	"action.fork-project": "Скопіювати цей проєкт",
 	"action.leave-shared-project": "Вийти зі спільного проєкту",
 	"sharing.confirm-leave.title": "Залишити поточний проєкт?",
 	"sharing.confirm-leave.description": "Ви впевнені, що бажаєте залишити цей спільний проєкт? Ви можете повернутися до нього, перейшовши за його URL-адресою.",
@@ -337,6 +338,7 @@
 	"rename-project-dialog.cancel": "Скасувати",
 	"rename-project-dialog.rename": "Перейменувати",
 	"home-project-dialog.ok": "Гаразд",
+	"cursor-chat.type-to-chat": "Натисніть, щоб розпочати спілкуватися...",
 	"geo-style.cloud": "Хмара",
 	"tool.cloud": "Хмара",
 	"action.unlock-all": "Розблокувати все"

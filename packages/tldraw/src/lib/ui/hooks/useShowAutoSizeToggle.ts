@@ -5,7 +5,7 @@ export function useShowAutoSizeToggle() {
 	return useValue(
 		'showAutoSizeToggle',
 		() => {
-			const { selectedShapes } = editor
+			const selectedShapes = editor.getSelectedShapes()
 			return (
 				selectedShapes.length === 1 &&
 				editor.isShapeOfType<TLTextShape>(selectedShapes[0], 'text') &&

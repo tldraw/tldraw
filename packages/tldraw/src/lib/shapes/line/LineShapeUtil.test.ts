@@ -15,7 +15,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedShapeIds)
+		.deleteShapes(editor.getSelectedShapeIds())
 		.createShapes([
 			{
 				id: id,
@@ -142,14 +142,14 @@ describe('Misc', () => {
 		editor
 			.pointerDown(150, 0, { target: 'selection', handle: 'bottom' })
 			.pointerMove(150, 600) // Resize shape by 0, 600
-			.expectPathToBe('root.select.resizing')
+			.expectToBeIn('select.resizing')
 
 		expect(editor.getShape(id)!).toMatchSnapshot('line shape after resize')
 	})
 
 	it('nudges', () => {
 		editor.select(id)
-		editor.nudgeShapes(editor.selectedShapeIds, { x: 1, y: 0 })
+		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 1, y: 0 })
 
 		editor.expectShapeToMatch({
 			id: id,
@@ -157,7 +157,7 @@ describe('Misc', () => {
 			y: 150,
 		})
 
-		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: 10 })
+		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: 10 })
 
 		editor.expectShapeToMatch({
 			id: id,
@@ -176,12 +176,12 @@ describe('Misc', () => {
 		editor.select(boxID, id)
 
 		expect(editor.getShapePageBounds(box)!.maxX).not.toEqual(editor.getShapePageBounds(line)!.maxX)
-		editor.alignShapes(editor.selectedShapeIds, 'right')
+		editor.alignShapes(editor.getSelectedShapeIds(), 'right')
 		jest.advanceTimersByTime(1000)
 		expect(editor.getShapePageBounds(box)!.maxX).toEqual(editor.getShapePageBounds(line)!.maxX)
 
 		expect(editor.getShapePageBounds(box)!.maxY).not.toEqual(editor.getShapePageBounds(line)!.maxY)
-		editor.alignShapes(editor.selectedShapeIds, 'bottom')
+		editor.alignShapes(editor.getSelectedShapeIds(), 'bottom')
 		jest.advanceTimersByTime(1000)
 		expect(editor.getShapePageBounds(box)!.maxY).toEqual(editor.getShapePageBounds(line)!.maxY)
 	})
@@ -195,7 +195,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		expect(Array.from(editor.currentPageShapeIds.values()).length).toEqual(2)
+		expect(Array.from(editor.getCurrentPageShapeIds().values()).length).toEqual(2)
 	})
 
 	it('deletes', () => {
@@ -207,15 +207,15 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		let ids = Array.from(editor.currentPageShapeIds.values())
+		let ids = Array.from(editor.getCurrentPageShapeIds().values())
 		expect(ids.length).toEqual(2)
 
 		const duplicate = ids.filter((i) => i !== id)[0]
 		editor.select(duplicate)
 
-		editor.deleteShapes(editor.selectedShapeIds)
+		editor.deleteShapes(editor.getSelectedShapeIds())
 
-		ids = Array.from(editor.currentPageShapeIds.values())
+		ids = Array.from(editor.getCurrentPageShapeIds().values())
 		expect(ids.length).toEqual(1)
 		expect(ids[0]).toEqual(id)
 	})

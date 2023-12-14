@@ -58,6 +58,7 @@ const menuOverrides = {
 		schema.forEach((item) => {
 			if (item.id === 'menu' && item.type === 'group') {
 				item.children = item.children.filter((menuItem) => {
+					if (!menuItem) return false
 					if (menuItem.id === 'file' && menuItem.type === 'submenu') {
 						return false
 					}

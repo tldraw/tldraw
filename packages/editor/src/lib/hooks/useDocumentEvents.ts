@@ -9,7 +9,7 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.instanceState.isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.getInstanceState().isFocused, [editor])
 
 	useEffect(() => {
 		if (typeof matchMedia === undefined) return
@@ -30,13 +30,17 @@ export function useDocumentEvents() {
 			}
 			if (media.addEventListener) {
 				media.addEventListener('change', updatePixelRatio)
+				// eslint-disable-next-line deprecation/deprecation
 			} else if (media.addListener) {
+				// eslint-disable-next-line deprecation/deprecation
 				media.addListener(safariCb)
 			}
 			remove = () => {
 				if (media.removeEventListener) {
 					media.removeEventListener('change', updatePixelRatio)
+					// eslint-disable-next-line deprecation/deprecation
 				} else if (media.removeListener) {
+					// eslint-disable-next-line deprecation/deprecation
 					media.removeListener(safariCb)
 				}
 			}
@@ -55,7 +59,7 @@ export function useDocumentEvents() {
 			if (
 				e.altKey &&
 				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?
-				(editor.isIn('zoom') || !editor.root.path.value.endsWith('.idle')) &&
+				(editor.isIn('zoom') || !editor.getPath().endsWith('.idle')) &&
 				!isFocusingInput()
 			) {
 				// On windows the alt key opens the menu bar.
@@ -83,7 +87,7 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Tab': {
-					if (isFocusingInput() || editor.isMenuOpen) {
+					if (isFocusingInput() || editor.getIsMenuOpen()) {
 						return
 					}
 					break
@@ -107,7 +111,7 @@ export function useDocumentEvents() {
 								ctrlKey: e.metaKey || e.ctrlKey,
 								pointerId: 0,
 								button: 0,
-								isPen: editor.instanceState.isPenMode,
+								isPen: editor.getInstanceState().isPenMode,
 								target: 'canvas',
 							}
 
@@ -126,12 +130,12 @@ export function useDocumentEvents() {
 					// escape de-selects them. Only when the user's selection is empty
 					// should we allow escape to do its normal thing.
 
-					if (editor.editingShape || editor.selectedShapeIds.length > 0) {
+					if (editor.getEditingShape() || editor.getSelectedShapeIds().length > 0) {
 						e.preventDefault()
 					}
 
 					// Don't do anything if we open menus open
-					if (editor.openMenus.length > 0) return
+					if (editor.getOpenMenus().length > 0) return
 
 					if (!editor.inputs.keys.has('Escape')) {
 						editor.inputs.keys.add('Escape')
@@ -147,7 +151,7 @@ export function useDocumentEvents() {
 					return
 				}
 				default: {
-					if (isFocusingInput() || editor.isMenuOpen) {
+					if (isFocusingInput() || editor.getIsMenuOpen()) {
 						return
 					}
 				}
@@ -170,7 +174,7 @@ export function useDocumentEvents() {
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
 
-			if (isFocusingInput() || editor.isMenuOpen) {
+			if (isFocusingInput() || editor.getIsMenuOpen()) {
 				return
 			}
 
@@ -191,7 +195,7 @@ export function useDocumentEvents() {
 						ctrlKey: e.metaKey || e.ctrlKey,
 						pointerId: 0,
 						button: 0,
-						isPen: editor.instanceState.isPenMode,
+						isPen: editor.getInstanceState().isPenMode,
 						target: 'canvas',
 					}
 					editor.dispatch(info)
@@ -225,7 +229,7 @@ export function useDocumentEvents() {
 				// touchstart event in that case.
 				if (
 					touchXPosition - touchXRadius < 10 ||
-					touchXPosition + touchXRadius > editor.viewportScreenBounds.width - 10
+					touchXPosition + touchXRadius > editor.getViewportScreenBounds().width - 10
 				) {
 					if ((e.target as HTMLElement)?.tagName === 'BUTTON') {
 						// Force a click before bailing

@@ -21,7 +21,7 @@ export function useKeyboardShortcuts() {
 	const isReadonly = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
-	const isFocused = useValue('is focused', () => editor.instanceState.isFocused, [editor])
+	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 
 	useEffect(() => {
 		if (!isFocused) return
@@ -37,7 +37,7 @@ export function useKeyboardShortcuts() {
 		// Add hotkeys for actions and tools.
 		// Except those that in SKIP_KBDS!
 		const areShortcutsDisabled = () =>
-			editor.isMenuOpen || editor.editingShapeId !== null || editor.crashingError
+			editor.getIsMenuOpen() || editor.getEditingShapeId() !== null || editor.getCrashingError()
 
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
@@ -52,7 +52,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.instanceState.isReadonly)) {
+			if (!tool.kbd || (!tool.readonlyOk && editor.getInstanceState().isReadonly)) {
 				continue
 			}
 

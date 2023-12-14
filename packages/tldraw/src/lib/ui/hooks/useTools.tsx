@@ -8,11 +8,14 @@ import { useInsertMedia } from './useInsertMedia'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export interface TLUiToolItem {
+export interface TLUiToolItem<
+	TranslationKey extends string = string,
+	IconType extends string = string
+> {
 	id: string
-	label: TLUiTranslationKey
-	shortcutsLabel?: TLUiTranslationKey
-	icon: TLUiIconType
+	label: TranslationKey
+	shortcutsLabel?: TranslationKey
+	icon: IconType
 	onSelect: (source: TLUiEventSource) => void
 	kbd?: string
 	readonlyOk: boolean
@@ -46,7 +49,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const insertMedia = useInsertMedia()
 
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
-		const toolsArray: TLUiToolItem[] = [
+		const toolsArray: TLUiToolItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'select',
 				label: 'tool.select',
@@ -105,7 +108,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						editor.updateInstanceState(
 							{
 								stylesForNextShape: {
-									...editor.instanceState.stylesForNextShape,
+									...editor.getInstanceState().stylesForNextShape,
 									[GeoShapeGeoStyle.id]: id,
 								},
 							},

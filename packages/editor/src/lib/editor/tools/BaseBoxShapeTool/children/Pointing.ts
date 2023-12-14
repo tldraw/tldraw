@@ -13,8 +13,7 @@ export class Pointing extends StateNode {
 	wasFocusedOnEnter = false
 
 	override onEnter = () => {
-		const { isMenuOpen } = this.editor
-		this.wasFocusedOnEnter = !isMenuOpen
+		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
@@ -50,6 +49,7 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creationCursorOffset: { x: 1, y: 1 },
 				onInteractionEnd: this.parent.id,
+				onCreate: (this.parent as BaseBoxShapeTool).onCreate,
 			})
 		}
 	}
@@ -112,14 +112,14 @@ export class Pointing extends StateNode {
 
 		this.editor.setSelectedShapes([id])
 
-		if (this.editor.instanceState.isToolLocked) {
-			this.parent.transition('idle', {})
+		if (this.editor.getInstanceState().isToolLocked) {
+			this.parent.transition('idle')
 		} else {
 			this.editor.setCurrentTool('select.idle')
 		}
 	}
 
 	cancel() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 	}
 }

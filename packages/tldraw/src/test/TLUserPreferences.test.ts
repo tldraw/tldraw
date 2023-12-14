@@ -9,11 +9,11 @@ beforeEach(() => {
 
 describe('TLUserPreferences', () => {
 	it('allows updating user preferences on the editor', () => {
-		expect(editor.user.isSnapMode).toBe(false)
+		expect(editor.user.getIsSnapMode()).toBe(false)
 
 		editor.user.updateUserPreferences({ isSnapMode: true })
 
-		expect(editor.user.isSnapMode).toBe(true)
+		expect(editor.user.getIsSnapMode()).toBe(true)
 	})
 
 	it('can be customized', () => {
@@ -34,19 +34,19 @@ describe('TLUserPreferences', () => {
 			}),
 		})
 
-		expect(editor.user.isDarkMode).toBe(true)
+		expect(editor.user.getIsDarkMode()).toBe(true)
 
 		userPreferences.set({
-			...userPreferences.value,
+			...userPreferences.get(),
 			isDarkMode: false,
 		})
 
-		expect(editor.user.isDarkMode).toBe(false)
+		expect(editor.user.getIsDarkMode()).toBe(false)
 
 		editor.user.updateUserPreferences({ isDarkMode: true })
 
-		expect(editor.user.isDarkMode).toBe(true)
-		expect(userPreferences.value.isDarkMode).toBe(true)
+		expect(editor.user.getIsDarkMode()).toBe(true)
+		expect(userPreferences.get().isDarkMode).toBe(true)
 	})
 
 	it('can have null values and it will use defaults', () => {
@@ -68,11 +68,11 @@ describe('TLUserPreferences', () => {
 			}),
 		})
 
-		expect(editor.user.animationSpeed).toBe(1)
-		expect(editor.user.isDarkMode).toBe(false)
-		expect(editor.user.isSnapMode).toBe(false)
-		expect(editor.user.locale).toBe('en')
-		expect(editor.user.name).toBe('New User')
+		expect(editor.user.getAnimationSpeed()).toBe(1)
+		expect(editor.user.getIsDarkMode()).toBe(false)
+		expect(editor.user.getIsSnapMode()).toBe(false)
+		expect(editor.user.getLocale()).toBe('en')
+		expect(editor.user.getName()).toBe('New User')
 	})
 
 	it('can have unspecified values and it will use defaults', () => {
@@ -89,11 +89,11 @@ describe('TLUserPreferences', () => {
 			}),
 		})
 
-		expect(editor.user.animationSpeed).toBe(1)
-		expect(editor.user.isDarkMode).toBe(false)
-		expect(editor.user.isSnapMode).toBe(false)
-		expect(editor.user.locale).toBe('en')
-		expect(editor.user.name).toBe('blah')
+		expect(editor.user.getAnimationSpeed()).toBe(1)
+		expect(editor.user.getIsDarkMode()).toBe(false)
+		expect(editor.user.getIsSnapMode()).toBe(false)
+		expect(editor.user.getLocale()).toBe('en')
+		expect(editor.user.getName()).toBe('blah')
 	})
 
 	it('allows setting values to null', () => {
@@ -110,10 +110,10 @@ describe('TLUserPreferences', () => {
 			}),
 		})
 
-		expect(editor.user.name).toBe('blah')
+		expect(editor.user.getName()).toBe('blah')
 		editor.user.updateUserPreferences({ name: null })
 
-		expect(editor.user.name).toBe('New User')
+		expect(editor.user.getName()).toBe('New User')
 		expect(setUserPreferences).toHaveBeenCalledTimes(1)
 		expect(setUserPreferences).toHaveBeenLastCalledWith({
 			id: '123',

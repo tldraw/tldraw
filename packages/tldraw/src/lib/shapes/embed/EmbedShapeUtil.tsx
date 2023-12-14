@@ -15,9 +15,9 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useMemo } from 'react'
-import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds'
-import { getRotatedBoxShadow } from '../../utils/rotated-box-shadow'
+import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
 import { resizeBox } from '../shared/resizeBox'
+import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)
@@ -84,7 +84,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
 			() => {
-				const { editingShapeId, hoveredShapeId } = this.editor.currentPageState
+				const { editingShapeId, hoveredShapeId } = this.editor.getCurrentPageState()
 
 				if (editingShapeId && hoveredShapeId !== editingShapeId) {
 					const editingShape = this.editor.getShape(editingShapeId)

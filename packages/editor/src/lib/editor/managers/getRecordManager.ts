@@ -5,18 +5,18 @@ export function getAtomManager<T extends { [key: string]: any }>(
 	transform?: (prev: T, next: T) => T
 ): T {
 	const update = (value: Partial<T>) => {
-		const curr = atom.value
+		const curr = atom.get()
 		const next = { ...curr, ...value }
-		const final = transform?.(atom.value, atom.value) ?? next
+		const final = transform?.(atom.get(), atom.get()) ?? next
 		atom.set(final)
 	}
 
 	return Object.defineProperties(
 		{} as T,
-		Object.keys(atom.value).reduce((acc, key) => {
+		Object.keys(atom.get()).reduce((acc, key) => {
 			acc[key as keyof T] = computed(atom, key, {
 				get() {
-					return atom.value[key as keyof T]
+					return atom.get()[key as keyof T]
 				},
 				set(value: T[keyof T]) {
 					update({ [key]: value } as any)

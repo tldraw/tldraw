@@ -49,9 +49,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	}
 
 	component(shape: TLGroupShape) {
-		const isErasing = this.editor.erasingShapeIds.includes(shape.id)
+		const isErasing = this.editor.getErasingShapeIds().includes(shape.id)
 
-		const { hintingShapeIds } = this.editor.currentPageState
+		const { hintingShapeIds } = this.editor.getCurrentPageState()
 		const isHintingOtherGroup =
 			hintingShapeIds.length > 0 &&
 			hintingShapeIds.some(
@@ -60,7 +60,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 					this.editor.isShapeOfType<TLGroupShape>(this.editor.getShape(id)!, 'group')
 			)
 
-		const isFocused = this.editor.currentPageState.focusedGroupId !== shape.id
+		const isFocused = this.editor.getCurrentPageState().focusedGroupId !== shape.id
 
 		if (
 			!isErasing && // always show the outline while we're erasing the group
@@ -89,13 +89,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	override onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape> = (group) => {
 		const children = this.editor.getSortedChildIdsForParent(group.id)
 		if (children.length === 0) {
-			if (this.editor.currentPageState.focusedGroupId === group.id) {
+			if (this.editor.getCurrentPageState().focusedGroupId === group.id) {
 				this.editor.popFocusedGroupId()
 			}
 			this.editor.deleteShapes([group.id])
 			return
 		} else if (children.length === 1) {
-			if (this.editor.currentPageState.focusedGroupId === group.id) {
+			if (this.editor.getCurrentPageState().focusedGroupId === group.id) {
 				this.editor.popFocusedGroupId()
 			}
 			this.editor.reparentShapes(children, group.parentId)

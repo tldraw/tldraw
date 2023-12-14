@@ -102,7 +102,7 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		}
 
 		// make sure there is at least one page
-		const pageIds = $pageIds.value
+		const pageIds = $pageIds.get()
 		if (pageIds.size === 0) {
 			store.put(getDefaultPages())
 			return ensureStoreIsUsable()

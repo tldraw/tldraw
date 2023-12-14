@@ -31,14 +31,14 @@ const CollaboratorGuard = track(function CollaboratorGuard({
 	const presence = usePresence(collaboratorId)
 	const collaboratorState = useCollaboratorState(presence)
 
-	if (!(presence && presence.currentPageId === editor.currentPageId)) {
+	if (!(presence && presence.currentPageId === editor.getCurrentPageId())) {
 		// No need to render if we don't have a presence or if they're on a different page
 		return null
 	}
 
 	switch (collaboratorState) {
 		case 'inactive': {
-			const { followingUserId, highlightedUserIds } = editor.instanceState
+			const { followingUserId, highlightedUserIds } = editor.getInstanceState()
 			// If they're inactive and unless we're following them or they're highlighted, hide them
 			if (!(followingUserId === presence.userId || highlightedUserIds.includes(presence.userId))) {
 				return null
@@ -46,10 +46,10 @@ const CollaboratorGuard = track(function CollaboratorGuard({
 			break
 		}
 		case 'idle': {
-			const { highlightedUserIds } = editor.instanceState
+			const { highlightedUserIds } = editor.getInstanceState()
 			// If they're idle and following us and unless they have a chat message or are highlighted, hide them
 			if (
-				presence.followingUserId === editor.user.id &&
+				presence.followingUserId === editor.user.getId() &&
 				!(presence.chatMessage || highlightedUserIds.includes(presence.userId))
 			) {
 				return null
@@ -80,7 +80,8 @@ const Collaborator = track(function Collaborator({
 		CollaboratorShapeIndicator,
 	} = useEditorComponents()
 
-	const { viewportPageBounds, zoomLevel } = editor
+	const zoomLevel = editor.getZoomLevel()
+	const viewportPageBounds = editor.getViewportPageBounds()
 	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
 		latestPresence
 

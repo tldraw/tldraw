@@ -38,12 +38,14 @@ class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
 
 export default function ExternalContentSourcesExample() {
 	const handleMount = useCallback((editor: Editor) => {
-		// When a user uploads a file, create an asset from it
+		// We will register a new handler for text content. When a user pastes `text/html` content into the editor,
+		// we will create a new shape with that html content.
+		// To test this copy some html content from VS Code or some other text editor.
 		editor.registerExternalContentHandler('text', async ({ point, sources }) => {
 			const htmlSource = sources?.find((s) => s.type === 'text' && s.subtype === 'html')
 
 			if (htmlSource) {
-				const center = point ?? editor.viewportPageCenter
+				const center = point ?? editor.getViewportPageCenter()
 
 				editor.createShape({
 					type: 'html',

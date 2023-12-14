@@ -1,21 +1,21 @@
 import { StateNode } from '@tldraw/editor'
-import { Brushing } from './children/Brushing'
-import { Crop } from './children/Crop/Crop'
-import { Cropping } from './children/Cropping'
-import { DraggingHandle } from './children/DraggingHandle'
-import { EditingShape } from './children/EditingShape'
-import { Idle } from './children/Idle'
-import { PointingCanvas } from './children/PointingCanvas'
-import { PointingCropHandle } from './children/PointingCropHandle'
-import { PointingHandle } from './children/PointingHandle'
-import { PointingResizeHandle } from './children/PointingResizeHandle'
-import { PointingRotateHandle } from './children/PointingRotateHandle'
-import { PointingSelection } from './children/PointingSelection'
-import { PointingShape } from './children/PointingShape'
-import { Resizing } from './children/Resizing'
-import { Rotating } from './children/Rotating'
-import { ScribbleBrushing } from './children/ScribbleBrushing'
-import { Translating } from './children/Translating'
+import { Brushing } from './childStates/Brushing'
+import { Crop } from './childStates/Crop/Crop'
+import { Cropping } from './childStates/Cropping'
+import { DraggingHandle } from './childStates/DraggingHandle'
+import { EditingShape } from './childStates/EditingShape'
+import { Idle } from './childStates/Idle'
+import { PointingCanvas } from './childStates/PointingCanvas'
+import { PointingCropHandle } from './childStates/PointingCropHandle'
+import { PointingHandle } from './childStates/PointingHandle'
+import { PointingResizeHandle } from './childStates/PointingResizeHandle'
+import { PointingRotateHandle } from './childStates/PointingRotateHandle'
+import { PointingSelection } from './childStates/PointingSelection'
+import { PointingShape } from './childStates/PointingShape'
+import { Resizing } from './childStates/Resizing'
+import { Rotating } from './childStates/Rotating'
+import { ScribbleBrushing } from './childStates/ScribbleBrushing'
+import { Translating } from './childStates/Translating'
 
 /** @public */
 export class SelectTool extends StateNode {
@@ -42,7 +42,7 @@ export class SelectTool extends StateNode {
 	]
 
 	override onExit = () => {
-		if (this.editor.currentPageState.editingShapeId) {
+		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)
 		}
 	}

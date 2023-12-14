@@ -11,7 +11,7 @@ import { Signal, computed, react } from '../core'
  * ```ts
  * const Counter: React.FC = () => {
  *   const $count = useAtom('count', 0)
- *   const increment = useCallback(() => $count.set($count.value + 1), [count])
+ *   const increment = useCallback(() => $count.set($count.get() + 1), [count])
  *   const currentCount = useValue($count)
  *   return <button onClick={increment}>{currentCount}</button>
  * }
@@ -27,7 +27,7 @@ import { Signal, computed, react } from '../core'
  * }
  *
  * const Greeter = track(function Greeter({ firstName, lastName }: GreeterProps) {
- *   const fullName = useValue('fullName', () => `${firstName.value} ${lastName.value}`, [
+ *   const fullName = useValue('fullName', () => `${firstName.get()} ${lastName.get()}`, [
  *     firstName,
  *     lastName,
  *   ])
@@ -82,11 +82,11 @@ export function useValue() {
 			return {
 				subscribe: (listen: () => void) => {
 					return react(`useValue(${name})`, () => {
-						$val.value
+						$val.get()
 						listen()
 					})
 				},
-				getSnapshot: () => $val.value,
+				getSnapshot: () => $val.get(),
 			}
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [$val])

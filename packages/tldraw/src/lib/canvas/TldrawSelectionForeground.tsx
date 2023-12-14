@@ -15,13 +15,9 @@ import {
 import classNames from 'classnames'
 import { useRef } from 'react'
 import { useReadonly } from '../ui/hooks/useReadonly'
-import { CropHandles } from './CropHandles'
+import { TldrawCropHandles } from './TldrawCropHandles'
 
-const IS_FIREFOX =
-	typeof navigator !== 'undefined' &&
-	navigator.userAgent &&
-	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
-
+/** @public */
 export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 	function TldrawSelectionForeground({ bounds, rotation }: { bounds: Box2d; rotation: number }) {
 		const editor = useEditor()
@@ -37,11 +33,12 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const bottomRightEvents = useSelectionEvents('bottom_right')
 		const bottomLeftEvents = useSelectionEvents('bottom_left')
 
-		const isDefaultCursor = !editor.isMenuOpen && editor.instanceState.cursor.type === 'default'
-		const isCoarsePointer = editor.instanceState.isCoarsePointer
+		const isDefaultCursor =
+			!editor.getIsMenuOpen() && editor.getInstanceState().cursor.type === 'default'
+		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
-		const shapes = editor.selectedShapes
-		const onlyShape = editor.onlySelectedShape
+		const shapes = editor.getSelectedShapes()
+		const onlyShape = editor.getOnlySelectedShape()
 		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
 
 		// if all shapes have an expandBy for the selection outline, we can expand by the l
@@ -49,7 +46,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
 			: 0
 
-		useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.selectionRotation, {
+		useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.getSelectionRotation(), {
 			x: -expandOutlineBy,
 			y: -expandOutlineBy,
 		})
@@ -57,8 +54,8 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		if (!bounds) return null
 		bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
-		const zoom = editor.zoomLevel
-		const isChangingStyle = editor.instanceState.isChangingStyle
+		const zoom = editor.getZoomLevel()
+		const isChangingStyle = editor.getInstanceState().isChangingStyle
 
 		const width = bounds.width
 		const height = bounds.height
@@ -102,7 +99,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 				editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
 
 		if (onlyShape && shouldDisplayBox) {
-			if (IS_FIREFOX && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+			if (editor.environment.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
 				shouldDisplayBox = false
 			}
 		}
@@ -437,7 +434,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					)}
 					{/* Crop Handles */}
 					{showCropHandles && (
-						<CropHandles
+						<TldrawCropHandles
 							{...{
 								size,
 								width,
@@ -504,7 +501,7 @@ export const MobileRotateHandle = function RotateHandle({
 	const events = useSelectionEvents('mobile_rotate')
 
 	const editor = useEditor()
-	const zoom = useValue('zoom level', () => editor.zoomLevel, [editor])
+	const zoom = useValue('zoom level', () => editor.getZoomLevel(), [editor])
 	const bgRadius = Math.max(14 * (1 / zoom), 20 / Math.max(1, zoom))
 
 	return (

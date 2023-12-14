@@ -18,7 +18,7 @@ const ids = {
 	arrow3: createShapeId('arrow3'),
 }
 
-const arrow = () => editor.onlySelectedShape as TLArrowShape
+const arrow = () => editor.getOnlySelectedShape() as TLArrowShape
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -36,7 +36,7 @@ describe('Making an arrow on the page', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerMove(0, 0)
 		editor.pointerDown()
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
 	it('cleans up the arrow if the user did not start dragging', () => {
@@ -44,24 +44,24 @@ describe('Making an arrow on the page', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerMove(0, 0)
 		editor.click()
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 		// with double click
 		editor.setCurrentTool('arrow')
 		editor.pointerMove(0, 0)
 		editor.doubleClick()
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 		// with pointer up
 		editor.setCurrentTool('arrow')
 		editor.pointerDown()
 		editor.pointerUp()
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 
 		// did not add it to the history stack
 		editor.undo()
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.redo()
 		editor.redo()
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
 	it('keeps the arrow if the user dragged', () => {
@@ -75,7 +75,7 @@ describe('Making an arrow on the page', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 0)
-		const arrow1 = editor.currentPageShapes[0]
+		const arrow1 = editor.getCurrentPageShapes()[0]
 
 		expect(arrow()).toMatchObject({
 			type: 'arrow',
@@ -156,6 +156,7 @@ describe('When binding an arrow to a shape', () => {
 			type: 'binding',
 			boundShapeId: ids.box1,
 			normalizedAnchor: { x: 0.5, y: 0.5 },
+			isPrecise: true, // enclosed
 		})
 		editor.pointerMove(250, 50)
 		expect(arrow().props.end.type).toBe('point')
@@ -170,7 +171,7 @@ describe('When binding an arrow to a shape', () => {
 	})
 
 	it('does not bind when the shape is locked', () => {
-		editor.toggleLock(editor.currentPageShapes)
+		editor.toggleLock(editor.getCurrentPageShapes())
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(100, 50)
@@ -284,25 +285,25 @@ describe('When starting an arrow inside of multiple shapes', () => {
 	it('does not create the arrow immediately', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(50, 50)
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		expect(arrow()).toBe(null)
 	})
 
 	it('does not create a shape if pointer up before drag', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(50, 50)
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.pointerUp(50, 50)
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
 	it('creates the arrow after a drag, bound to the shape', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(50, 50)
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		expect(arrow()).toBe(null)
 		editor.pointerMove(55, 50)
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toMatchObject({
 			x: 50,
 			y: 50,
@@ -330,10 +331,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 	it('always creates the arrow with an imprecise start point', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(20, 20) // upper left
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		expect(arrow()).toBe(null)
 		editor.pointerMove(25, 20)
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toMatchObject({
 			x: 20,
 			y: 20,
@@ -343,9 +344,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					boundShapeId: ids.box1,
 					normalizedAnchor: {
 						// bound to the center, imprecise!
-						x: 0.5,
-						y: 0.5,
+						x: 0.2,
+						y: 0.2,
 					},
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',
@@ -362,11 +364,11 @@ describe('When starting an arrow inside of multiple shapes', () => {
 	it('after a pause before drag, creates an arrow with a precise start point', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(20, 20) // upper left
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.getCurrentPageShapes().length).toBe(1)
 		expect(arrow()).toBe(null)
 		jest.advanceTimersByTime(1000)
 		editor.pointerMove(25, 20)
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toMatchObject({
 			x: 20,
 			y: 20,
@@ -405,10 +407,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(25, 25)
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
-		expect(editor.currentPageShapes.length).toBe(3)
+		expect(editor.getCurrentPageShapes().length).toBe(3)
 		expect(arrow()).toMatchObject({
 			x: 25,
 			y: 25,
@@ -425,8 +427,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -439,10 +441,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(25, 25)
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
-		expect(editor.currentPageShapes.length).toBe(3)
+		expect(editor.getCurrentPageShapes().length).toBe(3)
 		expect(arrow()).toMatchObject({
 			x: 25,
 			y: 25,
@@ -459,8 +461,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -474,10 +476,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(25, 25)
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
-		expect(editor.currentPageShapes.length).toBe(3)
+		expect(editor.getCurrentPageShapes().length).toBe(3)
 		expect(arrow()).toMatchObject({
 			props: {
 				start: {
@@ -507,10 +509,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(25, 25)
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
-		expect(editor.currentPageShapes.length).toBe(3)
+		expect(editor.getCurrentPageShapes().length).toBe(3)
 		expect(arrow()).toMatchObject({
 			x: 25,
 			y: 25,
@@ -519,9 +521,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box1,
 					normalizedAnchor: {
-						x: 0.5,
-						y: 0.5,
+						x: 0.25,
+						y: 0.25,
 					},
+					isPrecise: false,
 				},
 				end: {
 					type: 'binding',
@@ -543,10 +546,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(25, 25)
-		expect(editor.currentPageShapes.length).toBe(2)
+		expect(editor.getCurrentPageShapes().length).toBe(2)
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
-		expect(editor.currentPageShapes.length).toBe(3)
+		expect(editor.getCurrentPageShapes().length).toBe(3)
 		expect(arrow()).toMatchObject({
 			x: 25,
 			y: 25,
@@ -563,8 +566,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -575,3 +578,75 @@ describe('When starting an arrow inside of multiple shapes', () => {
 it.todo(
 	'after creating an arrow while tool lock is enabled, pressing enter will begin editing that shape'
 )
+
+describe('When binding an arrow to an ancestor', () => {
+	it('binds precisely from child to parent', () => {
+		const ids = {
+			frame: createShapeId(),
+			box1: createShapeId(),
+		}
+
+		editor.createShapes([
+			{
+				id: ids.frame,
+				type: 'frame',
+			},
+			{
+				id: ids.box1,
+				type: 'geo',
+				parentId: ids.frame,
+			},
+		])
+
+		editor.setCurrentTool('arrow')
+		editor.pointerMove(25, 25)
+		editor.pointerDown()
+		editor.pointerMove(150, 50)
+		editor.pointerUp()
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
+		if (!arrow) throw Error('No arrow')
+		if (arrow.props.start.type !== 'binding') throw Error('no binding')
+		if (arrow.props.end.type !== 'binding') throw Error('no binding')
+
+		expect(arrow.props.start.boundShapeId).toBe(ids.box1)
+		expect(arrow.props.end.boundShapeId).toBe(ids.frame)
+		expect(arrow.props.start.isPrecise).toBe(false)
+		expect(arrow.props.end.isPrecise).toBe(true)
+	})
+
+	it('binds precisely from parent to child', () => {
+		const ids = {
+			frame: createShapeId(),
+			box1: createShapeId(),
+		}
+
+		editor.createShapes([
+			{
+				id: ids.frame,
+				type: 'frame',
+			},
+			{
+				id: ids.box1,
+				type: 'geo',
+				parentId: ids.frame,
+			},
+		])
+
+		editor.setCurrentTool('arrow')
+		editor.pointerMove(150, 50)
+		editor.pointerDown()
+		editor.pointerMove(25, 25)
+		editor.pointerUp()
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
+		if (!arrow) throw Error('No arrow')
+		if (arrow.props.start.type !== 'binding') throw Error('no binding')
+		if (arrow.props.end.type !== 'binding') throw Error('no binding')
+
+		expect(arrow.props.start.boundShapeId).toBe(ids.frame)
+		expect(arrow.props.end.boundShapeId).toBe(ids.box1)
+		expect(arrow.props.start.isPrecise).toBe(false)
+		expect(arrow.props.end.isPrecise).toBe(true)
+	})
+})

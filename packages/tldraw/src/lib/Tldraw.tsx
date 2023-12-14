@@ -3,7 +3,6 @@ import {
 	Editor,
 	ErrorScreen,
 	LoadingScreen,
-	RecursivePartial,
 	StoreSnapshot,
 	TLOnMountHandler,
 	TLRecord,
@@ -14,6 +13,8 @@ import {
 	TldrawEditorProps,
 	assert,
 	useEditor,
+	useShallowArrayIdentity,
+	useShallowObjectIdentity,
 } from '@tldraw/editor'
 import { useCallback, useDebugValue, useLayoutEffect, useMemo, useRef } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
@@ -31,35 +32,31 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
-import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
-import { usePreloadAssets } from './utils/usePreloadAssets'
+import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
+import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
-export function Tldraw(
-	props: TldrawEditorBaseProps &
-		(
-			| {
-					store: TLStore | TLStoreWithStatus
-			  }
-			| {
-					store?: undefined
-					persistenceKey?: string
-					sessionId?: string
-					defaultName?: string
-					/**
-					 * A snapshot to load for the store's initial data / schema.
-					 */
-					snapshot?: StoreSnapshot<TLRecord>
-			  }
-		) &
-		TldrawUiProps &
-		Partial<TLExternalContentProps> & {
-			/**
-			 * Urls for the editor to find fonts and other assets.
-			 */
-			assetUrls?: RecursivePartial<TLEditorAssetUrls>
-		}
-) {
+export type TldrawProps = TldrawEditorBaseProps &
+	(
+		| {
+				store: TLStore | TLStoreWithStatus
+		  }
+		| {
+				store?: undefined
+				persistenceKey?: string
+				sessionId?: string
+				defaultName?: string
+				/**
+				 * A snapshot to load for the store's initial data / schema.
+				 */
+				snapshot?: StoreSnapshot<TLRecord>
+		  }
+	) &
+	TldrawUiProps &
+	Partial<TLExternalContentProps>
+
+/** @public */
+export function Tldraw(props: TldrawProps) {
 	const {
 		children,
 		maxImageDimension,
@@ -69,6 +66,10 @@ export function Tldraw(
 		onMount,
 		...rest
 	} = props
+
+	const components = useShallowObjectIdentity(rest.components ?? {})
+	const shapeUtils = useShallowArrayIdentity(rest.shapeUtils ?? [])
+	const tools = useShallowArrayIdentity(rest.tools ?? [])
 
 	const withDefaults: TldrawEditorProps = {
 		initialState: 'select',
@@ -81,18 +82,12 @@ export function Tldraw(
 				SelectionBackground: TldrawSelectionBackground,
 				Handles: TldrawHandles,
 				HoveredShapeIndicator: TldrawHoveredShapeIndicator,
-				...rest.components,
+				...components,
 			}),
-			[rest.components]
+			[components]
 		),
-		shapeUtils: useMemo(
-			() => [...defaultShapeUtils, ...(rest.shapeUtils ?? [])],
-			[rest.shapeUtils]
-		),
-		tools: useMemo(
-			() => [...defaultTools, ...defaultShapeTools, ...(rest.tools ?? [])],
-			[rest.tools]
-		),
+		shapeUtils: useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils]),
+		tools: useMemo(() => [...defaultTools, ...defaultShapeTools, ...tools], [tools]),
 	}
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)

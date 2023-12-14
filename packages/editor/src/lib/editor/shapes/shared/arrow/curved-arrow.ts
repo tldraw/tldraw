@@ -19,6 +19,7 @@ import {
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
+	getBoundShapeRelationships,
 } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
@@ -49,6 +50,25 @@ export function getCurvedArrowInfo(
 	const b = terminalsInArrowSpace.end.clone()
 	const c = middle.clone()
 
+	if (Vec2d.Equals(a, b)) {
+		return {
+			isStraight: true,
+			start: {
+				handle: a,
+				point: a,
+				arrowhead: shape.props.arrowheadStart,
+			},
+			end: {
+				handle: b,
+				point: b,
+				arrowhead: shape.props.arrowheadEnd,
+			},
+			middle: c,
+			isValid: false,
+			length: 0,
+		}
+	}
+
 	const isClockwise = shape.props.bend < 0
 	const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
 
@@ -74,6 +94,8 @@ export function getCurvedArrowInfo(
 
 	let offsetA = 0
 	let offsetB = 0
+
+	let minLength = MIN_ARROW_LENGTH
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
@@ -132,12 +154,13 @@ export function getCurvedArrowInfo(
 			startShapeInfo.didIntersect = true
 
 			if (arrowheadStart !== 'none') {
-				offsetA =
-					BOUND_ARROW_OFFSET +
+				const strokeOffset =
 					STROKE_SIZES[shape.props.size] / 2 +
 					('size' in startShapeInfo.shape.props
 						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 						: 0)
+				offsetA = BOUND_ARROW_OFFSET + strokeOffset
+				minLength += strokeOffset
 			}
 		}
 	}
@@ -205,10 +228,11 @@ export function getCurvedArrowInfo(
 			endShapeInfo.didIntersect = true
 
 			if (arrowheadEnd !== 'none') {
-				offsetB =
-					BOUND_ARROW_OFFSET +
+				const strokeOffset =
 					STROKE_SIZES[shape.props.size] / 2 +
 					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+				offsetB = BOUND_ARROW_OFFSET + strokeOffset
+				minLength += strokeOffset
 			}
 		}
 	}
@@ -239,7 +263,7 @@ export function getCurvedArrowInfo(
 	}
 
 	const distAB = Vec2d.Dist(tA, tB)
-	if (distAB < MIN_ARROW_LENGTH) {
+	if (distAB < minLength) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
 			offsetB *= -1.5
@@ -248,10 +272,7 @@ export function getCurvedArrowInfo(
 		} else if (offsetB !== 0) {
 			offsetB *= -2
 		} else {
-			if (distAB < 10) {
-				if (startShapeInfo) offsetA = -(10 - distAB)
-				else if (endShapeInfo) offsetB = -(10 - distAB)
-			}
+			// noop
 		}
 	}
 
@@ -273,14 +294,17 @@ export function getCurvedArrowInfo(
 		aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
 		dAB = distFn(aCA, aCB) // angle distance between a and b
 		lAB = dAB * handleArc.radius // length of arc between a and b
+		const relationship = getBoundShapeRelationships(
+			editor,
+			startShapeInfo.shape.id,
+			endShapeInfo.shape.id
+		)
 
-		if (startShapeInfo.shape === endShapeInfo.shape) {
-			if (lAB < 100) {
-				tempA.setTo(a)
-				tempB.setTo(b)
-				tempC.setTo(c)
-			}
-		} else {
+		if (relationship === 'double-bound' && lAB < 30) {
+			tempA.setTo(a)
+			tempB.setTo(b)
+			tempC.setTo(c)
+		} else if (relationship === 'safe') {
 			if (startShapeInfo && !startShapeInfo.didIntersect) {
 				tempA.setTo(a)
 			}

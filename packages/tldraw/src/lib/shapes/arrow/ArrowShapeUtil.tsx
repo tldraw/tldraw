@@ -22,7 +22,6 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec2d,
-	Vec2dModel,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	deepCopy,
@@ -281,16 +280,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 
-		if (precise) {
-			// Turn off precision if we're within a certain distance to the center of the shape.
-			// Funky math but we want the snap distance to be 4 at the minimum and either
-			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-			precise =
-				Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
-				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.zoomLevel
-		}
-
 		if (!isPrecise) {
 			if (!targetGeometry.isClosed) {
 				precise = true
@@ -302,21 +291,36 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			if (
 				otherHandle.type === 'binding' &&
 				target.id === otherHandle.boundShapeId &&
-				Vec2d.Equals(otherHandle.normalizedAnchor, { x: 0.5, y: 0.5 })
+				otherHandle.isPrecise
 			) {
 				precise = true
+			}
+		}
+
+		const normalizedAnchor = {
+			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+		}
+
+		if (precise) {
+			// Turn off precision if we're within a certain distance to the center of the shape.
+			// Funky math but we want the snap distance to be 4 at the minimum and either
+			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
+			if (
+				Vec2d.Dist(pointInTargetSpace, targetBounds.center) <
+				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
+					this.editor.getZoomLevel()
+			) {
+				normalizedAnchor.x = 0.5
+				normalizedAnchor.y = 0.5
 			}
 		}
 
 		next.props[handleId] = {
 			type: 'binding',
 			boundShapeId: target.id,
-			normalizedAnchor: precise
-				? {
-						x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-						y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-				  }
-				: { x: 0.5, y: 0.5 },
+			normalizedAnchor: normalizedAnchor,
+			isPrecise: precise,
 			isExact: this.editor.inputs.altKey,
 		}
 
@@ -339,7 +343,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// If at least one bound shape is in the selection, do nothing;
 		// If no bound shapes are in the selection, unbind any bound shapes
 
-		const { selectedShapeIds } = this.editor
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
 
 		if (
 			(startBindingId &&
@@ -487,14 +491,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// Not a class component, but eslint can't tell that :(
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
-		const onlySelectedShape = this.editor.onlySelectedShape
+		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(
 				'select.idle',
 				'select.pointing_handle',
 				'select.dragging_handle',
 				'arrow.dragging'
-			) && !this.editor.instanceState.isReadonly
+			) && !this.editor.getInstanceState().isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
 		const bounds = Box2d.ZeroFix(this.editor.getShapeGeometry(shape).bounds)
@@ -542,7 +546,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							shape.props.start.type === 'binding'
 								? shape.props.start.isExact
 									? ''
-									: isPrecise(shape.props.start.normalizedAnchor)
+									: shape.props.start.isPrecise
 									? 'url(#arrowhead-cross)'
 									: 'url(#arrowhead-dot)'
 								: ''
@@ -551,7 +555,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							shape.props.end.type === 'binding'
 								? shape.props.end.isExact
 									? ''
-									: isPrecise(shape.props.end.normalizedAnchor)
+									: shape.props.end.isPrecise
 									? 'url(#arrowhead-cross)'
 									: 'url(#arrowhead-dot)'
 								: ''
@@ -803,7 +807,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const color = theme[shape.props.color].solid
@@ -1029,8 +1033,4 @@ function getArrowheadSvgPath(
 		// Otherwise, just return the path
 		return path
 	}
-}
-
-function isPrecise(normalizedAnchor: Vec2dModel) {
-	return normalizedAnchor.x !== 0.5 || normalizedAnchor.y !== 0.5
 }

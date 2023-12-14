@@ -74,7 +74,7 @@ const INPUTS = ['input', 'select', 'textarea']
 function disallowClipboardEvents(editor: Editor) {
 	const { activeElement } = document
 	return (
-		editor.isMenuOpen ||
+		editor.getIsMenuOpen() ||
 		(activeElement &&
 			(activeElement.getAttribute('contenteditable') ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
@@ -195,7 +195,7 @@ const handlePasteFromEventClipboardData = async (
 	point?: VecLike
 ) => {
 	// Do not paste while in any editing state
-	if (editor.editingShapeId !== null) return
+	if (editor.getEditingShapeId() !== null) return
 
 	if (!clipboardData) {
 		throw Error('No clipboard data')
@@ -497,7 +497,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
  * @public
  */
 const handleNativeOrMenuCopy = (editor: Editor) => {
-	const content = editor.getContentFromCurrentPage(editor.selectedShapeIds)
+	const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	if (!content) {
 		if (navigator && navigator.clipboard) {
 			navigator.clipboard.writeText('')
@@ -570,7 +570,7 @@ export function useMenuClipboardEvents() {
 
 	const copy = useCallback(
 		function onCopy(source: TLUiEventSource) {
-			if (editor.selectedShapeIds.length === 0) return
+			if (editor.getSelectedShapeIds().length === 0) return
 
 			handleNativeOrMenuCopy(editor)
 			trackEvent('copy', { source })
@@ -580,10 +580,10 @@ export function useMenuClipboardEvents() {
 
 	const cut = useCallback(
 		function onCut(source: TLUiEventSource) {
-			if (editor.selectedShapeIds.length === 0) return
+			if (editor.getSelectedShapeIds().length === 0) return
 
 			handleNativeOrMenuCopy(editor)
-			editor.deleteShapes(editor.selectedShapeIds)
+			editor.deleteShapes(editor.getSelectedShapeIds())
 			trackEvent('cut', { source })
 		},
 		[editor, trackEvent]
@@ -598,7 +598,7 @@ export function useMenuClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.editingShapeId !== null || disallowClipboardEvents(editor)) return
+			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
 
 			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
 				handlePasteFromClipboardApi(editor, data, point)
@@ -625,14 +625,16 @@ export function useNativeClipboardEvents() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
-	const appIsFocused = useValue('editor.isFocused', () => editor.instanceState.isFocused, [editor])
+	const appIsFocused = useValue('editor.isFocused', () => editor.getInstanceState().isFocused, [
+		editor,
+	])
 
 	useEffect(() => {
 		if (!appIsFocused) return
 		const copy = () => {
 			if (
-				editor.selectedShapeIds.length === 0 ||
-				editor.editingShapeId !== null ||
+				editor.getSelectedShapeIds().length === 0 ||
+				editor.getEditingShapeId() !== null ||
 				disallowClipboardEvents(editor)
 			)
 				return
@@ -642,13 +644,13 @@ export function useNativeClipboardEvents() {
 
 		function cut() {
 			if (
-				editor.selectedShapeIds.length === 0 ||
-				editor.editingShapeId !== null ||
+				editor.getSelectedShapeIds().length === 0 ||
+				editor.getEditingShapeId() !== null ||
 				disallowClipboardEvents(editor)
 			)
 				return
 			handleNativeOrMenuCopy(editor)
-			editor.deleteShapes(editor.selectedShapeIds)
+			editor.deleteShapes(editor.getSelectedShapeIds())
 			trackEvent('cut', { source: 'kbd' })
 		}
 
@@ -671,7 +673,7 @@ export function useNativeClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.editingShapeId !== null || disallowClipboardEvents(editor)) return
+			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
 
 			// First try to use the clipboard data on the event
 			if (event.clipboardData && !editor.inputs.shiftKey) {

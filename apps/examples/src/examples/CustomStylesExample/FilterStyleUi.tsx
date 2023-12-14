@@ -3,7 +3,7 @@ import { MyFilterStyle } from './CardShape'
 
 export const FilterStyleUi = track(function FilterStyleUi() {
 	const editor = useEditor()
-	const filterStyle = editor.sharedStyles.get(MyFilterStyle)
+	const filterStyle = editor.getSharedStyles().get(MyFilterStyle)
 
 	// if the filter style isn't in sharedStyles, it means it's not relevant to the current tool/selection
 	if (!filterStyle) return null

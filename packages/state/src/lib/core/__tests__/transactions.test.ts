@@ -11,14 +11,14 @@ describe('transactions', () => {
 		let numTimesComputed = 0
 		const fullName = computed('', () => {
 			numTimesComputed++
-			return `${firstName.value} ${lastName.value}`
+			return `${firstName.get()} ${lastName.get()}`
 		})
 
 		let numTimesReacted = 0
 		let name = ''
 
 		react('', () => {
-			name = fullName.value
+			name = fullName.get()
 			numTimesReacted++
 		})
 
@@ -35,7 +35,7 @@ describe('transactions', () => {
 			expect(numTimesComputed).toBe(1)
 			expect(numTimesReacted).toBe(1)
 			expect(name).toBe('John Doe')
-			expect(fullName.value).toBe('Wilbur Jones')
+			expect(fullName.get()).toBe('Wilbur Jones')
 
 			expect(numTimesComputed).toBe(2)
 			expect(numTimesReacted).toBe(1)
@@ -48,7 +48,7 @@ describe('transactions', () => {
 		expect(numTimesComputed).toBe(3)
 		expect(numTimesReacted).toBe(2)
 
-		expect(fullName.value).toBe('John Doe')
+		expect(fullName.get()).toBe('John Doe')
 		expect(name).toBe('John Doe')
 	})
 
@@ -72,8 +72,8 @@ describe('transactions', () => {
 			rollback()
 		})
 
-		expect(atomA.value).toBe(0)
-		expect(atomB.value).toBe(0)
+		expect(atomA.get()).toBe(0)
+		expect(atomB.get()).toBe(0)
 
 		transaction((rollback) => {
 			atomA.set(1)
@@ -90,8 +90,8 @@ describe('transactions', () => {
 			rollback()
 		})
 
-		expect(atomA.value).toBe(0)
-		expect(atomB.value).toBe(0)
+		expect(atomA.get()).toBe(0)
+		expect(atomB.get()).toBe(0)
 
 		transaction((rollback) => {
 			atomA.set(1)
@@ -107,8 +107,8 @@ describe('transactions', () => {
 			rollback()
 		})
 
-		expect(atomA.value).toBe(0)
-		expect(atomB.value).toBe(0)
+		expect(atomA.get()).toBe(0)
+		expect(atomB.get()).toBe(0)
 
 		transaction(() => {
 			atomA.set(1)
@@ -125,8 +125,8 @@ describe('transactions', () => {
 			})
 		})
 
-		expect(atomA.value).toBe(1)
-		expect(atomB.value).toBe(-1)
+		expect(atomA.get()).toBe(1)
+		expect(atomB.get()).toBe(-1)
 
 		transaction(() => {
 			atomA.set(1)
@@ -142,8 +142,8 @@ describe('transactions', () => {
 			})
 		})
 
-		expect(atomA.value).toBe(2)
-		expect(atomB.value).toBe(-2)
+		expect(atomA.get()).toBe(2)
+		expect(atomB.get()).toBe(-2)
 	})
 
 	it('should restore the original even if an inner commits', () => {
@@ -156,7 +156,7 @@ describe('transactions', () => {
 			rollback()
 		})
 
-		expect(a.value).toBe('a')
+		expect(a.get()).toBe('a')
 	})
 })
 
@@ -173,7 +173,7 @@ describe('transact', () => {
 			expect(e.message).toBe('blah')
 		}
 
-		expect(a.value).toBe('a')
+		expect(a.get()).toBe('a')
 
 		expect.assertions(2)
 	})
@@ -192,10 +192,10 @@ describe('transact', () => {
 			} catch (e: any) {
 				expect(e.message).toBe('blah')
 			}
-			expect(a.value).toBe('c')
+			expect(a.get()).toBe('c')
 		})
 
-		expect(a.value).toBe('c')
+		expect(a.get()).toBe('c')
 
 		expect.assertions(3)
 	})

@@ -7,11 +7,11 @@ import { Vec2d } from '../primitives/Vec2d'
 
 /** @internal */
 export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationSnapshot | null {
+	const selectedShapes = editor.getSelectedShapes()
+	const selectionRotation = editor.getSelectionRotation()
+	const selectionBounds = editor.getSelectionRotatedPageBounds()
 	const {
-		selectionRotation,
-		selectionRotatedPageBounds: selectionBounds,
 		inputs: { originPagePoint },
-		selectedShapes,
 	} = editor
 
 	// todo: this assumes we're rotating the selected shapes

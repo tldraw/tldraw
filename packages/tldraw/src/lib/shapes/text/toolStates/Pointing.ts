@@ -41,14 +41,19 @@ export class Pointing extends StateNode {
 			this.shape = this.editor.getShape(id)
 			if (!this.shape) return
 
+			const { shape } = this
+
 			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'right',
 				isCreating: true,
 				creationCursorOffset: { x: 1, y: 1 },
-				editAfterComplete: true,
 				onInteractionEnd: 'text',
+				onCreate: () => {
+					this.editor.setEditingShape(shape.id)
+					this.editor.setCurrentTool('select.editing_shape')
+				},
 			})
 		}
 	}
@@ -90,11 +95,11 @@ export class Pointing extends StateNode {
 
 		this.editor.setEditingShape(id)
 		this.editor.setCurrentTool('select')
-		this.editor.root.current.value?.transition('editing_shape', {})
+		this.editor.root.getCurrent()?.transition('editing_shape')
 	}
 
 	private cancel() {
-		this.parent.transition('idle', {})
+		this.parent.transition('idle')
 		this.editor.bailToMark(this.markId)
 	}
 }

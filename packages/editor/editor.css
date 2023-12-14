@@ -144,8 +144,8 @@
 	--color-brush-stroke: rgba(180, 180, 180, 0.25);
 	--color-grid: #909090;
 	--color-low: #2c3136;
-	--color-low-border: #30363b
-	--color-culled: blue;
+	--color-low-border: #30363b;
+	--color-culled: rgb(47, 52, 57);
 	--color-muted-none: rgba(255, 255, 255, 0);
 	--color-muted-0: rgba(255, 255, 255, 0.02);
 	--color-muted-1: rgba(255, 255, 255, 0.1);
@@ -324,6 +324,11 @@ input,
 .tl-brush__default {
 	stroke: var(--color-brush-stroke);
 	fill: var(--color-brush-fill);
+}
+
+.tl-screenshot-brush {
+	stroke: var(--color-text-0);
+	fill: none;
 }
 
 /* -------------------- Scribble -------------------- */
@@ -1310,6 +1315,11 @@ input,
 	stroke-width: calc(1px * var(--tl-scale));
 }
 
+.tl-frame__creating {
+	stroke: var(--color-selected);
+	fill: none;
+}
+
 .tl-frame__hitarea {
 	border-style: solid;
 	border-width: calc(8px * var(--tl-scale));
@@ -1558,7 +1568,6 @@ it from receiving any pointer events or affecting the cursor. */
 	overflow: auto;
 	font-size: 12px;
 	max-height: 320px;
-
 }
 
 .tl-error-boundary__content button {

@@ -322,6 +322,7 @@
 	"share-menu.upload-failed": "К сожалению, в данный момент мы не можем загрузить ваш проект. Повторите попытку или сообщите нам, если проблема не исчезнет.",
 	"style-panel.vertical-align": "Вертикальное выравнивание",
 	"tool.laser": "Лазер",
+	"action.fork-project": "Скопировать этот проект",
 	"action.leave-shared-project": "Выйти из совместного проекта",
 	"sharing.confirm-leave.title": "Покинуть текущий проект?",
 	"sharing.confirm-leave.description": "Вы уверены, что хотите покинуть этот совместный проект? Вы можете вернуться к нему, перейдя по его URL-адресу.",
@@ -337,7 +338,7 @@
 	"rename-project-dialog.cancel": "Отмена",
 	"rename-project-dialog.rename": "Переименовать",
 	"home-project-dialog.ok": "Хорошо",
-	"cursor-chat.type-to-chat": "Кликните, чтобы начать общаться...",
+	"cursor-chat.type-to-chat": "Клацніть, щоб розпочати спілкування...",
 	"geo-style.cloud": "Облако",
 	"tool.cloud": "Облако",
 	"action.unlock-all": "Разблокировать всё"

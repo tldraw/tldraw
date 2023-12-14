@@ -7,14 +7,14 @@ describe('atoms', () => {
 	it('contain data', () => {
 		const a = atom('', 1)
 
-		expect(a.value).toBe(1)
+		expect(a.get()).toBe(1)
 	})
 	it('can be updated', () => {
 		const a = atom('', 1)
 
 		a.set(2)
 
-		expect(a.value).toBe(2)
+		expect(a.get()).toBe(2)
 	})
 	it('will not advance the global epoch on creation', () => {
 		const startEpoch = globalEpoch
@@ -115,7 +115,7 @@ describe('atoms', () => {
 
 		a.update((value) => value + 1)
 
-		expect(a.value).toBe(2)
+		expect(a.get()).toBe(2)
 		expect(globalEpoch).toBe(startEpoch + 1)
 	})
 	it('supports passing diffs in .set', () => {
@@ -159,7 +159,7 @@ describe('reacting to atoms', () => {
 
 		let val = 0
 		const r = reactor('', () => {
-			val = a.value
+			val = a.get()
 		})
 
 		expect(val).toBe(0)
@@ -177,7 +177,7 @@ describe('reacting to atoms', () => {
 		a.set(2342)
 
 		expect(val).toBe(939)
-		expect(a.value).toBe(2342)
+		expect(a.get()).toBe(2342)
 	})
 })
 
@@ -189,11 +189,11 @@ test('isEqual can provide custom equality checks', () => {
 
 	a.set(bar)
 
-	expect(a.value).toBe(bar)
+	expect(a.get()).toBe(bar)
 
 	const b = atom('b', foo, { isEqual: (a, b) => a.hello === b.hello })
 
 	b.set(bar)
 
-	expect(b.value).toBe(foo)
+	expect(b.get()).toBe(foo)
 })

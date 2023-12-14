@@ -15,6 +15,7 @@ import {
 	STROKE_SIZES,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
+	getBoundShapeRelationships,
 } from './shared'
 
 export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArrowInfo {
@@ -25,6 +26,26 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 	const a = terminalsInArrowSpace.start.clone()
 	const b = terminalsInArrowSpace.end.clone()
 	const c = Vec2d.Med(a, b)
+
+	if (Vec2d.Equals(a, b)) {
+		return {
+			isStraight: true,
+			start: {
+				handle: a,
+				point: a,
+				arrowhead: shape.props.arrowheadStart,
+			},
+			end: {
+				handle: b,
+				point: b,
+				arrowhead: shape.props.arrowheadEnd,
+			},
+			middle: c,
+			isValid: false,
+			length: 0,
+		}
+	}
+
 	const uAB = Vec2d.Sub(b, a).uni()
 
 	// Update the arrowhead points using intersections with the bound shapes, if any.
@@ -52,11 +73,20 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	let offsetA = 0
 	let offsetB = 0
+	let strokeOffsetA = 0
+	let strokeOffsetB = 0
+	let minLength = MIN_ARROW_LENGTH
 
 	const isSelfIntersection =
 		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
 
+	const relationship =
+		startShapeInfo && endShapeInfo
+			? getBoundShapeRelationships(editor, startShapeInfo.shape.id, endShapeInfo.shape.id)
+			: 'safe'
+
 	if (
+		relationship === 'safe' &&
 		startShapeInfo &&
 		endShapeInfo &&
 		!isSelfIntersection &&
@@ -66,6 +96,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		if (endShapeInfo.didIntersect && !startShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, then make it
 			// a short arrow ending at the end shape intersection.
+
 			if (startShapeInfo.isClosed) {
 				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH)))
 			}
@@ -83,43 +114,58 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 	const didFlip = !Vec2d.Equals(u, uAB)
 
 	// If the arrow is bound non-exact to a start shape and the
-	// start point has an arrowhead offset the start point
+	// start point has an arrowhead, then offset the start point
 	if (!isSelfIntersection) {
-		if (startShapeInfo && arrowheadStart !== 'none' && !startShapeInfo.isExact) {
-			offsetA =
-				BOUND_ARROW_OFFSET +
+		if (
+			relationship !== 'start-contains-end' &&
+			startShapeInfo &&
+			arrowheadStart !== 'none' &&
+			!startShapeInfo.isExact
+		) {
+			strokeOffsetA =
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in startShapeInfo.shape.props
 					? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 					: 0)
+			offsetA = BOUND_ARROW_OFFSET + strokeOffsetA
+			minLength += strokeOffsetA
 		}
 
 		// If the arrow is bound non-exact to an end shape and the
 		// end point has an arrowhead offset the end point
-		if (endShapeInfo && arrowheadEnd !== 'none' && !endShapeInfo.isExact) {
-			offsetB =
-				BOUND_ARROW_OFFSET +
+		if (
+			relationship !== 'end-contains-start' &&
+			endShapeInfo &&
+			arrowheadEnd !== 'none' &&
+			!endShapeInfo.isExact
+		) {
+			strokeOffsetB =
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+			offsetB = BOUND_ARROW_OFFSET + strokeOffsetB
+			minLength += strokeOffsetB
 		}
 	}
+
+	// Adjust offsets if the length of the arrow is too small
 
 	const tA = a.clone().add(u.clone().mul(offsetA * (didFlip ? -1 : 1)))
 	const tB = b.clone().sub(u.clone().mul(offsetB * (didFlip ? -1 : 1)))
 	const distAB = Vec2d.Dist(tA, tB)
-	if (distAB < MIN_ARROW_LENGTH) {
+
+	if (distAB < minLength) {
 		if (offsetA !== 0 && offsetB !== 0) {
+			// both bound + offset
 			offsetA *= -1.5
 			offsetB *= -1.5
 		} else if (offsetA !== 0) {
-			offsetA *= -2
+			// start bound + offset
+			offsetA *= -1
 		} else if (offsetB !== 0) {
-			offsetB *= -2
+			// end bound + offset
+			offsetB *= -1
 		} else {
-			if (distAB < 10) {
-				if (startShapeInfo) offsetA = -(10 - distAB)
-				else if (endShapeInfo) offsetB = -(10 - distAB)
-			}
+			// noop, its just a really short arrow
 		}
 	}
 

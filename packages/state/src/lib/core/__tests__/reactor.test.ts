@@ -6,7 +6,7 @@ describe('reactors', () => {
 	it('can be started and stopped ', () => {
 		const a = atom('', 1)
 		const r = reactor('', () => {
-			a.value
+			a.get()
 		})
 		expect(r.scheduler.isActivelyListening).toBe(false)
 		r.start()
@@ -20,7 +20,7 @@ describe('reactors', () => {
 	it('can not set atom values directly yet', () => {
 		const a = atom('', 1)
 		const r = reactor('', () => {
-			if (a.value < +Infinity) {
+			if (a.get() < +Infinity) {
 				a.update((a) => a + 1)
 			}
 		})
@@ -34,8 +34,8 @@ describe('reactors', () => {
 		const atomB = atom('', 1)
 
 		const react = jest.fn(() => {
-			atomA.value
-			atomB.value
+			atomA.get()
+			atomB.get()
 		})
 		const r = reactor('', react)
 
@@ -53,7 +53,7 @@ describe('reactors', () => {
 	it('will not react if stopped', () => {
 		const a = atom('', 1)
 		const react = jest.fn(() => {
-			a.value
+			a.get()
 		})
 		const r = reactor('', react)
 
@@ -66,7 +66,7 @@ describe('reactors', () => {
 		const a = atom('', 1)
 		const react = jest
 			.fn(() => {
-				a.value
+				a.get()
 			})
 			.mockName('react')
 		const r = reactor('', react)
@@ -85,7 +85,7 @@ describe('stopping', () => {
 		const a = atom('', 1)
 
 		const rfn = jest.fn(() => {
-			a.value
+			a.get()
 		})
 		const r = reactor('', rfn)
 
@@ -120,7 +120,7 @@ test('.start() by default does not trigger a reaction if nothing has changed', (
 	const a = atom('', 1)
 
 	const rfn = jest.fn(() => {
-		a.value
+		a.get()
 	})
 
 	const r = reactor('', rfn)
@@ -139,7 +139,7 @@ test('.start({force: true}) will trigger a reaction even if nothing has changed'
 	const a = atom('', 1)
 
 	const rfn = jest.fn(() => {
-		a.value
+		a.get()
 	})
 
 	const r = reactor('', rfn)

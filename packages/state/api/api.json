@@ -175,7 +175,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!atom:function(1)",
-          "docComment": "/**\n * Creates a new [[Atom]].\n *\n * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n *\n * name.value // 'John'\n *\n * name.set('Jane')\n *\n * name.value // 'Jane'\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Creates a new [[Atom]].\n *\n * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n *\n * name.get() // 'John'\n *\n * name.set('Jane')\n *\n * name.get() // 'Jane'\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -294,7 +294,7 @@
         {
           "kind": "Interface",
           "canonicalReference": "@tldraw/state!Atom:interface",
-          "docComment": "/**\n * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].\n *\n * Atoms are created using the [[atom]] function.\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n *\n * print(name.value) // 'John'\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].\n *\n * Atoms are created using the [[atom]] function.\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n *\n * print(name.get()) // 'John'\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -596,7 +596,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!computed:function(1)",
-          "docComment": "/**\n * Creates a computed signal.\n *\n * @param name - The name of the signal.\n *\n * @param compute - The function that computes the value of the signal.\n *\n * @param options - Options for the signal.\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n * const greeting = computed('greeting', () => `Hello ${name.value}!`)\n * console.log(greeting.value) // 'Hello John!'\n * ```\n *\n * `computed` may also be used as a decorator for creating computed class properties.\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom<number>(0)\n *\n *   @computed get remaining() {\n *     return this.max - this.count.value\n *   }\n * }\n * ```\n *\n * You may optionally pass in a [[ComputedOptions]] when used as a decorator:\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom<number>(0)\n *\n *   @computed({isEqual: (a, b) => a === b})\n *   get remaining() {\n *     return this.max - this.count.value\n *   }\n * }\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Creates a computed signal.\n *\n * @param name - The name of the signal.\n *\n * @param compute - The function that computes the value of the signal.\n *\n * @param options - Options for the signal.\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n * const greeting = computed('greeting', () => `Hello ${name.get()}!`)\n * console.log(greeting.get()) // 'Hello John!'\n * ```\n *\n * `computed` may also be used as a decorator for creating computed getter methods.\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom<number>(0)\n *\n *   @computed getRemaining() {\n *     return this.max - this.count.get()\n *   }\n * }\n * ```\n *\n * You may optionally pass in a [[ComputedOptions]] when used as a decorator:\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom<number>(0)\n *\n *   @computed({isEqual: (a, b) => a === b})\n *   getRemaining() {\n *     return this.max - this.count.get()\n *   }\n * }\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1434,7 +1434,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!getComputedInstance:function(1)",
-          "docComment": "/**\n * Retrieves the underlying computed instance for a given property created with the [[computed]] decorator.\n *\n * @param obj - The object\n *\n * @param propertyName - The property name\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom(0)\n *\n *   @computed get remaining() {\n *     return this.max - this.count.value\n *   }\n * }\n *\n * const c = new Counter()\n * const remaining = getComputedInstance(c, 'remaining')\n * remaining.value === 100 // true\n * c.count.set(13)\n * remaining.value === 87 // true\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Retrieves the underlying computed instance for a given property created with the [[computed]] decorator.\n *\n * @param obj - The object\n *\n * @param propertyName - The property name\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom(0)\n *\n *   @computed getRemaining() {\n *     return this.max - this.count.get()\n *   }\n * }\n *\n * const c = new Counter()\n * const remaining = getComputedInstance(c, 'getRemaining')\n * remaining.get() === 100 // true\n * c.count.set(13)\n * remaining.get() === 87 // true\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1658,7 +1658,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "@tldraw/state!isUninitialized:var",
-          "docComment": "/**\n * Call this inside a computed signal function to determine whether it is the first time the function is being called.\n *\n * Mainly useful for incremental signal computation.\n *\n * @param value - The value to check.\n *\n * @example\n * ```ts\n * const count = atom('count', 0)\n * const double = computed('double', (prevValue) => {\n *   if (isUninitialized(prevValue)) {\n *     print('First time!')\n *   }\n *   return count.value * 2\n * })\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Call this inside a computed signal function to determine whether it is the first time the function is being called.\n *\n * Mainly useful for incremental signal computation.\n *\n * @param value - The value to check.\n *\n * @example\n * ```ts\n * const count = atom('count', 0)\n * const double = computed('double', (prevValue) => {\n *   if (isUninitialized(prevValue)) {\n *     print('First time!')\n *   }\n *   return count.get() * 2\n * })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1695,7 +1695,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!react:function(1)",
-          "docComment": "/**\n * Starts a new effect scheduler, scheduling the effect immediately.\n *\n * Returns a function that can be called to stop the scheduler.\n *\n * @example\n * ```ts\n * const color = atom('color', 'red')\n * const stop = react('set style', () => {\n *   divElem.style.color = color.value\n * })\n * color.set('blue')\n * // divElem.style.color === 'blue'\n * stop()\n * color.set('green')\n * // divElem.style.color === 'blue'\n * ```\n *\n * Also useful in React applications for running effects outside of the render cycle.\n *\n * @example\n * ```ts\n * useEffect(() => react('set style', () => {\n *   divRef.current.style.color = color.value\n * }), [])\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Starts a new effect scheduler, scheduling the effect immediately.\n *\n * Returns a function that can be called to stop the scheduler.\n *\n * @example\n * ```ts\n * const color = atom('color', 'red')\n * const stop = react('set style', () => {\n *   divElem.style.color = color.get()\n * })\n * color.set('blue')\n * // divElem.style.color === 'blue'\n * stop()\n * color.set('green')\n * // divElem.style.color === 'blue'\n * ```\n *\n * Also useful in React applications for running effects outside of the render cycle.\n *\n * @example\n * ```ts\n * useEffect(() => react('set style', () => {\n *   divRef.current.style.color = color.get()\n * }), [])\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -2141,6 +2141,34 @@
             },
             {
               "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/state!Signal#get:member(1)",
+              "docComment": "/**\n * The current value of the signal. This is a reactive value, and will update when the signal changes. Any computed signal that depends on this signal will be lazily recomputed if this signal changes. Any effect that depends on this signal will be rescheduled if this signal changes.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Value"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "get"
+            },
+            {
+              "kind": "MethodSignature",
               "canonicalReference": "@tldraw/state!Signal#getDiffSince:member(1)",
               "docComment": "/**\n * Returns the sequence of diffs between the the value at the given epoch and the current value. Returns the [[RESET_VALUE]] constant if there is not enough information to compute the diff sequence.\n *\n * @param epoch - The epoch to get diffs since.\n */\n",
               "excerptTokens": [
@@ -2246,11 +2274,11 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/state!Signal#value:member",
-              "docComment": "/**\n * The current value of the signal. This is a reactive value, and will update when the signal changes. Any computed signal that depends on this signal will be lazily recomputed if this signal changes. Any effect that depends on this signal will be rescheduled if this signal changes.\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use [[Signal.get]] instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "readonly value: "
+                  "text": "value: "
                 },
                 {
                   "kind": "Content",
@@ -2261,7 +2289,7 @@
                   "text": ";"
                 }
               ],
-              "isReadonly": true,
+              "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
               "name": "value",
@@ -2276,7 +2304,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!track:function(1)",
-          "docComment": "/**\n * Returns a tracked version of the given component. Any signals whose values are read while the component renders will be tracked. If any of the tracked signals change later it will cause the component to re-render.\n *\n * This also wraps the component in a React.memo() call, so it will only re-render if the props change.\n *\n * @param baseComponent - The base component to track.\n *\n * @example\n * ```ts\n * const Counter = track(function Counter(props: CounterProps) {\n *   const count = useAtom('count', 0)\n *   const increment = useCallback(() => count.set(count.value + 1), [count])\n *   return <button onClick={increment}>{count.value}</button>\n * })\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Returns a tracked version of the given component. Any signals whose values are read while the component renders will be tracked. If any of the tracked signals change later it will cause the component to re-render.\n *\n * This also wraps the component in a React.memo() call, so it will only re-render if the props change.\n *\n * @param baseComponent - The base component to track.\n *\n * @example\n * ```ts\n * const Counter = track(function Counter(props: CounterProps) {\n *   const count = useAtom('count', 0)\n *   const increment = useCallback(() => count.set(count.get() + 1), [count])\n *   return <button onClick={increment}>{count.get()}</button>\n * })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -2423,7 +2451,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!transaction:function(1)",
-          "docComment": "/**\n * Batches state updates, deferring side effects until after the transaction completes.\n *\n * @param fn - The function to run in a transaction, called with a function to roll back the change.\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.value} ${lastName.value}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction(() => {\n *  firstName.set('Jane')\n *  lastName.set('Smith')\n * })\n *\n * // Logs \"Hello, Jane Smith!\"\n * ```\n *\n * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began.\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.value} ${lastName.value}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction(() => {\n *  firstName.set('Jane')\n *  throw new Error('oops')\n * })\n *\n * // Does not log\n * // firstName.value === 'John'\n * ```\n *\n * A `rollback` callback is passed into the function. Calling this will prevent the transaction from committing and will revert any signals that were updated during the transaction to their state before the transaction began.\n *\n * *\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.value} ${lastName.value}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction((rollback) => {\n *  firstName.set('Jane')\n *  lastName.set('Smith')\n *  rollback()\n * })\n *\n * // Does not log\n * // firstName.value === 'John'\n * // lastName.value === 'Doe'\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Batches state updates, deferring side effects until after the transaction completes.\n *\n * @param fn - The function to run in a transaction, called with a function to roll back the change.\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction(() => {\n *  firstName.set('Jane')\n *  lastName.set('Smith')\n * })\n *\n * // Logs \"Hello, Jane Smith!\"\n * ```\n *\n * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began.\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction(() => {\n *  firstName.set('Jane')\n *  throw new Error('oops')\n * })\n *\n * // Does not log\n * // firstName.get() === 'John'\n * ```\n *\n * A `rollback` callback is passed into the function. Calling this will prevent the transaction from committing and will revert any signals that were updated during the transaction to their state before the transaction began.\n *\n * *\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction((rollback) => {\n *  firstName.set('Jane')\n *  lastName.set('Smith')\n *  rollback()\n * })\n *\n * // Does not log\n * // firstName.get() === 'John'\n * // lastName.get() === 'Doe'\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -2481,7 +2509,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!unsafe__withoutCapture:function(1)",
-          "docComment": "/**\n * Executes the given function without capturing any parents in the current capture context.\n *\n * This is mainly useful if you want to run an effect only when certain signals change while also dereferencing other signals which should not cause the effect to rerun on their own.\n *\n * @example\n * ```ts\n * const name = atom('name', 'Sam')\n * const time = atom('time', () => new Date().getTime())\n *\n * setInterval(() => {\n *   time.set(new Date().getTime())\n * })\n *\n * react('log name changes', () => {\n * \t print(name.value, 'was changed at', unsafe__withoutCapture(() => time.value))\n * })\n *\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Executes the given function without capturing any parents in the current capture context.\n *\n * This is mainly useful if you want to run an effect only when certain signals change while also dereferencing other signals which should not cause the effect to rerun on their own.\n *\n * @example\n * ```ts\n * const name = atom('name', 'Sam')\n * const time = atom('time', () => new Date().getTime())\n *\n * setInterval(() => {\n *   time.set(new Date().getTime())\n * })\n *\n * react('log name changes', () => {\n * \t print(name.get(), 'was changed at', unsafe__withoutCapture(() => time.get()))\n * })\n *\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -2539,7 +2567,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!useAtom:function(1)",
-          "docComment": "/**\n * Creates a new atom and returns it. The atom will be created only once.\n *\n * See [[atom]]\n *\n * @example\n * ```ts\n * const Counter = track(function Counter () {\n *   const count = useAtom('count', 0)\n *   const increment = useCallback(() => count.set(count.value + 1), [count])\n *   return <button onClick={increment}>{count.value}</button>\n * })\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Creates a new atom and returns it. The atom will be created only once.\n *\n * See [[atom]]\n *\n * @example\n * ```ts\n * const Counter = track(function Counter () {\n *   const count = useAtom('count', 0)\n *   const increment = useCallback(() => count.set(count.get() + 1), [count])\n *   return <button onClick={increment}>{count.get()}</button>\n * })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -2658,7 +2686,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!useComputed:function(1)",
-          "docComment": "/**\n * Creates a new computed signal and returns it. The computed signal will be created only once.\n *\n * See [[computed]]\n *\n * @example\n * ```ts\n * type GreeterProps = {\n *   firstName: Signal<string>\n *   lastName: Signal<string>\n * }\n *\n * const Greeter = track(function Greeter ({firstName, lastName}: GreeterProps) {\n *   const fullName = useComputed('fullName', () => `${firstName.value} ${lastName.value}`)\n *   return <div>Hello {fullName.value}!</div>\n * })\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Creates a new computed signal and returns it. The computed signal will be created only once.\n *\n * See [[computed]]\n *\n * @example\n * ```ts\n * type GreeterProps = {\n *   firstName: Signal<string>\n *   lastName: Signal<string>\n * }\n *\n * const Greeter = track(function Greeter ({firstName, lastName}: GreeterProps) {\n *   const fullName = useComputed('fullName', () => `${firstName.get()} ${lastName.get()}`)\n *   return <div>Hello {fullName.get()}!</div>\n * })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -3042,7 +3070,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!useValue:function(1)",
-          "docComment": "/**\n * Extracts the value from a signal and subscribes to it.\n *\n * Note that you do not need to use this hook if you are wrapping the component with [[track]]\n *\n * @example\n * ```ts\n * const Counter: React.FC = () => {\n *   const $count = useAtom('count', 0)\n *   const increment = useCallback(() => $count.set($count.value + 1), [count])\n *   const currentCount = useValue($count)\n *   return <button onClick={increment}>{currentCount}</button>\n * }\n * ```\n *\n * You can also pass a function to compute the value and it will be memoized as in [[useComputed]]:\n *\n * @example\n * ```ts\n * type GreeterProps = {\n *   firstName: Signal<string>\n *   lastName: Signal<string>\n * }\n *\n * const Greeter = track(function Greeter({ firstName, lastName }: GreeterProps) {\n *   const fullName = useValue('fullName', () => `${firstName.value} ${lastName.value}`, [\n *     firstName,\n *     lastName,\n *   ])\n *   return <div>Hello {fullName}!</div>\n * })\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Extracts the value from a signal and subscribes to it.\n *\n * Note that you do not need to use this hook if you are wrapping the component with [[track]]\n *\n * @example\n * ```ts\n * const Counter: React.FC = () => {\n *   const $count = useAtom('count', 0)\n *   const increment = useCallback(() => $count.set($count.get() + 1), [count])\n *   const currentCount = useValue($count)\n *   return <button onClick={increment}>{currentCount}</button>\n * }\n * ```\n *\n * You can also pass a function to compute the value and it will be memoized as in [[useComputed]]:\n *\n * @example\n * ```ts\n * type GreeterProps = {\n *   firstName: Signal<string>\n *   lastName: Signal<string>\n * }\n *\n * const Greeter = track(function Greeter({ firstName, lastName }: GreeterProps) {\n *   const fullName = useValue('fullName', () => `${firstName.get()} ${lastName.get()}`, [\n *     firstName,\n *     lastName,\n *   ])\n *   return <div>Hello {fullName}!</div>\n * })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -3195,7 +3223,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!whyAmIRunning:function(1)",
-          "docComment": "/**\n * A debugging tool that tells you why a computed signal or effect is running. Call in the body of a computed signal or effect function.\n *\n * @example\n * ```ts\n * const name = atom('name', 'Bob')\n * react('greeting', () => {\n * \twhyAmIRunning()\n * \tprint('Hello', name.value)\n * })\n *\n * name.set('Alice')\n *\n * // 'greeting' is running because:\n * //     'name' changed => 'Alice'\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * A debugging tool that tells you why a computed signal or effect is running. Call in the body of a computed signal or effect function.\n *\n * @example\n * ```ts\n * const name = atom('name', 'Bob')\n * react('greeting', () => {\n * \twhyAmIRunning()\n * \tprint('Hello', name.get())\n * })\n *\n * name.set('Alice')\n *\n * // 'greeting' is running because:\n * //     'name' changed => 'Alice'\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -3223,7 +3251,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!withDiff:function(1)",
-          "docComment": "/**\n * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.\n *\n * You can use this function to wrap the return value of a computed signal function to indicate that the diff should be used instead of calculating a new one with [[AtomOptions.computeDiff]].\n *\n * @param value - The value.\n *\n * @param diff - The diff.\n *\n * @example\n * ```ts\n * const count = atom('count', 0)\n * const double = computed('double', (prevValue) => {\n *   const nextValue = count.value * 2\n *   if (isUninitialized(prevValue)) {\n *     return nextValue\n *   }\n *   return withDiff(nextValue, nextValue - prevValue)\n * }, { historyLength: 10 })\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.\n *\n * You can use this function to wrap the return value of a computed signal function to indicate that the diff should be used instead of calculating a new one with [[AtomOptions.computeDiff]].\n *\n * @param value - The value.\n *\n * @param diff - The diff.\n *\n * @example\n * ```ts\n * const count = atom('count', 0)\n * const double = computed('double', (prevValue) => {\n *   const nextValue = count.get() * 2\n *   if (isUninitialized(prevValue)) {\n *     return nextValue\n *   }\n *   return withDiff(nextValue, nextValue - prevValue)\n * }, { historyLength: 10 })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

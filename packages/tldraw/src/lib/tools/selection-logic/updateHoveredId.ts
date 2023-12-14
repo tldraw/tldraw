@@ -5,7 +5,7 @@ export function updateHoveredId(editor: Editor) {
 	const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
 		hitInside: false,
 		hitLabels: false,
-		margin: HIT_TEST_MARGIN / editor.zoomLevel,
+		margin: HIT_TEST_MARGIN / editor.getZoomLevel(),
 		renderingOnly: true,
 	})
 
@@ -19,8 +19,8 @@ export function updateHoveredId(editor: Editor) {
 		shapeToHover = hitShape
 	} else {
 		if (
-			outermostShape.id === editor.focusedGroupId ||
-			editor.selectedShapeIds.includes(outermostShape.id)
+			outermostShape.id === editor.getFocusedGroupId() ||
+			editor.getSelectedShapeIds().includes(outermostShape.id)
 		) {
 			shapeToHover = hitShape
 		} else {

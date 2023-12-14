@@ -1,4 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
+import { warnDeprecatedGetter } from '@tldraw/utils'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
@@ -25,11 +26,12 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		const { id, children, initial } = this.constructor as TLStateNodeConstructor
 
 		this.id = id
-		this.current = atom<StateNode | undefined>('toolState' + this.id, undefined)
+		this._isActive = atom<boolean>('toolIsActive' + this.id, false)
+		this._current = atom<StateNode | undefined>('toolState' + this.id, undefined)
 
-		this.path = computed('toolPath' + this.id, () => {
-			const current = this.current.value
-			return this.id + (current ? `.${current.path.value}` : '')
+		this._path = computed('toolPath' + this.id, () => {
+			const current = this.getCurrent()
+			return this.id + (current ? `.${current.getPath()}` : '')
 		})
 
 		this.parent = parent ?? ({} as any)
@@ -41,7 +43,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this.children = Object.fromEntries(
 					children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
 				)
-				this.current.set(this.children[this.initial])
+				this._current.set(this.children[this.initial])
 			} else {
 				this.type = 'leaf'
 			}
@@ -53,35 +55,74 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this.children = Object.fromEntries(
 					children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
 				)
-				this.current.set(this.children[this.initial])
+				this._current.set(this.children[this.initial])
 			}
 		}
 	}
-
-	path: Computed<string>
 
 	static id: string
 	static initial?: string
 	static children?: () => TLStateNodeConstructor[]
 
 	id: string
-	current: Atom<StateNode | undefined>
 	type: TLStateNodeType
 	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>
 	parent: StateNode
 
-	isActive = false
+	/**
+	 * This node's path of active state nodes
+	 *
+	 * @public
+	 */
+	getPath() {
+		return this._path.get()
+	}
+	_path: Computed<string>
 
-	transition = (id: string, info: any) => {
+	/**
+	 * This node's current active child node, if any.
+	 *
+	 * @public
+	 */
+	getCurrent() {
+		return this._current.get()
+	}
+	private _current: Atom<StateNode | undefined>
+
+	/**
+	 * Whether this node is active.
+	 *
+	 * @public
+	 */
+	getIsActive() {
+		return this._isActive.get()
+	}
+	private _isActive: Atom<boolean>
+
+	/**
+	 * Transition to a new active child state node.
+	 *
+	 * @example
+	 * ```ts
+	 * parentState.transition('childStateA')
+	 * parentState.transition('childStateB', { myData: 4 })
+	 *```
+	 *
+	 * @param id - The id of the child state node to transition to.
+	 * @param info - Any data to pass to the `onEnter` and `onExit` handlers.
+	 *
+	 * @public
+	 */
+	transition = (id: string, info: any = {}) => {
 		const path = id.split('.')
 
 		let currState = this as StateNode
 
 		for (let i = 0; i < path.length; i++) {
 			const id = path[i]
-			const prevChildState = currState.current.value
+			const prevChildState = currState.getCurrent()
 			const nextChildState = currState.children?.[id]
 
 			if (!nextChildState) {
@@ -90,9 +131,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 			if (prevChildState?.id !== nextChildState.id) {
 				prevChildState?.exit(info, id)
-				currState.current.set(nextChildState)
+				currState._current.set(nextChildState)
 				nextChildState.enter(info, prevChildState?.id || 'initial')
-				if (!nextChildState.isActive) break
+				if (!nextChildState.getIsActive()) break
 			}
 
 			currState = nextChildState
@@ -103,34 +144,36 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
-		const x = this.current.value
+		const x = this.getCurrent()
 		this[cbName]?.(info as any)
-		if (this.current.value === x && this.isActive) {
+		if (this.getCurrent() === x && this.getIsActive()) {
 			x?.handleEvent(info)
 		}
 	}
 
+	// todo: move this logic into transition
 	enter = (info: any, from: string) => {
-		this.isActive = true
+		this._isActive.set(true)
 		this.onEnter?.(info, from)
-		if (this.children && this.initial && this.isActive) {
+		if (this.children && this.initial && this.getIsActive()) {
 			const initial = this.children[this.initial]
-			this.current.set(initial)
+			this._current.set(initial)
 			initial.enter(info, from)
 		}
 	}
 
+	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
-		this.isActive = false
+		this._isActive.set(false)
 		this.onExit?.(info, from)
-		if (!this.isActive) {
-			this.current.value?.exit(info, from)
+		if (!this.getIsActive()) {
+			this.getCurrent()?.exit(info, from)
 		}
 	}
 
 	/**
 	 * This is a hack / escape hatch that will tell the editor to
-	 * report a different state as active (in `currentToolId`) when
+	 * report a different state as active (in `getCurrentToolId()`) when
 	 * this state is active. This is usually used when a tool transitions
 	 * to a child of a different state for a certain interaction and then
 	 * returns to the original tool when that interaction completes; and
@@ -140,11 +183,25 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 */
 	_currentToolIdMask = atom('curent tool id mask', undefined as string | undefined)
 
-	@computed get currentToolIdMask() {
-		return this._currentToolIdMask.value
+	/**
+	 * @deprecated use `getCurrentToolIdMask()` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get currentToolIdMask() {
+		warnDeprecatedGetter('currentToolIdMask')
+		return this._currentToolIdMask.get()
+	}
+	// eslint-disable-next-line no-restricted-syntax
+	set currentToolIdMask(id: string | undefined) {
+		warnDeprecatedGetter('currentToolIdMask')
+		this._currentToolIdMask.set(id)
 	}
 
-	set currentToolIdMask(id: string | undefined) {
+	getCurrentToolIdMask() {
+		return this._currentToolIdMask.get()
+	}
+
+	setCurrentToolIdMask(id: string | undefined) {
 		this._currentToolIdMask.set(id)
 	}
 

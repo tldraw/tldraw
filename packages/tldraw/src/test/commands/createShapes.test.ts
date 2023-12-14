@@ -84,17 +84,17 @@ it('Uses typescript generics', () => {
 
 it('Parents shapes to the current page if the parent is not found', () => {
 	editor.createShapes([{ id: ids.box1, parentId: ids.missing, type: 'geo' }])
-	expect(editor.getShape(ids.box1)!.parentId).toEqual(editor.currentPageId)
+	expect(editor.getShape(ids.box1)!.parentId).toEqual(editor.getCurrentPageId())
 })
 
 it('Creates shapes with the current style', () => {
-	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe(undefined)
+	expect(editor.getInstanceState().stylesForNextShape[DefaultColorStyle.id]).toBe(undefined)
 	editor.createShapes([{ id: ids.box1, type: 'geo' }])
 	expect(editor.getShape<TLGeoShape>(ids.box1)!.props.color).toEqual('black')
 
 	editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
 	editor.setStyleForNextShapes(DefaultColorStyle, 'red')
-	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('red')
+	expect(editor.getInstanceState().stylesForNextShape[DefaultColorStyle.id]).toBe('red')
 	editor.createShapes([{ id: ids.box2, type: 'geo' }])
 	expect(editor.getShape<TLGeoShape>(ids.box2)!.props.color).toEqual('red')
 })
@@ -118,13 +118,13 @@ it('Creates shapes at the correct index', () => {
 })
 
 it('Throws out all shapes if any shape is invalid', () => {
-	const n = editor.currentPageShapeIds.size
+	const n = editor.getCurrentPageShapeIds().size
 
 	expect(() => {
 		editor.createShapes([{ id: ids.box1, type: 'geo' }])
 	}).not.toThrow()
 
-	expect(editor.currentPageShapeIds.size).toBe(n + 1)
+	expect(editor.getCurrentPageShapeIds().size).toBe(n + 1)
 
 	console.error = jest.fn()
 
@@ -137,5 +137,5 @@ it('Throws out all shapes if any shape is invalid', () => {
 		])
 	}).toThrow()
 
-	expect(editor.currentPageShapeIds.size).toBe(n + 1)
+	expect(editor.getCurrentPageShapeIds().size).toBe(n + 1)
 })

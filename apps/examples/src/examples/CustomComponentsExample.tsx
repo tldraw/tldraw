@@ -1,7 +1,7 @@
 import { Tldraw, TLEditorComponents } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-const components: Partial<TLEditorComponents> = {
+const components: TLEditorComponents = {
 	Brush: function MyBrush({ brush }) {
 		return (
 			<svg className="tl-overlays__item">

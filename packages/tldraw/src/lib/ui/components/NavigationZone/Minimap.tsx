@@ -30,7 +30,9 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	const rPointing = React.useRef(false)
 
 	const isDarkMode = useIsDarkMode()
-	const devicePixelRatio = useComputed('dpr', () => editor.instanceState.devicePixelRatio, [editor])
+	const devicePixelRatio = useComputed('dpr', () => editor.getInstanceState().devicePixelRatio, [
+		editor,
+	])
 	const presences = React.useMemo(() => editor.store.query.records('instance_presence'), [editor])
 
 	const minimap = React.useMemo(() => new MinimapManager(editor), [editor])
@@ -55,14 +57,14 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
-			if (!editor.currentPageShapeIds.size) return
+			if (!editor.getCurrentPageShapeIds().size) return
 
 			const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
 
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
 			minimap.originPagePoint.setTo(clampedPoint)
-			minimap.originPageCenter.setTo(editor.viewportPageBounds.center)
+			minimap.originPageCenter.setTo(editor.getViewportPageBounds().center)
 
 			editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
 		},
@@ -73,7 +75,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			const elm = e.currentTarget
 			setPointerCapture(elm, e)
-			if (!editor.currentPageShapeIds.size) return
+			if (!editor.getCurrentPageShapeIds().size) return
 
 			rPointing.current = true
 
@@ -83,7 +85,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
-			const _vpPageBounds = editor.viewportPageBounds
+			const _vpPageBounds = editor.getViewportPageBounds()
 
 			minimap.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
 
@@ -135,7 +137,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				name: 'pointer_move',
 				...getPointerInfo(e),
 				point: screenPoint,
-				isPen: editor.instanceState.isPenMode,
+				isPen: editor.getInstanceState().isPenMode,
 			}
 
 			editor.dispatch(info)
@@ -151,6 +153,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				type: 'wheel',
 				name: 'wheel',
 				delta: offset,
+				point: new Vec2d(e.clientX, e.clientY),
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
@@ -163,7 +166,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	useQuickReactor(
 		'update when dpr changes',
 		() => {
-			const dpr = devicePixelRatio.value
+			const dpr = devicePixelRatio.get()
 			minimap.setDpr(dpr)
 
 			const canvas = rCanvas.current as HTMLCanvasElement
@@ -184,13 +187,11 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
-			const {
-				currentPageShapeIds: shapeIdsOnCurrentPage,
-				viewportPageBounds,
-				currentPageBounds: commonBoundsOfAllShapesOnCurrentPage,
-			} = editor
+			const shapeIdsOnCurrentPage = editor.getCurrentPageShapeIds()
+			const commonBoundsOfAllShapesOnCurrentPage = editor.getCurrentPageBounds()
+			const viewportPageBounds = editor.getViewportPageBounds()
 
-			const _dpr = devicePixelRatio.value // dereference
+			const _dpr = devicePixelRatio.get() // dereference
 
 			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
 				? Box2d.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
@@ -223,7 +224,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			})
 
 			minimap.pageBounds = allShapeBounds
-			minimap.collaborators = presences.value
+			minimap.collaborators = presences.get()
 			minimap.render()
 		},
 		[editor, minimap]

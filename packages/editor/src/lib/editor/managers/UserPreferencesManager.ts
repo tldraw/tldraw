@@ -1,4 +1,5 @@
 import { computed } from '@tldraw/state'
+import { warnDeprecatedGetter } from '@tldraw/utils'
 import {
 	TLUserPreferences,
 	defaultUserPreferences,
@@ -11,50 +12,121 @@ export class UserPreferencesManager {
 
 	updateUserPreferences = (userPreferences: Partial<TLUserPreferences>) => {
 		this.user.setUserPreferences({
-			...this.user.userPreferences.value,
+			...this.user.userPreferences.get(),
 			...userPreferences,
 		})
 	}
-	@computed get userPreferences() {
+	@computed getUserPreferences() {
 		return {
-			id: this.id,
-			name: this.name,
-			locale: this.locale,
-			color: this.color,
-			isDarkMode: this.isDarkMode,
-			animationSpeed: this.animationSpeed,
-			isSnapMode: this.isSnapMode,
+			id: this.getId(),
+			name: this.getName(),
+			locale: this.getLocale(),
+			color: this.getColor(),
+			isDarkMode: this.getIsDarkMode(),
+			animationSpeed: this.getAnimationSpeed(),
+			isSnapMode: this.getIsSnapMode(),
 		}
 	}
+	/**
+	 * @deprecated use `getUserPreferences` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get userPreferences() {
+		warnDeprecatedGetter('userPreferences')
+		return this.getUserPreferences()
+	}
 
-	@computed get isDarkMode() {
+	@computed getIsDarkMode() {
 		return (
-			this.user.userPreferences.value.isDarkMode ??
+			this.user.userPreferences.get().isDarkMode ??
 			(this.inferDarkMode ? userPrefersDarkUI() : false)
 		)
 	}
 
-	@computed get animationSpeed() {
-		return this.user.userPreferences.value.animationSpeed ?? defaultUserPreferences.animationSpeed
+	/**
+	 * @deprecated use `getIsDarkMode` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get isDarkMode() {
+		warnDeprecatedGetter('isDarkMode')
+		return this.getIsDarkMode()
 	}
 
-	@computed get id() {
-		return this.user.userPreferences.value.id
+	@computed getAnimationSpeed() {
+		return this.user.userPreferences.get().animationSpeed ?? defaultUserPreferences.animationSpeed
 	}
 
-	@computed get name() {
-		return this.user.userPreferences.value.name ?? defaultUserPreferences.name
+	/**
+	 * @deprecated use `getAnimationSpeed` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get animationSpeed() {
+		warnDeprecatedGetter('animationSpeed')
+		return this.getAnimationSpeed()
 	}
 
-	@computed get locale() {
-		return this.user.userPreferences.value.locale ?? defaultUserPreferences.locale
+	@computed getId() {
+		return this.user.userPreferences.get().id
 	}
 
-	@computed get color() {
-		return this.user.userPreferences.value.color ?? defaultUserPreferences.color
+	/**
+	 * @deprecated use `getId` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get id() {
+		warnDeprecatedGetter('id')
+		return this.getId()
 	}
 
-	@computed get isSnapMode() {
-		return this.user.userPreferences.value.isSnapMode ?? defaultUserPreferences.isSnapMode
+	@computed getName() {
+		return this.user.userPreferences.get().name ?? defaultUserPreferences.name
+	}
+
+	/**
+	 * @deprecated use `getName` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get name() {
+		warnDeprecatedGetter('name')
+		return this.getName()
+	}
+
+	@computed getLocale() {
+		return this.user.userPreferences.get().locale ?? defaultUserPreferences.locale
+	}
+
+	/**
+	 * @deprecated use `getLocale` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get locale() {
+		warnDeprecatedGetter('locale')
+		return this.getLocale()
+	}
+
+	@computed getColor() {
+		return this.user.userPreferences.get().color ?? defaultUserPreferences.color
+	}
+
+	/**
+	 * @deprecated use `getColor` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get color() {
+		warnDeprecatedGetter('color')
+		return this.getColor()
+	}
+
+	@computed getIsSnapMode() {
+		return this.user.userPreferences.get().isSnapMode ?? defaultUserPreferences.isSnapMode
+	}
+
+	/**
+	 * @deprecated use `getIsSnapMode` instead
+	 */
+	// eslint-disable-next-line no-restricted-syntax
+	get isSnapMode() {
+		warnDeprecatedGetter('isSnapMode')
+		return this.getIsSnapMode()
 	}
 }

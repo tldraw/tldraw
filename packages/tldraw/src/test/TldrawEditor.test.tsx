@@ -14,21 +14,6 @@ import {
 import { defaultTools } from '../lib/defaultTools'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 
-let originalFetch: typeof window.fetch
-beforeEach(() => {
-	window.fetch = jest.fn().mockImplementation((...args: Parameters<typeof fetch>) => {
-		if (args[0] === '/icons/icon/icon-names.json') {
-			return Promise.resolve({ json: () => Promise.resolve([]) } as Response)
-		}
-		return originalFetch(...args)
-	})
-})
-
-afterEach(() => {
-	jest.restoreAllMocks()
-	window.fetch = originalFetch
-})
-
 function checkAllShapes(editor: Editor, shapes: string[]) {
 	expect(Object.keys(editor!.store.schema.types.shape.migrations.subTypeMigrations!)).toStrictEqual(
 		shapes
@@ -255,7 +240,7 @@ describe('<TldrawEditor />', () => {
 		// Select the shape
 		await act(async () => editor.select(id))
 
-		expect(editor.selectedShapeIds.length).toBe(1)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
 
 		// Is the shape's component rendering?
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
@@ -264,7 +249,7 @@ describe('<TldrawEditor />', () => {
 		await act(async () => editor.setCurrentTool('eraser'))
 
 		// Is the editor's current tool correct?
-		expect(editor.currentToolId).toBe('eraser')
+		expect(editor.getCurrentToolId()).toBe('eraser')
 	})
 })
 
@@ -387,6 +372,6 @@ describe('Custom shapes', () => {
 		await act(async () => editor.setCurrentTool('card'))
 
 		// Is the editor's current tool correct?
-		expect(editor.currentToolId).toBe('card')
+		expect(editor.getCurrentToolId()).toBe('card')
 	})
 })

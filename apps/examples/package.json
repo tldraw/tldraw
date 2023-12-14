@@ -46,6 +46,7 @@
 		"vite": "^4.3.4"
 	},
 	"devDependencies": {
+		"@vitejs/plugin-react": "^4.2.0",
 		"dotenv": "^16.0.3"
 	}
 }

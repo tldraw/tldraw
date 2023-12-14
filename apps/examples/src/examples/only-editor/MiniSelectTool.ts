@@ -27,7 +27,7 @@ class IdleState extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredShape } = this.editor
+				const hoveredShape = editor.getHoveredShape()
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
@@ -52,9 +52,9 @@ class IdleState extends StateNode {
 			}
 			case 'shape': {
 				if (editor.inputs.shiftKey) {
-					editor.select(...editor.selectedShapeIds, info.shape.id)
+					editor.select(...editor.getSelectedShapeIds(), info.shape.id)
 				} else {
-					if (!editor.selectedShapeIds.includes(info.shape.id)) {
+					if (!editor.getSelectedShapeIds().includes(info.shape.id)) {
 						editor.select(info.shape.id)
 					}
 					this.parent.transition('pointing', info)
@@ -103,7 +103,7 @@ class PointingState extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging', { shapes: [...this.editor.selectedShapes] })
+			this.parent.transition('dragging', { shapes: [...this.editor.getSelectedShapes()] })
 		}
 	}
 }

@@ -4,7 +4,9 @@ import {
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
+	TLBookmarkShape,
 	TLEmbedShape,
+	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
@@ -15,9 +17,9 @@ import {
 	getHashForString,
 } from '@tldraw/editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
-import { containBoxSize, getResizedImageDataUrl, isGifAnimated } from './utils/assets'
-import { getEmbedInfo } from './utils/embeds'
-import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text'
+import { containBoxSize, getResizedImageDataUrl, isGifAnimated } from './utils/assets/assets'
+import { getEmbedInfo } from './utils/embeds/embeds'
+import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
 
 /** @public */
 export type TLExternalContentProps = {
@@ -89,10 +91,16 @@ export function registerDefaultExternalContentHandlers(
 				if (isFinite(maxImageDimension)) {
 					const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
 					if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-						// If we created a new size and the type is an image, rescale the image
-						dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h)
+						size = resizedSize
 					}
-					size = resizedSize
+				}
+
+				// Always rescale the image
+				if (file.type === 'image/jpeg' || file.type === 'image/png') {
+					dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h, {
+						type: file.type,
+						quality: 0.92,
+					})
 				}
 
 				const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
@@ -157,7 +165,8 @@ export function registerDefaultExternalContentHandlers(
 	// svg text
 	editor.registerExternalContentHandler('svg-text', async ({ point, text }) => {
 		const position =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg')
 		if (!svg) {
@@ -189,7 +198,8 @@ export function registerDefaultExternalContentHandlers(
 	// embeds
 	editor.registerExternalContentHandler('embed', ({ point, url, embed }) => {
 		const position =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const { width, height } = embed
 
@@ -213,7 +223,8 @@ export function registerDefaultExternalContentHandlers(
 	// files
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
 		const position =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const pagePoint = new Vec2d(position.x, position.y)
 
@@ -264,7 +275,8 @@ export function registerDefaultExternalContentHandlers(
 	// text
 	editor.registerExternalContentHandler('text', async ({ point, text }) => {
 		const p =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
@@ -293,8 +305,8 @@ export function registerDefaultExternalContentHandlers(
 		})
 
 		const minWidth = Math.min(
-			isMultiLine ? editor.viewportPageBounds.width * 0.9 : 920,
-			Math.max(200, editor.viewportPageBounds.width * 0.9)
+			isMultiLine ? editor.getViewportPageBounds().width * 0.9 : 920,
+			Math.max(200, editor.getViewportPageBounds().width * 0.9)
 		)
 
 		if (rawSize.w > minWidth) {
@@ -315,8 +327,8 @@ export function registerDefaultExternalContentHandlers(
 			autoSize = true
 		}
 
-		if (p.y - h / 2 < editor.viewportPageBounds.minY + 40) {
-			p.y = editor.viewportPageBounds.minY + 40 + h / 2
+		if (p.y - h / 2 < editor.getViewportPageBounds().minY + 40) {
+			p.y = editor.getViewportPageBounds().minY + 40 + h / 2
 		}
 
 		editor.createShapes<TLTextShape>([
@@ -351,9 +363,11 @@ export function registerDefaultExternalContentHandlers(
 		}
 
 		const position =
-			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+			point ??
+			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
 		const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+		const shape = createEmptyBookmarkShape(editor, url, position)
 
 		// Use an existing asset if we have one, or else else create a new one
 		let asset = editor.getAsset(assetId) as TLAsset
@@ -370,13 +384,25 @@ export function registerDefaultExternalContentHandlers(
 				editor.createAssets([asset])
 			}
 
-			createShapesForAssets(editor, [asset], position)
+			editor.updateShapes([
+				{
+					id: shape.id,
+					type: shape.type,
+					props: {
+						assetId: asset.id,
+					},
+				},
+			])
 		})
 	})
 }
 
-export async function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike) {
-	if (!assets.length) return
+export async function createShapesForAssets(
+	editor: Editor,
+	assets: TLAsset[],
+	position: VecLike
+): Promise<TLShapeId[]> {
+	if (!assets.length) return []
 
 	const currentPoint = Vec2d.From(position)
 	const partials: TLShapePartial[] = []
@@ -446,30 +472,62 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 		editor.createShapes(partials).select(...partials.map((p) => p.id))
 
 		// Re-position shapes so that the center of the group is at the provided point
-		const { viewportPageBounds } = editor
-		let { selectionPageBounds } = editor
-
-		if (selectionPageBounds) {
-			const offset = selectionPageBounds!.center.sub(position)
-
-			editor.updateShapes(
-				editor.selectedShapes.map((shape) => {
-					const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
-					const localDelta = Vec2d.Rot(offset, -localRotation)
-					return {
-						id: shape.id,
-						type: shape.type,
-						x: shape.x! - localDelta.x,
-						y: shape.y! - localDelta.y,
-					}
-				})
-			)
-		}
-
-		// Zoom out to fit the shapes, if necessary
-		selectionPageBounds = editor.selectionPageBounds
-		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-			editor.zoomToSelection()
-		}
+		centerSelectionAroundPoint(editor, position)
 	})
+
+	return partials.map((p) => p.id)
+}
+
+function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
+	// Re-position shapes so that the center of the group is at the provided point
+	const viewportPageBounds = editor.getViewportPageBounds()
+	let selectionPageBounds = editor.getSelectionPageBounds()
+
+	if (selectionPageBounds) {
+		const offset = selectionPageBounds!.center.sub(position)
+
+		editor.updateShapes(
+			editor.getSelectedShapes().map((shape) => {
+				const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
+				const localDelta = Vec2d.Rot(offset, -localRotation)
+				return {
+					id: shape.id,
+					type: shape.type,
+					x: shape.x! - localDelta.x,
+					y: shape.y! - localDelta.y,
+				}
+			})
+		)
+	}
+
+	// Zoom out to fit the shapes, if necessary
+	selectionPageBounds = editor.getSelectionPageBounds()
+	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+		editor.zoomToSelection()
+	}
+}
+
+export function createEmptyBookmarkShape(
+	editor: Editor,
+	url: string,
+	position: VecLike
+): TLBookmarkShape {
+	const partial: TLShapePartial = {
+		id: createShapeId(),
+		type: 'bookmark',
+		x: position.x - 150,
+		y: position.y - 160,
+		opacity: 1,
+		props: {
+			assetId: null,
+			url,
+		},
+	}
+
+	editor.batch(() => {
+		editor.createShapes([partial]).select(partial.id)
+		centerSelectionAroundPoint(editor, position)
+	})
+
+	return editor.getShape(partial.id) as TLBookmarkShape
 }

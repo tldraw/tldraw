@@ -14,18 +14,18 @@ const ids = {
 
 beforeEach(() => {
 	editor = new TestEditor()
-	const page0Id = editor.currentPageId
+	const page0Id = editor.getCurrentPageId()
 	editor.createPage({ name: ids.page1, id: ids.page1 })
-	expect(editor.currentPageId).toBe(page0Id)
+	expect(editor.getCurrentPageId()).toBe(page0Id)
 	editor.setCurrentPage(ids.page1)
-	expect(editor.currentPageId).toBe(ids.page1)
+	expect(editor.getCurrentPageId()).toBe(ids.page1)
 	editor.createShapes([
 		{ id: ids.ellipse1, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } },
 		{ id: ids.box1, type: 'geo', x: 0, y: 0 },
 		{ id: ids.box2, parentId: ids.box1, type: 'geo', x: 150, y: 150 },
 	])
 	editor.createPage({ name: ids.page2, id: ids.page2 })
-	expect(editor.currentPageId).toBe(ids.page1)
+	expect(editor.getCurrentPageId()).toBe(ids.page1)
 
 	expect(editor.getShape(ids.box1)!.parentId).toEqual(ids.page1)
 	expect(editor.getShape(ids.box2)!.parentId).toEqual(ids.box1)
@@ -34,7 +34,7 @@ beforeEach(() => {
 describe('Editor.moveShapesToPage', () => {
 	it('Moves shapes to page', () => {
 		editor.moveShapesToPage([ids.box2, ids.ellipse1], ids.page2)
-		expect(editor.currentPageId).toBe(ids.page2)
+		expect(editor.getCurrentPageId()).toBe(ids.page2)
 
 		expect(editor.getShape(ids.box2)!.parentId).toBe(ids.page2)
 		expect(editor.getShape(ids.ellipse1)!.parentId).toBe(ids.page2)
@@ -42,13 +42,13 @@ describe('Editor.moveShapesToPage', () => {
 		// box1 didn't get moved, still on page 1
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.page1)
 
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2, ids.ellipse1])
+		expect([...editor.getCurrentPageShapeIds()].sort()).toMatchObject([ids.box2, ids.ellipse1])
 
-		expect(editor.currentPageId).toBe(ids.page2)
+		expect(editor.getCurrentPageId()).toBe(ids.page2)
 
 		editor.setCurrentPage(ids.page1)
 
-		expect([...editor.currentPageShapeIds]).toEqual([ids.box1])
+		expect([...editor.getCurrentPageShapeIds()]).toEqual([ids.box1])
 	})
 
 	it('Moves children to page', () => {
@@ -61,46 +61,54 @@ describe('Editor.moveShapesToPage', () => {
 	it('Adds undo items', () => {
 		editor.history.clear()
 		editor.moveShapesToPage([ids.box1], ids.page2)
-		expect(editor.history.numUndos).toBeGreaterThan(1)
+		expect(editor.history.getNumUndos()).toBeGreaterThan(1)
 	})
 
 	it('Does nothing on an empty ids array', () => {
 		editor.history.clear()
 		editor.moveShapesToPage([], ids.page2)
-		expect(editor.history.numUndos).toBe(0)
+		expect(editor.history.getNumUndos()).toBe(0)
 	})
 
 	it('Does nothing if the new page is not found or is deleted', () => {
 		editor.history.clear()
 		editor.moveShapesToPage([ids.box1], PageRecordType.createId('missing'))
-		expect(editor.history.numUndos).toBe(0)
+		expect(editor.history.getNumUndos()).toBe(0)
 	})
 
 	it('Does not move shapes to the current page', () => {
 		editor.history.clear()
 		editor.moveShapesToPage([ids.box1], ids.page1)
-		expect(editor.history.numUndos).toBe(0)
+		expect(editor.history.getNumUndos()).toBe(0)
 	})
 
 	it('Restores on undo / redo', () => {
-		expect(editor.currentPageId).toBe(ids.page1)
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
+		expect(editor.getCurrentPageId()).toBe(ids.page1)
+		expect([...editor.getCurrentPageShapeIds()].sort()).toMatchObject([
+			ids.box1,
+			ids.box2,
+			ids.ellipse1,
+		])
 
 		editor.mark('move shapes to page')
 		editor.moveShapesToPage([ids.box2], ids.page2)
 
-		expect(editor.currentPageId).toBe(ids.page2)
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2])
+		expect(editor.getCurrentPageId()).toBe(ids.page2)
+		expect([...editor.getCurrentPageShapeIds()].sort()).toMatchObject([ids.box2])
 
 		editor.undo()
 
-		expect(editor.currentPageId).toBe(ids.page1)
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
+		expect(editor.getCurrentPageId()).toBe(ids.page1)
+		expect([...editor.getCurrentPageShapeIds()].sort()).toMatchObject([
+			ids.box1,
+			ids.box2,
+			ids.ellipse1,
+		])
 
 		editor.redo()
 
-		expect(editor.currentPageId).toBe(ids.page2)
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2])
+		expect(editor.getCurrentPageId()).toBe(ids.page2)
+		expect([...editor.getCurrentPageShapeIds()].sort()).toMatchObject([ids.box2])
 	})
 
 	it('Sets the correct indices', () => {
@@ -109,7 +117,7 @@ describe('Editor.moveShapesToPage', () => {
 
 		editor.createPage({ name: 'New Page 2', id: page2Id })
 		editor.setCurrentPage(page2Id)
-		expect(editor.currentPageId).toBe(page2Id)
+		expect(editor.getCurrentPageId()).toBe(page2Id)
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } }])
 		editor.expectShapeToMatch({
 			id: ids.box1,
@@ -121,7 +129,7 @@ describe('Editor.moveShapesToPage', () => {
 
 		editor.createPage({ name: 'New Page 3', id: page3Id })
 		editor.setCurrentPage(page3Id)
-		expect(editor.currentPageId).toBe(page3Id)
+		expect(editor.getCurrentPageId()).toBe(page3Id)
 		editor.createShapes([{ id: ids.box2, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } }])
 		editor.expectShapeToMatch({
 			id: ids.box2,
@@ -133,7 +141,7 @@ describe('Editor.moveShapesToPage', () => {
 		editor.select(ids.box1)
 		editor.moveShapesToPage([ids.box1], page3Id)
 
-		expect(editor.currentPageId).toBe(page3Id)
+		expect(editor.getCurrentPageId()).toBe(page3Id)
 
 		editor.expectShapeToMatch(
 			{
@@ -155,7 +163,7 @@ describe('arrows', () => {
 	let secondBox: TLShape
 
 	beforeEach(() => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 		// draw a first box
 		editor.createShapes([
 			{
@@ -189,9 +197,9 @@ describe('arrows', () => {
 		editor.pointerMove(255, 255)
 		editor.pointerMove(450, 450)
 		editor.pointerUp(450, 450)
-		const arrow = editor.onlySelectedShape!
+		const arrow = editor.getOnlySelectedShape()!
 
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toCloselyMatchObject({
 			// exiting at the bottom right corner of the first box
 			x: 300,
 			y: 300,
@@ -224,7 +232,7 @@ describe('arrows', () => {
 			.pointerMove(255, 255)
 			.pointerMove(450, 450)
 			.pointerUp(450, 450)
-		const arrow = editor.onlySelectedShape!
+		const arrow = editor.getOnlySelectedShape()!
 
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(1)
@@ -240,7 +248,7 @@ describe('arrows', () => {
 		editor.setCurrentTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
 
 		editor.moveShapesToPage([ids.box1, ids.box2], ids.page2)
-		const { selectionPageBounds } = editor
-		expect(editor.viewportPageCenter).toMatchObject(selectionPageBounds!.center)
+		const selectionPageBounds = editor.getSelectionPageBounds()
+		expect(editor.getViewportPageCenter()).toMatchObject(selectionPageBounds!.center)
 	})
 })

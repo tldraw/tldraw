@@ -3,6 +3,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
+import { TLUiAssetUrlOverrides } from './assetUrls'
 import { BackToContent } from './components/BackToContent'
 import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
@@ -61,6 +62,9 @@ export interface TldrawUiBaseProps {
 	 * Additional items to add to the debug menu (will be deprecated)
 	 */
 	renderDebugMenuItems?: () => React.ReactNode
+
+	/** Asset URL override. */
+	assetUrls?: TLUiAssetUrlOverrides
 }
 
 /**
@@ -120,9 +124,11 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadonlyMode', () => editor.instanceState.isReadonly, [editor])
-	const isFocusMode = useValue('focus', () => editor.instanceState.isFocusMode, [editor])
-	const isDebugMode = useValue('debug', () => editor.instanceState.isDebugMode, [editor])
+	const isReadonlyMode = useValue('isReadonlyMode', () => editor.getInstanceState().isReadonly, [
+		editor,
+	])
+	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
+	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()

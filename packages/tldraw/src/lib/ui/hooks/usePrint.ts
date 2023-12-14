@@ -59,6 +59,10 @@ export function usePrint() {
 					display: none;
 				}
 
+				.tldraw__editor {
+					display: none;
+				}
+
 				.${className} {
 					display: block !important;
 					background: white;
@@ -161,13 +165,16 @@ export function usePrint() {
 					window.print()
 				} else if (editor.environment.isSafari) {
 					beforePrintHandler()
+					// eslint-disable-next-line deprecation/deprecation
 					document.execCommand('print', false)
 				} else {
 					window.print()
 				}
 			}
 
-			const { pages, currentPageId, selectedShapeIds } = editor
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			const currentPageId = editor.getCurrentPageId()
+			const pages = editor.getPages()
 
 			const preserveAspectRatio = 'xMidYMid meet'
 
@@ -178,7 +185,7 @@ export function usePrint() {
 				preserveAspectRatio,
 			}
 
-			if (editor.selectedShapeIds.length > 0) {
+			if (editor.getSelectedShapeIds().length > 0) {
 				// Print the selected ids from the current page
 				const svg = await editor.getSvg(selectedShapeIds, svgOpts)
 
@@ -199,7 +206,7 @@ export function usePrint() {
 					}
 					triggerPrint()
 				} else {
-					const page = editor.currentPage
+					const page = editor.getCurrentPage()
 					const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
 					if (svg) {
 						addPageToPrint(`tldraw — ${page.name}`, null, svg)

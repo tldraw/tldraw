@@ -21,7 +21,7 @@ export class Pointing extends StateNode {
 	shape = {} as TLNoteShape
 
 	override onEnter = () => {
-		this.wasFocusedOnEnter = !this.editor.isMenuOpen
+		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 		if (this.wasFocusedOnEnter) {
 			this.shape = this.createShape()
 		}
@@ -37,9 +37,12 @@ export class Pointing extends StateNode {
 				...info,
 				target: 'shape',
 				shape: this.shape,
-				isCreating: true,
-				editAfterComplete: true,
 				onInteractionEnd: 'note',
+				isCreating: true,
+				onCreate: () => {
+					this.editor.setEditingShape(this.shape.id)
+					this.editor.setCurrentTool('select.editing_shape')
+				},
 			})
 		}
 	}
@@ -62,8 +65,8 @@ export class Pointing extends StateNode {
 
 	private complete() {
 		if (this.wasFocusedOnEnter) {
-			if (this.editor.instanceState.isToolLocked) {
-				this.parent.transition('idle', {})
+			if (this.editor.getInstanceState().isToolLocked) {
+				this.parent.transition('idle')
 			} else {
 				this.editor.setEditingShape(this.shape.id)
 				this.editor.setCurrentTool('select.editing_shape', {

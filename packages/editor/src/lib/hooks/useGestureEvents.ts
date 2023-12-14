@@ -81,7 +81,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		let pinchState = 'not sure' as 'not sure' | 'zooming' | 'panning'
 
 		const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
-			if (!editor.instanceState.isFocused) {
+			if (!editor.getInstanceState().isFocused) {
 				return
 			}
 
@@ -97,12 +97,13 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			// default on the evnet) if the user is wheeling over an a shape
 			// that is scrollable which they're currently editing.
 
-			if (editor.editingShapeId) {
-				const shape = editor.getShape(editor.editingShapeId)
+			const editingShapeId = editor.getEditingShapeId()
+			if (editingShapeId) {
+				const shape = editor.getShape(editingShapeId)
 				if (shape) {
 					const util = editor.getShapeUtil(shape)
 					if (util.canScroll(shape)) {
-						const bounds = editor.getShapePageBounds(editor.editingShapeId)
+						const bounds = editor.getShapePageBounds(editingShapeId)
 						if (bounds?.containsPoint(editor.inputs.currentPagePoint)) {
 							return
 						}
@@ -115,10 +116,16 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			if (delta.x === 0 && delta.y === 0) return
 
+			const container = editor.getContainer().getBoundingClientRect()
+
 			const info: TLWheelEventInfo = {
 				type: 'wheel',
 				name: 'wheel',
 				delta,
+				point: new Vec2d(event.clientX, event.clientY).sub({
+					x: container.left,
+					y: container.top,
+				}),
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
 				ctrlKey: event.metaKey || event.ctrlKey,
@@ -148,12 +155,12 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			initPointBetweenFingers.x = origin[0]
 			initPointBetweenFingers.y = origin[1]
 			initDistanceBetweenFingers = da[0]
-			initZoom = editor.zoomLevel
+			initZoom = editor.getZoomLevel()
 
 			editor.dispatch({
 				type: 'pinch',
 				name: 'pinch_start',
-				point: { x: origin[0], y: origin[1], z: editor.zoomLevel },
+				point: { x: origin[0], y: origin[1], z: editor.getZoomLevel() },
 				delta: { x: 0, y: 0 },
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
@@ -295,9 +302,9 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		target: ref,
 		eventOptions: { passive: false },
 		pinch: {
-			from: () => [editor.zoomLevel, 0], // Return the camera z to use when pinch starts
+			from: () => [editor.getZoomLevel(), 0], // Return the camera z to use when pinch starts
 			scaleBounds: () => {
-				return { from: editor.zoomLevel, max: 8, min: 0.05 }
+				return { from: editor.getZoomLevel(), max: 8, min: 0.05 }
 			},
 		},
 	})

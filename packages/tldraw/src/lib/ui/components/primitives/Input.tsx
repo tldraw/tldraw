@@ -9,9 +9,9 @@ import { Icon } from './Icon'
 /** @public */
 export interface TLUiInputProps {
 	disabled?: boolean
-	label?: TLUiTranslationKey
-	icon?: TLUiIconType
-	iconLeft?: TLUiIconType
+	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
+	icon?: TLUiIconType | Exclude<string, TLUiIconType>
+	iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>
 	autofocus?: boolean
 	autoselect?: boolean
 	children?: any

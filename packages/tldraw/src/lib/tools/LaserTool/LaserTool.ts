@@ -1,6 +1,6 @@
 import { StateNode } from '@tldraw/editor'
-import { Idle } from './children/Idle'
-import { Lasering } from './children/Lasering'
+import { Idle } from './childStates/Idle'
+import { Lasering } from './childStates/Lasering'
 
 /** @public */
 export class LaserTool extends StateNode {

@@ -38,6 +38,11 @@ export interface TldrawUiContextProviderProps {
 	onUiEvent?: TLUiEventHandler
 
 	/**
+	 * Whether to always should the mobile breakpoints.
+	 */
+	forceMobile?: boolean
+
+	/**
 	 * The component's children.
 	 */
 	children?: any
@@ -48,6 +53,7 @@ export function TldrawUiContextProvider({
 	overrides,
 	assetUrls,
 	onUiEvent,
+	forceMobile,
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
@@ -56,7 +62,7 @@ export function TldrawUiContextProvider({
 				<UiEventsProvider onEvent={onUiEvent}>
 					<ToastsProvider>
 						<DialogsProvider>
-							<BreakPointProvider>
+							<BreakPointProvider forceMobile={forceMobile}>
 								<InternalProviders overrides={overrides}>{children}</InternalProviders>
 							</BreakPointProvider>
 						</DialogsProvider>

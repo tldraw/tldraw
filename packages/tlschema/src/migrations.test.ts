@@ -11,7 +11,7 @@ import { instancePageStateMigrations, instancePageStateVersions } from './record
 import { pointerMigrations, pointerVersions } from './records/TLPointer'
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeMigrations, rootShapeVersions } from './records/TLShape'
-import { arrowShapeMigrations } from './shapes/TLArrowShape'
+import { ArrowMigrationVersions, arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations } from './shapes/TLDrawShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
@@ -1620,6 +1620,141 @@ describe('add scribbles to TLInstance', () => {
 
 	test('down works as expected', () => {
 		expect(down({ scribbles: [] })).toEqual({ scribble: null })
+	})
+})
+
+describe('add isPrecise to arrow handles', () => {
+	const { up, down } = arrowShapeMigrations.migrators[ArrowMigrationVersions.AddIsPrecise]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'point',
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
+				},
+			},
+		})
+		expect(
+			up({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.15, y: 0.15 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'point',
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.15, y: 0.15 },
+					isPrecise: true,
+				},
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: true,
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'point',
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			},
+		})
+
+		expect(
+			down({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.25, y: 0.25 },
+						isPrecise: true,
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'point',
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.25, y: 0.25 },
+				},
+			},
+		})
+
+		expect(
+			down({
+				props: {
+					start: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.15, y: 0.15 },
+						isPrecise: false,
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			},
+		})
 	})
 })
 
