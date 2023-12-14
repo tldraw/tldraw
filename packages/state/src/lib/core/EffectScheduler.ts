@@ -37,23 +37,7 @@ interface EffectSchedulerOptions {
 	scheduleEffect?: (execute: () => void) => void
 }
 
-/**
- * An EffectScheduler is responsible for executing side effects in response to changes in state.
- *
- * You probably don't need to use this directly unless you're integrating this library with a framework of some kind.
- *
- * Instead, use the [[react]] and [[reactor]] functions.
- *
- * @example
- * ```ts
- * const render = new EffectScheduler('render', drawToCanvas)
- *
- * render.attach()
- * render.execute()
- * ```
- *
- * @public
- */
+
 export class EffectScheduler<Result> {
 	private _isActivelyListening = false
 	/**
@@ -166,36 +150,7 @@ export class EffectScheduler<Result> {
 	}
 }
 
-/**
- * Starts a new effect scheduler, scheduling the effect immediately.
- *
- * Returns a function that can be called to stop the scheduler.
- *
- * @example
- * ```ts
- * const color = atom('color', 'red')
- * const stop = react('set style', () => {
- *   divElem.style.color = color.get()
- * })
- * color.set('blue')
- * // divElem.style.color === 'blue'
- * stop()
- * color.set('green')
- * // divElem.style.color === 'blue'
- * ```
- *
- *
- * Also useful in React applications for running effects outside of the render cycle.
- *
- * @example
- * ```ts
- * useEffect(() => react('set style', () => {
- *   divRef.current.style.color = color.get()
- * }), [])
- * ```
- *
- * @public
- */
+
 export function react(
 	name: string,
 	fn: (lastReactedEpoch: number) => any,
@@ -241,11 +196,7 @@ export interface Reactor<T = unknown> {
 	stop(): void
 }
 
-/**
- * Creates a [[Reactor]], which is a thin wrapper around an [[EffectScheduler]].
- *
- * @public
- */
+
 export function reactor<Result>(
 	name: string,
 	fn: (lastReactedEpoch: number) => Result,

@@ -135,78 +135,7 @@ export function atomDidChange(atom: _Atom<any>, previousValue: any) {
  */
 export let currentTransaction = null as Transaction | null
 
-/**
- * Batches state updates, deferring side effects until after the transaction completes.
- *
- * @example
- * ```ts
- * const firstName = atom('John')
- * const lastName = atom('Doe')
- *
- * react('greet', () => {
- *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
- * })
- *
- * // Logs "Hello, John Doe!"
- *
- * transaction(() => {
- *  firstName.set('Jane')
- *  lastName.set('Smith')
- * })
- *
- * // Logs "Hello, Jane Smith!"
- * ```
- *
- * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began.
- *
- * @example
- * ```ts
- * const firstName = atom('John')
- * const lastName = atom('Doe')
- *
- * react('greet', () => {
- *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
- * })
- *
- * // Logs "Hello, John Doe!"
- *
- * transaction(() => {
- *  firstName.set('Jane')
- *  throw new Error('oops')
- * })
- *
- * // Does not log
- * // firstName.get() === 'John'
- * ```
- *
- * A `rollback` callback is passed into the function.
- * Calling this will prevent the transaction from committing and will revert any signals that were updated during the transaction to their state before the transaction began.
- *
- *  * @example
- * ```ts
- * const firstName = atom('John')
- * const lastName = atom('Doe')
- *
- * react('greet', () => {
- *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
- * })
- *
- * // Logs "Hello, John Doe!"
- *
- * transaction((rollback) => {
- *  firstName.set('Jane')
- *  lastName.set('Smith')
- *  rollback()
- * })
- *
- * // Does not log
- * // firstName.get() === 'John'
- * // lastName.get() === 'Doe'
- * ```
- *
- * @param fn - The function to run in a transaction, called with a function to roll back the change.
- * @public
- */
+
 export function transaction<T>(fn: (rollback: () => void) => T) {
 	const txn = new Transaction(currentTransaction)
 
@@ -238,12 +167,6 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 	}
 }
 
-/**
- * Like [transaction](#transaction), but does not create a new transaction if there is already one in progress.
- *
- * @param fn - The function to run in a transaction.
- * @public
- */
 export function transact<T>(fn: () => T): T {
 	if (currentTransaction) {
 		return fn()
