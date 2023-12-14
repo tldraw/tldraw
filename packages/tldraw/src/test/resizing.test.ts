@@ -406,7 +406,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 20)])
 	})
 	it('works correctly when the shapes are not rotated', () => {
-		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		// Move the camera so that we are not at the edges, which causes the camera to move when we resize
 		editor.setCamera({ x: 100, y: 100 })
 
 		editor.select(ids.boxA, ids.boxB)
@@ -585,7 +585,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 	})
 
 	it('works the same when shapes are rotated by a multiple of 90 degrees', () => {
-		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		// Move the camera so that we are not at the edges, which causes the camera to move when we resize
 		editor.setCamera({ x: 100, y: 100 })
 
 		// rotate A by 90 degrees
@@ -2434,7 +2434,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		// 120                ┌───┐
 		//                    │ C │
 		// 140                └───┘
-		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		// Move the camera so that we are not at the edges, which causes the camera to move when we resize
 		editor.setCamera({ x: 100, y: 100 })
 
 		editor

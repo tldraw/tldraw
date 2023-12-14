@@ -173,7 +173,7 @@ describe('When cloning...', () => {
 	})
 
 	it('clones a single shape and restores when stopping cloning', () => {
-		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		// Move the camera so that we are not at the edges, which causes the camera to move when we translate
 		editor.setCamera({ x: 100, y: 100 })
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
@@ -203,7 +203,7 @@ describe('When cloning...', () => {
 	})
 
 	it('clones multiple single shape and restores when stopping cloning', () => {
-		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		// Move the camera so that we are not at the edges, which causes the camera to move when we translate
 		editor.setCamera({ x: 100, y: 100 })
 		editor.select(ids.box1, ids.box2).pointerDown(150, 150, ids.box1).pointerMove(150, 140) // [0, -10]
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
@@ -433,7 +433,7 @@ describe('snapping with single shapes', () => {
 		// │      │      │  *snap*
 		// └──────┴──────┘
 
-		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		// Move the camera so that we are not at the edges, which causes the camera to move when we translate
 		editor.setCamera({ x: 100, y: 100 })
 
 		editor.pointerDown(125, 105, ids.box2).pointerMove(116, 105)
