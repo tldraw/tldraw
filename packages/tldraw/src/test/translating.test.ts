@@ -173,9 +173,11 @@ describe('When cloning...', () => {
 	})
 
 	it('clones a single shape and restores when stopping cloning', () => {
+		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		editor.setCamera({ x: 100, y: 100 })
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
-		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
+		editor.select(ids.box1).pointerDown(150, 150, ids.box1).pointerMove(150, 140) // [0, -10]
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 
@@ -188,7 +190,7 @@ describe('When cloning...', () => {
 		editor
 			.expectShapeToMatch({ id: ids.box1, x: 10, y: 10 }) // A should be back to original position...
 			.expectShapeToMatch({ id: newShape.id, x: 10, y: 0 }) // New node should be at A's previous position
-			.pointerMove(60, 40) // [10, -10]
+			.pointerMove(160, 140) // [10, -10]
 			.expectShapeToMatch({ id: ids.box1, x: 10, y: 10 }) // No movement on A
 			.expectShapeToMatch({ id: newShape.id, x: 20, y: 0 }) // Clone should be moving
 
@@ -201,7 +203,9 @@ describe('When cloning...', () => {
 	})
 
 	it('clones multiple single shape and restores when stopping cloning', () => {
-		editor.select(ids.box1, ids.box2).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
+		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		editor.setCamera({ x: 100, y: 100 })
+		editor.select(ids.box1, ids.box2).pointerDown(150, 150, ids.box1).pointerMove(150, 140) // [0, -10]
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 		editor.expectShapeToMatch({ id: ids.box2, x: 200, y: 190 }) // Translated B...
@@ -219,7 +223,7 @@ describe('When cloning...', () => {
 			.expectShapeToMatch({ id: ids.box2, x: 200, y: 200 }) // B should be back to original position...
 			.expectShapeToMatch({ id: newShapeA.id, x: 10, y: 0 }) // New node should be at A's previous position
 			.expectShapeToMatch({ id: newShapeB.id, x: 200, y: 190 }) // New node should be at B's previous position
-			.pointerMove(60, 40) // [10, -10]
+			.pointerMove(160, 140) // [10, -10]
 			.expectShapeToMatch({ id: ids.box1, x: 10, y: 10 }) // No movement on A
 			.expectShapeToMatch({ id: ids.box2, x: 200, y: 200 }) // No movement on B
 			.expectShapeToMatch({ id: newShapeA.id, x: 20, y: 0 }) // Clone A should be moving
@@ -429,7 +433,10 @@ describe('snapping with single shapes', () => {
 		// │      │      │  *snap*
 		// └──────┴──────┘
 
-		editor.pointerDown(25, 5, ids.box2).pointerMove(16, 5)
+		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
+		editor.setCamera({ x: 100, y: 100 })
+
+		editor.pointerDown(125, 105, ids.box2).pointerMove(116, 105)
 
 		// expect box B to be at 11, 0
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 11, y: 0 })
@@ -448,7 +455,7 @@ describe('snapping with single shapes', () => {
 		editor.keyDown('Control')
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 10, y: 0 })
 
-		editor.pointerUp(16, 5, { ctrlKey: true })
+		editor.pointerUp(116, 105, { ctrlKey: true })
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 10, y: 0 })
 	})
 
