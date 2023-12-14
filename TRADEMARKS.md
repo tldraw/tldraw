@@ -2,7 +2,7 @@
 
 This trademark policy was prepared to help you understand how to use the tldraw trademarks, service marks and logos.
 
-While the copyright to our open source software is licensed under the GNU Affero General Public License Version 3 (AGPLv3) or any later version, our trademarks appearing in or on the open source software are the exclusive property of tldraw Inc. and are not licensed under the AGPLv3. This means that our open source license does not include a license to use our trademarks.
+While the copyright to our open source software is licensed under the tldraw license, our trademarks appearing in or on the open source software are the exclusive property of tldraw Inc. This means that our open source license does not include a license to use our trademarks.
 
 Because we make some of our code available to download and modify, proper use of our trademarks is essential to inform people whether or not tldraw stands behind a product or service. When using tldraw trademarks, you must comply with these tldraw Trademark Guidelines.
 

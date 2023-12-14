@@ -31,7 +31,7 @@ Open the example project at `localhost:5420`.
 
 ## License
 
-tldraw's source code and distributed packages are provided under the restrictive / copyleft [AGPL-3.0 license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). You may use and modify tldraw as long as your code is kept open source and licensed under the same AGPLv3 license.
+tldraw's source code and distributed packages are provided under the restrictive / copyleft [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). You may use and modify tldraw as long as your code is kept open source and licensed under the same AGPLv3 license.
 
 If you want to use tldraw in closed-source software or in a project not licensed under AGPL-3.0, you need to purchase a commercial license. We are happy to provide free licenses on a case-by-case basis for use in charitable projects, research projects, or early-stage commercial products.
 

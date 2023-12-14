@@ -22,9 +22,11 @@ Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsy
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
-## Open source license
+## License
 
-tldraw is open source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can learn more about tldraw's [license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) and other policies at the [tldraw GitHub repository](https://github.com/tldraw/tldraw).
+The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use.
+
+If you wish to use this project in commercial product, you need to purchase a commercial license. matPlease contact us at [hello@tldraw.com](mailto:hello@tldraw.com) for more inforion about obtaining a commercial license.
 
 ## Contact
 
