@@ -1,3 +1,9 @@
+## 2.0.19
+
+- Adds fit to content option for frames.
+- Fixes an issue with loading older files.
+- Fixes an issue with some event handlers not being cleaned up correctly.
+
 ## 2.0.18
 
 - Adds the option to remove frames, but keep the children.
