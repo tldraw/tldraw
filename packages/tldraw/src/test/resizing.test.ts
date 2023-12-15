@@ -13,6 +13,7 @@ import {
 	createShapeId,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
+import { EDGE_SCROLL_SPEED } from '@tldraw/editor/src/lib/constants'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 import { roundedBox } from './roundedBox'
@@ -2428,7 +2429,6 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		// 120                ┌───┐
 		//                    │ C │
 		// 140                └───┘
-		// Move the camera so that we are not at the edges, which causes the camera to move when we resize
 		editor
 			.select(ids.boxX)
 			.pointerDown(70, 40, { target: 'selection', handle: 'bottom' })
@@ -3903,7 +3903,7 @@ describe('Resizing text from the right edge', () => {
 
 describe('When resizing near the edges of the screen', () => {
 	it('resizes past the edge of the screen', () => {
-		editor.setEdgeScrollSpeed(20)
+		editor.setEdgeScrollSpeed(EDGE_SCROLL_SPEED)
 		editor
 			.select(ids.boxA)
 			.pointerDown(10, 10, {
