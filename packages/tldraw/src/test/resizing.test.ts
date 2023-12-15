@@ -13,7 +13,6 @@ import {
 	createShapeId,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
-import { EDGE_SCROLL_SPEED } from '@tldraw/editor/src/lib/constants'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 import { roundedBox } from './roundedBox'
@@ -3903,7 +3902,7 @@ describe('Resizing text from the right edge', () => {
 
 describe('When resizing near the edges of the screen', () => {
 	it('resizes past the edge of the screen', () => {
-		editor.setEdgeScrollSpeed(EDGE_SCROLL_SPEED)
+		editor.setEdgeScrollSpeed(20)
 		editor
 			.select(ids.boxA)
 			.pointerDown(10, 10, {

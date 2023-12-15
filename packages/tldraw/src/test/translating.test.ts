@@ -8,7 +8,6 @@ import {
 	Vec2d,
 	createShapeId,
 } from '@tldraw/editor'
-import { EDGE_SCROLL_SPEED } from '@tldraw/editor/src/lib/constants'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 
@@ -129,7 +128,7 @@ describe('When translating...', () => {
 	})
 
 	it('translates a single shape near the top left edge', () => {
-		editor.setEdgeScrollSpeed(EDGE_SCROLL_SPEED)
+		editor.setEdgeScrollSpeed(20)
 		editor.pointerDown(50, 50, ids.box1).pointerMove(0, 50) // [-50, 0]
 
 		jest.advanceTimersByTime(100)
@@ -147,7 +146,7 @@ describe('When translating...', () => {
 	})
 
 	it('translates a single shape near the bottom right edge', () => {
-		editor.setEdgeScrollSpeed(EDGE_SCROLL_SPEED)
+		editor.setEdgeScrollSpeed(20)
 		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
 
 		jest.advanceTimersByTime(100)
