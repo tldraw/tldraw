@@ -140,9 +140,9 @@ describe('When translating...', () => {
 			.pointerMove(0, 25)
 		jest.advanceTimersByTime(100)
 		editor
-			.expectShapeToMatch({ id: ids.box1, x: -280, y: -63 })
+			.expectShapeToMatch({ id: ids.box1, x: -280, y: -42.54 })
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: -280, y: -63 })
+			.expectShapeToMatch({ id: ids.box1, x: -280, y: -42.54 })
 	})
 
 	it('translates a single shape near the bottom right edge', () => {
@@ -156,9 +156,9 @@ describe('When translating...', () => {
 			.pointerMove(1080, 800)
 		jest.advanceTimersByTime(100)
 		editor
-			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 872 })
+			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 872 })
+			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
 	})
 
 	it('translates multiple shapes', () => {

@@ -262,6 +262,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 		isFocusMode,
 		exportBackground,
 		isDebugMode,
+		edgeScrollSpeed,
 		isZoomedTo100,
 		oneEmbeddableBookmarkSelected,
 		oneEmbedSelected,

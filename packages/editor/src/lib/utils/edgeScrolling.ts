@@ -10,18 +10,17 @@ import { Editor } from '../editor/Editor'
  * @returns How much we should scroll in pixels
  * @internal
  */
-export function getEdgeProximityFactor(position: number, inset: number, extreme: number) {
+export function getEdgeProximityFactor(position: number, scrollOffset: number, extreme: number) {
 	if (position < 0) {
-		return -1
-	} else if (position > extreme) {
 		return 1
-	} else if (position < inset) {
-		return Math.min(1, (inset - position) / inset)
-	} else if (position > extreme - inset) {
-		return Math.max(-1, -(inset - extreme + position) / inset)
-	} else {
-		return 0
+	} else if (position > extreme) {
+		return -1
+	} else if (position < scrollOffset) {
+		return (scrollOffset - position) / scrollOffset
+	} else if (position > extreme - scrollOffset) {
+		return -(scrollOffset - extreme + position) / scrollOffset
 	}
+	return 0
 }
 
 /**

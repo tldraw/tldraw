@@ -109,6 +109,7 @@ export class TestEditor extends Editor {
 			})
 			return [{ box, text: textToMeasure }]
 		}
+
 		// Turn off edge scrolling for tests. Tests that require this can turn it back on.
 		this.user.updateUserPreferences({ edgeScrollSpeed: 0 })
 	}

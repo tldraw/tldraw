@@ -3912,7 +3912,12 @@ describe('When resizing near the edges of the screen', () => {
 			})
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
 			.pointerMove(10, 25)
-		jest.advanceTimersByTime(100)
-		editor.expectShapeToMatch({ id: ids.boxA, x: -70, y: -23, props: { w: 180, h: 133 } })
+		jest.advanceTimersByTime(1000)
+		editor.expectShapeToMatch({
+			id: ids.boxA,
+			x: -842.5,
+			y: -259.58,
+			props: { w: 952.5, h: 369.58 },
+		})
 	})
 })
