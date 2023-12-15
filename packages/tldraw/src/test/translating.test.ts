@@ -127,7 +127,7 @@ describe('When translating...', () => {
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 	})
 
-	it('translates a single shape near the edges', () => {
+	it('translates a single shape near the top left edge', () => {
 		editor.pointerDown(50, 50, ids.box1).pointerMove(0, 50) // [-50, 0]
 
 		jest.advanceTimersByTime(100)
@@ -139,10 +139,24 @@ describe('When translating...', () => {
 			.pointerMove(0, 25)
 		jest.advanceTimersByTime(100)
 		editor
-
 			.expectShapeToMatch({ id: ids.box1, x: -280, y: -63 })
 			.pointerUp()
 			.expectShapeToMatch({ id: ids.box1, x: -280, y: -63 })
+	})
+
+	it('translates a single shape near the bottom right edge', () => {
+		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
+
+		jest.advanceTimersByTime(100)
+		editor
+			// The change is bigger than expected because the camera moves
+			.expectShapeToMatch({ id: ids.box1, x: 1160, y: 10 })
+			.pointerMove(1080, 800)
+		jest.advanceTimersByTime(100)
+		editor
+			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 856 })
+			.pointerUp()
+			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 856 })
 	})
 
 	it('translates multiple shapes', () => {
