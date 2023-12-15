@@ -38,7 +38,6 @@ const ids = {
 beforeEach(() => {
 	console.error = jest.fn()
 	editor = new TestEditor()
-	editor.setEdgeScrollSpeed(0)
 })
 
 const getNumSnapPoints = (snap: SnapLine): number => {

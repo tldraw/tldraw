@@ -112,7 +112,6 @@ beforeEach(() => {
 			},
 		},
 	])
-	editor.setEdgeScrollSpeed(0)
 })
 
 describe('When pointing a resizer handle...', () => {

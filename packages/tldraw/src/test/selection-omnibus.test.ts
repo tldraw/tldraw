@@ -18,7 +18,6 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.setScreenBounds({ w: 3000, h: 3000, x: 0, y: 0 })
-	editor.setEdgeScrollSpeed(0)
 })
 
 it('lists a sorted shapes array correctly', () => {
