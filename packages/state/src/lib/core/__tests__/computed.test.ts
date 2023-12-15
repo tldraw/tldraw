@@ -1,16 +1,8 @@
-import {
-	Computed,
-	atom,
-	computed,
-	getComputedInstance,
-	isComputed,
-	isUninitialized,
-	reactor,
-	transact,
-	transaction,
-} from '..'
+import { atom } from '../Atom'
+import { Computed, _Computed, computed, getComputedInstance, isUninitialized } from '../Computed'
+import { reactor } from '../EffectScheduler'
 import { assertNever } from '../helpers'
-import { advanceGlobalEpoch, getGlobalEpoch } from '../transactions'
+import { advanceGlobalEpoch, getGlobalEpoch, transact, transaction } from '../transactions'
 import { RESET_VALUE, Signal } from '../types'
 
 function getLastCheckedEpoch(derivation: Computed<any>): number {
@@ -166,7 +158,7 @@ describe('derivations', () => {
 		expect(floor).toHaveBeenCalledTimes(5)
 	})
 
-	it('updates the lastCheckedEpoch whenever the  getGlobalEpoch()advances', () => {
+	it('updates the lastCheckedEpoch whenever the globalEpoch advances', () => {
 		const startEpoch = getGlobalEpoch()
 		const a = atom('', 1)
 
@@ -592,7 +584,7 @@ describe(getComputedInstance, () => {
 		const bInst = getComputedInstance(foo, 'getB')
 
 		expect(bInst).toBeDefined()
-		expect(isComputed(bInst)).toBe(true)
+		expect(bInst).toBeInstanceOf(_Computed)
 	})
 })
 

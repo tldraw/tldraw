@@ -1,16 +1,9 @@
 import { times } from 'lodash'
-import {
-	Atom,
-	Computed,
-	Reactor,
-	Signal,
-	atom,
-	computed,
-	isAtom,
-	isComputed,
-	reactor,
-	transact,
-} from '..'
+import { Atom, atom, isAtom } from '../Atom'
+import { Computed, computed, isComputed } from '../Computed'
+import { Reactor, reactor } from '../EffectScheduler'
+import { transact } from '../transactions'
+import { Signal } from '../types'
 
 class RandomSource {
 	private seed: number

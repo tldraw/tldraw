@@ -1,4 +1,5 @@
-import { atom, react, reactor } from '..'
+import { atom } from '../Atom'
+import { react, reactor } from '../EffectScheduler'
 import { advanceGlobalEpoch, transact } from '../transactions'
 
 describe('reactors', () => {

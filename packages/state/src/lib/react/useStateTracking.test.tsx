@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { act, create, ReactTestRenderer } from 'react-test-renderer'
-import { atom } from '../core'
+import { atom } from '../core/Atom'
 import { useStateTracking } from './useStateTracking'
 
 describe('useStateTracking', () => {

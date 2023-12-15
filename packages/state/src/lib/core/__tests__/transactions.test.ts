@@ -1,4 +1,7 @@
-import { atom, computed, react, transact, transaction } from '..'
+import { atom } from '../Atom'
+import { computed } from '../Computed'
+import { react } from '../EffectScheduler'
+import { transact, transaction } from '../transactions'
 
 describe('transactions', () => {
 	it('should be abortable', () => {

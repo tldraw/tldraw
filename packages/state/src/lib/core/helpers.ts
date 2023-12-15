@@ -90,3 +90,8 @@ export function singleton<T>(key: string, init: () => T): T {
 	global[symbol] ??= init()
 	return global[symbol]
 }
+
+/**
+ * @public
+ */
+export const EMPTY_ARRAY: [] = singleton('empty_array', () => Object.freeze([]) as any)

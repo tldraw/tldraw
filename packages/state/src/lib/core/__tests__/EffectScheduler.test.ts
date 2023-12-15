@@ -1,4 +1,5 @@
-import { EffectScheduler, atom } from '..'
+import { atom } from '../Atom'
+import { EffectScheduler } from '../EffectScheduler'
 
 describe(EffectScheduler, () => {
 	test('when you detatch and reattach, it retains the parents without rerunning', () => {

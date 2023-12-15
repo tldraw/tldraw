@@ -6,7 +6,7 @@ import { Child, Signal } from './types'
 
 class Transaction {
 	constructor(public readonly parent: Transaction | null) {}
-	initialAtomValues = new Map<_Atom<any>, any>()
+	initialAtomValues = new Map<_Atom, any>()
 
 	/**
 	 * Get whether this transaction is a root (no parents).
@@ -75,7 +75,7 @@ export function getGlobalEpoch() {
  *
  * @param atom The atom to flush changes for.
  */
-function flushChanges(atoms: Iterable<_Atom<any>>) {
+function flushChanges(atoms: Iterable<_Atom>) {
 	if (inst.globalIsReacting) {
 		throw new Error('cannot change atoms during reaction cycle')
 	}
@@ -94,7 +94,7 @@ function flushChanges(atoms: Iterable<_Atom<any>>) {
 
 			node.lastTraversedEpoch = inst.globalEpoch
 
-			if ('maybeScheduleEffect' in node) {
+			if (node instanceof EffectScheduler) {
 				reactors.add(node)
 			} else {
 				;(node as any as Signal<any>).children.visit(traverse)
@@ -122,7 +122,7 @@ function flushChanges(atoms: Iterable<_Atom<any>>) {
  *
  * @internal
  */
-export function atomDidChange(atom: _Atom<any>, previousValue: any) {
+export function atomDidChange(atom: _Atom, previousValue: any) {
 	if (!inst.currentTransaction) {
 		flushChanges([atom])
 	} else if (!inst.currentTransaction.initialAtomValues.has(atom)) {

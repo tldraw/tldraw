@@ -1,10 +1,9 @@
 /* eslint-disable prefer-rest-params */
-import { EMPTY_ARRAY } from '.'
 import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
-import { equals, haveParentsChanged } from './helpers'
+import { EMPTY_ARRAY, equals, haveParentsChanged, singleton } from './helpers'
 import { getGlobalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning, logDotValueWarning } from './warnings'
@@ -44,8 +43,39 @@ export const isUninitialized = (value: any): value is UNINITIALIZED => {
 	return value === UNINITIALIZED
 }
 
-export class WithDiff<Value, Diff> {
-	constructor(public value: Value, public diff: Diff) {}
+export const WithDiff = singleton(
+	'WithDiff',
+	() =>
+		class WithDiff<Value, Diff> {
+			constructor(public value: Value, public diff: Diff) {}
+		}
+)
+export type WithDiff<Value, Diff> = { value: Value; diff: Diff }
+
+/**
+ * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.
+ *
+ * You can use this function to wrap the return value of a computed signal function to indicate that the diff should be used instead of calculating a new one with [[AtomOptions.computeDiff]].
+ *
+ * @example
+ * ```ts
+ * const count = atom('count', 0)
+ * const double = computed('double', (prevValue) => {
+ *   const nextValue = count.get() * 2
+ *   if (isUninitialized(prevValue)) {
+ *     return nextValue
+ *   }
+ *   return withDiff(nextValue, nextValue - prevValue)
+ * }, { historyLength: 10 })
+ * ```
+ *
+ *
+ * @param value - The value.
+ * @param diff - The diff.
+ * @public
+ */
+export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value, Diff> {
+	return new WithDiff(value, diff)
 }
 
 /**
@@ -99,7 +129,7 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
 /**
  * @internal
  */
-export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
+class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	lastChangedEpoch = GLOBAL_START_EPOCH
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
@@ -210,6 +240,9 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	}
 }
 
+export const _Computed = singleton('Computed', () => __UNSAFE__Computed)
+export type _Computed = InstanceType<typeof __UNSAFE__Computed>
+
 function computedMethodAnnotation(
 	options: ComputedOptions<any, any> = {},
 	_target: any,
@@ -220,7 +253,7 @@ function computedMethodAnnotation(
 	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
 
 	descriptor.value = function (this: any) {
-		let d = this[derivationKey] as _Computed<any> | undefined
+		let d = this[derivationKey] as Computed<any> | undefined
 
 		if (!d) {
 			d = new _Computed(key, originalMethod!.bind(this) as any, options)
@@ -262,7 +295,7 @@ function computedGetterAnnotation(
 	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
 
 	descriptor.get = function (this: any) {
-		let d = this[derivationKey] as _Computed<any> | undefined
+		let d = this[derivationKey] as Computed<any> | undefined
 
 		if (!d) {
 			d = new _Computed(key, originalMethod!.bind(this) as any, options)
@@ -312,7 +345,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	propertyName: Prop
 ): Computed<Obj[Prop]> {
 	const key = Symbol.for('__@tldraw/state__computed__' + propertyName.toString())
-	let inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
+	let inst = obj[key as keyof typeof obj] as Computed<Obj[Prop]> | undefined
 	if (!inst) {
 		// deref to make sure it exists first
 		const val = obj[propertyName]
@@ -320,12 +353,77 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 			val.call(obj)
 		}
 
-		inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
+		inst = obj[key as keyof typeof obj] as Computed<Obj[Prop]> | undefined
 	}
 	return inst as any
 }
 
-export function _computed() {
+/**
+ * Creates a computed signal.
+ *
+ * @example
+ * ```ts
+ * const name = atom('name', 'John')
+ * const greeting = computed('greeting', () => `Hello ${name.get()}!`)
+ * console.log(greeting.get()) // 'Hello John!'
+ * ```
+ *
+ * `computed` may also be used as a decorator for creating computed getter methods.
+ *
+ * @example
+ * ```ts
+ * class Counter {
+ *   max = 100
+ *   count = atom<number>(0)
+ *
+ *   @computed getRemaining() {
+ *     return this.max - this.count.get()
+ *   }
+ * }
+ * ```
+ *
+ * You may optionally pass in a [[ComputedOptions]] when used as a decorator:
+ *
+ * @example
+ * ```ts
+ * class Counter {
+ *   max = 100
+ *   count = atom<number>(0)
+ *
+ *   @computed({isEqual: (a, b) => a === b})
+ *   getRemaining() {
+ *     return this.max - this.count.get()
+ *   }
+ * }
+ * ```
+ *
+ * @param name - The name of the signal.
+ * @param compute - The function that computes the value of the signal.
+ * @param options - Options for the signal.
+ *
+ * @public
+ */
+export function computed<Value, Diff = unknown>(
+	name: string,
+	compute: (
+		previousValue: Value | typeof UNINITIALIZED,
+		lastComputedEpoch: number
+	) => Value | WithDiff<Value, Diff>,
+	options?: ComputedOptions<Value, Diff>
+): Computed<Value, Diff>
+
+/** @public */
+export function computed(
+	target: any,
+	key: string,
+	descriptor: PropertyDescriptor
+): PropertyDescriptor
+/** @public */
+export function computed<Value, Diff = unknown>(
+	options?: ComputedOptions<Value, Diff>
+): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor
+/** @public */
+export function computed() {
 	if (arguments.length === 1) {
 		const options = arguments[0]
 		return (target: any, key: string, descriptor: PropertyDescriptor) =>
@@ -335,4 +433,15 @@ export function _computed() {
 	} else {
 		return computedAnnotation(undefined, arguments[0], arguments[1], arguments[2])
 	}
+}
+
+/**
+ * Returns true if the given value is a computed signal.
+ *
+ * @param value
+ * @returns {value is Computed<any>}
+ * @public
+ */
+export function isComputed(value: any): value is Computed<any> {
+	return value && value instanceof _Computed
 }

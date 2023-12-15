@@ -1,5 +1,12 @@
-import { atom, computed, react, unsafe__withoutCapture } from '..'
-import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from '../capture'
+import { atom } from '../Atom'
+import { computed } from '../Computed'
+import { react } from '../EffectScheduler'
+import {
+	maybeCaptureParent,
+	startCapturingParents,
+	stopCapturingParents,
+	unsafe__withoutCapture,
+} from '../capture'
 import { advanceGlobalEpoch, getGlobalEpoch } from '../transactions'
 import { Child } from '../types'
 

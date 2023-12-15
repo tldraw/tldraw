@@ -52,46 +52,13 @@ export interface ComputedOptions<Value, Diff> {
 }
 
 // @public
-export const
-/**
-* An EffectScheduler is responsible for executing side effects in response to changes in state.
-*
-* You probably don't need to use this directly unless you're integrating this library with a framework of some kind.
-*
-* Instead, use the [[react]] and [[reactor]] functions.
-*
-* @example
-* ```ts
-* const render = new EffectScheduler('render', drawToCanvas)
-*
-* render.attach()
-* render.execute()
-* ```
-*
-* @public
-*/
-EffectScheduler: typeof EffectScheduler_2;
+export const EffectScheduler: typeof __EffectScheduler__;
 
 // @public (undocumented)
-export const
-/**
-* An EffectScheduler is responsible for executing side effects in response to changes in state.
-*
-* You probably don't need to use this directly unless you're integrating this library with a framework of some kind.
-*
-* Instead, use the [[react]] and [[reactor]] functions.
-*
-* @example
-* ```ts
-* const render = new EffectScheduler('render', drawToCanvas)
-*
-* render.attach()
-* render.execute()
-* ```
-*
-* @public
-*/
-EMPTY_ARRAY: [];
+export type EffectScheduler<Result> = __EffectScheduler__<Result>;
+
+// @public (undocumented)
+export const EMPTY_ARRAY: [];
 
 // @public
 export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(obj: Obj, propertyName: Prop): Computed<Obj[Prop]>;
@@ -99,10 +66,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 // @public
 export function isAtom(value: unknown): value is Atom<unknown>;
 
-// @public
-export function isComputed(value: unknown): value is Computed<any>;
-
-// @public
+// @public (undocumented)
 export function isSignal(value: any): value is Signal<any>;
 
 // @public
@@ -113,7 +77,7 @@ export function react(name: string, fn: (lastReactedEpoch: number) => any, optio
 
 // @public
 export interface Reactor<T = unknown> {
-    scheduler: EffectScheduler_2<T>;
+    scheduler: EffectScheduler<T>;
     start(options?: {
         force?: boolean;
     }): void;
