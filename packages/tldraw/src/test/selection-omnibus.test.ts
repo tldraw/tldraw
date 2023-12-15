@@ -1710,3 +1710,20 @@ describe('right clicking', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })
+
+describe('When brushing close to the edges of the screen', () => {
+	it('selects shapes that are outside of the viewport', () => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+		editor.createShapes([{ id: ids.box2, type: 'geo', x: -50, y: -50, props: { w: 100, h: 100 } }])
+
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(50, 50)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerMove(0, 0)
+		jest.advanceTimersByTime(100)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+	})
+})
