@@ -12,7 +12,7 @@ class CaptureStackFrame {
 
 let stack: CaptureStackFrame | null = null
 
-export function unsafe__withoutCapture<T>(fn: () => T): T {
+export function _unsafe__withoutCapture<T>(fn: () => T): T {
 	const oldStack = stack
 	stack = null
 	try {
@@ -91,7 +91,7 @@ export function maybeCaptureParent(p: Signal<any, any>) {
 	}
 }
 
-export function whyAmIRunning() {
+export function _whyAmIRunning() {
 	const child = stack?.child
 	if (!child) {
 		throw new Error('whyAmIRunning() called outside of a reactive context')

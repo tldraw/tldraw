@@ -1,5 +1,5 @@
+import { RESET_VALUE } from '..'
 import { HistoryBuffer } from '../HistoryBuffer'
-import { RESET_VALUE } from '../types'
 
 describe('HistoryBuffer', () => {
 	it('should wrap around', () => {

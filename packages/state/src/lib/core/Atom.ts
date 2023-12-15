@@ -1,8 +1,9 @@
+import { EMPTY_ARRAY } from '.'
 import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent } from './capture'
-import { EMPTY_ARRAY, equals } from './helpers'
-import { advanceGlobalEpoch, atomDidChange, globalEpoch } from './transactions'
+import { equals } from './helpers'
+import { advanceGlobalEpoch, atomDidChange, getGlobalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logDotValueWarning } from './warnings'
 
@@ -90,7 +91,7 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 
 	computeDiff?: ComputeDiff<Value, Diff>
 
-	lastChangedEpoch = globalEpoch
+	lastChangedEpoch = getGlobalEpoch()
 
 	children = new ArraySet<Child>()
 
@@ -127,15 +128,15 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 		if (this.historyBuffer) {
 			this.historyBuffer.pushEntry(
 				this.lastChangedEpoch,
-				globalEpoch,
+				getGlobalEpoch(),
 				diff ??
-					this.computeDiff?.(this.current, value, this.lastChangedEpoch, globalEpoch) ??
+					this.computeDiff?.(this.current, value, this.lastChangedEpoch, getGlobalEpoch()) ??
 					RESET_VALUE
 			)
 		}
 
 		// Update the atom's record of the epoch when last changed.
-		this.lastChangedEpoch = globalEpoch
+		this.lastChangedEpoch = getGlobalEpoch()
 
 		const oldValue = this.current
 		this.current = value
@@ -160,25 +161,4 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 
 		return this.historyBuffer?.getChangesSince(epoch) ?? RESET_VALUE
 	}
-}
-
-export function atom<Value, Diff = unknown>(
-	/**
-	 * A name for the signal. This is used for debugging and profiling purposes, it does not need to be unique.
-	 */
-	name: string,
-	/**
-	 * The initial value of the signal.
-	 */
-	initialValue: Value,
-	/**
-	 * The options to configure the atom. See [[AtomOptions]].
-	 */
-	options?: AtomOptions<Value, Diff>
-): Atom<Value, Diff> {
-	return new _Atom(name, initialValue, options)
-}
-
-export function isAtom(value: unknown): value is Atom<unknown> {
-	return value instanceof _Atom
 }

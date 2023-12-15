@@ -1,17 +1,8 @@
 import { _Atom } from './Atom'
 import { GLOBAL_START_EPOCH } from './constants'
 import { EffectScheduler } from './EffectScheduler'
+import { singleton } from './helpers'
 import { Child, Signal } from './types'
-
-// The current epoch (global to all atoms).
-export let globalEpoch = GLOBAL_START_EPOCH + 1
-
-// Whether any transaction is reacting.
-let globalIsReacting = false
-
-export function advanceGlobalEpoch() {
-	globalEpoch++
-}
 
 class Transaction {
 	constructor(public readonly parent: Transaction | null) {}
@@ -54,7 +45,7 @@ class Transaction {
 	 * @public
 	 */
 	abort() {
-		globalEpoch++
+		inst.globalEpoch++
 
 		// Reset each of the transaction's atoms to its initial value.
 		this.initialAtomValues.forEach((value, atom) => {
@@ -67,29 +58,41 @@ class Transaction {
 	}
 }
 
+const inst = singleton('transactions', () => ({
+	// The current epoch (global to all atoms).
+	globalEpoch: GLOBAL_START_EPOCH + 1,
+	// Whether any transaction is reacting.
+	globalIsReacting: false,
+	currentTransaction: null as Transaction | null,
+}))
+
+export function getGlobalEpoch() {
+	return inst.globalEpoch
+}
+
 /**
  * Collect all of the reactors that need to run for an atom and run them.
  *
  * @param atom The atom to flush changes for.
  */
 function flushChanges(atoms: Iterable<_Atom<any>>) {
-	if (globalIsReacting) {
+	if (inst.globalIsReacting) {
 		throw new Error('cannot change atoms during reaction cycle')
 	}
 
 	try {
-		globalIsReacting = true
+		inst.globalIsReacting = true
 
 		// Collect all of the visited reactors.
 		const reactors = new Set<EffectScheduler<unknown>>()
 
 		// Visit each descendant of the atom, collecting reactors.
 		const traverse = (node: Child) => {
-			if (node.lastTraversedEpoch === globalEpoch) {
+			if (node.lastTraversedEpoch === inst.globalEpoch) {
 				return
 			}
 
-			node.lastTraversedEpoch = globalEpoch
+			node.lastTraversedEpoch = inst.globalEpoch
 
 			if ('maybeScheduleEffect' in node) {
 				reactors.add(node)
@@ -107,7 +110,7 @@ function flushChanges(atoms: Iterable<_Atom<any>>) {
 			r.maybeScheduleEffect()
 		}
 	} finally {
-		globalIsReacting = false
+		inst.globalIsReacting = false
 	}
 }
 
@@ -120,26 +123,94 @@ function flushChanges(atoms: Iterable<_Atom<any>>) {
  * @internal
  */
 export function atomDidChange(atom: _Atom<any>, previousValue: any) {
-	if (!currentTransaction) {
+	if (!inst.currentTransaction) {
 		flushChanges([atom])
-	} else if (!currentTransaction.initialAtomValues.has(atom)) {
-		currentTransaction.initialAtomValues.set(atom, previousValue)
+	} else if (!inst.currentTransaction.initialAtomValues.has(atom)) {
+		inst.currentTransaction.initialAtomValues.set(atom, previousValue)
 	}
 }
 
+export function advanceGlobalEpoch() {
+	inst.globalEpoch++
+}
+
 /**
- * The current transaction, if there is one.
+ * Batches state updates, deferring side effects until after the transaction completes.
  *
- * @global
+ * @example
+ * ```ts
+ * const firstName = atom('John')
+ * const lastName = atom('Doe')
+ *
+ * react('greet', () => {
+ *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
+ * })
+ *
+ * // Logs "Hello, John Doe!"
+ *
+ * transaction(() => {
+ *  firstName.set('Jane')
+ *  lastName.set('Smith')
+ * })
+ *
+ * // Logs "Hello, Jane Smith!"
+ * ```
+ *
+ * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began.
+ *
+ * @example
+ * ```ts
+ * const firstName = atom('John')
+ * const lastName = atom('Doe')
+ *
+ * react('greet', () => {
+ *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
+ * })
+ *
+ * // Logs "Hello, John Doe!"
+ *
+ * transaction(() => {
+ *  firstName.set('Jane')
+ *  throw new Error('oops')
+ * })
+ *
+ * // Does not log
+ * // firstName.get() === 'John'
+ * ```
+ *
+ * A `rollback` callback is passed into the function.
+ * Calling this will prevent the transaction from committing and will revert any signals that were updated during the transaction to their state before the transaction began.
+ *
+ *  * @example
+ * ```ts
+ * const firstName = atom('John')
+ * const lastName = atom('Doe')
+ *
+ * react('greet', () => {
+ *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)
+ * })
+ *
+ * // Logs "Hello, John Doe!"
+ *
+ * transaction((rollback) => {
+ *  firstName.set('Jane')
+ *  lastName.set('Smith')
+ *  rollback()
+ * })
+ *
+ * // Does not log
+ * // firstName.get() === 'John'
+ * // lastName.get() === 'Doe'
+ * ```
+ *
+ * @param fn - The function to run in a transaction, called with a function to roll back the change.
  * @public
  */
-export let currentTransaction = null as Transaction | null
-
 export function transaction<T>(fn: (rollback: () => void) => T) {
-	const txn = new Transaction(currentTransaction)
+	const txn = new Transaction(inst.currentTransaction)
 
 	// Set the current transaction to the transaction
-	currentTransaction = txn
+	inst.currentTransaction = txn
 
 	try {
 		let rollback = false
@@ -162,12 +233,18 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 		throw e
 	} finally {
 		// Set the current transaction to the transaction's parent.
-		currentTransaction = currentTransaction.parent
+		inst.currentTransaction = inst.currentTransaction.parent
 	}
 }
 
+/**
+ * Like [transaction](#transaction), but does not create a new transaction if there is already one in progress.
+ *
+ * @param fn - The function to run in a transaction.
+ * @public
+ */
 export function transact<T>(fn: () => T): T {
-	if (currentTransaction) {
+	if (inst.currentTransaction) {
 		return fn()
 	}
 	return transaction(fn)

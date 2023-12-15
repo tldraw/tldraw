@@ -1,10 +1,11 @@
 /* eslint-disable prefer-rest-params */
+import { EMPTY_ARRAY } from '.'
 import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
-import { EMPTY_ARRAY, equals, haveParentsChanged } from './helpers'
-import { globalEpoch } from './transactions'
+import { equals, haveParentsChanged } from './helpers'
+import { getGlobalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning, logDotValueWarning } from './warnings'
 
@@ -43,12 +44,8 @@ export const isUninitialized = (value: any): value is UNINITIALIZED => {
 	return value === UNINITIALIZED
 }
 
-class WithDiff<Value, Diff> {
+export class WithDiff<Value, Diff> {
 	constructor(public value: Value, public diff: Diff) {}
-}
-
-export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value, Diff> {
-	return new WithDiff(value, diff)
 }
 
 /**
@@ -154,8 +151,8 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	__unsafe__getWithoutCapture(): Value {
 		const isNew = this.lastChangedEpoch === GLOBAL_START_EPOCH
 
-		if (!isNew && (this.lastCheckedEpoch === globalEpoch || !haveParentsChanged(this))) {
-			this.lastCheckedEpoch = globalEpoch
+		if (!isNew && (this.lastCheckedEpoch === getGlobalEpoch() || !haveParentsChanged(this))) {
+			this.lastCheckedEpoch = getGlobalEpoch()
 			return this.state
 		}
 
@@ -168,16 +165,16 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(
 						this.lastChangedEpoch,
-						globalEpoch,
+						getGlobalEpoch(),
 						diff ??
-							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, globalEpoch) ??
+							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, getGlobalEpoch()) ??
 							RESET_VALUE
 					)
 				}
-				this.lastChangedEpoch = globalEpoch
+				this.lastChangedEpoch = getGlobalEpoch()
 				this.state = newState
 			}
-			this.lastCheckedEpoch = globalEpoch
+			this.lastCheckedEpoch = getGlobalEpoch()
 
 			return this.state
 		} finally {
@@ -328,27 +325,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	return inst as any
 }
 
-export function computed<Value, Diff = unknown>(
-	name: string,
-	compute: (
-		previousValue: Value | typeof UNINITIALIZED,
-		lastComputedEpoch: number
-	) => Value | WithDiff<Value, Diff>,
-	options?: ComputedOptions<Value, Diff>
-): Computed<Value, Diff>
-
-/** @public */
-export function computed(
-	target: any,
-	key: string,
-	descriptor: PropertyDescriptor
-): PropertyDescriptor
-/** @public */
-export function computed<Value, Diff = unknown>(
-	options?: ComputedOptions<Value, Diff>
-): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor
-/** @public */
-export function computed() {
+export function _computed() {
 	if (arguments.length === 1) {
 		const options = arguments[0]
 		return (target: any, key: string, descriptor: PropertyDescriptor) =>
@@ -358,15 +335,4 @@ export function computed() {
 	} else {
 		return computedAnnotation(undefined, arguments[0], arguments[1], arguments[2])
 	}
-}
-
-/**
- * Returns true if the given value is a computed signal.
- *
- * @param value
- * @returns {value is Computed<any>}
- * @public
- */
-export function isComputed(value: any): value is Computed<any> {
-	return value && value instanceof _Computed
 }

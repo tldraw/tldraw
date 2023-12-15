@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import ReactTestRenderer from 'react-test-renderer'
-import { Atom } from '../core/Atom'
-import { Computed } from '../core/Computed'
+import { Atom, Computed } from '../core'
 import { useAtom } from './useAtom'
 import { useComputed } from './useComputed'
 import { useValue } from './useValue'

@@ -1,10 +1,10 @@
 import { startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { attach, detach, haveParentsChanged } from './helpers'
-import { globalEpoch } from './transactions'
+import { getGlobalEpoch } from './transactions'
 import { Signal } from './types'
 
-interface EffectSchedulerOptions {
+export interface EffectSchedulerOptions {
 	/**
 	 * scheduleEffect is a function that will be called when the effect is scheduled.
 	 *
@@ -80,11 +80,11 @@ export class EffectScheduler<Result> {
 		// bail out if we have been cancelled by another effect
 		if (!this._isActivelyListening) return
 		// bail out if no atoms have changed since the last time we ran this effect
-		if (this.lastReactedEpoch === globalEpoch) return
+		if (this.lastReactedEpoch === getGlobalEpoch()) return
 
 		// bail out if we have parents and they have not changed since last time
 		if (this.parents.length && !haveParentsChanged(this)) {
-			this.lastReactedEpoch = globalEpoch
+			this.lastReactedEpoch = getGlobalEpoch()
 			return
 		}
 		// if we don't have parents it's probably the first time this is running.
@@ -141,24 +141,11 @@ export class EffectScheduler<Result> {
 		try {
 			startCapturingParents(this)
 			const result = this.runEffect(this.lastReactedEpoch)
-			this.lastReactedEpoch = globalEpoch
+			this.lastReactedEpoch = getGlobalEpoch()
 			return result
 		} finally {
 			stopCapturingParents()
 		}
-	}
-}
-
-export function react(
-	name: string,
-	fn: (lastReactedEpoch: number) => any,
-	options?: EffectSchedulerOptions
-) {
-	const scheduler = new EffectScheduler(name, fn, options)
-	scheduler.attach()
-	scheduler.scheduleEffect()
-	return () => {
-		scheduler.detach()
 	}
 }
 
@@ -192,27 +179,4 @@ export interface Reactor<T = unknown> {
 	 * @public
 	 */
 	stop(): void
-}
-
-export function reactor<Result>(
-	name: string,
-	fn: (lastReactedEpoch: number) => Result,
-	options?: EffectSchedulerOptions
-): Reactor<Result> {
-	const scheduler = new EffectScheduler<Result>(name, fn, options)
-	return {
-		scheduler,
-		start: (options?: { force?: boolean }) => {
-			const force = options?.force ?? false
-			scheduler.attach()
-			if (force) {
-				scheduler.scheduleEffect()
-			} else {
-				scheduler.maybeScheduleEffect()
-			}
-		},
-		stop: () => {
-			scheduler.detach()
-		},
-	}
 }
