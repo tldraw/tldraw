@@ -18,6 +18,7 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.setScreenBounds({ w: 3000, h: 3000, x: 0, y: 0 })
+	editor.setEdgeScrollSpeed(0)
 })
 
 it('lists a sorted shapes array correctly', () => {
@@ -1535,13 +1536,11 @@ describe('shift brushes to add to the selection', () => {
 	})
 
 	it('adds to selection when shift + brushing into shape', () => {
-		// Move the camera so that we are not at the edges, which causes the camera to move when we brush
-		editor.setCamera({ x: 100, y: 100 })
 		editor.select(ids.box2)
-		editor.pointerMove(50, 50)
+		editor.pointerMove(-50, -50)
 		editor.keyDown('Shift')
 		editor.pointerDown()
-		editor.pointerMove(101, 101)
+		editor.pointerMove(1, 1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
 		editor.keyUp('Shift')
 		// there's a timer here—we should keep the shift mode until the timer expires

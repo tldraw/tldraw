@@ -112,6 +112,7 @@ beforeEach(() => {
 			},
 		},
 	])
+	editor.setEdgeScrollSpeed(0)
 })
 
 describe('When pointing a resizer handle...', () => {
@@ -406,9 +407,6 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 20)])
 	})
 	it('works correctly when the shapes are not rotated', () => {
-		// Move the camera so that we are not at the edges, which causes the camera to move when we resize
-		editor.setCamera({ x: 100, y: 100 })
-
 		editor.select(ids.boxA, ids.boxB)
 		// shrink
 
@@ -423,8 +421,8 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// │           └───┘  │
 		// └──────────────────O
 
-		editor.pointerDown(130, 130, { target: 'selection', handle: 'bottom_right' })
-		editor.pointerMove(115, 115)
+		editor.pointerDown(30, 30, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(15, 15)
 
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
@@ -449,7 +447,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//  │                                        └───────────────────────┘ │
 		//  └──────────────────────────────────────────────────────────────────O
 
-		editor.pointerMove(160, 130)
+		editor.pointerMove(60, 30)
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60, h: 30 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 20, h: 10 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 40, y: 20, w: 20, h: 10 })
@@ -484,7 +482,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//       │                    │          │ │
 		// 60    │                    └──────────┘ │
 		//       └─────────────────────────────────O
-		editor.pointerMove(130, 160)
+		editor.pointerMove(30, 60)
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 30, h: 60 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 10, h: 20 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 20, y: 40, w: 10, h: 20 })
@@ -501,7 +499,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//   │         │ A │ │
 		//   │         └───┘ │
 		//   └───────────────┘
-		editor.pointerMove(85, 85)
+		editor.pointerMove(-15, -15)
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: -5, y: -5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: -15, y: -15, w: 5, h: 5 })
@@ -524,7 +522,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//     │                      │          │ │
 		//     │                      └──────────┘ │
 		//     └───────────────────────────────────O
-		editor.pointerMove(145, 145, { altKey: true })
+		editor.pointerMove(45, 45, { altKey: true })
 
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({
 			w: 60,
@@ -548,7 +546,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// │           └───┘  │
 		// └──────────────────O
 
-		editor.pointerMove(115, 108, { altKey: false, shiftKey: true })
+		editor.pointerMove(15, 8, { altKey: false, shiftKey: true })
 		jest.advanceTimersByTime(200)
 
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
@@ -573,7 +571,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//     │                      │          │ │
 		//     │                      └──────────┘ │
 		//     └───────────────────────────────────O
-		editor.pointerMove(145, 116, { altKey: true, shiftKey: true })
+		editor.pointerMove(45, 16, { altKey: true, shiftKey: true })
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({
 			w: 60,
 			h: 60,
@@ -585,22 +583,19 @@ describe('Reisizing a selection of multiple shapes', () => {
 	})
 
 	it('works the same when shapes are rotated by a multiple of 90 degrees', () => {
-		// Move the camera so that we are not at the edges, which causes the camera to move when we resize
-		editor.setCamera({ x: 100, y: 100 })
-
 		// rotate A by 90 degrees
 		editor.select(ids.boxA)
-		editor.pointerDown(100, 100, { target: 'selection', handle: 'top_left_rotate' })
-		editor.pointerMove(110, 100, { shiftKey: true })
-		editor.pointerUp(110, 100, { shiftKey: false })
+		editor.pointerDown(0, 0, { target: 'selection', handle: 'top_left_rotate' })
+		editor.pointerMove(10, 0, { shiftKey: true })
+		editor.pointerUp(10, 0, { shiftKey: false })
 
 		expect(editor.getShape(ids.boxA)!.rotation).toBeCloseTo(PI / 2)
 
 		// rotate B by -90 degrees
 		editor.select(ids.boxB)
-		editor.pointerDown(130, 120, { target: 'selection', handle: 'top_left_rotate' })
-		editor.pointerMove(120, 120, { shiftKey: true })
-		editor.pointerUp(120, 120, { shiftKey: false })
+		editor.pointerDown(30, 20, { target: 'selection', handle: 'top_left_rotate' })
+		editor.pointerMove(20, 20, { shiftKey: true })
+		editor.pointerUp(20, 20, { shiftKey: false })
 		jest.advanceTimersByTime(200)
 
 		expect(editor.getShape(ids.boxB)!.rotation).toBeCloseTo(canonicalizeRotation(-PI / 2))
@@ -619,11 +614,11 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// │           └───┘  │
 		// └──────────────────O
 
-		editor.pointerDown(130, 130, {
+		editor.pointerDown(30, 30, {
 			target: 'selection',
 			handle: rotateSelectionHandle('bottom_right', -editor.getSelectionRotation()),
 		})
-		editor.pointerMove(115, 115)
+		editor.pointerMove(15, 15)
 
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 10, y: 10, w: 5, h: 5 })
@@ -649,7 +644,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//  │                                        └───────────────────────┘ │
 		//  └──────────────────────────────────────────────────────────────────O
 
-		editor.pointerMove(160, 130)
+		editor.pointerMove(60, 30)
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60, h: 30 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 20, h: 10 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 40, y: 20, w: 20, h: 10 })
@@ -684,7 +679,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//       │                    │          │ │
 		// 60    │                    └──────────┘ │
 		//       └─────────────────────────────────O
-		editor.pointerMove(130, 160)
+		editor.pointerMove(30, 60)
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 30, h: 60 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 10, h: 20 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 20, y: 40, w: 10, h: 20 })
@@ -701,7 +696,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//   │         │ A │ │
 		//   │         └───┘ │
 		//   └───────────────┘
-		editor.pointerMove(85, 85)
+		editor.pointerMove(-15, -15)
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: -5, y: -5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: -15, y: -15, w: 5, h: 5 })
@@ -724,7 +719,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//     │                      │          │ │
 		//     │                      └──────────┘ │
 		//     └───────────────────────────────────O
-		editor.pointerMove(145, 145, { altKey: true })
+		editor.pointerMove(45, 45, { altKey: true })
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({
 			w: 60,
 			h: 60,
@@ -747,7 +742,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// │           └───┘  │
 		// └──────────────────O
 
-		editor.pointerMove(115, 108, { altKey: false, shiftKey: true })
+		editor.pointerMove(15, 8, { altKey: false, shiftKey: true })
 		jest.advanceTimersByTime(200)
 
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
@@ -772,7 +767,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//     │                      │          │ │
 		//     │                      └──────────┘ │
 		//     └───────────────────────────────────O
-		editor.pointerMove(145, 116, { altKey: true, shiftKey: true })
+		editor.pointerMove(45, 16, { altKey: true, shiftKey: true })
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({
 			w: 60,
 			h: 60,
@@ -2435,12 +2430,10 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		//                    │ C │
 		// 140                └───┘
 		// Move the camera so that we are not at the edges, which causes the camera to move when we resize
-		editor.setCamera({ x: 100, y: 100 })
-
 		editor
 			.select(ids.boxX)
-			.pointerDown(170, 140, { target: 'selection', handle: 'bottom' })
-			.pointerMove(170, 118, { ctrlKey: true, shiftKey: false })
+			.pointerDown(70, 40, { target: 'selection', handle: 'bottom' })
+			.pointerMove(70, 18, { ctrlKey: true, shiftKey: false })
 		jest.advanceTimersByTime(200)
 
 		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
@@ -3911,6 +3904,7 @@ describe('Resizing text from the right edge', () => {
 
 describe('When resizing near the edges of the screen', () => {
 	it('resizes past the edge of the screen', () => {
+		editor.setEdgeScrollSpeed(20)
 		editor
 			.select(ids.boxA)
 			.pointerDown(10, 10, {

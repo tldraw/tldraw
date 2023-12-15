@@ -220,7 +220,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		// Determines how far from the edges we start the scroll behaviour
 		const scrollOffset = extreme < 1000 ? 50 : 30
 		// Determines the base speed of the scroll
-		const pxSpeed = 20
+		const pxSpeed = this.editor.getEdgeScrollSpeed()
 		// Determines how much the speed is affected by the screen size
 		const screenSizeFactor = extreme < 1000 ? 0.8 : 1
 		// Determines how much the speed is affected by the distance from the edge

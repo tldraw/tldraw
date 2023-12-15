@@ -716,6 +716,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getEdgeScrollSpeed(): number;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
     getErasingShapeIds(): TLShapeId[];
@@ -936,6 +937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentPage(page: TLPage | TLPageId, historyOptions?: TLCommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor: (cursor: Partial<TLCursor>) => this;
+    setEdgeScrollSpeed(value: number): number;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
