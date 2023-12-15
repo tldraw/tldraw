@@ -40,6 +40,7 @@ export type TLUiTranslationKey =
 	| 'action.export-as-png'
 	| 'action.export-as-svg.short'
 	| 'action.export-as-svg'
+	| 'action.fit-frame-to-content'
 	| 'action.flip-horizontal'
 	| 'action.flip-vertical'
 	| 'action.flip-horizontal.short'

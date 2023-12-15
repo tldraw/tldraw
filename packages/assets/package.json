@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/assets",
 	"description": "A tiny little drawing app (assets).",
-	"version": "2.0.0-alpha.18",
+	"version": "2.0.0-alpha.19",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"

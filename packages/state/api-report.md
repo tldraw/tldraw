@@ -14,10 +14,26 @@ export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
 }
 
 // @public
-export function atom<Value, Diff = unknown>(
-name: string,
-initialValue: Value,
-options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+atom: typeof atom_2;
 
 // @public
 export interface AtomOptions<Value, Diff> {
@@ -36,13 +52,26 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
 }
 
 // @public
-export function computed<Value, Diff = unknown>(name: string, compute: (previousValue: typeof UNINITIALIZED | Value, lastComputedEpoch: number) => Value | WithDiff<Value, Diff>, options?: ComputedOptions<Value, Diff>): Computed<Value, Diff>;
-
-// @public (undocumented)
-export function computed(target: any, key: string, descriptor: PropertyDescriptor): PropertyDescriptor;
-
-// @public (undocumented)
-export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+computed: typeof computed_2;
 
 // @public
 export interface ComputedOptions<Value, Diff> {
@@ -52,48 +81,124 @@ export interface ComputedOptions<Value, Diff> {
 }
 
 // @public
-export class EffectScheduler<Result> {
-    constructor(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions);
-    attach(): void;
-    detach(): void;
-    execute(): Result;
-    get isActivelyListening(): boolean;
-    // @internal (undocumented)
-    lastTraversedEpoch: number;
-    // @internal (undocumented)
-    maybeScheduleEffect(): void;
-    // (undocumented)
-    readonly name: string;
-    // @internal (undocumented)
-    parentEpochs: number[];
-    // @internal (undocumented)
-    parents: Signal<any, any>[];
-    get scheduleCount(): number;
-    // @internal (undocumented)
-    scheduleEffect(): void;
-}
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+EffectScheduler: typeof EffectScheduler_2;
 
 // @public (undocumented)
-export const EMPTY_ARRAY: [];
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+EMPTY_ARRAY: [];
 
 // @public
 export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(obj: Obj, propertyName: Prop): Computed<Obj[Prop]>;
 
 // @public
-export function isAtom(value: unknown): value is Atom<unknown>;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+isAtom: typeof isAtom_2;
 
 // @public
-export function isSignal(value: any): value is Signal<any>;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+isSignal: typeof isSignal_2;
 
 // @public
 export const isUninitialized: (value: any) => value is typeof UNINITIALIZED;
 
 // @public
-export function react(name: string, fn: (lastReactedEpoch: number) => any, options?: EffectSchedulerOptions): () => void;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+react: typeof react_2;
 
 // @public
 export interface Reactor<T = unknown> {
-    scheduler: EffectScheduler<T>;
+    scheduler: EffectScheduler_2<T>;
     start(options?: {
         force?: boolean;
     }): void;
@@ -101,7 +206,26 @@ export interface Reactor<T = unknown> {
 }
 
 // @public
-export function reactor<Result>(name: string, fn: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions): Reactor<Result>;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+reactor: typeof reactor_2;
 
 // @public (undocumented)
 export const RESET_VALUE: unique symbol;
@@ -126,13 +250,70 @@ export interface Signal<Value, Diff = unknown> {
 export function track<T extends FunctionComponent<any>>(baseComponent: T): T extends React_2.MemoExoticComponent<any> ? T : React_2.MemoExoticComponent<T>;
 
 // @public
-export function transact<T>(fn: () => T): T;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+transact: typeof transact_2;
 
 // @public
-export function transaction<T>(fn: (rollback: () => void) => T): T;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+transaction: typeof transaction_2;
 
 // @public
-export function unsafe__withoutCapture<T>(fn: () => T): T;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+unsafe__withoutCapture: typeof unsafe__withoutCapture_2;
 
 // @public
 export function useAtom<Value, Diff = unknown>(
@@ -162,10 +343,48 @@ export function useValue<Value>(value: Signal<Value>): Value;
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value;
 
 // @public
-export function whyAmIRunning(): void;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+whyAmIRunning: typeof whyAmIRunning_2;
 
 // @public
-export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value, Diff>;
+export const
+/**
+* Creates a new [[Atom]].
+*
+* An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
+*
+* @example
+* ```ts
+* const name = atom('name', 'John')
+*
+* name.get() // 'John'
+*
+* name.set('Jane')
+*
+* name.get() // 'Jane'
+* ```
+*
+* @public
+*/
+withDiff: typeof withDiff_2;
 
 // (No @packageDocumentation comment for this package)
 

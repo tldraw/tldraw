@@ -1,3 +1,124 @@
+# v2.0.0-alpha.19 (Tue Dec 12 2023)
+
+### Release Notes
+
+#### zoom to affected shapes after undo/redo ([#2293](https://github.com/tldraw/tldraw/pull/2293))
+
+- Make sure affected shapes are visible after undo/redo
+
+#### Add fit to content for frames. ([#2275](https://github.com/tldraw/tldraw/pull/2275))
+
+- Add Fit to content option to the context menu for frames. This resizes the frames to correctly fit all their content.
+
+#### Fix an issue with a stale editor reference in shape utils ([#2295](https://github.com/tldraw/tldraw/pull/2295))
+
+- Fix an issue where the shape utils could have a stale reference to the editor.
+
+#### fix new page naming ([#2292](https://github.com/tldraw/tldraw/pull/2292))
+
+- Fix naming of pages created by the "move to page" action
+
+#### [improvements] arrows x enclosing shapes x precision. ([#2265](https://github.com/tldraw/tldraw/pull/2265))
+
+- Improves the logic about when to draw "precise" arrows between the center of bound shapes.
+
+#### fix vite HMR issue ([#2279](https://github.com/tldraw/tldraw/pull/2279))
+
+- Fixes a bug that could cause crashes due to a re-render loop with HMR #1989
+
+#### Add connecting screen override. ([#2273](https://github.com/tldraw/tldraw/pull/2273))
+
+- Allow users to customize the connecting screen.
+
+#### Removing frames and adding elements to frames ([#2219](https://github.com/tldraw/tldraw/pull/2219))
+
+- Allow users to remove the frame, but keep it's children. Allow the users to add shapes to the frame directly when creating a frame.
+
+#### fix typo in useFixSafariDoubleTapZoomPencilEvents.ts ([#2242](https://github.com/tldraw/tldraw/pull/2242))
+
+- Add a brief release note for your PR here.
+
+#### Custom Tools DX + screenshot example ([#2198](https://github.com/tldraw/tldraw/pull/2198))
+
+- adds ScreenshotTool custom tool example
+- improvements and new exports related to copying and exporting images / files
+- loosens up types around icons and translations
+- moving `StateNode.isActive` into an atom
+- adding `Editor.path`
+
+#### StateNode atoms ([#2213](https://github.com/tldraw/tldraw/pull/2213))
+
+- adds computed `StateNode.getPath`
+- adds computed StateNode.getCurrent`
+- adds computed StateNode.getIsActive`
+- adds computed `Editor.getPath()`
+- makes transition's second property optional
+
+#### Revert back to the previous color. ([#2210](https://github.com/tldraw/tldraw/pull/2210))
+
+- Fixes the color of culled shapes when using dark mode.
+
+#### Fix an issue with not being able to group a shape an an arrow. ([#2205](https://github.com/tldraw/tldraw/pull/2205))
+
+- Add a brief release note for your PR here.
+
+#### [fix] masked bounds calculation ([#2197](https://github.com/tldraw/tldraw/pull/2197))
+
+- Fix bug with getmaskedpagebounds calculation for identical parent / child sizes
+
+---
+
+#### 💥 Breaking Change
+
+- No impure getters pt 1 [#2189](https://github.com/tldraw/tldraw/pull/2189) ([@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+
+#### 🚀 Enhancement
+
+- Add fit to content for frames. [#2275](https://github.com/tldraw/tldraw/pull/2275) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- [improvements] arrows x enclosing shapes x precision. [#2265](https://github.com/tldraw/tldraw/pull/2265) ([@steveruizok](https://github.com/steveruizok))
+- Add connecting screen override. [#2273](https://github.com/tldraw/tldraw/pull/2273) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Removing frames and adding elements to frames [#2219](https://github.com/tldraw/tldraw/pull/2219) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok) [@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- Custom Tools DX + screenshot example [#2198](https://github.com/tldraw/tldraw/pull/2198) ([@steveruizok](https://github.com/steveruizok))
+- StateNode atoms [#2213](https://github.com/tldraw/tldraw/pull/2213) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Revert "zoom to affected shapes after undo/redo" [#2310](https://github.com/tldraw/tldraw/pull/2310) ([@ds300](https://github.com/ds300))
+- zoom to affected shapes after undo/redo [#2293](https://github.com/tldraw/tldraw/pull/2293) ([@ds300](https://github.com/ds300))
+- Fix an issue with a stale editor reference in shape utils [#2295](https://github.com/tldraw/tldraw/pull/2295) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix the cleanup of event handlers [#2298](https://github.com/tldraw/tldraw/pull/2298) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- fix new page naming [#2292](https://github.com/tldraw/tldraw/pull/2292) ([@SomeHats](https://github.com/SomeHats))
+- fix vite HMR issue [#2279](https://github.com/tldraw/tldraw/pull/2279) ([@SomeHats](https://github.com/SomeHats))
+- no impure getters pt 11 [#2236](https://github.com/tldraw/tldraw/pull/2236) ([@ds300](https://github.com/ds300))
+- No impure getters pt10 [#2235](https://github.com/tldraw/tldraw/pull/2235) ([@ds300](https://github.com/ds300))
+- No impure getters pt9 [#2222](https://github.com/tldraw/tldraw/pull/2222) ([@ds300](https://github.com/ds300))
+- No impure getters pt8 [#2221](https://github.com/tldraw/tldraw/pull/2221) ([@ds300](https://github.com/ds300))
+- No impure getters pt7 [#2220](https://github.com/tldraw/tldraw/pull/2220) ([@ds300](https://github.com/ds300))
+- No impure getters pt6 [#2218](https://github.com/tldraw/tldraw/pull/2218) ([@ds300](https://github.com/ds300))
+- No impure getters pt5 [#2208](https://github.com/tldraw/tldraw/pull/2208) ([@ds300](https://github.com/ds300))
+- Revert back to the previous color. [#2210](https://github.com/tldraw/tldraw/pull/2210) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix an issue with not being able to group a shape an an arrow. [#2205](https://github.com/tldraw/tldraw/pull/2205) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- No impure getters pt4 [#2206](https://github.com/tldraw/tldraw/pull/2206) ([@ds300](https://github.com/ds300))
+- No impure getters pt3 [#2203](https://github.com/tldraw/tldraw/pull/2203) ([@ds300](https://github.com/ds300))
+- No impure getters pt2 [#2202](https://github.com/tldraw/tldraw/pull/2202) ([@ds300](https://github.com/ds300))
+- [fix] masked bounds calculation [#2197](https://github.com/tldraw/tldraw/pull/2197) ([@steveruizok](https://github.com/steveruizok))
+
+#### 📝 Documentation
+
+- Replace getters in examples [#2261](https://github.com/tldraw/tldraw/pull/2261) ([@ds300](https://github.com/ds300))
+- fix typo in useFixSafariDoubleTapZoomPencilEvents.ts [#2242](https://github.com/tldraw/tldraw/pull/2242) ([@eltociear](https://github.com/eltociear))
+
+#### Authors: 6
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Ikko Eltociear Ashimine ([@eltociear](https://github.com/eltociear))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.0.0-alpha.18 (Fri Nov 10 2023)
 
 ### Release Notes

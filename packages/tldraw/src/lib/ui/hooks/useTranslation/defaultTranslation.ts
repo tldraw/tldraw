@@ -40,6 +40,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.export-as-png': 'Export as PNG',
 	'action.export-as-svg.short': 'SVG',
 	'action.export-as-svg': 'Export as SVG',
+	'action.fit-frame-to-content': 'Fit to content',
 	'action.flip-horizontal': 'Flip horizontally',
 	'action.flip-vertical': 'Flip vertically',
 	'action.flip-horizontal.short': 'Flip H',

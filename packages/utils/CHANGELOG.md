@@ -1,3 +1,25 @@
+# v2.0.0-alpha.19 (Tue Dec 12 2023)
+
+### Release Notes
+
+#### fix vite HMR issue ([#2279](https://github.com/tldraw/tldraw/pull/2279))
+
+- Fixes a bug that could cause crashes due to a re-render loop with HMR #1989
+
+---
+
+#### 🐛 Bug Fix
+
+- fix vite HMR issue [#2279](https://github.com/tldraw/tldraw/pull/2279) ([@SomeHats](https://github.com/SomeHats))
+- no impure getters pt 11 [#2236](https://github.com/tldraw/tldraw/pull/2236) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.0.0-alpha.18 (Fri Nov 10 2023)
 
 #### 🏠 Internal

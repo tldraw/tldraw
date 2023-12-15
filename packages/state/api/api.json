@@ -173,125 +173,6 @@
       "preserveMemberOrder": false,
       "members": [
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!atom:function(1)",
-          "docComment": "/**\n * Creates a new [[Atom]].\n *\n * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n *\n * name.get() // 'John'\n *\n * name.set('Jane')\n *\n * name.get() // 'Jane'\n * ```\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function atom<Value, Diff = "
-            },
-            {
-              "kind": "Content",
-              "text": "unknown"
-            },
-            {
-              "kind": "Content",
-              "text": ">(\nname: "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ", \ninitialValue: "
-            },
-            {
-              "kind": "Content",
-              "text": "Value"
-            },
-            {
-              "kind": "Content",
-              "text": ", \noptions?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "AtomOptions",
-              "canonicalReference": "@tldraw/state!AtomOptions:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<Value, Diff>"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Reference",
-              "text": "Atom",
-              "canonicalReference": "@tldraw/state!Atom:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<Value, Diff>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/state/src/lib/core/Atom.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 10,
-            "endIndex": 12
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "name",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "initialValue",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "options",
-              "parameterTypeTokenRange": {
-                "startIndex": 7,
-                "endIndex": 9
-              },
-              "isOptional": true
-            }
-          ],
-          "typeParameters": [
-            {
-              "typeParameterName": "Value",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            },
-            {
-              "typeParameterName": "Diff",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            }
-          ],
-          "name": "atom"
-        },
-        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/state!Atom:interface",
           "docComment": "/**\n * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].\n *\n * Atoms are created using the [[atom]] function.\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n *\n * print(name.get()) // 'John'\n * ```\n *\n * @public\n */\n",
@@ -466,6 +347,34 @@
           ]
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!atom:var",
+          "docComment": "/**\n * Creates a new [[Atom]].\n *\n * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n *\n * name.get() // 'John'\n *\n * name.set('Jane')\n *\n * name.get() // 'Jane'\n * ```\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "atom: "
+            },
+            {
+              "kind": "Content",
+              "text": "typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "_atom",
+              "canonicalReference": "@tldraw/state!~atom_2:function"
+            }
+          ],
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "atom",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
+        },
+        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/state!AtomOptions:interface",
           "docComment": "/**\n * The options to configure an atom, passed into the [[atom]] function.\n *\n * @public\n */\n",
@@ -594,318 +503,6 @@
           "extendsTokenRanges": []
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!computed:function(1)",
-          "docComment": "/**\n * Creates a computed signal.\n *\n * @param name - The name of the signal.\n *\n * @param compute - The function that computes the value of the signal.\n *\n * @param options - Options for the signal.\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n * const greeting = computed('greeting', () => `Hello ${name.get()}!`)\n * console.log(greeting.get()) // 'Hello John!'\n * ```\n *\n * `computed` may also be used as a decorator for creating computed getter methods.\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom<number>(0)\n *\n *   @computed getRemaining() {\n *     return this.max - this.count.get()\n *   }\n * }\n * ```\n *\n * You may optionally pass in a [[ComputedOptions]] when used as a decorator:\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom<number>(0)\n *\n *   @computed({isEqual: (a, b) => a === b})\n *   getRemaining() {\n *     return this.max - this.count.get()\n *   }\n * }\n * ```\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function computed<Value, Diff = "
-            },
-            {
-              "kind": "Content",
-              "text": "unknown"
-            },
-            {
-              "kind": "Content",
-              "text": ">(name: "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ", compute: "
-            },
-            {
-              "kind": "Content",
-              "text": "(previousValue: typeof "
-            },
-            {
-              "kind": "Reference",
-              "text": "UNINITIALIZED",
-              "canonicalReference": "@tldraw/state!~UNINITIALIZED:var"
-            },
-            {
-              "kind": "Content",
-              "text": " | Value, lastComputedEpoch: number) => Value | "
-            },
-            {
-              "kind": "Reference",
-              "text": "WithDiff",
-              "canonicalReference": "@tldraw/state!~WithDiff:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<Value, Diff>"
-            },
-            {
-              "kind": "Content",
-              "text": ", options?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComputedOptions",
-              "canonicalReference": "@tldraw/state!ComputedOptions:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<Value, Diff>"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Reference",
-              "text": "Computed",
-              "canonicalReference": "@tldraw/state!Computed:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<Value, Diff>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/state/src/lib/core/Computed.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 14,
-            "endIndex": 16
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "name",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "compute",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 10
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "options",
-              "parameterTypeTokenRange": {
-                "startIndex": 11,
-                "endIndex": 13
-              },
-              "isOptional": true
-            }
-          ],
-          "typeParameters": [
-            {
-              "typeParameterName": "Value",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            },
-            {
-              "typeParameterName": "Diff",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            }
-          ],
-          "name": "computed"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!computed:function(2)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function computed(target: "
-            },
-            {
-              "kind": "Content",
-              "text": "any"
-            },
-            {
-              "kind": "Content",
-              "text": ", key: "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ", descriptor: "
-            },
-            {
-              "kind": "Reference",
-              "text": "PropertyDescriptor",
-              "canonicalReference": "!PropertyDescriptor:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Reference",
-              "text": "PropertyDescriptor",
-              "canonicalReference": "!PropertyDescriptor:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/state/src/lib/core/Computed.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 8
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 2,
-          "parameters": [
-            {
-              "parameterName": "target",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "key",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "descriptor",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "computed"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!computed:function(3)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function computed<Value, Diff = "
-            },
-            {
-              "kind": "Content",
-              "text": "unknown"
-            },
-            {
-              "kind": "Content",
-              "text": ">(options?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComputedOptions",
-              "canonicalReference": "@tldraw/state!ComputedOptions:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<Value, Diff>"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "(target: any, key: string, descriptor: "
-            },
-            {
-              "kind": "Reference",
-              "text": "PropertyDescriptor",
-              "canonicalReference": "!PropertyDescriptor:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ") => "
-            },
-            {
-              "kind": "Reference",
-              "text": "PropertyDescriptor",
-              "canonicalReference": "!PropertyDescriptor:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/state/src/lib/core/Computed.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 6,
-            "endIndex": 10
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 3,
-          "parameters": [
-            {
-              "parameterName": "options",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "isOptional": true
-            }
-          ],
-          "typeParameters": [
-            {
-              "typeParameterName": "Value",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            },
-            {
-              "typeParameterName": "Diff",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            }
-          ],
-          "name": "computed"
-        },
-        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/state!Computed:interface",
           "docComment": "/**\n * A computed signal created via [[computed]].\n *\n * @public\n */\n",
@@ -999,6 +596,34 @@
               "endIndex": 5
             }
           ]
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!computed:var",
+          "docComment": "/**\n * Creates a computed signal.\n *\n * @param name - The name of the signal.\n *\n * @param compute - The function that computes the value of the signal.\n *\n * @param options - Options for the signal.\n *\n * @example\n * ```ts\n * const name = atom('name', 'John')\n * const greeting = computed('greeting', () => `Hello ${name.get()}!`)\n * console.log(greeting.get()) // 'Hello John!'\n * ```\n *\n * `computed` may also be used as a decorator for creating computed getter methods.\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom<number>(0)\n *\n *   @computed getRemaining() {\n *     return this.max - this.count.get()\n *   }\n * }\n * ```\n *\n * You may optionally pass in a [[ComputedOptions]] when used as a decorator:\n *\n * @example\n * ```ts\n * class Counter {\n *   max = 100\n *   count = atom<number>(0)\n *\n *   @computed({isEqual: (a, b) => a === b})\n *   getRemaining() {\n *     return this.max - this.count.get()\n *   }\n * }\n * ```\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "computed: "
+            },
+            {
+              "kind": "Content",
+              "text": "typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "_computed",
+              "canonicalReference": "@tldraw/state!~computed_2:function"
+            }
+          ],
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "computed",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
           "kind": "Interface",
@@ -1129,284 +754,32 @@
           "extendsTokenRanges": []
         },
         {
-          "kind": "Class",
-          "canonicalReference": "@tldraw/state!EffectScheduler:class",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!EffectScheduler:var",
           "docComment": "/**\n * An EffectScheduler is responsible for executing side effects in response to changes in state.\n *\n * You probably don't need to use this directly unless you're integrating this library with a framework of some kind.\n *\n * Instead, use the [[react]] and [[reactor]] functions.\n *\n * @example\n * ```ts\n * const render = new EffectScheduler('render', drawToCanvas)\n *\n * render.attach()\n * render.execute()\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare class EffectScheduler<Result> "
+              "text": "EffectScheduler: "
+            },
+            {
+              "kind": "Content",
+              "text": "typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "_EffectScheduler",
+              "canonicalReference": "@tldraw/state!~EffectScheduler_2:class"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/EffectScheduler.ts",
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "typeParameters": [
-            {
-              "typeParameterName": "Result",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "isAbstract": false,
           "name": "EffectScheduler",
-          "preserveMemberOrder": false,
-          "members": [
-            {
-              "kind": "Constructor",
-              "canonicalReference": "@tldraw/state!EffectScheduler:constructor(1)",
-              "docComment": "/**\n * Constructs a new instance of the `EffectScheduler` class\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "constructor(name: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", runEffect: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(lastReactedEpoch: number) => Result"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", options?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EffectSchedulerOptions",
-                  "canonicalReference": "@tldraw/state!~EffectSchedulerOptions:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ");"
-                }
-              ],
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "name",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "runEffect",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "options",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 5,
-                    "endIndex": 6
-                  },
-                  "isOptional": true
-                }
-              ]
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/state!EffectScheduler#attach:member(1)",
-              "docComment": "/**\n * Makes this scheduler become 'actively listening' to its parents. If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls. If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling [[EffectScheduler.execute]].\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "attach(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "attach"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/state!EffectScheduler#detach:member(1)",
-              "docComment": "/**\n * Makes this scheduler stop 'actively listening' to its parents. It will no longer be eligible to receive 'maybeScheduleEffect' calls until [[EffectScheduler.attach]] is called again.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "detach(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "detach"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/state!EffectScheduler#execute:member(1)",
-              "docComment": "/**\n * Executes the effect immediately and returns the result.\n *\n * @returns The result of the effect.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "execute(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "Result"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "execute"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/state!EffectScheduler#isActivelyListening:member",
-              "docComment": "/**\n * Whether this scheduler is attached and actively listening to its parents.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get isActivelyListening(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "isActivelyListening",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/state!EffectScheduler#name:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "readonly name: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "name",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/state!EffectScheduler#scheduleCount:member",
-              "docComment": "/**\n * The number of times this effect has been scheduled.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get scheduleCount(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "scheduleCount",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            }
-          ],
-          "implementsTokenRanges": []
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
           "kind": "Variable",
@@ -1422,7 +795,7 @@
               "text": "[]"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/helpers.ts",
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "EMPTY_ARRAY",
@@ -1538,122 +911,60 @@
           "name": "getComputedInstance"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!isAtom:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!isAtom:var",
           "docComment": "/**\n * Returns true if the given value is an [[Atom]].\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function isAtom(value: "
+              "text": "isAtom: "
             },
             {
               "kind": "Content",
-              "text": "unknown"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
+              "text": "typeof "
             },
             {
               "kind": "Reference",
-              "text": "value",
-              "canonicalReference": "@tldraw/state!~value"
-            },
-            {
-              "kind": "Content",
-              "text": " is "
-            },
-            {
-              "kind": "Reference",
-              "text": "Atom",
-              "canonicalReference": "@tldraw/state!Atom:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<unknown>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "text": "_isAtom",
+              "canonicalReference": "@tldraw/state!~isAtom_2:function"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/Atom.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 7
-          },
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "value",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "isAtom"
+          "name": "isAtom",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!isSignal:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!isSignal:var",
           "docComment": "/**\n * Returns true if the given value is a signal (either an Atom or a Computed).\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function isSignal(value: "
+              "text": "isSignal: "
             },
             {
               "kind": "Content",
-              "text": "any"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
+              "text": "typeof "
             },
             {
               "kind": "Reference",
-              "text": "value",
-              "canonicalReference": "@tldraw/state!~value"
-            },
-            {
-              "kind": "Content",
-              "text": " is "
-            },
-            {
-              "kind": "Reference",
-              "text": "Signal",
-              "canonicalReference": "@tldraw/state!Signal:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<any>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "text": "_isSignal",
+              "canonicalReference": "@tldraw/state!~isSignal_2:function"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/isSignal.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 7
-          },
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "value",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "isSignal"
+          "name": "isSignal",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
           "kind": "Variable",
@@ -1693,178 +1004,32 @@
           }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!react:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!react:var",
           "docComment": "/**\n * Starts a new effect scheduler, scheduling the effect immediately.\n *\n * Returns a function that can be called to stop the scheduler.\n *\n * @example\n * ```ts\n * const color = atom('color', 'red')\n * const stop = react('set style', () => {\n *   divElem.style.color = color.get()\n * })\n * color.set('blue')\n * // divElem.style.color === 'blue'\n * stop()\n * color.set('green')\n * // divElem.style.color === 'blue'\n * ```\n *\n * Also useful in React applications for running effects outside of the render cycle.\n *\n * @example\n * ```ts\n * useEffect(() => react('set style', () => {\n *   divRef.current.style.color = color.get()\n * }), [])\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function react(name: "
+              "text": "react: "
             },
             {
               "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ", fn: "
-            },
-            {
-              "kind": "Content",
-              "text": "(lastReactedEpoch: number) => any"
-            },
-            {
-              "kind": "Content",
-              "text": ", options?: "
+              "text": "typeof "
             },
             {
               "kind": "Reference",
-              "text": "EffectSchedulerOptions",
-              "canonicalReference": "@tldraw/state!~EffectSchedulerOptions:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "() => void"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "text": "_react",
+              "canonicalReference": "@tldraw/state!~react_2:function"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/EffectScheduler.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 8
-          },
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "name",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "fn",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "options",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "isOptional": true
-            }
-          ],
-          "name": "react"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!reactor:function(1)",
-          "docComment": "/**\n * Creates a [[Reactor]], which is a thin wrapper around an [[EffectScheduler]].\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function reactor<Result>(name: "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ", fn: "
-            },
-            {
-              "kind": "Content",
-              "text": "(lastReactedEpoch: number) => Result"
-            },
-            {
-              "kind": "Content",
-              "text": ", options?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "EffectSchedulerOptions",
-              "canonicalReference": "@tldraw/state!~EffectSchedulerOptions:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Reference",
-              "text": "Reactor",
-              "canonicalReference": "@tldraw/state!Reactor:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<Result>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/state/src/lib/core/EffectScheduler.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 9
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "name",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "fn",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "options",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "isOptional": true
-            }
-          ],
-          "typeParameters": [
-            {
-              "typeParameterName": "Result",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "name": "reactor"
+          "name": "react",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
           "kind": "Interface",
@@ -1914,7 +1079,7 @@
                 {
                   "kind": "Reference",
                   "text": "EffectScheduler",
-                  "canonicalReference": "@tldraw/state!EffectScheduler:class"
+                  "canonicalReference": "@tldraw/state!~EffectScheduler_2:class"
                 },
                 {
                   "kind": "Content",
@@ -2009,6 +1174,34 @@
             }
           ],
           "extendsTokenRanges": []
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!reactor:var",
+          "docComment": "/**\n * Creates a [[Reactor]], which is a thin wrapper around an [[EffectScheduler]].\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "reactor: "
+            },
+            {
+              "kind": "Content",
+              "text": "typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "_reactor",
+              "canonicalReference": "@tldraw/state!~reactor_2:function"
+            }
+          ],
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "reactor",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
           "kind": "TypeAlias",
@@ -2391,178 +1584,88 @@
           "name": "track"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!transact:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!transact:var",
           "docComment": "/**\n * Like [transaction](#transaction), but does not create a new transaction if there is already one in progress.\n *\n * @param fn - The function to run in a transaction.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function transact<T>(fn: "
+              "text": "transact: "
             },
             {
               "kind": "Content",
-              "text": "() => T"
+              "text": "typeof "
             },
             {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "T"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "kind": "Reference",
+              "text": "_transact",
+              "canonicalReference": "@tldraw/state!~transact_2:function"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/transactions.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
-          },
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "fn",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "typeParameters": [
-            {
-              "typeParameterName": "T",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "name": "transact"
+          "name": "transact",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!transaction:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!transaction:var",
           "docComment": "/**\n * Batches state updates, deferring side effects until after the transaction completes.\n *\n * @param fn - The function to run in a transaction, called with a function to roll back the change.\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction(() => {\n *  firstName.set('Jane')\n *  lastName.set('Smith')\n * })\n *\n * // Logs \"Hello, Jane Smith!\"\n * ```\n *\n * If the function throws, the transaction is aborted and any signals that were updated during the transaction revert to their state before the transaction began.\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction(() => {\n *  firstName.set('Jane')\n *  throw new Error('oops')\n * })\n *\n * // Does not log\n * // firstName.get() === 'John'\n * ```\n *\n * A `rollback` callback is passed into the function. Calling this will prevent the transaction from committing and will revert any signals that were updated during the transaction to their state before the transaction began.\n *\n * *\n *\n * @example\n * ```ts\n * const firstName = atom('John')\n * const lastName = atom('Doe')\n *\n * react('greet', () => {\n *   print(`Hello, ${firstName.get()} ${lastName.get()}!`)\n * })\n *\n * // Logs \"Hello, John Doe!\"\n *\n * transaction((rollback) => {\n *  firstName.set('Jane')\n *  lastName.set('Smith')\n *  rollback()\n * })\n *\n * // Does not log\n * // firstName.get() === 'John'\n * // lastName.get() === 'Doe'\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function transaction<T>(fn: "
+              "text": "transaction: "
             },
             {
               "kind": "Content",
-              "text": "(rollback: () => void) => T"
+              "text": "typeof "
             },
             {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "T"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "kind": "Reference",
+              "text": "_transaction",
+              "canonicalReference": "@tldraw/state!~transaction_2:function"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/transactions.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
-          },
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "fn",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "typeParameters": [
-            {
-              "typeParameterName": "T",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "name": "transaction"
+          "name": "transaction",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!unsafe__withoutCapture:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!unsafe__withoutCapture:var",
           "docComment": "/**\n * Executes the given function without capturing any parents in the current capture context.\n *\n * This is mainly useful if you want to run an effect only when certain signals change while also dereferencing other signals which should not cause the effect to rerun on their own.\n *\n * @example\n * ```ts\n * const name = atom('name', 'Sam')\n * const time = atom('time', () => new Date().getTime())\n *\n * setInterval(() => {\n *   time.set(new Date().getTime())\n * })\n *\n * react('log name changes', () => {\n * \t print(name.get(), 'was changed at', unsafe__withoutCapture(() => time.get()))\n * })\n *\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function unsafe__withoutCapture<T>(fn: "
+              "text": "unsafe__withoutCapture: "
             },
             {
               "kind": "Content",
-              "text": "() => T"
+              "text": "typeof "
             },
             {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "T"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "kind": "Reference",
+              "text": "_unsafe__withoutCapture",
+              "canonicalReference": "@tldraw/state!~unsafe__withoutCapture_2:function"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/capture.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
-          },
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "fn",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "typeParameters": [
-            {
-              "typeParameterName": "T",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "name": "unsafe__withoutCapture"
+          "name": "unsafe__withoutCapture",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
           "kind": "Function",
@@ -3221,122 +2324,60 @@
           "name": "useValue"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!whyAmIRunning:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!whyAmIRunning:var",
           "docComment": "/**\n * A debugging tool that tells you why a computed signal or effect is running. Call in the body of a computed signal or effect function.\n *\n * @example\n * ```ts\n * const name = atom('name', 'Bob')\n * react('greeting', () => {\n * \twhyAmIRunning()\n * \tprint('Hello', name.get())\n * })\n *\n * name.set('Alice')\n *\n * // 'greeting' is running because:\n * //     'name' changed => 'Alice'\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function whyAmIRunning(): "
+              "text": "whyAmIRunning: "
             },
             {
               "kind": "Content",
-              "text": "void"
+              "text": "typeof "
             },
             {
-              "kind": "Content",
-              "text": ";"
+              "kind": "Reference",
+              "text": "_whyAmIRunning",
+              "canonicalReference": "@tldraw/state!~whyAmIRunning_2:function"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/capture.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "whyAmIRunning"
+          "name": "whyAmIRunning",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/state!withDiff:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!withDiff:var",
           "docComment": "/**\n * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.\n *\n * You can use this function to wrap the return value of a computed signal function to indicate that the diff should be used instead of calculating a new one with [[AtomOptions.computeDiff]].\n *\n * @param value - The value.\n *\n * @param diff - The diff.\n *\n * @example\n * ```ts\n * const count = atom('count', 0)\n * const double = computed('double', (prevValue) => {\n *   const nextValue = count.get() * 2\n *   if (isUninitialized(prevValue)) {\n *     return nextValue\n *   }\n *   return withDiff(nextValue, nextValue - prevValue)\n * }, { historyLength: 10 })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function withDiff<Value, Diff>(value: "
+              "text": "withDiff: "
             },
             {
               "kind": "Content",
-              "text": "Value"
-            },
-            {
-              "kind": "Content",
-              "text": ", diff: "
-            },
-            {
-              "kind": "Content",
-              "text": "Diff"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
+              "text": "typeof "
             },
             {
               "kind": "Reference",
-              "text": "WithDiff",
-              "canonicalReference": "@tldraw/state!~WithDiff:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<Value, Diff>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "text": "_withDiff",
+              "canonicalReference": "@tldraw/state!~withDiff_2:function"
             }
           ],
-          "fileUrlPath": "packages/state/src/lib/core/Computed.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 7
-          },
+          "fileUrlPath": "packages/state/src/lib/core/index.ts",
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "value",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "diff",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            }
-          ],
-          "typeParameters": [
-            {
-              "typeParameterName": "Value",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            },
-            {
-              "typeParameterName": "Diff",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "name": "withDiff"
+          "name": "withDiff",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         }
       ]
     }

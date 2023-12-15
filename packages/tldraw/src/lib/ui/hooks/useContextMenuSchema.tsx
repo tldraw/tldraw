@@ -81,6 +81,10 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	const allowRemoveFrame =
 		oneSelected &&
 		selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+	const allowFitFrameToContent =
+		onlySelectedShape &&
+		editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame') &&
+		editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
 	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
@@ -93,6 +97,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 				allowGroup && !isShapeLocked && menuItem(actions['group']),
 				allowUngroup && !isShapeLocked && menuItem(actions['ungroup']),
 				allowRemoveFrame && !isShapeLocked && menuItem(actions['remove-frame']),
+				allowFitFrameToContent && !isShapeLocked && menuItem(actions['fit-frame-to-content']),
 				oneSelected && menuItem(actions['toggle-lock'])
 			),
 			menuGroup(
@@ -227,6 +232,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		allowGroup,
 		allowUngroup,
 		allowRemoveFrame,
+		allowFitFrameToContent,
 		hasClipboardWrite,
 		showEditLink,
 		// oneEmbedSelected,

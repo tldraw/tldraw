@@ -154,6 +154,7 @@ export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
 export { getSvgAsImage } from './lib/utils/export/export'
 export { exportAs } from './lib/utils/export/exportAs'
+export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
