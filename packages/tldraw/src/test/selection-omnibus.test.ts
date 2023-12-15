@@ -1719,6 +1719,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerMove(300, 300)
 		editor.pointerDown()
 		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.brushing')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.pointerMove(0, 0)
 		jest.advanceTimersByTime(100)
