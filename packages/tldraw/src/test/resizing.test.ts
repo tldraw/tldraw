@@ -3908,3 +3908,19 @@ describe('Resizing text from the right edge', () => {
 		})
 	})
 })
+
+describe('When resizing near the edges of the screen', () => {
+	it('resizes past the edge of the screen', () => {
+		editor
+			.select(ids.boxA)
+			.pointerDown(10, 10, {
+				type: 'pointer',
+				target: 'selection',
+				handle: 'top_left',
+			})
+			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
+			.pointerMove(10, 25)
+		jest.advanceTimersByTime(100)
+		editor.expectShapeToMatch({ id: ids.boxA, x: -70, y: -23, props: { w: 180, h: 133 } })
+	})
+})
