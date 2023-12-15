@@ -3902,7 +3902,7 @@ describe('Resizing text from the right edge', () => {
 
 describe('When resizing near the edges of the screen', () => {
 	it('resizes past the edge of the screen', () => {
-		editor.setEdgeScrollSpeed(20)
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor
 			.select(ids.boxA)
 			.pointerDown(10, 10, {

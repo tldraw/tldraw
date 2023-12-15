@@ -13,7 +13,9 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
+	TLTickEventHandler,
 	Vec2d,
+	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
 } from '@tldraw/editor'
@@ -52,14 +54,16 @@ export class Brushing extends StateNode {
 		this.info = info
 		this.initialSelectedShapeIds = this.editor.getSelectedShapeIds().slice()
 		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
-		this.editor.on('tick', this.moveCameraWhenCloseToEdge)
 		this.onPointerMove()
 	}
 
 	override onExit = () => {
 		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
-		this.editor.off('tick', this.moveCameraWhenCloseToEdge)
+	}
+
+	override onTick: TLTickEventHandler = () => {
+		moveCameraWhenCloseToEdge(this.editor)
 	}
 
 	override onPointerMove = () => {

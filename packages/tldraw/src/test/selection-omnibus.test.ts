@@ -1711,7 +1711,7 @@ describe('right clicking', () => {
 
 describe('When brushing close to the edges of the screen', () => {
 	it('selects shapes that are outside of the viewport', () => {
-		editor.setEdgeScrollSpeed(20)
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 0 })
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 		editor.createShapes([
 			{ id: ids.box2, type: 'geo', x: -150, y: -150, props: { w: 100, h: 100 } },

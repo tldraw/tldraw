@@ -225,6 +225,7 @@ export {
 	type TLPointerEventName,
 	type TLPointerEventTarget,
 	type TLTickEvent,
+	type TLTickEventHandler,
 	type TLWheelEvent,
 	type TLWheelEventInfo,
 	type UiEvent,
@@ -346,6 +347,7 @@ export {
 	setPointerCapture,
 	stopEventPropagation,
 } from './lib/utils/dom'
+export { moveCameraWhenCloseToEdge } from './lib/utils/edgeScrolling'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'

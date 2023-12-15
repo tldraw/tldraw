@@ -18,6 +18,7 @@ export interface TLUserPreferences {
 	color?: string | null
 	isDarkMode?: boolean | null
 	animationSpeed?: number | null
+	edgeScrollSpeed?: number | null
 	isSnapMode?: boolean | null
 }
 
@@ -131,6 +132,7 @@ export const defaultUserPreferences = Object.freeze({
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
 	isDarkMode: false,
+	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>

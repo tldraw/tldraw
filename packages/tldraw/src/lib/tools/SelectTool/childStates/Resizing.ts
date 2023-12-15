@@ -13,10 +13,12 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLTickEventHandler,
 	Vec2d,
 	VecLike,
 	areAnglesCompatible,
 	compact,
+	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 
 type ResizingInfo = TLPointerEventInfo & {
@@ -70,7 +72,10 @@ export class Resizing extends StateNode {
 
 		this.handleResizeStart()
 		this.updateShapes()
-		this.editor.on('tick', this.moveCameraWhenCloseToEdge)
+	}
+
+	override onTick: TLTickEventHandler = () => {
+		moveCameraWhenCloseToEdge(this.editor)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
@@ -405,7 +410,6 @@ export class Resizing extends StateNode {
 			{ ephemeral: true }
 		)
 		this.editor.snaps.clear()
-		this.editor.off('tick', this.moveCameraWhenCloseToEdge)
 	}
 
 	_createSnapshot = () => {

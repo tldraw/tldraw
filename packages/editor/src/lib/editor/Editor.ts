@@ -63,7 +63,6 @@ import {
 	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
-	EDGE_SCROLL_SPEED,
 	FOLLOW_CHASE_PAN_SNAP,
 	FOLLOW_CHASE_PAN_UNSNAP,
 	FOLLOW_CHASE_PROPORTION,
@@ -3250,27 +3249,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.updateInstanceState({ followingUserId: null }, { ephemeral: true })
 		this.emit('stop-following')
 		return this
-	}
-
-	// Edge scroll speed
-	private _edgeScrollSpeed = atom('edge scroll speed', EDGE_SCROLL_SPEED)
-
-	/**
-	 * The speed at which camera is moved when we get close to the edges of the viewport.
-	 *
-	 * @public
-	 */
-	getEdgeScrollSpeed() {
-		return this._edgeScrollSpeed.get()
-	}
-
-	/**
-	 * Set the edge scroll speed.
-	 *
-	 * @public
-	 */
-	setEdgeScrollSpeed(value: number) {
-		return this._edgeScrollSpeed.set(value)
 	}
 
 	// Camera state

@@ -137,6 +137,8 @@ export type UiEvent =
 	| TLCompleteEvent
 
 /** @public */
+export type TLTickEventHandler = () => void
+/** @public */
 export type TLEnterEventHandler = (info: any, from: string) => void
 /** @public */
 export type TLExitEventHandler = (info: any, to: string) => void

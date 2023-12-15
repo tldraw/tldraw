@@ -8,6 +8,7 @@ import {
 	TLEventInfo,
 	TLExitEventHandler,
 	TLPinchEventInfo,
+	TLTickEventHandler,
 } from '../types/event-types'
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
@@ -155,6 +156,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	enter = (info: any, from: string) => {
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
+		if (this.onTick) this.editor.on('tick', this.onTick)
 		if (this.children && this.initial && this.getIsActive()) {
 			const initial = this.children[this.initial]
 			this._current.set(initial)
@@ -165,6 +167,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
 		this._isActive.set(false)
+		if (this.onTick) this.editor.off('tick', this.onTick)
 		this.onExit?.(info, from)
 		if (!this.getIsActive()) {
 			this.getCurrent()?.exit(info, from)
@@ -205,61 +208,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this._currentToolIdMask.set(id)
 	}
 
-	/**
-	 * Helper function to get the scroll offset for a given position.
-	 * The closer the mouse is to the edge of the screen the faster we scroll.
-	 * We also adjust the speed and the start offset based on the screen size and zoom level.
-	 *
-	 * @param position - The mouse position on the screen in pixels
-	 * @param extreme - The width or height of the screen in pixels
-	 * @param zoomLevel - The current zoom level
-	 * @returns How much we should scroll in pixels
-	 * @internal
-	 */
-	getScrollOffset(position: number, extreme: number, zoomLevel: number) {
-		// Determines how far from the edges we start the scroll behaviour
-		const scrollOffset = extreme < 1000 ? 50 : 30
-		// Determines the base speed of the scroll
-		const pxSpeed = this.editor.getEdgeScrollSpeed()
-		// Determines how much the speed is affected by the screen size
-		const screenSizeFactor = extreme < 1000 ? 0.8 : 1
-		// Determines how much the speed is affected by the distance from the edge
-		let proximityFactor = 0
-		if (position < 0) {
-			proximityFactor = 1
-		} else if (position > extreme) {
-			proximityFactor = -1
-		} else if (position < scrollOffset) {
-			proximityFactor = (scrollOffset - position) / scrollOffset
-		} else if (position > extreme - scrollOffset) {
-			proximityFactor = -(scrollOffset - extreme + position) / scrollOffset
-		}
-		return (pxSpeed * proximityFactor * screenSizeFactor) / zoomLevel
-	}
-
-	/**
-	 * Moves the camera when the mouse is close to the edge of the screen.
-	 * @public
-	 */
-	moveCameraWhenCloseToEdge = () => {
-		if (!this.editor.inputs.isDragging || this.editor.inputs.isPanning) return
-
-		const windowWidth = window.innerWidth
-		const windowHeight = window.innerHeight
-		const zoomLevel = this.editor.getZoomLevel()
-		const scrollDelta = {
-			x: this.getScrollOffset(this.editor.inputs.currentScreenPoint.x, windowWidth, zoomLevel),
-			y: this.getScrollOffset(this.editor.inputs.currentScreenPoint.y, windowHeight, zoomLevel),
-		}
-		if (scrollDelta.x === 0 && scrollDelta.y === 0) return
-
-		const camera = this.editor.getCamera()
-		this.editor.setCamera({
-			x: camera.x + scrollDelta.x,
-			y: camera.y + scrollDelta.y,
-		})
-	}
-
 	onWheel?: TLEventHandlers['onWheel']
 	onPointerDown?: TLEventHandlers['onPointerDown']
 	onPointerMove?: TLEventHandlers['onPointerMove']
@@ -278,4 +226,5 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	onEnter?: TLEnterEventHandler
 	onExit?: TLExitEventHandler
+	onTick?: TLTickEventHandler
 }
