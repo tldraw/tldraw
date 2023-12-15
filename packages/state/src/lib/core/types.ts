@@ -3,7 +3,7 @@ import { _Computed } from './Computed'
 import { EffectScheduler } from './EffectScheduler'
 
 /** @public */
-export const RESET_VALUE: unique symbol = Symbol('RESET_VALUE')
+export const RESET_VALUE: unique symbol = Symbol.for('com.tldraw.state/RESET_VALUE')
 
 /** @public */
 export type RESET_VALUE = typeof RESET_VALUE

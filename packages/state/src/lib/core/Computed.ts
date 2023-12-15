@@ -8,14 +8,17 @@ import { globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning, logDotValueWarning } from './warnings'
 
-const UNINITIALIZED = Symbol('UNINITIALIZED')
+/**
+ * @public
+ */
+export const UNINITIALIZED = Symbol.for('com.tldraw.state/UNINITIALIZED')
 /**
  * The type of the first value passed to a computed signal function as the 'prevValue' parameter.
  *
  * @see [[isUninitialized]].
  * @public
  */
-type UNINITIALIZED = typeof UNINITIALIZED
+export type UNINITIALIZED = typeof UNINITIALIZED
 
 /**
  * Call this inside a computed signal function to determine whether it is the first time the function is being called.
@@ -44,28 +47,6 @@ class WithDiff<Value, Diff> {
 	constructor(public value: Value, public diff: Diff) {}
 }
 
-/**
- * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.
- *
- * You can use this function to wrap the return value of a computed signal function to indicate that the diff should be used instead of calculating a new one with [[AtomOptions.computeDiff]].
- *
- * @example
- * ```ts
- * const count = atom('count', 0)
- * const double = computed('double', (prevValue) => {
- *   const nextValue = count.get() * 2
- *   if (isUninitialized(prevValue)) {
- *     return nextValue
- *   }
- *   return withDiff(nextValue, nextValue - prevValue)
- * }, { historyLength: 10 })
- * ```
- *
- *
- * @param value - The value.
- * @param diff - The diff.
- * @public
- */
 export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value, Diff> {
 	return new WithDiff(value, diff)
 }
@@ -347,51 +328,6 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	return inst as any
 }
 
-/**
- * Creates a computed signal.
- *
- * @example
- * ```ts
- * const name = atom('name', 'John')
- * const greeting = computed('greeting', () => `Hello ${name.get()}!`)
- * console.log(greeting.get()) // 'Hello John!'
- * ```
- *
- * `computed` may also be used as a decorator for creating computed getter methods.
- *
- * @example
- * ```ts
- * class Counter {
- *   max = 100
- *   count = atom<number>(0)
- *
- *   @computed getRemaining() {
- *     return this.max - this.count.get()
- *   }
- * }
- * ```
- *
- * You may optionally pass in a [[ComputedOptions]] when used as a decorator:
- *
- * @example
- * ```ts
- * class Counter {
- *   max = 100
- *   count = atom<number>(0)
- *
- *   @computed({isEqual: (a, b) => a === b})
- *   getRemaining() {
- *     return this.max - this.count.get()
- *   }
- * }
- * ```
- *
- * @param name - The name of the signal.
- * @param compute - The function that computes the value of the signal.
- * @param options - Options for the signal.
- *
- * @public
- */
 export function computed<Value, Diff = unknown>(
 	name: string,
 	compute: (

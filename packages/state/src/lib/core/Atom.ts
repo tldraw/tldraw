@@ -162,24 +162,6 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 	}
 }
 
-/**
- * Creates a new [[Atom]].
- *
- * An Atom is a signal that can be updated directly by calling [[Atom.set]] or [[Atom.update]].
- *
- * @example
- * ```ts
- * const name = atom('name', 'John')
- *
- * name.get() // 'John'
- *
- * name.set('Jane')
- *
- * name.get() // 'Jane'
- * ```
- *
- * @public
- */
 export function atom<Value, Diff = unknown>(
 	/**
 	 * A name for the signal. This is used for debugging and profiling purposes, it does not need to be unique.
@@ -197,10 +179,6 @@ export function atom<Value, Diff = unknown>(
 	return new _Atom(name, initialValue, options)
 }
 
-/**
- * Returns true if the given value is an [[Atom]].
- * @public
- */
 export function isAtom(value: unknown): value is Atom<unknown> {
 	return value instanceof _Atom
 }
