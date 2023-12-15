@@ -81,6 +81,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-dark-mode'
 	| 'action.toggle-reduce-motion.menu'
 	| 'action.toggle-reduce-motion'
+	| 'action.toggle-edge-scrolling.menu'
+	| 'action.toggle-edge-scrolling'
 	| 'action.toggle-debug-mode.menu'
 	| 'action.toggle-debug-mode'
 	| 'action.toggle-focus-mode.menu'

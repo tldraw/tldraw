@@ -995,6 +995,19 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-edge-scrolling',
+				label: 'action.toggle-edge-scrolling',
+				menuLabel: 'action.toggle-edge-scrolling.menu',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-edge-scrolling', { source })
+					editor.user.updateUserPreferences({
+						edgeScrollSpeed: editor.user.getEdgeScrollSpeed() === 0 ? 1 : 0,
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-transparent',
 				label: 'action.toggle-transparent',
 				menuLabel: 'action.toggle-transparent.menu',

@@ -488,6 +488,7 @@ export const defaultUserPreferences: Readonly<{
     locale: "ar" | "ca" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     isDarkMode: false;
+    edgeScrollSpeed: 1;
     animationSpeed: 0 | 1;
     isSnapMode: false;
 }>;
@@ -1459,6 +1460,9 @@ export const MAX_ZOOM = 8;
 // @internal (undocumented)
 export const MIN_ZOOM = 0.1;
 
+// @public
+export function moveCameraWhenCloseToEdge(editor: Editor): void;
+
 // @internal (undocumented)
 export const MULTI_CLICK_DURATION = 200;
 
@@ -1962,6 +1966,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     onQuadrupleClick?: TLEventHandlers['onQuadrupleClick'];
     // (undocumented)
     onRightClick?: TLEventHandlers['onRightClick'];
+    // (undocumented)
+    onTick?: TLTickEventHandler;
     // (undocumented)
     onTripleClick?: TLEventHandlers['onTripleClick'];
     // (undocumented)
@@ -2702,12 +2708,17 @@ export type TLSvgOptions = {
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
 
+// @public (undocumented)
+export type TLTickEventHandler = () => void;
+
 // @public
 export interface TLUserPreferences {
     // (undocumented)
     animationSpeed?: null | number;
     // (undocumented)
     color?: null | string;
+    // (undocumented)
+    edgeScrollSpeed?: null | number;
     // (undocumented)
     id: string;
     // (undocumented)

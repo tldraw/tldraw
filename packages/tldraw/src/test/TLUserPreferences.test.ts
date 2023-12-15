@@ -109,15 +109,18 @@ describe('TLUserPreferences', () => {
 				userPreferences,
 			}),
 		})
+		// called once in the constructor of testeditor to set edge scroll speed to 0
+		expect(setUserPreferences).toHaveBeenCalledTimes(1)
 
 		expect(editor.user.getName()).toBe('blah')
 		editor.user.updateUserPreferences({ name: null })
 
 		expect(editor.user.getName()).toBe('New User')
-		expect(setUserPreferences).toHaveBeenCalledTimes(1)
+		expect(setUserPreferences).toHaveBeenCalledTimes(2)
 		expect(setUserPreferences).toHaveBeenLastCalledWith({
 			id: '123',
 			name: null,
+			edgeScrollSpeed: 0,
 		})
 	})
 })

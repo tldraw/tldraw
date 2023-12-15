@@ -52,6 +52,13 @@ export class UserPreferencesManager {
 		return this.getIsDarkMode()
 	}
 
+	/**
+	 * The speed at which the user can scroll by dragging toward the edge of the screen.
+	 */
+	@computed getEdgeScrollSpeed() {
+		return this.user.userPreferences.get().edgeScrollSpeed ?? defaultUserPreferences.edgeScrollSpeed
+	}
+
 	@computed getAnimationSpeed() {
 		return this.user.userPreferences.get().animationSpeed ?? defaultUserPreferences.animationSpeed
 	}

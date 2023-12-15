@@ -1708,3 +1708,45 @@ describe('right clicking', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })
+
+describe('When brushing close to the edges of the screen', () => {
+	it('selects shapes that are outside of the viewport', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+		editor.createShapes([
+			{ id: ids.box2, type: 'geo', x: -150, y: -150, props: { w: 100, h: 100 } },
+		])
+
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerMove(0, 0)
+		// still only box 1...
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		jest.advanceTimersByTime(100)
+		// ...but now viewport will have moved to select box2 as well
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+		editor.pointerUp()
+	})
+
+	it('doesnt edge scroll to the other shape', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 0 }) // <-- no edge scrolling
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+		editor.createShapes([
+			{ id: ids.box2, type: 'geo', x: -150, y: -150, props: { w: 100, h: 100 } },
+		])
+
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerMove(0, 0)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		jest.advanceTimersByTime(100)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerUp()
+	})
+})

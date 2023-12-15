@@ -18,6 +18,7 @@ export interface TLUserPreferences {
 	color?: string | null
 	isDarkMode?: boolean | null
 	animationSpeed?: number | null
+	edgeScrollSpeed?: number | null
 	isSnapMode?: boolean | null
 }
 
@@ -39,6 +40,7 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	color: T.string.nullable().optional(),
 	isDarkMode: T.boolean.nullable().optional(),
 	animationSpeed: T.number.nullable().optional(),
+	edgeScrollSpeed: T.number.nullable().optional(),
 	isSnapMode: T.boolean.nullable().optional(),
 })
 
@@ -46,10 +48,11 @@ const Versions = {
 	AddAnimationSpeed: 1,
 	AddIsSnapMode: 2,
 	MakeFieldsNullable: 3,
+	AddEdgeScrollSpeed: 4,
 } as const
 
 const userMigrations = defineMigrations({
-	currentVersion: Versions.MakeFieldsNullable,
+	currentVersion: Versions.AddEdgeScrollSpeed,
 	migrators: {
 		[Versions.AddAnimationSpeed]: {
 			up: (user) => {
@@ -84,6 +87,17 @@ const userMigrations = defineMigrations({
 					animationSpeed: user.animationSpeed ?? defaultUserPreferences.animationSpeed,
 					isSnapMode: user.isSnapMode ?? defaultUserPreferences.isSnapMode,
 				}
+			},
+		},
+		[Versions.AddEdgeScrollSpeed]: {
+			up: (user: TLUserPreferences) => {
+				return {
+					...user,
+					edgeScrollSpeed: 1,
+				}
+			},
+			down: ({ edgeScrollSpeed: _, ...user }: TLUserPreferences) => {
+				return user
 			},
 		},
 	},
@@ -131,6 +145,7 @@ export const defaultUserPreferences = Object.freeze({
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
 	isDarkMode: false,
+	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
