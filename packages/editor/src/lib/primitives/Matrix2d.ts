@@ -173,7 +173,7 @@ export class Matrix2d {
 		(x: number, y: number): Matrix2dModel
 		(x: number, y: number, cx: number, cy: number): Matrix2dModel
 	} = (x: number, y: number, cx?: number, cy?: number) => {
-		const scaleMatrix2d = new Matrix2d(x, 0, 0, 0, y, 0)
+		const scaleMatrix2d = new Matrix2d(x, 0, 0, y, 0, 0)
 
 		if (cx === undefined) return scaleMatrix2d
 
