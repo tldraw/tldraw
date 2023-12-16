@@ -30,6 +30,7 @@ import MetaExample from './examples/MetaExample'
 import MultipleExample from './examples/MultipleExample'
 import OnTheCanvasExample from './examples/OnTheCanvas'
 import PersistenceExample from './examples/PersistenceExample'
+import PlaybackExample from './examples/PlaybackExample/PlaybackExample'
 import ReadOnlyExample from './examples/ReadOnlyExample'
 import ScreenshotToolExample from './examples/ScreenshotToolExample/ScreenshotToolExample'
 import ScrollExample from './examples/ScrollExample'
@@ -102,6 +103,11 @@ export const allExamples: Example[] = [
 		title: 'Custom shapes / tools',
 		path: 'custom-config',
 		element: <CustomConfigExample />,
+	},
+	{
+		title: 'Playback',
+		path: 'playback',
+		element: <PlaybackExample />,
 	},
 	{
 		title: 'Sublibraries',

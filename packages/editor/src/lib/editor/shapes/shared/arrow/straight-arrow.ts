@@ -77,9 +77,6 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 	let strokeOffsetB = 0
 	let minLength = MIN_ARROW_LENGTH
 
-	const isSelfIntersection =
-		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
-
 	const relationship =
 		startShapeInfo && endShapeInfo
 			? getBoundShapeRelationships(editor, startShapeInfo.shape.id, endShapeInfo.shape.id)
@@ -89,7 +86,6 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		relationship === 'safe' &&
 		startShapeInfo &&
 		endShapeInfo &&
-		!isSelfIntersection &&
 		!startShapeInfo.isExact &&
 		!endShapeInfo.isExact
 	) {
@@ -115,11 +111,11 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	// If the arrow is bound non-exact to a start shape and the
 	// start point has an arrowhead, then offset the start point
-	if (!isSelfIntersection) {
+	if (relationship !== 'double-bound') {
 		if (
 			relationship !== 'start-contains-end' &&
-			startShapeInfo &&
 			arrowheadStart !== 'none' &&
+			startShapeInfo &&
 			!startShapeInfo.isExact
 		) {
 			strokeOffsetA =
