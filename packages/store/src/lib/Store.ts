@@ -881,7 +881,7 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 				continue
 			}
 			if (result.updated[id]) {
-				result.updated[id][1] = to
+				result.updated[id] = [result.updated[id][0], to]
 				delete result.removed[id]
 				continue
 			}
@@ -937,7 +937,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 
 	result.push(current)
 
-	return result
+	return devFreeze(result)
 }
 
 /** @public */
