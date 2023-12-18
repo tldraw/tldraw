@@ -1794,7 +1794,7 @@ describe('When a shape is locked', () => {
 		editor.pointerMove(150, 150)
 		editor.pointerDown()
 		editor.expectToBeIn('select.pointing_selection')
-		editor.pointerMove(150, 100)
+		editor.pointerMove(100, 150)
 		editor.expectToBeIn('select.translating')
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
