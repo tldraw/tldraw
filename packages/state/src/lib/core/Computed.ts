@@ -6,7 +6,7 @@ import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged } from './helpers'
 import { globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
-import { logComputedGetterWarning, logDotValueWarning } from './warnings'
+import { logComputedGetterWarning } from './warnings'
 
 /**
  * @public
@@ -189,15 +189,6 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 		const value = this.__unsafe__getWithoutCapture()
 		maybeCaptureParent(this)
 		return value
-	}
-
-	/**
-	 * @deprecated Use [[get]] instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get value() {
-		logDotValueWarning()
-		return this.get()
 	}
 
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
