@@ -7,7 +7,7 @@ import {
 	stopCapturingParents,
 	unsafe__withoutCapture,
 } from '../capture'
-import { advanceGlobalEpoch, globalEpoch } from '../transactions'
+import { advanceGlobalEpoch, getGlobalEpoch } from '../transactions'
 import { Child } from '../types'
 
 const emptyChild = (props: Partial<Child> = {}) =>
@@ -22,7 +22,7 @@ const emptyChild = (props: Partial<Child> = {}) =>
 describe('capturing parents', () => {
 	it('can be started and stopped', () => {
 		const a = atom('', 1)
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		const child = emptyChild()
 		const originalParentEpochs = child.parentEpochs
@@ -42,13 +42,13 @@ describe('capturing parents', () => {
 
 	it('can handle several parents', () => {
 		const atomA = atom('', 1)
-		const atomAEpoch = globalEpoch
+		const atomAEpoch = getGlobalEpoch()
 		advanceGlobalEpoch() // let's say time has passed
 		const atomB = atom('', 1)
-		const atomBEpoch = globalEpoch
+		const atomBEpoch = getGlobalEpoch()
 		advanceGlobalEpoch() // let's say time has passed
 		const atomC = atom('', 1)
-		const atomCEpoch = globalEpoch
+		const atomCEpoch = getGlobalEpoch()
 
 		expect(atomAEpoch < atomBEpoch).toBe(true)
 		expect(atomBEpoch < atomCEpoch).toBe(true)
@@ -109,13 +109,13 @@ describe('capturing parents', () => {
 
 	it('will shrink the parent arrays if the number of captured parents shrinks', () => {
 		const atomA = atom('', 1)
-		const atomAEpoch = globalEpoch
+		const atomAEpoch = getGlobalEpoch()
 		advanceGlobalEpoch() // let's say time has passed
 		const atomB = atom('', 1)
-		const atomBEpoch = globalEpoch
+		const atomBEpoch = getGlobalEpoch()
 		advanceGlobalEpoch() // let's say time has passed
 		const atomC = atom('', 1)
-		const atomCEpoch = globalEpoch
+		const atomCEpoch = getGlobalEpoch()
 
 		const child = emptyChild()
 
