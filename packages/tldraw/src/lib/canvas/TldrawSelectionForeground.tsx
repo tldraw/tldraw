@@ -164,7 +164,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 
 		if (
 			hideEdgeTargetsDueToCoarsePointer &&
-			shapes.every((shape) => editor.getShapeUtil(shape).isAspectRatioLocked(shape))
+			shapes.some((shape) => !editor.getShapeUtil(shape).isAspectRatioLocked(shape))
 		) {
 			hideEdgeTargetsDueToCoarsePointer = false
 		}
