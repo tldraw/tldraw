@@ -187,7 +187,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				objectMapFromEntries(
 					objectMapEntries(initialData).map(([id, record]) => [
 						id,
-						atom('atom:' + id, this.schema.validateRecord(this, record, 'initialize', null)),
+						atom(
+							'atom:' + id,
+							devFreeze(this.schema.validateRecord(this, record, 'initialize', null))
+						),
 					])
 				)
 			)
