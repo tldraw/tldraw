@@ -25,7 +25,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 				opts
 			),
 			draw: formatAssetUrl(
-				new URL('./fonts/Shantell_Sans-Normal-SemiBold.woff2', import.meta.url).href,
+				new URL('./fonts/Shantell_Sans-Tldrawish.woff2', import.meta.url).href,
 				opts
 			),
 		},
