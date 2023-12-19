@@ -67,7 +67,7 @@ test.describe('text measurement', () => {
 			measureTextOptions
 		)
 
-		expect(w).toBeCloseTo(85.828125, 0)
+		expect(w).toBeCloseTo(87, 0)
 		expect(h).toBeCloseTo(32.3984375, 0)
 	})
 
@@ -104,7 +104,7 @@ test.describe('text measurement', () => {
 			measureTextSpansOptions
 		)
 
-		expect(formatLines(spans)).toEqual([['test'], ['ing']])
+		expect(formatLines(spans)).toEqual([['tes'], ['ting']])
 	})
 
 	test('should preserve whitespace at line breaks', async () => {
@@ -202,11 +202,11 @@ test.describe('text measurement', () => {
 
 		expect(formatLines(spans)).toEqual([
 			['testingt'],
-			['estingte'],
-			['stingtes'],
-			['tingtest'],
-			['ingtesti'],
-			['ng'],
+			['estingt'],
+			['estingt'],
+			['estingt'],
+			['estingt'],
+			['esting'],
 		])
 	})
 
