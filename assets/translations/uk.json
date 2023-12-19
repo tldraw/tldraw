@@ -341,5 +341,7 @@
 	"cursor-chat.type-to-chat": "Натисніть, щоб розпочати спілкуватися...",
 	"geo-style.cloud": "Хмара",
 	"tool.cloud": "Хмара",
-	"action.unlock-all": "Розблокувати все"
+	"action.unlock-all": "Розблокувати все",
+	"status.offline": "Офлайн",
+	"status.online": "Онлайн"
 }

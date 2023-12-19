@@ -338,8 +338,10 @@
 	"rename-project-dialog.cancel": "Отмена",
 	"rename-project-dialog.rename": "Переименовать",
 	"home-project-dialog.ok": "Хорошо",
-	"cursor-chat.type-to-chat": "Клацніть, щоб розпочати спілкування...",
+	"cursor-chat.type-to-chat": "Напишите сообщение...",
 	"geo-style.cloud": "Облако",
 	"tool.cloud": "Облако",
-	"action.unlock-all": "Разблокировать всё"
+	"action.unlock-all": "Разблокировать всё",
+	"status.offline": "Не в сети",
+	"status.online": "В сети"
 }
