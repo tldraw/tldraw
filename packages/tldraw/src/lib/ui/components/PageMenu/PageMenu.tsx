@@ -382,6 +382,7 @@ export const PageMenu = function PageMenu() {
 										</div>
 										<span>{page.name}</span>
 									</Button>
+									<div></div>
 									{!isReadonlyMode && (
 										<div className="tlui-page_menu__item__submenu">
 											<PageItemSubmenu
