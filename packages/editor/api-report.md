@@ -2653,7 +2653,7 @@ export { useComputed }
 export function useContainer(): HTMLDivElement;
 
 // @public (undocumented)
-export const useEditor: () => Editor;
+export function useEditor(): Editor;
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
