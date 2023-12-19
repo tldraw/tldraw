@@ -37,7 +37,6 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			!editor.getIsMenuOpen() && editor.getInstanceState().cursor.type === 'default'
 		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
-		const shapes = editor.getSelectedShapes()
 		const onlyShape = editor.getOnlySelectedShape()
 		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
 
@@ -162,10 +161,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 
 		let hideEdgeTargetsDueToCoarsePointer = isCoarsePointer
 
-		if (
-			hideEdgeTargetsDueToCoarsePointer &&
-			shapes.every((shape) => editor.getShapeUtil(shape).isAspectRatioLocked(shape))
-		) {
+		if (hideEdgeTargetsDueToCoarsePointer && onlyShape && onlyShape.type === 'text') {
 			hideEdgeTargetsDueToCoarsePointer = false
 		}
 

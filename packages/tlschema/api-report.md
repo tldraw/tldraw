@@ -560,6 +560,9 @@ export const LANGUAGES: readonly [{
     readonly locale: "ca";
     readonly label: "Català";
 }, {
+    readonly locale: "cs";
+    readonly label: "Čeština";
+}, {
     readonly locale: "da";
     readonly label: "Danish";
 }, {

@@ -192,6 +192,7 @@ import iconsZoomIn from './icons/icon/zoom-in.svg'
 import iconsZoomOut from './icons/icon/zoom-out.svg'
 import translationsAr from './translations/ar.json'
 import translationsCa from './translations/ca.json'
+import translationsCs from './translations/cs.json'
 import translationsDa from './translations/da.json'
 import translationsDe from './translations/de.json'
 import translationsEn from './translations/en.json'
@@ -407,6 +408,7 @@ export function getAssetUrlsByImport(opts) {
 		translations: {
 			ar: formatAssetUrl(translationsAr, opts),
 			ca: formatAssetUrl(translationsCa, opts),
+			cs: formatAssetUrl(translationsCs, opts),
 			da: formatAssetUrl(translationsDa, opts),
 			de: formatAssetUrl(translationsDe, opts),
 			en: formatAssetUrl(translationsEn, opts),

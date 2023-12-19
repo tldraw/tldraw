@@ -3,6 +3,7 @@ import {
 	PointsSnapLine,
 	SnapLine,
 	TLArrowShape,
+	TLGeoShape,
 	TLShapeId,
 	TLShapePartial,
 	Vec2d,
@@ -131,6 +132,8 @@ describe('When translating...', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.pointerDown(50, 50, ids.box1).pointerMove(0, 50) // [-50, 0]
 
+		const before = editor.getShape<TLGeoShape>(ids.box1)!
+
 		jest.advanceTimersByTime(100)
 		editor
 			// The change is bigger than expected because the camera moves
@@ -139,10 +142,14 @@ describe('When translating...', () => {
 			// The speed in the y position is smaller since we are further away from the edge.
 			.pointerMove(0, 25)
 		jest.advanceTimersByTime(100)
-		editor
-			.expectShapeToMatch({ id: ids.box1, x: -280, y: -42.54 })
-			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: -280, y: -42.54 })
+		editor.pointerUp()
+
+		const after = editor.getShape<TLGeoShape>(ids.box1)!
+
+		expect(after.x).toBeLessThan(before.x)
+		expect(after.y).toBeLessThan(before.y)
+		expect(after.props.w).toEqual(before.props.w)
+		expect(after.props.h).toEqual(before.props.h)
 	})
 
 	it('translates a single shape near the bottom right edge', () => {

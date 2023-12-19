@@ -5,6 +5,7 @@
 export const LANGUAGES = [
 	{ locale: 'ar', label: 'عربي' },
 	{ locale: 'ca', label: 'Català' },
+	{ locale: 'cs', label: 'Čeština' },
 	{ locale: 'da', label: 'Danish' },
 	{ locale: 'de', label: 'Deutsch' },
 	{ locale: 'en', label: 'English' },

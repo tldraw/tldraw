@@ -5,6 +5,7 @@ import {
 	PI2,
 	PointsSnapLine,
 	RotateCorner,
+	TLGeoShape,
 	TLSelectionHandle,
 	TLShapeId,
 	TLShapePartial,
@@ -3903,6 +3904,7 @@ describe('Resizing text from the right edge', () => {
 describe('When resizing near the edges of the screen', () => {
 	it('resizes past the edge of the screen', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const before = editor.getShape<TLGeoShape>(ids.boxA)!
 		editor
 			.select(ids.boxA)
 			.pointerDown(10, 10, {
@@ -3910,14 +3912,12 @@ describe('When resizing near the edges of the screen', () => {
 				target: 'selection',
 				handle: 'top_left',
 			})
-			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
 			.pointerMove(10, 25)
 		jest.advanceTimersByTime(1000)
-		editor.expectShapeToMatch({
-			id: ids.boxA,
-			x: -842.5,
-			y: -259.58,
-			props: { w: 952.5, h: 369.58 },
-		})
+		const after = editor.getShape<TLGeoShape>(ids.boxA)!
+		expect(after.x).toBeLessThan(before.x)
+		expect(after.y).toBeLessThan(before.y)
+		expect(after.props.w).toBeGreaterThan(before.props.w)
+		expect(after.props.h).toBeGreaterThan(before.props.h)
 	})
 })

@@ -2062,33 +2062,6 @@
                 "startIndex": 1,
                 "endIndex": 2
               }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/state!Signal#value:member",
-              "docComment": "/**\n * @deprecated\n *\n * Use [[Signal.get]] instead.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "value: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "Value"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "value",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
             }
           ],
           "extendsTokenRanges": []

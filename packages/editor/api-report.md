@@ -485,7 +485,7 @@ export const DefaultSvgDefs: () => null;
 // @public (undocumented)
 export const defaultUserPreferences: Readonly<{
     name: "New User";
-    locale: "ar" | "ca" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     isDarkMode: false;
     edgeScrollSpeed: 1;
@@ -575,21 +575,13 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         extras?: Record<string, unknown>;
     }): this;
-    // @deprecated (undocumented)
-    get assets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
-    // @deprecated (undocumented)
-    get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
-    // @deprecated (undocumented)
-    get canRedo(): boolean;
-    // @deprecated (undocumented)
-    get canUndo(): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this;
@@ -615,28 +607,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
-    // @deprecated (undocumented)
-    get croppingShapeId(): null | TLShapeId;
-    // @deprecated (undocumented)
-    get currentPage(): TLPage;
-    // @deprecated (undocumented)
-    get currentPageBounds(): Box2d | undefined;
-    // @deprecated (undocumented)
-    get currentPageId(): TLPageId;
-    // @deprecated (undocumented)
-    get currentPageRenderingShapesSorted(): TLShape[];
-    // @deprecated (undocumented)
-    get currentPageShapeIds(): Set<TLShapeId>;
-    // @deprecated (undocumented)
-    get currentPageShapes(): TLShape[];
-    // @deprecated (undocumented)
-    get currentPageShapesSorted(): TLShape[];
-    // @deprecated (undocumented)
-    get currentPageState(): TLInstancePageState;
-    // @deprecated (undocumented)
-    get currentTool(): StateNode;
-    // @deprecated (undocumented)
-    get currentToolId(): string;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(page: TLPage | TLPageId): this;
@@ -651,19 +621,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    // @deprecated (undocumented)
-    get documentSettings(): TLDocument;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
-    // @deprecated (undocumented)
-    get editingShape(): TLShape | undefined;
-    // @deprecated (undocumented)
-    get editingShapeId(): null | TLShapeId;
     readonly environment: EnvironmentManager;
-    // @deprecated (undocumented)
-    get erasingShapeIds(): TLShapeId[];
-    // @deprecated (undocumented)
-    get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent['type']]: {
@@ -683,10 +643,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    // @deprecated (undocumented)
-    get focusedGroup(): TLShape | undefined;
-    // @deprecated (undocumented)
-    get focusedGroupId(): TLPageId | TLShapeId;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
     getArrowsBoundTo(shapeId: TLShapeId): {
@@ -806,15 +762,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
-    // @deprecated (undocumented)
-    get hintingShape(): NonNullable<TLShape | undefined>[];
-    // @deprecated (undocumented)
-    get hintingShapeIds(): TLShapeId[];
     readonly history: HistoryManager<this>;
-    // @deprecated (undocumented)
-    get hoveredShape(): TLShape | undefined;
-    // @deprecated (undocumented)
-    get hoveredShapeId(): null | TLShapeId;
     inputs: {
         originPagePoint: Vec2d;
         originScreenPoint: Vec2d;
@@ -835,14 +783,10 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         pointerVelocity: Vec2d;
     };
-    // @deprecated (undocumented)
-    get instanceState(): TLInstance;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
-    // @deprecated (undocumented)
-    get isMenuOpen(): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         margin?: number | undefined;
         hitInside?: boolean | undefined;
@@ -857,15 +801,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
-    // @deprecated (undocumented)
-    get onlySelectedShape(): null | TLShape;
-    // @deprecated (undocumented)
-    get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
-    // @deprecated (undocumented)
-    get pages(): TLPage[];
-    // @deprecated (undocumented)
-    get pageStates(): TLInstancePageState[];
     pageToScreen(point: VecLike): {
         x: number;
         y: number;
@@ -889,22 +825,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         type: T;
     } : TLExternalContent) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
-    // @deprecated (undocumented)
-    get renderingBounds(): Box2d;
-    // @deprecated (undocumented)
-    get renderingBoundsExpanded(): Box2d;
     renderingBoundsMargin: number;
-    // @deprecated (undocumented)
-    get renderingShapes(): {
-        id: TLShapeId;
-        shape: TLShape;
-        util: ShapeUtil<TLUnknownShape>;
-        index: number;
-        backgroundIndex: number;
-        opacity: number;
-        isCulled: boolean;
-        maskedPageBounds: Box2d | undefined;
-    }[];
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
     resetZoom(point?: Vec2d, animation?: TLAnimationOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
@@ -918,16 +839,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
-    // @deprecated (undocumented)
-    get selectedShapeIds(): TLShapeId[];
-    // @deprecated (undocumented)
-    get selectedShapes(): TLShape[];
-    // @deprecated (undocumented)
-    get selectionPageBounds(): Box2d | null;
-    // @deprecated (undocumented)
-    get selectionRotatedPageBounds(): Box2d | undefined;
-    // @deprecated (undocumented)
-    get selectionRotation(): number;
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
@@ -949,10 +860,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
-    // @deprecated (undocumented)
-    get sharedOpacity(): SharedStyle<number>;
-    // @deprecated (undocumented)
-    get sharedStyles(): ReadonlySharedStyleMap;
     readonly sideEffects: SideEffectManager<this>;
     slideCamera(opts?: {
         speed: number;
@@ -988,18 +895,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
-    // @deprecated (undocumented)
-    get viewportPageBounds(): Box2d;
-    // @deprecated (undocumented)
-    get viewportPageCenter(): Vec2d;
-    // @deprecated (undocumented)
-    get viewportScreenBounds(): Box2d;
-    // @deprecated (undocumented)
-    get viewportScreenCenter(): Vec2d;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec2d, animation?: TLAnimationOptions): this;
-    // @deprecated (undocumented)
-    get zoomLevel(): number;
     zoomOut(point?: Vec2d, animation?: TLAnimationOptions): this;
     zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this;
     zoomToContent(): this;
@@ -1808,8 +1705,6 @@ export class SnapManager {
     constructor(editor: Editor);
     // (undocumented)
     clear(): void;
-    // @deprecated (undocumented)
-    get currentCommonAncestor(): TLShapeId | undefined;
     // (undocumented)
     readonly editor: Editor;
     // (undocumented)
@@ -1836,18 +1731,8 @@ export class SnapManager {
         horizontal: Gap[];
         vertical: Gap[];
     };
-    // @deprecated (undocumented)
-    get lines(): SnapLine[];
-    // @deprecated (undocumented)
-    get outlinesInPageSpace(): Vec2d[][];
     // (undocumented)
     setLines(lines: SnapLine[]): void;
-    // @deprecated (undocumented)
-    get snappablePoints(): SnapPoint[];
-    // @deprecated (undocumented)
-    get snappableShapes(): GapNode[];
-    // @deprecated (undocumented)
-    get snapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
     // (undocumented)
     snapResize({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }: {
         initialSelectionPageBounds: Box2d;
@@ -1856,8 +1741,6 @@ export class SnapManager {
         isAspectRatioLocked: boolean;
         isResizingFromCenter: boolean;
     }): SnapData;
-    // @deprecated (undocumented)
-    get snapThreshold(): number;
     // (undocumented)
     snapTranslate({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: {
         lockedAxis: 'x' | 'y' | null;
@@ -1865,11 +1748,6 @@ export class SnapManager {
         initialSelectionPageBounds: Box2d;
         dragDelta: Vec2d;
     }): SnapData;
-    // @deprecated (undocumented)
-    get visibleGaps(): {
-        horizontal: Gap[];
-        vertical: Gap[];
-    };
 }
 
 // @public (undocumented)
@@ -1911,9 +1789,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
-    // @deprecated (undocumented)
-    get currentToolIdMask(): string | undefined;
-    set currentToolIdMask(id: string | undefined);
     _currentToolIdMask: Atom<string | undefined, unknown>;
     // (undocumented)
     editor: Editor;

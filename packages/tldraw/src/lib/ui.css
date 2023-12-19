@@ -137,6 +137,10 @@
 	padding: 0px;
 }
 
+.tlui-button__icon-left {
+	margin-right: var(--space-2);
+}
+
 /* Hinted */
 
 .tlui-button__icon[data-state='hinted']::after {

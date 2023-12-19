@@ -24,6 +24,7 @@ In the `apps/vscode/extension` window, open the terminal and:
 Open a `.tldr` file from the file explorer or create a new `.tldr` file from the command palette.
 
 ## 3. Debugging
+
 You can use standard debugging techniques like `console.log`, which will be displayed in the VS Code window with the extension running. It will display logs both from the Extension and the Editor. VS Code editor with the Extension folder will show more detailed logs from the Extension project. You can also use a debugger.
 
 The code is hot-reloaded, so the developer experience is quite nice.
@@ -35,9 +36,10 @@ Update the version in the `apps/vscode/extension/package.json`. Update the `apps
 To publish:
 
 - Install `vsce` globally
-- Run `vsce login tldraw-org` and sign in. For this to work you need to create a [personal access token](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#get-a-personal-access-token) and you also need to be added to the `tldraw-org` organization on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/manage). 
+- Run `vsce login tldraw-org` and sign in. For this to work you need to create a [personal access token](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#get-a-personal-access-token) and you also need to be added to the `tldraw-org` organization on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/manage).
 
 In the `apps/vscode/extension` folder:
+
 - Run `yarn package`
 - Run `yarn publish`
 
@@ -45,18 +47,20 @@ In the `apps/vscode/extension` folder:
 
 The Visual Studio Code extension is made of two projects:
 
-### 1. Extension project 
+### 1. Extension project
+
 Extension project is under `apps/vscode/extension` and contains the code needed to run a VS Code Extension - it implements the required VS Code interfaces so that VS Code can call our extension and start running it.
 
 It registers the command for generating a new `.tldr` file, custom editor for `.tldr` files, and it communicates with the WebViews that run `@tldraw/editor` (more on this later on).
 
-VS Code Extension API offers two ways for adding [new editors](https://code.visualstudio.com/api/extension-guides/custom-editors): `CustomEditor` and `CustomTextEditor`. We are using [`CustomEditor`](https://code.visualstudio.com/api/extension-guides/custom-editors#custom-editor), even though it means we have to do a bit more work and maintain the contents of the document ourselves. This allows us to better support features like `undo`, `redo`, and `revert`, since we are in complete control of the contents of the document. 
+VS Code Extension API offers two ways for adding [new editors](https://code.visualstudio.com/api/extension-guides/custom-editors): `CustomEditor` and `CustomTextEditor`. We are using [`CustomEditor`](https://code.visualstudio.com/api/extension-guides/custom-editors#custom-editor), even though it means we have to do a bit more work and maintain the contents of the document ourselves. This allows us to better support features like `undo`, `redo`, and `revert`, since we are in complete control of the contents of the document.
 
 The custom editor logic lives in `TldrawDocument`, where we handle all the required custom editor operations like reading the file from disk, saving the file, backups, reverting, etc. When a `.tldr` file is opened a new instance of a `TldrawDocument` is created and this instance then serves as the underlying document model for displaying in the VS Code editors for editing this file. You can open the same file in multiple editors, but even then only a single instance of `TldrawDocument` is created per file.
 
 When a users opens a file a new WebView is created by the `TldrawWebviewManager` and the file's contents are sent do it. WebViews then show our editor project, which is described below.
 
-### 2. Editor project 
+### 2. Editor project
+
 Editor project is under `apps/vscode/editor`. When a file is opened a new instance of a WebView is created and we show `@tldraw/editor` this WebView.
 
 The implementation is pretty straight forward, but there are some limitations of running `tldraw` inside a WebView, like `window.open` and `window.prompt` not being available, as well as some issues with embeds. We are using `useLocalSyncClient` to sync between different editor instances for cases when the same file is opened in multiple editors.
@@ -68,7 +72,6 @@ When users interact with tldraw we listen for changes and when changes happen we
 VS Code actives our extension when needed - when a user opens the first `.tldr` file or when a user runs our registered command. Then, VS Code calls into `TldrawEditorProvider` to open the custom editor, which in turn creates a `TldrawDocument` instance. We read the file contents from disk and send them to the WebView, which then shows the Editor. When the user interacts with the editor we send the changes back to the Extension, which then updates the `TldrawDocument` instance. Since the instance is always kept up to date we can correctly handle user actions like `save`, `save as`, `undo`, `redo`, and `revert`.
 
 ![VS Code Extension](VS-Code-Extension-1.png)
-
 
 #### References
 
@@ -85,3 +88,29 @@ VS Code actives our extension when needed - when a user opens the first `.tldr` 
 - [github.com/microsoft/vscode-extension-samples](https://github.com/microsoft/vscode-extension-samples)
 - [Extensions Guide -> Webviews](https://code.visualstudio.com/api/extension-guides/webview)
 - [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
+
+## Community
+
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new).
+
+## Distributions
+
+You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
+
+## Contribution
+
+Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+
+## License
+
+The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use.
+
+If you wish to use this project in commercial product, you need to purchase a commercial license. matPlease contact us at [hello@tldraw.com](mailto:hello@tldraw.com) for more inforion about obtaining a commercial license.
+
+## Trademarks
+
+Copyright (c) 2023-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRANDEMARKS.md) for info on acceptable usage.
+
+## Contact
+
+Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [hello@tldraw.com](mailto://hello@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.

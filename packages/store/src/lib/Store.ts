@@ -187,7 +187,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				objectMapFromEntries(
 					objectMapEntries(initialData).map(([id, record]) => [
 						id,
-						atom('atom:' + id, this.schema.validateRecord(this, record, 'initialize', null)),
+						atom(
+							'atom:' + id,
+							devFreeze(this.schema.validateRecord(this, record, 'initialize', null))
+						),
 					])
 				)
 			)
@@ -881,7 +884,7 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 				continue
 			}
 			if (result.updated[id]) {
-				result.updated[id][1] = to
+				result.updated[id] = [result.updated[id][0], to]
 				delete result.removed[id]
 				continue
 			}
@@ -937,7 +940,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 
 	result.push(current)
 
-	return result
+	return devFreeze(result)
 }
 
 /** @public */

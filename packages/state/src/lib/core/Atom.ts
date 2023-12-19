@@ -4,7 +4,6 @@ import { maybeCaptureParent } from './capture'
 import { EMPTY_ARRAY, equals, singleton } from './helpers'
 import { advanceGlobalEpoch, atomDidChange, getGlobalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
-import { logDotValueWarning } from './warnings'
 
 /**
  * The options to configure an atom, passed into the [[atom]] function.
@@ -103,15 +102,6 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	get() {
 		maybeCaptureParent(this)
 		return this.current
-	}
-
-	/**
-	 * @deprecated Use [[Atom.get]] instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get value() {
-		logDotValueWarning()
-		return this.get()
 	}
 
 	set(value: Value, diff?: Diff): Value {
