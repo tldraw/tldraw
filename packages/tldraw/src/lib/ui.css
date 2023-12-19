@@ -138,7 +138,7 @@
 }
 
 .tlui-button__icon-left {
-	margin-right: 4px;
+	margin-right: var(--space-2);
 }
 
 /* Hinted */
