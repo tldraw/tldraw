@@ -1750,3 +1750,54 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerUp()
 	})
 })
+
+describe('When a shape is locked', () => {
+	beforeEach(() => {
+		editor.createShape({
+			id: ids.box1,
+			type: 'geo',
+			x: 0,
+			y: 0,
+			isLocked: true,
+			props: { w: 300, h: 300 },
+		})
+	})
+
+	it('does not select the shape', () => {
+		editor.pointerDown(50, 50)
+		editor.expectToBeIn('select.pointing_canvas')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('allows translating shapes on top of the locked shape', () => {
+		editor.createShape({ id: ids.box2, x: 50, y: 50, type: 'geo', props: { w: 50, h: 50 } })
+		editor.createShape({ id: ids.box3, x: 200, y: 200, type: 'geo', props: { w: 50, h: 50 } })
+
+		// Select the first shape
+		editor.pointerMove(60, 60)
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+		// Shift select the second shape
+		editor.pointerMove(210, 210)
+		editor.keyDown('Shift')
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.keyUp('Shift')
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
+
+		// Click between them and start dragging
+		editor.pointerMove(150, 150)
+		editor.pointerDown()
+		editor.expectToBeIn('select.pointing_selection')
+		editor.pointerMove(100, 150)
+		editor.expectToBeIn('select.translating')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
+	})
+})
