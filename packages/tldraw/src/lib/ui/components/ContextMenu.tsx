@@ -84,7 +84,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const disabled = !selectToolActive || noItemsToShow
 
 	return (
-		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange}>
+		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger
 				onContextMenu={disabled ? preventDefault : undefined}
 				dir="ltr"
