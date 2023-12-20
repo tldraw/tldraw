@@ -1,9 +1,9 @@
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { SpeechBubbleUtil } from './SpeechBubble/SpeechBubble'
 import { SpeechBubbleTool } from './SpeechBubble/SpeechBubbleTool'
+import { SpeechBubbleUtil } from './SpeechBubble/SpeechBubbleUtil'
 import { customAssetUrls, uiOverrides } from './SpeechBubble/ui-overrides'
-import './speechbubble.css'
+import './customhandles.css'
 
 const shapeUtils = [SpeechBubbleUtil]
 const tools = [SpeechBubbleTool]

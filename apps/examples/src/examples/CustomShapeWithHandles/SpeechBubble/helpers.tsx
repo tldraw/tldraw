@@ -1,5 +1,5 @@
 import { TLHandle, Vec2d, VecLike, lerp } from '@tldraw/tldraw'
-import { SpeechBubbleShape } from './SpeechBubble'
+import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export const getSpeechBubbleGeometry = (shape: SpeechBubbleShape): Vec2d[] => {
 	const {
