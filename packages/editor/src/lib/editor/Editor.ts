@@ -1310,6 +1310,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Clear all open menus.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.clearOpenMenus()
+	 * ```
+	 *
+	 * @public
+	 */
+	clearOpenMenus(): this {
+		if (this.getOpenMenus().length) {
+			this.updateInstanceState({ openMenus: [] })
+		}
+		return this
+	}
+
+	/**
 	 * Get whether any menus are open.
 	 *
 	 * @example
@@ -8696,6 +8713,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					switch (info.name) {
 						case 'pointer_down': {
+							this.clearOpenMenus()
+
 							this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 
 							// Firefox bug fix...

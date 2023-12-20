@@ -585,6 +585,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this;
+    clearOpenMenus(): this;
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
