@@ -223,6 +223,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
 		const parent = this.editor.getShape(_shape.parentId)
 		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
+
 		// If frame is in a group, keep the shape
 		// moved out in that group
 
