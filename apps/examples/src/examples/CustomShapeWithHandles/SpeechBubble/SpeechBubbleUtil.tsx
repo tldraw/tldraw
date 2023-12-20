@@ -18,6 +18,7 @@ import {
 	resizeBox,
 	structuredClone,
 } from '@tldraw/tldraw'
+import { STROKE_SIZES } from '@tldraw/tldraw/src/lib/shapes/shared/default-shape-constants'
 import { getHandleIntersectionPoint, getSpeechBubbleGeometry } from './helpers'
 
 export type SpeechBubbleShape = TLBaseShape<
@@ -180,12 +181,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const newShape = getHandleinShapeSpace(shape)
 		const geometry = getSpeechBubbleGeometry(newShape)
 		const pathData = 'M' + geometry[0] + 'L' + geometry.slice(1) + 'Z'
-		const STROKE_SIZES = {
-			s: 2,
-			m: 3.5,
-			l: 5,
-			xl: 10,
-		}
+
 		return (
 			<>
 				<svg className="tl-svg-container">
@@ -208,23 +204,12 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	}
 
 	override onResize: TLOnResizeHandler<SpeechBubbleShape> = (shape, info) => {
-		const newShape = getHandleinShapeSpace(shape)
-		info.initialShape = getHandleinShapeSpace(info.initialShape)
-		const resized = resizeBox(newShape, info)
+		const resized = resizeBox(shape, info)
 		const next = structuredClone(info.initialShape)
 		next.x = resized.x
 		next.y = resized.y
 		next.props.w = resized.props.w
 		next.props.h = resized.props.h
-
-		const widthRatio = next.props.w / info.initialShape.props.w
-		const heightRatio = next.props.h / info.initialShape.props.h
-		const handle = next.props.handles.handle
-		handle.x *= widthRatio
-		handle.y *= heightRatio
-		newShape.props.handles.handle.x = handle.x
-		newShape.props.handles.handle.y = handle.y
-
-		return getHandlesInHandleSpace(newShape)
+		return next
 	}
 }
