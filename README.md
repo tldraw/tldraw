@@ -31,11 +31,11 @@ Open the example project at `localhost:5420`.
 
 ## License
 
-tldraw's source code and distributed packages are provided under the restrictive / copyleft [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). You may use and modify tldraw as long as your code is kept open source and licensed under the same AGPLv3 license.
+tldraw's source code and distributed packages are provided under the non-commercial [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md).
 
-If you want to use tldraw in closed-source software or in a project not licensed under AGPL-3.0, you need to purchase a commercial license. We are happy to provide free licenses on a case-by-case basis for use in charitable projects, research projects, or early-stage commercial products.
+This license does not permit commercial use. If you wish to use tldraw in a commercial product or enterprise, you will need to purchase a commercial license. To obtain a commercial license, please contact us at [hello@tldraw.com](mailto:hello@tldraw.com).
 
-To obtain a commercial license, please contact us at [hello@tldraw.com](mailto:hello@tldraw.com).
+To learn more, see our [license](https://tldraw.dev/community/license) page.
 
 ## Trademarks
 
