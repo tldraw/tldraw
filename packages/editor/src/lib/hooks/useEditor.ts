@@ -4,6 +4,6 @@ import { Editor } from '../editor/Editor'
 export const EditorContext = React.createContext({} as Editor)
 
 /** @public */
-export const useEditor = (): Editor => {
+export function useEditor(): Editor {
 	return React.useContext(EditorContext)
 }

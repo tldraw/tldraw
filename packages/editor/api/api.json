@@ -42130,32 +42130,33 @@
           "name": "useContainer"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!useEditor:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!useEditor:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "useEditor: "
-            },
-            {
-              "kind": "Content",
-              "text": "() => "
+              "text": "export declare function useEditor(): "
             },
             {
               "kind": "Reference",
               "text": "Editor",
               "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/hooks/useEditor.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "useEditor",
-          "variableTypeTokenRange": {
+          "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
-          }
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useEditor"
         },
         {
           "kind": "Function",
