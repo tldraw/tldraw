@@ -1,0 +1,5 @@
+/* Resize handles are normally on top, but We're going to give shape handles priority */
+.tl-user-handles {
+	z-index: 101;
+
+}
