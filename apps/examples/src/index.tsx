@@ -18,6 +18,7 @@ import AssetPropsExample from './examples/AssetOptionsExample'
 import CanvasEventsExample from './examples/CanvasEventsExample'
 import CustomComponentsExample from './examples/CustomComponentsExample'
 import CustomConfigExample from './examples/CustomConfigExample/CustomConfigExample'
+import { CustomShapeWithHandles } from './examples/CustomShapeWithHandles/CustomShapeWithHandles'
 import CustomStylesExample from './examples/CustomStylesExample/CustomStylesExample'
 import CustomUiExample from './examples/CustomUiExample/CustomUiExample'
 import ErrorBoundaryExample from './examples/ErrorBoundaryExample/ErrorBoundaryExample'
@@ -202,6 +203,11 @@ export const allExamples: Example[] = [
 		title: 'External content sources',
 		path: 'external-content-sources',
 		element: <ExternalContentSourcesExample />,
+	},
+	{
+		title: 'Custom shape with handles',
+		path: 'custom-shape-with-handles',
+		element: <CustomShapeWithHandles />,
 	},
 	// not listed
 	{
