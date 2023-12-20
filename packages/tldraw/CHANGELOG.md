@@ -1,3 +1,87 @@
+# v2.0.0-beta.1 (Wed Dec 20 2023)
+
+### Release Notes
+
+#### Fix clicking off the context menu ([#2355](https://github.com/tldraw/tldraw/pull/2355))
+
+- Fix not being able to close the context menu by clicking on the UI or your selected shape.
+
+#### fix read only page menu ([#2356](https://github.com/tldraw/tldraw/pull/2356))
+
+- Add a brief release note for your PR here.
+
+#### focus on container before deleting to avoid losing focus ([#2354](https://github.com/tldraw/tldraw/pull/2354))
+
+- Prevents losing focus when clicking the trash button
+
+#### Use custom font ([#2343](https://github.com/tldraw/tldraw/pull/2343))
+
+- Add a brief release note for your PR here.
+
+#### Only allow side resizing when we have some shapes that are not aspect ratio locked ([#2347](https://github.com/tldraw/tldraw/pull/2347))
+
+- Don't allow edges resizing on mobile. The only exception is a single text shape.
+
+#### Fix iconleft padding ([#2345](https://github.com/tldraw/tldraw/pull/2345))
+
+- Fixes the icon padding in back to content / pen mode buttons.
+
+#### Allow dragging on top of locked shapes. ([#2337](https://github.com/tldraw/tldraw/pull/2337))
+
+- Allow translating of shapes on top of a locked shape by clicking inside of selection and moving the mouse.
+
+#### Prevent diff mutation ([#2336](https://github.com/tldraw/tldraw/pull/2336))
+
+- Fix `squashRecordDiffs` to prevent a bug where it mutates the 'updated' entires
+
+#### Fix indicator radius for bookmarks. ([#2335](https://github.com/tldraw/tldraw/pull/2335))
+
+- Fix the indicator for the bookmark shape. The radius now matches the shape's radius.
+
+#### Start scrolling if we are dragging close to the window edges. ([#2299](https://github.com/tldraw/tldraw/pull/2299))
+
+- Adds the logic to change the camera position when you get close to the edges of the window. This allows you to drag, resize, brush select past the edges of the current viewport.
+
+#### Fix downscaling ([#2325](https://github.com/tldraw/tldraw/pull/2325))
+
+- Decrease the size of uploaded assets.
+
+---
+
+#### 💥 Breaking Change
+
+- bump to beta [#2364](https://github.com/tldraw/tldraw/pull/2364) ([@steveruizok](https://github.com/steveruizok))
+- Use custom font [#2343](https://github.com/tldraw/tldraw/pull/2343) ([@ds300](https://github.com/ds300) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Change licenses to tldraw [#2167](https://github.com/tldraw/tldraw/pull/2167) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🚀 Enhancement
+
+- Start scrolling if we are dragging close to the window edges. [#2299](https://github.com/tldraw/tldraw/pull/2299) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Fix clicking off the context menu [#2355](https://github.com/tldraw/tldraw/pull/2355) ([@TodePond](https://github.com/TodePond) [@steveruizok](https://github.com/steveruizok))
+- fix read only page menu [#2356](https://github.com/tldraw/tldraw/pull/2356) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@TodePond](https://github.com/TodePond))
+- focus on container before deleting to avoid losing focus [#2354](https://github.com/tldraw/tldraw/pull/2354) ([@ds300](https://github.com/ds300))
+- Only allow side resizing when we have some shapes that are not aspect ratio locked [#2347](https://github.com/tldraw/tldraw/pull/2347) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Drop edge scrolling adjustment for mobile [#2346](https://github.com/tldraw/tldraw/pull/2346) ([@steveruizok](https://github.com/steveruizok))
+- Fix iconleft padding [#2345](https://github.com/tldraw/tldraw/pull/2345) ([@steveruizok](https://github.com/steveruizok))
+- Allow dragging on top of locked shapes. [#2337](https://github.com/tldraw/tldraw/pull/2337) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Prevent diff mutation [#2336](https://github.com/tldraw/tldraw/pull/2336) ([@ds300](https://github.com/ds300))
+- Fix indicator radius for bookmarks. [#2335](https://github.com/tldraw/tldraw/pull/2335) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix downscaling [#2325](https://github.com/tldraw/tldraw/pull/2325) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.0.0-alpha.19 (Tue Dec 12 2023)
 
 ### Release Notes

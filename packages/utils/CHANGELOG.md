@@ -1,3 +1,21 @@
+# v2.0.0-beta.1 (Wed Dec 20 2023)
+
+#### 💥 Breaking Change
+
+- bump to beta [#2364](https://github.com/tldraw/tldraw/pull/2364) ([@steveruizok](https://github.com/steveruizok))
+- Change licenses to tldraw [#2167](https://github.com/tldraw/tldraw/pull/2167) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- fix png images with pixel ratios <0.5 crashing the app [#2350](https://github.com/tldraw/tldraw/pull/2350) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.19 (Tue Dec 12 2023)
 
 ### Release Notes
