@@ -7546,6 +7546,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#clearOpenMenus:member(1)",
+              "docComment": "/**\n * Clear all open menus.\n *\n * @example\n * ```ts\n * editor.clearOpenMenus()\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "clearOpenMenus(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "clearOpenMenus"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#complete:member(1)",
               "docComment": "/**\n * Dispatch a complete event.\n *\n * @example\n * ```ts\n * editor.complete()\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [

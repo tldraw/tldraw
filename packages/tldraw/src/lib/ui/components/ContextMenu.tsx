@@ -65,9 +65,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 		[editor]
 	)
 
-	const container = useContainer()
-
-	const [_, handleOpenChange] = useMenuIsOpen('context menu', cb)
+	const [isOpen, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
 	// If every item in the menu is readonly, then we don't want to show the menu
 	const isReadonly = useReadonly()
@@ -76,6 +74,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 		contextTLUiMenuSchema.length === 0 ||
 		(isReadonly && contextTLUiMenuSchema.every((item) => !item.readonlyOk))
 
+	// Todo: remove this dependency on the select tool; not sure how else to say "only show the context menu when we're using a tool that supports it"
 	const selectToolActive = useValue(
 		'isSelectToolActive',
 		() => editor.getCurrentToolId() === 'select',
@@ -85,7 +84,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const disabled = !selectToolActive || noItemsToShow
 
 	return (
-		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange}>
+		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger
 				onContextMenu={disabled ? preventDefault : undefined}
 				dir="ltr"
@@ -93,9 +92,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 			>
 				{children}
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Portal container={container}>
-				<ContextMenuContent />
-			</_ContextMenu.Portal>
+			{isOpen && <ContextMenuContent />}
 		</_ContextMenu.Root>
 	)
 }
@@ -104,6 +101,7 @@ const ContextMenuContent = forwardRef(function ContextMenuContent() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const menuSchema = useContextMenuSchema()
+
 	const [_, handleSubOpenChange] = useMenuIsOpen('context menu sub')
 
 	const isReadonly = useReadonly()
