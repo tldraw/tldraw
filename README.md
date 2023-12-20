@@ -33,7 +33,7 @@ Open the example project at `localhost:5420`.
 
 tldraw's source code and distributed packages are provided under the non-commercial [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md).
 
-This license does not permit commercial use. If you wish to use tldraw in a commercial product or enterpsie, you will need to purchase a commercial license. To obtain a commercial license, please contact us at [hello@tldraw.com](mailto:hello@tldraw.com).
+This license does not permit commercial use. If you wish to use tldraw in a commercial product or enterprise, you will need to purchase a commercial license. To obtain a commercial license, please contact us at [hello@tldraw.com](mailto:hello@tldraw.com).
 
 To learn more, see our [license](https://tldraw.dev/community/license) page.
 
