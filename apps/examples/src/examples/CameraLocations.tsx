@@ -73,10 +73,7 @@ const SlideList = track(() => {
 							}}
 							key={location.key}
 							onClick={() => {
-								editor.setCamera(location.position, {
-									duration: 200,
-									easing: EASINGS.easeInOutQuad,
-								})
+								moveCamera(editor, location.position)
 							}}
 						>
 							{`Slide ${i + 1}`}
@@ -100,6 +97,10 @@ const components: TLEditorComponents = {
 
 const cameraLocations: Atom<CameraLocation[]> = atom('cameraLocations', [] as CameraLocation[])
 
+const moveCamera = (editor: Editor, location: Vec2d) => {
+	editor.setCamera(location, { duration: 200, easing: EASINGS.easeInOutQuad })
+}
+
 const CameraLocationsExample = track(() => {
 	const [editor, setEditor] = useState<Editor | null>(null)
 
@@ -108,11 +109,12 @@ const CameraLocationsExample = track(() => {
 			if (!editor) return
 
 			const locations = cameraLocations.get()
+			const position = getCurrentPosition(editor)
+			const locationIndex = getLocationIndex(locations, position)
 
 			if (cameraMoveKeys.includes(e.key)) {
+				const location = getLocationByKey(locations, e.key)
 				if (e.shiftKey) {
-					const position = getCurrentPosition(editor)
-					const location = getLocationByKey(locations, e.key)
 					if (location) {
 						const newLocations = locations.map((l) => {
 							if (l.key === e.key) {
@@ -125,36 +127,18 @@ const CameraLocationsExample = track(() => {
 						cameraLocations.set([...locations, { key: e.key, position: position }])
 					}
 				} else {
-					const location = getLocationByKey(locations, e.key)
 					if (!location) return
-
-					editor.setCamera(location.position, { duration: 200, easing: EASINGS.easeInOutQuad })
+					moveCamera(editor, location.position)
 				}
 			}
-			if (e.key === 'ArrowRight' && e.shiftKey) {
-				const position = getCurrentPosition(editor)
-				const locationIndex = getLocationIndex(locations, position)
-				if (locationIndex === -1) return
-
+			if (e.key === 'ArrowRight' && e.shiftKey && locationIndex !== -1) {
 				const nextIndex = (locationIndex + 1) % locations.length
-
-				editor.setCamera(locations[nextIndex].position, {
-					duration: 200,
-					easing: EASINGS.easeInOutQuad,
-				})
+				moveCamera(editor, locations[nextIndex].position)
 			}
 
-			if (e.key === 'ArrowLeft' && e.shiftKey) {
-				const position = getCurrentPosition(editor)
-				const locationIndex = getLocationIndex(locations, position)
-				if (locationIndex === -1) return
-
+			if (e.key === 'ArrowLeft' && e.shiftKey && locationIndex !== -1) {
 				const nextIndex = (locationIndex - 1 + locations.length) % locations.length
-
-				editor.setCamera(locations[nextIndex].position, {
-					duration: 200,
-					easing: EASINGS.easeInOutQuad,
-				})
+				moveCamera(editor, locations[nextIndex].position)
 			}
 		}
 
