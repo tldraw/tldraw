@@ -27,6 +27,8 @@ import ExternalContentSourcesExample from './examples/ExternalContentSourcesExam
 import FloatyExample from './examples/FloatyExample'
 import ForceMobileExample from './examples/ForceBreakpointExample'
 import HideUiExample from './examples/HideUiExample'
+import HostedImagesExample from './examples/HostedImagesExample'
+import ImageExample from './examples/ImagesExamples'
 import MetaExample from './examples/MetaExample'
 import MultipleExample from './examples/MultipleExample'
 import OnTheCanvasExample from './examples/OnTheCanvas'
@@ -190,6 +192,16 @@ export const allExamples: Example[] = [
 		element: <OnlyEditorExample />,
 	},
 	{
+		title: 'Adding images',
+		path: 'images',
+		element: <ImageExample />,
+	},
+	{
+		title: 'Hosted images example',
+		path: 'hosted-images',
+		element: <HostedImagesExample />,
+	},
+	{
 		title: 'Asset props',
 		path: 'asset-props',
 		element: <AssetPropsExample />,
@@ -208,7 +220,7 @@ export const allExamples: Example[] = [
 		title: 'Custom Shape With Handles',
 		path: 'custom-shape-with-handles',
 		element: <CustomShapeWithHandles />,
-	}, // not listed
+	},
 	// not listed
 	{
 		path: 'end-to-end',
