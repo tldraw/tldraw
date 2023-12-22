@@ -100,7 +100,7 @@ const components: TLEditorComponents = {
 
 const cameraLocations: Atom<CameraLocation[]> = atom('cameraLocations', [] as CameraLocation[])
 
-const CameraLoctionsExample = track(() => {
+const CameraLocationsExample = track(() => {
 	const [editor, setEditor] = useState<Editor | null>(null)
 
 	useEffect(() => {
@@ -172,4 +172,4 @@ const CameraLoctionsExample = track(() => {
 	)
 })
 
-export default CameraLoctionsExample
+export default CameraLocationsExample
