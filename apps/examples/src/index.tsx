@@ -211,7 +211,7 @@ export const allExamples: Example[] = [
 		element: <CustomShapeWithHandles />,
 	},
 	{
-		title: 'Cameera locations',
+		title: 'Camera locations',
 		path: 'camera-locations',
 		element: <CameraLoctionsExample />,
 	}, // not listed
