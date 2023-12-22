@@ -10,7 +10,7 @@ const tools = [SpeechBubbleTool]
 
 export default function CustomShapeWithHandles() {
 	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
+		<div style={{ position: 'absolute', inset: 0 }}>
 			<Tldraw
 				shapeUtils={shapeUtils}
 				tools={tools}

@@ -37,7 +37,7 @@
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
 		"build": "lazy build",
-		"dev": "lazy run dev --filter='{,bublic/}apps/examples' --filter='{,bublic/}packages/tldraw'",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='{,bublic/}apps/examples' --filter='{,bublic/}packages/tldraw'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='{,bublic/}apps/vscode/{extension,editor}'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",

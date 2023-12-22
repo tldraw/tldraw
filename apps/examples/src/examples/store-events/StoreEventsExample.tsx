@@ -57,29 +57,27 @@ export default function StoreEventsExample() {
 
 	return (
 		<div style={{ display: 'flex' }}>
-			<div style={{ width: '60vw', height: '100vh' }}>
+			<div style={{ width: '60%', height: '100vh' }}>
 				<Tldraw onMount={setAppToState} />
 			</div>
-			<div>
-				<div
-					style={{
-						width: '40vw',
-						height: '100vh',
-						padding: 8,
-						background: '#eee',
-						border: 'none',
-						fontFamily: 'monospace',
-						fontSize: 12,
-						borderLeft: 'solid 2px #333',
-						display: 'flex',
-						flexDirection: 'column-reverse',
-						overflow: 'auto',
-					}}
-				>
-					{storeEvents.map((t, i) => (
-						<div key={i}>{t}</div>
-					))}
-				</div>
+			<div
+				style={{
+					width: '40%',
+					height: '100vh',
+					padding: 8,
+					background: '#eee',
+					border: 'none',
+					fontFamily: 'monospace',
+					fontSize: 12,
+					borderLeft: 'solid 2px #333',
+					display: 'flex',
+					flexDirection: 'column-reverse',
+					overflow: 'auto',
+				}}
+			>
+				{storeEvents.map((t, i) => (
+					<div key={i}>{t}</div>
+				))}
 			</div>
 		</div>
 	)

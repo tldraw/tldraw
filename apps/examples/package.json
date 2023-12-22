@@ -39,6 +39,7 @@
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",
 		"@vercel/analytics": "^1.0.1",
+		"classnames": "^2.3.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
@@ -47,6 +48,10 @@
 	},
 	"devDependencies": {
 		"@vitejs/plugin-react": "^4.2.0",
-		"dotenv": "^16.0.3"
+		"dotenv": "^16.0.3",
+		"remark": "^15.0.1",
+		"remark-frontmatter": "^5.0.0",
+		"remark-html": "^16.0.1",
+		"vfile-matter": "^5.0.0"
 	}
 }
