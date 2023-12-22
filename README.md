@@ -39,7 +39,7 @@ To learn more, see our [license](https://tldraw.dev/community/license) page.
 
 ## Trademarks
 
-The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRANDEMARKS.md) for info on acceptable usage.
+The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
 
 ## Community
 
