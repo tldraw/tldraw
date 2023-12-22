@@ -79,7 +79,7 @@ const SlideList = track(() => {
 								})
 							}}
 						>
-							{`Slide ${i + 1} (${location.key})`}
+							{`Slide ${i + 1}`}
 						</Button>
 						<Button type="normal">
 							<Icon
