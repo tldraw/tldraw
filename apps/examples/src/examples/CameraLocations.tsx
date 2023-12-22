@@ -79,12 +79,12 @@ const SlideList = track(() => {
 								})
 							}}
 						>
-							{`Slide ${i + 1}`}
+							{`Slide ${i + 1} (${location.key})`}
 						</Button>
 						<Button type="normal">
 							<Icon
 								icon="trash"
-								onClick={() => cameraLocations.set(locations.filter((_l, index) => i !== index))}
+								onClick={() => cameraLocations.set(locations.filter((l) => l !== location))}
 							/>
 						</Button>
 					</div>
@@ -112,17 +112,17 @@ const CameraLoctionsExample = track(() => {
 			if (cameraMoveKeys.includes(e.key)) {
 				if (e.shiftKey) {
 					const position = getCurrentPosition(editor)
-					const index = getLocationIndex(locations, position)
-					if (index === -1) {
-						cameraLocations.set([...locations, { key: e.key, position: position }])
+					const location = getLocationByKey(locations, e.key)
+					if (location) {
+						const newLocations = locations.map((l) => {
+							if (l.key === e.key) {
+								return { ...l, position }
+							}
+							return l
+						})
+						cameraLocations.set(newLocations)
 					} else {
-						cameraLocations.set(
-							locations.map((location, i) => {
-								if (i === index) return { ...location, position: position }
-
-								return location
-							})
-						)
+						cameraLocations.set([...locations, { key: e.key, position: position }])
 					}
 				} else {
 					const location = getLocationByKey(locations, e.key)
@@ -136,7 +136,9 @@ const CameraLoctionsExample = track(() => {
 				const locationIndex = getLocationIndex(locations, position)
 				if (locationIndex === -1) return
 
-				editor.setCamera(locations[(locationIndex + 1) % locations.length].position, {
+				const nextIndex = (locationIndex + 1) % locations.length
+
+				editor.setCamera(locations[nextIndex].position, {
 					duration: 200,
 					easing: EASINGS.easeInOutQuad,
 				})
@@ -145,15 +147,14 @@ const CameraLoctionsExample = track(() => {
 			if (e.key === 'ArrowLeft' && e.shiftKey) {
 				const position = getCurrentPosition(editor)
 				const locationIndex = getLocationIndex(locations, position)
-				if (locationIndex < 1) return
+				if (locationIndex === -1) return
 
-				editor.setCamera(
-					locations[(locationIndex - 1 + locations.length) % locations.length].position,
-					{
-						duration: 200,
-						easing: EASINGS.easeInOutQuad,
-					}
-				)
+				const nextIndex = (locationIndex - 1 + locations.length) % locations.length
+
+				editor.setCamera(locations[nextIndex].position, {
+					duration: 200,
+					easing: EASINGS.easeInOutQuad,
+				})
 			}
 		}
 
