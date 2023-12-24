@@ -314,8 +314,11 @@ export function getPolygonVertices(width: number, height: number, sides: number)
 	const cx = width / 2
 	const cy = height / 2
 	const pointsOnPerimeter: Vec2d[] = []
+
 	let minX = Infinity
+	let maxX = -Infinity
 	let minY = Infinity
+	let maxY = -Infinity
 	for (let i = 0; i < sides; i++) {
 		const step = PI2 / sides
 		const t = -TAU + i * step
@@ -323,14 +326,25 @@ export function getPolygonVertices(width: number, height: number, sides: number)
 		const y = cy + cy * Math.sin(t)
 		if (x < minX) minX = x
 		if (y < minY) minY = y
+		if (x > maxX) maxX = x
+		if (y > maxY) maxY = y
 		pointsOnPerimeter.push(new Vec2d(x, y))
 	}
 
-	if (minX !== 0 || minY !== 0) {
+	// Bounds of calculated points
+	const w = maxX - minX
+	const h = maxY - minY
+
+	// Difference between input bounds and calculated bounds
+	const dx = width - w
+	const dy = height - h
+
+	// If there's a difference, scale the points to the input bounds
+	if (dx !== 0 || dy !== 0) {
 		for (let i = 0; i < pointsOnPerimeter.length; i++) {
 			const pt = pointsOnPerimeter[i]
-			pt.x -= minX
-			pt.y -= minY
+			pt.x = ((pt.x - minX) / w) * width
+			pt.y = ((pt.y - minY) / h) * height
 		}
 	}
 
@@ -749,4 +763,20 @@ export function toFixed(v: number) {
  */
 export const isSafeFloat = (n: number) => {
 	return Math.abs(n) < Number.MAX_SAFE_INTEGER
+}
+
+/**
+ * Get the centroid of a regular polygon.
+ * @param points - The points that make up the polygon.
+ * @public
+ */
+export function getCentroidOfRegularPolygon(points: VecLike[]) {
+	const len = points.length
+	let x = 0
+	let y = 0
+	for (let i = 0; i < len; i++) {
+		x += points[i].x
+		y += points[i].y
+	}
+	return new Vec2d(x / len, y / len)
 }
