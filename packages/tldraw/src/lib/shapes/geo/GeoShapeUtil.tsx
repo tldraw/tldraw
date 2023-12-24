@@ -20,13 +20,13 @@ import {
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
 	Vec2d,
+	VecLike,
 	geoShapeMigrations,
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
 } from '@tldraw/editor'
 
-import { getCentroidOfRegularPolygon } from '@tldraw/editor/src/lib/primitives/utils'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import {
@@ -327,7 +327,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
 
-		const centroid = getCentroidOfRegularPolygon(body.vertices)
+		// todo: use centroid for label position
 
 		return new Group2d({
 			children: [
@@ -338,13 +338,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							? 0
 							: shape.props.align === 'end'
 							? w - labelWidth
-							: centroid.x - labelWidth / 2,
+							: (w - labelWidth) / 2,
 					y:
 						shape.props.verticalAlign === 'start'
 							? 0
 							: shape.props.verticalAlign === 'end'
 							? h - labelHeight
-							: centroid.y - labelHeight / 2,
+							: (h - labelHeight) / 2,
 					width: labelWidth,
 					height: labelHeight,
 					isFilled: true,
@@ -1153,4 +1153,20 @@ function getCheckBoxLines(w: number, h: number) {
 			new Vec2d(clampX(ox + size * 0.82), clampY(oy + size * 0.22)),
 		],
 	]
+}
+
+/**
+ * Get the centroid of a regular polygon.
+ * @param points - The points that make up the polygon.
+ * @internal
+ */
+export function getCentroidOfRegularPolygon(points: VecLike[]) {
+	const len = points.length
+	let x = 0
+	let y = 0
+	for (let i = 0; i < len; i++) {
+		x += points[i].x
+		y += points[i].y
+	}
+	return new Vec2d(x / len, y / len)
 }

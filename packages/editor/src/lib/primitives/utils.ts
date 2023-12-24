@@ -764,19 +764,3 @@ export function toFixed(v: number) {
 export const isSafeFloat = (n: number) => {
 	return Math.abs(n) < Number.MAX_SAFE_INTEGER
 }
-
-/**
- * Get the centroid of a regular polygon.
- * @param points - The points that make up the polygon.
- * @public
- */
-export function getCentroidOfRegularPolygon(points: VecLike[]) {
-	const len = points.length
-	let x = 0
-	let y = 0
-	for (let i = 0; i < len; i++) {
-		x += points[i].x
-		y += points[i].y
-	}
-	return new Vec2d(x / len, y / len)
-}
