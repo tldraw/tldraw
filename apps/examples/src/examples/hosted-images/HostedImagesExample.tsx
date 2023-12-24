@@ -14,7 +14,7 @@ import { useCallback } from 'react'
 
 const UPLOAD_URL = '/SOME_ENDPOINT'
 
-export default function AssetPropsExample() {
+export default function HostedImagesExample() {
 	const handleMount = useCallback((editor: Editor) => {
 		// When a user uploads a file, create an asset from it
 		editor.registerExternalAssetHandler('file', async ({ file }: { type: 'file'; file: File }) => {
