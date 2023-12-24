@@ -26,6 +26,7 @@ import {
 	getPolygonVertices,
 } from '@tldraw/editor'
 
+import { getCentroidOfRegularPolygon } from '@tldraw/editor/src/lib/primitives/utils'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import {
@@ -321,10 +322,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const labelSize = getLabelSize(this.editor, shape)
 		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8)))) // not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
+
+		const centroid = getCentroidOfRegularPolygon(body.vertices)
 
 		return new Group2d({
 			children: [
@@ -335,13 +338,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							? 0
 							: shape.props.align === 'end'
 							? w - labelWidth
-							: (w - labelWidth) / 2,
+							: centroid.x - labelWidth / 2,
 					y:
 						shape.props.verticalAlign === 'start'
 							? 0
 							: shape.props.verticalAlign === 'end'
 							? h - labelHeight
-							: (h - labelHeight) / 2,
+							: centroid.y - labelHeight / 2,
 					width: labelWidth,
 					height: labelHeight,
 					isFilled: true,
