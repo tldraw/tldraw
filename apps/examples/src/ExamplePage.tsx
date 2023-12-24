@@ -48,6 +48,21 @@ export function ExamplePage({
 				<ul className="example__info__list scroll-light" ref={scrollElRef}>
 					{examples
 						.filter((e) => !e.hide)
+						.filter((e) => e.order !== null)
+						.map((e) => (
+							<ListLink
+								key={e.path}
+								ref={e.path === example.path ? activeElRef : undefined}
+								example={e}
+								isActive={e.path === example.path}
+							/>
+						))}
+					<li>
+						<hr />
+					</li>
+					{examples
+						.filter((e) => !e.hide)
+						.filter((e) => e.order === null)
 						.map((e) => (
 							<ListLink
 								key={e.path}

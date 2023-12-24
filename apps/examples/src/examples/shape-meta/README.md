@@ -1,5 +1,5 @@
 ---
-title: Shape meta property
+title: Shape meta
 component: ./ShapeMetaExample.tsx
 ---
 

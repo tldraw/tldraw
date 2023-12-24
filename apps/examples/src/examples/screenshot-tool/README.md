@@ -1,7 +1,6 @@
 ---
 title: Custom tool (screenshot)
 component: ./ScreenshotToolExample.tsx
-order: 4
 ---
 
 Draw a box on the canvas to capture a screenshot of that area.

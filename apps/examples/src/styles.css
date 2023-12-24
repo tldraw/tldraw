@@ -63,16 +63,16 @@ html,
 
 .examples__list {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(1, 1fr);
 	padding: 0;
-	margin: -1.5rem -1.5rem 0 -1.5rem;
+	margin: 0 -1.5rem 0 -1.5rem;
 	list-style: none;
 	gap: 0rem;
 }
 
 @media screen and (max-width: 800px) {
 	.examples__list {
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(1, 1fr);
 	}
 }
 
@@ -202,7 +202,6 @@ html,
 	align-items: center;
 	justify-content: start;
 	padding: calc(0.5rem - 0.5px) 0.5rem;
-	border-bottom: 1px solid #e8e8e8;
 }
 .example__logo .examples__lockup {
 	height: 1.5rem;
@@ -268,4 +267,10 @@ html,
 }
 .scroll-light::-webkit-scrollbar-thumb:hover {
 	background-color: rgba(0, 0, 0, 0.3);
+}
+
+.example__info__list hr {
+	border: none;
+	border-top: 1px solid #e8e8e8;
+	margin: 0;
 }

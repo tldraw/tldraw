@@ -49,7 +49,7 @@ export const ListLink = forwardRef(function ListLink(
 					</Link>
 				)}
 			</h3>
-			<Markdown sanitizedHtml={example.description} />
+			{/* <Markdown sanitizedHtml={example.description} /> */}
 		</>
 	)
 

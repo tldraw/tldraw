@@ -16,6 +16,16 @@ export function HomePage() {
 			<ul className="examples__list">
 				{examples
 					.filter((example) => !example.hide)
+					.filter((example) => example.order !== null)
+					.map((example) => (
+						<ListLink key={example.path} example={example} />
+					))}
+			</ul>
+			<hr />
+			<ul className="examples__list">
+				{examples
+					.filter((example) => !example.hide)
+					.filter((example) => example.order === null)
 					.map((example) => (
 						<ListLink key={example.path} example={example} />
 					))}

@@ -5,7 +5,7 @@ import { useCallback } from 'react'
 // This is an example of how you can add an image to the editor. The image is already
 // present in the `public` folder, so we can just use it directly.
 // If you want to allow users to upload the images please take a look at the `HostedImagesExample.tsx`
-export default function ImageExample() {
+export default function LocalImagesExample() {
 	const handleMount = useCallback((editor: Editor) => {
 		// Assets are records that store data about shared assets like images, videos, etc.
 		// Each image has an associated asset record, so we'll create that first.
@@ -22,7 +22,7 @@ export default function ImageExample() {
 				typeName: 'asset',
 				props: {
 					name: 'tldraw.png',
-					src: '/tldraw.png',
+					src: '/tldraw.png', // You could also use a base64 encoded string here
 					w: imageWidth,
 					h: imageHeight,
 					mimeType: 'image/png',
@@ -51,7 +51,10 @@ export default function ImageExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="tldraw_example" onMount={handleMount} />
+			<Tldraw
+				// persistenceKey="tldraw_local_images_example"
+				onMount={handleMount}
+			/>
 		</div>
 	)
 }

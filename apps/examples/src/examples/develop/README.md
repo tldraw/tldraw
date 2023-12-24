@@ -8,4 +8,4 @@ The easiest way to get started with tldraw.
 
 ---
 
-The simplest use of the `<Tldraw />` component.
+The simplest use of the `<Tldraw/>` component.
