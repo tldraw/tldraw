@@ -37,6 +37,12 @@ html,
 	margin: 0 auto;
 }
 
+.examples hr {
+	border: none;
+	border-top: 1px solid #e8e8e8;
+	margin: 0;
+}
+
 .examples__header {
 	padding-bottom: 2rem;
 	display: flex;
@@ -122,13 +128,13 @@ html,
 	all: unset;
 	font-weight: 700;
 	font-size: 1rem;
-	margin-bottom: 0.5rem;
+	margin: 0.25rem 0rem;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
 .examples__list__item__details {
-	margin-top: 0.5rem;
+	margin-top: 1rem;
 	position: absolute;
 	left: 1rem;
 	right: 1rem;
@@ -158,6 +164,7 @@ html,
 	gap: 0.5rem;
 }
 .examples__list__item__code a {
+	margin-top: 0.5rem;
 	padding: 0.5rem 0.5rem;
 	border-radius: 6px;
 	background-color: white;
@@ -201,7 +208,7 @@ html,
 	display: flex;
 	align-items: center;
 	justify-content: start;
-	padding: calc(0.5rem - 0.5px) 0.5rem;
+	padding: calc(1rem - 0.5px) 1rem;
 }
 .example__logo .examples__lockup {
 	height: 1.5rem;

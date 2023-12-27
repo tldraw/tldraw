@@ -7,7 +7,11 @@ import { StandaloneIcon } from './Icons'
 import { Markdown } from './Markdown'
 
 export const ListLink = forwardRef(function ListLink(
-	{ example, isActive }: { example: Example; isActive?: boolean },
+	{
+		example,
+		isActive,
+		showDescription,
+	}: { example: Example; isActive?: boolean; showDescription?: boolean },
 	ref: ForwardedRef<HTMLLIElement>
 ) {
 	const id = useId()
@@ -49,7 +53,7 @@ export const ListLink = forwardRef(function ListLink(
 					</Link>
 				)}
 			</h3>
-			{/* <Markdown sanitizedHtml={example.description} /> */}
+			{showDescription && <Markdown sanitizedHtml={example.description} />}
 		</>
 	)
 
