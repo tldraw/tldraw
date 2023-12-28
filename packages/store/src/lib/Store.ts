@@ -383,10 +383,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 				if (recordAtom) {
 					// If we already have an atom for this record, update its value.
-
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
 
-					if (beforeUpdate) record = beforeUpdate(initialValue, record, source)
+					if (beforeUpdate) {
+						record = beforeUpdate(initialValue, record, source)
+					}
 
 					// Validate the record
 					record = this.schema.validateRecord(

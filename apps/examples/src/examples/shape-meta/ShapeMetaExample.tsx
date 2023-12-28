@@ -26,10 +26,6 @@ export const ShapeLabelUiWithHelper = track(function ShapeLabelUiWithHelper() {
 	const editor = useEditor()
 	const onlySelectedShape = editor.getOnlySelectedShape() as ShapeWithMyMeta | null
 
-	if (!onlySelectedShape) {
-		return null
-	}
-
 	function onChange(e: React.ChangeEvent<HTMLInputElement>) {
 		if (onlySelectedShape) {
 			const { id, type, meta } = onlySelectedShape
@@ -42,7 +38,12 @@ export const ShapeLabelUiWithHelper = track(function ShapeLabelUiWithHelper() {
 
 	return (
 		<div style={{ position: 'absolute', zIndex: 300, top: 64, left: 12 }}>
-			shape label: <input value={onlySelectedShape.meta.label} onChange={onChange} />
+			<pre style={{ margin: '0 0 16px 0' }}>
+				{onlySelectedShape
+					? JSON.stringify(onlySelectedShape.meta, null, 2)
+					: 'Select one shape to see / edit its meta data.'}
+			</pre>
+			{onlySelectedShape && <input value={onlySelectedShape.meta.label} onChange={onChange} />}
 		</div>
 	)
 })
