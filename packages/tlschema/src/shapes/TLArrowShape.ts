@@ -1,13 +1,12 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { vec2dModelValidator } from '../misc/geometry-types'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
-import { ShapePropsType, TLBaseShape, shapeIdValidator } from './TLBaseShape'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 const arrowheadTypes = [
 	'arrow',
@@ -37,19 +36,9 @@ export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum('tldraw:arrowhea
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>
 
 /** @public */
-const ArrowShapeTerminal = T.union('type', {
-	binding: T.object({
-		type: T.literal('binding'),
-		boundShapeId: shapeIdValidator,
-		normalizedAnchor: vec2dModelValidator,
-		isExact: T.boolean,
-		isPrecise: T.boolean,
-	}),
-	point: T.object({
-		type: T.literal('point'),
-		x: T.number,
-		y: T.number,
-	}),
+const ArrowShapeTerminal = T.object({
+	x: T.number,
+	y: T.number,
 })
 
 /** @public */
@@ -80,11 +69,12 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 export const ArrowMigrationVersions = {
 	AddLabelColor: 1,
 	AddIsPrecise: 2,
+	ExtractBindings: 3,
 } as const
 
 /** @internal */
 export const arrowShapeMigrations = defineMigrations({
-	currentVersion: ArrowMigrationVersions.AddIsPrecise,
+	currentVersion: ArrowMigrationVersions.ExtractBindings,
 	migrators: {
 		[ArrowMigrationVersions.AddLabelColor]: {
 			up: (record) => {
@@ -112,7 +102,7 @@ export const arrowShapeMigrations = defineMigrations({
 					props: {
 						...record.props,
 						start:
-							(start as TLArrowShapeTerminal).type === 'binding'
+							(start as any).type === 'binding'
 								? {
 										...start,
 										isPrecise: !(
@@ -121,7 +111,7 @@ export const arrowShapeMigrations = defineMigrations({
 								  }
 								: start,
 						end:
-							(end as TLArrowShapeTerminal).type === 'binding'
+							(end as any).type === 'binding'
 								? {
 										...end,
 										isPrecise: !(end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5),
@@ -152,6 +142,51 @@ export const arrowShapeMigrations = defineMigrations({
 						...record.props,
 						start: nStart,
 						end: nEnd,
+					},
+				}
+			},
+		},
+		[ArrowMigrationVersions.ExtractBindings]: {
+			up: (record) => {
+				return {
+					...record,
+					props: {
+						...record.props,
+						start: {
+							x: record.props.start.x ?? 0,
+							y: record.props.start.y ?? 0,
+						},
+						end: {
+							x: record.props.end.x ?? 0,
+							y: record.props.end.y ?? 0,
+						},
+					},
+				}
+			},
+			down: (record) => {
+				const start =
+					// if this is 'binding' it means the store migration did the migration and we don't need to do it again
+					record.props.start.type === 'binding'
+						? record.props.start
+						: {
+								type: 'point',
+								x: record.props.start.x ?? 0,
+								y: record.props.start.y ?? 0,
+						  }
+				const end =
+					record.props.end.type === 'binding'
+						? record.props.end
+						: {
+								type: 'point',
+								x: record.props.end.x ?? 0,
+								y: record.props.end.y ?? 0,
+						  }
+				return {
+					...record,
+					props: {
+						...record.props,
+						start,
+						end,
 					},
 				}
 			},

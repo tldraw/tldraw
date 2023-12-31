@@ -2,7 +2,6 @@ import {
 	Matrix2d,
 	StateNode,
 	TLArrowShape,
-	TLArrowShapeTerminal,
 	TLCancelEvent,
 	TLEnterEventHandler,
 	TLEventHandlers,
@@ -13,6 +12,7 @@ import {
 	TLShapePartial,
 	Vec2d,
 	deepCopy,
+	getArrowBindings,
 	snapAngle,
 	sortByIndex,
 } from '@tldraw/editor'
@@ -91,16 +91,17 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		const initialTerminal = shape.props[info.handle.id as 'start' | 'end']
+		const { startBinding, endBinding } = getArrowBindings(this.editor, shape)
+		const initialBinding = info.handle.id === 'start' ? startBinding : endBinding
 
 		this.isPrecise = false
 
-		if (initialTerminal?.type === 'binding') {
-			this.editor.setHintingShapes([initialTerminal.boundShapeId])
+		if (initialBinding) {
+			this.editor.setHintingShapes([initialBinding.toShapeId])
 
-			this.isPrecise = initialTerminal.isPrecise
+			this.isPrecise = initialBinding.props.isPrecise
 			if (this.isPrecise) {
-				this.isPreciseId = initialTerminal.boundShapeId
+				this.isPreciseId = initialBinding.toShapeId
 			} else {
 				this.resetExactTimeout()
 			}
@@ -280,14 +281,15 @@ export class DraggingHandle extends StateNode {
 
 		// Arrows
 		if (initialHandle.canBind) {
-			const bindingAfter = (next.props as any)[initialHandle.id] as TLArrowShapeTerminal | undefined
+			const { startBinding, endBinding } = getArrowBindings(editor, shape as TLArrowShape)
+			const bindingAfter = initialHandle.id === 'start' ? startBinding : endBinding
 
-			if (bindingAfter?.type === 'binding') {
-				if (hintingShapeIds[0] !== bindingAfter.boundShapeId) {
-					editor.setHintingShapes([bindingAfter.boundShapeId])
-					this.pointingId = bindingAfter.boundShapeId
+			if (bindingAfter) {
+				if (hintingShapeIds[0] !== bindingAfter.toShapeId) {
+					editor.setHintingShapes([bindingAfter.toShapeId])
+					this.pointingId = bindingAfter.toShapeId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
-					this.isPreciseId = this.isPrecise ? bindingAfter.boundShapeId : null
+					this.isPreciseId = this.isPrecise ? bindingAfter.toShapeId : null
 					this.resetExactTimeout()
 				}
 			} else {

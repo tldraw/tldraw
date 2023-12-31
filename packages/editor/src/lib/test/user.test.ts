@@ -6,6 +6,7 @@ let editor: Editor
 beforeEach(() => {
 	editor = new Editor({
 		shapeUtils: [],
+		bindingUtils: [],
 		tools: [],
 		store: createTLStore({ shapeUtils: [] }),
 		getContainer: () => document.body,

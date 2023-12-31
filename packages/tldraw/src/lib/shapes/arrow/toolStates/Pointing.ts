@@ -1,4 +1,10 @@
-import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
+import {
+	StateNode,
+	TLArrowShape,
+	TLEventHandlers,
+	createShapeId,
+	getArrowBindings,
+} from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -111,9 +117,9 @@ export class Pointing extends StateNode {
 		})
 
 		if (change) {
-			const startTerminal = change.props?.start
-			if (startTerminal?.type === 'binding') {
-				this.editor.setHintingShapes([startTerminal.boundShapeId])
+			const { startBinding } = getArrowBindings(this.editor, shape)
+			if (startBinding) {
+				this.editor.setHintingShapes([startBinding.toShapeId])
 			}
 			this.editor.updateShapes([change], { squashing: true })
 		}
@@ -148,9 +154,9 @@ export class Pointing extends StateNode {
 			})
 
 			if (change) {
-				const endTerminal = change.props?.end
-				if (endTerminal?.type === 'binding') {
-					this.editor.setHintingShapes([endTerminal.boundShapeId])
+				const { endBinding } = getArrowBindings(this.editor, shape)
+				if (endBinding) {
+					this.editor.setHintingShapes([endBinding.toShapeId])
 				}
 				this.editor.updateShapes([change], { squashing: true })
 			}

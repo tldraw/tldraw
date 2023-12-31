@@ -18,8 +18,8 @@ import {
 	STROKE_SIZES,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	getArrowTerminalsInArrowSpace,
-	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
+	getBoundShapeInfo,
 } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
@@ -41,8 +41,7 @@ export function getCurvedArrowInfo(
 	const u = Vec2d.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start).uni() // unit vector between start and end
 	const middle = Vec2d.Add(med, u.per().mul(-bend)) // middle handle
 
-	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.start)
-	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.end)
+	const { startShapeInfo, endShapeInfo } = getBoundShapeInfo(editor, shape)
 
 	// The positions of the body of the arrow, which may be different
 	// than the arrow's start / end points if the arrow is bound to shapes

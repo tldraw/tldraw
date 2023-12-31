@@ -120,6 +120,7 @@ export {
 	type TLStoreOptions,
 } from './lib/config/createTLStore'
 export { createTLUser } from './lib/config/createTLUser'
+export { coreBindings, type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export {
 	ANIMATION_MEDIUM_MS,
@@ -145,6 +146,7 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export { BindingUtil, type TLBindingUtilConstructor } from './lib/editor/bindings/BindingUtil'
 export {
 	SnapManager,
 	type GapsSnapLine,
@@ -155,6 +157,8 @@ export {
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
+	type TLOnAfterAddedToStoreHandler,
+	type TLOnAfterChangeHandler,
 	type TLOnBeforeCreateHandler,
 	type TLOnBeforeUpdateHandler,
 	type TLOnBindingChangeHandler,
@@ -186,7 +190,10 @@ export {
 	getCurvedArrowHandlePath,
 	getSolidCurvedArrowPath,
 } from './lib/editor/shapes/shared/arrow/curved-arrow'
-export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/shared'
+export {
+	getArrowBindings,
+	getArrowTerminalsInArrowSpace,
+} from './lib/editor/shapes/shared/arrow/shared'
 export {
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,

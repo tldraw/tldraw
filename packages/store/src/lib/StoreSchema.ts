@@ -34,10 +34,29 @@ export interface SerializedSchema {
 	>
 }
 
+type MigrationOrderEntry =
+	| {
+			type: 'record'
+			typeName: string
+			newVersion: number
+	  }
+	| {
+			type: 'record_subtype'
+			typeName: string
+			subTypeName: string
+			newVersion: number
+	  }
+	| {
+			type: 'snapshot'
+			newVersion: number
+	  }
+
 /** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	/** @public */
 	snapshotMigrations?: Migrations
+	/** @public */
+	migrationOrder?: MigrationOrderEntry[]
 	/** @public */
 	onValidationFailure?: (data: {
 		error: unknown
@@ -67,7 +86,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			[Record in R as Record['typeName']]: RecordType<R, any>
 		},
 		private readonly options: StoreSchemaOptions<R, P>
-	) {}
+	) {
+		if (options.snapshotMigrations && !options.migrationOrder) {
+			throw new Error('snapshotMigrations requires migrationOrder to be applied safely')
+		}
+	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get currentStoreVersion(): number {
@@ -107,26 +130,29 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		direction: 'up' | 'down' = 'up'
 	): MigrationResult<R> {
 		const ourType = getOwnProperty(this.types, record.typeName)
-		const persistedType = persistedSchema.recordVersions[record.typeName]
-		if (!persistedType || !ourType) {
+		const persistedType = persistedSchema.recordVersions[record.typeName] as
+			| (typeof persistedSchema)['recordVersions'][string]
+			| undefined
+		if (!ourType) {
+			console.error('Missing type definition for record', record)
 			return { type: 'error', reason: MigrationFailureReason.UnknownType }
 		}
 		const ourVersion = ourType.migrations.currentVersion
-		const persistedVersion = persistedType.version
-		if (ourVersion !== persistedVersion) {
+		// if the type is new, then we don't need to migrate it
+		if (persistedType && ourVersion !== persistedType.version) {
 			const result =
 				direction === 'up'
 					? migrateRecord<R>({
 							record,
 							migrations: ourType.migrations,
-							fromVersion: persistedVersion,
+							fromVersion: persistedType.version,
 							toVersion: ourVersion,
 					  })
 					: migrateRecord<R>({
 							record,
 							migrations: ourType.migrations,
 							fromVersion: ourVersion,
-							toVersion: persistedVersion,
+							toVersion: persistedType.version,
 					  })
 			if (result.type === 'error') {
 				return result
@@ -148,7 +174,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			]
 
 		const persistedSubTypeVersion =
-			'subTypeVersions' in persistedType
+			persistedType && 'subTypeVersions' in persistedType
 				? persistedType.subTypeVersions[record[ourType.migrations.subTypeKey as keyof R] as string]
 				: undefined
 
@@ -164,7 +190,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		// was persisted, or it was created in a different place to where the schema was persisted.
 		// either way we don't know what to do with it safely, so let's return failure.
 		if (persistedSubTypeVersion === undefined) {
-			return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
+			return { type: 'success', value: record }
 		}
 
 		const result =
@@ -203,6 +229,37 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		if (ourStoreVersion < persistedStoreVersion) {
 			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 		}
+
+		const recordsByType = {} as Record<string, SerializedStore<R>>
+		for (const r of objectMapValues(store)) {
+			recordsByType[r.typeName] = recordsByType[r.typeName] ?? {}
+		}
+
+		const ourSchema = this.serialize()
+
+		const migrationOrder: MigrationOrderEntry[] = this.options.migrationOrder ?? [
+			{
+				type: 'snapshot',
+				newVersion: ourStoreVersion,
+			},
+			...Object.entries(ourSchema.recordVersions).map(
+				([typeName, { version }]) =>
+					({
+						type: 'record',
+						typeName,
+						newVersion: version,
+					} satisfies MigrationOrderEntry)
+			),
+			...Object.entries(ourSchema.recordVersions).flatMap(([typeName, obj]) => {
+				if (!('subTypeVersions' in obj)) return undefined
+				return Object.entries(obj.subTypeVersions).map(([subTypeName, version]) => ({
+					type: 'record_subtype',
+					typeName,
+					subTypeName,
+					newVersion: version,
+				}))
+			}),
+		]
 
 		if (ourStoreVersion > persistedStoreVersion) {
 			const result = migrate<SerializedStore<R>>({

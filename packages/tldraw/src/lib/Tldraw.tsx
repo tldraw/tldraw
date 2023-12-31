@@ -22,6 +22,7 @@ import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicato
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
+import { defaultBindingUtils } from './defaultBindingUtils'
 import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,
@@ -70,6 +71,7 @@ export function Tldraw(props: TldrawProps) {
 	const components = useShallowObjectIdentity(rest.components ?? {})
 	const shapeUtils = useShallowArrayIdentity(rest.shapeUtils ?? [])
 	const tools = useShallowArrayIdentity(rest.tools ?? [])
+	const bindingUtils = useShallowArrayIdentity(rest.bindingUtils ?? []) 
 
 	const withDefaults: TldrawEditorProps = {
 		initialState: 'select',
@@ -87,6 +89,7 @@ export function Tldraw(props: TldrawProps) {
 			[components]
 		),
 		shapeUtils: useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils]),
+		bindingUtils: useMemo(() => [...defaultBindingUtils, ...bindingUtils], [bindingUtils]),
 		tools: useMemo(() => [...defaultTools, ...defaultShapeTools, ...tools], [tools]),
 	}
 

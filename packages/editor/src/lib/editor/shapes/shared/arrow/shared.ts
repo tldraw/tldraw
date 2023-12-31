@@ -1,4 +1,10 @@
-import { TLArrowShape, TLArrowShapeTerminal, TLShape, TLShapeId } from '@tldraw/tlschema'
+import {
+	TLArrowBinding,
+	TLArrowShape,
+	TLArrowShapeTerminal,
+	TLShape,
+	TLShapeId,
+} from '@tldraw/tlschema'
 import { Matrix2d } from '../../../../primitives/Matrix2d'
 import { Vec2d } from '../../../../primitives/Vec2d'
 import { Group2d } from '../../../../primitives/geometry/Group2d'
@@ -17,15 +23,9 @@ export type BoundShapeInfo<T extends TLShape = TLShape> = {
 	outline: Vec2d[]
 }
 
-export function getBoundShapeInfoForTerminal(
-	editor: Editor,
-	terminal: TLArrowShapeTerminal
-): BoundShapeInfo | undefined {
-	if (terminal.type === 'point') {
-		return
-	}
-
-	const shape = editor.getShape(terminal.boundShapeId)!
+function getShapeInfoFromBinding(editor: Editor, binding?: TLArrowBinding) {
+	if (!binding) return undefined
+	const shape = editor.getShape(binding.toShapeId)!
 	const transform = editor.getShapePageTransform(shape)!
 	const geometry = editor.getShapeGeometry(shape)
 
@@ -39,9 +39,21 @@ export function getBoundShapeInfoForTerminal(
 		shape,
 		transform,
 		isClosed: geometry.isClosed,
-		isExact: terminal.isExact,
+		isExact: binding.props.isExact,
 		didIntersect: false,
 		outline,
+	}
+}
+
+export function getBoundShapeInfo(
+	editor: Editor,
+	shape: TLArrowShape
+): { startShapeInfo: BoundShapeInfo | undefined; endShapeInfo: BoundShapeInfo | undefined } {
+	const { startBinding, endBinding } = getArrowBindings(editor, shape)
+
+	return {
+		startShapeInfo: getShapeInfoFromBinding(editor, startBinding),
+		endShapeInfo: getShapeInfoFromBinding(editor, endBinding),
 	}
 }
 
@@ -49,13 +61,14 @@ export function getArrowTerminalInArrowSpace(
 	editor: Editor,
 	arrowPageTransform: Matrix2d,
 	terminal: TLArrowShapeTerminal,
-	forceImprecise: boolean
+	forceImprecise: boolean,
+	arrowBinding?: TLArrowBinding
 ) {
-	if (terminal.type === 'point') {
+	if (!arrowBinding) {
 		return Vec2d.From(terminal)
 	}
 
-	const boundShape = editor.getShape(terminal.boundShapeId)
+	const boundShape = editor.getShape(arrowBinding.toShapeId)
 
 	if (!boundShape) {
 		// this can happen in multiplayer contexts where the shape is being deleted
@@ -69,7 +82,9 @@ export function getArrowTerminalInArrowSpace(
 			point,
 			Vec2d.MulV(
 				// if the parent is the bound shape, then it's ALWAYS precise
-				terminal.isPrecise || forceImprecise ? terminal.normalizedAnchor : { x: 0.5, y: 0.5 },
+				arrowBinding.props.isPrecise || forceImprecise
+					? arrowBinding.props.normalizedAnchor
+					: { x: 0.5, y: 0.5 },
 				size
 			)
 		)
@@ -79,36 +94,41 @@ export function getArrowTerminalInArrowSpace(
 	}
 }
 
+/** @internal */
+export function getArrowBindings(editor: Editor, shape: TLArrowShape) {
+	const bindings = editor.getBindingsForShapeId(shape.id, 'arrow')
+	const startBinding = bindings.find((b) => b.props.terminal === 'start')
+	const endBinding = bindings.find((b) => b.props.terminal === 'end')
+
+	return { startBinding, endBinding }
+}
+
 /** @public */
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape) {
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
-	let startBoundShapeId: TLShapeId | undefined
-	let endBoundShapeId: TLShapeId | undefined
-
-	if (shape.props.start.type === 'binding' && shape.props.end.type === 'binding') {
-		startBoundShapeId = shape.props.start.boundShapeId
-		endBoundShapeId = shape.props.end.boundShapeId
-	}
+	const { startBinding, endBinding } = getArrowBindings(editor, shape)
 
 	const boundShapeRelationships = getBoundShapeRelationships(
 		editor,
-		startBoundShapeId,
-		endBoundShapeId
+		startBinding?.toShapeId,
+		endBinding?.toShapeId
 	)
 
 	const start = getArrowTerminalInArrowSpace(
 		editor,
 		arrowPageTransform,
 		shape.props.start,
-		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'start-contains-end'
+		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'start-contains-end',
+		startBinding
 	)
 
 	const end = getArrowTerminalInArrowSpace(
 		editor,
 		arrowPageTransform,
 		shape.props.end,
-		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'end-contains-start'
+		boundShapeRelationships === 'double-bound' || boundShapeRelationships === 'end-contains-start',
+		endBinding
 	)
 
 	return { start, end }

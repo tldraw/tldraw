@@ -15,7 +15,7 @@ const clearAll = async () => {
 beforeEach(async () => {
 	await clearAll()
 })
-const schema = createTLSchema({ shapes: {} })
+const schema = createTLSchema({ shapes: {}, bindings: {} })
 describe('storeSnapshotInIndexedDb', () => {
 	it("creates documents if they don't exist", async () => {
 		await storeSnapshotInIndexedDb({
