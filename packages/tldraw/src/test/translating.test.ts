@@ -3,6 +3,7 @@ import {
 	PointsSnapLine,
 	SnapLine,
 	TLArrowShape,
+	TLGeoShape,
 	TLShapeId,
 	TLShapePartial,
 	Vec2d,
@@ -127,6 +128,46 @@ describe('When translating...', () => {
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 	})
 
+	it('translates a single shape near the top left edge', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		editor.pointerDown(50, 50, ids.box1).pointerMove(0, 50) // [-50, 0]
+
+		const before = editor.getShape<TLGeoShape>(ids.box1)!
+
+		jest.advanceTimersByTime(100)
+		editor
+			// The change is bigger than expected because the camera moves
+			.expectShapeToMatch({ id: ids.box1, x: -160, y: 10 })
+			// We'll continue moving in the x postion, but now we'll also move in the y position.
+			// The speed in the y position is smaller since we are further away from the edge.
+			.pointerMove(0, 25)
+		jest.advanceTimersByTime(100)
+		editor.pointerUp()
+
+		const after = editor.getShape<TLGeoShape>(ids.box1)!
+
+		expect(after.x).toBeLessThan(before.x)
+		expect(after.y).toBeLessThan(before.y)
+		expect(after.props.w).toEqual(before.props.w)
+		expect(after.props.h).toEqual(before.props.h)
+	})
+
+	it('translates a single shape near the bottom right edge', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
+
+		jest.advanceTimersByTime(100)
+		editor
+			// The change is bigger than expected because the camera moves
+			.expectShapeToMatch({ id: ids.box1, x: 1140, y: 10 })
+			.pointerMove(1080, 800)
+		jest.advanceTimersByTime(100)
+		editor
+			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+			.pointerUp()
+			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+	})
+
 	it('translates multiple shapes', () => {
 		editor
 			.select(ids.box1, ids.box2)
@@ -173,6 +214,7 @@ describe('When cloning...', () => {
 	})
 
 	it('clones a single shape and restores when stopping cloning', () => {
+		// Move the camera so that we are not at the edges, which causes the camera to move when we translate
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]

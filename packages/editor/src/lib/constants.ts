@@ -92,3 +92,9 @@ export const CAMERA_MAX_RENDERING_INTERVAL = 620
 
 /** @public */
 export const HIT_TEST_MARGIN = 8
+
+/** @internal */
+export const EDGE_SCROLL_SPEED = 20
+
+/** @internal */
+export const EDGE_SCROLL_DISTANCE = 32

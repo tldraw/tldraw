@@ -81,6 +81,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-dark-mode': 'Toggle dark mode',
 	'action.toggle-reduce-motion.menu': 'Reduce motion',
 	'action.toggle-reduce-motion': 'Toggle reduce motion',
+	'action.toggle-edge-scrolling.menu': 'Edge scrolling',
+	'action.toggle-edge-scrolling': 'Toggle edge scrolling',
 	'action.toggle-debug-mode.menu': 'Debug mode',
 	'action.toggle-debug-mode': 'Toggle debug mode',
 	'action.toggle-focus-mode.menu': 'Focus mode',

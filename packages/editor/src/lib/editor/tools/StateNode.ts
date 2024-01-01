@@ -1,5 +1,4 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
-import { warnDeprecatedGetter } from '@tldraw/utils'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
@@ -8,6 +7,7 @@ import {
 	TLEventInfo,
 	TLExitEventHandler,
 	TLPinchEventInfo,
+	TLTickEventHandler,
 } from '../types/event-types'
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
@@ -155,6 +155,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	enter = (info: any, from: string) => {
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
+		if (this.onTick) this.editor.on('tick', this.onTick)
 		if (this.children && this.initial && this.getIsActive()) {
 			const initial = this.children[this.initial]
 			this._current.set(initial)
@@ -165,6 +166,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
 		this._isActive.set(false)
+		if (this.onTick) this.editor.off('tick', this.onTick)
 		this.onExit?.(info, from)
 		if (!this.getIsActive()) {
 			this.getCurrent()?.exit(info, from)
@@ -182,20 +184,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 * @public
 	 */
 	_currentToolIdMask = atom('curent tool id mask', undefined as string | undefined)
-
-	/**
-	 * @deprecated use `getCurrentToolIdMask()` instead
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentToolIdMask() {
-		warnDeprecatedGetter('currentToolIdMask')
-		return this._currentToolIdMask.get()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set currentToolIdMask(id: string | undefined) {
-		warnDeprecatedGetter('currentToolIdMask')
-		this._currentToolIdMask.set(id)
-	}
 
 	getCurrentToolIdMask() {
 		return this._currentToolIdMask.get()
@@ -223,4 +211,5 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	onEnter?: TLEnterEventHandler
 	onExit?: TLExitEventHandler
+	onTick?: TLTickEventHandler
 }

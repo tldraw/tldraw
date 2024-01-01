@@ -347,5 +347,7 @@
 	"tool.cloud": "云",
 	"action.unlock-all": "全部解锁",
 	"status.offline": "离线",
-	"status.online": "在线"
+	"status.online": "在线",
+	"action.remove-frame": "移除框架",
+	"action.fit-frame-to-content": "适合于内容"
 }

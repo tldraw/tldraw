@@ -25,7 +25,7 @@ import embedIconsYoutube from './embed-icons/youtube.png'
 import fontsMonospace from './fonts/IBMPlexMono-Medium.woff2'
 import fontsSansSerif from './fonts/IBMPlexSans-Medium.woff2'
 import fontsSerif from './fonts/IBMPlexSerif-Medium.woff2'
-import fontsDraw from './fonts/Shantell_Sans-Normal-SemiBold.woff2'
+import fontsDraw from './fonts/Shantell_Sans-Tldrawish.woff2'
 import iconsAlignBottomCenter from './icons/icon/align-bottom-center.svg'
 import iconsAlignBottomLeft from './icons/icon/align-bottom-left.svg'
 import iconsAlignBottomRight from './icons/icon/align-bottom-right.svg'
@@ -192,6 +192,7 @@ import iconsZoomIn from './icons/icon/zoom-in.svg'
 import iconsZoomOut from './icons/icon/zoom-out.svg'
 import translationsAr from './translations/ar.json'
 import translationsCa from './translations/ca.json'
+import translationsCs from './translations/cs.json'
 import translationsDa from './translations/da.json'
 import translationsDe from './translations/de.json'
 import translationsEn from './translations/en.json'
@@ -407,6 +408,7 @@ export function getAssetUrlsByImport(opts) {
 		translations: {
 			ar: formatAssetUrl(translationsAr, opts),
 			ca: formatAssetUrl(translationsCa, opts),
+			cs: formatAssetUrl(translationsCs, opts),
 			da: formatAssetUrl(translationsDa, opts),
 			de: formatAssetUrl(translationsDe, opts),
 			en: formatAssetUrl(translationsEn, opts),

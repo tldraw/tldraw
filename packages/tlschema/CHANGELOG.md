@@ -1,3 +1,30 @@
+# v2.0.0-beta.1 (Wed Dec 20 2023)
+
+### Release Notes
+
+#### Lokalise: Translations update ([#2342](https://github.com/tldraw/tldraw/pull/2342))
+
+Added Czech translations.
+Updated translations for German, Korean, Russian, Ukrainian, Traditional Chinese.
+
+---
+
+#### 💥 Breaking Change
+
+- bump to beta [#2364](https://github.com/tldraw/tldraw/pull/2364) ([@steveruizok](https://github.com/steveruizok))
+- Change licenses to tldraw [#2167](https://github.com/tldraw/tldraw/pull/2167) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Lokalise: Translations update [#2342](https://github.com/tldraw/tldraw/pull/2342) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 2
+
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.19 (Tue Dec 12 2023)
 
 ### Release Notes

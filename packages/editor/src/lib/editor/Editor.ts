@@ -49,7 +49,6 @@ import {
 	hasOwnProperty,
 	sortById,
 	structuredClone,
-	warnDeprecatedGetter,
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { TLUser, createTLUser } from '../config/createTLUser'
@@ -811,15 +810,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getCanUndo` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get canUndo(): boolean {
-		warnDeprecatedGetter('canUndo')
-		return this.getCanUndo()
-	}
-
-	/**
 	 * Redo to the next mark.
 	 *
 	 * @example
@@ -841,15 +831,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCanRedo(): boolean {
 		return this.history.getNumRedos() > 0
-	}
-
-	/**
-	 * @deprecated Use `getCanRedo` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get canRedo(): boolean {
-		warnDeprecatedGetter('canRedo')
-		return this.getCanRedo()
 	}
 
 	/**
@@ -1150,15 +1131,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getCurrentTool` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentTool() {
-		warnDeprecatedGetter('currentTool')
-		return this.getCurrentTool()
-	}
-
-	/**
 	 * The id of the current selected tool.
 	 *
 	 * @public
@@ -1167,15 +1139,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const currentTool = this.getCurrentTool()
 		if (!currentTool) return ''
 		return currentTool.getCurrentToolIdMask() ?? currentTool.id
-	}
-
-	/**
-	 * @deprecated Use `getCurrentToolId` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentToolId() {
-		warnDeprecatedGetter('currentToolId')
-		return this.getCurrentToolId()
 	}
 
 	/**
@@ -1216,15 +1179,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getDocumentSettings` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get documentSettings() {
-		warnDeprecatedGetter('documentSettings')
-		return this.getDocumentSettings()
-	}
-
-	/**
 	 * Update the global document settings that apply to all users.
 	 *
 	 * @public
@@ -1243,15 +1197,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getInstanceState(): TLInstance {
 		return this.store.get(TLINSTANCE_ID)!
-	}
-
-	/**
-	 * @deprecated Use `getInstanceState` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get instanceState() {
-		warnDeprecatedGetter('instanceState')
-		return this.getInstanceState()
 	}
 
 	/**
@@ -1332,15 +1277,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getOpenMenus` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get openMenus() {
-		warnDeprecatedGetter('openMenus')
-		return this.getOpenMenus()
-	}
-
-	/**
 	 * Add an open menu.
 	 *
 	 * @example
@@ -1379,6 +1315,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Clear all open menus.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.clearOpenMenus()
+	 * ```
+	 *
+	 * @public
+	 */
+	clearOpenMenus(): this {
+		if (this.getOpenMenus().length) {
+			this.updateInstanceState({ openMenus: [] })
+		}
+		return this
+	}
+
+	/**
 	 * Get whether any menus are open.
 	 *
 	 * @example
@@ -1390,15 +1343,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getIsMenuOpen(): boolean {
 		return this.getOpenMenus().length > 0
-	}
-
-	/**
-	 * @deprecated Use `getIsMenuOpen` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get isMenuOpen() {
-		warnDeprecatedGetter('isMenuOpen')
-		return this.getIsMenuOpen()
 	}
 
 	/* --------------------- Cursor --------------------- */
@@ -1430,15 +1374,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._getPageStatesQuery().get()
 	}
 
-	/**
-	 * @deprecated Use `getPageStates` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get pageStates() {
-		warnDeprecatedGetter('pageStates')
-		return this.getPageStates()
-	}
-
 	/** @internal */
 	@computed private _getPageStatesQuery() {
 		return this.store.query.records('instance_page_state')
@@ -1451,15 +1386,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageState(): TLInstancePageState {
 		return this.store.get(this._getCurrentPageStateId())!
-	}
-
-	/**
-	 * @deprecated Use `getCurrentPageState` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPageState() {
-		warnDeprecatedGetter('currentPageState')
-		return this.getCurrentPageState()
 	}
 
 	/** @internal */
@@ -1521,15 +1447,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getSelectedShapeIds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get selectedShapeIds() {
-		warnDeprecatedGetter('selectedShapeIds')
-		return this.getSelectedShapeIds()
-	}
-
-	/**
 	 * An array containing all of the currently selected shapes.
 	 *
 	 * @public
@@ -1538,15 +1455,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getSelectedShapes(): TLShape[] {
 		const { selectedShapeIds } = this.getCurrentPageState()
 		return compact(selectedShapeIds.map((id) => this.store.get(id)))
-	}
-
-	/**
-	 * @deprecated Use `getSelectedShapes` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get selectedShapes() {
-		warnDeprecatedGetter('selectedShapes')
-		return this.getSelectedShapes()
 	}
 
 	/**
@@ -1719,15 +1627,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getOnlySelectedShape` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get onlySelectedShape() {
-		warnDeprecatedGetter('onlySelectedShape')
-		return this.getOnlySelectedShape()
-	}
-
-	/**
 	 * The current page bounds of all the selected shapes. If the
 	 * selection is rotated, then these bounds are the axis-aligned
 	 * box that the rotated bounds would fit inside of.
@@ -1741,15 +1640,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (selectedShapeIds.length === 0) return null
 
 		return Box2d.Common(compact(selectedShapeIds.map((id) => this.getShapePageBounds(id))))
-	}
-
-	/**
-	 * @deprecated Use `getSelectionPageBounds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get selectionPageBounds() {
-		warnDeprecatedGetter('selectionPageBounds')
-		return this.getSelectionPageBounds()
 	}
 
 	/**
@@ -1774,16 +1664,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		return 0
 	}
-
-	/**
-	 * @deprecated Use `getSelectionRotation` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get selectionRotation() {
-		warnDeprecatedGetter('selectionRotation')
-		return this.getSelectionRotation()
-	}
-
 	/**
 	 * The bounds of the selection bounding box in the current page space.
 	 *
@@ -1824,15 +1704,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return boxFromRotatedVertices
 	}
 
-	/**
-	 * @deprecated Use `getSelectionRotatedPageBounds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get selectionRotatedPageBounds() {
-		warnDeprecatedGetter('selectionRotatedPageBounds')
-		return this.getSelectionRotatedPageBounds()
-	}
-
 	// Focus Group
 
 	/**
@@ -1845,15 +1716,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getFocusedGroupId` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get focusedGroupId() {
-		warnDeprecatedGetter('focusedGroupId')
-		return this.getFocusedGroupId()
-	}
-
-	/**
 	 * The current focused group.
 	 *
 	 * @public
@@ -1861,15 +1723,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getFocusedGroup(): TLShape | undefined {
 		const focusedGroupId = this.getFocusedGroupId()
 		return focusedGroupId ? this.getShape(focusedGroupId) : undefined
-	}
-
-	/**
-	 * @deprecated Use `getFocusedGroup` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get focusedGroup() {
-		warnDeprecatedGetter('focusedGroup')
-		return this.getFocusedGroup()
 	}
 
 	/**
@@ -1963,15 +1816,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getEditingShapeId` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get editingShapeId() {
-		warnDeprecatedGetter('editingShapeId')
-		return this.getEditingShapeId()
-	}
-
-	/**
 	 * The current editing shape.
 	 *
 	 * @public
@@ -1979,15 +1823,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getEditingShape(): TLShape | undefined {
 		const editingShapeId = this.getEditingShapeId()
 		return editingShapeId ? this.getShape(editingShapeId) : undefined
-	}
-
-	/**
-	 * @deprecated Use `getEditingShape` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get editingShape() {
-		warnDeprecatedGetter('editingShape')
-		return this.getEditingShape()
 	}
 
 	/**
@@ -2033,15 +1868,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getHoveredShapeId` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get hoveredShapeId() {
-		warnDeprecatedGetter('hoveredShapeId')
-		return this.getHoveredShapeId()
-	}
-
-	/**
 	 * The current hovered shape.
 	 *
 	 * @public
@@ -2050,16 +1876,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const hoveredShapeId = this.getHoveredShapeId()
 		return hoveredShapeId ? this.getShape(hoveredShapeId) : undefined
 	}
-
-	/**
-	 * @deprecated Use `getHoveredShape` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get hoveredShape() {
-		warnDeprecatedGetter('hoveredShape')
-		return this.getHoveredShape()
-	}
-
 	/**
 	 * Set the editor's current hovered shape.
 	 *
@@ -2090,16 +1906,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getHintingShapeIds() {
 		return this.getCurrentPageState().hintingShapeIds
 	}
-
-	/**
-	 * @deprecated Use `getHintingShapeIds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get hintingShapeIds() {
-		warnDeprecatedGetter('hintingShapeIds')
-		return this.getHintingShapeIds()
-	}
-
 	/**
 	 * The editor's current hinting shapes.
 	 *
@@ -2108,15 +1914,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getHintingShape() {
 		const hintingShapeIds = this.getHintingShapeIds()
 		return compact(hintingShapeIds.map((id) => this.getShape(id)))
-	}
-
-	/**
-	 * @deprecated Use `getHintingShape` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get hintingShape() {
-		warnDeprecatedGetter('hintingShape')
-		return this.getHintingShape()
 	}
 
 	/**
@@ -2154,15 +1951,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getErasingShapeIds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get erasingShapeIds() {
-		warnDeprecatedGetter('erasingShapeIds')
-		return this.getErasingShapeIds()
-	}
-
-	/**
 	 * The editor's current erasing shapes.
 	 *
 	 * @public
@@ -2170,15 +1958,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getErasingShapes() {
 		const erasingShapeIds = this.getErasingShapeIds()
 		return compact(erasingShapeIds.map((id) => this.getShape(id)))
-	}
-
-	/**
-	 * @deprecated Use `getErasingShapes` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get erasingShapes() {
-		warnDeprecatedGetter('erasingShapes')
-		return this.getErasingShapes()
 	}
 
 	/**
@@ -2228,15 +2007,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getCroppingShapeId() {
 		return this.getCurrentPageState().croppingShapeId
-	}
-
-	/**
-	 * @deprecated Use `getCroppingShapeId` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get croppingShapeId() {
-		warnDeprecatedGetter('croppingShapeId')
-		return this.getCroppingShapeId()
 	}
 
 	/**
@@ -2293,15 +2063,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getZoomLevel() {
 		return this.getCamera().z
-	}
-
-	/**
-	 * @deprecated Use `getZoomLevel` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get zoomLevel() {
-		warnDeprecatedGetter('zoomLevel')
-		return this.getZoomLevel()
 	}
 
 	/** @internal */
@@ -3009,15 +2770,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getViewportScreenBounds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get viewportScreenBounds() {
-		warnDeprecatedGetter('viewportScreenBounds')
-		return this.getViewportScreenBounds()
-	}
-
-	/**
 	 * The center of the editor's viewport in screen space.
 	 *
 	 * @public
@@ -3025,16 +2777,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getViewportScreenCenter() {
 		return this.getViewportScreenBounds().center
 	}
-
-	/**
-	 * @deprecated Use `getViewportScreenCenter` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get viewportScreenCenter() {
-		warnDeprecatedGetter('viewportScreenCenter')
-		return this.getViewportScreenCenter()
-	}
-
 	/**
 	 * The current viewport in the current page space.
 	 *
@@ -3047,15 +2789,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getViewportPageBounds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get viewportPageBounds() {
-		warnDeprecatedGetter('viewportPageBounds')
-		return this.getViewportPageBounds()
-	}
-
-	/**
 	 * The center of the viewport in the current page space.
 	 *
 	 * @public
@@ -3063,16 +2796,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getViewportPageCenter() {
 		return this.getViewportPageBounds().center
 	}
-
-	/**
-	 * @deprecated Use `getViewportPageCenter` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get viewportPageCenter() {
-		warnDeprecatedGetter('viewportPageCenter')
-		return this.getViewportPageCenter()
-	}
-
 	/**
 	 * Convert a point in screen space to a point in the current page space.
 	 *
@@ -3269,15 +2992,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._cameraState.get()
 	}
 
-	/**
-	 * @deprecated Use `getCameraState` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get cameraState() {
-		warnDeprecatedGetter('cameraState')
-		return this.getCameraState()
-	}
-
 	// Camera state does two things: first, it allows us to subscribe to whether
 	// the camera is moving or not; and second, it allows us to update the rendering
 	// shapes on the canvas. Changing the rendering shapes may cause shapes to
@@ -3447,30 +3161,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getRenderingShapes` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get renderingShapes() {
-		warnDeprecatedGetter('renderingShapes')
-		return this.getRenderingShapes()
-	}
-
-	/**
 	 * The current rendering bounds in the current page space, used for checking which shapes are "on screen".
 	 *
 	 * @public
 	 */
 	getRenderingBounds() {
 		return this._renderingBounds.get()
-	}
-
-	/**
-	 * @deprecated Use `getRenderingBounds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get renderingBounds() {
-		warnDeprecatedGetter('renderingBounds')
-		return this.getRenderingBounds()
 	}
 
 	/** @internal */
@@ -3484,15 +3180,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getRenderingBoundsExpanded() {
 		return this._renderingBoundsExpanded.get()
-	}
-
-	/**
-	 * @deprecated Use `getRenderingBoundsExpanded` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get renderingBoundsExpanded() {
-		warnDeprecatedGetter('renderingBoundsExpanded')
-		return this.getRenderingBoundsExpanded()
 	}
 
 	/** @internal */
@@ -3549,15 +3236,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getPages` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get pages() {
-		warnDeprecatedGetter('pages')
-		return this.getPages()
-	}
-
-	/**
 	 * The current page.
 	 *
 	 * @public
@@ -3567,30 +3245,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated use `getCurrentPage` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPage() {
-		warnDeprecatedGetter('currentPage')
-		return this.getCurrentPage()
-	}
-
-	/**
 	 * The current page id.
 	 *
 	 * @public
 	 */
 	getCurrentPageId(): TLPageId {
 		return this.getInstanceState().currentPageId
-	}
-
-	/**
-	 * @deprecated Use `getCurrentPageId` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPageId() {
-		warnDeprecatedGetter('currentPageId')
-		return this.getCurrentPageId()
 	}
 
 	/**
@@ -3620,14 +3280,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getCurrentPageShapeIds() {
 		return this._currentPageShapeIds.get()
-	}
-	/**
-	 * @deprecated Use `getCurrentPageShapeIds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPageShapeIds() {
-		warnDeprecatedGetter('currentPageShapeIds')
-		return this.getCurrentPageShapeIds()
 	}
 
 	/**
@@ -3973,15 +3625,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getAssets() {
 		return this._getAllAssetsQuery().get()
-	}
-
-	/**
-	 * @deprecated Use `getAssets` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get assets() {
-		warnDeprecatedGetter('assets')
-		return this.getAssets()
 	}
 
 	/**
@@ -4597,15 +4240,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getCurrentPageBounds` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPageBounds() {
-		warnDeprecatedGetter('currentPageBounds')
-		return this.getCurrentPageBounds()
-	}
-
-	/**
 	 * Get the top-most selected shape at the given point, ignoring groups.
 	 *
 	 * @param point - The point to check.
@@ -4915,15 +4549,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getCurrentPageShapes` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPageShapes() {
-		warnDeprecatedGetter('currentPageShapes')
-		return this.getCurrentPageShapes()
-	}
-
-	/**
 	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
@@ -4958,15 +4583,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `getCurrentPageShapesSorted` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPageShapesSorted() {
-		warnDeprecatedGetter('currentPageShapesSorted')
-		return this.getCurrentPageShapesSorted()
-	}
-
-	/**
 	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
@@ -4977,15 +4593,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			.filter(({ isCulled }) => !isCulled)
 			.sort((a, b) => a.index - b.index)
 			.map(({ shape }) => shape)
-	}
-
-	/**
-	 * @deprecated Use `getCurrentPageRenderingShapesSorted` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPageRenderingShapesSorted() {
-		warnDeprecatedGetter('currentPageRenderingShapesSorted')
-		return this.getCurrentPageRenderingShapesSorted()
 	}
 
 	/**
@@ -7680,15 +7287,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * @deprecated Use `editor.sharedStyles` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get sharedStyles() {
-		warnDeprecatedGetter('sharedStyles')
-		return this.getSharedStyles()
-	}
-
-	/**
 	 * Get the currently selected shared opacity.
 	 * If any shapes are selected, this returns the shared opacity of the selected shapes.
 	 * Otherwise, this returns the chosen opacity for the next shape.
@@ -7728,15 +7326,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
 		return { type: 'shared', value: this.getInstanceState().opacityForNextShape }
-	}
-
-	/**
-	 * @deprecated Use `editor.sharedOpacity` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get sharedOpacity() {
-		warnDeprecatedGetter('sharedOpacity')
-		return this.getSharedOpacity()
 	}
 
 	/**
@@ -9130,6 +8719,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					switch (info.name) {
 						case 'pointer_down': {
+							this.clearOpenMenus()
+
 							this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 
 							// Firefox bug fix...

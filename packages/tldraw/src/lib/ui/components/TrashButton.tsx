@@ -19,7 +19,11 @@ export const TrashButton = track(function TrashButton() {
 		<Button
 			icon={action.icon}
 			type="icon"
-			onClick={() => action.onSelect('quick-actions')}
+			onClick={() => {
+				action.onSelect('quick-actions')
+				// focus the container so that when this button becomes disabled we don't lose keyboard focus
+				editor.getContainer().focus()
+			}}
 			disabled={!(editor.isIn('select') && editor.getSelectedShapeIds().length > 0)}
 			title={`${msg(action.label!)} ${kbdStr(action.kbd!)}`}
 			smallIcon

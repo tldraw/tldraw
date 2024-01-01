@@ -370,7 +370,7 @@ export const PageMenu = function PageMenu() {
 									className="tlui-page-menu__item"
 								>
 									<Button
-										type="icon"
+										type="normal"
 										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
 										onClick={() => editor.setCurrentPage(page.id)}
 										onDoubleClick={toggleEditing}

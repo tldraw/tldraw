@@ -1,15 +1,15 @@
 {
 	"name": "tldraw-vscode",
 	"description": "The tldraw extension for VS Code.",
-	"version": "2.0.19",
+	"version": "2.0.20",
 	"private": true,
 	"packageManager": "yarn@3.5.0",
 	"author": {
-		"name": "tldraw GB Ltd.",
+		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE.md",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"

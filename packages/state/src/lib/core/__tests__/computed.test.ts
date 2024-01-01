@@ -2,7 +2,7 @@ import { atom } from '../Atom'
 import { Computed, _Computed, computed, getComputedInstance, isUninitialized } from '../Computed'
 import { reactor } from '../EffectScheduler'
 import { assertNever } from '../helpers'
-import { advanceGlobalEpoch, globalEpoch, transact, transaction } from '../transactions'
+import { advanceGlobalEpoch, getGlobalEpoch, transact, transaction } from '../transactions'
 import { RESET_VALUE, Signal } from '../types'
 
 function getLastCheckedEpoch(derivation: Computed<any>): number {
@@ -12,7 +12,7 @@ function getLastCheckedEpoch(derivation: Computed<any>): number {
 describe('derivations', () => {
 	it('will cache a value forever if it has no parents', () => {
 		const derive = jest.fn(() => 1)
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 		const derivation = computed('', derive)
 
 		expect(derive).toHaveBeenCalledTimes(0)
@@ -47,7 +47,7 @@ describe('derivations', () => {
 		const a = atom('', 1)
 		const double = jest.fn(() => a.get() * 2)
 		const derivation = computed('', double)
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 		expect(double).toHaveBeenCalledTimes(0)
 
 		expect(derivation.get()).toBe(2)
@@ -61,7 +61,7 @@ describe('derivations', () => {
 		expect(derivation.lastChangedEpoch).toBe(startEpoch)
 
 		a.set(2)
-		const nextEpoch = globalEpoch
+		const nextEpoch = getGlobalEpoch()
 		expect(nextEpoch > startEpoch).toBe(true)
 
 		expect(double).toHaveBeenCalledTimes(1)
@@ -87,7 +87,7 @@ describe('derivations', () => {
 	})
 
 	it('supports history', () => {
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 		const a = atom('', 1)
 
 		const derivation = computed('', () => a.get() * 2, {
@@ -119,7 +119,7 @@ describe('derivations', () => {
 	})
 
 	it('doesnt update history if it doesnt change', () => {
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 		const a = atom('', 1)
 
 		const floor = jest.fn((n: number) => Math.floor(n))
@@ -159,7 +159,7 @@ describe('derivations', () => {
 	})
 
 	it('updates the lastCheckedEpoch whenever the globalEpoch advances', () => {
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 		const a = atom('', 1)
 
 		const double = jest.fn(() => a.get() * 2)
@@ -203,7 +203,7 @@ describe('derivations', () => {
 
 		expect(derivation.get()).toBe(2)
 
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		a.set(2)
 
@@ -300,7 +300,7 @@ describe('derivations', () => {
 			computeDiff: (a, b) => b - a,
 		})
 
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		transaction((rollback) => {
 			expect(c.getDiffSince(startEpoch)).toEqual([])
@@ -322,7 +322,7 @@ describe('derivations', () => {
 			computeDiff: (a, b) => b - a,
 		})
 
-		expect(c.getDiffSince(globalEpoch - 1)).toEqual(RESET_VALUE)
+		expect(c.getDiffSince(getGlobalEpoch() - 1)).toEqual(RESET_VALUE)
 	})
 })
 

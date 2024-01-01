@@ -51,6 +51,9 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 
 	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
 	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])
+	const edgeScrollSpeed = useValue('edgeScrollSpeed', () => editor.user.getEdgeScrollSpeed(), [
+		editor,
+	])
 	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const isSnapMode = useValue('isSnapMode', () => editor.user.getIsSnapMode(), [editor])
 	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
@@ -214,6 +217,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 						menuItem(actions['toggle-grid'], { checked: isGridMode }),
 						menuItem(actions['toggle-dark-mode'], { checked: isDarkMode }),
 						menuItem(actions['toggle-focus-mode'], { checked: isFocusMode }),
+						menuItem(actions['toggle-edge-scrolling'], { checked: edgeScrollSpeed === 1 }),
 						menuItem(actions['toggle-reduce-motion'], { checked: animationSpeed === 0 }),
 						menuItem(actions['toggle-debug-mode'], { checked: isDebugMode })
 					)
@@ -258,6 +262,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 		isFocusMode,
 		exportBackground,
 		isDebugMode,
+		edgeScrollSpeed,
 		isZoomedTo100,
 		oneEmbeddableBookmarkSelected,
 		oneEmbedSelected,

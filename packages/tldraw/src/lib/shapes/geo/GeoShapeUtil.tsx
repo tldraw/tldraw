@@ -20,6 +20,7 @@ import {
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
 	Vec2d,
+	VecLike,
 	geoShapeMigrations,
 	geoShapeProps,
 	getDefaultColorTheme,
@@ -321,10 +322,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const labelSize = getLabelSize(this.editor, shape)
 		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8)))) // not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
+
+		// todo: use centroid for label position
 
 		return new Group2d({
 			children: [
@@ -1150,4 +1153,20 @@ function getCheckBoxLines(w: number, h: number) {
 			new Vec2d(clampX(ox + size * 0.82), clampY(oy + size * 0.22)),
 		],
 	]
+}
+
+/**
+ * Get the centroid of a regular polygon.
+ * @param points - The points that make up the polygon.
+ * @internal
+ */
+export function getCentroidOfRegularPolygon(points: VecLike[]) {
+	const len = points.length
+	let x = 0
+	let y = 0
+	for (let i = 0; i < len; i++) {
+		x += points[i].x
+		y += points[i].y
+	}
+	return new Vec2d(x / len, y / len)
 }

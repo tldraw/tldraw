@@ -29,7 +29,7 @@ function sharedStyleEquals<T>(a: SharedStyle<T>, b: SharedStyle<T> | undefined) 
 
 /**
  * A map of {@link @tldraw/tlschema#StyleProp | StyleProps} to their {@link SharedStyle} values. See
- * {@link Editor.sharedStyles}.
+ * {@link Editor.getSharedStyles}.
  *
  * @public
  */

@@ -10,9 +10,11 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
+	TLTickEventHandler,
 	Vec2d,
 	compact,
 	isPageId,
+	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import { DragAndDropManager } from '../DragAndDropManager'
 
@@ -77,12 +79,10 @@ export class Translating extends StateNode {
 		this.snapshot = this.selectionSnapshot
 		this.handleStart()
 		this.updateShapes()
-		this.editor.on('tick', this.updateParent)
 	}
 
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
-		this.editor.off('tick', this.updateParent)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clear()
@@ -91,6 +91,14 @@ export class Translating extends StateNode {
 			{ ephemeral: true }
 		)
 		this.dragAndDropManager.clear()
+	}
+
+	override onTick: TLTickEventHandler = () => {
+		this.dragAndDropManager.updateDroppingNode(
+			this.snapshot.movingShapes,
+			this.updateParentTransforms
+		)
+		moveCameraWhenCloseToEdge(this.editor)
 	}
 
 	override onPointerMove = () => {
@@ -151,11 +159,6 @@ export class Translating extends StateNode {
 		this.markId = 'translating'
 		this.editor.mark(this.markId)
 		this.updateShapes()
-	}
-
-	updateParent = () => {
-		const { snapshot } = this
-		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
 	}
 
 	reset() {

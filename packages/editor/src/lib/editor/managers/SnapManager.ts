@@ -1,6 +1,6 @@
 import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
 import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
-import { dedupe, deepCopy, warnDeprecatedGetter } from '@tldraw/utils'
+import { dedupe, deepCopy } from '@tldraw/utils'
 import {
 	Box2d,
 	flipSelectionHandleX,
@@ -216,15 +216,6 @@ export class SnapManager {
 		return this._snapLines.get() ?? (EMPTY_ARRAY as SnapLine[])
 	}
 
-	/**
-	 * @deprecated use `getLines` instead
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get lines() {
-		warnDeprecatedGetter('lines')
-		return this.getLines()
-	}
-
 	clear() {
 		if (this.getLines().length) {
 			this._snapLines.set(undefined)
@@ -250,26 +241,8 @@ export class SnapManager {
 		})
 	}
 
-	/**
-	 * @deprecated use `getSnapPointsCache` instead
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get snapPointsCache() {
-		warnDeprecatedGetter('snapPointsCache')
-		return this.getSnapPointsCache()
-	}
-
 	@computed getSnapThreshold() {
 		return 8 / this.editor.getZoomLevel()
-	}
-
-	/**
-	 * @deprecated use `getSnapThreshold` instead
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get snapThreshold() {
-		warnDeprecatedGetter('snapThreshold')
-		return this.getSnapThreshold()
 	}
 
 	// TODO: make this an incremental derivation
@@ -311,28 +284,9 @@ export class SnapManager {
 		return snappableShapes
 	}
 
-	/**
-	 * @deprecated use `getSnappableShapes` instead
-	 */
-
-	// eslint-disable-next-line no-restricted-syntax
-	get snappableShapes() {
-		warnDeprecatedGetter('snappableShapes')
-		return this.getSnappableShapes()
-	}
-
 	// This needs to be external from any expensive work
 	@computed getCurrentCommonAncestor() {
 		return this.editor.findCommonAncestor(this.editor.getSelectedShapes())
-	}
-
-	/**
-	 * @deprecated use `getCurrentCommonAncestor` instead
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentCommonAncestor() {
-		warnDeprecatedGetter('currentCommonAncestor')
-		return this.getCurrentCommonAncestor()
 	}
 
 	// Points which belong to snappable shapes
@@ -349,15 +303,6 @@ export class SnapManager {
 		})
 
 		return result
-	}
-
-	/**
-	 * @deprecated use `getSnappablePoints` instead
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get snappablePoints() {
-		warnDeprecatedGetter('snappablePoints')
-		return this.getSnappablePoints()
 	}
 
 	@computed getVisibleGaps(): { horizontal: Gap[]; vertical: Gap[] } {
@@ -455,15 +400,6 @@ export class SnapManager {
 		}
 
 		return { horizontal, vertical }
-	}
-
-	/**
-	 * @deprecated use `getVisibleGaps` instead
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get visibleGaps() {
-		warnDeprecatedGetter('visibleGaps')
-		return this.getVisibleGaps()
 	}
 
 	snapTranslate({
@@ -567,15 +503,6 @@ export class SnapManager {
 			if (!pageTransform) throw Error('No page transform')
 			return Matrix2d.applyToPoints(pageTransform, outline)
 		})
-	}
-
-	/**
-	 * @deprecated use `getOutlinesInPageSpace` instead
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get outlinesInPageSpace() {
-		warnDeprecatedGetter('outlinesInPageSpace')
-		return this.getOutlinesInPageSpace()
 	}
 
 	getSnappingHandleDelta({

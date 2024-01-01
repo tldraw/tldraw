@@ -1079,7 +1079,7 @@ input,
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	pointer-events: all;
+	pointer-events: none;
 	min-height: auto;
 }
 

@@ -81,6 +81,7 @@ export interface TLUiEventMap {
 	'toggle-debug-mode': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
+	'toggle-edge-scrolling': null
 	'exit-pen-mode': null
 	'stop-following': null
 	'open-cursor-chat': null

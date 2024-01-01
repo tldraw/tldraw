@@ -34,8 +34,11 @@ Object.defineProperty(global.URL, 'createObjectURL', {
 	value: jest.fn(),
 })
 
+// Extract verson from package.json
+const { version } = require('./package.json')
+
 window.fetch = async (input, init) => {
-	if (input === 'https://unpkg.com/@tldraw/assets@2.0.0-alpha.12/translations/en.json') {
+	if (input === `https://unpkg.com/@tldraw/assets@${version}/translations/en.json`) {
 		const json = await import('@tldraw/assets/translations/main.json')
 		return {
 			ok: true,

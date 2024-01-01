@@ -102,8 +102,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			<rect
 				width={toDomPrecision(shape.props.w)}
 				height={toDomPrecision(shape.props.h)}
-				rx="8"
-				ry="8"
+				rx="6"
+				ry="6"
 			/>
 		)
 	}

@@ -1,3 +1,14 @@
+## 2.0.20
+
+- Adds edge scrolling functionality. The camera will now move when the pointer is close to the edge of the screen (when resizing, moving, or brush selecting),
+- Improves the default font appearance.
+- Improves the interactions on top of locked shapes. Dragging selected shapes on top and behind them should now work as expected.
+- Fixes an issue with downscaling images that could make the document size grow significantly.
+- Fixes the context menu not closing in some cases.
+- Fixes page names getting cut off.
+- Fixes an issue with loosing focus when deleting from the user interface.
+- Fixes the missing padding on some buttons.
+
 ## 2.0.19
 
 - Adds fit to content option for frames.

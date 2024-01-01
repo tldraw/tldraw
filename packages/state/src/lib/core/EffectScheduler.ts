@@ -1,7 +1,7 @@
 import { startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
-import { attach, detach, haveParentsChanged } from './helpers'
-import { globalEpoch } from './transactions'
+import { attach, detach, haveParentsChanged, singleton } from './helpers'
+import { getGlobalEpoch } from './transactions'
 import { Signal } from './types'
 
 interface EffectSchedulerOptions {
@@ -37,7 +37,7 @@ interface EffectSchedulerOptions {
 	scheduleEffect?: (execute: () => void) => void
 }
 
-export class EffectScheduler<Result> {
+class __EffectScheduler__<Result> {
 	private _isActivelyListening = false
 	/**
 	 * Whether this scheduler is attached and actively listening to its parents.
@@ -80,11 +80,11 @@ export class EffectScheduler<Result> {
 		// bail out if we have been cancelled by another effect
 		if (!this._isActivelyListening) return
 		// bail out if no atoms have changed since the last time we ran this effect
-		if (this.lastReactedEpoch === globalEpoch) return
+		if (this.lastReactedEpoch === getGlobalEpoch()) return
 
 		// bail out if we have parents and they have not changed since last time
 		if (this.parents.length && !haveParentsChanged(this)) {
-			this.lastReactedEpoch = globalEpoch
+			this.lastReactedEpoch = getGlobalEpoch()
 			return
 		}
 		// if we don't have parents it's probably the first time this is running.
@@ -141,7 +141,7 @@ export class EffectScheduler<Result> {
 		try {
 			startCapturingParents(this)
 			const result = this.runEffect(this.lastReactedEpoch)
-			this.lastReactedEpoch = globalEpoch
+			this.lastReactedEpoch = getGlobalEpoch()
 			return result
 		} finally {
 			stopCapturingParents()
@@ -149,6 +149,57 @@ export class EffectScheduler<Result> {
 	}
 }
 
+/**
+ * An EffectScheduler is responsible for executing side effects in response to changes in state.
+ *
+ * You probably don't need to use this directly unless you're integrating this library with a framework of some kind.
+ *
+ * Instead, use the [[react]] and [[reactor]] functions.
+ *
+ * @example
+ * ```ts
+ * const render = new EffectScheduler('render', drawToCanvas)
+ *
+ * render.attach()
+ * render.execute()
+ * ```
+ *
+ * @public
+ */
+export const EffectScheduler = singleton('EffectScheduler', () => __EffectScheduler__)
+/** @public */
+export type EffectScheduler<Result> = __EffectScheduler__<Result>
+
+/**
+ * Starts a new effect scheduler, scheduling the effect immediately.
+ *
+ * Returns a function that can be called to stop the scheduler.
+ *
+ * @example
+ * ```ts
+ * const color = atom('color', 'red')
+ * const stop = react('set style', () => {
+ *   divElem.style.color = color.get()
+ * })
+ * color.set('blue')
+ * // divElem.style.color === 'blue'
+ * stop()
+ * color.set('green')
+ * // divElem.style.color === 'blue'
+ * ```
+ *
+ *
+ * Also useful in React applications for running effects outside of the render cycle.
+ *
+ * @example
+ * ```ts
+ * useEffect(() => react('set style', () => {
+ *   divRef.current.style.color = color.get()
+ * }), [])
+ * ```
+ *
+ * @public
+ */
 export function react(
 	name: string,
 	fn: (lastReactedEpoch: number) => any,
@@ -194,6 +245,11 @@ export interface Reactor<T = unknown> {
 	stop(): void
 }
 
+/**
+ * Creates a [[Reactor]], which is a thin wrapper around an [[EffectScheduler]].
+ *
+ * @public
+ */
 export function reactor<Result>(
 	name: string,
 	fn: (lastReactedEpoch: number) => Result,

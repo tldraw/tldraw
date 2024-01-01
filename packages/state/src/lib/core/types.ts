@@ -1,6 +1,4 @@
 import { ArraySet } from './ArraySet'
-import { _Computed } from './Computed'
-import { EffectScheduler } from './EffectScheduler'
 
 /** @public */
 export const RESET_VALUE: unique symbol = Symbol.for('com.tldraw.state/RESET_VALUE')
@@ -29,10 +27,7 @@ export interface Signal<Value, Diff = unknown> {
 	 * Any effect that depends on this signal will be rescheduled if this signal changes.
 	 */
 	get(): Value
-	/**
-	 * @deprecated Use [[Signal.get]] instead.
-	 */
-	value: Value
+
 	/**
 	 * The epoch when this signal's value last changed. Note tha this is not the same as when the value was last computed.
 	 * A signal may recopmute it's value without changing it.
@@ -54,7 +49,12 @@ export interface Signal<Value, Diff = unknown> {
 }
 
 /** @internal */
-export type Child = EffectScheduler<any> | _Computed<any>
+export type Child = {
+	lastTraversedEpoch: number
+	parents: Signal<any, any>[]
+	parentEpochs: number[]
+	isActivelyListening: boolean
+}
 
 /**
  * Computes the diff between the previous and current value.

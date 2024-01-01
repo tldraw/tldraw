@@ -2,7 +2,7 @@
 	"name": "config",
 	"version": "2.0.0-alpha.8",
 	"main": "index.js",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE.md",
 	"private": true,
 	"files": [
 		"eslint-preset.js"
