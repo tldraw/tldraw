@@ -31,7 +31,8 @@ Introduction:
 
 This example shows how to create a custom shape using handles. You can use handles when you want
 user interaction to alter the geometry of a shape. In this example, we create a speech bubble shape
-with a handle on the tail so the user can alter its position and length. 
+with a handle on the tail so the user can alter its position and length. Most of the interesting stuff
+is in SpeechBubbleUtil.tsx and helpers.tsx. 
 
 [1]
 We define an array to hold the custom shape util and cusom tool. It's important to do this outside of
