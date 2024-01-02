@@ -147,8 +147,8 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		}
 
 		const next = deepCopy(shape)
-		next.props.handles.handle.x = newPoint.x
-		next.props.handles.handle.y = newPoint.y
+		next.props.handles.handle.x = newPoint.x / w
+		next.props.handles.handle.y = newPoint.y / h
 
 		return next
 	}
