@@ -28,6 +28,7 @@ import {
 
 // There's a guide at the bottom of this file!
 
+// [1]
 export type SpeechBubbleShape = TLBaseShape<
 	'speech-bubble',
 	{
@@ -45,6 +46,8 @@ export const handleValidator = () => true
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	static override type = 'speech-bubble' as const
+
+	// [2]
 	static override props = {
 		w: T.number,
 		h: T.number,
@@ -62,6 +65,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	override canBind = (_shape: SpeechBubbleShape) => true
 
+	// [3]
 	getDefaultProps(): SpeechBubbleShape['props'] {
 		return {
 			w: 200,
@@ -99,6 +103,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return handlesArray
 	}
 
+	// [4]
 	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (
 		_: SpeechBubbleShape,
 		next: SpeechBubbleShape
@@ -204,3 +209,32 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return next
 	}
 }
+
+/*
+Introduction:
+This file contains our custom shape util. The shape util is a class that defines how our shape behaves.
+Most of the logic for how the speech bubble shape works is in the onBeforeUpdate handler [4]. Since this
+shape has a handle, we need to do some special stuff to make sure it updates the way we want it to.
+
+[1]
+Here is where we define the shape's type. For the handle we can use the `TLHandle` type from @tldraw/tldraw.
+
+[2]
+This is where we define the shape's props and a type validator for each key. tldraw exports a bunch of handy
+validators for us to use. We can also define our own, at the moment our handle validator just returns true 
+though, because I like to live dangerously. Props you define here will determine which style options show 
+up in the style menu, e.g. we define 'size' and 'color' props, but we could add 'dash', 'fill' or any other
+of the defauly props.
+
+[3]
+Here is where we set the default props for our shape, this will determine how the shape looks when we
+click-create it. You'll notice we don't store the handle's absolute position though, instead we record its 
+relative position. This is because we can also drag-create shapes. If we store the handle's position absolutely 
+it won't scale properly when drag-creating. Throughout the rest of the util we'll need to convert the
+handle's relative position to an absolute position and vice versa.
+
+[4]
+This is the last method that fires  after a shape has been changed, we can use it to make sure the tail stays
+the right length and position. Check out helpers.tsx to get into some of the more specific geometry stuff.
+
+*/
