@@ -19,7 +19,14 @@ import {
 	structuredClone,
 } from '@tldraw/tldraw'
 import { STROKE_SIZES } from '@tldraw/tldraw/src/lib/shapes/shared/default-shape-constants'
-import { getHandleIntersectionPoint, getSpeechBubbleGeometry } from './helpers'
+import {
+	getHandleIntersectionPoint,
+	getHandleinShapeSpace,
+	getHandlesInHandleSpace,
+	getSpeechBubbleGeometry,
+} from './helpers'
+
+// There's a guide at the bottom of this file!
 
 export type SpeechBubbleShape = TLBaseShape<
 	'speech-bubble',
@@ -36,21 +43,6 @@ export type SpeechBubbleShape = TLBaseShape<
 
 export const handleValidator = () => true
 
-export const getHandleinShapeSpace = (shape: SpeechBubbleShape): SpeechBubbleShape => {
-	const newShape = deepCopy(shape)
-	newShape.props.handles.handle.x = newShape.props.handles.handle.x * newShape.props.w
-	newShape.props.handles.handle.y = newShape.props.handles.handle.y * newShape.props.h
-	return newShape
-}
-
-export const getHandlesInHandleSpace = (shape: SpeechBubbleShape): SpeechBubbleShape => {
-	const newShape = deepCopy(shape)
-	newShape.props.handles.handle.x = newShape.props.handles.handle.x / newShape.props.w
-	newShape.props.handles.handle.y = newShape.props.handles.handle.y / newShape.props.h
-
-	return newShape
-}
-
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	static override type = 'speech-bubble' as const
 	static override props = {
@@ -59,7 +51,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		size: DefaultSizeStyle,
 		color: DefaultColorStyle,
 		handles: {
-			//TODO: Actually validate this
 			validate: handleValidator,
 			handle: { validate: handleValidator },
 		},

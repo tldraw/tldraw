@@ -1,4 +1,4 @@
-import { TLHandle, Vec2d, VecLike, lerp } from '@tldraw/tldraw'
+import { TLHandle, Vec2d, VecLike, deepCopy, lerp } from '@tldraw/tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export const getSpeechBubbleGeometry = (shape: SpeechBubbleShape): Vec2d[] => {
@@ -184,7 +184,7 @@ export function checkIntersection(
 			return { result, line: (i - 1) as 0 | 1 | 2 | 3 }
 		}
 	}
-	//We're inside the shape, look backwards to find the intersection
+	//We're inside the shape, move backwards to find the intersection
 	const angle = Math.atan2(handle.y - center.y, handle.x - center.x)
 	//the third point's coordinates are the same as the height and width of the shape
 	const direction = Vec2d.FromAngle(angle, Math.max(points[2].x, points[2].y))
@@ -243,4 +243,19 @@ export function invLerp(a: number, b: number, v: number) {
  */
 export function mapRange(a1: number, b1: number, a2: number, b2: number, s: number) {
 	return lerp(a2, b2, invLerp(a1, b1, s))
+}
+
+export const getHandleinShapeSpace = (shape: SpeechBubbleShape): SpeechBubbleShape => {
+	const newShape = deepCopy(shape)
+	newShape.props.handles.handle.x = newShape.props.handles.handle.x * newShape.props.w
+	newShape.props.handles.handle.y = newShape.props.handles.handle.y * newShape.props.h
+	return newShape
+}
+
+export const getHandlesInHandleSpace = (shape: SpeechBubbleShape): SpeechBubbleShape => {
+	const newShape = deepCopy(shape)
+	newShape.props.handles.handle.x = newShape.props.handles.handle.x / newShape.props.w
+	newShape.props.handles.handle.y = newShape.props.handles.handle.y / newShape.props.h
+
+	return newShape
 }
