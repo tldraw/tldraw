@@ -121,7 +121,10 @@ export const BOUND_ARROW_OFFSET = 10
 /** @internal */
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10
 
-/** @public */
+/**
+ * Duplicated in tldraw library
+ * todo: all this should move out when we're able to abstract away arrows
+ * @internal */
 export const STROKE_SIZES: Record<string, number> = {
 	s: 2,
 	m: 3.5,
