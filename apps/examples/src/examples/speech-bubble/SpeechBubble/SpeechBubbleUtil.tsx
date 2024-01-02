@@ -118,11 +118,11 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	// [4]
 	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (
 		_: SpeechBubbleShape,
-		next: SpeechBubbleShape
+		shape: SpeechBubbleShape
 	) => {
-		const { w, h, handles } = next.props
+		const { w, h, handles } = shape.props
 
-		const { segmentsIntersection, insideShape } = getHandleIntersectionPoint(next)
+		const { segmentsIntersection, insideShape } = getHandleIntersectionPoint(shape)
 
 		const slantedLength = Math.hypot(w, h)
 		const MIN_DISTANCE = slantedLength / 5
@@ -146,20 +146,11 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			}
 		}
 
-		return {
-			...next,
-			props: {
-				...next.props,
-				handles: {
-					handle: {
-						...next.props.handles.handle,
-						// handle coordinates in normalized space
-						x: newPoint.x / w,
-						y: newPoint.y / h,
-					},
-				},
-			},
-		}
+		const next = deepCopy(shape)
+		next.props.handles.handle.x = newPoint.x
+		next.props.handles.handle.y = newPoint.y
+
+		return next
 	}
 
 	override onHandleChange: TLOnHandleChangeHandler<SpeechBubbleShape> = (
