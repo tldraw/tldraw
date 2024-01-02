@@ -66,7 +66,6 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec2d[] => {
 			]
 			break
 		default:
-			// eslint-disable-next-line no-console
 			throw Error("no intersection found, this shouldn't happen")
 	}
 
