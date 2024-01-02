@@ -95,7 +95,7 @@ export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
 	// We want to be sure we get an intersection, so if the point is
 	// inside the shape, push it away from the center by a big distance
 	const pointToCheck = insideShape
-		? Vec2d.Add(handleInShapeSpace, Vec2d.Mul(Vec2d.Sub(handleInShapeSpace, center).uni(), 1000000))
+		? Vec2d.Add(handleInShapeSpace, Vec2d.Sub(handleInShapeSpace, center).uni().mul(1000000))
 		: handleInShapeSpace
 
 	// Test each segment for an intersection
