@@ -1,19 +1,19 @@
-import { Vec2d, VecLike, lerp, pointInPolygon } from '@tldraw/tldraw'
+import { Vec, VecLike, lerp, pointInPolygon } from '@tldraw/tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
-export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec2d[] => {
+export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
 	const { w, h, handles } = shape.props
 
-	const handleInShapeSpace = new Vec2d(handles.handle.x * w, handles.handle.y * h)
+	const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
 
-	const [tl, tr, br, bl] = [new Vec2d(0, 0), new Vec2d(w, 0), new Vec2d(w, h), new Vec2d(0, h)]
+	const [tl, tr, br, bl] = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
 
 	const offsetH = w / 10
 	const offsetV = h / 10
 
 	const { adjustedIntersection, intersectionSegmentIndex } = getHandleIntersectionPoint(shape)
 
-	let vertices: Vec2d[]
+	let vertices: Vec[]
 
 	// Inject the tail segments into the geometry of the shape
 	switch (intersectionSegmentIndex) {
@@ -21,9 +21,9 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec2d[] => {
 			// top
 			vertices = [
 				tl,
-				new Vec2d(adjustedIntersection.x - offsetH, adjustedIntersection.y),
-				new Vec2d(handleInShapeSpace.x, handleInShapeSpace.y),
-				new Vec2d(adjustedIntersection.x + offsetH, adjustedIntersection.y),
+				new Vec(adjustedIntersection.x - offsetH, adjustedIntersection.y),
+				new Vec(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec(adjustedIntersection.x + offsetH, adjustedIntersection.y),
 				tr,
 				br,
 				bl,
@@ -34,9 +34,9 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec2d[] => {
 			vertices = [
 				tl,
 				tr,
-				new Vec2d(adjustedIntersection.x, adjustedIntersection.y - offsetV),
-				new Vec2d(handleInShapeSpace.x, handleInShapeSpace.y),
-				new Vec2d(adjustedIntersection.x, adjustedIntersection.y + offsetV),
+				new Vec(adjustedIntersection.x, adjustedIntersection.y - offsetV),
+				new Vec(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec(adjustedIntersection.x, adjustedIntersection.y + offsetV),
 				br,
 				bl,
 			]
@@ -47,9 +47,9 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec2d[] => {
 				tl,
 				tr,
 				br,
-				new Vec2d(adjustedIntersection.x + offsetH, adjustedIntersection.y),
-				new Vec2d(handleInShapeSpace.x, handleInShapeSpace.y),
-				new Vec2d(adjustedIntersection.x - offsetH, adjustedIntersection.y),
+				new Vec(adjustedIntersection.x + offsetH, adjustedIntersection.y),
+				new Vec(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec(adjustedIntersection.x - offsetH, adjustedIntersection.y),
 				bl,
 			]
 			break
@@ -60,9 +60,9 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec2d[] => {
 				tr,
 				br,
 				bl,
-				new Vec2d(adjustedIntersection.x, adjustedIntersection.y + offsetV),
-				new Vec2d(handleInShapeSpace.x, handleInShapeSpace.y),
-				new Vec2d(adjustedIntersection.x, adjustedIntersection.y - offsetV),
+				new Vec(adjustedIntersection.x, adjustedIntersection.y + offsetV),
+				new Vec(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec(adjustedIntersection.x, adjustedIntersection.y - offsetV),
 			]
 			break
 		default:
@@ -74,10 +74,10 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec2d[] => {
 
 export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
 	const { w, h, handles } = shape.props
-	const handleInShapeSpace = new Vec2d(handles.handle.x * w, handles.handle.y * h)
+	const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
 
-	const center = new Vec2d(w / 2, h / 2)
-	const corners = [new Vec2d(0, 0), new Vec2d(w, 0), new Vec2d(w, h), new Vec2d(0, h)]
+	const center = new Vec(w / 2, h / 2)
+	const corners = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
 	const segments = [
 		[corners[0], corners[1]],
 		[corners[1], corners[2]],
@@ -85,8 +85,8 @@ export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
 		[corners[3], corners[0]],
 	]
 
-	let segmentsIntersection: Vec2d | null = null
-	let intersectionSegment: Vec2d[] | null = null
+	let segmentsIntersection: Vec | null = null
+	let intersectionSegment: Vec[] | null = null
 
 	// If the point inside of the box's corners?
 	const insideShape = pointInPolygon(handleInShapeSpace, corners)
@@ -94,7 +94,7 @@ export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
 	// We want to be sure we get an intersection, so if the point is
 	// inside the shape, push it away from the center by a big distance
 	const pointToCheck = insideShape
-		? Vec2d.Add(handleInShapeSpace, Vec2d.Sub(handleInShapeSpace, center).uni().mul(1000000))
+		? Vec.Add(handleInShapeSpace, Vec.Sub(handleInShapeSpace, center).uni().mul(1000000))
 		: handleInShapeSpace
 
 	// Test each segment for an intersection
@@ -120,11 +120,11 @@ export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
 	const intersectionSegmentIndex = segments.indexOf(intersectionSegment)
 
 	// a normalised vector from start to end, so this can work in any direction
-	const unit = Vec2d.Sub(end, start).uni()
+	const unit = Vec.Sub(end, start).uni()
 
 	// Where is the intersection relative to the start?
-	const totalDistance = Vec2d.Dist(start, end)
-	const distance = Vec2d.Dist(segmentsIntersection, start)
+	const totalDistance = Vec.Dist(start, end)
+	const distance = Vec.Dist(segmentsIntersection, start)
 
 	// make it stick to the middle
 	const middleRelative = mapRange(0, totalDistance, -1, 1, distance) // absolute -> -1 to 1
@@ -170,7 +170,7 @@ function intersectLineSegmentLineSegment(a1: VecLike, a2: VecLike, b1: VecLike, 
 		const ua = ua_t / u_b
 		const ub = ub_t / u_b
 		if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
-			return Vec2d.AddXY(a1, ua * AVx, ua * AVy)
+			return Vec.AddXY(a1, ua * AVx, ua * AVy)
 		}
 	}
 
