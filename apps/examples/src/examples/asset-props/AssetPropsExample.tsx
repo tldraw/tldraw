@@ -7,7 +7,7 @@ export default function AssetPropsExample() {
 			<Tldraw
 				// only allow jpegs
 				acceptedImageMimeTypes={['image/jpeg']}
-				// don't allow any images
+				// don't allow any videos
 				acceptedVideoMimeTypes={[]}
 				// accept images of any dimension
 				maxImageDimension={Infinity}
@@ -17,3 +17,9 @@ export default function AssetPropsExample() {
 		</div>
 	)
 }
+
+/* 
+This example shows how to use props on the Tldraw component to control what types of
+assets can be uploaded.
+
+*/
