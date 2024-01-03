@@ -1611,11 +1611,11 @@ describe('add isInset to TLInstance', () => {
 	const { up, down } = instanceMigrations.migrators[instanceVersions.AddInset]
 
 	test('up works as expected', () => {
-		expect(up({})).toEqual({ insets: { top: false, right: false, bottom: false, left: false } })
+		expect(up({})).toEqual({ insets: [false, false, false, false] })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ insets: { top: false, right: false, bottom: false, left: false } })).toEqual({})
+		expect(down({ insets: [false, false, false, false] })).toEqual({})
 	})
 })
 
