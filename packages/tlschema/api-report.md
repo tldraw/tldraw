@@ -92,8 +92,11 @@ export const bookmarkShapeProps: {
     url: T.Validator<string>;
 };
 
+// @public (undocumented)
+export const box2dModelValidator: T.Validator<BoxModel>;
+
 // @public
-export interface Box2dModel {
+export interface BoxModel {
     // (undocumented)
     h: number;
     // (undocumented)
@@ -103,9 +106,6 @@ export interface Box2dModel {
     // (undocumented)
     y: number;
 }
-
-// @public (undocumented)
-export const box2dModelValidator: T.Validator<Box2dModel>;
 
 // @public (undocumented)
 export const CameraRecordType: RecordType<TLCamera, never>;
@@ -998,7 +998,7 @@ export type TLImageShapeProps = ShapePropsType<typeof imageShapeProps>;
 // @public
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
-    brush: Box2dModel | null;
+    brush: BoxModel | null;
     // (undocumented)
     canMoveCamera: boolean;
     // (undocumented)
@@ -1043,13 +1043,13 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     openMenus: string[];
     // (undocumented)
-    screenBounds: Box2dModel;
+    screenBounds: BoxModel;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
     stylesForNextShape: Record<string, unknown>;
     // (undocumented)
-    zoomBrush: Box2dModel | null;
+    zoomBrush: BoxModel | null;
 }
 
 // @public (undocumented)
@@ -1083,7 +1083,7 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
 // @public (undocumented)
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
-    brush: Box2dModel | null;
+    brush: BoxModel | null;
     // (undocumented)
     camera: {
         x: number;
@@ -1110,7 +1110,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
-    screenBounds: Box2dModel;
+    screenBounds: BoxModel;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)

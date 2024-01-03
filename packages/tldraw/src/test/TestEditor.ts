@@ -1,5 +1,5 @@
 import {
-	Box2dModel,
+	BoxModel,
 	Editor,
 	Matrix2d,
 	PageRecordType,
@@ -83,7 +83,7 @@ export class TestEditor extends Editor {
 				lineHeight: number
 				maxWidth: null | number
 			}
-		): Box2dModel => {
+		): BoxModel => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
@@ -117,7 +117,7 @@ export class TestEditor extends Editor {
 	elm: HTMLDivElement
 	bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
 
-	setScreenBounds(bounds: Box2dModel, center = false) {
+	setScreenBounds(bounds: BoxModel, center = false) {
 		this.bounds.x = bounds.x
 		this.bounds.y = bounds.y
 		this.bounds.top = bounds.y

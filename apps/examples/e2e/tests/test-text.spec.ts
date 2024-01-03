@@ -1,5 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { Box2dModel, Editor } from '@tldraw/tldraw'
+import { BoxModel, Editor } from '@tldraw/tldraw'
 import { setupPage } from '../shared-e2e'
 
 export function sleep(ms: number) {
@@ -29,7 +29,7 @@ const measureTextSpansOptions = {
 	textAlign: 'start' as 'start' | 'middle' | 'end',
 }
 
-function formatLines(spans: { box: Box2dModel; text: string }[]) {
+function formatLines(spans: { box: BoxModel; text: string }[]) {
 	const lines = []
 
 	let currentLine: string[] | null = null
@@ -85,7 +85,7 @@ test.describe('text measurement', () => {
 
 	test('should get a single text span', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) => editor.textMeasure.measureTextSpans('testing', options),
@@ -97,7 +97,7 @@ test.describe('text measurement', () => {
 
 	test('should wrap a word when it has to', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) => editor.textMeasure.measureTextSpans('testing', { ...options, width: 50 }),
@@ -109,7 +109,7 @@ test.describe('text measurement', () => {
 
 	test('should preserve whitespace at line breaks', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) => editor.textMeasure.measureTextSpans('testing   testing', options),
@@ -121,7 +121,7 @@ test.describe('text measurement', () => {
 
 	test('should preserve whitespace at the end of wrapped lines', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) => editor.textMeasure.measureTextSpans('testing testing   ', options),
@@ -136,7 +136,7 @@ test.describe('text measurement', () => {
 
 	test('preserves whitespace at the end of unwrapped lines', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
@@ -149,7 +149,7 @@ test.describe('text measurement', () => {
 
 	test('preserves whitespace at the start of an unwrapped line', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
@@ -162,7 +162,7 @@ test.describe('text measurement', () => {
 
 	test('should place starting whitespace on its own line if it has to', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) => editor.textMeasure.measureTextSpans('  testing testing', options),
@@ -174,7 +174,7 @@ test.describe('text measurement', () => {
 
 	test('should handle multiline text', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
@@ -192,7 +192,7 @@ test.describe('text measurement', () => {
 
 	test('should break long strings of text', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
@@ -212,7 +212,7 @@ test.describe('text measurement', () => {
 
 	test('should return an empty array if the text is empty', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(async (options) => editor.textMeasure.measureTextSpans('', options), measureTextSpansOptions)
 
@@ -221,7 +221,7 @@ test.describe('text measurement', () => {
 
 	test('should handle trailing newlines', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) => editor.textMeasure.measureTextSpans('hi\n\n\n', options),
@@ -233,7 +233,7 @@ test.describe('text measurement', () => {
 
 	test('should handle only newlines', async () => {
 		const spans = await page.evaluate<
-			{ text: string; box: Box2dModel }[],
+			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
 		>(
 			async (options) => editor.textMeasure.measureTextSpans('\n\n\n', options),

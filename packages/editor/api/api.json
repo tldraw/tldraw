@@ -1905,8 +1905,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -1963,8 +1963,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -1981,8 +1981,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -2268,8 +2268,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -3477,8 +3477,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -3558,8 +3558,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -3767,8 +3767,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -3829,8 +3829,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2dModel",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+              "text": "BoxModel",
+              "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
             },
             {
               "kind": "Content",
@@ -35416,8 +35416,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2dModel",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+              "text": "BoxModel",
+              "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
             },
             {
               "kind": "Content",

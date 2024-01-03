@@ -8,7 +8,7 @@
 
 import { Atom } from '@tldraw/state';
 import { atom } from '@tldraw/state';
-import { Box2dModel } from '@tldraw/tlschema';
+import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
@@ -187,9 +187,9 @@ export class Box {
     // (undocumented)
     get corners(): Vec[];
     // (undocumented)
-    static Equals(a: Box | Box2dModel, b: Box | Box2dModel): boolean;
+    static Equals(a: Box | BoxModel, b: Box | BoxModel): boolean;
     // (undocumented)
-    equals(other: Box | Box2dModel): boolean;
+    equals(other: Box | BoxModel): boolean;
     // (undocumented)
     static Expand(A: Box, B: Box): Box;
     // (undocumented)
@@ -199,7 +199,7 @@ export class Box {
     // (undocumented)
     expandBy(n: number): this;
     // (undocumented)
-    static From(box: Box2dModel): Box;
+    static From(box: BoxModel): Box;
     // (undocumented)
     static FromPoints(points: VecLike[]): Box;
     // (undocumented)
@@ -257,11 +257,11 @@ export class Box {
     // (undocumented)
     toFixed(): this;
     // (undocumented)
-    toJson(): Box2dModel;
+    toJson(): BoxModel;
     // (undocumented)
     translate(delta: VecLike): this;
     // (undocumented)
-    union(box: Box2dModel): this;
+    union(box: BoxModel): this;
     // (undocumented)
     w: number;
     // (undocumented)
@@ -272,13 +272,13 @@ export class Box {
     // (undocumented)
     y: number;
     // (undocumented)
-    static ZeroFix(other: Box | Box2dModel): Box;
+    static ZeroFix(other: Box | BoxModel): Box;
     // (undocumented)
     zeroFix(): this;
 }
 
 // @public (undocumented)
-export type BoxLike = Box | Box2dModel;
+export type BoxLike = Box | BoxModel;
 
 // @internal (undocumented)
 export const CAMERA_SLIDE_FRICTION = 0.09;
@@ -1924,7 +1924,7 @@ export interface TLBaseEventInfo {
 
 // @public (undocumented)
 export type TLBrushComponent = ComponentType<{
-    brush: Box2dModel;
+    brush: BoxModel;
     color?: string;
     opacity?: number;
     className?: string;

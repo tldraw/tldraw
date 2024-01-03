@@ -1,4 +1,4 @@
-import { Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
+import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
 
@@ -72,7 +72,7 @@ export class TextManager {
 			minWidth?: string
 			padding: string
 		}
-	): Box2dModel => {
+	): BoxModel => {
 		const elm = this.getTextElement()
 
 		elm.setAttribute('dir', 'ltr')
@@ -103,7 +103,7 @@ export class TextManager {
 	measureElementTextNodeSpans(
 		element: HTMLElement,
 		{ shouldTruncateToFirstLine = false }: { shouldTruncateToFirstLine?: boolean } = {}
-	): { spans: { box: Box2dModel; text: string }[]; didTruncate: boolean } {
+	): { spans: { box: BoxModel; text: string }[]; didTruncate: boolean } {
 		const spans = []
 
 		// Measurements of individual spans are relative to the containing element
@@ -195,7 +195,7 @@ export class TextManager {
 	measureTextSpans(
 		textToMeasure: string,
 		opts: TLMeasureTextSpanOpts
-	): { text: string; box: Box2dModel }[] {
+	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
 		const shouldTruncateToFirstLine =

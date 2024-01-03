@@ -1,6 +1,6 @@
 import {
 	Box,
-	Box2dModel,
+	BoxModel,
 	Editor,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
@@ -13,7 +13,7 @@ function correctSpacesToNbsp(input: string) {
 /** Get an SVG element for a text shape. */
 export function createTextSvgElementFromSpans(
 	editor: Editor,
-	spans: { text: string; box: Box2dModel }[],
+	spans: { text: string; box: BoxModel }[],
 	opts: {
 		fontSize: number
 		fontFamily: string

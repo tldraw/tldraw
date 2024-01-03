@@ -1,7 +1,7 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { Box2dModel, box2dModelValidator } from '../misc/geometry-types'
+import { box2dModelValidator, BoxModel } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorValidator, TLCursor } from '../misc/TLCursor'
 import { opacityValidator, TLOpacityType } from '../misc/TLOpacity'
@@ -23,15 +23,15 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	// ephemeral
 	followingUserId: string | null
 	highlightedUserIds: string[]
-	brush: Box2dModel | null
+	brush: BoxModel | null
 	cursor: TLCursor
 	scribbles: TLScribble[]
 	isFocusMode: boolean
 	isDebugMode: boolean
 	isToolLocked: boolean
 	exportBackground: boolean
-	screenBounds: Box2dModel
-	zoomBrush: Box2dModel | null
+	screenBounds: BoxModel
+	zoomBrush: BoxModel | null
 	chatMessage: string
 	isChatting: boolean
 	isPenMode: boolean

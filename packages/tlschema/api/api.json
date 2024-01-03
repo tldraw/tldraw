@@ -586,23 +586,60 @@
           }
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tlschema!box2dModelValidator:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "box2dModelValidator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "BoxModel",
+              "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "box2dModelValidator",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tlschema!Box2dModel:interface",
+          "canonicalReference": "@tldraw/tlschema!BoxModel:interface",
           "docComment": "/**\n * A serializable model for 2D boxes.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface Box2dModel "
+              "text": "export interface BoxModel "
             }
           ],
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "releaseTag": "Public",
-          "name": "Box2dModel",
+          "name": "BoxModel",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#h:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#h:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -629,7 +666,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#w:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#w:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -656,7 +693,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#x:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#x:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -683,7 +720,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#y:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#y:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -710,43 +747,6 @@
             }
           ],
           "extendsTokenRanges": []
-        },
-        {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!box2dModelValidator:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "box2dModelValidator: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "Box2dModel",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">"
-            }
-          ],
-          "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "box2dModelValidator",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 5
-          }
         },
         {
           "kind": "Variable",
@@ -6460,8 +6460,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7090,8 +7090,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7182,8 +7182,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7637,8 +7637,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7896,8 +7896,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",

@@ -23,7 +23,7 @@ export { scribbleValidator, type TLScribble } from './misc/TLScribble'
 export {
 	box2dModelValidator,
 	vecModelValidator,
-	type Box2dModel,
+	type BoxModel,
 	type VecModel,
 } from './misc/geometry-types'
 export { idValidator } from './misc/id-validator'
