@@ -1,4 +1,4 @@
-import { Vec } from '../Vec2d'
+import { Vec } from '../Vec'
 import { PI, TAU } from '../utils'
 import { Ellipse2d } from './Ellipse2d'
 import { Geometry2dOptions } from './Geometry2d'

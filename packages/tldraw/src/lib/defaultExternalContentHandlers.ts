@@ -10,7 +10,7 @@ import {
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
-	Vec2d,
+	Vec,
 	VecLike,
 	compact,
 	createShapeId,
@@ -226,7 +226,7 @@ export function registerDefaultExternalContentHandlers(
 			point ??
 			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
-		const pagePoint = new Vec2d(position.x, position.y)
+		const pagePoint = new Vec(position.x, position.y)
 
 		const assets: TLAsset[] = []
 
@@ -404,7 +404,7 @@ export async function createShapesForAssets(
 ): Promise<TLShapeId[]> {
 	if (!assets.length) return []
 
-	const currentPoint = Vec2d.From(position)
+	const currentPoint = Vec.From(position)
 	const partials: TLShapePartial[] = []
 
 	for (const asset of assets) {
@@ -489,7 +489,7 @@ function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 		editor.updateShapes(
 			editor.getSelectedShapes().map((shape) => {
 				const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
-				const localDelta = Vec2d.Rot(offset, -localRotation)
+				const localDelta = Vec.Rot(offset, -localRotation)
 				return {
 					id: shape.id,
 					type: shape.type,

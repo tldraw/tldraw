@@ -1,4 +1,4 @@
-import { Vec, VecLike } from '../../../../primitives/Vec2d'
+import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCircleCircle } from '../../../../primitives/intersect'
 import { PI, TAU } from '../../../../primitives/utils'
 import { TLArrowInfo } from './arrow-types'

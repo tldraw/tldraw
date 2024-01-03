@@ -2,7 +2,7 @@
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import { Box2d } from '../../primitives/Box2d'
-import { Vec } from '../../primitives/Vec2d'
+import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
 import { SvgExportContext } from '../types/SvgExportContext'

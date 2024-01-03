@@ -15,14 +15,14 @@ export interface Box2dModel {
  * A serializable model for 2D vectors.
  *
  * @public */
-export interface Vec2dModel {
+export interface VecModel {
 	x: number
 	y: number
 	z?: number
 }
 
 /** @public */
-export const vec2dModelValidator: T.Validator<Vec2dModel> = T.object({
+export const vecModelValidator: T.Validator<VecModel> = T.object({
 	x: T.number,
 	y: T.number,
 	z: T.number.optional(),

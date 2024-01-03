@@ -1,6 +1,6 @@
 import { Box2d } from './Box2d'
 import { clampRadians, TAU, toDomPrecision } from './utils'
-import { Vec, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec'
 
 /** @public */
 export type MatLike = Matrix2dModel | Matrix2d

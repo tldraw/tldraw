@@ -78,7 +78,7 @@ import {
 } from '../constants'
 import { Box2d } from '../primitives/Box2d'
 import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
-import { Vec, VecLike } from '../primitives/Vec2d'
+import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'

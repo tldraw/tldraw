@@ -1,5 +1,5 @@
 import { createShapeId } from '@tldraw/tlschema'
-import { Vec } from '../../../../primitives/Vec2d'
+import { Vec } from '../../../../primitives/Vec'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'

@@ -1,5 +1,5 @@
 import { Box2d } from './Box2d'
-import { Vec, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec'
 
 /** @public */
 export function precise(A: VecLike) {

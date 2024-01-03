@@ -1,4 +1,4 @@
-import { Vec } from '../Vec2d'
+import { Vec } from '../Vec'
 import { linesIntersect } from '../intersect'
 import { Geometry2d } from './Geometry2d'
 

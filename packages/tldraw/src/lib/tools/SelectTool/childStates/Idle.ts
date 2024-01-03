@@ -8,7 +8,7 @@ import {
 	TLKeyboardEventInfo,
 	TLShape,
 	TLTextShape,
-	Vec2d,
+	Vec,
 	VecLike,
 	createShapeId,
 	pointInPolygon,
@@ -529,14 +529,14 @@ export class Idle extends StateNode {
 		// because that one uses a short timeout on release
 		const shiftKey = keys.has('ShiftLeft')
 
-		const delta = new Vec2d(0, 0)
+		const delta = new Vec(0, 0)
 
 		if (keys.has('ArrowLeft')) delta.x -= 1
 		if (keys.has('ArrowRight')) delta.x += 1
 		if (keys.has('ArrowUp')) delta.y -= 1
 		if (keys.has('ArrowDown')) delta.y += 1
 
-		if (delta.equals(new Vec2d(0, 0))) return
+		if (delta.equals(new Vec(0, 0))) return
 
 		if (!ephemeral) this.editor.mark('nudge shapes')
 
@@ -574,6 +574,6 @@ function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
 
 	return pointInPolygon(
 		point,
-		selectionBounds.corners.map((c) => Vec2d.RotWith(c, selectionBounds.point, selectionRotation))
+		selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
 	)
 }

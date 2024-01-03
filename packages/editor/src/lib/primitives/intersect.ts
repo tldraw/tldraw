@@ -1,6 +1,6 @@
 import { Box2d } from './Box2d'
 import { pointInPolygon } from './utils'
-import { Vec, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec'
 
 // need even more intersections? See https://gist.github.com/steveruizok/35c02d526c707003a5c79761bfb89a52
 

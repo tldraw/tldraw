@@ -1,4 +1,4 @@
-import { Vec } from '../Vec2d'
+import { Vec } from '../Vec'
 import { Circle2d } from './Circle2d'
 
 describe('Circle2d.bounds', () => {

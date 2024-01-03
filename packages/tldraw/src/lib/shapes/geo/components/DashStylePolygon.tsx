@@ -1,4 +1,4 @@
-import { TLDefaultColorTheme, TLGeoShape, Vec2d, VecLike } from '@tldraw/editor'
+import { TLDefaultColorTheme, TLGeoShape, Vec, VecLike } from '@tldraw/editor'
 import * as React from 'react'
 import {
 	ShapeFill,
@@ -31,7 +31,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 					const A = outline[i]
 					const B = outline[(i + 1) % outline.length]
 
-					const dist = Vec2d.Dist(A, B)
+					const dist = Vec.Dist(A, B)
 
 					const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
 						style: dash,
@@ -53,7 +53,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 				})}
 				{lines &&
 					lines.map(([A, B], i) => {
-						const dist = Vec2d.Dist(A, B)
+						const dist = Vec.Dist(A, B)
 
 						const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
 							style: dash,
@@ -102,7 +102,7 @@ export function DashStylePolygonSvg({
 		const A = outline[i]
 		const B = outline[(i + 1) % outline.length]
 
-		const dist = Vec2d.Dist(A, B)
+		const dist = Vec.Dist(A, B)
 		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
 			style: dash,
 		})
@@ -120,7 +120,7 @@ export function DashStylePolygonSvg({
 
 	if (lines) {
 		for (const [A, B] of lines) {
-			const dist = Vec2d.Dist(A, B)
+			const dist = Vec.Dist(A, B)
 			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
 				style: dash,
 				start: 'skip',

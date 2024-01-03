@@ -3,7 +3,7 @@ import {
 	TLBaseShape,
 	TLImageShapeCrop,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	deepCopy,
 } from '@tldraw/editor'
 
@@ -12,7 +12,7 @@ export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TL
 export function getTranslateCroppedImageChange(
 	editor: Editor,
 	shape: TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>,
-	delta: Vec2d
+	delta: Vec
 ) {
 	if (!shape) {
 		throw Error('Needs to translate a cropped shape!')

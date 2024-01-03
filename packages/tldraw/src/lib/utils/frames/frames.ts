@@ -4,7 +4,7 @@ import {
 	TLFrameShape,
 	TLShapeId,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	compact,
 } from '@tldraw/editor'
 
@@ -73,7 +73,7 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts = {} as { 
 	// The shapes already perfectly fit the frame.
 	if (dx === 0 && dy === 0 && frame.props.w === w && frame.props.h === h) return
 
-	const diff = new Vec2d(dx, dy).rot(frame.rotation)
+	const diff = new Vec(dx, dy).rot(frame.rotation)
 	editor.batch(() => {
 		const changes: TLShapePartial[] = childIds.map((child) => {
 			const shape = editor.getShape(child)!

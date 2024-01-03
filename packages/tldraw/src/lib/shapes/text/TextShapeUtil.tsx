@@ -10,7 +10,7 @@ import {
 	TLOnResizeHandler,
 	TLShapeUtilFlag,
 	TLTextShape,
-	Vec2d,
+	Vec,
 	WeakMapCache,
 	getDefaultColorTheme,
 	stopEventPropagation,
@@ -209,7 +209,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			const prevWidth = initialBounds.width
 			let nextWidth = prevWidth * scaleX
 
-			const offset = new Vec2d(0, 0)
+			const offset = new Vec(0, 0)
 
 			nextWidth = Math.max(1, Math.abs(nextWidth))
 
@@ -308,20 +308,20 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const wB = boundsB.width * next.props.scale
 		const hB = boundsB.height * next.props.scale
 
-		let delta: Vec2d | undefined
+		let delta: Vec | undefined
 
 		switch (next.props.align) {
 			case 'middle': {
-				delta = new Vec2d((wB - wA) / 2, textDidChange ? 0 : (hB - hA) / 2)
+				delta = new Vec((wB - wA) / 2, textDidChange ? 0 : (hB - hA) / 2)
 				break
 			}
 			case 'end': {
-				delta = new Vec2d(wB - wA, textDidChange ? 0 : (hB - hA) / 2)
+				delta = new Vec(wB - wA, textDidChange ? 0 : (hB - hA) / 2)
 				break
 			}
 			default: {
 				if (textDidChange) break
-				delta = new Vec2d(0, (hB - hA) / 2)
+				delta = new Vec(0, (hB - hA) / 2)
 				break
 			}
 		}

@@ -4,7 +4,7 @@ import {
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	Tldraw,
-	Vec2d,
+	Vec,
 	toolbarItem,
 	useEditor,
 	useValue,
@@ -69,7 +69,7 @@ function ScreenshotBox() {
 			// "page space", i.e. uneffected by scale, and relative to the tldraw
 			// page's top left corner.
 			const zoomLevel = editor.getZoomLevel()
-			const { x, y } = Vec2d.Sub(
+			const { x, y } = Vec.Sub(
 				editor.pageToScreen({ x: box.x, y: box.y }),
 				editor.getViewportScreenBounds()
 			)

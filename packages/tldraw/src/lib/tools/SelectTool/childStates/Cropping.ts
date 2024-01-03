@@ -8,7 +8,7 @@ import {
 	TLImageShapeCrop,
 	TLPointerEventInfo,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	deepCopy,
 } from '@tldraw/editor'
 import { MIN_CROP_SIZE } from './Crop/crop-constants'
@@ -94,8 +94,8 @@ export class Cropping extends StateNode {
 		const crop = props.crop ?? this.getDefaultCrop()
 		const newCrop = deepCopy(crop)
 
-		const newPoint = new Vec2d(shape.x, shape.y)
-		const pointDelta = new Vec2d(0, 0)
+		const newPoint = new Vec(shape.x, shape.y)
+		const pointDelta = new Vec(0, 0)
 
 		// original (uncropped) width and height of shape
 		const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * props.w
@@ -233,13 +233,13 @@ export class Cropping extends StateNode {
 
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
 
-		const dragHandlePoint = Vec2d.RotWith(
+		const dragHandlePoint = Vec.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
 			selectionBounds.point,
 			selectionRotation
 		)
 
-		const cursorHandleOffset = Vec2d.Sub(originPagePoint, dragHandlePoint)
+		const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
 
 		return {
 			shape,

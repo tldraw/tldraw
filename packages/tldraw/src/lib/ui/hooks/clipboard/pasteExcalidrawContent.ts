@@ -13,7 +13,7 @@ import {
 	TLDefaultSizeStyle,
 	TLOpacityType,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	VecLike,
 	compact,
 	createShapeId,
@@ -481,19 +481,19 @@ const arrowheadsToArrowheadTypes: Record<string, TLArrowShapeArrowheadStyle> = {
 function getBend(element: any, startPoint: any, endPoint: any) {
 	let bend = 0
 	if (element.points.length > 2) {
-		const start = new Vec2d(startPoint[0], startPoint[1])
-		const end = new Vec2d(endPoint[0], endPoint[1])
-		const handle = new Vec2d(element.points[1][0], element.points[1][1])
-		const delta = Vec2d.Sub(end, start)
-		const v = Vec2d.Per(delta)
+		const start = new Vec(startPoint[0], startPoint[1])
+		const end = new Vec(endPoint[0], endPoint[1])
+		const handle = new Vec(element.points[1][0], element.points[1][1])
+		const delta = Vec.Sub(end, start)
+		const v = Vec.Per(delta)
 
-		const med = Vec2d.Med(end, start)
-		const A = Vec2d.Sub(med, v)
-		const B = Vec2d.Add(med, v)
+		const med = Vec.Med(end, start)
+		const A = Vec.Sub(med, v)
+		const B = Vec.Add(med, v)
 
-		const point = Vec2d.NearestPointOnLineSegment(A, B, handle, false)
-		bend = Vec2d.Dist(point, med)
-		if (Vec2d.Clockwise(point, end, med)) bend *= -1
+		const point = Vec.NearestPointOnLineSegment(A, B, handle, false)
+		bend = Vec.Dist(point, med)
+		if (Vec.Clockwise(point, end, med)) bend *= -1
 	}
 	return bend
 }

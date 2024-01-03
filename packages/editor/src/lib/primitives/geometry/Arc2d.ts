@@ -1,4 +1,4 @@
-import { Vec } from '../Vec2d'
+import { Vec } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI, PI2, shortAngleDist } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'

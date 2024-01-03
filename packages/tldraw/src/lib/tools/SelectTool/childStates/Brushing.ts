@@ -14,7 +14,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLTickEventHandler,
-	Vec2d,
+	Vec,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
@@ -113,12 +113,12 @@ export class Brushing extends StateNode {
 		// We'll be collecting shape ids
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
-		let A: Vec2d,
-			B: Vec2d,
+		let A: Vec,
+			B: Vec,
 			shape: TLShape,
 			pageBounds: Box2d | undefined,
 			pageTransform: Matrix2d | undefined,
-			localCorners: Vec2d[]
+			localCorners: Vec[]
 
 		// We'll be testing the corners of the brush against the shapes
 		const { corners } = this.brush
@@ -184,10 +184,10 @@ export class Brushing extends StateNode {
 
 	private handleHit(
 		shape: TLShape,
-		currentPagePoint: Vec2d,
+		currentPagePoint: Vec,
 		currentPageId: TLPageId,
 		results: Set<TLShapeId>,
-		corners: Vec2d[]
+		corners: Vec[]
 	) {
 		if (shape.parentId === currentPageId) {
 			results.add(shape.id)

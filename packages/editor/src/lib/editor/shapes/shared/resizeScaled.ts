@@ -1,6 +1,6 @@
-import { TLShape, Vec2dModel } from '@tldraw/tlschema'
+import { TLShape, VecModel } from '@tldraw/tlschema'
 import { Box2d } from '../../../primitives/Box2d'
-import { Vec } from '../../../primitives/Vec2d'
+import { Vec } from '../../../primitives/Vec'
 
 export function resizeScaled(
 	shape: Extract<TLShape, { props: { scale: number } }>,
@@ -10,7 +10,7 @@ export function resizeScaled(
 		scaleY,
 		newPoint,
 	}: {
-		newPoint: Vec2dModel
+		newPoint: VecModel
 		initialBounds: Box2d
 		scaleX: number
 		scaleY: number

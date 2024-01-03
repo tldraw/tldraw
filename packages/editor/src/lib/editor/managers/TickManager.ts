@@ -1,4 +1,4 @@
-import { Vec } from '../../primitives/Vec2d'
+import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
 
 export class TickManager {

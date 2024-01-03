@@ -1,5 +1,5 @@
 import { Box2dModel } from '@tldraw/tlschema'
-import { Vec, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec'
 import { PI, PI2, toPrecision } from './utils'
 
 /** @public */

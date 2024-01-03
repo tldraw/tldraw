@@ -1,5 +1,5 @@
 import { Box2d } from './Box2d'
-import { Vec } from './Vec2d'
+import { Vec } from './Vec'
 
 describe('Box2d', () => {
 	it('Creates a box', () => {

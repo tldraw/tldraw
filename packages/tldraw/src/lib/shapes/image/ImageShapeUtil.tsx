@@ -5,7 +5,7 @@ import {
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	deepCopy,
 	imageShapeMigrations,
 	imageShapeProps,
@@ -190,10 +190,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
 
 			const points = [
-				new Vec2d(0, 0),
-				new Vec2d(croppedWidth, 0),
-				new Vec2d(croppedWidth, croppedHeight),
-				new Vec2d(0, croppedHeight),
+				new Vec(0, 0),
+				new Vec(croppedWidth, 0),
+				new Vec(croppedWidth, croppedHeight),
+				new Vec(0, croppedHeight),
 			]
 
 			const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
@@ -261,7 +261,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
 		const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
 
-		const pointDelta = new Vec2d(crop.topLeft.x * w, crop.topLeft.y * h).rot(shape.rotation)
+		const pointDelta = new Vec(crop.topLeft.x * w, crop.topLeft.y * h).rot(shape.rotation)
 
 		const partial: TLShapePartial<TLImageShape> = {
 			id: shape.id,

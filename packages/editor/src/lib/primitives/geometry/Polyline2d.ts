@@ -1,4 +1,4 @@
-import { Vec } from '../Vec2d'
+import { Vec } from '../Vec'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 

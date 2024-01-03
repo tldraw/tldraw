@@ -1,4 +1,4 @@
-import { Vec } from './Vec2d'
+import { Vec } from './Vec'
 
 describe('iteratable', () => {
 	it('Constructs', () => {

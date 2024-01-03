@@ -1,6 +1,6 @@
-import { Vec2dModel } from '@tldraw/tlschema'
+import { VecModel } from '@tldraw/tlschema'
 import { Box2d } from '../../../primitives/Box2d'
-import { Vec } from '../../../primitives/Vec2d'
+import { Vec } from '../../../primitives/Vec'
 import { TLResizeHandle } from '../../types/selection-types'
 import { TLBaseBoxShape } from '../BaseBoxShapeUtil'
 import { TLResizeMode } from '../ShapeUtil'
@@ -17,7 +17,7 @@ export type ResizeBoxOptions = Partial<{
 export function resizeBox(
 	shape: TLBaseBoxShape,
 	info: {
-		newPoint: Vec2dModel
+		newPoint: VecModel
 		handle: TLResizeHandle
 		mode: TLResizeMode
 		scaleX: number

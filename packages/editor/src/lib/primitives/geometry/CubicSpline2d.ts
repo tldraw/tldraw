@@ -1,4 +1,4 @@
-import { Vec } from '../Vec2d'
+import { Vec } from '../Vec'
 import { CubicBezier2d } from './CubicBezier2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 

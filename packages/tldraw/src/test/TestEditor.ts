@@ -18,7 +18,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLWheelEventInfo,
-	Vec2d,
+	Vec,
 	VecLike,
 	createShapeId,
 	createTLStore,
@@ -385,7 +385,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'wheel',
 			name: 'wheel',
-			point: new Vec2d(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
+			point: new Vec(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
@@ -480,11 +480,7 @@ export class TestEditor extends Editor {
 			.clone()
 			.rotWith(this.getSelectionRotatedPageBounds()!.point, this.getSelectionRotation())
 
-		const targetHandlePoint = Vec2d.RotWith(
-			handlePoint,
-			this.getSelectionPageCenter()!,
-			angleRadians
-		)
+		const targetHandlePoint = Vec.RotWith(handlePoint, this.getSelectionPageCenter()!, angleRadians)
 
 		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle })
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, { shiftKey })
@@ -502,7 +498,7 @@ export class TestEditor extends Editor {
 		const selectionRotation = this.getSelectionRotation()
 		const selectionBounds = this.getSelectionRotatedPageBounds()
 		if (!selectionBounds) return null
-		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
+		return Vec.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
 	}
 
 	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
@@ -538,17 +534,17 @@ export class TestEditor extends Editor {
 			? bounds.center
 			: bounds.getHandlePoint(rotateSelectionHandle(handle, Math.PI))
 
-		const preRotationTargetHandlePoint = Vec2d.Add(
-			Vec2d.Sub(preRotationHandlePoint, preRotationScaleOriginPoint).mulV({ x: scaleX, y: scaleY }),
+		const preRotationTargetHandlePoint = Vec.Add(
+			Vec.Sub(preRotationHandlePoint, preRotationScaleOriginPoint).mulV({ x: scaleX, y: scaleY }),
 			preRotationScaleOriginPoint
 		)
 
-		const handlePoint = Vec2d.RotWith(
+		const handlePoint = Vec.RotWith(
 			preRotationHandlePoint,
 			bounds.point,
 			this.getSelectionRotation()
 		)
-		const targetHandlePoint = Vec2d.RotWith(
+		const targetHandlePoint = Vec.RotWith(
 			preRotationTargetHandlePoint,
 			bounds.point,
 			this.getSelectionRotation()

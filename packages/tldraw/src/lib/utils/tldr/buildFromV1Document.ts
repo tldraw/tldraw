@@ -21,8 +21,8 @@ import {
 	TLShapeId,
 	TLTextShape,
 	TLVideoShape,
-	Vec2d,
-	Vec2dModel,
+	Vec,
+	VecModel,
 	clamp,
 	createShapeId,
 } from '@tldraw/editor'
@@ -392,7 +392,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							const v1Bend = coerceNumber(v1Shape.bend)
 							const v1Start = getV2Point(v1Shape.handles.start.point)
 							const v1End = getV2Point(v1Shape.handles.end.point)
-							const dist = Vec2d.Dist(v1Start, v1End)
+							const dist = Vec.Dist(v1Start, v1End)
 							const v2Bend = (dist * -v1Bend) / 2
 
 							// Could also be a line... but we'll use it as an arrow anyway
@@ -1150,7 +1150,7 @@ function getV2Dash(dash: DashStyle | undefined): TLDefaultDashStyle {
 	return dash ? v1DashesToV2Dashes[dash] ?? 'draw' : 'draw'
 }
 
-function getV2Point(point: number[]): Vec2dModel {
+function getV2Point(point: number[]): VecModel {
 	return {
 		x: coerceNumber(point[0]),
 		y: coerceNumber(point[1]),

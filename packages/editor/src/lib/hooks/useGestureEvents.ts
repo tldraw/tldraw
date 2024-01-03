@@ -2,7 +2,7 @@ import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use
 import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
-import { Vec } from '../primitives/Vec2d'
+import { Vec } from '../primitives/Vec'
 import { preventDefault } from '../utils/dom'
 import { normalizeWheel } from '../utils/normalizeWheel'
 import { useEditor } from './useEditor'

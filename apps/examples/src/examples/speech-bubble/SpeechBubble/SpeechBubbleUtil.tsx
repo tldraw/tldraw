@@ -12,7 +12,7 @@ import {
 	TLOnBeforeUpdateHandler,
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
-	Vec2d,
+	Vec,
 	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
@@ -122,12 +122,12 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 		if (!intersection) throw new Error('No intersection')
 
-		const intersectionVector = new Vec2d(intersection.x, intersection.y)
-		const handleVector = new Vec2d(shape.props.handles.handle.x, shape.props.handles.handle.y)
+		const intersectionVector = new Vec(intersection.x, intersection.y)
+		const handleVector = new Vec(shape.props.handles.handle.x, shape.props.handles.handle.y)
 
-		const topLeft = new Vec2d(0, 0)
-		const bottomRight = new Vec2d(shape.props.w, shape.props.h)
-		const center = new Vec2d(shape.props.w / 2, shape.props.h / 2)
+		const topLeft = new Vec(0, 0)
+		const bottomRight = new Vec(shape.props.w, shape.props.h)
+		const center = new Vec(shape.props.w / 2, shape.props.h / 2)
 		const MIN_DISTANCE = topLeft.dist(bottomRight) / 5
 
 		const MAX_DISTANCE = topLeft.dist(bottomRight) / 1.5
@@ -137,18 +137,18 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		let newPoint = handleVector
 
 		if (insideShape) {
-			const direction = Vec2d.FromAngle(angle, MIN_DISTANCE)
+			const direction = Vec.FromAngle(angle, MIN_DISTANCE)
 			newPoint = intersectionVector.add(direction)
 			shape.props.handles.handle.x = newPoint.x
 			shape.props.handles.handle.y = newPoint.y
 			return getHandlesInHandleSpace(shape)
 		}
 		if (distanceToIntersection <= MIN_DISTANCE) {
-			const direction = Vec2d.FromAngle(angle, MIN_DISTANCE)
+			const direction = Vec.FromAngle(angle, MIN_DISTANCE)
 			newPoint = intersectionVector.add(direction)
 		}
 		if (distanceToIntersection >= MAX_DISTANCE) {
-			const direction = Vec2d.FromAngle(angle, MAX_DISTANCE)
+			const direction = Vec.FromAngle(angle, MAX_DISTANCE)
 			newPoint = intersectionVector.add(direction)
 		}
 

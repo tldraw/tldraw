@@ -11,7 +11,7 @@ import {
 	TLShape,
 	TLShapePartial,
 	TLTickEventHandler,
-	Vec2d,
+	Vec,
 	compact,
 	isPageId,
 	moveCameraWhenCloseToEdge,
@@ -286,7 +286,7 @@ export class Translating extends StateNode {
 
 function getTranslatingSnapshot(editor: Editor) {
 	const movingShapes: TLShape[] = []
-	const pagePoints: Vec2d[] = []
+	const pagePoints: Vec[] = []
 
 	const shapeSnapshots = compact(
 		editor.getSelectedShapeIds().map((id): null | MovingShapeSnapshot => {
@@ -325,7 +325,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	}
 
 	return {
-		averagePagePoint: Vec2d.Average(pagePoints),
+		averagePagePoint: Vec.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
 		initialPageBounds: editor.getSelectionPageBounds()!,
@@ -337,7 +337,7 @@ export type TranslatingSnapshot = ReturnType<typeof getTranslatingSnapshot>
 
 export interface MovingShapeSnapshot {
 	shape: TLShape
-	pagePoint: Vec2d
+	pagePoint: Vec
 	parentTransform: Matrix2dModel | null
 }
 
@@ -350,7 +350,7 @@ export function moveShapesToPoint({
 }: {
 	editor: Editor
 	shapeSnapshots: MovingShapeSnapshot[]
-	averagePagePoint: Vec2d
+	averagePagePoint: Vec
 	initialSelectionPageBounds: Box2d
 	initialSelectionSnapPoints: SnapPoint[]
 }) {
@@ -360,7 +360,7 @@ export function moveShapesToPoint({
 
 	const gridSize = editor.getDocumentSettings().gridSize
 
-	const delta = Vec2d.Sub(inputs.currentPagePoint, inputs.originPagePoint)
+	const delta = Vec.Sub(inputs.currentPagePoint, inputs.originPagePoint)
 
 	const flatten: 'x' | 'y' | null = editor.inputs.shiftKey
 		? Math.abs(delta.x) < Math.abs(delta.y)
@@ -392,18 +392,18 @@ export function moveShapesToPoint({
 		delta.add(nudge)
 	}
 
-	const averageSnappedPoint = Vec2d.Add(averagePagePoint, delta)
+	const averageSnappedPoint = Vec.Add(averagePagePoint, delta)
 
 	if (isGridMode && !inputs.ctrlKey) {
 		averageSnappedPoint.snapToGrid(gridSize)
 	}
 
-	const averageSnap = Vec2d.Sub(averageSnappedPoint, averagePagePoint)
+	const averageSnap = Vec.Sub(averageSnappedPoint, averagePagePoint)
 
 	editor.updateShapes(
 		compact(
 			snapshots.map(({ shape, pagePoint, parentTransform }): TLShapePartial | null => {
-				const newPagePoint = Vec2d.Add(pagePoint, averageSnap)
+				const newPagePoint = Vec.Add(pagePoint, averageSnap)
 				const newLocalPoint = parentTransform
 					? Matrix2d.applyToPoint(parentTransform, newPagePoint)
 					: newPagePoint

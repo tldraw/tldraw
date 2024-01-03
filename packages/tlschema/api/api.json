@@ -350,8 +350,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -395,8 +395,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -1684,8 +1684,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2290,8 +2290,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2403,8 +2403,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2412,8 +2412,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -8570,8 +8570,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -9262,23 +9262,60 @@
           }
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tlschema!vec2dModelValidator:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "vec2dModelValidator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "vec2dModelValidator",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface",
+          "canonicalReference": "@tldraw/tlschema!VecModel:interface",
           "docComment": "/**\n * A serializable model for 2D vectors.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface Vec2dModel "
+              "text": "export interface VecModel "
             }
           ],
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "releaseTag": "Public",
-          "name": "Vec2dModel",
+          "name": "VecModel",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#x:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#x:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9305,7 +9342,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#y:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#y:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9332,7 +9369,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#z:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#z:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9359,43 +9396,6 @@
             }
           ],
           "extendsTokenRanges": []
-        },
-        {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!vec2dModelValidator:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "vec2dModelValidator: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">"
-            }
-          ],
-          "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "vec2dModelValidator",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 5
-          }
         },
         {
           "kind": "Variable",

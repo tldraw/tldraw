@@ -347,7 +347,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -396,7 +396,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -405,7 +405,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -414,7 +414,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -511,7 +511,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -542,7 +542,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -578,7 +578,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -587,7 +587,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -720,7 +720,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -729,7 +729,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -800,7 +800,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -1439,7 +1439,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -1448,7 +1448,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -1862,7 +1862,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -2391,7 +2391,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -2769,7 +2769,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -2778,7 +2778,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -3241,7 +3241,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -3250,7 +3250,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -3298,7 +3298,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -3333,7 +3333,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -3364,7 +3364,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -3973,7 +3973,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4126,7 +4126,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4162,7 +4162,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4171,7 +4171,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4244,7 +4244,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4253,7 +4253,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4917,7 +4917,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4926,7 +4926,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4935,7 +4935,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4944,7 +4944,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -4981,7 +4981,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5012,7 +5012,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5043,7 +5043,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5074,7 +5074,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5105,7 +5105,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5141,7 +5141,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5173,7 +5173,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5182,7 +5182,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5338,7 +5338,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5375,7 +5375,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5411,7 +5411,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5420,7 +5420,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5523,7 +5523,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5532,7 +5532,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5573,7 +5573,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -5830,8 +5830,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -6277,7 +6277,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6286,7 +6286,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6323,7 +6323,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6354,7 +6354,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6385,7 +6385,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6421,7 +6421,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6430,7 +6430,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6533,7 +6533,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6565,7 +6565,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6574,7 +6574,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6615,7 +6615,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -6646,7 +6646,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -11030,7 +11030,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -11106,7 +11106,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -12262,7 +12262,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13303,7 +13303,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13367,7 +13367,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13627,7 +13627,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13636,7 +13636,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13645,7 +13645,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13654,7 +13654,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13663,7 +13663,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13672,7 +13672,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -13699,7 +13699,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -15529,7 +15529,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -18651,7 +18651,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -18717,7 +18717,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -19279,7 +19279,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -19288,7 +19288,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -19361,7 +19361,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -19370,7 +19370,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -19995,7 +19995,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20034,7 +20034,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20163,7 +20163,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20194,7 +20194,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20203,7 +20203,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20260,7 +20260,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20388,7 +20388,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20424,7 +20424,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20433,7 +20433,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20506,7 +20506,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20677,7 +20677,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20772,7 +20772,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20781,7 +20781,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20822,7 +20822,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20831,7 +20831,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20840,7 +20840,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20889,7 +20889,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -20955,7 +20955,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -21189,7 +21189,7 @@
             {
               "kind": "Reference",
               "text": "Vec",
-              "canonicalReference": "@tldraw/editor!Vec2d:class"
+              "canonicalReference": "@tldraw/editor!Vec:class"
             },
             {
               "kind": "Content",
@@ -21198,7 +21198,7 @@
             {
               "kind": "Reference",
               "text": "Vec",
-              "canonicalReference": "@tldraw/editor!Vec2d:class"
+              "canonicalReference": "@tldraw/editor!Vec:class"
             },
             {
               "kind": "Content",
@@ -21964,7 +21964,7 @@
             {
               "kind": "Reference",
               "text": "Vec",
-              "canonicalReference": "@tldraw/editor!Vec2d:class"
+              "canonicalReference": "@tldraw/editor!Vec:class"
             },
             {
               "kind": "Content",
@@ -22050,7 +22050,7 @@
             {
               "kind": "Reference",
               "text": "Vec",
-              "canonicalReference": "@tldraw/editor!Vec2d:class"
+              "canonicalReference": "@tldraw/editor!Vec:class"
             },
             {
               "kind": "Content",
@@ -22599,7 +22599,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -22695,7 +22695,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -22731,7 +22731,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -22740,7 +22740,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -22813,7 +22813,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -22894,7 +22894,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -22903,7 +22903,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -24667,7 +24667,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -24726,7 +24726,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -24788,7 +24788,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -24855,7 +24855,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -25766,7 +25766,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -25807,7 +25807,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -27664,7 +27664,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -27887,7 +27887,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -27924,7 +27924,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -27960,7 +27960,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -27969,7 +27969,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -28072,7 +28072,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -28081,7 +28081,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -28122,7 +28122,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -29448,8 +29448,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -30794,7 +30794,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -32480,7 +32480,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -32592,7 +32592,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -32601,7 +32601,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -32618,7 +32618,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -32872,7 +32872,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -32966,7 +32966,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -33347,7 +33347,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -35632,8 +35632,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -35997,8 +35997,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -39615,8 +39615,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -39624,8 +39624,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -39908,7 +39908,7 @@
             {
               "kind": "Reference",
               "text": "Vec",
-              "canonicalReference": "@tldraw/editor!Vec2d:class"
+              "canonicalReference": "@tldraw/editor!Vec:class"
             },
             {
               "kind": "Content",
@@ -40094,7 +40094,7 @@
             {
               "kind": "Reference",
               "text": "Vec",
-              "canonicalReference": "@tldraw/editor!Vec2d:class"
+              "canonicalReference": "@tldraw/editor!Vec:class"
             },
             {
               "kind": "Content",
@@ -40112,7 +40112,7 @@
             {
               "kind": "Reference",
               "text": "Vec",
-              "canonicalReference": "@tldraw/editor!Vec2d:class"
+              "canonicalReference": "@tldraw/editor!Vec:class"
             },
             {
               "kind": "Content",
@@ -41767,8 +41767,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -41776,8 +41776,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -42624,7 +42624,7 @@
         },
         {
           "kind": "Class",
-          "canonicalReference": "@tldraw/editor!Vec2d:class",
+          "canonicalReference": "@tldraw/editor!Vec:class",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
@@ -42632,15 +42632,15 @@
               "text": "export declare class Vec "
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Vec2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Vec.ts",
           "releaseTag": "Public",
           "isAbstract": false,
-          "name": "Vec2d",
+          "name": "Vec",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "Constructor",
-              "canonicalReference": "@tldraw/editor!Vec2d:constructor(1)",
+              "canonicalReference": "@tldraw/editor!Vec:constructor(1)",
               "docComment": "/**\n * Constructs a new instance of the `Vec` class\n */\n",
               "excerptTokens": [
                 {
@@ -42704,7 +42704,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#abs:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#abs:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -42735,7 +42735,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Abs:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Abs:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -42754,7 +42754,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -42785,7 +42785,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#add:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#add:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -42834,7 +42834,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Add:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Add:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -42862,7 +42862,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -42901,7 +42901,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#addScalar:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#addScalar:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -42949,7 +42949,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.AddScalar:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.AddScalar:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -42976,7 +42976,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -43015,7 +43015,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#addXY:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#addXY:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43079,7 +43079,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.AddXY:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.AddXY:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43114,7 +43114,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -43161,7 +43161,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#angle:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#angle:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43210,7 +43210,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Angle:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Angle:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43276,7 +43276,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Average:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Average:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43299,7 +43299,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -43330,7 +43330,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Cast:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Cast:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43349,7 +43349,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -43380,7 +43380,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#clamp:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#clamp:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43444,7 +43444,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Clamp:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Clamp:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43454,7 +43454,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -43479,7 +43479,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -43526,7 +43526,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Clockwise:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Clockwise:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43609,7 +43609,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#clone:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#clone:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43619,7 +43619,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -43641,7 +43641,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#cpr:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#cpr:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43690,7 +43690,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Cpr:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Cpr:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43756,7 +43756,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#cross:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#cross:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43805,7 +43805,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Cross:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Cross:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43833,7 +43833,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -43872,7 +43872,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#dist:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#dist:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43921,7 +43921,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Dist:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Dist:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -43987,7 +43987,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Dist2:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Dist2:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44053,7 +44053,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#distanceToLineSegment:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#distanceToLineSegment:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44119,7 +44119,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.DistanceToLineSegment:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.DistanceToLineSegment:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44218,7 +44218,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.DistanceToLineThroughPoint:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.DistanceToLineThroughPoint:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44301,7 +44301,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#div:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#div:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44349,7 +44349,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Div:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Div:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44376,7 +44376,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -44415,7 +44415,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#divV:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#divV:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44464,7 +44464,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.DivV:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.DivV:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44492,7 +44492,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -44531,7 +44531,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#dpr:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#dpr:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44580,7 +44580,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Dpr:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Dpr:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44646,7 +44646,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#equals:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#equals:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44695,7 +44695,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Equals:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Equals:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44761,7 +44761,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#equalsXY:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#equalsXY:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44825,7 +44825,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.EqualsXY:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.EqualsXY:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44906,7 +44906,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.From:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.From:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44915,8 +44915,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -44925,7 +44925,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -44956,7 +44956,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.FromAngle:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.FromAngle:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -44982,7 +44982,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45021,7 +45021,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.FromArray:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.FromArray:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45039,7 +45039,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45070,7 +45070,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#len:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#len:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45101,7 +45101,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Len:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Len:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45150,7 +45150,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#len2:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#len2:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45181,7 +45181,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Len2:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Len2:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45230,7 +45230,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#lrp:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#lrp:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45257,7 +45257,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45296,7 +45296,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Lrp:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Lrp:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45332,7 +45332,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45379,7 +45379,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Max:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Max:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45407,7 +45407,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45446,7 +45446,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Med:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Med:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45474,7 +45474,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45513,7 +45513,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Min:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Min:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45541,7 +45541,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45580,7 +45580,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#mul:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#mul:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45628,7 +45628,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Mul:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Mul:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45655,7 +45655,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45694,7 +45694,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#mulV:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#mulV:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45743,7 +45743,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.MulV:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.MulV:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45771,7 +45771,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45810,7 +45810,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.NearestPointOnLineSegment:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.NearestPointOnLineSegment:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -45855,7 +45855,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45910,7 +45910,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.NearestPointOnLineThroughPoint:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.NearestPointOnLineThroughPoint:member(1)",
               "docComment": "/**\n * Get the nearest point on a line with a known unit vector that passes through point A\n * ```ts\n * Vec.nearestPointOnLineThroughPoint(A, u, Point)\n * ```\n *\n * @param A - Any point on the line\n *\n * @param u - The unit vector for the line.\n *\n * @param P - A point not on the line to test.\n */\n",
               "excerptTokens": [
                 {
@@ -45947,7 +45947,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -45994,7 +45994,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#neg:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#neg:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46025,7 +46025,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Neg:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Neg:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46044,7 +46044,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -46075,7 +46075,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#norm:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#norm:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46106,7 +46106,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#nudge:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#nudge:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46171,7 +46171,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Nudge:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Nudge:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46207,7 +46207,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -46254,7 +46254,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#per:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#per:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46285,7 +46285,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Per:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Per:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46304,7 +46304,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -46335,7 +46335,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.PointsBetween:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.PointsBetween:member(1)",
               "docComment": "/**\n * Get an array of points (with simulated pressure) between two points.\n *\n * @param A - The first point.\n *\n * @param B - The second point.\n *\n * @param steps - The number of points to return.\n */\n",
               "excerptTokens": [
                 {
@@ -46344,8 +46344,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -46353,8 +46353,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -46371,7 +46371,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -46422,7 +46422,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Vec2d#pressure:member",
+              "canonicalReference": "@tldraw/editor!Vec#pressure:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46452,7 +46452,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#pry:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#pry:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46501,7 +46501,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Pry:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Pry:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46567,7 +46567,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Rescale:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Rescale:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46594,7 +46594,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -46633,7 +46633,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#rot:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#rot:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46681,7 +46681,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Rot:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Rot:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46708,7 +46708,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -46747,7 +46747,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#rotWith:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#rotWith:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46812,7 +46812,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.RotWith:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.RotWith:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46848,7 +46848,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -46895,7 +46895,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.ScaleWithOrigin:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.ScaleWithOrigin:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -46931,7 +46931,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -46978,7 +46978,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#set:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#set:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47058,7 +47058,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#setTo:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#setTo:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47107,7 +47107,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#slope:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#slope:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47156,7 +47156,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Slope:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Slope:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47222,7 +47222,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Snap:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Snap:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47249,7 +47249,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -47288,7 +47288,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#snapToGrid:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#snapToGrid:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47336,7 +47336,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.SnapToGrid:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.SnapToGrid:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47363,7 +47363,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -47402,7 +47402,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#sub:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#sub:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47451,7 +47451,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Sub:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Sub:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47479,7 +47479,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -47518,7 +47518,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#subScalar:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#subScalar:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47566,7 +47566,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.SubScalar:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.SubScalar:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47593,7 +47593,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -47632,7 +47632,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#subXY:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#subXY:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47696,7 +47696,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.SubXY:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.SubXY:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47731,7 +47731,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -47778,7 +47778,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#tan:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#tan:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47797,7 +47797,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -47828,7 +47828,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Tan:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Tan:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47856,7 +47856,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -47895,7 +47895,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#toAngle:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#toAngle:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47926,7 +47926,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.ToAngle:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.ToAngle:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -47975,7 +47975,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#toArray:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#toArray:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48006,7 +48006,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.ToArray:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.ToArray:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48055,7 +48055,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#toFixed:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#toFixed:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48065,7 +48065,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -48087,7 +48087,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.ToFixed:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.ToFixed:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48114,7 +48114,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -48153,7 +48153,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#toJson:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#toJson:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48162,8 +48162,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -48185,7 +48185,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.ToJson:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.ToJson:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48234,7 +48234,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#toString:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#toString:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48265,7 +48265,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.ToString:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.ToString:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48314,7 +48314,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d#uni:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec#uni:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48324,7 +48324,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -48346,7 +48346,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Vec2d.Uni:member(1)",
+              "canonicalReference": "@tldraw/editor!Vec.Uni:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48365,7 +48365,7 @@
                 {
                   "kind": "Reference",
                   "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec2d:class"
+                  "canonicalReference": "@tldraw/editor!Vec:class"
                 },
                 {
                   "kind": "Content",
@@ -48396,7 +48396,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Vec2d#x:member",
+              "canonicalReference": "@tldraw/editor!Vec#x:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48426,7 +48426,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Vec2d#y:member",
+              "canonicalReference": "@tldraw/editor!Vec#y:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48456,7 +48456,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Vec2d#z:member",
+              "canonicalReference": "@tldraw/editor!Vec#z:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -48499,7 +48499,7 @@
             {
               "kind": "Reference",
               "text": "Vec",
-              "canonicalReference": "@tldraw/editor!Vec2d:class"
+              "canonicalReference": "@tldraw/editor!Vec:class"
             },
             {
               "kind": "Content",
@@ -48507,15 +48507,15 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Vec2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Vec.ts",
           "releaseTag": "Public",
           "name": "VecLike",
           "typeTokenRange": {

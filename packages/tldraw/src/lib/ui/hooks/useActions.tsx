@@ -10,7 +10,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
-	Vec2d,
+	Vec,
 	approximately,
 	compact,
 	createShapeId,
@@ -313,9 +313,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
 								continue
 
-							const newPos = new Vec2d(shape.x, shape.y)
+							const newPos = new Vec(shape.x, shape.y)
 							newPos.rot(-shape.rotation)
-							newPos.add(new Vec2d(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
+							newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
 							newPos.rot(shape.rotation)
 							const partial: TLShapePartial<TLBookmarkShape> = {
 								id: createShapeId(),
@@ -367,9 +367,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 							const { width, height } = embedInfo.definition
 
-							const newPos = new Vec2d(shape.x, shape.y)
+							const newPos = new Vec(shape.x, shape.y)
 							newPos.rot(-shape.rotation)
-							newPos.add(new Vec2d(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
+							newPos.add(new Vec(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
 							newPos.rot(shape.rotation)
 
 							const shapeToCreate: TLShapePartial<TLEmbedShape> = {

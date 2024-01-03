@@ -4,7 +4,7 @@ import {
 	PI2,
 	TLInstancePresence,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	clamp,
 	uniqueId,
 } from '@tldraw/editor'
@@ -31,8 +31,8 @@ export class MinimapManager {
 	contentPageBounds = new Box2d()
 	contentScreenBounds = new Box2d()
 
-	originPagePoint = new Vec2d()
-	originPageCenter = new Vec2d()
+	originPagePoint = new Vec()
+	originPageCenter = new Vec()
 
 	isInViewport = false
 
@@ -104,7 +104,7 @@ export class MinimapManager {
 
 		const { x: screenX, y: screenY } = this.getScreenPoint(x, y)
 
-		return new Vec2d(
+		return new Vec(
 			canvasPageBounds.minX + (screenX * contentPageBounds.width) / contentScreenBounds.width,
 			canvasPageBounds.minY + (screenY * contentPageBounds.height) / contentScreenBounds.height,
 			1
@@ -168,7 +168,7 @@ export class MinimapManager {
 			}
 		}
 
-		return new Vec2d(px, py)
+		return new Vec(px, py)
 	}
 
 	render = () => {

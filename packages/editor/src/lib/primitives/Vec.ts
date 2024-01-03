@@ -1,8 +1,8 @@
-import { Vec2dModel } from '@tldraw/tlschema'
+import { VecModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
 
 /** @public */
-export type VecLike = Vec | Vec2dModel
+export type VecLike = Vec | VecModel
 
 /** @public */
 export class Vec {
@@ -246,7 +246,7 @@ export class Vec {
 		return Vec.ToString(Vec.ToFixed(this))
 	}
 
-	toJson(): Vec2dModel {
+	toJson(): VecModel {
 		return Vec.ToJson(this)
 	}
 
@@ -358,7 +358,7 @@ export class Vec {
 		return new Vec(Math.max(A.x, B.x), Math.max(A.y, B.y))
 	}
 
-	static From({ x, y, z = 1 }: Vec2dModel) {
+	static From({ x, y, z = 1 }: VecModel) {
 		return new Vec(x, y, z)
 	}
 
@@ -522,7 +522,7 @@ export class Vec {
 	 * @param B - The second point.
 	 * @param steps - The number of points to return.
 	 */
-	static PointsBetween(A: Vec2dModel, B: Vec2dModel, steps = 6): Vec[] {
+	static PointsBetween(A: VecModel, B: VecModel, steps = 6): Vec[] {
 		const results: Vec[] = []
 
 		for (let i = 0; i < steps; i++) {

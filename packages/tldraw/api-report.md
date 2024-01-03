@@ -107,9 +107,9 @@ import { TLVideoShape } from '@tldraw/editor';
 import { UnionValidator } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Validator } from '@tldraw/editor';
-import { Vec2d } from '@tldraw/editor';
-import { Vec2dModel } from '@tldraw/editor';
+import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
+import { VecModel } from '@tldraw/editor';
 
 // @public (undocumented)
 export class ArrowShapeTool extends StateNode {
@@ -177,7 +177,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         binding: ObjectValidator<    {
         type: "binding";
         boundShapeId: TLShapeId;
-        normalizedAnchor: Vec2dModel;
+        normalizedAnchor: VecModel;
         isExact: boolean;
         isPrecise: boolean;
         }>;
@@ -191,7 +191,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         binding: ObjectValidator<    {
         type: "binding";
         boundShapeId: TLShapeId;
-        normalizedAnchor: Vec2dModel;
+        normalizedAnchor: VecModel;
         isExact: boolean;
         isPrecise: boolean;
         }>;
@@ -300,7 +300,7 @@ export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 export const DEFAULT_ACCEPTED_VID_TYPE: string[];
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
+export const defaultShapeTools: (typeof ArrowShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof HighlightShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -322,7 +322,7 @@ export { Dialog }
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_2)[];
+    static children: () => (typeof Drawing | typeof Idle_3)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -365,7 +365,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
         type: "free" | "straight";
-        points: Vec2dModel[];
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isClosed: Validator<boolean>;
@@ -544,7 +544,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_3 | typeof Pointing_2)[];
+    static children: () => (typeof Idle_2 | typeof Pointing_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -735,7 +735,7 @@ function Header({ className, children }: {
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_2)[];
+    static children: () => (typeof Drawing | typeof Idle_3)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -774,7 +774,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
         type: "free" | "straight";
-        points: Vec2dModel[];
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
@@ -816,8 +816,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
         url: Validator<string>;
         assetId: Validator<TLAssetId | null>;
         crop: Validator<    {
-        topLeft: Vec2dModel;
-        bottomRight: Vec2dModel;
+        topLeft: VecModel;
+        bottomRight: VecModel;
         } | null>;
     };
     // (undocumented)
@@ -889,7 +889,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
-    getOutlineSegments(shape: TLLineShape): Vec2d[][];
+    getOutlineSegments(shape: TLLineShape): Vec[][];
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)

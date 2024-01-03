@@ -1,5 +1,5 @@
 import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
-import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
+import { TLGroupShape, TLParentId, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { dedupe, deepCopy } from '@tldraw/utils'
 import {
 	Box2d,
@@ -11,7 +11,7 @@ import {
 } from '../../primitives/Box2d'
 import { Matrix2d } from '../../primitives/Matrix2d'
 import { rangeIntersection, rangesOverlap } from '../../primitives/utils'
-import { Vec, VecLike } from '../../primitives/Vec2d'
+import { Vec, VecLike } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 
@@ -518,7 +518,7 @@ export class SnapManager {
 		// Find the nearest point that is within the snap threshold
 		let minDistance = snapThreshold
 		let nearestPoint: Vec | null = null
-		let C: Vec2dModel, D: Vec2dModel, nearest: Vec, distance: number
+		let C: VecModel, D: VecModel, nearest: Vec, distance: number
 
 		const allSegments = [...outlinesInPageSpace, ...additionalSegments]
 		for (const outline of allSegments) {

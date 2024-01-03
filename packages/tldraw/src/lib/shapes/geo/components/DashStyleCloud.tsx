@@ -2,7 +2,7 @@ import {
 	TLDefaultColorTheme,
 	TLGeoShape,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	canonicalizeRotation,
 } from '@tldraw/editor'
 import * as React from 'react'
@@ -40,10 +40,10 @@ export const DashStyleCloud = React.memo(function DashStylePolygon({
 					const arcLength = center
 						? radius *
 						  canonicalizeRotation(
-								canonicalizeRotation(Vec2d.Angle(center, rightPoint)) -
-									canonicalizeRotation(Vec2d.Angle(center, leftPoint))
+								canonicalizeRotation(Vec.Angle(center, rightPoint)) -
+									canonicalizeRotation(Vec.Angle(center, leftPoint))
 						  )
-						: Vec2d.Dist(leftPoint, rightPoint)
+						: Vec.Dist(leftPoint, rightPoint)
 
 					const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 						arcLength,
@@ -100,10 +100,10 @@ export function DashStyleCloudSvg({
 		const arcLength = center
 			? radius *
 			  canonicalizeRotation(
-					canonicalizeRotation(Vec2d.Angle(center, rightPoint)) -
-						canonicalizeRotation(Vec2d.Angle(center, leftPoint))
+					canonicalizeRotation(Vec.Angle(center, rightPoint)) -
+						canonicalizeRotation(Vec.Angle(center, leftPoint))
 			  )
-			: Vec2d.Dist(leftPoint, rightPoint)
+			: Vec.Dist(leftPoint, rightPoint)
 
 		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(arcLength, strokeWidth, {
 			style: dash,

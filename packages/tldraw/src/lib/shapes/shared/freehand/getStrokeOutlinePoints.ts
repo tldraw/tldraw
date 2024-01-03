@@ -1,4 +1,4 @@
-import { Vec2d } from '@tldraw/editor'
+import { Vec } from '@tldraw/editor'
 import type { StrokeOptions, StrokePoint } from './types'
 
 const { PI } = Math
@@ -12,7 +12,7 @@ const FIXED_PI = PI + 0.0001
 export function getStrokeOutlineTracks(
 	strokePoints: StrokePoint[],
 	options: StrokeOptions = {}
-): { left: Vec2d[]; right: Vec2d[] } {
+): { left: Vec[]; right: Vec[] } {
 	const { size = 16, smoothing = 0.5 } = options
 
 	// We can't do anything with an empty array or a stroke with negative size.
@@ -30,8 +30,8 @@ export function getStrokeOutlineTracks(
 	const minDistance = Math.pow(size * smoothing, 2)
 
 	// Our collected left and right points
-	const leftPts: Vec2d[] = []
-	const rightPts: Vec2d[] = []
+	const leftPts: Vec[] = []
+	const rightPts: Vec[] = []
 
 	// Previous vector
 	let prevVector = strokePoints[0].vector
@@ -87,11 +87,11 @@ export function getStrokeOutlineTracks(
 				const cpr = prevVector.clone().cpr(nextVector)
 
 				if (cpr < 0) {
-					tl = Vec2d.Add(point, offset)
-					tr = Vec2d.Sub(point, offset)
+					tl = Vec.Add(point, offset)
+					tr = Vec.Sub(point, offset)
 				} else {
-					tl = Vec2d.Sub(point, offset)
-					tr = Vec2d.Add(point, offset)
+					tl = Vec.Sub(point, offset)
+					tr = Vec.Add(point, offset)
 				}
 
 				leftPts.push(tl)
@@ -99,13 +99,13 @@ export function getStrokeOutlineTracks(
 			} else {
 				// Draw a "sharp" corner
 				const offset = prevVector.clone().mul(strokePoint.radius).per()
-				const start = Vec2d.Sub(strokePoint.input, offset)
+				const start = Vec.Sub(strokePoint.input, offset)
 
 				for (let step = 1 / 13, t = 0; t < 1; t += step) {
-					tl = Vec2d.RotWith(start, strokePoint.input, FIXED_PI * t)
+					tl = Vec.RotWith(start, strokePoint.input, FIXED_PI * t)
 					leftPts.push(tl)
 
-					tr = Vec2d.RotWith(start, strokePoint.input, FIXED_PI + FIXED_PI * -t)
+					tr = Vec.RotWith(start, strokePoint.input, FIXED_PI + FIXED_PI * -t)
 					rightPts.push(tr)
 				}
 			}
@@ -123,9 +123,9 @@ export function getStrokeOutlineTracks(
 		isPrevPointSharpCorner = false
 
 		if (strokePoint === firstStrokePoint || strokePoint === lastStrokePoint) {
-			const offset = Vec2d.Per(vector).mul(strokePoint.radius)
-			leftPts.push(Vec2d.Sub(point, offset))
-			rightPts.push(Vec2d.Add(point, offset))
+			const offset = Vec.Per(vector).mul(strokePoint.radius)
+			leftPts.push(Vec.Sub(point, offset))
+			rightPts.push(Vec.Add(point, offset))
 
 			continue
 		}
@@ -140,18 +140,18 @@ export function getStrokeOutlineTracks(
       points array.
     */
 
-		const offset = Vec2d.Lrp(nextVector, vector, nextDpr).per().mul(strokePoint.radius)
+		const offset = Vec.Lrp(nextVector, vector, nextDpr).per().mul(strokePoint.radius)
 
-		tl = Vec2d.Sub(point, offset)
+		tl = Vec.Sub(point, offset)
 
-		if (i <= 1 || Vec2d.Dist2(pl, tl) > minDistance) {
+		if (i <= 1 || Vec.Dist2(pl, tl) > minDistance) {
 			leftPts.push(tl)
 			pl = tl
 		}
 
-		tr = Vec2d.Add(point, offset)
+		tr = Vec.Add(point, offset)
 
-		if (i <= 1 || Vec2d.Dist2(pr, tr) > minDistance) {
+		if (i <= 1 || Vec.Dist2(pr, tr) > minDistance) {
 			rightPts.push(tr)
 			pr = tr
 		}
@@ -186,7 +186,7 @@ export function getStrokeOutlineTracks(
 export function getStrokeOutlinePoints(
 	strokePoints: StrokePoint[],
 	options: StrokeOptions = {}
-): Vec2d[] {
+): Vec[] {
 	const { size = 16, start = {}, end = {}, last: isComplete = false } = options
 
 	const { cap: capStart = true } = start
@@ -234,7 +234,7 @@ export function getStrokeOutlinePoints(
 	const lastPoint =
 		strokePoints.length > 1
 			? strokePoints[strokePoints.length - 1].point
-			: Vec2d.AddXY(firstStrokePoint.point, 1, 1)
+			: Vec.AddXY(firstStrokePoint.point, 1, 1)
 
 	/* 
     Draw a dot for very short or completed strokes
@@ -247,13 +247,13 @@ export function getStrokeOutlinePoints(
 
 	if (strokePoints.length === 1) {
 		if (!(taperStart || taperEnd) || isComplete) {
-			const start = Vec2d.Add(
+			const start = Vec.Add(
 				firstPoint,
-				Vec2d.Sub(firstPoint, lastPoint).uni().per().mul(-firstStrokePoint.radius)
+				Vec.Sub(firstPoint, lastPoint).uni().per().mul(-firstStrokePoint.radius)
 			)
-			const dotPts: Vec2d[] = []
+			const dotPts: Vec[] = []
 			for (let step = 1 / 13, t = step; t <= 1; t += step) {
-				dotPts.push(Vec2d.RotWith(start, firstPoint, FIXED_PI * 2 * t))
+				dotPts.push(Vec.RotWith(start, firstPoint, FIXED_PI * 2 * t))
 			}
 			return dotPts
 		}
@@ -268,26 +268,26 @@ export function getStrokeOutlinePoints(
     Finally remove the first left and right points. :psyduck:
   */
 
-	const startCap: Vec2d[] = []
+	const startCap: Vec[] = []
 	if (taperStart || (taperEnd && strokePoints.length === 1)) {
 		// The start point is tapered, noop
 	} else if (capStart) {
 		// Draw the round cap - add thirteen points rotating the right point around the start point to the left point
 		for (let step = 1 / 8, t = step; t <= 1; t += step) {
-			const pt = Vec2d.RotWith(rightPts[0], firstPoint, FIXED_PI * t)
+			const pt = Vec.RotWith(rightPts[0], firstPoint, FIXED_PI * t)
 			startCap.push(pt)
 		}
 	} else {
 		// Draw the flat cap - add a point to the left and right of the start point
-		const cornersVector = Vec2d.Sub(leftPts[0], rightPts[0])
-		const offsetA = Vec2d.Mul(cornersVector, 0.5)
-		const offsetB = Vec2d.Mul(cornersVector, 0.51)
+		const cornersVector = Vec.Sub(leftPts[0], rightPts[0])
+		const offsetA = Vec.Mul(cornersVector, 0.5)
+		const offsetB = Vec.Mul(cornersVector, 0.51)
 
 		startCap.push(
-			Vec2d.Sub(firstPoint, offsetA),
-			Vec2d.Sub(firstPoint, offsetB),
-			Vec2d.Add(firstPoint, offsetB),
-			Vec2d.Add(firstPoint, offsetA)
+			Vec.Sub(firstPoint, offsetA),
+			Vec.Sub(firstPoint, offsetB),
+			Vec.Add(firstPoint, offsetB),
+			Vec.Add(firstPoint, offsetA)
 		)
 	}
 
@@ -301,7 +301,7 @@ export function getStrokeOutlinePoints(
     sharp end turns.
   */
 
-	const endCap: Vec2d[] = []
+	const endCap: Vec[] = []
 	const direction = lastStrokePoint.vector.clone().per().neg()
 
 	if (taperEnd || (taperStart && strokePoints.length === 1)) {
@@ -309,17 +309,17 @@ export function getStrokeOutlinePoints(
 		endCap.push(lastPoint)
 	} else if (capEnd) {
 		// Draw the round end cap
-		const start = Vec2d.Add(lastPoint, Vec2d.Mul(direction, lastStrokePoint.radius))
+		const start = Vec.Add(lastPoint, Vec.Mul(direction, lastStrokePoint.radius))
 		for (let step = 1 / 29, t = step; t < 1; t += step) {
-			endCap.push(Vec2d.RotWith(start, lastPoint, FIXED_PI * 3 * t))
+			endCap.push(Vec.RotWith(start, lastPoint, FIXED_PI * 3 * t))
 		}
 	} else {
 		// Draw the flat end cap
 		endCap.push(
-			Vec2d.Add(lastPoint, Vec2d.Mul(direction, lastStrokePoint.radius)),
-			Vec2d.Add(lastPoint, Vec2d.Mul(direction, lastStrokePoint.radius * 0.99)),
-			Vec2d.Sub(lastPoint, Vec2d.Mul(direction, lastStrokePoint.radius * 0.99)),
-			Vec2d.Sub(lastPoint, Vec2d.Mul(direction, lastStrokePoint.radius))
+			Vec.Add(lastPoint, Vec.Mul(direction, lastStrokePoint.radius)),
+			Vec.Add(lastPoint, Vec.Mul(direction, lastStrokePoint.radius * 0.99)),
+			Vec.Sub(lastPoint, Vec.Mul(direction, lastStrokePoint.radius * 0.99)),
+			Vec.Sub(lastPoint, Vec.Mul(direction, lastStrokePoint.radius))
 		)
 	}
 
