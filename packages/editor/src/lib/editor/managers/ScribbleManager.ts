@@ -1,5 +1,5 @@
-import { TLScribble, Vec2dModel } from '@tldraw/tlschema'
-import { Vec2d } from '../../primitives/Vec2d'
+import { TLScribble, VecModel } from '@tldraw/tlschema'
+import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
 import { TLTickEvent } from '../types/event-types'
@@ -9,8 +9,8 @@ type ScribbleItem = {
 	scribble: TLScribble
 	timeoutMs: number
 	delayRemaining: number
-	prev: null | Vec2dModel
-	next: null | Vec2dModel
+	prev: null | VecModel
+	next: null | VecModel
 }
 
 /** @public */
@@ -87,7 +87,7 @@ export class ScribbleManager {
 		if (!item) throw Error(`Scribble with id ${id} not found`)
 		const { prev } = item
 		const point = { x, y, z: 0.5 }
-		if (!prev || Vec2d.Dist(prev, point) >= 1) {
+		if (!prev || Vec.Dist(prev, point) >= 1) {
 			item.next = point
 		}
 		return item

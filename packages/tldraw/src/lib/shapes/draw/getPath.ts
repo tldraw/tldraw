@@ -5,7 +5,7 @@ import {
 	TLDefaultDashStyle,
 	TLDrawShape,
 	TLDrawShapeSegment,
-	Vec2d,
+	Vec,
 } from '@tldraw/editor'
 import { StrokeOptions } from '../shared/freehand/types'
 
@@ -81,17 +81,17 @@ export function getFreehandOptions(
 }
 
 export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
-	const points: Vec2d[] = []
+	const points: Vec[] = []
 
 	for (const segment of segments) {
 		if (segment.type === 'free' || segment.points.length < 2) {
-			points.push(...segment.points.map(Vec2d.Cast))
+			points.push(...segment.points.map(Vec.Cast))
 		} else {
 			const pointsToInterpolate = Math.max(
 				4,
-				Math.floor(Vec2d.Dist(segment.points[0], segment.points[1]) / 16)
+				Math.floor(Vec.Dist(segment.points[0], segment.points[1]) / 16)
 			)
-			points.push(...Vec2d.PointsBetween(segment.points[0], segment.points[1], pointsToInterpolate))
+			points.push(...Vec.PointsBetween(segment.points[0], segment.points[1], pointsToInterpolate))
 		}
 	}
 

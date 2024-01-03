@@ -88,14 +88,14 @@ export function DrawStylePolygonSvg({
 }
 
 // function getPolygonDrawPoints(id: string, outline: VecLike[], strokeWidth: number) {
-// 	const points: Vec2d[] = []
+// 	const points: Vec[] = []
 
 // 	const getRandom = rng(id)
 
 // 	const start = Math.round(Math.abs(getRandom()) * outline.length)
 
 // 	const corners = outline.map((p) =>
-// 		Vec2d.AddXY(p, (getRandom() * strokeWidth) / 4, (getRandom() * strokeWidth) / 4)
+// 		Vec.AddXY(p, (getRandom() * strokeWidth) / 4, (getRandom() * strokeWidth) / 4)
 // 	)
 
 // 	const len = corners.length
@@ -104,20 +104,20 @@ export function DrawStylePolygonSvg({
 // 		const At = corners[(start + i) % len]
 // 		const Bt = corners[(start + i + 1) % len]
 
-// 		const dist = Math.min(Vec2d.Dist(At, Bt) / 2, strokeWidth / 2)
-// 		const A = Vec2d.Nudge(At, Bt, dist)
+// 		const dist = Math.min(Vec.Dist(At, Bt) / 2, strokeWidth / 2)
+// 		const A = Vec.Nudge(At, Bt, dist)
 
-// 		const D = Vec2d.Med(At, Bt)
+// 		const D = Vec.Med(At, Bt)
 
 // 		if (i === 0) {
 // 			Bt.z = 0.7
-// 			points.push(new Vec2d(D.x, D.y, 0.7), Bt)
+// 			points.push(new Vec(D.x, D.y, 0.7), Bt)
 // 		} else if (i === outline.length) {
-// 			const lastSegPoints = Vec2d.PointsBetween(A, D, 4)
+// 			const lastSegPoints = Vec.PointsBetween(A, D, 4)
 // 			lastSegPoints.forEach((p) => (p.z = 0.7))
 // 			points.push(...lastSegPoints)
 // 		} else {
-// 			points.push(...Vec2d.PointsBetween(A, Bt, 6))
+// 			points.push(...Vec.PointsBetween(A, Bt, 6))
 // 		}
 // 	}
 
@@ -199,8 +199,8 @@ export function DrawStylePolygonSvg({
 
 // 		ox = random() * offset
 // 		oy = random() * offset
-// 		const c1 = Vec2d.Lrp(p0, p1, 0.25)
-// 		const c2 = Vec2d.Lrp(p0, p1, 0.75)
+// 		const c1 = Vec.Lrp(p0, p1, 0.25)
+// 		const c2 = Vec.Lrp(p0, p1, 0.75)
 
 // 		polylineB += `C${c1.x + ox},${c1.y + oy} ${c2.x - ox},${c2.y - oy} ${p1.x},${p1.y}`
 // 	}
@@ -224,9 +224,9 @@ export function DrawStylePolygonSvg({
 // 	for (let i = 0, n = len * 2; i < n; i++) {
 // 		p0 = outline[i % len]
 // 		p1 = outline[(i + 1) % len]
-// 		const dist = Vec2d.Dist(p0, p1)
+// 		const dist = Vec.Dist(p0, p1)
 
-// 		const c1 = Vec2d.Lrp(p0, p1, 0.5 + random() / 2)
+// 		const c1 = Vec.Lrp(p0, p1, 0.5 + random() / 2)
 // 		polylineA += `${c1.x + random() * Math.min(dist / 10, offset)},${
 // 			c1.y + random() * Math.min(dist / 10, offset)
 // 		} ${p1.x + (random() * offset) / 2},${p1.y + (random() * offset) / 2} `
@@ -249,9 +249,9 @@ export function DrawStylePolygonSvg({
 // 	for (let i = 0, n = len * 2; i < n; i++) {
 // 		p0 = outline[i % len]
 // 		p1 = outline[(i + 1) % len]
-// 		const dist = Vec2d.Dist(p0, p1)
+// 		const dist = Vec.Dist(p0, p1)
 
-// 		const c1 = Vec2d.Lrp(p0, p1, 0.5 + random() / 2)
+// 		const c1 = Vec.Lrp(p0, p1, 0.5 + random() / 2)
 // 		polylineA += `${c1.x + random() * Math.min(dist / 10, offset)},${
 // 			c1.y + random() * Math.min(dist / 10, offset)
 // 		} ${p1.x + (random() * offset) / 2},${p1.y + (random() * offset) / 2} `

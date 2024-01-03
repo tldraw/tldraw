@@ -75,7 +75,7 @@ const Versions = {
 	Initial: 0,
 } as const
 
-export const CURRENT_SESSION_STATE_SNAPSHOT_VERSION = Versions.Initial
+const CURRENT_SESSION_STATE_SNAPSHOT_VERSION = Versions.Initial
 
 /**
  * The state of the editor instance, not including any document state.

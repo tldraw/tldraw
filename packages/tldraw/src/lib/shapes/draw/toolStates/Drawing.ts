@@ -1,6 +1,6 @@
 import {
 	DRAG_DISTANCE,
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLDefaultSizeStyle,
 	TLDrawShape,
@@ -9,8 +9,8 @@ import {
 	TLHighlightShape,
 	TLPointerEventInfo,
 	TLShapePartial,
-	Vec2d,
-	Vec2dModel,
+	Vec,
+	VecModel,
 	createShapeId,
 	last,
 	snapAngle,
@@ -38,11 +38,11 @@ export class Drawing extends StateNode {
 
 	didJustShiftClickToExtendPreviousShapeLine = false
 
-	pagePointWhereCurrentSegmentChanged = {} as Vec2d
+	pagePointWhereCurrentSegmentChanged = {} as Vec
 
-	pagePointWhereNextSegmentChanged = null as Vec2d | null
+	pagePointWhereNextSegmentChanged = null as Vec | null
 
-	lastRecordedPoint = {} as Vec2d
+	lastRecordedPoint = {} as Vec
 	mergeNextPoint = false
 	currentLineLength = 0
 
@@ -86,7 +86,7 @@ export class Drawing extends StateNode {
 			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 			if (inputs.isPen) {
 				if (
-					Vec2d.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
+					Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
 					1 / this.editor.getZoomLevel()
 				) {
 					this.lastRecordedPoint = inputs.currentPagePoint.clone()
@@ -161,7 +161,7 @@ export class Drawing extends StateNode {
 		return (
 			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 &&
-			Vec2d.Dist(firstPoint, lastPoint) < strokeWidth * 2
+			Vec.Dist(firstPoint, lastPoint) < strokeWidth * 2
 		)
 	}
 
@@ -217,7 +217,7 @@ export class Drawing extends StateNode {
 				}
 
 				// Convert prevPoint to page space
-				const prevPointPageSpace = Matrix2d.applyToPoint(
+				const prevPointPageSpace = Mat.applyToPoint(
 					this.editor.getShapePageTransform(shape.id)!,
 					prevPoint
 				)
@@ -310,7 +310,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec2d.Dist(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
+					Vec.Dist(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
@@ -337,7 +337,7 @@ export class Drawing extends StateNode {
 						.toJson()
 
 					if (prevSegment.type === 'straight') {
-						this.currentLineLength += Vec2d.Dist(prevLastPoint, newLastPoint)
+						this.currentLineLength += Vec.Dist(prevLastPoint, newLastPoint)
 
 						newSegment = {
 							type: 'straight',
@@ -346,10 +346,7 @@ export class Drawing extends StateNode {
 
 						const transform = this.editor.getShapePageTransform(shape)!
 
-						this.pagePointWhereCurrentSegmentChanged = Matrix2d.applyToPoint(
-							transform,
-							prevLastPoint
-						)
+						this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(transform, prevLastPoint)
 					} else {
 						newSegment = {
 							type: 'straight',
@@ -386,7 +383,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec2d.Dist(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
+					Vec.Dist(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
@@ -411,9 +408,7 @@ export class Drawing extends StateNode {
 					// ended and where the pointer is now
 					const newFreeSegment: TLDrawShapeSegment = {
 						type: 'free',
-						points: [
-							...Vec2d.PointsBetween(prevPoint, newPoint, 6).map((p) => p.toFixed().toJson()),
-						],
+						points: [...Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => p.toFixed().toJson())],
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
@@ -449,7 +444,7 @@ export class Drawing extends StateNode {
 				if (!pagePointWhereCurrentSegmentChanged)
 					throw Error('We should have a point where the segment changed')
 
-				let pagePoint: Vec2dModel
+				let pagePoint: VecModel
 				let shouldSnapToAngle = false
 
 				if (this.didJustShiftClickToExtendPreviousShapeLine) {
@@ -473,7 +468,7 @@ export class Drawing extends StateNode {
 
 				if (shouldSnap) {
 					if (newSegments.length > 2) {
-						let nearestPoint: Vec2dModel | undefined = undefined
+						let nearestPoint: VecModel | undefined = undefined
 						let minDistance = 8 / this.editor.getZoomLevel()
 
 						// Don't try to snap to the last two segments
@@ -487,12 +482,12 @@ export class Drawing extends StateNode {
 							if (!(first && lastPoint)) continue
 
 							// Snap to the nearest point on the segment, if it's closer than the previous snapped point
-							const nearestPointOnSegment = Vec2d.NearestPointOnLineSegment(
+							const nearestPointOnSegment = Vec.NearestPointOnLineSegment(
 								first,
 								lastPoint,
 								newPoint
 							)
-							const distance = Vec2d.Dist(nearestPointOnSegment, newPoint)
+							const distance = Vec.Dist(nearestPointOnSegment, newPoint)
 
 							if (distance < minDistance) {
 								nearestPoint = nearestPointOnSegment.toFixed().toJson()
@@ -515,11 +510,11 @@ export class Drawing extends StateNode {
 					const lastPoint = last(snapSegment.points)
 					if (!lastPoint) throw Error('Expected a last point!')
 
-					const A = Matrix2d.applyToPoint(transform, first)
+					const A = Mat.applyToPoint(transform, first)
 
-					const B = Matrix2d.applyToPoint(transform, lastPoint)
+					const B = Mat.applyToPoint(transform, lastPoint)
 
-					const snappedPoint = Matrix2d.applyToPoint(transform, newPoint)
+					const snappedPoint = Mat.applyToPoint(transform, newPoint)
 
 					this.editor.snaps.setLines([
 						{
@@ -533,11 +528,11 @@ export class Drawing extends StateNode {
 
 					if (shouldSnapToAngle) {
 						// Snap line angle to nearest 15 degrees
-						const currentAngle = Vec2d.Angle(pagePointWhereCurrentSegmentChanged, currentPagePoint)
+						const currentAngle = Vec.Angle(pagePointWhereCurrentSegmentChanged, currentPagePoint)
 						const snappedAngle = snapAngle(currentAngle, 24)
 						const angleDiff = snappedAngle - currentAngle
 
-						pagePoint = Vec2d.RotWith(
+						pagePoint = Vec.RotWith(
 							currentPagePoint,
 							pagePointWhereCurrentSegmentChanged,
 							angleDiff
@@ -553,7 +548,7 @@ export class Drawing extends StateNode {
 				// then the user just did a click-and-immediately-press-shift to create a new straight line
 				// without continuing the previous line. In this case, we want to remove the previous segment.
 
-				this.currentLineLength += Vec2d.Dist(newSegment.points[0], newPoint)
+				this.currentLineLength += Vec.Dist(newSegment.points[0], newPoint)
 
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
@@ -595,7 +590,7 @@ export class Drawing extends StateNode {
 					// Note: we could recompute the line length here, but it's not really necessary
 					// this.currentLineLength = this.getLineLength(newSegments)
 				} else {
-					this.currentLineLength += Vec2d.Dist(newPoints[newPoints.length - 1], newPoint)
+					this.currentLineLength += Vec.Dist(newPoints[newPoints.length - 1], newPoint)
 					newPoints.push(newPoint)
 				}
 
@@ -667,7 +662,7 @@ export class Drawing extends StateNode {
 			for (let i = 0; i < segment.points.length - 1; i++) {
 				const A = segment.points[i]
 				const B = segment.points[i + 1]
-				length += Vec2d.Sub(B, A).len2()
+				length += Vec.Sub(B, A).len2()
 			}
 		}
 

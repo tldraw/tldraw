@@ -1,17 +1,17 @@
 import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
-import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
+import { TLGroupShape, TLParentId, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { dedupe, deepCopy } from '@tldraw/utils'
 import {
-	Box2d,
+	Box,
 	flipSelectionHandleX,
 	flipSelectionHandleY,
 	isSelectionCorner,
 	SelectionCorner,
 	SelectionEdge,
-} from '../../primitives/Box2d'
-import { Matrix2d } from '../../primitives/Matrix2d'
+} from '../../primitives/Box'
+import { Mat } from '../../primitives/Mat'
 import { rangeIntersection, rangesOverlap } from '../../primitives/utils'
-import { Vec2d, VecLike } from '../../primitives/Vec2d'
+import { Vec, VecLike } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 
@@ -35,16 +35,6 @@ export type GapsSnapLine = {
 
 /** @public */
 export type SnapLine = PointsSnapLine | GapsSnapLine
-
-export type SnapInteractionType =
-	| {
-			type: 'translate'
-			lockedAxis: 'x' | 'y' | null
-			initialSelectionSnapPoints: Vec2d[]
-	  }
-	| {
-			type: 'resize'
-	  }
 
 /** @public */
 export interface SnapPoint {
@@ -82,7 +72,7 @@ type NearestSnap =
 
 type GapNode = {
 	id: TLShapeId
-	pageBounds: Box2d
+	pageBounds: Box
 	isClosed: boolean
 }
 
@@ -108,14 +98,14 @@ type Gap = {
 	//               ◄─────────────────────────►
 	startNode: GapNode
 	endNode: GapNode
-	startEdge: [Vec2d, Vec2d]
-	endEdge: [Vec2d, Vec2d]
+	startEdge: [Vec, Vec]
+	endEdge: [Vec, Vec]
 	length: number
 	breadthIntersection: [number, number]
 }
 
 interface SnapData {
-	nudge: Vec2d
+	nudge: Vec
 }
 
 const round = (x: number) => {
@@ -235,7 +225,7 @@ export class SnapManager {
 			if (!pageTransfrorm) return undefined
 			const snapPoints = this.editor.getShapeGeometry(shape).snapPoints
 			return snapPoints.map((point, i) => {
-				const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
+				const { x, y } = Mat.applyToPoint(pageTransfrorm, point)
 				return { x, y, id: `${shape.id}:${i}` }
 			})
 		})
@@ -336,12 +326,12 @@ export class SnapManager {
 						startNode,
 						endNode,
 						startEdge: [
-							new Vec2d(startNode.pageBounds.maxX, startNode.pageBounds.minY),
-							new Vec2d(startNode.pageBounds.maxX, startNode.pageBounds.maxY),
+							new Vec(startNode.pageBounds.maxX, startNode.pageBounds.minY),
+							new Vec(startNode.pageBounds.maxX, startNode.pageBounds.maxY),
 						],
 						endEdge: [
-							new Vec2d(endNode.pageBounds.minX, endNode.pageBounds.minY),
-							new Vec2d(endNode.pageBounds.minX, endNode.pageBounds.maxY),
+							new Vec(endNode.pageBounds.minX, endNode.pageBounds.minY),
+							new Vec(endNode.pageBounds.minX, endNode.pageBounds.maxY),
 						],
 						length: endNode.pageBounds.minX - startNode.pageBounds.maxX,
 						breadthIntersection: rangeIntersection(
@@ -380,12 +370,12 @@ export class SnapManager {
 						startNode,
 						endNode,
 						startEdge: [
-							new Vec2d(startNode.pageBounds.minX, startNode.pageBounds.maxY),
-							new Vec2d(startNode.pageBounds.maxX, startNode.pageBounds.maxY),
+							new Vec(startNode.pageBounds.minX, startNode.pageBounds.maxY),
+							new Vec(startNode.pageBounds.maxX, startNode.pageBounds.maxY),
 						],
 						endEdge: [
-							new Vec2d(endNode.pageBounds.minX, endNode.pageBounds.minY),
-							new Vec2d(endNode.pageBounds.maxX, endNode.pageBounds.minY),
+							new Vec(endNode.pageBounds.minX, endNode.pageBounds.minY),
+							new Vec(endNode.pageBounds.maxX, endNode.pageBounds.minY),
 						],
 						length: endNode.pageBounds.minY - startNode.pageBounds.maxY,
 						breadthIntersection: rangeIntersection(
@@ -410,8 +400,8 @@ export class SnapManager {
 	}: {
 		lockedAxis: 'x' | 'y' | null
 		initialSelectionSnapPoints: SnapPoint[]
-		initialSelectionPageBounds: Box2d
-		dragDelta: Vec2d
+		initialSelectionPageBounds: Box
+		dragDelta: Vec
 	}): SnapData {
 		const snapThreshold = this.getSnapThreshold()
 		const visibleSnapPointsNotInSelection = this.getSnappablePoints()
@@ -428,7 +418,7 @@ export class SnapManager {
 
 		const nearestSnapsX: NearestSnap[] = []
 		const nearestSnapsY: NearestSnap[] = []
-		const minOffset = new Vec2d(snapThreshold, snapThreshold)
+		const minOffset = new Vec(snapThreshold, snapThreshold)
 
 		this.collectPointSnaps({
 			minOffset,
@@ -446,7 +436,7 @@ export class SnapManager {
 		})
 
 		// at the same time, calculate how far we need to nudge the shape to 'snap' to the target point(s)
-		const nudge = new Vec2d(
+		const nudge = new Vec(
 			lockedAxis === 'x' ? 0 : nearestSnapsX[0]?.nudge ?? 0,
 			lockedAxis === 'y' ? 0 : nearestSnapsY[0]?.nudge ?? 0
 		)
@@ -501,7 +491,7 @@ export class SnapManager {
 			if (isClosed) outline.push(outline[0])
 			const pageTransform = this.editor.getShapePageTransform(id)
 			if (!pageTransform) throw Error('No page transform')
-			return Matrix2d.applyToPoints(pageTransform, outline)
+			return Mat.applyToPoints(pageTransform, outline)
 		})
 	}
 
@@ -509,16 +499,16 @@ export class SnapManager {
 		handlePoint,
 		additionalSegments,
 	}: {
-		handlePoint: Vec2d
-		additionalSegments: Vec2d[][]
-	}): Vec2d | null {
+		handlePoint: Vec
+		additionalSegments: Vec[][]
+	}): Vec | null {
 		const snapThreshold = this.getSnapThreshold()
 		const outlinesInPageSpace = this.getOutlinesInPageSpace()
 
 		// Find the nearest point that is within the snap threshold
 		let minDistance = snapThreshold
-		let nearestPoint: Vec2d | null = null
-		let C: Vec2dModel, D: Vec2dModel, nearest: Vec2d, distance: number
+		let nearestPoint: Vec | null = null
+		let C: VecModel, D: VecModel, nearest: Vec, distance: number
 
 		const allSegments = [...outlinesInPageSpace, ...additionalSegments]
 		for (const outline of allSegments) {
@@ -526,8 +516,8 @@ export class SnapManager {
 				C = outline[i]
 				D = outline[i + 1]
 
-				nearest = Vec2d.NearestPointOnLineSegment(C, D, handlePoint)
-				distance = Vec2d.Dist(handlePoint, nearest)
+				nearest = Vec.NearestPointOnLineSegment(C, D, handlePoint)
+				distance = Vec.Dist(handlePoint, nearest)
 
 				if (isNaN(distance)) continue
 				if (distance < minDistance) {
@@ -547,7 +537,7 @@ export class SnapManager {
 				},
 			])
 
-			return Vec2d.Sub(nearestPoint, handlePoint)
+			return Vec.Sub(nearestPoint, handlePoint)
 		}
 
 		return null
@@ -561,9 +551,9 @@ export class SnapManager {
 		isResizingFromCenter,
 	}: {
 		// the page bounds when the pointer went down, before any dragging
-		initialSelectionPageBounds: Box2d
+		initialSelectionPageBounds: Box
 		// how far the pointer has been dragged
-		dragDelta: Vec2d
+		dragDelta: Vec
 
 		handle: SelectionCorner | SelectionEdge
 		isAspectRatioLocked: boolean
@@ -576,7 +566,7 @@ export class SnapManager {
 			box: unsnappedResizedPageBounds,
 			scaleX,
 			scaleY,
-		} = Box2d.Resize(
+		} = Box.Resize(
 			initialSelectionPageBounds,
 			originalHandle,
 			isResizingFromCenter ? dragDelta.x * 2 : dragDelta.x,
@@ -607,7 +597,7 @@ export class SnapManager {
 
 		const nearestSnapsX: NearestPointsSnap[] = []
 		const nearestSnapsY: NearestPointsSnap[] = []
-		const minOffset = new Vec2d(snapThreshold, snapThreshold)
+		const minOffset = new Vec(snapThreshold, snapThreshold)
 
 		this.collectPointSnaps({
 			minOffset,
@@ -618,7 +608,7 @@ export class SnapManager {
 		})
 
 		// at the same time, calculate how far we need to nudge the shape to 'snap' to the target point(s)
-		const nudge = new Vec2d(
+		const nudge = new Vec(
 			isXLocked ? 0 : nearestSnapsX[0]?.nudge ?? 0,
 			isYLocked ? 0 : nearestSnapsY[0]?.nudge ?? 0
 		)
@@ -657,10 +647,10 @@ export class SnapManager {
 
 		// now resize the box after nudging, calculate the snaps again, and return the snap lines to match
 		// the fully resized box
-		const snappedDelta = Vec2d.Add(dragDelta, nudge)
+		const snappedDelta = Vec.Add(dragDelta, nudge)
 
 		// first figure out the new bounds of the selection
-		const { box: snappedResizedPageBounds } = Box2d.Resize(
+		const { box: snappedResizedPageBounds } = Box.Resize(
 			initialSelectionPageBounds,
 			originalHandle,
 			isResizingFromCenter ? snappedDelta.x * 2 : snappedDelta.x,
@@ -706,7 +696,7 @@ export class SnapManager {
 	}: {
 		selectionSnapPoints: SnapPoint[]
 		otherNodeSnapPoints: SnapPoint[]
-		minOffset: Vec2d
+		minOffset: Vec
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
 	}) {
@@ -714,7 +704,7 @@ export class SnapManager {
 		// which are closest to it in each axis
 		for (const thisSnapPoint of selectionSnapPoints) {
 			for (const otherSnapPoint of otherNodeSnapPoints) {
-				const offset = Vec2d.Sub(thisSnapPoint, otherSnapPoint)
+				const offset = Vec.Sub(thisSnapPoint, otherSnapPoint)
 				const offsetX = Math.abs(offset.x)
 				const offsetY = Math.abs(offset.y)
 
@@ -756,8 +746,8 @@ export class SnapManager {
 		nearestSnapsX,
 		nearestSnapsY,
 	}: {
-		selectionPageBounds: Box2d
-		minOffset: Vec2d
+		selectionPageBounds: Box
+		minOffset: Vec
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
 	}) {
@@ -1078,10 +1068,10 @@ export class SnapManager {
 				type: 'points',
 				points: dedupe(
 					snapGroup
-						.map((snap) => Vec2d.From(snap.otherPoint))
+						.map((snap) => Vec.From(snap.otherPoint))
 						// be sure to nudge over the selection snap points
-						.concat(snapGroup.map((snap) => Vec2d.From(snap.thisPoint))),
-					(a: Vec2d, b: Vec2d) => a.equals(b)
+						.concat(snapGroup.map((snap) => Vec.From(snap.thisPoint))),
+					(a: Vec, b: Vec) => a.equals(b)
 				),
 			}))
 	}
@@ -1091,13 +1081,13 @@ export class SnapManager {
 		nearestSnapsX,
 		nearestSnapsY,
 	}: {
-		selectionPageBounds: Box2d
+		selectionPageBounds: Box
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
 	}): GapsSnapLine[] {
 		const { vertical, horizontal } = this.getVisibleGaps()
 
-		const selectionSides: Record<SelectionEdge, [Vec2d, Vec2d]> = {
+		const selectionSides: Record<SelectionEdge, [Vec, Vec]> = {
 			top: selectionPageBounds.sides[0],
 			right: selectionPageBounds.sides[1],
 			// need bottom and left to be sorted asc, which .sides is not.
@@ -1175,7 +1165,7 @@ export class SnapManager {
 												startEdge: selectionSides.right,
 												endEdge: startEdge.map((v) =>
 													v.clone().addXY(-startNode.pageBounds.width, 0)
-												) as [Vec2d, Vec2d],
+												) as [Vec, Vec],
 											},
 											{ startEdge, endEdge },
 											...findAdjacentGaps(
@@ -1198,7 +1188,7 @@ export class SnapManager {
 											{
 												startEdge: endEdge.map((v) =>
 													v.clone().addXY(snap.gap.endNode.pageBounds.width, 0)
-												) as [Vec2d, Vec2d],
+												) as [Vec, Vec],
 												endEdge: selectionSides.left,
 											},
 									  ],
@@ -1279,7 +1269,7 @@ export class SnapManager {
 													startEdge: selectionSides.bottom,
 													endEdge: startEdge.map((v) =>
 														v.clone().addXY(0, -startNode.pageBounds.height)
-													) as [Vec2d, Vec2d],
+													) as [Vec, Vec],
 												},
 												{ startEdge, endEdge },
 												...findAdjacentGaps(
@@ -1302,7 +1292,7 @@ export class SnapManager {
 												{
 													startEdge: endEdge.map((v) =>
 														v.clone().addXY(0, endNode.pageBounds.height)
-													) as [Vec2d, Vec2d],
+													) as [Vec, Vec],
 													endEdge: selectionSides.top,
 												},
 										  ],
@@ -1320,7 +1310,7 @@ export class SnapManager {
 
 function getResizeSnapPointsForHandle(
 	handle: SelectionCorner | SelectionEdge | 'any',
-	selectionPageBounds: Box2d
+	selectionPageBounds: Box
 ): SnapPoint[] {
 	const { minX, maxX, minY, maxY } = selectionPageBounds
 	const result: SnapPoint[] = []

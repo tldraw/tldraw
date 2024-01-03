@@ -2,7 +2,7 @@ import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use
 import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
-import { Vec2d } from '../primitives/Vec2d'
+import { Vec } from '../primitives/Vec'
 import { preventDefault } from '../utils/dom'
 import { normalizeWheel } from '../utils/normalizeWheel'
 import { useEditor } from './useEditor'
@@ -122,7 +122,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				type: 'wheel',
 				name: 'wheel',
 				delta,
-				point: new Vec2d(event.clientX, event.clientY).sub({
+				point: new Vec(event.clientX, event.clientY).sub({
 					x: container.left,
 					y: container.top,
 				}),
@@ -138,8 +138,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		let initZoom = 1 // the browser's zoom level when the pinch starts
 		let currZoom = 1 // the current zoom level according to the pinch gesture recognizer
 		let currDistanceBetweenFingers = 0
-		const initPointBetweenFingers = new Vec2d()
-		const prevPointBetweenFingers = new Vec2d()
+		const initPointBetweenFingers = new Vec()
+		const prevPointBetweenFingers = new Vec()
 
 		const onPinchStart: PinchHandler = (gesture) => {
 			const elm = ref.current
@@ -186,7 +186,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			// How far have the two touch points moved towards or away from eachother?
 			const touchDistance = Math.abs(currDistanceBetweenFingers - initDistanceBetweenFingers)
 			// How far has the point between the touches moved?
-			const originDistance = Vec2d.Dist(initPointBetweenFingers, prevPointBetweenFingers)
+			const originDistance = Vec.Dist(initPointBetweenFingers, prevPointBetweenFingers)
 
 			switch (pinchState) {
 				case 'not sure': {

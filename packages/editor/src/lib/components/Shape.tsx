@@ -5,7 +5,7 @@ import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { nearestMultiple } from '../hooks/useDPRMultiple'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
-import { Matrix2d } from '../primitives/Matrix2d'
+import { Mat } from '../primitives/Mat'
 import { toDomPrecision } from '../primitives/utils'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -56,7 +56,7 @@ export const Shape = track(function Shape({
 			if (!shape) return // probably the shape was just deleted
 
 			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Matrix2d.toCssString(pageTransform)
+			const transform = Mat.toCssString(pageTransform)
 			setProperty('transform', transform)
 		},
 		[editor, setProperty]

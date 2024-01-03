@@ -1,7 +1,7 @@
 import {
 	assert,
 	createShapeId,
-	TAU,
+	HALF_PI,
 	TLArrowShape,
 	TLArrowShapeTerminal,
 	TLShapeId,
@@ -343,7 +343,7 @@ describe('When a shape it rotated', () => {
 			},
 		})
 
-		editor.updateShapes([{ id: ids.box2, type: 'geo', rotation: TAU }])
+		editor.updateShapes([{ id: ids.box2, type: 'geo', rotation: HALF_PI }])
 
 		editor.pointerMove(225, 350)
 

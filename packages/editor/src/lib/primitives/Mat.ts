@@ -1,21 +1,12 @@
-import { Box2d } from './Box2d'
-import { clampRadians, TAU, toDomPrecision } from './utils'
-import { Vec2d, VecLike } from './Vec2d'
+import { Box } from './Box'
+import { clampRadians, HALF_PI, toDomPrecision } from './utils'
+import { Vec, VecLike } from './Vec'
 
 /** @public */
-export type MatLike = Matrix2dModel | Matrix2d
+export type MatLike = MatModel | Mat
 
 /** @public */
-export interface MatrixInfo {
-	x: number
-	y: number
-	scaleX: number
-	scaleY: number
-	rotation: number
-}
-
-/** @public */
-export interface Matrix2dModel {
+export interface MatModel {
 	a: number
 	b: number
 	c: number
@@ -25,11 +16,11 @@ export interface Matrix2dModel {
 }
 
 // function getIdentity() {
-//   return new Matrix2d(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+//   return new Mat(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 // }
 
 /** @public */
-export class Matrix2d {
+export class Mat {
 	constructor(a: number, b: number, c: number, d: number, e: number, f: number) {
 		this.a = a
 		this.b = b
@@ -46,7 +37,7 @@ export class Matrix2d {
 	e = 0.0
 	f = 0.0
 
-	equals(m: Matrix2d | Matrix2dModel) {
+	equals(m: Mat | MatModel) {
 		return (
 			this.a === m.a &&
 			this.b === m.b &&
@@ -67,8 +58,8 @@ export class Matrix2d {
 		return this
 	}
 
-	multiply(m: Matrix2d | Matrix2dModel) {
-		const m2: Matrix2dModel = m
+	multiply(m: Mat | MatModel) {
+		const m2: MatModel = m
 		const { a, b, c, d, e, f } = this
 		this.a = a * m2.a + c * m2.b
 		this.c = a * m2.c + c * m2.d
@@ -81,16 +72,16 @@ export class Matrix2d {
 
 	rotate(r: number, cx?: number, cy?: number) {
 		if (r === 0) return this
-		if (cx === undefined) return this.multiply(Matrix2d.Rotate(r))
-		return this.translate(cx, cy!).multiply(Matrix2d.Rotate(r)).translate(-cx, -cy!)
+		if (cx === undefined) return this.multiply(Mat.Rotate(r))
+		return this.translate(cx, cy!).multiply(Mat.Rotate(r)).translate(-cx, -cy!)
 	}
 
-	translate(x: number, y: number): Matrix2d {
-		return this.multiply(Matrix2d.Translate(x, y!))
+	translate(x: number, y: number): Mat {
+		return this.multiply(Mat.Translate(x, y!))
 	}
 
 	scale(x: number, y: number) {
-		return this.multiply(Matrix2d.Scale(x, y))
+		return this.multiply(Mat.Scale(x, y))
 	}
 
 	invert() {
@@ -106,85 +97,77 @@ export class Matrix2d {
 	}
 
 	applyToPoint(point: VecLike) {
-		return Matrix2d.applyToPoint(this, point)
+		return Mat.applyToPoint(this, point)
 	}
 
 	applyToPoints(points: VecLike[]) {
-		return Matrix2d.applyToPoints(this, points)
+		return Mat.applyToPoints(this, points)
 	}
 
 	rotation() {
-		return Matrix2d.Rotation(this)
+		return Mat.Rotation(this)
 	}
 
 	point() {
-		return Matrix2d.Point(this)
+		return Mat.Point(this)
 	}
 
 	decomposed() {
-		return Matrix2d.Decompose(this)
+		return Mat.Decompose(this)
 	}
 
 	toCssString() {
-		return Matrix2d.toCssString(this)
+		return Mat.toCssString(this)
 	}
 
-	setTo(model: Matrix2dModel) {
+	setTo(model: MatModel) {
 		Object.assign(this, model)
 		return this
 	}
 
 	decompose() {
-		return Matrix2d.Decompose(this)
+		return Mat.Decompose(this)
 	}
 
 	clone() {
-		return new Matrix2d(this.a, this.b, this.c, this.d, this.e, this.f)
+		return new Mat(this.a, this.b, this.c, this.d, this.e, this.f)
 	}
 
 	/* --------------------- Static --------------------- */
 
 	static Identity() {
-		return new Matrix2d(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+		return new Mat(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 	}
 
 	static Translate(x: number, y: number) {
-		return new Matrix2d(1.0, 0.0, 0.0, 1.0, x, y)
+		return new Mat(1.0, 0.0, 0.0, 1.0, x, y)
 	}
 
 	static Rotate(r: number, cx?: number, cy?: number) {
-		if (r === 0) return Matrix2d.Identity()
+		if (r === 0) return Mat.Identity()
 
 		const cosAngle = Math.cos(r)
 		const sinAngle = Math.sin(r)
 
-		const rotationMatrix2d = new Matrix2d(cosAngle, sinAngle, -sinAngle, cosAngle, 0.0, 0.0)
+		const rotationMatrix = new Mat(cosAngle, sinAngle, -sinAngle, cosAngle, 0.0, 0.0)
 
-		if (cx === undefined) return rotationMatrix2d
+		if (cx === undefined) return rotationMatrix
 
-		return Matrix2d.Compose(
-			Matrix2d.Translate(cx, cy!),
-			rotationMatrix2d,
-			Matrix2d.Translate(-cx, -cy!)
-		)
+		return Mat.Compose(Mat.Translate(cx, cy!), rotationMatrix, Mat.Translate(-cx, -cy!))
 	}
 
 	static Scale: {
-		(x: number, y: number): Matrix2dModel
-		(x: number, y: number, cx: number, cy: number): Matrix2dModel
+		(x: number, y: number): MatModel
+		(x: number, y: number, cx: number, cy: number): MatModel
 	} = (x: number, y: number, cx?: number, cy?: number) => {
-		const scaleMatrix2d = new Matrix2d(x, 0, 0, y, 0, 0)
+		const scaleMatrix = new Mat(x, 0, 0, y, 0, 0)
 
-		if (cx === undefined) return scaleMatrix2d
+		if (cx === undefined) return scaleMatrix
 
-		return Matrix2d.Compose(
-			Matrix2d.Translate(cx, cy!),
-			scaleMatrix2d,
-			Matrix2d.Translate(-cx, -cy!)
-		)
+		return Mat.Compose(Mat.Translate(cx, cy!), scaleMatrix, Mat.Translate(-cx, -cy!))
 	}
 
-	static Multiply(m1: Matrix2dModel, m2: Matrix2dModel): Matrix2dModel {
+	static Multiply(m1: MatModel, m2: MatModel): MatModel {
 		return {
 			a: m1.a * m2.a + m1.c * m2.b,
 			c: m1.a * m2.c + m1.c * m2.d,
@@ -195,7 +178,7 @@ export class Matrix2d {
 		}
 	}
 
-	static Inverse(m: Matrix2dModel): Matrix2dModel {
+	static Inverse(m: MatModel): MatModel {
 		const denom = m.a * m.d - m.b * m.c
 		return {
 			a: m.d / denom,
@@ -207,7 +190,7 @@ export class Matrix2d {
 		}
 	}
 
-	static Absolute(m: MatLike): Matrix2dModel {
+	static Absolute(m: MatLike): MatModel {
 		const denom = m.a * m.d - m.b * m.c
 		return {
 			a: m.d / denom,
@@ -220,7 +203,7 @@ export class Matrix2d {
 	}
 
 	static Compose(...matrices: MatLike[]) {
-		const matrix = Matrix2d.Identity()
+		const matrix = Mat.Identity()
 		for (let i = 0, n = matrices.length; i < n; i++) {
 			matrix.multiply(matrices[i])
 		}
@@ -228,7 +211,7 @@ export class Matrix2d {
 	}
 
 	static Point(m: MatLike) {
-		return new Vec2d(m.e, m.f)
+		return new Vec(m.e, m.f)
 	}
 
 	static Rotation(m: MatLike): number {
@@ -239,7 +222,7 @@ export class Matrix2d {
 			rotation = Math.acos(m.a / hypotAc) * (m.c > 0 ? -1 : 1)
 		} else if (m.b !== 0 || m.d !== 0) {
 			const hypotBd = Math.hypot(m.b, m.d)
-			rotation = TAU + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
+			rotation = HALF_PI + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
 		} else {
 			rotation = 0
 		}
@@ -247,7 +230,7 @@ export class Matrix2d {
 		return clampRadians(rotation)
 	}
 
-	static Decompose(m: MatLike): MatrixInfo {
+	static Decompose(m: MatLike) {
 		let scaleX, scaleY, rotation
 
 		if (m.a !== 0 || m.c !== 0) {
@@ -259,7 +242,7 @@ export class Matrix2d {
 			const hypotBd = Math.hypot(m.b, m.d)
 			scaleX = (m.a * m.d - m.b * m.c) / hypotBd
 			scaleY = hypotBd
-			rotation = TAU + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
+			rotation = HALF_PI + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
 		} else {
 			scaleX = 0
 			scaleY = 0
@@ -292,7 +275,7 @@ export class Matrix2d {
 	}
 
 	static applyToPoint(m: MatLike, point: VecLike) {
-		return new Vec2d(
+		return new Vec(
 			m.a * point.x + m.c * point.y + m.e,
 			m.b * point.x + m.d * point.y + m.f,
 			point.z
@@ -303,28 +286,28 @@ export class Matrix2d {
 		return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]
 	}
 
-	static applyToPoints(m: MatLike, points: VecLike[]): Vec2d[] {
+	static applyToPoints(m: MatLike, points: VecLike[]): Vec[] {
 		return points.map(
 			(point) =>
-				new Vec2d(m.a * point.x + m.c * point.y + m.e, m.b * point.x + m.d * point.y + m.f, point.z)
+				new Vec(m.a * point.x + m.c * point.y + m.e, m.b * point.x + m.d * point.y + m.f, point.z)
 		)
 	}
 
-	static applyToBounds(m: MatLike, box: Box2d) {
-		return new Box2d(m.e + box.minX, m.f + box.minY, box.width, box.height)
+	static applyToBounds(m: MatLike, box: Box) {
+		return new Box(m.e + box.minX, m.f + box.minY, box.width, box.height)
 	}
 
 	static From(m: MatLike) {
-		return new Matrix2d(m.a, m.b, m.c, m.d, m.e, m.f)
+		return new Mat(m.a, m.b, m.c, m.d, m.e, m.f)
 	}
 
 	static Cast(m: MatLike) {
-		return m instanceof Matrix2d ? m : Matrix2d.From(m)
+		return m instanceof Mat ? m : Mat.From(m)
 	}
 }
 
 /** @public */
-export function decomposeMatrix2d(m: MatLike) {
+export function decomposeMatrix(m: MatLike) {
 	return {
 		x: m.e,
 		y: m.f,

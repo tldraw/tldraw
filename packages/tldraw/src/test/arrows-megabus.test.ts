@@ -1,4 +1,4 @@
-import { TLArrowShape, Vec2d, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -499,7 +499,7 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		editor.bringToFront([ids.box1])
 
 		expect(
-			editor.getShapeAtPoint(new Vec2d(25, 25), {
+			editor.getShapeAtPoint(new Vec(25, 25), {
 				filter: (shape) => editor.getShapeUtil(shape).canBind(shape),
 				hitInside: true,
 				hitFrameInside: true,

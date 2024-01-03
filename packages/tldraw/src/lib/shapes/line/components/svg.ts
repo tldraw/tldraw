@@ -3,7 +3,7 @@ import {
 	CubicSpline2d,
 	Edge2d,
 	Polyline2d,
-	Vec2d,
+	Vec,
 	toDomPrecision,
 } from '@tldraw/editor'
 
@@ -20,7 +20,7 @@ export function getSvgPathForEdge(edge: Edge2d, first: boolean) {
 export function getSvgPathForBezierCurve(curve: CubicBezier2d, first: boolean) {
 	const { a, b, c, d } = curve
 
-	if (Vec2d.Equals(a, d)) return ''
+	if (Vec.Equals(a, d)) return ''
 
 	return `${first ? `M${toDomPrecision(a.x)},${toDomPrecision(a.y)}` : ``}C${toDomPrecision(
 		b.x

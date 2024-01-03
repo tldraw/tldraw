@@ -1,5 +1,5 @@
 import {
-	Box2d,
+	Box,
 	GroupShapeUtil,
 	TLArrowShape,
 	TLGroupShape,
@@ -1276,7 +1276,7 @@ describe('creating new shapes', () => {
 			}
 			editor.pointerUp()
 
-			const roundToNearestTen = (vals: Box2d) => {
+			const roundToNearestTen = (vals: Box) => {
 				return {
 					x: Math.round(vals.x / 10) * 10,
 					y: Math.round(vals.y / 10) * 10,
@@ -1304,7 +1304,7 @@ describe('creating new shapes', () => {
 			}
 			editor.pointerUp()
 
-			const roundToNearestTen = (vals: Box2d) => {
+			const roundToNearestTen = (vals: Box) => {
 				return {
 					x: Math.round(vals.x / 10) * 10,
 					y: Math.round(vals.y / 10) * 10,
@@ -1356,11 +1356,13 @@ describe('creating new shapes', () => {
 
 				expect(editor.getShapePageBounds(groupA.id)).toMatchSnapshot('group with line shape')
 				editor.pointerMove(-20, -20).pointerUp(-20, -20)
-				expect(editor.getShapePageBounds(groupA.id)).toMatchSnapshot(
+				expect(editor.getShapePageBounds(groupA.id)!.toJson()).toMatchSnapshot(
 					'group shape after second resize'
 				)
 				const boxC = onlySelectedShape()
-				expect(editor.getShapePageBounds(boxC.id)).toMatchSnapshot('box shape after second resize')
+				expect(editor.getShapePageBounds(boxC.id)!.toJson()).toMatchSnapshot(
+					'box shape after second resize'
+				)
 			})
 
 			it('works if the shape drawing begins outside of the current group bounds', () => {
@@ -1370,10 +1372,12 @@ describe('creating new shapes', () => {
 				editor.setCurrentTool('line')
 				editor.pointerDown(-50, -50).pointerMove(-100, -100).pointerUp()
 
-				expect(editor.getShapePageBounds(groupA.id)).toMatchSnapshot('group with line')
+				expect(editor.getShapePageBounds(groupA.id)!.toJson()).toMatchSnapshot('group with line')
 
 				const boxC = onlySelectedShape()
-				expect(editor.getShapePageBounds(boxC.id)).toMatchSnapshot('box shape after resize')
+				expect(editor.getShapePageBounds(boxC.id)!.toJson()).toMatchSnapshot(
+					'box shape after resize'
+				)
 			})
 		})
 

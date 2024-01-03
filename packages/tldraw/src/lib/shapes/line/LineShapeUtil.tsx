@@ -8,7 +8,7 @@ import {
 	TLLineShape,
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
-	Vec2d,
+	Vec,
 	WeakMapCache,
 	deepCopy,
 	getDefaultColorTheme,
@@ -408,7 +408,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 /** @public */
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
 	const { spline, handles } = shape.props
-	const handlePoints = Object.values(handles).sort(sortByIndex).map(Vec2d.From)
+	const handlePoints = Object.values(handles).sort(sortByIndex).map(Vec.From)
 
 	switch (spline) {
 		case 'cubic': {

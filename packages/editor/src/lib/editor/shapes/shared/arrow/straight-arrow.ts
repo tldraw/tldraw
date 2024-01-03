@@ -1,7 +1,6 @@
 import { TLArrowShape } from '@tldraw/tlschema'
-import { Box2d } from '../../../../primitives/Box2d'
-import { Matrix2d, Matrix2dModel } from '../../../../primitives/Matrix2d'
-import { Vec2d, VecLike } from '../../../../primitives/Vec2d'
+import { Mat, MatModel } from '../../../../primitives/Mat'
+import { Vec, VecLike } from '../../../../primitives/Vec'
 import {
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
@@ -25,9 +24,9 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	const a = terminalsInArrowSpace.start.clone()
 	const b = terminalsInArrowSpace.end.clone()
-	const c = Vec2d.Med(a, b)
+	const c = Vec.Med(a, b)
 
-	if (Vec2d.Equals(a, b)) {
+	if (Vec.Equals(a, b)) {
 		return {
 			isStraight: true,
 			start: {
@@ -46,7 +45,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		}
 	}
 
-	const uAB = Vec2d.Sub(b, a).uni()
+	const uAB = Vec.Sub(b, a).uni()
 
 	// Update the arrowhead points using intersections with the bound shapes, if any.
 
@@ -110,8 +109,8 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		}
 	}
 
-	const u = Vec2d.Sub(b, a).uni()
-	const didFlip = !Vec2d.Equals(u, uAB)
+	const u = Vec.Sub(b, a).uni()
+	const didFlip = !Vec.Equals(u, uAB)
 
 	// If the arrow is bound non-exact to a start shape and the
 	// start point has an arrowhead, then offset the start point
@@ -151,7 +150,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	const tA = a.clone().add(u.clone().mul(offsetA * (didFlip ? -1 : 1)))
 	const tB = b.clone().sub(u.clone().mul(offsetB * (didFlip ? -1 : 1)))
-	const distAB = Vec2d.Dist(tA, tB)
+	const distAB = Vec.Dist(tA, tB)
 
 	if (distAB < minLength) {
 		if (offsetA !== 0 && offsetB !== 0) {
@@ -179,14 +178,14 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		if (startShapeInfo && endShapeInfo) {
 			// If we have two bound shapes...then make the arrow a short arrow from
 			// the start point towards where the end point should be.
-			b.setTo(Vec2d.Add(a, u.clone().mul(-MIN_ARROW_LENGTH)))
+			b.setTo(Vec.Add(a, u.clone().mul(-MIN_ARROW_LENGTH)))
 		}
-		c.setTo(Vec2d.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end))
+		c.setTo(Vec.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end))
 	} else {
-		c.setTo(Vec2d.Med(a, b))
+		c.setTo(Vec.Med(a, b))
 	}
 
-	const length = Vec2d.Dist(a, b)
+	const length = Vec.Dist(a, b)
 
 	return {
 		isStraight: true,
@@ -208,9 +207,9 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 /** Get an intersection point from A -> B with bound shape (target) from shape (arrow). */
 function updateArrowheadPointWithBoundShape(
-	point: Vec2d,
-	opposite: Vec2d,
-	arrowPageTransform: Matrix2dModel,
+	point: Vec,
+	opposite: Vec,
+	arrowPageTransform: MatModel,
 	targetShapeInfo?: BoundShapeInfo
 ) {
 	if (targetShapeInfo === undefined) {
@@ -224,12 +223,12 @@ function updateArrowheadPointWithBoundShape(
 	}
 
 	// From and To in page space
-	const pageFrom = Matrix2d.applyToPoint(arrowPageTransform, opposite)
-	const pageTo = Matrix2d.applyToPoint(arrowPageTransform, point)
+	const pageFrom = Mat.applyToPoint(arrowPageTransform, opposite)
+	const pageTo = Mat.applyToPoint(arrowPageTransform, point)
 
 	// From and To in local space of the target shape
-	const targetFrom = Matrix2d.applyToPoint(Matrix2d.Inverse(targetShapeInfo.transform), pageFrom)
-	const targetTo = Matrix2d.applyToPoint(Matrix2d.Inverse(targetShapeInfo.transform), pageTo)
+	const targetFrom = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageFrom)
+	const targetTo = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageTo)
 
 	const isClosed = targetShapeInfo.isClosed
 	const fn = isClosed ? intersectLineSegmentPolygon : intersectLineSegmentPolyline
@@ -240,7 +239,7 @@ function updateArrowheadPointWithBoundShape(
 
 	if (intersection !== null) {
 		targetInt =
-			intersection.sort((p1, p2) => Vec2d.Dist(p1, targetFrom) - Vec2d.Dist(p2, targetFrom))[0] ??
+			intersection.sort((p1, p2) => Vec.Dist(p1, targetFrom) - Vec.Dist(p2, targetFrom))[0] ??
 			(isClosed ? undefined : targetTo)
 	}
 
@@ -249,34 +248,10 @@ function updateArrowheadPointWithBoundShape(
 		return
 	}
 
-	const pageInt = Matrix2d.applyToPoint(targetShapeInfo.transform, targetInt)
-	const arrowInt = Matrix2d.applyToPoint(Matrix2d.Inverse(arrowPageTransform), pageInt)
+	const pageInt = Mat.applyToPoint(targetShapeInfo.transform, targetInt)
+	const arrowInt = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), pageInt)
 
 	point.setTo(arrowInt)
 
 	targetShapeInfo.didIntersect = true
-}
-
-/** @public */
-export function getStraightArrowHandlePath(info: TLArrowInfo & { isStraight: true }) {
-	return getArrowPath(info.start.handle, info.end.handle)
-}
-
-/** @public */
-export function getSolidStraightArrowPath(info: TLArrowInfo & { isStraight: true }) {
-	return getArrowPath(info.start.point, info.end.point)
-}
-
-function getArrowPath(start: VecLike, end: VecLike) {
-	return `M${start.x},${start.y}L${end.x},${end.y}`
-}
-
-/** @public */
-export function getStraightArrowBoundingBox(start: VecLike, end: VecLike) {
-	return new Box2d(
-		Math.min(start.x, end.x),
-		Math.min(start.y, end.y),
-		Math.abs(start.x - end.x),
-		Math.abs(start.y - end.y)
-	)
 }

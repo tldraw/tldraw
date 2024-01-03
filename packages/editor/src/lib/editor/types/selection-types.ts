@@ -1,4 +1,4 @@
-import { RotateCorner, SelectionCorner, SelectionEdge } from '../../primitives/Box2d'
+import { RotateCorner, SelectionCorner, SelectionEdge } from '../../primitives/Box'
 
 /** @public */
 export type TLSelectionHandle = SelectionCorner | SelectionEdge | RotateCorner

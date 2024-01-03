@@ -1,5 +1,5 @@
 import {
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLArrowShape,
 	TLArrowShapeTerminal,
@@ -11,7 +11,7 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	deepCopy,
 	snapAngle,
 	sortByIndex,
@@ -23,7 +23,7 @@ export class DraggingHandle extends StateNode {
 	shapeId = '' as TLShapeId
 	initialHandle = {} as TLHandle
 	initialAdjacentHandle = null as TLHandle | null
-	initialPagePoint = {} as Vec2d
+	initialPagePoint = {} as Vec
 
 	markId = ''
 	initialPageTransform: any
@@ -226,10 +226,10 @@ export class DraggingHandle extends StateNode {
 			.add(initialHandle)
 
 		if (shiftKey && initialAdjacentHandle && initialHandle.id !== 'middle') {
-			const angle = Vec2d.Angle(initialAdjacentHandle, point)
+			const angle = Vec.Angle(initialAdjacentHandle, point)
 			const snappedAngle = snapAngle(angle, 24)
 			const angleDifference = snappedAngle - angle
-			point = Vec2d.RotWith(point, initialAdjacentHandle, angleDifference)
+			point = Vec.RotWith(point, initialAdjacentHandle, angleDifference)
 		}
 
 		// Clear any existing snaps
@@ -252,12 +252,12 @@ export class DraggingHandle extends StateNode {
 			// Get all the outline segments from the shape
 			const additionalSegments = util
 				.getOutlineSegments(shape)
-				.map((segment) => Matrix2d.applyToPoints(pageTransform, segment))
+				.map((segment) => Mat.applyToPoints(pageTransform, segment))
 				.filter((_segment, i) => i !== handleIndex - 1 && i !== handleIndex)
 
 			const snapDelta = snaps.getSnappingHandleDelta({
 				additionalSegments,
-				handlePoint: Matrix2d.applyToPoint(pageTransform, point),
+				handlePoint: Mat.applyToPoint(pageTransform, point),
 			})
 
 			if (snapDelta) {

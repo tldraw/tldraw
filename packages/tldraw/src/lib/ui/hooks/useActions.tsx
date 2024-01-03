@@ -1,8 +1,8 @@
 import {
 	ANIMATION_MEDIUM_MS,
-	Box2d,
+	Box,
 	Editor,
-	TAU,
+	HALF_PI,
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLFrameShape,
@@ -10,7 +10,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
-	Vec2d,
+	Vec,
 	approximately,
 	compact,
 	createShapeId,
@@ -313,9 +313,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
 								continue
 
-							const newPos = new Vec2d(shape.x, shape.y)
+							const newPos = new Vec(shape.x, shape.y)
 							newPos.rot(-shape.rotation)
-							newPos.add(new Vec2d(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
+							newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
 							newPos.rot(shape.rotation)
 							const partial: TLShapePartial<TLBookmarkShape> = {
 								id: createShapeId(),
@@ -367,9 +367,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 							const { width, height } = embedInfo.definition
 
-							const newPos = new Vec2d(shape.x, shape.y)
+							const newPos = new Vec(shape.x, shape.y)
 							newPos.rot(-shape.rotation)
-							newPos.add(new Vec2d(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
+							newPos.add(new Vec(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
 							newPos.rot(shape.rotation)
 
 							const shapeToCreate: TLShapePartial<TLEmbedShape> = {
@@ -407,7 +407,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('duplicate-shapes', { source })
 					const ids = editor.getSelectedShapeIds()
-					const commonBounds = Box2d.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
+					const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
 					const offset = editor.getInstanceState().canMoveCamera
 						? {
 								x: commonBounds.width + 10,
@@ -877,11 +877,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('rotate-cw', { source })
 					editor.mark('rotate-cw')
-					const offset = editor.getSelectionRotation() % (TAU / 2)
-					const dontUseOffset = approximately(offset, 0) || approximately(offset, TAU / 2)
+					const offset = editor.getSelectionRotation() % (HALF_PI / 2)
+					const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 2)
 					editor.rotateShapesBy(
 						editor.getSelectedShapeIds(),
-						TAU / 2 - (dontUseOffset ? 0 : offset)
+						HALF_PI / 2 - (dontUseOffset ? 0 : offset)
 					)
 				},
 			},
@@ -896,11 +896,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('rotate-ccw', { source })
 					editor.mark('rotate-ccw')
-					const offset = editor.getSelectionRotation() % (TAU / 2)
+					const offset = editor.getSelectionRotation() % (HALF_PI / 2)
 					const offsetCloseToZero = approximately(offset, 0)
 					editor.rotateShapesBy(
 						editor.getSelectedShapeIds(),
-						offsetCloseToZero ? -(TAU / 2) : -offset
+						offsetCloseToZero ? -(HALF_PI / 2) : -offset
 					)
 				},
 			},

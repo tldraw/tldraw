@@ -1,13 +1,13 @@
 import {
-	Box2dModel,
+	BoxModel,
 	Editor,
-	Matrix2d,
+	HALF_PI,
+	Mat,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
-	TAU,
 	TLContent,
 	TLEditorOptions,
 	TLEventInfo,
@@ -18,7 +18,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLWheelEventInfo,
-	Vec2d,
+	Vec,
 	VecLike,
 	createShapeId,
 	createTLStore,
@@ -83,7 +83,7 @@ export class TestEditor extends Editor {
 				lineHeight: number
 				maxWidth: null | number
 			}
-		): Box2dModel => {
+		): BoxModel => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
@@ -117,7 +117,7 @@ export class TestEditor extends Editor {
 	elm: HTMLDivElement
 	bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
 
-	setScreenBounds(bounds: Box2dModel, center = false) {
+	setScreenBounds(bounds: BoxModel, center = false) {
 		this.bounds.x = bounds.x
 		this.bounds.y = bounds.y
 		this.bounds.top = bounds.y
@@ -385,7 +385,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'wheel',
 			name: 'wheel',
-			point: new Vec2d(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
+			point: new Vec(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
@@ -480,11 +480,7 @@ export class TestEditor extends Editor {
 			.clone()
 			.rotWith(this.getSelectionRotatedPageBounds()!.point, this.getSelectionRotation())
 
-		const targetHandlePoint = Vec2d.RotWith(
-			handlePoint,
-			this.getSelectionPageCenter()!,
-			angleRadians
-		)
+		const targetHandlePoint = Vec.RotWith(handlePoint, this.getSelectionPageCenter()!, angleRadians)
 
 		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle })
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, { shiftKey })
@@ -502,7 +498,7 @@ export class TestEditor extends Editor {
 		const selectionRotation = this.getSelectionRotation()
 		const selectionBounds = this.getSelectionRotatedPageBounds()
 		if (!selectionBounds) return null
-		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
+		return Vec.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
 	}
 
 	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
@@ -538,17 +534,17 @@ export class TestEditor extends Editor {
 			? bounds.center
 			: bounds.getHandlePoint(rotateSelectionHandle(handle, Math.PI))
 
-		const preRotationTargetHandlePoint = Vec2d.Add(
-			Vec2d.Sub(preRotationHandlePoint, preRotationScaleOriginPoint).mulV({ x: scaleX, y: scaleY }),
+		const preRotationTargetHandlePoint = Vec.Add(
+			Vec.Sub(preRotationHandlePoint, preRotationScaleOriginPoint).mulV({ x: scaleX, y: scaleY }),
 			preRotationScaleOriginPoint
 		)
 
-		const handlePoint = Vec2d.RotWith(
+		const handlePoint = Vec.RotWith(
 			preRotationHandlePoint,
 			bounds.point,
 			this.getSelectionRotation()
 		)
-		const targetHandlePoint = Vec2d.RotWith(
+		const targetHandlePoint = Vec.RotWith(
 			preRotationTargetHandlePoint,
 			bounds.point,
 			this.getSelectionRotation()
@@ -582,7 +578,7 @@ export class TestEditor extends Editor {
 		const pageTransform = this.getShapePageTransform(shape.id)
 		if (!pageTransform) return null
 		const center = this.getShapeGeometry(shape).bounds.center
-		return Matrix2d.applyToPoint(pageTransform, center)
+		return Mat.applyToPoint(pageTransform, center)
 	}
 
 	/**
@@ -598,7 +594,7 @@ export class TestEditor extends Editor {
 	getPageRotationById(id: TLShapeId): number {
 		const pageTransform = this.getShapePageTransform(id)
 		if (pageTransform) {
-			return Matrix2d.Decompose(pageTransform).rotation
+			return Mat.Decompose(pageTransform).rotation
 		}
 		return 0
 	}
@@ -631,7 +627,7 @@ export const createDefaultShapes = (): TLShapePartial[] => [
 		type: 'geo',
 		x: 200,
 		y: 200,
-		rotation: TAU / 2,
+		rotation: HALF_PI / 2,
 		props: {
 			w: 100,
 			h: 100,

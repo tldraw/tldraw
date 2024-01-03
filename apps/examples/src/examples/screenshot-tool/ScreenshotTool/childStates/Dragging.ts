@@ -1,4 +1,4 @@
-import { Box2d, StateNode, atom, copyAs, exportAs } from '@tldraw/tldraw'
+import { Box, StateNode, atom, copyAs, exportAs } from '@tldraw/tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -6,7 +6,7 @@ export class ScreenshotDragging extends StateNode {
 	static override id = 'dragging'
 
 	// [1]
-	screenshotBox = atom('screenshot brush', new Box2d())
+	screenshotBox = atom('screenshot brush', new Box())
 
 	// [2]
 	override onEnter = () => {
@@ -30,7 +30,7 @@ export class ScreenshotDragging extends StateNode {
 			inputs: { shiftKey, altKey, originPagePoint, currentPagePoint },
 		} = this.editor
 
-		const box = Box2d.FromPoints([originPagePoint, currentPagePoint])
+		const box = Box.FromPoints([originPagePoint, currentPagePoint])
 
 		if (shiftKey) {
 			if (box.w > box.h * (16 / 9)) {

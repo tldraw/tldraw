@@ -41,7 +41,7 @@ export const arrowShapeProps: {
         binding: T.ObjectValidator<{
             type: "binding";
             boundShapeId: TLShapeId;
-            normalizedAnchor: Vec2dModel;
+            normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
         }>;
@@ -55,7 +55,7 @@ export const arrowShapeProps: {
         binding: T.ObjectValidator<{
             type: "binding";
             boundShapeId: TLShapeId;
-            normalizedAnchor: Vec2dModel;
+            normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
         }>;
@@ -93,7 +93,7 @@ export const bookmarkShapeProps: {
 };
 
 // @public
-export interface Box2dModel {
+export interface BoxModel {
     // (undocumented)
     h: number;
     // (undocumented)
@@ -105,7 +105,7 @@ export interface Box2dModel {
 }
 
 // @public (undocumented)
-export const box2dModelValidator: T.Validator<Box2dModel>;
+export const boxModelValidator: T.Validator<BoxModel>;
 
 // @public (undocumented)
 export const CameraRecordType: RecordType<TLCamera, never>;
@@ -193,7 +193,7 @@ export const drawShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
-        points: Vec2dModel[];
+        points: VecModel[];
     }>;
     isComplete: T.Validator<boolean>;
     isClosed: T.Validator<boolean>;
@@ -512,7 +512,7 @@ export const highlightShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
-        points: Vec2dModel[];
+        points: VecModel[];
     }>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -532,8 +532,8 @@ export const imageShapeProps: {
     url: T.Validator<string>;
     assetId: T.Validator<TLAssetId | null>;
     crop: T.Validator<{
-        topLeft: Vec2dModel;
-        bottomRight: Vec2dModel;
+        topLeft: VecModel;
+        bottomRight: VecModel;
     } | null>;
 };
 
@@ -998,7 +998,7 @@ export type TLImageShapeProps = ShapePropsType<typeof imageShapeProps>;
 // @public
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
-    brush: Box2dModel | null;
+    brush: BoxModel | null;
     // (undocumented)
     canMoveCamera: boolean;
     // (undocumented)
@@ -1043,13 +1043,13 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     openMenus: string[];
     // (undocumented)
-    screenBounds: Box2dModel;
+    screenBounds: BoxModel;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
     stylesForNextShape: Record<string, unknown>;
     // (undocumented)
-    zoomBrush: Box2dModel | null;
+    zoomBrush: BoxModel | null;
 }
 
 // @public (undocumented)
@@ -1083,7 +1083,7 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
 // @public (undocumented)
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
-    brush: Box2dModel | null;
+    brush: BoxModel | null;
     // (undocumented)
     camera: {
         x: number;
@@ -1110,7 +1110,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
-    screenBounds: Box2dModel;
+    screenBounds: BoxModel;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
@@ -1161,7 +1161,7 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
 // @public
 export type TLScribble = {
     id: string;
-    points: Vec2dModel[];
+    points: VecModel[];
     size: number;
     color: TLCanvasUiColor;
     opacity: number;
@@ -1231,7 +1231,7 @@ export type TLVideoAsset = TLBaseAsset<'video', {
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 
 // @public
-export interface Vec2dModel {
+export interface VecModel {
     // (undocumented)
     x: number;
     // (undocumented)
@@ -1241,7 +1241,7 @@ export interface Vec2dModel {
 }
 
 // @public (undocumented)
-export const vec2dModelValidator: T.Validator<Vec2dModel>;
+export const vecModelValidator: T.Validator<VecModel>;
 
 // @internal (undocumented)
 export const videoShapeMigrations: Migrations;

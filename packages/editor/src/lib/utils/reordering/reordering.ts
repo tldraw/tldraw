@@ -1,4 +1,4 @@
-import { generateNKeysBetween } from './dgreensp'
+import { generateNKeysBetween } from './dgreensp/dgreensp'
 
 /**
  * Get a number of indices between two indices.

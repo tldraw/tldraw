@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, Vec2d, compact } from '@tldraw/editor'
+import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
 
 const LAG_DURATION = 100
 
@@ -39,7 +39,7 @@ export class DragAndDropManager {
 		}, duration)
 	}
 
-	private handleDrag(point: Vec2d, movingShapes: TLShape[], cb?: () => void) {
+	private handleDrag(point: Vec, movingShapes: TLShape[], cb?: () => void) {
 		movingShapes = compact(movingShapes.map((shape) => this.editor.getShape(shape.id)))
 
 		const nextDroppingShapeId = this.editor.getDroppingOverShape(point, movingShapes)?.id ?? null

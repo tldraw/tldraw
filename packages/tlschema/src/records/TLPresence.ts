@@ -1,7 +1,7 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { Box2dModel, box2dModelValidator } from '../misc/geometry-types'
+import { BoxModel, boxModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
@@ -18,9 +18,9 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	camera: { x: number; y: number; z: number }
 	selectedShapeIds: TLShapeId[]
 	currentPageId: TLPageId
-	brush: Box2dModel | null
+	brush: BoxModel | null
 	scribbles: TLScribble[]
-	screenBounds: Box2dModel
+	screenBounds: BoxModel
 	followingUserId: string | null
 	cursor: {
 		x: number
@@ -57,10 +57,10 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 			y: T.number,
 			z: T.number,
 		}),
-		screenBounds: box2dModelValidator,
+		screenBounds: boxModelValidator,
 		selectedShapeIds: T.arrayOf(idValidator<TLShapeId>('shape')),
 		currentPageId: idValidator<TLPageId>('page'),
-		brush: box2dModelValidator.nullable(),
+		brush: boxModelValidator.nullable(),
 		scribbles: T.arrayOf(scribbleValidator),
 		chatMessage: T.string,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,

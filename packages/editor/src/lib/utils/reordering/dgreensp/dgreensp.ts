@@ -10,7 +10,7 @@ const SMALLEST_INTEGER = 'A00000000000000000000000000'
  *
  * @param head - The integer to use.
  */
-export function getIntegerLength(head: string): number {
+function getIntegerLength(head: string): number {
 	if (head >= 'a' && head <= 'z') {
 		return head.charCodeAt(0) - 'a'.charCodeAt(0) + 2
 	} else if (head >= 'A' && head <= 'Z') {
@@ -25,13 +25,13 @@ export function getIntegerLength(head: string): number {
  *
  * @param int - The integer to use.
  */
-export function validateInteger(int: string): asserts int is string {
+function validateInteger(int: string): asserts int is string {
 	if (int.length !== getIntegerLength(int.charAt(0))) {
 		throw new Error('invalid integer part of index key: ' + int)
 	}
 }
 
-export function isNotUndefined(n: string | undefined): asserts n is string {
+function isNotUndefined(n: string | undefined): asserts n is string {
 	if (n === undefined) throw Error('n is undefined')
 }
 
@@ -39,8 +39,10 @@ export function isNotUndefined(n: string | undefined): asserts n is string {
  * Increment an integer.
  *
  * @param x - The integer to increment
+ *
+ * @internal
  */
-export function incrementInteger(x: string): string | undefined {
+function incrementInteger(x: string): string | undefined {
 	validateInteger(x)
 	const [head, ...digs] = x.split('')
 	let carry = true
@@ -72,8 +74,10 @@ export function incrementInteger(x: string): string | undefined {
  * Decrement an integer.
  *
  * @param x - The integer to decrement
+ *
+ * @internal
  */
-export function decrementInteger(x: string): string | undefined {
+function decrementInteger(x: string): string | undefined {
 	validateInteger(x)
 	const [head, ...digs] = x.split('')
 	let borrow = true
@@ -106,8 +110,10 @@ export function decrementInteger(x: string): string | undefined {
  *
  * @param a - The start index.
  * @param b - The end index.
+ *
+ * @internal
  */
-export function midpoint(a: string, b: string | undefined): string {
+function midpoint(a: string, b: string | undefined): string {
 	if (b !== undefined && a >= b) {
 		throw new Error(a + ' >= ' + b)
 	}
@@ -142,7 +148,7 @@ export function midpoint(a: string, b: string | undefined): string {
  *
  * @param index - The index to use.
  */
-export function getIntegerPart(index: string): string {
+function getIntegerPart(index: string): string {
 	const integerPartLength = getIntegerLength(index.charAt(0))
 	if (integerPartLength > index.length) {
 		throw new Error('invalid index: ' + index)
@@ -155,7 +161,7 @@ export function getIntegerPart(index: string): string {
  *
  * @param x - The index to validate.
  */
-export function validateOrder(index: string): asserts index is string {
+function validateOrder(index: string): asserts index is string {
 	if (index === SMALLEST_INTEGER) {
 		throw new Error('invalid index: ' + index)
 	}
@@ -173,7 +179,7 @@ export function validateOrder(index: string): asserts index is string {
  * A string made up of an integer part followed by a fraction part. The fraction point consists of
  * zero or more digits with no trailing zeros.
  */
-export type OrderKey = string
+type OrderKey = string
 
 /**
  * Generate an index key at the midpoint between a start and end.
@@ -181,7 +187,7 @@ export type OrderKey = string
  * @param a - The start index key string.
  * @param b - The end index key string, greater than A.
  */
-export function generateKeyBetween(a: OrderKey | undefined, b: OrderKey | undefined): OrderKey {
+function generateKeyBetween(a: OrderKey | undefined, b: OrderKey | undefined): OrderKey {
 	if (a !== undefined) validateOrder(a)
 	if (b !== undefined) validateOrder(b)
 	if (a !== undefined && b !== undefined && a >= b) {
@@ -258,22 +264,4 @@ export function generateNKeysBetween(
 	const mid = Math.floor(n / 2)
 	const c = generateKeyBetween(a, b)
 	return [...generateNKeysBetween(a, c, mid), c, ...generateNKeysBetween(c, b, n - mid - 1)]
-}
-
-export function getCounter() {
-	let index = 'a0'
-	return () => {
-		index = generateKeyBetween(index, undefined)
-		return index
-	}
-}
-
-export function* iterableRange(n = 1) {
-	let index = 'a0'
-	let i = 0
-	while (i < n) {
-		i++
-		index = generateKeyBetween(index, undefined)
-		yield index
-	}
 }

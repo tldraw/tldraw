@@ -1,6 +1,6 @@
 import { TLArrowShape, TLArrowShapeTerminal, TLShape, TLShapeId } from '@tldraw/tlschema'
-import { Matrix2d } from '../../../../primitives/Matrix2d'
-import { Vec2d } from '../../../../primitives/Vec2d'
+import { Mat } from '../../../../primitives/Mat'
+import { Vec } from '../../../../primitives/Vec'
 import { Group2d } from '../../../../primitives/geometry/Group2d'
 import { Editor } from '../../../Editor'
 
@@ -13,8 +13,8 @@ export type BoundShapeInfo<T extends TLShape = TLShape> = {
 	didIntersect: boolean
 	isExact: boolean
 	isClosed: boolean
-	transform: Matrix2d
-	outline: Vec2d[]
+	transform: Mat
+	outline: Vec[]
 }
 
 export function getBoundShapeInfoForTerminal(
@@ -45,36 +45,36 @@ export function getBoundShapeInfoForTerminal(
 	}
 }
 
-export function getArrowTerminalInArrowSpace(
+function getArrowTerminalInArrowSpace(
 	editor: Editor,
-	arrowPageTransform: Matrix2d,
+	arrowPageTransform: Mat,
 	terminal: TLArrowShapeTerminal,
 	forceImprecise: boolean
 ) {
 	if (terminal.type === 'point') {
-		return Vec2d.From(terminal)
+		return Vec.From(terminal)
 	}
 
 	const boundShape = editor.getShape(terminal.boundShapeId)
 
 	if (!boundShape) {
 		// this can happen in multiplayer contexts where the shape is being deleted
-		return new Vec2d(0, 0)
+		return new Vec(0, 0)
 	} else {
 		// Find the actual local point of the normalized terminal on
 		// the bound shape and transform it to page space, then transform
 		// it to arrow space
 		const { point, size } = editor.getShapeGeometry(boundShape).bounds
-		const shapePoint = Vec2d.Add(
+		const shapePoint = Vec.Add(
 			point,
-			Vec2d.MulV(
+			Vec.MulV(
 				// if the parent is the bound shape, then it's ALWAYS precise
 				terminal.isPrecise || forceImprecise ? terminal.normalizedAnchor : { x: 0.5, y: 0.5 },
 				size
 			)
 		)
-		const pagePoint = Matrix2d.applyToPoint(editor.getShapePageTransform(boundShape)!, shapePoint)
-		const arrowPoint = Matrix2d.applyToPoint(Matrix2d.Inverse(arrowPageTransform), pagePoint)
+		const pagePoint = Mat.applyToPoint(editor.getShapePageTransform(boundShape)!, shapePoint)
+		const arrowPoint = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), pagePoint)
 		return arrowPoint
 	}
 }

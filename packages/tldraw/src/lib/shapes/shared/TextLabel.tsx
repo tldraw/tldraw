@@ -1,5 +1,5 @@
 import {
-	Box2d,
+	Box,
 	TLDefaultColorStyle,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
@@ -40,7 +40,7 @@ export const TextLabel = React.memo(function TextLabel<
 	wrap?: boolean
 	text: string
 	labelColor: TLDefaultColorStyle
-	bounds?: Box2d
+	bounds?: Box
 }) {
 	const {
 		rInput,

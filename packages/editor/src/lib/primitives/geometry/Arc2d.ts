@@ -1,4 +1,4 @@
-import { Vec2d } from '../Vec2d'
+import { Vec } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI, PI2, shortAngleDist } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
@@ -6,10 +6,10 @@ import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
 export class Arc2d extends Geometry2d {
-	_center: Vec2d
+	_center: Vec
 	radius: number
-	start: Vec2d
-	end: Vec2d
+	start: Vec
+	end: Vec
 
 	measure: number
 	length: number
@@ -18,10 +18,10 @@ export class Arc2d extends Geometry2d {
 
 	constructor(
 		config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & {
-			center: Vec2d
+			center: Vec
 			radius: number
-			start: Vec2d
-			end: Vec2d
+			start: Vec
+			end: Vec
 			sweepFlag: number
 			largeArcFlag: number
 		}
@@ -31,8 +31,8 @@ export class Arc2d extends Geometry2d {
 		if (start.equals(end)) throw Error(`Arc must have different start and end points.`)
 
 		// ensure that the start and end are clockwise
-		this.angleStart = Vec2d.Angle(center, start)
-		this.angleEnd = Vec2d.Angle(center, end)
+		this.angleStart = Vec.Angle(center, start)
+		this.angleEnd = Vec.Angle(center, end)
 		this.measure = getArcMeasure(this.angleStart, this.angleEnd, sweepFlag, largeArcFlag)
 		this.length = this.measure * radius
 
@@ -43,7 +43,7 @@ export class Arc2d extends Geometry2d {
 		this.radius = radius
 	}
 
-	nearestPoint(point: Vec2d): Vec2d {
+	nearestPoint(point: Vec): Vec {
 		const { _center, measure, radius, angleEnd, angleStart, start: A, end: B } = this
 		const t = getPointInArcT(measure, angleStart, angleEnd, _center.angle(point))
 		if (t <= 0) return A
@@ -53,7 +53,7 @@ export class Arc2d extends Geometry2d {
 		const P = _center.clone().add(point.clone().sub(_center).uni().mul(radius))
 
 		let distance = Infinity
-		let nearest: Vec2d | undefined
+		let nearest: Vec | undefined
 		for (const pt of [A, B, P]) {
 			if (point.dist(pt) < distance) {
 				nearest = pt
@@ -65,7 +65,7 @@ export class Arc2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean {
+	hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean {
 		const { _center, radius, measure, angleStart, angleEnd } = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
 		if (intersection === null) return false
@@ -76,14 +76,14 @@ export class Arc2d extends Geometry2d {
 		})
 	}
 
-	getVertices(): Vec2d[] {
+	getVertices(): Vec[] {
 		const { _center, measure, length, radius, angleStart } = this
-		const vertices: Vec2d[] = []
+		const vertices: Vec[] = []
 
 		for (let i = 0, n = getVerticesCountForLength(Math.abs(length)); i < n + 1; i++) {
 			const t = (i / n) * measure
 			const angle = angleStart + t
-			vertices.push(_center.clone().add(new Vec2d(Math.cos(angle), Math.sin(angle)).mul(radius)))
+			vertices.push(_center.clone().add(new Vec(Math.cos(angle), Math.sin(angle)).mul(radius)))
 		}
 
 		return vertices

@@ -1,12 +1,12 @@
 import {
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLEventHandlers,
 	TLHandle,
 	TLInterruptEvent,
 	TLLineShape,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	createShapeId,
 	getIndexAbove,
 	last,
@@ -45,18 +45,18 @@ export class Pointing extends StateNode {
 			const endHandle = vertexHandles[vertexHandles.length - 1]
 			const prevEndHandle = vertexHandles[vertexHandles.length - 2]
 
-			const shapePagePoint = Matrix2d.applyToPoint(
+			const shapePagePoint = Mat.applyToPoint(
 				this.editor.getShapeParentTransform(this.shape)!,
-				new Vec2d(this.shape.x, this.shape.y)
+				new Vec(this.shape.x, this.shape.y)
 			)
 
 			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
 
-			const nextPoint = Vec2d.Sub(currentPagePoint, shapePagePoint)
+			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint)
 
 			if (
-				Vec2d.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES ||
-				Vec2d.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
+				Vec.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES ||
+				Vec.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
 			) {
 				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
 				nextEndHandleIndex = endHandle.index

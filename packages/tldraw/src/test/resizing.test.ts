@@ -1,5 +1,4 @@
 import {
-	EPSILON,
 	GapsSnapLine,
 	PI,
 	PI2,
@@ -9,7 +8,7 @@ import {
 	TLSelectionHandle,
 	TLShapeId,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	canonicalizeRotation,
 	createShapeId,
 	rotateSelectionHandle,
@@ -235,7 +234,7 @@ describe('When resizing a rotated shape...', () => {
 		Math.PI / 2,
 		// Math.PI / 4, Math.PI
 	])('Resizes a shape rotated %i from the top left', (rotation) => {
-		const offset = new Vec2d(10, 10)
+		const offset = new Vec(10, 10)
 
 		// Rotate the shape by $rotation from its top left corner
 
@@ -243,9 +242,9 @@ describe('When resizing a rotated shape...', () => {
 
 		const initialPagePoint = editor.getShapePageTransform(ids.boxA)!.point()
 
-		const pt0 = Vec2d.From(initialPagePoint)
-		const pt1 = Vec2d.RotWith(initialPagePoint, editor.getSelectionPageBounds()!.center, rotation)
-		const pt2 = Vec2d.Sub(initialPagePoint, offset).rotWith(
+		const pt0 = Vec.From(initialPagePoint)
+		const pt1 = Vec.RotWith(initialPagePoint, editor.getSelectionPageBounds()!.center, rotation)
+		const pt2 = Vec.Sub(initialPagePoint, offset).rotWith(
 			editor.getSelectionPageBounds()!.center!,
 			rotation
 		)
@@ -265,9 +264,7 @@ describe('When resizing a rotated shape...', () => {
 
 		// Resize by moving the top left resize handle to pt2. Should be a delta of [10, 10].
 
-		expect(Vec2d.Dist(editor.getShapePageTransform(ids.boxA)!.point(), pt2)).toBeCloseTo(
-			offset.len()
-		)
+		expect(Vec.Dist(editor.getShapePageTransform(ids.boxA)!.point(), pt2)).toBeCloseTo(offset.len())
 
 		editor
 			.pointerDown(pt1.x, pt1.y, {
@@ -327,7 +324,7 @@ describe('When resizing mulitple shapes...', () => {
 
 			const rotateStart = editor.getShapePageTransform(ids.boxA)!.point()
 			const rotateCenter = editor.getPageCenter(shapeA)!
-			const rotateEnd = Vec2d.RotWith(rotateStart, rotateCenter, rotation)
+			const rotateEnd = Vec.RotWith(rotateStart, rotateCenter, rotation)
 
 			editor
 				.select(ids.boxA)
@@ -353,16 +350,13 @@ describe('When resizing mulitple shapes...', () => {
 			// oddly rotated shapes maintain aspect ratio when being resized (for now)
 			const aspectRatio = initialBounds.width / initialBounds.height
 			const offsetX = initialBounds.width + 200
-			const offset = new Vec2d(offsetX, offsetX / aspectRatio)
+			const offset = new Vec(offsetX, offsetX / aspectRatio)
 			const resizeStart = initialBounds.point
-			const resizeEnd = Vec2d.Sub(resizeStart, offset)
+			const resizeEnd = Vec.Sub(resizeStart, offset)
 
-			expect(Vec2d.Dist(resizeStart, resizeEnd)).toBeCloseTo(offset.len())
+			expect(Vec.Dist(resizeStart, resizeEnd)).toBeCloseTo(offset.len())
 			expect(
-				Vec2d.Min(
-					editor.getShapePageBounds(shapeB)!.point,
-					editor.getShapePageBounds(shapeC)!.point
-				)
+				Vec.Min(editor.getShapePageBounds(shapeB)!.point, editor.getShapePageBounds(shapeC)!.point)
 			).toCloselyMatchObject(resizeStart)
 
 			editor
@@ -375,8 +369,8 @@ describe('When resizing mulitple shapes...', () => {
 				.pointerUp()
 
 			expect(editor.getSelectionPageBounds()!.point).toCloselyMatchObject(resizeEnd)
-			expect(new Vec2d(initialBounds.maxX, initialBounds.maxY)).toCloselyMatchObject(
-				new Vec2d(editor.getSelectionPageBounds()!.maxX, editor.getSelectionPageBounds()!.maxY)
+			expect(new Vec(initialBounds.maxX, initialBounds.maxY)).toCloselyMatchObject(
+				new Vec(editor.getSelectionPageBounds()!.maxX, editor.getSelectionPageBounds()!.maxY)
 			)
 		}
 	)
@@ -3453,7 +3447,7 @@ describe('resizing a selection of mixed rotations', () => {
 		expect(roundedPageBounds(ids.boxD)).toMatchObject({ x: 0, y: 20, w: 20, h: 5 })
 	})
 	it('does lock the aspect ratio if the rotations are not compatible', () => {
-		editor.updateShapes([{ id: ids.boxC, type: 'geo', rotation: Math.PI + EPSILON }])
+		editor.updateShapes([{ id: ids.boxC, type: 'geo', rotation: Math.PI + Math.PI / 180 }])
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
 		editor.pointerDown(50, 50, { target: 'selection', handle: 'bottom_right' }).pointerMove(100, 25)
 		expect(roundedPageBounds(ids.boxA, 0.5)).toMatchObject({ x: 0, y: 0, w: 20, h: 20 })
@@ -3461,7 +3455,7 @@ describe('resizing a selection of mixed rotations', () => {
 
 	it('does lock the aspect ratio if one of the shapes has a child with an incompatible aspect ratio', () => {
 		editor.updateShapes([
-			{ id: ids.boxC, type: 'geo', rotation: Math.PI + EPSILON, parentId: ids.boxA },
+			{ id: ids.boxC, type: 'geo', rotation: Math.PI + Math.PI / 180, parentId: ids.boxA },
 		])
 
 		editor.select(ids.boxA, ids.boxB, ids.boxD)

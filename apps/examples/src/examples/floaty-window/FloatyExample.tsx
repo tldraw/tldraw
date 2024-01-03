@@ -1,4 +1,4 @@
-import { Tldraw, Vec2d, useContainer, useEditor } from '@tldraw/tldraw'
+import { Tldraw, Vec, useContainer, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
 
@@ -32,7 +32,7 @@ function SneakyFloatyHook() {
 			if (sx !== x || sy !== y) {
 				x = sx
 				y = sy
-				editor.setCamera(new Vec2d(-x, -y))
+				editor.setCamera(new Vec(-x, -y))
 			}
 		}
 

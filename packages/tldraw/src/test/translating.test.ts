@@ -6,7 +6,7 @@ import {
 	TLGeoShape,
 	TLShapeId,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	createShapeId,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
@@ -394,17 +394,17 @@ describe('When translating shapes that are descendants of a rotated shape...', (
 		const shapeA = editor.getShape(ids.box1)!
 		const shapeD = editor.getShape(ids.boxD)!
 
-		expect(editor.getPageCenter(shapeA)).toMatchObject(new Vec2d(60, 60))
-		expect(editor.getShapeGeometry(shapeD).center).toMatchObject(new Vec2d(5, 5))
-		expect(editor.getPageCenter(shapeD)).toMatchObject(new Vec2d(35, 35))
+		expect(editor.getPageCenter(shapeA)).toMatchObject(new Vec(60, 60))
+		expect(editor.getShapeGeometry(shapeD).center).toMatchObject(new Vec(5, 5))
+		expect(editor.getPageCenter(shapeD)).toMatchObject(new Vec(35, 35))
 
 		const rads = 0
 
-		expect(editor.getPageCenter(shapeA)).toMatchObject(new Vec2d(60, 60))
+		expect(editor.getPageCenter(shapeA)).toMatchObject(new Vec(60, 60))
 
 		// Expect the node's page position to be rotated around its parent's page center
 		expect(editor.getPageCenter(shapeD)).toMatchObject(
-			new Vec2d(35, 35).rotWith(editor.getPageCenter(shapeA)!, rads)
+			new Vec(35, 35).rotWith(editor.getPageCenter(shapeA)!, rads)
 		)
 
 		const centerD = editor.getPageCenter(shapeD)!.clone().toFixed()
@@ -416,7 +416,7 @@ describe('When translating shapes that are descendants of a rotated shape...', (
 			.pointerMove(centerD.x, centerD.y - 10)
 			.pointerUp()
 
-		expect(editor.getPageCenter(shapeD)).toMatchObject(new Vec2d(centerD.x, centerD.y - 10))
+		expect(editor.getPageCenter(shapeD)).toMatchObject(new Vec(centerD.x, centerD.y - 10))
 
 		const centerA = editor.getPageCenter(shapeA)!.clone().toFixed()
 

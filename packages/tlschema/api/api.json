@@ -350,8 +350,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -395,8 +395,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -587,22 +587,22 @@
         },
         {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tlschema!Box2dModel:interface",
+          "canonicalReference": "@tldraw/tlschema!BoxModel:interface",
           "docComment": "/**\n * A serializable model for 2D boxes.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface Box2dModel "
+              "text": "export interface BoxModel "
             }
           ],
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "releaseTag": "Public",
-          "name": "Box2dModel",
+          "name": "BoxModel",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#h:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#h:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -629,7 +629,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#w:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#w:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -656,7 +656,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#x:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#x:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -683,7 +683,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#y:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#y:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -713,12 +713,12 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!box2dModelValidator:var",
+          "canonicalReference": "@tldraw/tlschema!boxModelValidator:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "box2dModelValidator: "
+              "text": "boxModelValidator: "
             },
             {
               "kind": "Reference",
@@ -731,8 +731,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2dModel",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+              "text": "BoxModel",
+              "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
             },
             {
               "kind": "Content",
@@ -742,7 +742,7 @@
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "isReadonly": true,
           "releaseTag": "Public",
-          "name": "box2dModelValidator",
+          "name": "boxModelValidator",
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 5
@@ -1684,8 +1684,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2290,8 +2290,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2403,8 +2403,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2412,8 +2412,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -6460,8 +6460,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7090,8 +7090,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7182,8 +7182,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7637,8 +7637,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7896,8 +7896,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -8570,8 +8570,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -9263,22 +9263,22 @@
         },
         {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface",
+          "canonicalReference": "@tldraw/tlschema!VecModel:interface",
           "docComment": "/**\n * A serializable model for 2D vectors.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface Vec2dModel "
+              "text": "export interface VecModel "
             }
           ],
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "releaseTag": "Public",
-          "name": "Vec2dModel",
+          "name": "VecModel",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#x:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#x:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9305,7 +9305,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#y:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#y:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9332,7 +9332,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#z:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#z:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9362,12 +9362,12 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!vec2dModelValidator:var",
+          "canonicalReference": "@tldraw/tlschema!vecModelValidator:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "vec2dModelValidator: "
+              "text": "vecModelValidator: "
             },
             {
               "kind": "Reference",
@@ -9380,8 +9380,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -9391,7 +9391,7 @@
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "isReadonly": true,
           "releaseTag": "Public",
-          "name": "vec2dModelValidator",
+          "name": "vecModelValidator",
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 5

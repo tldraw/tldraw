@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`creating new shapes pencil lines will reisze the group appropriately if the new shape changes the group bounds: box shape after second resize 1`] = `
-Box2d {
+Object {
   "h": 40,
   "w": 40,
   "x": -20,
@@ -10,7 +10,7 @@ Box2d {
 `;
 
 exports[`creating new shapes pencil lines will reisze the group appropriately if the new shape changes the group bounds: group shape after second resize 1`] = `
-Box2d {
+Object {
   "h": 120,
   "w": 120,
   "x": -20,
@@ -19,7 +19,7 @@ Box2d {
 `;
 
 exports[`creating new shapes pencil lines will reisze the group appropriately if the new shape changes the group bounds: group with line shape 1`] = `
-Box2d {
+Box {
   "h": 110,
   "w": 110,
   "x": -10,
@@ -28,7 +28,7 @@ Box2d {
 `;
 
 exports[`creating new shapes pencil lines works if the shape drawing begins outside of the current group bounds: box shape after resize 1`] = `
-Box2d {
+Object {
   "h": 50,
   "w": 50,
   "x": -100,
@@ -37,7 +37,7 @@ Box2d {
 `;
 
 exports[`creating new shapes pencil lines works if the shape drawing begins outside of the current group bounds: group with line 1`] = `
-Box2d {
+Object {
   "h": 200,
   "w": 200,
   "x": -100,

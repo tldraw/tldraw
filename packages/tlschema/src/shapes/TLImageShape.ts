@@ -1,13 +1,13 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { vec2dModelValidator } from '../misc/geometry-types'
+import { vecModelValidator } from '../misc/geometry-types'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export const ImageShapeCrop = T.object({
-	topLeft: vec2dModelValidator,
-	bottomRight: vec2dModelValidator,
+	topLeft: vecModelValidator,
+	bottomRight: vecModelValidator,
 })
 /** @public */
 export type TLImageShapeCrop = T.TypeOf<typeof ImageShapeCrop>

@@ -145,6 +145,15 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export type {
+	TLAfterChangeHandler,
+	TLAfterCreateHandler,
+	TLAfterDeleteHandler,
+	TLBatchCompleteHandler,
+	TLBeforeChangeHandler,
+	TLBeforeCreateHandler,
+	TLBeforeDeleteHandler,
+} from './lib/editor/managers/SideEffectManager'
 export {
 	SnapManager,
 	type GapsSnapLine,
@@ -181,16 +190,12 @@ export {
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export { getArrowheadPathForType } from './lib/editor/shapes/shared/arrow/arrowheads'
 export {
-	getCurvedArrowHandlePath,
-	getSolidCurvedArrowPath,
-} from './lib/editor/shapes/shared/arrow/curved-arrow'
+	type TLArcInfo,
+	type TLArrowInfo,
+	type TLArrowPoint,
+} from './lib/editor/shapes/shared/arrow/arrow-types'
 export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/shared'
-export {
-	getSolidStraightArrowPath,
-	getStraightArrowHandlePath,
-} from './lib/editor/shapes/shared/arrow/straight-arrow'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
@@ -259,7 +264,7 @@ export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export {
-	Box2d,
+	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	rotateSelectionHandle,
 	type BoxLike,
@@ -267,9 +272,9 @@ export {
 	type SelectionCorner,
 	type SelectionEdge,
 	type SelectionHandle,
-} from './lib/primitives/Box2d'
-export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
-export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
+} from './lib/primitives/Box'
+export { Mat, type MatLike, type MatModel } from './lib/primitives/Mat'
+export { Vec, type VecLike } from './lib/primitives/Vec'
 export { EASINGS } from './lib/primitives/easings'
 export { Arc2d } from './lib/primitives/geometry/Arc2d'
 export { Circle2d } from './lib/primitives/geometry/Circle2d'
@@ -279,24 +284,29 @@ export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
 export { Geometry2d } from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
+export { Point2d } from './lib/primitives/geometry/Point2d'
 export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
 export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
 export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
 export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
 export {
+	intersectCircleCircle,
+	intersectCirclePolygon,
+	intersectCirclePolyline,
+	intersectLineSegmentCircle,
+	intersectLineSegmentLineSegment,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
+	intersectPolygonBounds,
 	intersectPolygonPolygon,
 	linesIntersect,
 	polygonsIntersect,
 } from './lib/primitives/intersect'
 export {
-	EPSILON,
+	HALF_PI,
 	PI,
 	PI2,
 	SIN,
-	TAU,
-	angleDelta,
 	approximately,
 	areAnglesCompatible,
 	average,
@@ -305,24 +315,11 @@ export {
 	clampRadians,
 	clockwiseAngleDist,
 	degreesToRadians,
-	getArcLength,
 	getPointOnCircle,
 	getPolygonVertices,
-	getStarBounds,
-	getSweep,
-	isAngleBetween,
 	isSafeFloat,
-	lerpAngles,
-	longAngleDist,
 	perimeterOfEllipse,
-	pointInBounds,
-	pointInCircle,
-	pointInEllipse,
 	pointInPolygon,
-	pointInPolyline,
-	pointInRect,
-	pointNearToLineSegment,
-	pointNearToPolyline,
 	precise,
 	radiansToDegrees,
 	rangeIntersection,

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
-import { Box2d } from '../../primitives/Box2d'
-import { Vec2d } from '../../primitives/Vec2d'
+import { Box } from '../../primitives/Box'
+import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
 import { SvgExportContext } from '../types/SvgExportContext'
@@ -214,7 +214,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	getOutlineSegments(shape: Shape): Vec2d[][] {
+	getOutlineSegments(shape: Shape): Vec[][] {
 		return [this.editor.getShapeGeometry(shape).vertices]
 	}
 
@@ -554,12 +554,12 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @public
  */
 export type TLResizeInfo<T extends TLShape> = {
-	newPoint: Vec2d
+	newPoint: Vec
 	handle: TLResizeHandle
 	mode: TLResizeMode
 	scaleX: number
 	scaleY: number
-	initialBounds: Box2d
+	initialBounds: Box
 	initialShape: T
 }
 

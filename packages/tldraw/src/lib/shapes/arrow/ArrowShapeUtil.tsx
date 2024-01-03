@@ -1,6 +1,6 @@
 import {
 	Arc2d,
-	Box2d,
+	Box,
 	DefaultFontFamilies,
 	Edge2d,
 	Group2d,
@@ -21,17 +21,12 @@ import {
 	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
-	Vec2d,
+	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
-	getArrowheadPathForType,
-	getCurvedArrowHandlePath,
 	getDefaultColorTheme,
-	getSolidCurvedArrowPath,
-	getSolidStraightArrowPath,
-	getStraightArrowHandlePath,
 	toDomPrecision,
 	useIsEditing,
 } from '@tldraw/editor'
@@ -50,6 +45,13 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { getArrowheadPathForType } from './arrowheads'
+import {
+	getCurvedArrowHandlePath,
+	getSolidCurvedArrowPath,
+	getSolidStraightArrowPath,
+	getStraightArrowHandlePath,
+} from './arrowpaths'
 import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0
@@ -92,14 +94,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const bodyGeom = info.isStraight
 			? new Edge2d({
-					start: Vec2d.From(info.start.point),
-					end: Vec2d.From(info.end.point),
+					start: Vec.From(info.start.point),
+					end: Vec.From(info.end.point),
 			  })
 			: new Arc2d({
-					center: Vec2d.Cast(info.handleArc.center),
+					center: Vec.Cast(info.handleArc.center),
 					radius: info.handleArc.radius,
-					start: Vec2d.Cast(info.start.point),
-					end: Vec2d.Cast(info.end.point),
+					start: Vec.Cast(info.start.point),
+					end: Vec.Cast(info.end.point),
 					sweepFlag: info.bodyArc.sweepFlag,
 					largeArcFlag: info.bodyArc.largeArcFlag,
 			  })
@@ -209,16 +211,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			// Bending the arrow...
 			const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
-			const delta = Vec2d.Sub(end, start)
-			const v = Vec2d.Per(delta)
+			const delta = Vec.Sub(end, start)
+			const v = Vec.Per(delta)
 
-			const med = Vec2d.Med(end, start)
-			const A = Vec2d.Sub(med, v)
-			const B = Vec2d.Add(med, v)
+			const med = Vec.Med(end, start)
+			const A = Vec.Sub(med, v)
+			const B = Vec.Add(med, v)
 
-			const point = Vec2d.NearestPointOnLineSegment(A, B, handle, false)
-			let bend = Vec2d.Dist(point, med)
-			if (Vec2d.Clockwise(point, end, med)) bend *= -1
+			const point = Vec.NearestPointOnLineSegment(A, B, handle, false)
+			let bend = Vec.Dist(point, med)
+			if (Vec.Clockwise(point, end, med)) bend *= -1
 			return { id: shape.id, type: shape.type, props: { bend } }
 		}
 
@@ -264,7 +266,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// we've got a target! the handle is being dragged over a shape, bind to it
 
 		const targetGeometry = this.editor.getShapeGeometry(target)
-		const targetBounds = Box2d.ZeroFix(targetGeometry.bounds)
+		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
 		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
 		let precise = isPrecise
@@ -307,7 +309,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			// Funky math but we want the snap distance to be 4 at the minimum and either
 			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
 			if (
-				Vec2d.Dist(pointInTargetSpace, targetBounds.center) <
+				Vec.Dist(pointInTargetSpace, targetBounds.center) <
 				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
 					this.editor.getZoomLevel()
 			) {
@@ -326,7 +328,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
 			if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
-				if (Vec2d.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
+				if (Vec.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
 					next.props.end.normalizedAnchor.x += 0.05
 				}
 			}
@@ -501,7 +503,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			) && !this.editor.getInstanceState().isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
-		const bounds = Box2d.ZeroFix(this.editor.getShapeGeometry(shape).bounds)
+		const bounds = Box.ZeroFix(this.editor.getShapeGeometry(shape).bounds)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {
@@ -524,7 +526,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const sw = 2
 			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 				info.isStraight
-					? Vec2d.Dist(info.start.handle, info.end.handle)
+					? Vec.Dist(info.start.handle, info.end.handle)
 					: Math.abs(info.handleArc.length),
 				sw,
 				{
@@ -686,7 +688,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const isEditing = useIsEditing(shape.id)
 
 		if (!info) return null
-		if (Vec2d.Equals(start, end)) return null
+		if (Vec.Equals(start, end)) return null
 
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 

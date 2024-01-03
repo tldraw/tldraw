@@ -1,4 +1,4 @@
-import { Vec2d } from '../../primitives/Vec2d'
+import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
 
 export class TickManager {
@@ -48,7 +48,7 @@ export class TickManager {
 		cancelAnimationFrame(this.raf)
 	}
 
-	private prevPoint = new Vec2d()
+	private prevPoint = new Vec()
 
 	private updatePointerVelocity = (elapsed: number) => {
 		const {
@@ -60,11 +60,11 @@ export class TickManager {
 
 		if (elapsed === 0) return
 
-		const delta = Vec2d.Sub(currentScreenPoint, prevPoint)
+		const delta = Vec.Sub(currentScreenPoint, prevPoint)
 		this.prevPoint = currentScreenPoint.clone()
 
 		const length = delta.len()
-		const direction = length ? delta.div(length) : new Vec2d(0, 0)
+		const direction = length ? delta.div(length) : new Vec(0, 0)
 
 		// consider adjusting this with an easing rather than a linear interpolation
 		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)

@@ -1,10 +1,10 @@
 import {
-	Box2d,
+	Box,
 	Editor,
 	PI2,
 	TLInstancePresence,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	clamp,
 	uniqueId,
 } from '@tldraw/editor'
@@ -22,17 +22,17 @@ export class MinimapManager {
 
 	id = uniqueId()
 	cvs: HTMLCanvasElement | null = null
-	pageBounds: (Box2d & { id: TLShapeId })[] = []
+	pageBounds: (Box & { id: TLShapeId })[] = []
 	collaborators: TLInstancePresence[] = []
 
-	canvasScreenBounds = new Box2d()
-	canvasPageBounds = new Box2d()
+	canvasScreenBounds = new Box()
+	canvasPageBounds = new Box()
 
-	contentPageBounds = new Box2d()
-	contentScreenBounds = new Box2d()
+	contentPageBounds = new Box()
+	contentScreenBounds = new Box()
 
-	originPagePoint = new Vec2d()
-	originPageCenter = new Vec2d()
+	originPagePoint = new Vec()
+	originPageCenter = new Vec()
 
 	isInViewport = false
 
@@ -104,7 +104,7 @@ export class MinimapManager {
 
 		const { x: screenX, y: screenY } = this.getScreenPoint(x, y)
 
-		return new Vec2d(
+		return new Vec(
 			canvasPageBounds.minX + (screenX * contentPageBounds.width) / contentScreenBounds.width,
 			canvasPageBounds.minY + (screenY * contentPageBounds.height) / contentScreenBounds.height,
 			1
@@ -168,7 +168,7 @@ export class MinimapManager {
 			}
 		}
 
-		return new Vec2d(px, py)
+		return new Vec(px, py)
 	}
 
 	render = () => {
@@ -224,7 +224,7 @@ export class MinimapManager {
 		// When there are many shapes, don't draw rounded rectangles;
 		// consider using the shape's size instead.
 
-		let pb: Box2d & { id: TLShapeId }
+		let pb: Box & { id: TLShapeId }
 		for (let i = 0, n = pageBounds.length; i < n; i++) {
 			pb = pageBounds[i]
 			MinimapManager.roundedRect(
@@ -248,7 +248,7 @@ export class MinimapManager {
 
 		if (this.debug) {
 			// Page bounds
-			const commonBounds = Box2d.Common(pageBounds)
+			const commonBounds = Box.Common(pageBounds)
 			const { minX, minY, width, height } = commonBounds
 			ctx.strokeStyle = 'green'
 			ctx.lineWidth = 2 / sx

@@ -12,7 +12,7 @@ import {
 	TLOnBeforeUpdateHandler,
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
-	Vec2d,
+	Vec,
 	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
@@ -128,21 +128,21 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const MIN_DISTANCE = slantedLength / 5
 		const MAX_DISTANCE = slantedLength / 1.5
 
-		const handleInShapeSpace = new Vec2d(handles.handle.x * w, handles.handle.y * h)
+		const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
 
 		const distanceToIntersection = handleInShapeSpace.dist(segmentsIntersection)
-		const center = new Vec2d(w / 2, h / 2)
-		const vHandle = Vec2d.Sub(handleInShapeSpace, center).uni()
+		const center = new Vec(w / 2, h / 2)
+		const vHandle = Vec.Sub(handleInShapeSpace, center).uni()
 
 		let newPoint = handleInShapeSpace
 
 		if (insideShape) {
-			newPoint = Vec2d.Add(segmentsIntersection, vHandle.mul(MIN_DISTANCE))
+			newPoint = Vec.Add(segmentsIntersection, vHandle.mul(MIN_DISTANCE))
 		} else {
 			if (distanceToIntersection <= MIN_DISTANCE) {
-				newPoint = Vec2d.Add(segmentsIntersection, vHandle.mul(MIN_DISTANCE))
+				newPoint = Vec.Add(segmentsIntersection, vHandle.mul(MIN_DISTANCE))
 			} else if (distanceToIntersection >= MAX_DISTANCE) {
-				newPoint = Vec2d.Add(segmentsIntersection, vHandle.mul(MAX_DISTANCE))
+				newPoint = Vec.Add(segmentsIntersection, vHandle.mul(MAX_DISTANCE))
 			}
 		}
 

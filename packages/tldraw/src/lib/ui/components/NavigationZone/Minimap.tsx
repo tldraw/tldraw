@@ -1,9 +1,9 @@
 import {
 	ANIMATION_MEDIUM_MS,
-	Box2d,
+	Box,
 	TLPointerEventInfo,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	getPointerInfo,
 	intersectPolygonPolygon,
 	normalizeWheel,
@@ -93,8 +93,8 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				minimap.originPagePoint.setTo(clampedPoint)
 				minimap.originPageCenter.setTo(_vpPageBounds.center)
 			} else {
-				const delta = Vec2d.Sub(_vpPageBounds.center, _vpPageBounds.point)
-				const pagePoint = Vec2d.Add(point, delta)
+				const delta = Vec.Sub(_vpPageBounds.center, _vpPageBounds.point)
+				const pagePoint = Vec.Add(point, delta)
 				minimap.originPagePoint.setTo(pagePoint)
 				minimap.originPageCenter.setTo(point)
 				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
@@ -120,7 +120,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			if (rPointing.current) {
 				if (minimap.isInViewport) {
 					const delta = minimap.originPagePoint.clone().sub(minimap.originPageCenter)
-					editor.centerOnPoint(Vec2d.Sub(point, delta))
+					editor.centerOnPoint(Vec.Sub(point, delta))
 					return
 				}
 
@@ -153,7 +153,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				type: 'wheel',
 				name: 'wheel',
 				delta: offset,
-				point: new Vec2d(e.clientX, e.clientY),
+				point: new Vec(e.clientX, e.clientY),
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
@@ -194,17 +194,17 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			const _dpr = devicePixelRatio.get() // dereference
 
 			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
-				? Box2d.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
+				? Box.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
 				: viewportPageBounds
 
 			minimap.updateContentScreenBounds()
 
 			// All shape bounds
 
-			const allShapeBounds = [] as (Box2d & { id: TLShapeId })[]
+			const allShapeBounds = [] as (Box & { id: TLShapeId })[]
 
 			shapeIdsOnCurrentPage.forEach((id) => {
-				let pageBounds = editor.getShapePageBounds(id) as Box2d & { id: TLShapeId }
+				let pageBounds = editor.getShapePageBounds(id) as Box & { id: TLShapeId }
 				if (!pageBounds) return
 
 				const pageMask = editor.getShapeMask(id)
@@ -214,7 +214,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 					if (!intersection) {
 						return
 					}
-					pageBounds = Box2d.FromPoints(intersection) as Box2d & { id: TLShapeId }
+					pageBounds = Box.FromPoints(intersection) as Box & { id: TLShapeId }
 				}
 
 				if (pageBounds) {

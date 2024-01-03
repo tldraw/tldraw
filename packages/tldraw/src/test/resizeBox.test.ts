@@ -1,4 +1,4 @@
-import { Box2d, TLGeoShape, createShapeId, resizeBox } from '@tldraw/editor'
+import { Box, TLGeoShape, createShapeId, resizeBox } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -31,7 +31,7 @@ describe('Resize box', () => {
 			mode: 'resize_bounds',
 			scaleX: 1.5,
 			scaleY: 1.5,
-			initialBounds: new Box2d(0, 0, 100, 100),
+			initialBounds: new Box(0, 0, 100, 100),
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({
@@ -51,7 +51,7 @@ describe('Resize box', () => {
 			mode: 'resize_bounds',
 			scaleX: 1.5,
 			scaleY: 1.5,
-			initialBounds: new Box2d(0, 0, 100, 100),
+			initialBounds: new Box(0, 0, 100, 100),
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({
@@ -71,7 +71,7 @@ describe('Resize box', () => {
 			mode: 'resize_bounds',
 			scaleX: 1.5,
 			scaleY: 1.5,
-			initialBounds: new Box2d(0, 0, 100, 100),
+			initialBounds: new Box(0, 0, 100, 100),
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({
@@ -91,7 +91,7 @@ describe('Resize box', () => {
 			mode: 'resize_bounds',
 			scaleX: 1.5,
 			scaleY: 1.5,
-			initialBounds: new Box2d(0, 0, 100, 100),
+			initialBounds: new Box(0, 0, 100, 100),
 			initialShape: shape,
 		})
 		expect(results).toMatchObject({

@@ -9,7 +9,7 @@
 import { ArrayOfValidator } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
-import { Box2d } from '@tldraw/editor';
+import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { CubicSpline2d } from '@tldraw/editor';
 import { DictValidator } from '@tldraw/editor';
@@ -21,8 +21,8 @@ import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { LANGUAGES } from '@tldraw/editor';
-import { Matrix2d } from '@tldraw/editor';
-import { Matrix2dModel } from '@tldraw/editor';
+import { Mat } from '@tldraw/editor';
+import { MatModel } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -107,9 +107,9 @@ import { TLVideoShape } from '@tldraw/editor';
 import { UnionValidator } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Validator } from '@tldraw/editor';
-import { Vec2d } from '@tldraw/editor';
-import { Vec2dModel } from '@tldraw/editor';
+import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
+import { VecModel } from '@tldraw/editor';
 
 // @public (undocumented)
 export class ArrowShapeTool extends StateNode {
@@ -177,7 +177,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         binding: ObjectValidator<    {
         type: "binding";
         boundShapeId: TLShapeId;
-        normalizedAnchor: Vec2dModel;
+        normalizedAnchor: VecModel;
         isExact: boolean;
         isPrecise: boolean;
         }>;
@@ -191,7 +191,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         binding: ObjectValidator<    {
         type: "binding";
         boundShapeId: TLShapeId;
-        normalizedAnchor: Vec2dModel;
+        normalizedAnchor: VecModel;
         isExact: boolean;
         isPrecise: boolean;
         }>;
@@ -365,7 +365,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
         type: "free" | "straight";
-        points: Vec2dModel[];
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isClosed: Validator<boolean>;
@@ -774,7 +774,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
         type: "free" | "straight";
-        points: Vec2dModel[];
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
@@ -816,8 +816,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
         url: Validator<string>;
         assetId: Validator<TLAssetId | null>;
         crop: Validator<    {
-        topLeft: Vec2dModel;
-        bottomRight: Vec2dModel;
+        topLeft: VecModel;
+        bottomRight: VecModel;
         } | null>;
     };
     // (undocumented)
@@ -889,7 +889,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
-    getOutlineSegments(shape: TLLineShape): Vec2d[][];
+    getOutlineSegments(shape: TLLineShape): Vec[][];
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)

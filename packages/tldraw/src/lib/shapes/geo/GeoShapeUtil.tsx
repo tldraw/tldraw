@@ -5,6 +5,7 @@ import {
 	Ellipse2d,
 	Geometry2d,
 	Group2d,
+	HALF_PI,
 	HTMLContainer,
 	PI2,
 	Polygon2d,
@@ -13,13 +14,12 @@ import {
 	SVGContainer,
 	Stadium2d,
 	SvgExportContext,
-	TAU,
 	TLDefaultDashStyle,
 	TLGeoShape,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
-	Vec2d,
+	Vec,
 	VecLike,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -110,14 +110,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 			case 'triangle': {
 				body = new Polygon2d({
-					points: [new Vec2d(cx, 0), new Vec2d(w, h), new Vec2d(0, h)],
+					points: [new Vec(cx, 0), new Vec(w, h), new Vec(0, h)],
 					isFilled,
 				})
 				break
 			}
 			case 'diamond': {
 				body = new Polygon2d({
-					points: [new Vec2d(cx, 0), new Vec2d(w, cy), new Vec2d(cx, h), new Vec2d(0, cy)],
+					points: [new Vec(cx, 0), new Vec(w, cy), new Vec(cx, h), new Vec(0, cy)],
 					isFilled,
 				})
 				break
@@ -170,11 +170,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const leftMostIndex = sides * 2 - rightMostIndex
 				const topMostIndex = 0
 				const bottomMostIndex = Math.floor(sides / 2) * 2
-				const maxX = (Math.cos(-TAU + rightMostIndex * step) * w) / 2
-				const minX = (Math.cos(-TAU + leftMostIndex * step) * w) / 2
+				const maxX = (Math.cos(-HALF_PI + rightMostIndex * step) * w) / 2
+				const minX = (Math.cos(-HALF_PI + leftMostIndex * step) * w) / 2
 
-				const minY = (Math.sin(-TAU + topMostIndex * step) * h) / 2
-				const maxY = (Math.sin(-TAU + bottomMostIndex * step) * h) / 2
+				const minY = (Math.sin(-HALF_PI + topMostIndex * step) * h) / 2
+				const maxY = (Math.sin(-HALF_PI + bottomMostIndex * step) * h) / 2
 				const diffX = w - Math.abs(maxX - minX)
 				const diffY = h - Math.abs(maxY - minY)
 				const offsetX = w / 2 + minX - (w / 2 - maxX)
@@ -190,8 +190,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 				body = new Polygon2d({
 					points: Array.from(Array(sides * 2)).map((_, i) => {
-						const theta = -TAU + i * step
-						return new Vec2d(
+						const theta = -HALF_PI + i * step
+						return new Vec(
 							cx + (i % 2 ? ix : ox) * Math.cos(theta),
 							cy + (i % 2 ? iy : oy) * Math.sin(theta)
 						)
@@ -203,12 +203,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'rhombus': {
 				const offset = Math.min(w * 0.38, h * 0.38)
 				body = new Polygon2d({
-					points: [
-						new Vec2d(offset, 0),
-						new Vec2d(w, 0),
-						new Vec2d(w - offset, h),
-						new Vec2d(0, h),
-					],
+					points: [new Vec(offset, 0), new Vec(w, 0), new Vec(w - offset, h), new Vec(0, h)],
 					isFilled,
 				})
 				break
@@ -216,12 +211,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'rhombus-2': {
 				const offset = Math.min(w * 0.38, h * 0.38)
 				body = new Polygon2d({
-					points: [
-						new Vec2d(0, 0),
-						new Vec2d(w - offset, 0),
-						new Vec2d(w, h),
-						new Vec2d(offset, h),
-					],
+					points: [new Vec(0, 0), new Vec(w - offset, 0), new Vec(w, h), new Vec(offset, h)],
 					isFilled,
 				})
 				break
@@ -229,12 +219,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'trapezoid': {
 				const offset = Math.min(w * 0.38, h * 0.38)
 				body = new Polygon2d({
-					points: [
-						new Vec2d(offset, 0),
-						new Vec2d(w - offset, 0),
-						new Vec2d(w, h),
-						new Vec2d(0, h),
-					],
+					points: [new Vec(offset, 0), new Vec(w - offset, 0), new Vec(w, h), new Vec(0, h)],
 					isFilled,
 				})
 				break
@@ -244,13 +229,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const oy = h * 0.16
 				body = new Polygon2d({
 					points: [
-						new Vec2d(0, oy),
-						new Vec2d(w - ox, oy),
-						new Vec2d(w - ox, 0),
-						new Vec2d(w, h / 2),
-						new Vec2d(w - ox, h),
-						new Vec2d(w - ox, h - oy),
-						new Vec2d(0, h - oy),
+						new Vec(0, oy),
+						new Vec(w - ox, oy),
+						new Vec(w - ox, 0),
+						new Vec(w, h / 2),
+						new Vec(w - ox, h),
+						new Vec(w - ox, h - oy),
+						new Vec(0, h - oy),
 					],
 					isFilled,
 				})
@@ -261,13 +246,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const oy = h * 0.16
 				body = new Polygon2d({
 					points: [
-						new Vec2d(ox, 0),
-						new Vec2d(ox, oy),
-						new Vec2d(w, oy),
-						new Vec2d(w, h - oy),
-						new Vec2d(ox, h - oy),
-						new Vec2d(ox, h),
-						new Vec2d(0, h / 2),
+						new Vec(ox, 0),
+						new Vec(ox, oy),
+						new Vec(w, oy),
+						new Vec(w, h - oy),
+						new Vec(ox, h - oy),
+						new Vec(ox, h),
+						new Vec(0, h / 2),
 					],
 					isFilled,
 				})
@@ -278,13 +263,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const oy = Math.min(w, h) * 0.38
 				body = new Polygon2d({
 					points: [
-						new Vec2d(w / 2, 0),
-						new Vec2d(w, oy),
-						new Vec2d(w - ox, oy),
-						new Vec2d(w - ox, h),
-						new Vec2d(ox, h),
-						new Vec2d(ox, oy),
-						new Vec2d(0, oy),
+						new Vec(w / 2, 0),
+						new Vec(w, oy),
+						new Vec(w - ox, oy),
+						new Vec(w - ox, h),
+						new Vec(ox, h),
+						new Vec(ox, oy),
+						new Vec(0, oy),
 					],
 					isFilled,
 				})
@@ -295,13 +280,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const oy = Math.min(w, h) * 0.38
 				body = new Polygon2d({
 					points: [
-						new Vec2d(ox, 0),
-						new Vec2d(w - ox, 0),
-						new Vec2d(w - ox, h - oy),
-						new Vec2d(w, h - oy),
-						new Vec2d(w / 2, h),
-						new Vec2d(0, h - oy),
-						new Vec2d(ox, h - oy),
+						new Vec(ox, 0),
+						new Vec(w - ox, 0),
+						new Vec(w - ox, h - oy),
+						new Vec(w, h - oy),
+						new Vec(w / 2, h),
+						new Vec(0, h - oy),
+						new Vec(ox, h - oy),
 					],
 					isFilled,
 				})
@@ -862,7 +847,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			h = nextH
 		}
 
-		const offset = new Vec2d(0, 0)
+		const offset = new Vec(0, 0)
 
 		// x offsets
 
@@ -1113,10 +1098,10 @@ function getXBoxLines(w: number, h: number, sw: number, dash: TLDefaultDashStyle
 
 	if (dash === 'dashed') {
 		return [
-			[new Vec2d(0, 0), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(w, h), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(0, h), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(w, 0), new Vec2d(w / 2, h / 2)],
+			[new Vec(0, 0), new Vec(w / 2, h / 2)],
+			[new Vec(w, h), new Vec(w / 2, h / 2)],
+			[new Vec(0, h), new Vec(w / 2, h / 2)],
+			[new Vec(w, 0), new Vec(w / 2, h / 2)],
 		]
 	}
 
@@ -1125,12 +1110,12 @@ function getXBoxLines(w: number, h: number, sw: number, dash: TLDefaultDashStyle
 
 	return [
 		[
-			new Vec2d(clampX(sw * inset), clampY(sw * inset)),
-			new Vec2d(clampX(w - sw * inset), clampY(h - sw * inset)),
+			new Vec(clampX(sw * inset), clampY(sw * inset)),
+			new Vec(clampX(w - sw * inset), clampY(h - sw * inset)),
 		],
 		[
-			new Vec2d(clampX(sw * inset), clampY(h - sw * inset)),
-			new Vec2d(clampX(w - sw * inset), clampY(sw * inset)),
+			new Vec(clampX(sw * inset), clampY(h - sw * inset)),
+			new Vec(clampX(w - sw * inset), clampY(sw * inset)),
 		],
 	]
 }
@@ -1145,12 +1130,12 @@ function getCheckBoxLines(w: number, h: number) {
 
 	return [
 		[
-			new Vec2d(clampX(ox + size * 0.25), clampY(oy + size * 0.52)),
-			new Vec2d(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
+			new Vec(clampX(ox + size * 0.25), clampY(oy + size * 0.52)),
+			new Vec(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
 		],
 		[
-			new Vec2d(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
-			new Vec2d(clampX(ox + size * 0.82), clampY(oy + size * 0.22)),
+			new Vec(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
+			new Vec(clampX(ox + size * 0.82), clampY(oy + size * 0.22)),
 		],
 	]
 }
@@ -1168,5 +1153,5 @@ export function getCentroidOfRegularPolygon(points: VecLike[]) {
 		x += points[i].x
 		y += points[i].y
 	}
-	return new Vec2d(x / len, y / len)
+	return new Vec(x / len, y / len)
 }

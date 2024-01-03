@@ -1,5 +1,5 @@
-import { Box2d } from '../Box2d'
-import { Vec2d } from '../Vec2d'
+import { Box } from '../Box'
+import { Vec } from '../Vec'
 import { Geometry2dOptions } from './Geometry2d'
 import { Polygon2d } from './Polygon2d'
 
@@ -22,10 +22,10 @@ export class Rectangle2d extends Polygon2d {
 		super({
 			...config,
 			points: [
-				new Vec2d(x, y),
-				new Vec2d(x + width, y),
-				new Vec2d(x + width, y + height),
-				new Vec2d(x, y + height),
+				new Vec(x, y),
+				new Vec(x + width, y),
+				new Vec(x + width, y + height),
+				new Vec(x, y + height),
 			],
 		})
 		this.x = x
@@ -35,6 +35,6 @@ export class Rectangle2d extends Polygon2d {
 	}
 
 	getBounds() {
-		return new Box2d(this.x, this.y, this.w, this.h)
+		return new Box(this.x, this.y, this.w, this.h)
 	}
 }
