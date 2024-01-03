@@ -1,5 +1,5 @@
 import { Box2d } from '../Box2d'
-import { Vec2d } from '../Vec2d'
+import { Vec } from '../Vec2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
@@ -19,13 +19,13 @@ export class Group2d extends Geometry2d {
 		this.children = children
 	}
 
-	override getVertices(): Vec2d[] {
+	override getVertices(): Vec[] {
 		return this.children.filter((c) => !c.isLabel).flatMap((c) => c.vertices)
 	}
 
-	override nearestPoint(point: Vec2d): Vec2d {
+	override nearestPoint(point: Vec): Vec {
 		let d = Infinity
-		let p: Vec2d | undefined
+		let p: Vec | undefined
 
 		const { children } = this
 
@@ -45,17 +45,17 @@ export class Group2d extends Geometry2d {
 		return p
 	}
 
-	override distanceToPoint(point: Vec2d, hitInside = false) {
+	override distanceToPoint(point: Vec, hitInside = false) {
 		return Math.min(...this.children.map((c, i) => c.distanceToPoint(point, hitInside || i > 0)))
 	}
 
-	override hitTestPoint(point: Vec2d, margin: number, hitInside: boolean): boolean {
+	override hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean {
 		return !!this.children
 			.filter((c) => !c.isLabel)
 			.find((c) => c.hitTestPoint(point, margin, hitInside))
 	}
 
-	override hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+	override hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
 		return !!this.children.filter((c) => !c.isLabel).find((c) => c.hitTestLineSegment(A, B, zoom))
 	}
 

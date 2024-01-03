@@ -3,7 +3,7 @@ import { structuredClone } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { Matrix2d } from '../primitives/Matrix2d'
 import { canonicalizeRotation } from '../primitives/utils'
-import { Vec2d } from '../primitives/Vec2d'
+import { Vec } from '../primitives/Vec2d'
 
 /** @internal */
 export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationSnapshot | null {
@@ -49,12 +49,12 @@ export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationS
  * @public
  **/
 export type TLRotationSnapshot = {
-	selectionPageCenter: Vec2d
+	selectionPageCenter: Vec
 	initialCursorAngle: number
 	initialSelectionRotation: number
 	shapeSnapshots: {
 		shape: TLShape
-		initialPagePoint: Vec2d
+		initialPagePoint: Vec
 	}[]
 }
 
@@ -81,7 +81,7 @@ export function applyRotationToSnapshotShapes({
 				? editor.getShapePageTransform(shape.parentId)!
 				: Matrix2d.Identity()
 
-			const newPagePoint = Vec2d.RotWith(initialPagePoint, selectionPageCenter, delta)
+			const newPagePoint = Vec.RotWith(initialPagePoint, selectionPageCenter, delta)
 
 			const newLocalPoint = Matrix2d.applyToPoint(
 				// use the current parent transform in case it has moved/resized since the start

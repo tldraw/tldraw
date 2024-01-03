@@ -1,5 +1,5 @@
 import { Box2dModel } from '@tldraw/tlschema'
-import { Vec2d, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec2d'
 import { PI, PI2, toPrecision } from './utils'
 
 /** @public */
@@ -38,11 +38,11 @@ export class Box2d {
 
 	// eslint-disable-next-line no-restricted-syntax
 	get point() {
-		return new Vec2d(this.x, this.y)
+		return new Vec(this.x, this.y)
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	set point(val: Vec2d) {
+	set point(val: Vec) {
 		this.x = val.x
 		this.y = val.y
 	}
@@ -114,11 +114,11 @@ export class Box2d {
 
 	// eslint-disable-next-line no-restricted-syntax
 	get center() {
-		return new Vec2d(this.midX, this.midY)
+		return new Vec(this.midX, this.midY)
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	set center(v: Vec2d) {
+	set center(v: Vec) {
 		this.minX = v.x - this.width / 2
 		this.minY = v.y - this.height / 2
 	}
@@ -126,26 +126,26 @@ export class Box2d {
 	// eslint-disable-next-line no-restricted-syntax
 	get corners() {
 		return [
-			new Vec2d(this.minX, this.minY),
-			new Vec2d(this.maxX, this.minY),
-			new Vec2d(this.maxX, this.maxY),
-			new Vec2d(this.minX, this.maxY),
+			new Vec(this.minX, this.minY),
+			new Vec(this.maxX, this.minY),
+			new Vec(this.maxX, this.maxY),
+			new Vec(this.minX, this.maxY),
 		]
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get snapPoints() {
 		return [
-			new Vec2d(this.minX, this.minY),
-			new Vec2d(this.maxX, this.minY),
-			new Vec2d(this.maxX, this.maxY),
-			new Vec2d(this.minX, this.maxY),
+			new Vec(this.minX, this.minY),
+			new Vec(this.maxX, this.minY),
+			new Vec(this.maxX, this.maxY),
+			new Vec(this.minX, this.maxY),
 			this.center,
 		]
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	get sides(): Array<[Vec2d, Vec2d]> {
+	get sides(): Array<[Vec, Vec]> {
 		const { corners } = this
 		return [
 			[corners[0], corners[1]],
@@ -156,8 +156,8 @@ export class Box2d {
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	get size(): Vec2d {
-		return new Vec2d(this.w, this.h)
+	get size(): Vec {
+		return new Vec(this.w, this.h)
 	}
 
 	toFixed() {
@@ -254,21 +254,21 @@ export class Box2d {
 	getHandlePoint(handle: SelectionCorner | SelectionEdge) {
 		switch (handle) {
 			case 'top_left':
-				return new Vec2d(this.minX, this.minY)
+				return new Vec(this.minX, this.minY)
 			case 'top_right':
-				return new Vec2d(this.maxX, this.minY)
+				return new Vec(this.maxX, this.minY)
 			case 'bottom_left':
-				return new Vec2d(this.minX, this.maxY)
+				return new Vec(this.minX, this.maxY)
 			case 'bottom_right':
-				return new Vec2d(this.maxX, this.maxY)
+				return new Vec(this.maxX, this.maxY)
 			case 'top':
-				return new Vec2d(this.midX, this.minY)
+				return new Vec(this.midX, this.minY)
 			case 'right':
-				return new Vec2d(this.maxX, this.midY)
+				return new Vec(this.maxX, this.midY)
 			case 'bottom':
-				return new Vec2d(this.midX, this.maxY)
+				return new Vec(this.midX, this.maxY)
 			case 'left':
-				return new Vec2d(this.minX, this.midY)
+				return new Vec(this.minX, this.midY)
 		}
 	}
 

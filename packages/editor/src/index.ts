@@ -269,7 +269,7 @@ export {
 	type SelectionHandle,
 } from './lib/primitives/Box2d'
 export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
-export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
+export { Vec as Vec2d, type VecLike } from './lib/primitives/Vec2d'
 export { EASINGS } from './lib/primitives/easings'
 export { Arc2d } from './lib/primitives/geometry/Arc2d'
 export { Circle2d } from './lib/primitives/geometry/Circle2d'

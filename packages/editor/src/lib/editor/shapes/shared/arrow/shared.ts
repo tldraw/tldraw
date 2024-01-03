@@ -1,6 +1,6 @@
 import { TLArrowShape, TLArrowShapeTerminal, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Matrix2d } from '../../../../primitives/Matrix2d'
-import { Vec2d } from '../../../../primitives/Vec2d'
+import { Vec } from '../../../../primitives/Vec2d'
 import { Group2d } from '../../../../primitives/geometry/Group2d'
 import { Editor } from '../../../Editor'
 
@@ -14,7 +14,7 @@ export type BoundShapeInfo<T extends TLShape = TLShape> = {
 	isExact: boolean
 	isClosed: boolean
 	transform: Matrix2d
-	outline: Vec2d[]
+	outline: Vec[]
 }
 
 export function getBoundShapeInfoForTerminal(
@@ -52,22 +52,22 @@ export function getArrowTerminalInArrowSpace(
 	forceImprecise: boolean
 ) {
 	if (terminal.type === 'point') {
-		return Vec2d.From(terminal)
+		return Vec.From(terminal)
 	}
 
 	const boundShape = editor.getShape(terminal.boundShapeId)
 
 	if (!boundShape) {
 		// this can happen in multiplayer contexts where the shape is being deleted
-		return new Vec2d(0, 0)
+		return new Vec(0, 0)
 	} else {
 		// Find the actual local point of the normalized terminal on
 		// the bound shape and transform it to page space, then transform
 		// it to arrow space
 		const { point, size } = editor.getShapeGeometry(boundShape).bounds
-		const shapePoint = Vec2d.Add(
+		const shapePoint = Vec.Add(
 			point,
-			Vec2d.MulV(
+			Vec.MulV(
 				// if the parent is the bound shape, then it's ALWAYS precise
 				terminal.isPrecise || forceImprecise ? terminal.normalizedAnchor : { x: 0.5, y: 0.5 },
 				size

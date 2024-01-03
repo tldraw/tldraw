@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { ComponentType, useRef } from 'react'
 import { useTransform } from '../../hooks/useTransform'
 import { Box2d } from '../../primitives/Box2d'
-import { Vec2d } from '../../primitives/Vec2d'
+import { Vec } from '../../primitives/Vec2d'
 import { clamp } from '../../primitives/utils'
 
 /** @public */
@@ -32,7 +32,7 @@ export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 		clamp(point.x, viewport.minX + 5 / zoom, viewport.maxX - 5 / zoom),
 		clamp(point.y, viewport.minY + 5 / zoom, viewport.maxY - 5 / zoom),
 		1 / zoom,
-		Vec2d.Angle(viewport.center, point)
+		Vec.Angle(viewport.center, point)
 	)
 
 	return (

@@ -1,5 +1,5 @@
 import { Box2d } from './Box2d'
-import { Vec2d, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec2d'
 
 /** @public */
 export function precise(A: VecLike) {
@@ -191,7 +191,7 @@ export function angleDelta(a0: number, a1: number): number {
  * @public
  */
 export function getSweep(C: VecLike, A: VecLike, B: VecLike): number {
-	return angleDelta(Vec2d.Angle(C, A), Vec2d.Angle(C, B))
+	return angleDelta(Vec.Angle(C, A), Vec.Angle(C, B))
 }
 
 /**
@@ -307,13 +307,13 @@ export function getArcLength(C: VecLike, r: number, A: VecLike, B: VecLike): num
  * @public
  */
 export function getPointOnCircle(cx: number, cy: number, r: number, a: number) {
-	return new Vec2d(cx + r * Math.cos(a), cy + r * Math.sin(a))
+	return new Vec(cx + r * Math.cos(a), cy + r * Math.sin(a))
 }
 /** @public */
 export function getPolygonVertices(width: number, height: number, sides: number) {
 	const cx = width / 2
 	const cy = height / 2
-	const pointsOnPerimeter: Vec2d[] = []
+	const pointsOnPerimeter: Vec[] = []
 
 	let minX = Infinity
 	let maxX = -Infinity
@@ -328,7 +328,7 @@ export function getPolygonVertices(width: number, height: number, sides: number)
 		if (y < minY) minY = y
 		if (x > maxX) maxX = x
 		if (y > maxY) maxY = y
-		pointsOnPerimeter.push(new Vec2d(x, y))
+		pointsOnPerimeter.push(new Vec(x, y))
 	}
 
 	// Bounds of calculated points
@@ -429,7 +429,7 @@ function cross(x: VecLike, y: VecLike, z: VecLike): number {
  * @public
  */
 export function pointInCircle(A: VecLike, C: VecLike, r: number): boolean {
-	return Vec2d.Dist(A, C) <= r
+	return Vec.Dist(A, C) <= r
 }
 
 /**
@@ -453,7 +453,7 @@ export function pointInEllipse(
 	rotation = rotation || 0
 	const cos = Math.cos(rotation)
 	const sin = Math.sin(rotation)
-	const delta = Vec2d.Sub(A, C)
+	const delta = Vec.Sub(A, C)
 	const tdx = cos * delta.x + sin * delta.y
 	const tdy = sin * delta.x - cos * delta.y
 
@@ -525,7 +525,7 @@ export function pointInBounds(A: VecLike, b: Box2d): boolean {
  */
 export function pointInPolyline(A: VecLike, points: VecLike[], distance = 3): boolean {
 	for (let i = 1; i < points.length; i++) {
-		if (Vec2d.DistanceToLineSegment(points[i - 1], points[i], A) < distance) {
+		if (Vec.DistanceToLineSegment(points[i - 1], points[i], A) < distance) {
 			return true
 		}
 	}
@@ -545,7 +545,7 @@ export function pointNearToPolyline(A: VecLike, points: VecLike[], distance = 8)
 	for (let i = 1; i < len; i++) {
 		const p1 = points[i - 1]
 		const p2 = points[i]
-		const d = Vec2d.DistanceToLineSegment(p1, p2, A)
+		const d = Vec.DistanceToLineSegment(p1, p2, A)
 		if (d < distance) return true
 	}
 	return false
@@ -561,7 +561,7 @@ export function pointNearToPolyline(A: VecLike, points: VecLike[], distance = 8)
  * @public
  */
 export function pointNearToLineSegment(A: VecLike, p1: VecLike, p2: VecLike, distance = 8) {
-	const d = Vec2d.DistanceToLineSegment(p1, p2, A)
+	const d = Vec.DistanceToLineSegment(p1, p2, A)
 	if (d < distance) return true
 	return false
 }
@@ -583,7 +583,7 @@ export function simplify(points: VecLike[], tolerance = 1): VecLike[] {
 	if (len > 2) {
 		let distance = 0
 		let index = 0
-		const max = new Vec2d(y2 - y1, x2 - x1).len2()
+		const max = new Vec(y2 - y1, x2 - x1).len2()
 		for (let i = 1; i < len - 1; i++) {
 			const { x: x0, y: y0 } = points[i]
 			const d = Math.pow(x0 * (y2 - y1) + x1 * (y0 - y2) + x2 * (y1 - y0), 2) / max

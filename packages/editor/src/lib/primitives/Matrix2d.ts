@@ -1,6 +1,6 @@
 import { Box2d } from './Box2d'
 import { clampRadians, TAU, toDomPrecision } from './utils'
-import { Vec2d, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec2d'
 
 /** @public */
 export type MatLike = Matrix2dModel | Matrix2d
@@ -228,7 +228,7 @@ export class Matrix2d {
 	}
 
 	static Point(m: MatLike) {
-		return new Vec2d(m.e, m.f)
+		return new Vec(m.e, m.f)
 	}
 
 	static Rotation(m: MatLike): number {
@@ -292,7 +292,7 @@ export class Matrix2d {
 	}
 
 	static applyToPoint(m: MatLike, point: VecLike) {
-		return new Vec2d(
+		return new Vec(
 			m.a * point.x + m.c * point.y + m.e,
 			m.b * point.x + m.d * point.y + m.f,
 			point.z
@@ -303,10 +303,10 @@ export class Matrix2d {
 		return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]
 	}
 
-	static applyToPoints(m: MatLike, points: VecLike[]): Vec2d[] {
+	static applyToPoints(m: MatLike, points: VecLike[]): Vec[] {
 		return points.map(
 			(point) =>
-				new Vec2d(m.a * point.x + m.c * point.y + m.e, m.b * point.x + m.d * point.y + m.f, point.z)
+				new Vec(m.a * point.x + m.c * point.y + m.e, m.b * point.x + m.d * point.y + m.f, point.z)
 		)
 	}
 

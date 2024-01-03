@@ -346,7 +346,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -395,7 +395,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -404,7 +404,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -413,7 +413,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -510,7 +510,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -541,7 +541,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -577,7 +577,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -586,7 +586,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -719,7 +719,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -728,7 +728,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -799,7 +799,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -1438,7 +1438,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -1447,7 +1447,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -1861,7 +1861,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -2390,7 +2390,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -2768,7 +2768,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -2777,7 +2777,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -3240,7 +3240,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -3249,7 +3249,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -3297,7 +3297,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -3332,7 +3332,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -3363,7 +3363,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -3972,7 +3972,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4125,7 +4125,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4161,7 +4161,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4170,7 +4170,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4243,7 +4243,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4252,7 +4252,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4916,7 +4916,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4925,7 +4925,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4934,7 +4934,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4943,7 +4943,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -4980,7 +4980,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5011,7 +5011,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5042,7 +5042,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5073,7 +5073,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5104,7 +5104,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5140,7 +5140,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5172,7 +5172,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5181,7 +5181,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5337,7 +5337,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5374,7 +5374,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5410,7 +5410,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5419,7 +5419,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5522,7 +5522,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5531,7 +5531,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -5572,7 +5572,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6276,7 +6276,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6285,7 +6285,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6322,7 +6322,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6353,7 +6353,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6384,7 +6384,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6420,7 +6420,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6429,7 +6429,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6532,7 +6532,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6564,7 +6564,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6573,7 +6573,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6614,7 +6614,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -6645,7 +6645,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -11029,7 +11029,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -11105,7 +11105,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -12261,7 +12261,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13302,7 +13302,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13366,7 +13366,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13626,7 +13626,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13635,7 +13635,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13644,7 +13644,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13653,7 +13653,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13662,7 +13662,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13671,7 +13671,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -13698,7 +13698,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -15528,7 +15528,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -18650,7 +18650,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -18716,7 +18716,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -19278,7 +19278,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -19287,7 +19287,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -19360,7 +19360,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -19369,7 +19369,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -19994,7 +19994,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20033,7 +20033,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20162,7 +20162,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20193,7 +20193,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20202,7 +20202,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20259,7 +20259,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20387,7 +20387,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20423,7 +20423,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20432,7 +20432,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20505,7 +20505,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20676,7 +20676,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20771,7 +20771,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20780,7 +20780,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20821,7 +20821,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20830,7 +20830,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20839,7 +20839,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20888,7 +20888,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -20954,7 +20954,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -21188,7 +21188,7 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2d",
+              "text": "Vec",
               "canonicalReference": "@tldraw/editor!Vec2d:class"
             },
             {
@@ -21197,7 +21197,7 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2d",
+              "text": "Vec",
               "canonicalReference": "@tldraw/editor!Vec2d:class"
             },
             {
@@ -21963,7 +21963,7 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2d",
+              "text": "Vec",
               "canonicalReference": "@tldraw/editor!Vec2d:class"
             },
             {
@@ -22049,7 +22049,7 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2d",
+              "text": "Vec",
               "canonicalReference": "@tldraw/editor!Vec2d:class"
             },
             {
@@ -22598,7 +22598,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -22694,7 +22694,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -22730,7 +22730,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -22739,7 +22739,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -22812,7 +22812,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -22893,7 +22893,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -22902,7 +22902,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -24666,7 +24666,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -24725,7 +24725,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -24787,7 +24787,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -24854,7 +24854,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -25765,7 +25765,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -25806,7 +25806,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -27663,7 +27663,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -27886,7 +27886,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -27923,7 +27923,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -27959,7 +27959,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -27968,7 +27968,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -28071,7 +28071,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -28080,7 +28080,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -28121,7 +28121,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -30793,7 +30793,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -32479,7 +32479,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -32591,7 +32591,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -32600,7 +32600,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -32617,7 +32617,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -32871,7 +32871,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -32965,7 +32965,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -33346,7 +33346,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -39907,7 +39907,7 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2d",
+              "text": "Vec",
               "canonicalReference": "@tldraw/editor!Vec2d:class"
             },
             {
@@ -40093,7 +40093,7 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2d",
+              "text": "Vec",
               "canonicalReference": "@tldraw/editor!Vec2d:class"
             },
             {
@@ -40111,7 +40111,7 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2d",
+              "text": "Vec",
               "canonicalReference": "@tldraw/editor!Vec2d:class"
             },
             {
@@ -42629,7 +42629,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare class Vec2d "
+              "text": "export declare class Vec "
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/primitives/Vec2d.ts",
@@ -42641,7 +42641,7 @@
             {
               "kind": "Constructor",
               "canonicalReference": "@tldraw/editor!Vec2d:constructor(1)",
-              "docComment": "/**\n * Constructs a new instance of the `Vec2d` class\n */\n",
+              "docComment": "/**\n * Constructs a new instance of the `Vec` class\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -42753,7 +42753,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -42861,7 +42861,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -42975,7 +42975,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -43113,7 +43113,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -43298,7 +43298,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -43348,7 +43348,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -43453,7 +43453,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -43478,7 +43478,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -43618,7 +43618,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -43832,7 +43832,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -44375,7 +44375,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -44491,7 +44491,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -44924,7 +44924,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -44981,7 +44981,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45038,7 +45038,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45256,7 +45256,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45331,7 +45331,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45406,7 +45406,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45473,7 +45473,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45540,7 +45540,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45654,7 +45654,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45770,7 +45770,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45854,7 +45854,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -45946,7 +45946,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -46043,7 +46043,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -46206,7 +46206,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -46303,7 +46303,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -46370,7 +46370,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -46593,7 +46593,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -46707,7 +46707,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -46847,7 +46847,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -46930,7 +46930,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -47248,7 +47248,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -47362,7 +47362,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -47478,7 +47478,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -47592,7 +47592,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -47730,7 +47730,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -47796,7 +47796,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -47855,7 +47855,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -48064,7 +48064,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -48113,7 +48113,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -48323,7 +48323,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -48364,7 +48364,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Vec2d",
+                  "text": "Vec",
                   "canonicalReference": "@tldraw/editor!Vec2d:class"
                 },
                 {
@@ -48498,7 +48498,7 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2d",
+              "text": "Vec",
               "canonicalReference": "@tldraw/editor!Vec2d:class"
             },
             {

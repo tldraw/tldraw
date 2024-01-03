@@ -1,7 +1,7 @@
 import { TLArrowShape } from '@tldraw/tlschema'
 import { Box2d } from '../../../../primitives/Box2d'
 import { Matrix2d } from '../../../../primitives/Matrix2d'
-import { Vec2d, VecLike } from '../../../../primitives/Vec2d'
+import { Vec, VecLike } from '../../../../primitives/Vec2d'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
 import {
 	PI,
@@ -37,9 +37,9 @@ export function getCurvedArrowInfo(
 
 	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
 
-	const med = Vec2d.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end) // point between start and end
-	const u = Vec2d.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start).uni() // unit vector between start and end
-	const middle = Vec2d.Add(med, u.per().mul(-bend)) // middle handle
+	const med = Vec.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end) // point between start and end
+	const u = Vec.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start).uni() // unit vector between start and end
+	const middle = Vec.Add(med, u.per().mul(-bend)) // middle handle
 
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.start)
 	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.end)
@@ -50,7 +50,7 @@ export function getCurvedArrowInfo(
 	const b = terminalsInArrowSpace.end.clone()
 	const c = middle.clone()
 
-	if (Vec2d.Equals(a, b)) {
+	if (Vec.Equals(a, b)) {
 		return {
 			isStraight: true,
 			start: {
@@ -73,8 +73,8 @@ export function getCurvedArrowInfo(
 	const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
 
 	const handleArc = getArcInfo(a, b, c)
-	const handle_aCA = Vec2d.Angle(handleArc.center, a)
-	const handle_aCB = Vec2d.Angle(handleArc.center, b)
+	const handle_aCA = Vec.Angle(handleArc.center, a)
+	const handle_aCB = Vec.Angle(handleArc.center, b)
 	const handle_dAB = distFn(handle_aCA, handle_aCB)
 
 	if (
@@ -239,8 +239,8 @@ export function getCurvedArrowInfo(
 
 	// Apply arrowhead offsets
 
-	let aCA = Vec2d.Angle(handleArc.center, tempA) // angle center -> a
-	let aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
+	let aCA = Vec.Angle(handleArc.center, tempA) // angle center -> a
+	let aCB = Vec.Angle(handleArc.center, tempB) // angle center -> b
 	let dAB = distFn(aCA, aCB) // angle distance between a and b
 	let lAB = dAB * handleArc.radius // length of arc between a and b
 
@@ -252,17 +252,17 @@ export function getCurvedArrowInfo(
 
 	if (offsetA !== 0) {
 		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
-		const u = Vec2d.FromAngle(aCA + dAB * n)
+		const u = Vec.FromAngle(aCA + dAB * n)
 		tA.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	if (offsetB !== 0) {
 		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
-		const u = Vec2d.FromAngle(aCB + dAB * n)
+		const u = Vec.FromAngle(aCB + dAB * n)
 		tB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
-	const distAB = Vec2d.Dist(tA, tB)
+	const distAB = Vec.Dist(tA, tB)
 	if (distAB < minLength) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
@@ -278,20 +278,20 @@ export function getCurvedArrowInfo(
 
 	if (offsetA !== 0) {
 		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
-		const u = Vec2d.FromAngle(aCA + dAB * n)
+		const u = Vec.FromAngle(aCA + dAB * n)
 		tempA.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	if (offsetB !== 0) {
 		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
-		const u = Vec2d.FromAngle(aCB + dAB * n)
+		const u = Vec.FromAngle(aCB + dAB * n)
 		tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	// Did we miss intersections? This happens when we have overlapping shapes.
 	if (startShapeInfo && endShapeInfo && !startShapeInfo.isExact && !endShapeInfo.isExact) {
-		aCA = Vec2d.Angle(handleArc.center, tempA) // angle center -> a
-		aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
+		aCA = Vec.Angle(handleArc.center, tempA) // angle center -> a
+		aCB = Vec.Angle(handleArc.center, tempB) // angle center -> b
 		dAB = distFn(aCA, aCB) // angle distance between a and b
 		lAB = dAB * handleArc.radius // length of arc between a and b
 		const relationship = getBoundShapeRelationships(
@@ -314,7 +314,7 @@ export function getCurvedArrowInfo(
 				distFn(handle_aCA, aCA) > distFn(handle_aCA, aCB)
 			) {
 				const n = Math.min(0.9, MIN_ARROW_LENGTH / lAB) * (isClockwise ? 1 : -1)
-				const u = Vec2d.FromAngle(aCA + dAB * n)
+				const u = Vec.FromAngle(aCA + dAB * n)
 				tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 			}
 		}
@@ -406,7 +406,7 @@ export function getPointOnArc(
 	t: number
 ) {
 	const angle = startAngle + size * t
-	return new Vec2d(center.x + radius * Math.cos(angle), center.y + radius * Math.sin(angle))
+	return new Vec(center.x + radius * Math.cos(angle), center.y + radius * Math.sin(angle))
 }
 
 /**
@@ -423,7 +423,7 @@ export function getArcBoundingBox(center: VecLike, radius: number, start: VecLik
 	let maxX = -Infinity
 	let maxY = -Infinity
 
-	const startAngle = Vec2d.Angle(center, start)
+	const startAngle = Vec.Angle(center, start)
 
 	// Test 20 points along the arc
 	for (let i = 0; i < 20; i++) {
@@ -464,10 +464,10 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 			u,
 	}
 
-	const radius = Vec2d.Dist(center, a)
+	const radius = Vec.Dist(center, a)
 
 	// Whether to draw the arc clockwise or counter-clockwise (are the points clockwise?)
-	const sweepFlag = +Vec2d.Clockwise(a, c, b)
+	const sweepFlag = +Vec.Clockwise(a, c, b)
 
 	// The base angle of the arc in radians
 	const ab = Math.hypot(a.y - b.y, a.x - b.x)
@@ -498,19 +498,19 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 function placeCenterHandle(
 	center: VecLike,
 	radius: number,
-	tempA: Vec2d,
-	tempB: Vec2d,
-	tempC: Vec2d,
+	tempA: Vec,
+	tempB: Vec,
+	tempC: Vec,
 	originalArcLength: number,
 	isClockwise: boolean
 ) {
-	const aCA = Vec2d.Angle(center, tempA) // angle center -> a
-	const aCB = Vec2d.Angle(center, tempB) // angle center -> b
+	const aCA = Vec.Angle(center, tempA) // angle center -> a
+	const aCB = Vec.Angle(center, tempB) // angle center -> b
 	let dAB = clockwiseAngleDist(aCA, aCB) // angle distance between a and b
 	if (!isClockwise) dAB = PI2 - dAB
 
 	const n = 0.5 * (isClockwise ? 1 : -1)
-	const u = Vec2d.FromAngle(aCA + dAB * n)
+	const u = Vec.FromAngle(aCA + dAB * n)
 	tempC.setTo(center).add(u.mul(radius))
 
 	if (dAB > originalArcLength) {
