@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useTransform } from '../../hooks/useTransform'
-import { Box2d } from '../../primitives/Box2d'
+import { Box2d } from '../../primitives/Box'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */

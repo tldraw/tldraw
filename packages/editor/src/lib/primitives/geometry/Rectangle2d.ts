@@ -1,4 +1,4 @@
-import { Box2d } from '../Box2d'
+import { Box2d } from '../Box'
 import { Vec } from '../Vec'
 import { Geometry2dOptions } from './Geometry2d'
 import { Polygon2d } from './Polygon2d'

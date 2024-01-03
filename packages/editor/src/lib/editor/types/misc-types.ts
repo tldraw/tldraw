@@ -1,4 +1,4 @@
-import { Box2d } from '../../primitives/Box2d'
+import { Box2d } from '../../primitives/Box'
 
 /** @public */
 export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>

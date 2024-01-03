@@ -1,4 +1,4 @@
-import { Box2d } from './Box2d'
+import { Box2d } from './Box'
 import { pointInPolygon } from './utils'
 import { Vec, VecLike } from './Vec'
 

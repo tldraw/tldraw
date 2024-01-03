@@ -1,4 +1,4 @@
-import { Box2d } from '../Box2d'
+import { Box2d } from '../Box'
 import { Vec } from '../Vec'
 import { PI, PI2 } from '../utils'
 import { Edge2d } from './Edge2d'

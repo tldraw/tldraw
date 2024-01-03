@@ -76,7 +76,7 @@ import {
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
-import { Box2d } from '../primitives/Box2d'
+import { Box2d } from '../primitives/Box'
 import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
 import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'

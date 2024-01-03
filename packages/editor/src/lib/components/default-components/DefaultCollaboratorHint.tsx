@@ -2,7 +2,7 @@ import { VecModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { ComponentType, useRef } from 'react'
 import { useTransform } from '../../hooks/useTransform'
-import { Box2d } from '../../primitives/Box2d'
+import { Box2d } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { clamp } from '../../primitives/utils'
 

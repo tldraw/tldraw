@@ -300,7 +300,7 @@ export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 export const DEFAULT_ACCEPTED_VID_TYPE: string[];
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof HighlightShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
+export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -322,7 +322,7 @@ export { Dialog }
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_3)[];
+    static children: () => (typeof Drawing | typeof Idle_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -544,7 +544,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_2 | typeof Pointing_2)[];
+    static children: () => (typeof Idle_3 | typeof Pointing_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -735,7 +735,7 @@ function Header({ className, children }: {
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_3)[];
+    static children: () => (typeof Drawing | typeof Idle_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)

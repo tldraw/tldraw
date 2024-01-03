@@ -1311,7 +1311,7 @@
               "text": "export declare class Box2d "
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Box2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "releaseTag": "Public",
           "isAbstract": false,
           "name": "Box2d",
@@ -3837,7 +3837,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Box2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "releaseTag": "Public",
           "name": "BoxLike",
           "typeTokenRange": {
@@ -29597,7 +29597,7 @@
               "text": "{\n    readonly top_left_rotate: \"top_left\";\n    readonly top_right_rotate: \"top_right\";\n    readonly bottom_right_rotate: \"bottom_right\";\n    readonly bottom_left_rotate: \"bottom_left\";\n    readonly mobile_rotate: \"top_left\";\n}"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Box2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "ROTATE_CORNER_TO_SELECTION_CORNER",
@@ -29624,7 +29624,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Box2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "releaseTag": "Public",
           "name": "RotateCorner",
           "typeTokenRange": {
@@ -29668,7 +29668,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Box2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 6
@@ -29736,7 +29736,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Box2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "releaseTag": "Public",
           "name": "SelectionCorner",
           "typeTokenRange": {
@@ -29762,7 +29762,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Box2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "releaseTag": "Public",
           "name": "SelectionEdge",
           "typeTokenRange": {
@@ -29798,7 +29798,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Box2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "releaseTag": "Public",
           "name": "SelectionHandle",
           "typeTokenRange": {

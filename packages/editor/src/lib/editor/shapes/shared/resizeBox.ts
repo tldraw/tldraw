@@ -1,5 +1,5 @@
 import { VecModel } from '@tldraw/tlschema'
-import { Box2d } from '../../../primitives/Box2d'
+import { Box2d } from '../../../primitives/Box'
 import { Vec } from '../../../primitives/Vec'
 import { TLResizeHandle } from '../../types/selection-types'
 import { TLBaseBoxShape } from '../BaseBoxShapeUtil'

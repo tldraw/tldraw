@@ -1,6 +1,6 @@
 import { useValue } from '@tldraw/state'
 import { useEditor } from '../../../hooks/useEditor'
-import { Box2d } from '../../../primitives/Box2d'
+import { Box2d } from '../../../primitives/Box'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 
 export function DashedOutlineBox({ bounds, className }: { bounds: Box2d; className: string }) {

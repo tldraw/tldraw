@@ -8,7 +8,7 @@ import {
 	isSelectionCorner,
 	SelectionCorner,
 	SelectionEdge,
-} from '../../primitives/Box2d'
+} from '../../primitives/Box'
 import { Matrix2d } from '../../primitives/Matrix2d'
 import { rangeIntersection, rangesOverlap } from '../../primitives/utils'
 import { Vec, VecLike } from '../../primitives/Vec'

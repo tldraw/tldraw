@@ -2435,6 +2435,15 @@
             },
             {
               "kind": "Reference",
+              "text": "DrawShapeTool",
+              "canonicalReference": "@tldraw/tldraw!DrawShapeTool:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | typeof "
+            },
+            {
+              "kind": "Reference",
               "text": "FrameShapeTool",
               "canonicalReference": "@tldraw/tldraw!FrameShapeTool:class"
             },
@@ -2446,15 +2455,6 @@
               "kind": "Reference",
               "text": "GeoShapeTool",
               "canonicalReference": "@tldraw/tldraw!GeoShapeTool:class"
-            },
-            {
-              "kind": "Content",
-              "text": " | typeof "
-            },
-            {
-              "kind": "Reference",
-              "text": "HighlightShapeTool",
-              "canonicalReference": "@tldraw/tldraw!HighlightShapeTool:class"
             },
             {
               "kind": "Content",
@@ -2877,7 +2877,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "@tldraw/tldraw!~Idle_3:class"
+                  "canonicalReference": "@tldraw/tldraw!~Idle_2:class"
                 },
                 {
                   "kind": "Content",
@@ -6591,7 +6591,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "@tldraw/tldraw!~Idle_2:class"
+                  "canonicalReference": "@tldraw/tldraw!~Idle_3:class"
                 },
                 {
                   "kind": "Content",
@@ -8155,7 +8155,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "@tldraw/tldraw!~Idle_3:class"
+                  "canonicalReference": "@tldraw/tldraw!~Idle_2:class"
                 },
                 {
                   "kind": "Content",
@@ -15722,7 +15722,7 @@
               "text": "export interface TLUiContextMenuProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ContextMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiContextMenuProps",
           "preserveMemberOrder": false,
@@ -15745,7 +15745,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
