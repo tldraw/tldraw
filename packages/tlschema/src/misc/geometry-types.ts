@@ -29,7 +29,7 @@ export const vecModelValidator: T.Validator<VecModel> = T.object({
 })
 
 /** @public */
-export const box2dModelValidator: T.Validator<BoxModel> = T.object({
+export const boxModelValidator: T.Validator<BoxModel> = T.object({
 	x: T.number,
 	y: T.number,
 	w: T.number,

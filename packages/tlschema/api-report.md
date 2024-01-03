@@ -92,9 +92,6 @@ export const bookmarkShapeProps: {
     url: T.Validator<string>;
 };
 
-// @public (undocumented)
-export const box2dModelValidator: T.Validator<BoxModel>;
-
 // @public
 export interface BoxModel {
     // (undocumented)
@@ -106,6 +103,9 @@ export interface BoxModel {
     // (undocumented)
     y: number;
 }
+
+// @public (undocumented)
+export const boxModelValidator: T.Validator<BoxModel>;
 
 // @public (undocumented)
 export const CameraRecordType: RecordType<TLCamera, never>;

@@ -1,7 +1,7 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { box2dModelValidator, BoxModel } from '../misc/geometry-types'
+import { BoxModel, boxModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorValidator, TLCursor } from '../misc/TLCursor'
 import { opacityValidator, TLOpacityType } from '../misc/TLOpacity'
@@ -70,7 +70,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			id: idValidator<TLInstanceId>('instance'),
 			currentPageId: pageIdValidator,
 			followingUserId: T.string.nullable(),
-			brush: box2dModelValidator.nullable(),
+			brush: boxModelValidator.nullable(),
 			opacityForNextShape: opacityValidator,
 			stylesForNextShape: T.object(stylesForNextShapeValidators),
 			cursor: cursorValidator,
@@ -79,8 +79,8 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isDebugMode: T.boolean,
 			isToolLocked: T.boolean,
 			exportBackground: T.boolean,
-			screenBounds: box2dModelValidator,
-			zoomBrush: box2dModelValidator.nullable(),
+			screenBounds: boxModelValidator,
+			zoomBrush: boxModelValidator.nullable(),
 			isPenMode: T.boolean,
 			isGridMode: T.boolean,
 			chatMessage: T.string,

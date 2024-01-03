@@ -586,43 +586,6 @@
           }
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!box2dModelValidator:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "box2dModelValidator: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "BoxModel",
-              "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">"
-            }
-          ],
-          "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "box2dModelValidator",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 5
-          }
-        },
-        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/tlschema!BoxModel:interface",
           "docComment": "/**\n * A serializable model for 2D boxes.\n *\n * @public\n */\n",
@@ -747,6 +710,43 @@
             }
           ],
           "extendsTokenRanges": []
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tlschema!boxModelValidator:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "boxModelValidator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "BoxModel",
+              "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "boxModelValidator",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
         },
         {
           "kind": "Variable",
