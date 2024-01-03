@@ -7,7 +7,7 @@ import { Editor } from '../editor/Editor'
  * @param dimension - The component dimension on the axis.
  * @internal
  */
-export function getEdgeProximityFactor(position: number, dimension: number) {
+function getEdgeProximityFactor(position: number, dimension: number) {
 	if (position < 0) {
 		return 1
 	} else if (position > dimension) {
@@ -39,8 +39,8 @@ export function moveCameraWhenCloseToEdge(editor: Editor) {
 	const screenSizeFactorX = screenBounds.w < 1000 ? 0.612 : 1
 	const screenSizeFactorY = screenBounds.h < 1000 ? 0.612 : 1
 
-	const proximityFactorX = getEdgeProximityFactor(x, screenBounds.w)
-	const proximityFactorY = getEdgeProximityFactor(y, screenBounds.h)
+	const proximityFactorX = getEdgeProximityFactor(x - screenBounds.x, screenBounds.w)
+	const proximityFactorY = getEdgeProximityFactor(y - screenBounds.x, screenBounds.h)
 
 	if (proximityFactorX === 0 && proximityFactorY === 0) return
 
