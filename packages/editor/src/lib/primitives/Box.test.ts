@@ -12,7 +12,7 @@ describe('Box', () => {
 		})
 	})
 
-	it('can have the point set with a vec2d', () => {
+	it('can have the point set with a Vec', () => {
 		const box = new Box(0, 0, 100, 100)
 
 		expect(box).toMatchObject({ x: 0, y: 0 })
