@@ -6,7 +6,7 @@ import '@tldraw/tldraw/tldraw.css'
 // [1]
 DefaultColorThemePalette.lightMode.black.solid = 'aqua'
 
-export default function CustomColorsExample() {
+export default function ChangingDefaultColorsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw persistenceKey="tldraw_example" />
