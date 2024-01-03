@@ -5,7 +5,6 @@ import {
 	TLEventHandlers,
 	TLGeoShape,
 	createShapeId,
-	getStarBounds,
 } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
@@ -93,7 +92,7 @@ export class Pointing extends StateNode {
 
 		const bounds =
 			shape.props.geo === 'star'
-				? getStarBounds(5, 200, 200)
+				? new Box(0, 0, 200, 190)
 				: shape.props.geo === 'cloud'
 				? new Box(0, 0, 300, 180)
 				: new Box(0, 0, 200, 200)

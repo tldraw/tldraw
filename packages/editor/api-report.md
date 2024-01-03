@@ -1031,9 +1031,6 @@ export abstract class Geometry2d {
     _vertices: undefined | Vec[];
 }
 
-// @public
-export function getArcLength(C: VecLike, r: number, A: VecLike, B: VecLike): number;
-
 // @public (undocumented)
 export function getArrowheadPathForType(info: TLArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;
 
@@ -1114,9 +1111,6 @@ export function getSolidStraightArrowPath(info: TLArrowInfo & {
     isStraight: true;
 }): string;
 
-// @public
-export const getStarBounds: (sides: number, w: number, h: number) => Box;
-
 // @public (undocumented)
 export function getStraightArrowHandlePath(info: TLArrowInfo & {
     isStraight: true;
@@ -1124,9 +1118,6 @@ export function getStraightArrowHandlePath(info: TLArrowInfo & {
 
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
-
-// @public
-export function getSweep(C: VecLike, A: VecLike, B: VecLike): number;
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
@@ -1215,13 +1206,7 @@ export function intersectLineSegmentPolyline(a1: VecLike, a2: VecLike, points: V
 export function intersectPolygonPolygon(polygonA: VecLike[], polygonB: VecLike[]): null | VecLike[];
 
 // @public
-export function isAngleBetween(a: number, b: number, c: number): boolean;
-
-// @public
 export const isSafeFloat: (n: number) => boolean;
-
-// @public
-export function lerpAngles(a0: number, a1: number, t: number): number;
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
@@ -1233,9 +1218,6 @@ export function LoadingScreen({ children }: {
 
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
-
-// @public
-export function longAngleDist(a0: number, a1: number): number;
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
@@ -1392,28 +1374,7 @@ export const PI: number;
 export const PI2: number;
 
 // @public
-export function pointInBounds(A: VecLike, b: Box): boolean;
-
-// @public
-export function pointInCircle(A: VecLike, C: VecLike, r: number): boolean;
-
-// @public
-export function pointInEllipse(A: VecLike, C: VecLike, rx: number, ry: number, rotation?: number): boolean;
-
-// @public
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean;
-
-// @public
-export function pointInPolyline(A: VecLike, points: VecLike[], distance?: number): boolean;
-
-// @public
-export function pointInRect(A: VecLike, point: VecLike, size: VecLike): boolean;
-
-// @public
-export function pointNearToLineSegment(A: VecLike, p1: VecLike, p2: VecLike, distance?: number): boolean;
-
-// @public
-export function pointNearToPolyline(A: VecLike, points: VecLike[], distance?: number): boolean;
 
 // @public (undocumented)
 export type PointsSnapLine = {
