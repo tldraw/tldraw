@@ -45,7 +45,7 @@ export function getBoundShapeInfoForTerminal(
 	}
 }
 
-export function getArrowTerminalInArrowSpace(
+function getArrowTerminalInArrowSpace(
 	editor: Editor,
 	arrowPageTransform: Mat,
 	terminal: TLArrowShapeTerminal,

@@ -1,5 +1,4 @@
 import { TLArrowShape } from '@tldraw/tlschema'
-import { Box } from '../../../../primitives/Box'
 import { Mat, MatModel } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import {
@@ -255,14 +254,4 @@ function updateArrowheadPointWithBoundShape(
 	point.setTo(arrowInt)
 
 	targetShapeInfo.didIntersect = true
-}
-
-/** @public */
-export function getStraightArrowBoundingBox(start: VecLike, end: VecLike) {
-	return new Box(
-		Math.min(start.x, end.x),
-		Math.min(start.y, end.y),
-		Math.abs(start.x - end.x),
-		Math.abs(start.y - end.y)
-	)
 }

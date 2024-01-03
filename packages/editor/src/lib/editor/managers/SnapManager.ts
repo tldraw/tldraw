@@ -36,16 +36,6 @@ export type GapsSnapLine = {
 /** @public */
 export type SnapLine = PointsSnapLine | GapsSnapLine
 
-export type SnapInteractionType =
-	| {
-			type: 'translate'
-			lockedAxis: 'x' | 'y' | null
-			initialSelectionSnapPoints: Vec[]
-	  }
-	| {
-			type: 'resize'
-	  }
-
 /** @public */
 export interface SnapPoint {
 	id: string

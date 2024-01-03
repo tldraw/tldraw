@@ -1,5 +1,4 @@
 import { TLArrowShape } from '@tldraw/tlschema'
-import { Box } from '../../../../primitives/Box'
 import { Mat } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
@@ -360,64 +359,13 @@ export function getCurvedArrowInfo(
 }
 
 /**
- * Get a point along an arc.
- *
- * @param center - The arc's center.
- * @param radius - The arc's radius.
- * @param startAngle - The start point of the arc.
- * @param size - The size of the arc.
- * @param t - The point along the arc to get.
- */
-export function getPointOnArc(
-	center: VecLike,
-	radius: number,
-	startAngle: number,
-	size: number,
-	t: number
-) {
-	const angle = startAngle + size * t
-	return new Vec(center.x + radius * Math.cos(angle), center.y + radius * Math.sin(angle))
-}
-
-/**
- * Get a bounding box for an arc.
- *
- * @param center - The arc's center.
- * @param radius - The arc's radius.
- * @param start - The start point of the arc.
- * @param size - The size of the arc.
- */
-export function getArcBoundingBox(center: VecLike, radius: number, start: VecLike, size: number) {
-	let minX = Infinity
-	let minY = Infinity
-	let maxX = -Infinity
-	let maxY = -Infinity
-
-	const startAngle = Vec.Angle(center, start)
-
-	// Test 20 points along the arc
-	for (let i = 0; i < 20; i++) {
-		const angle = startAngle + size * (i / 19)
-		const x = center.x + radius * Math.cos(angle)
-		const y = center.y + radius * Math.sin(angle)
-
-		minX = Math.min(x, minX)
-		minY = Math.min(y, minY)
-		maxX = Math.max(x, maxX)
-		maxY = Math.max(y, maxY)
-	}
-
-	return new Box(minX, minY, maxX - minX, maxY - minY)
-}
-
-/**
  * Get info about an arc formed by three points.
  *
  * @param a - The start of the arc
  * @param b - The end of the arc
  * @param c - A point on the arc
  */
-export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
+function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 	// find a circle from the three points
 	const u = -2 * (a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y)
 

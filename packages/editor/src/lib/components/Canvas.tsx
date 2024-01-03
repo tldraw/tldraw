@@ -520,7 +520,7 @@ function UiLogger() {
 	)
 }
 
-export function SelectionForegroundWrapper() {
+function SelectionForegroundWrapper() {
 	const editor = useEditor()
 	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
 		editor,
@@ -535,7 +535,7 @@ export function SelectionForegroundWrapper() {
 	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
-export function SelectionBackgroundWrapper() {
+function SelectionBackgroundWrapper() {
 	const editor = useEditor()
 	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
 		editor,
@@ -550,13 +550,13 @@ export function SelectionBackgroundWrapper() {
 	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
-export function OnTheCanvasWrapper() {
+function OnTheCanvasWrapper() {
 	const { OnTheCanvas } = useEditorComponents()
 	if (!OnTheCanvas) return null
 	return <OnTheCanvas />
 }
 
-export function InFrontOfTheCanvasWrapper() {
+function InFrontOfTheCanvasWrapper() {
 	const { InFrontOfTheCanvas } = useEditorComponents()
 	if (!InFrontOfTheCanvas) return null
 	return <InFrontOfTheCanvas />

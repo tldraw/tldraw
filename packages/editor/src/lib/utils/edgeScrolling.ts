@@ -7,7 +7,7 @@ import { Editor } from '../editor/Editor'
  * @param dimension - The component dimension on the axis.
  * @internal
  */
-export function getEdgeProximityFactor(position: number, dimension: number) {
+function getEdgeProximityFactor(position: number, dimension: number) {
 	if (position < 0) {
 		return 1
 	} else if (position > dimension) {

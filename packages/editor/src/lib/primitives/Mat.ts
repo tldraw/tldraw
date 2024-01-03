@@ -6,15 +6,6 @@ import { Vec, VecLike } from './Vec'
 export type MatLike = MatModel | Mat
 
 /** @public */
-export interface MatrixInfo {
-	x: number
-	y: number
-	scaleX: number
-	scaleY: number
-	rotation: number
-}
-
-/** @public */
 export interface MatModel {
 	a: number
 	b: number
@@ -239,7 +230,7 @@ export class Mat {
 		return clampRadians(rotation)
 	}
 
-	static Decompose(m: MatLike): MatrixInfo {
+	static Decompose(m: MatLike) {
 		let scaleX, scaleY, rotation
 
 		if (m.a !== 0 || m.c !== 0) {

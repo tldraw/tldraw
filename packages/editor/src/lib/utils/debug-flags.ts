@@ -202,8 +202,7 @@ interface Defaults<T> {
 	all: T
 }
 
-/** @internal */
-export interface DebugFlagDef<T> {
+interface DebugFlagDef<T> {
 	name: string
 	defaults: Defaults<T>
 	shouldStoreForSession: boolean

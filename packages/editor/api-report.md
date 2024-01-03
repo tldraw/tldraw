@@ -1246,11 +1246,29 @@ export class Mat {
     // (undocumented)
     d: number;
     // (undocumented)
-    static Decompose(m: MatLike): MatrixInfo;
+    static Decompose(m: MatLike): {
+        x: number;
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        rotation: number;
+    };
     // (undocumented)
-    decompose(): MatrixInfo;
+    decompose(): {
+        x: number;
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        rotation: number;
+    };
     // (undocumented)
-    decomposed(): MatrixInfo;
+    decomposed(): {
+        x: number;
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        rotation: number;
+    };
     // (undocumented)
     e: number;
     // (undocumented)
@@ -1364,6 +1382,22 @@ export const PI: number;
 
 // @public (undocumented)
 export const PI2: number;
+
+// @public (undocumented)
+export class Point2d extends Geometry2d {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
+        margin: number;
+        point: Vec;
+    });
+    // (undocumented)
+    getVertices(): Vec[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec, B: Vec, margin: number): boolean;
+    // (undocumented)
+    nearestPoint(): Vec;
+    // (undocumented)
+    point: Vec;
+}
 
 // @public
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean;
