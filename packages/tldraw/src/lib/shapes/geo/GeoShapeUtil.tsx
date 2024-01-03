@@ -7,13 +7,13 @@ import {
 	Group2d,
 	HALF_PI,
 	HTMLContainer,
+	PI2,
 	Polygon2d,
 	Polyline2d,
 	Rectangle2d,
 	SVGContainer,
 	Stadium2d,
 	SvgExportContext,
-	TAU,
 	TLDefaultDashStyle,
 	TLGeoShape,
 	TLOnEditEndHandler,
@@ -165,7 +165,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				// it will have a bigger minY than maxY. This is because it'll
 				// have 2 points at the bottom.
 				const sides = 5
-				const step = TAU / sides / 2
+				const step = PI2 / sides / 2
 				const rightMostIndex = Math.floor(sides / 4) * 2
 				const leftMostIndex = sides * 2 - rightMostIndex
 				const topMostIndex = 0

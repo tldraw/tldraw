@@ -15,7 +15,7 @@ export const PI = Math.PI
 /** @public */
 export const HALF_PI = PI / 2
 /** @public */
-export const TAU = PI * 2
+export const PI2 = PI * 2
 /** @public */
 export const EPSILON = Math.PI / 180
 /** @public */
@@ -98,9 +98,9 @@ export function perimeterOfEllipse(rx: number, ry: number): number {
  * @public
  */
 export function canonicalizeRotation(a: number) {
-	a = a % TAU
+	a = a % PI2
 	if (a < 0) {
-		a = a + TAU
+		a = a + PI2
 	} else if (a === 0) {
 		// prevent negative zero
 		a = 0
@@ -119,7 +119,7 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
 	a0 = canonicalizeRotation(a0)
 	a1 = canonicalizeRotation(a1)
 	if (a0 > a1) {
-		a1 += TAU
+		a1 += PI2
 	}
 	return a1 - a0
 }
@@ -132,7 +132,7 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function counterClockwiseAngleDist(a0: number, a1: number): number {
-	return TAU - clockwiseAngleDist(a0, a1)
+	return PI2 - clockwiseAngleDist(a0, a1)
 }
 
 /**
@@ -143,8 +143,8 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function shortAngleDist(a0: number, a1: number): number {
-	const da = (a1 - a0) % TAU
-	return ((2 * da) % TAU) - da
+	const da = (a1 - a0) % PI2
+	return ((2 * da) % PI2) - da
 }
 
 /**
@@ -154,7 +154,7 @@ export function shortAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function clampRadians(r: number): number {
-	return (TAU + r) % TAU
+	return (PI2 + r) % PI2
 }
 
 /**
@@ -165,10 +165,10 @@ export function clampRadians(r: number): number {
  * @public
  */
 export function snapAngle(r: number, segments: number): number {
-	const seg = TAU / segments
-	let ang = (Math.floor((clampRadians(r) + seg / 2) / seg) * seg) % TAU
-	if (ang < PI) ang += TAU
-	if (ang > PI) ang -= TAU
+	const seg = PI2 / segments
+	let ang = (Math.floor((clampRadians(r) + seg / 2) / seg) * seg) % PI2
+	if (ang < PI) ang += PI2
+	if (ang > PI) ang -= PI2
 	return ang
 }
 
@@ -227,7 +227,7 @@ export function getPolygonVertices(width: number, height: number, sides: number)
 	let minY = Infinity
 	let maxY = -Infinity
 	for (let i = 0; i < sides; i++) {
-		const step = TAU / sides
+		const step = PI2 / sides
 		const t = -HALF_PI + i * step
 		const x = cx + cx * Math.cos(t)
 		const y = cy + cy * Math.sin(t)

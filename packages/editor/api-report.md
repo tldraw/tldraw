@@ -1370,6 +1370,9 @@ export function perimeterOfEllipse(rx: number, ry: number): number;
 // @public (undocumented)
 export const PI: number;
 
+// @public (undocumented)
+export const PI2: number;
+
 // @public
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean;
 
@@ -1849,9 +1852,6 @@ export interface SvgExportDef {
 
 // @public
 export const TAB_ID: string;
-
-// @public (undocumented)
-export const TAU: number;
 
 // @public (undocumented)
 export type TLAnimationOptions = Partial<{

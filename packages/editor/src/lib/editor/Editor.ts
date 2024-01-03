@@ -83,7 +83,7 @@ import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
-import { TAU, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
@@ -6121,7 +6121,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.batch(() => {
 					for (const shape of shapesToStretch) {
 						const pageRotation = this.getShapePageTransform(shape)!.rotation()
-						if (pageRotation % TAU) continue
+						if (pageRotation % PI2) continue
 						const bounds = shapeBounds[shape.id]
 						const pageBounds = shapePageBounds[shape.id]
 						const localOffset = new Vec(0, commonBounds.minY - pageBounds.minY)
@@ -6146,7 +6146,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const bounds = shapeBounds[shape.id]
 						const pageBounds = shapePageBounds[shape.id]
 						const pageRotation = this.getShapePageTransform(shape)!.rotation()
-						if (pageRotation % TAU) continue
+						if (pageRotation % PI2) continue
 						const localOffset = new Vec(commonBounds.minX - pageBounds.minX, 0)
 						const parentTransform = this.getShapeParentTransform(shape)
 						if (parentTransform) localOffset.rot(-parentTransform.rotation())

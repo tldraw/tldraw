@@ -1,7 +1,7 @@
 import {
 	EASINGS,
 	HALF_PI,
-	TAU,
+	PI2,
 	TLDefaultColorTheme,
 	TLGeoShape,
 	TLShapeId,
@@ -100,8 +100,8 @@ export function getEllipseStrokePoints(
 
 	const points: Vec[] = []
 
-	const start = TAU * getRandom()
-	const length = TAU + HALF_PI / 2 + Math.abs(getRandom()) * HALF_PI
+	const start = PI2 * getRandom()
+	const length = PI2 + HALF_PI / 2 + Math.abs(getRandom()) * HALF_PI
 	const count = Math.max(16, perimeter / 10)
 
 	for (let i = 0; i < count; i++) {

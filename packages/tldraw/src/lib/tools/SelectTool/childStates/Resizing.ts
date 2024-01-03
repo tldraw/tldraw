@@ -2,10 +2,10 @@ import {
 	HALF_PI,
 	Mat,
 	PI,
+	PI2,
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
-	TAU,
 	TLEnterEventHandler,
 	TLEventHandlers,
 	TLFrameShape,
@@ -509,7 +509,7 @@ const ORDERED_SELECTION_HANDLES: (SelectionEdge | SelectionCorner)[] = [
 
 export function rotateSelectionHandle(handle: SelectionEdge | SelectionCorner, rotation: number) {
 	// first find out how many tau we need to rotate by
-	rotation = rotation % TAU
+	rotation = rotation % PI2
 	const numSteps = Math.round(rotation / (PI / 4))
 
 	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)

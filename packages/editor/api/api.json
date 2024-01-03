@@ -26469,6 +26469,29 @@
           }
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/editor!PI2:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "PI2: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "PI2",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!pointInPolygon:function(1)",
           "docComment": "/**\n * Get whether a point is inside of a polygon.\n * ```ts\n * const result = pointInPolygon(myPoint, myPoints)\n * ```\n *\n * @public\n */\n",
@@ -34082,29 +34105,6 @@
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "TAB_ID",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!TAU:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "TAU: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "TAU",
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
