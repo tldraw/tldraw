@@ -2,6 +2,8 @@ import { Editor, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useCallback, useEffect, useState } from 'react'
 
+// There's a guide at the bottom of this file!
+
 export default function StoreEventsExample() {
 	const [editor, setEditor] = useState<Editor>()
 
@@ -18,38 +20,36 @@ export default function StoreEventsExample() {
 			setStoreEvents((events) => [eventName, ...events])
 		}
 
-		// This is the fire hose, it will be called at the end of every transaction
+		//[1]
 		const handleChangeEvent: TLEventMapHandler<'change'> = (change) => {
-			if (change.source === 'user') {
-				// Added
-				for (const record of Object.values(change.changes.added)) {
-					if (record.typeName === 'shape') {
-						logChangeEvent(`created shape (${record.type})`)
-					}
+			// Added
+			for (const record of Object.values(change.changes.added)) {
+				if (record.typeName === 'shape') {
+					logChangeEvent(`created shape (${record.type})`)
 				}
+			}
 
-				// Updated
-				for (const [from, to] of Object.values(change.changes.updated)) {
-					if (
-						from.typeName === 'instance' &&
-						to.typeName === 'instance' &&
-						from.currentPageId !== to.currentPageId
-					) {
-						logChangeEvent(`changed page (${from.currentPageId}, ${to.currentPageId})`)
-					}
+			// Updated
+			for (const [from, to] of Object.values(change.changes.updated)) {
+				if (
+					from.typeName === 'instance' &&
+					to.typeName === 'instance' &&
+					from.currentPageId !== to.currentPageId
+				) {
+					logChangeEvent(`changed page (${from.currentPageId}, ${to.currentPageId})`)
 				}
+			}
 
-				// Removed
-				for (const record of Object.values(change.changes.removed)) {
-					if (record.typeName === 'shape') {
-						logChangeEvent(`deleted shape (${record.type})`)
-					}
+			// Removed
+			for (const record of Object.values(change.changes.removed)) {
+				if (record.typeName === 'shape') {
+					logChangeEvent(`deleted shape (${record.type})`)
 				}
 			}
 		}
 
-		//editor.on('change', handleChangeEvent)
-		const cleanupFunction = editor.store.listen(handleChangeEvent, { source: 'all', scope: 'all' })
+		// [2]
+		const cleanupFunction = editor.store.listen(handleChangeEvent, { source: 'user', scope: 'all' })
 
 		return () => {
 			cleanupFunction()
@@ -83,3 +83,20 @@ export default function StoreEventsExample() {
 		</div>
 	)
 }
+
+/* 
+This example shows how to listen to store events. This includes things creating/deleting shapes,
+or moving between pages, but not things such as pointer and keyboard events. Those are canvas events.
+To listen to changes to the canvas, check out the canvas events example.
+
+[1]
+This is the fire hose, it will be called at the end of every transaction. We're checking to see what 
+kind of changes were made and logging a more readable message to the to our panel.
+
+[2]
+This is the function that subscribes to changes to the store. You pass in the callback function that 
+you want to execute, along with a handy filter object. In this case, we're only listening to changes
+that were made by the user. It also returns a cleanup function that you can shove into the return of 
+a useeffect hook.
+
+*/
