@@ -2,6 +2,8 @@ import { TLEventInfo, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useCallback, useState } from 'react'
 
+// There's a guide at the bottom of this file!
+
 export default function CanvasEventsExample() {
 	const [events, setEvents] = useState<string[]>([])
 
@@ -41,3 +43,10 @@ export default function CanvasEventsExample() {
 		</div>
 	)
 }
+
+/* 
+This example shows how to listen to canvas events. This includes things like pointer and 
+keyboard events, but not things such as undo/redo, create/delete shapes, etc. Those are store events.
+
+To listen to changes to the store, check out the store events example.
+*/
