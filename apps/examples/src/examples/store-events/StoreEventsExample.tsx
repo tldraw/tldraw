@@ -48,10 +48,11 @@ export default function StoreEventsExample() {
 			}
 		}
 
-		editor.on('change', handleChangeEvent)
+		//editor.on('change', handleChangeEvent)
+		const cleanupFunction = editor.store.listen(handleChangeEvent, { source: 'all', scope: 'all' })
 
 		return () => {
-			editor.off('change', handleChangeEvent)
+			cleanupFunction()
 		}
 	}, [editor])
 
