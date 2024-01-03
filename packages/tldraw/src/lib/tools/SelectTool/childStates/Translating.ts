@@ -1,7 +1,7 @@
 import {
 	Box,
 	Editor,
-	Matrix2d,
+	Mat,
 	Matrix2dModel,
 	PageRecordType,
 	SnapPoint,
@@ -277,7 +277,7 @@ export class Translating extends StateNode {
 
 			const parentTransform = isPageId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getShapePageTransform(shape.parentId)!)
+				: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
@@ -300,7 +300,7 @@ function getTranslatingSnapshot(editor: Editor) {
 
 			const parentTransform = PageRecordType.isId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getShapePageTransform(shape.parentId)!)
+				: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
 			return {
 				shape,
@@ -405,7 +405,7 @@ export function moveShapesToPoint({
 			snapshots.map(({ shape, pagePoint, parentTransform }): TLShapePartial | null => {
 				const newPagePoint = Vec.Add(pagePoint, averageSnap)
 				const newLocalPoint = parentTransform
-					? Matrix2d.applyToPoint(parentTransform, newPagePoint)
+					? Mat.applyToPoint(parentTransform, newPagePoint)
 					: newPagePoint
 
 				return {

@@ -1,7 +1,7 @@
 import {
 	Box,
 	HIT_TEST_MARGIN,
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLCancelEvent,
 	TLEventHandlers,
@@ -117,7 +117,7 @@ export class Brushing extends StateNode {
 			B: Vec,
 			shape: TLShape,
 			pageBounds: Box | undefined,
-			pageTransform: Matrix2d | undefined,
+			pageTransform: Mat | undefined,
 			localCorners: Vec[]
 
 		// We'll be testing the corners of the brush against the shapes

@@ -1,7 +1,7 @@
 import { isShapeId, TLShape, TLShapePartial } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
-import { Matrix2d } from '../primitives/Mat'
+import { Mat } from '../primitives/Mat'
 import { canonicalizeRotation } from '../primitives/utils'
 import { Vec } from '../primitives/Vec'
 
@@ -79,14 +79,14 @@ export function applyRotationToSnapshotShapes({
 
 			const parentTransform = isShapeId(shape.parentId)
 				? editor.getShapePageTransform(shape.parentId)!
-				: Matrix2d.Identity()
+				: Mat.Identity()
 
 			const newPagePoint = Vec.RotWith(initialPagePoint, selectionPageCenter, delta)
 
-			const newLocalPoint = Matrix2d.applyToPoint(
+			const newLocalPoint = Mat.applyToPoint(
 				// use the current parent transform in case it has moved/resized since the start
 				// (e.g. if rotating a shape at the edge of a group)
-				Matrix2d.Inverse(parentTransform),
+				Mat.Inverse(parentTransform),
 				newPagePoint
 			)
 			const newRotation = canonicalizeRotation(shape.rotation + delta)

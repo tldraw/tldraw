@@ -3,7 +3,7 @@ import { clampRadians, TAU, toDomPrecision } from './utils'
 import { Vec, VecLike } from './Vec'
 
 /** @public */
-export type MatLike = Matrix2dModel | Matrix2d
+export type MatLike = Matrix2dModel | Mat
 
 /** @public */
 export interface MatrixInfo {
@@ -29,7 +29,7 @@ export interface Matrix2dModel {
 // }
 
 /** @public */
-export class Matrix2d {
+export class Mat {
 	constructor(a: number, b: number, c: number, d: number, e: number, f: number) {
 		this.a = a
 		this.b = b
@@ -46,7 +46,7 @@ export class Matrix2d {
 	e = 0.0
 	f = 0.0
 
-	equals(m: Matrix2d | Matrix2dModel) {
+	equals(m: Mat | Matrix2dModel) {
 		return (
 			this.a === m.a &&
 			this.b === m.b &&
@@ -67,7 +67,7 @@ export class Matrix2d {
 		return this
 	}
 
-	multiply(m: Matrix2d | Matrix2dModel) {
+	multiply(m: Mat | Matrix2dModel) {
 		const m2: Matrix2dModel = m
 		const { a, b, c, d, e, f } = this
 		this.a = a * m2.a + c * m2.b
@@ -81,16 +81,16 @@ export class Matrix2d {
 
 	rotate(r: number, cx?: number, cy?: number) {
 		if (r === 0) return this
-		if (cx === undefined) return this.multiply(Matrix2d.Rotate(r))
-		return this.translate(cx, cy!).multiply(Matrix2d.Rotate(r)).translate(-cx, -cy!)
+		if (cx === undefined) return this.multiply(Mat.Rotate(r))
+		return this.translate(cx, cy!).multiply(Mat.Rotate(r)).translate(-cx, -cy!)
 	}
 
-	translate(x: number, y: number): Matrix2d {
-		return this.multiply(Matrix2d.Translate(x, y!))
+	translate(x: number, y: number): Mat {
+		return this.multiply(Mat.Translate(x, y!))
 	}
 
 	scale(x: number, y: number) {
-		return this.multiply(Matrix2d.Scale(x, y))
+		return this.multiply(Mat.Scale(x, y))
 	}
 
 	invert() {
@@ -106,27 +106,27 @@ export class Matrix2d {
 	}
 
 	applyToPoint(point: VecLike) {
-		return Matrix2d.applyToPoint(this, point)
+		return Mat.applyToPoint(this, point)
 	}
 
 	applyToPoints(points: VecLike[]) {
-		return Matrix2d.applyToPoints(this, points)
+		return Mat.applyToPoints(this, points)
 	}
 
 	rotation() {
-		return Matrix2d.Rotation(this)
+		return Mat.Rotation(this)
 	}
 
 	point() {
-		return Matrix2d.Point(this)
+		return Mat.Point(this)
 	}
 
 	decomposed() {
-		return Matrix2d.Decompose(this)
+		return Mat.Decompose(this)
 	}
 
 	toCssString() {
-		return Matrix2d.toCssString(this)
+		return Mat.toCssString(this)
 	}
 
 	setTo(model: Matrix2dModel) {
@@ -135,53 +135,45 @@ export class Matrix2d {
 	}
 
 	decompose() {
-		return Matrix2d.Decompose(this)
+		return Mat.Decompose(this)
 	}
 
 	clone() {
-		return new Matrix2d(this.a, this.b, this.c, this.d, this.e, this.f)
+		return new Mat(this.a, this.b, this.c, this.d, this.e, this.f)
 	}
 
 	/* --------------------- Static --------------------- */
 
 	static Identity() {
-		return new Matrix2d(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+		return new Mat(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 	}
 
 	static Translate(x: number, y: number) {
-		return new Matrix2d(1.0, 0.0, 0.0, 1.0, x, y)
+		return new Mat(1.0, 0.0, 0.0, 1.0, x, y)
 	}
 
 	static Rotate(r: number, cx?: number, cy?: number) {
-		if (r === 0) return Matrix2d.Identity()
+		if (r === 0) return Mat.Identity()
 
 		const cosAngle = Math.cos(r)
 		const sinAngle = Math.sin(r)
 
-		const rotationMatrix2d = new Matrix2d(cosAngle, sinAngle, -sinAngle, cosAngle, 0.0, 0.0)
+		const rotationMatrix2d = new Mat(cosAngle, sinAngle, -sinAngle, cosAngle, 0.0, 0.0)
 
 		if (cx === undefined) return rotationMatrix2d
 
-		return Matrix2d.Compose(
-			Matrix2d.Translate(cx, cy!),
-			rotationMatrix2d,
-			Matrix2d.Translate(-cx, -cy!)
-		)
+		return Mat.Compose(Mat.Translate(cx, cy!), rotationMatrix2d, Mat.Translate(-cx, -cy!))
 	}
 
 	static Scale: {
 		(x: number, y: number): Matrix2dModel
 		(x: number, y: number, cx: number, cy: number): Matrix2dModel
 	} = (x: number, y: number, cx?: number, cy?: number) => {
-		const scaleMatrix2d = new Matrix2d(x, 0, 0, y, 0, 0)
+		const scaleMatrix2d = new Mat(x, 0, 0, y, 0, 0)
 
 		if (cx === undefined) return scaleMatrix2d
 
-		return Matrix2d.Compose(
-			Matrix2d.Translate(cx, cy!),
-			scaleMatrix2d,
-			Matrix2d.Translate(-cx, -cy!)
-		)
+		return Mat.Compose(Mat.Translate(cx, cy!), scaleMatrix2d, Mat.Translate(-cx, -cy!))
 	}
 
 	static Multiply(m1: Matrix2dModel, m2: Matrix2dModel): Matrix2dModel {
@@ -220,7 +212,7 @@ export class Matrix2d {
 	}
 
 	static Compose(...matrices: MatLike[]) {
-		const matrix = Matrix2d.Identity()
+		const matrix = Mat.Identity()
 		for (let i = 0, n = matrices.length; i < n; i++) {
 			matrix.multiply(matrices[i])
 		}
@@ -315,11 +307,11 @@ export class Matrix2d {
 	}
 
 	static From(m: MatLike) {
-		return new Matrix2d(m.a, m.b, m.c, m.d, m.e, m.f)
+		return new Mat(m.a, m.b, m.c, m.d, m.e, m.f)
 	}
 
 	static Cast(m: MatLike) {
-		return m instanceof Matrix2d ? m : Matrix2d.From(m)
+		return m instanceof Mat ? m : Mat.From(m)
 	}
 }
 

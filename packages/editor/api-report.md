@@ -730,14 +730,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
-    getShapeLocalTransform(shape: TLShape | TLShapeId): Matrix2d;
+    getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
     getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec[][];
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
-    getShapePageTransform(shape: TLShape | TLShapeId): Matrix2d;
+    getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
-    getShapeParentTransform(shape: TLShape | TLShapeId): Matrix2d;
+    getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
     getShapesAtPoint(point: VecLike, opts?: {
         margin?: number | undefined;
         hitInside?: boolean | undefined;
@@ -1241,7 +1241,7 @@ export function longAngleDist(a0: number, a1: number): number;
 export function loopToHtmlElement(elm: Element): HTMLElement;
 
 // @public (undocumented)
-export class Matrix2d {
+export class Mat {
     constructor(a: number, b: number, c: number, d: number, e: number, f: number);
     // (undocumented)
     a: number;
@@ -1264,11 +1264,11 @@ export class Matrix2d {
     // (undocumented)
     c: number;
     // (undocumented)
-    static Cast(m: MatLike): Matrix2d;
+    static Cast(m: MatLike): Mat;
     // (undocumented)
-    clone(): Matrix2d;
+    clone(): Mat;
     // (undocumented)
-    static Compose(...matrices: MatLike[]): Matrix2d;
+    static Compose(...matrices: MatLike[]): Mat;
     // (undocumented)
     d: number;
     // (undocumented)
@@ -1280,13 +1280,13 @@ export class Matrix2d {
     // (undocumented)
     e: number;
     // (undocumented)
-    equals(m: Matrix2d | Matrix2dModel): boolean;
+    equals(m: Mat | Matrix2dModel): boolean;
     // (undocumented)
     f: number;
     // (undocumented)
-    static From(m: MatLike): Matrix2d;
+    static From(m: MatLike): Mat;
     // (undocumented)
-    static Identity(): Matrix2d;
+    static Identity(): Mat;
     // (undocumented)
     identity(): this;
     // (undocumented)
@@ -1296,15 +1296,15 @@ export class Matrix2d {
     // (undocumented)
     static Multiply(m1: Matrix2dModel, m2: Matrix2dModel): Matrix2dModel;
     // (undocumented)
-    multiply(m: Matrix2d | Matrix2dModel): this;
+    multiply(m: Mat | Matrix2dModel): this;
     // (undocumented)
     static Point(m: MatLike): Vec;
     // (undocumented)
     point(): Vec;
     // (undocumented)
-    static Rotate(r: number, cx?: number, cy?: number): Matrix2d;
+    static Rotate(r: number, cx?: number, cy?: number): Mat;
     // (undocumented)
-    rotate(r: number, cx?: number, cy?: number): Matrix2d;
+    rotate(r: number, cx?: number, cy?: number): Mat;
     // (undocumented)
     static Rotation(m: MatLike): number;
     // (undocumented)
@@ -1325,9 +1325,9 @@ export class Matrix2d {
     // (undocumented)
     static toCssString(m: MatLike): string;
     // (undocumented)
-    static Translate(x: number, y: number): Matrix2d;
+    static Translate(x: number, y: number): Mat;
     // (undocumented)
-    translate(x: number, y: number): Matrix2d;
+    translate(x: number, y: number): Mat;
 }
 
 // @public (undocumented)

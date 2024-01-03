@@ -9,7 +9,7 @@ import {
 	SelectionCorner,
 	SelectionEdge,
 } from '../../primitives/Box'
-import { Matrix2d } from '../../primitives/Mat'
+import { Mat } from '../../primitives/Mat'
 import { rangeIntersection, rangesOverlap } from '../../primitives/utils'
 import { Vec, VecLike } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
@@ -235,7 +235,7 @@ export class SnapManager {
 			if (!pageTransfrorm) return undefined
 			const snapPoints = this.editor.getShapeGeometry(shape).snapPoints
 			return snapPoints.map((point, i) => {
-				const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
+				const { x, y } = Mat.applyToPoint(pageTransfrorm, point)
 				return { x, y, id: `${shape.id}:${i}` }
 			})
 		})
@@ -501,7 +501,7 @@ export class SnapManager {
 			if (isClosed) outline.push(outline[0])
 			const pageTransform = this.editor.getShapePageTransform(id)
 			if (!pageTransform) throw Error('No page transform')
-			return Matrix2d.applyToPoints(pageTransform, outline)
+			return Mat.applyToPoints(pageTransform, outline)
 		})
 	}
 

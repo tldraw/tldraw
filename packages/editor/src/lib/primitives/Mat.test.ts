@@ -1,14 +1,14 @@
-import { Matrix2d } from './Mat'
+import { Mat } from './Mat'
 
 describe('Matrix2d', () => {
 	it('Creates a matrix', () => {
-		const mat3 = new Matrix2d(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
-		expect(mat3).toMatchObject(Matrix2d.Identity())
+		const mat3 = new Mat(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+		expect(mat3).toMatchObject(Mat.Identity())
 	})
 
 	it('Multiplies a matrix', () => {
-		const m1 = new Matrix2d(1, 2, 3, 4, 5, 6)
-		const m2 = new Matrix2d(1, 2, 3, 4, 5, 6)
+		const m1 = new Mat(1, 2, 3, 4, 5, 6)
+		const m2 = new Mat(1, 2, 3, 4, 5, 6)
 		expect(m1.multiply(m2)).toMatchObject({
 			a: 7,
 			b: 10,
@@ -20,9 +20,9 @@ describe('Matrix2d', () => {
 	})
 
 	it('Composes matrices', () => {
-		const m1 = new Matrix2d(1, 2, 3, 4, 5, 6)
-		const m2 = new Matrix2d(1, 2, 3, 4, 5, 6)
-		expect(Matrix2d.Compose(m1, m2)).toMatchObject({
+		const m1 = new Mat(1, 2, 3, 4, 5, 6)
+		const m2 = new Mat(1, 2, 3, 4, 5, 6)
+		expect(Mat.Compose(m1, m2)).toMatchObject({
 			a: 7,
 			b: 10,
 			c: 15,
@@ -33,7 +33,7 @@ describe('Matrix2d', () => {
 	})
 
 	it('Inverts a matrix', () => {
-		const m1 = new Matrix2d(1, 2, 3, 4, 5, 6)
+		const m1 = new Mat(1, 2, 3, 4, 5, 6)
 		expect(m1.invert()).toMatchObject({
 			a: -2,
 			b: 1,

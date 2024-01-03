@@ -12073,8 +12073,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -12400,8 +12400,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -12522,8 +12522,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -24373,24 +24373,24 @@
         },
         {
           "kind": "Class",
-          "canonicalReference": "@tldraw/editor!Matrix2d:class",
+          "canonicalReference": "@tldraw/editor!Mat:class",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare class Matrix2d "
+              "text": "export declare class Mat "
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/primitives/Mat.ts",
           "releaseTag": "Public",
           "isAbstract": false,
-          "name": "Matrix2d",
+          "name": "Mat",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "Constructor",
-              "canonicalReference": "@tldraw/editor!Matrix2d:constructor(1)",
-              "docComment": "/**\n * Constructs a new instance of the `Matrix2d` class\n */\n",
+              "canonicalReference": "@tldraw/editor!Mat:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `Mat` class\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -24501,7 +24501,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Matrix2d#a:member",
+              "canonicalReference": "@tldraw/editor!Mat#a:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -24531,7 +24531,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Absolute:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Absolute:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -24581,7 +24581,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.applyToBounds:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.applyToBounds:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -24648,7 +24648,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#applyToPoint:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#applyToPoint:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -24698,7 +24698,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.applyToPoint:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.applyToPoint:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -24765,7 +24765,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#applyToPoints:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#applyToPoints:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -24823,7 +24823,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.applyToPoints:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.applyToPoints:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -24898,7 +24898,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.applyToXY:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.applyToXY:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -24979,7 +24979,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Matrix2d#b:member",
+              "canonicalReference": "@tldraw/editor!Mat#b:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25009,7 +25009,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Matrix2d#c:member",
+              "canonicalReference": "@tldraw/editor!Mat#c:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25039,7 +25039,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Cast:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Cast:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25057,8 +25057,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -25089,7 +25089,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#clone:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#clone:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25098,8 +25098,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -25121,7 +25121,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Compose:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Compose:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25143,8 +25143,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -25175,7 +25175,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Matrix2d#d:member",
+              "canonicalReference": "@tldraw/editor!Mat#d:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25205,7 +25205,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#decompose:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#decompose:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25237,7 +25237,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Decompose:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Decompose:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25287,7 +25287,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#decomposed:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#decomposed:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25319,7 +25319,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Matrix2d#e:member",
+              "canonicalReference": "@tldraw/editor!Mat#e:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25349,7 +25349,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#equals:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#equals:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25358,8 +25358,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -25407,7 +25407,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Matrix2d#f:member",
+              "canonicalReference": "@tldraw/editor!Mat#f:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25437,7 +25437,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.From:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.From:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25455,8 +25455,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -25487,7 +25487,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#identity:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#identity:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25518,7 +25518,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Identity:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Identity:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25527,8 +25527,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -25550,7 +25550,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Inverse:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Inverse:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25600,7 +25600,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#invert:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#invert:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25631,7 +25631,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#multiply:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#multiply:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25640,8 +25640,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -25689,7 +25689,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Multiply:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Multiply:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25756,7 +25756,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#point:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#point:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25788,7 +25788,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Point:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Point:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25838,7 +25838,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#rotate:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#rotate:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25871,8 +25871,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -25919,7 +25919,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Rotate:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Rotate:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -25952,8 +25952,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -26000,7 +26000,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#rotation:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#rotation:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26031,7 +26031,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Rotation:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Rotation:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26080,7 +26080,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#scale:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#scale:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26144,7 +26144,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Scale:member",
+              "canonicalReference": "@tldraw/editor!Mat.Scale:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26192,7 +26192,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#setTo:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#setTo:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26241,7 +26241,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Smooth:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Smooth:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26307,7 +26307,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#toCssString:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#toCssString:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26338,7 +26338,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.toCssString:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.toCssString:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26387,7 +26387,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d#translate:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat#translate:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26412,8 +26412,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",
@@ -26452,7 +26452,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Matrix2d.Translate:member(1)",
+              "canonicalReference": "@tldraw/editor!Mat.Translate:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -26477,8 +26477,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Matrix2d",
-                  "canonicalReference": "@tldraw/editor!Matrix2d:class"
+                  "text": "Mat",
+                  "canonicalReference": "@tldraw/editor!Mat:class"
                 },
                 {
                   "kind": "Content",

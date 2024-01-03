@@ -1,5 +1,5 @@
 import {
-	Matrix2d,
+	Mat,
 	PI,
 	PI2,
 	SelectionCorner,
@@ -487,7 +487,7 @@ export class Resizing extends StateNode {
 			shape,
 			bounds: this.editor.getShapeGeometry(shape).bounds,
 			pageTransform,
-			pageRotation: Matrix2d.Decompose(pageTransform!).rotation,
+			pageRotation: Mat.Decompose(pageTransform!).rotation,
 			isAspectRatioLocked: util.isAspectRatioLocked(shape),
 		}
 	}

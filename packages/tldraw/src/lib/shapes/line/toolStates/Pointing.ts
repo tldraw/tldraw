@@ -1,5 +1,5 @@
 import {
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLEventHandlers,
 	TLHandle,
@@ -45,7 +45,7 @@ export class Pointing extends StateNode {
 			const endHandle = vertexHandles[vertexHandles.length - 1]
 			const prevEndHandle = vertexHandles[vertexHandles.length - 2]
 
-			const shapePagePoint = Matrix2d.applyToPoint(
+			const shapePagePoint = Mat.applyToPoint(
 				this.editor.getShapeParentTransform(this.shape)!,
 				new Vec(this.shape.x, this.shape.y)
 			)

@@ -1,6 +1,6 @@
 import {
 	DRAG_DISTANCE,
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLDefaultSizeStyle,
 	TLDrawShape,
@@ -217,7 +217,7 @@ export class Drawing extends StateNode {
 				}
 
 				// Convert prevPoint to page space
-				const prevPointPageSpace = Matrix2d.applyToPoint(
+				const prevPointPageSpace = Mat.applyToPoint(
 					this.editor.getShapePageTransform(shape.id)!,
 					prevPoint
 				)
@@ -346,10 +346,7 @@ export class Drawing extends StateNode {
 
 						const transform = this.editor.getShapePageTransform(shape)!
 
-						this.pagePointWhereCurrentSegmentChanged = Matrix2d.applyToPoint(
-							transform,
-							prevLastPoint
-						)
+						this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(transform, prevLastPoint)
 					} else {
 						newSegment = {
 							type: 'straight',
@@ -513,11 +510,11 @@ export class Drawing extends StateNode {
 					const lastPoint = last(snapSegment.points)
 					if (!lastPoint) throw Error('Expected a last point!')
 
-					const A = Matrix2d.applyToPoint(transform, first)
+					const A = Mat.applyToPoint(transform, first)
 
-					const B = Matrix2d.applyToPoint(transform, lastPoint)
+					const B = Mat.applyToPoint(transform, lastPoint)
 
-					const snappedPoint = Matrix2d.applyToPoint(transform, newPoint)
+					const snappedPoint = Mat.applyToPoint(transform, newPoint)
 
 					this.editor.snaps.setLines([
 						{

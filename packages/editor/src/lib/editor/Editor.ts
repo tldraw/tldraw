@@ -77,7 +77,7 @@ import {
 	ZOOMS,
 } from '../constants'
 import { Box } from '../primitives/Box'
-import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Mat'
+import { Mat, MatLike, Matrix2dModel } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
@@ -3855,11 +3855,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapeLocalTransform(shape: TLShape | TLShapeId): Matrix2d {
+	getShapeLocalTransform(shape: TLShape | TLShapeId): Mat {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.getShape(id)
 		if (!freshShape) throw Error('Editor.getTransform: shape not found')
-		return Matrix2d.Identity().translate(freshShape.x, freshShape.y).rotate(freshShape.rotation)
+		return Mat.Identity().translate(freshShape.x, freshShape.y).rotate(freshShape.rotation)
 	}
 
 	/**
@@ -3867,8 +3867,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	@computed private _getShapePageTransformCache(): ComputedCache<Matrix2d, TLShape> {
-		return this.store.createComputedCache<Matrix2d, TLShape>('pageTransformCache', (shape) => {
+	@computed private _getShapePageTransformCache(): ComputedCache<Mat, TLShape> {
+		return this.store.createComputedCache<Mat, TLShape>('pageTransformCache', (shape) => {
 			if (isPageId(shape.parentId)) {
 				return this.getShapeLocalTransform(shape)
 			}
@@ -3878,8 +3878,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// In the future we should look at creating a store update mechanism that understands and preserves
 			// ordering.
 			const parentTransform =
-				this._getShapePageTransformCache().get(shape.parentId) ?? Matrix2d.Identity()
-			return Matrix2d.Compose(parentTransform, this.getShapeLocalTransform(shape)!)
+				this._getShapePageTransformCache().get(shape.parentId) ?? Mat.Identity()
+			return Mat.Compose(parentTransform, this.getShapeLocalTransform(shape)!)
 		})
 	}
 
@@ -3895,11 +3895,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapeParentTransform(shape: TLShape | TLShapeId): Matrix2d {
+	getShapeParentTransform(shape: TLShape | TLShapeId): Mat {
 		const id = typeof shape === 'string' ? shape : shape.id
 		const freshShape = this.getShape(id)
-		if (!freshShape || isPageId(freshShape.parentId)) return Matrix2d.Identity()
-		return this._getShapePageTransformCache().get(freshShape.parentId) ?? Matrix2d.Identity()
+		if (!freshShape || isPageId(freshShape.parentId)) return Mat.Identity()
+		return this._getShapePageTransformCache().get(freshShape.parentId) ?? Mat.Identity()
 	}
 
 	/**
@@ -3915,9 +3915,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapePageTransform(shape: TLShape | TLShapeId): Matrix2d {
+	getShapePageTransform(shape: TLShape | TLShapeId): Mat {
 		const id = typeof shape === 'string' ? shape : this.getShape(shape)!.id
-		return this._getShapePageTransformCache().get(id) ?? Matrix2d.Identity()
+		return this._getShapePageTransformCache().get(id) ?? Mat.Identity()
 	}
 
 	/** @internal */
@@ -3928,7 +3928,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!pageTransform) return new Box()
 
 			const result = Box.FromPoints(
-				Matrix2d.applyToPoints(pageTransform, this.getShapeGeometry(shape).vertices)
+				Mat.applyToPoints(pageTransform, this.getShapeGeometry(shape).vertices)
 			)
 
 			return result
@@ -3968,7 +3968,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pageTransform = this._getShapePageTransformCache().get(shape.id)
 			if (!pageTransform) return undefined
 
-			const localMask = Matrix2d.applyToPoints(Matrix2d.Inverse(pageTransform), pageMask)
+			const localMask = Mat.applyToPoints(Mat.Inverse(pageTransform), pageMask)
 
 			return `polygon(${localMask.map((p) => `${p.x}px ${p.y}px`).join(',')})`
 		})
@@ -4769,7 +4769,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const changes: TLShapePartial[] = []
 
 		const parentTransform = isPageId(parentId)
-			? Matrix2d.Identity()
+			? Mat.Identity()
 			: this.getShapePageTransform(parentId)!
 
 		const parentPageRotation = parentTransform.rotation()
@@ -6196,7 +6196,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!scaleOrigin) return this
 
 		const pageTransform = options.initialPageTransform
-			? Matrix2d.Cast(options.initialPageTransform)
+			? Mat.Cast(options.initialPageTransform)
 			: this.getShapePageTransform(id)
 		if (!pageTransform) return this
 
@@ -6238,7 +6238,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (util.onResize && util.canResize(initialShape)) {
 			// get the model changes from the shape util
 			const newPagePoint = this._scalePagePoint(
-				Matrix2d.applyToPoint(pageTransform, new Vec(0, 0)),
+				Mat.applyToPoint(pageTransform, new Vec(0, 0)),
 				scaleOrigin,
 				scale,
 				scaleAxisRotation
@@ -6260,7 +6260,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// adjust initial model for situations where the parent has moved during the resize
 			// e.g. groups
-			const initialPagePoint = Matrix2d.applyToPoint(pageTransform, new Vec())
+			const initialPagePoint = Mat.applyToPoint(pageTransform, new Vec())
 
 			// need to adjust the shape's x and y points in case the parent has moved since start of resizing
 			const { x, y } = this.getPointInParentSpace(initialShape.id, initialPagePoint)
@@ -6290,7 +6290,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				{ squashing: true }
 			)
 		} else {
-			const initialPageCenter = Matrix2d.applyToPoint(pageTransform, initialBounds.center)
+			const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
 			// get the model changes from the shape util
 			const newPageCenter = this._scalePagePoint(
 				initialPageCenter,
@@ -6381,14 +6381,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
 		// to make sure the shape is mirrored correctly
 		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
-			let { rotation } = Matrix2d.Decompose(options.initialPageTransform)
+			let { rotation } = Mat.Decompose(options.initialPageTransform)
 			rotation -= 2 * rotation
 			this.updateShapes([{ id, type, rotation }], { squashing: true })
 		}
 
 		// Next we need to translate the shape so that it's center point ends up in the right place.
 		// To do that we first need to calculate the center point of the shape in the current page space before the scale was applied.
-		const preScaleShapePageCenter = Matrix2d.applyToPoint(
+		const preScaleShapePageCenter = Mat.applyToPoint(
 			options.initialPageTransform,
 			options.initialBounds.center
 		)
@@ -8013,7 +8013,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (!isPageId(pasteParentId)) {
 					// Put the shapes in the middle of the (on screen) parent
 					const shape = this.getShape(pasteParentId)!
-					point = Matrix2d.applyToPoint(
+					point = Mat.applyToPoint(
 						this.getShapePageTransform(shape),
 						this.getShapeGeometry(shape).bounds.center
 					)

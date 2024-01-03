@@ -1,5 +1,5 @@
 import {
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLArrowShape,
 	TLArrowShapeTerminal,
@@ -252,12 +252,12 @@ export class DraggingHandle extends StateNode {
 			// Get all the outline segments from the shape
 			const additionalSegments = util
 				.getOutlineSegments(shape)
-				.map((segment) => Matrix2d.applyToPoints(pageTransform, segment))
+				.map((segment) => Mat.applyToPoints(pageTransform, segment))
 				.filter((_segment, i) => i !== handleIndex - 1 && i !== handleIndex)
 
 			const snapDelta = snaps.getSnappingHandleDelta({
 				additionalSegments,
-				handlePoint: Matrix2d.applyToPoint(pageTransform, point),
+				handlePoint: Mat.applyToPoint(pageTransform, point),
 			})
 
 			if (snapDelta) {

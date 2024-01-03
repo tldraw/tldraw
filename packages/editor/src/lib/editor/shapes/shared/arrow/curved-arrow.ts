@@ -1,6 +1,6 @@
 import { TLArrowShape } from '@tldraw/tlschema'
 import { Box } from '../../../../primitives/Box'
-import { Matrix2d } from '../../../../primitives/Mat'
+import { Mat } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
 import {
@@ -98,15 +98,15 @@ export function getCurvedArrowInfo(
 	let minLength = MIN_ARROW_LENGTH
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
-		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
-		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
+		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
+		const centerInPageSpace = Mat.applyToPoint(arrowPageTransform, handleArc.center)
+		const endInPageSpace = Mat.applyToPoint(arrowPageTransform, tempB)
 
-		const inverseTransform = Matrix2d.Inverse(startShapeInfo.transform)
+		const inverseTransform = Mat.Inverse(startShapeInfo.transform)
 
-		const startInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
-		const centerInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
-		const endInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
+		const startInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, startInPageSpace)
+		const centerInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, centerInPageSpace)
+		const endInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, endInPageSpace)
 
 		const { isClosed } = startShapeInfo
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
@@ -148,7 +148,7 @@ export function getCurvedArrowInfo(
 
 		if (point) {
 			tempA.setTo(
-				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(startShapeInfo.transform, point))
+				editor.getPointInShapeSpace(shape, Mat.applyToPoint(startShapeInfo.transform, point))
 			)
 
 			startShapeInfo.didIntersect = true
@@ -167,15 +167,15 @@ export function getCurvedArrowInfo(
 
 	if (endShapeInfo && !endShapeInfo.isExact) {
 		// get points in shape's coordinates?
-		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
-		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
+		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
+		const endInPageSpace = Mat.applyToPoint(arrowPageTransform, tempB)
+		const centerInPageSpace = Mat.applyToPoint(arrowPageTransform, handleArc.center)
 
-		const inverseTransform = Matrix2d.Inverse(endShapeInfo.transform)
+		const inverseTransform = Mat.Inverse(endShapeInfo.transform)
 
-		const startInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
-		const centerInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
-		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
+		const startInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, startInPageSpace)
+		const centerInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, centerInPageSpace)
+		const endInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, endInPageSpace)
 
 		const isClosed = endShapeInfo.isClosed
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
@@ -222,7 +222,7 @@ export function getCurvedArrowInfo(
 		if (point) {
 			// Set b to target local point -> page point -> shape local point
 			tempB.setTo(
-				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(endShapeInfo.transform, point))
+				editor.getPointInShapeSpace(shape, Mat.applyToPoint(endShapeInfo.transform, point))
 			)
 
 			endShapeInfo.didIntersect = true

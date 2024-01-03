@@ -21,7 +21,7 @@ import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { LANGUAGES } from '@tldraw/editor';
-import { Matrix2d } from '@tldraw/editor';
+import { Mat } from '@tldraw/editor';
 import { Matrix2dModel } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';

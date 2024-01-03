@@ -1,7 +1,7 @@
 import {
 	BoxModel,
 	Editor,
-	Matrix2d,
+	Mat,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
@@ -578,7 +578,7 @@ export class TestEditor extends Editor {
 		const pageTransform = this.getShapePageTransform(shape.id)
 		if (!pageTransform) return null
 		const center = this.getShapeGeometry(shape).bounds.center
-		return Matrix2d.applyToPoint(pageTransform, center)
+		return Mat.applyToPoint(pageTransform, center)
 	}
 
 	/**
@@ -594,7 +594,7 @@ export class TestEditor extends Editor {
 	getPageRotationById(id: TLShapeId): number {
 		const pageTransform = this.getShapePageTransform(id)
 		if (pageTransform) {
-			return Matrix2d.Decompose(pageTransform).rotation
+			return Mat.Decompose(pageTransform).rotation
 		}
 		return 0
 	}

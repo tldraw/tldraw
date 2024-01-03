@@ -1,5 +1,5 @@
 import { TLArrowShape, TLArrowShapeTerminal, TLShape, TLShapeId } from '@tldraw/tlschema'
-import { Matrix2d } from '../../../../primitives/Mat'
+import { Mat } from '../../../../primitives/Mat'
 import { Vec } from '../../../../primitives/Vec'
 import { Group2d } from '../../../../primitives/geometry/Group2d'
 import { Editor } from '../../../Editor'
@@ -13,7 +13,7 @@ export type BoundShapeInfo<T extends TLShape = TLShape> = {
 	didIntersect: boolean
 	isExact: boolean
 	isClosed: boolean
-	transform: Matrix2d
+	transform: Mat
 	outline: Vec[]
 }
 
@@ -47,7 +47,7 @@ export function getBoundShapeInfoForTerminal(
 
 export function getArrowTerminalInArrowSpace(
 	editor: Editor,
-	arrowPageTransform: Matrix2d,
+	arrowPageTransform: Mat,
 	terminal: TLArrowShapeTerminal,
 	forceImprecise: boolean
 ) {
@@ -73,8 +73,8 @@ export function getArrowTerminalInArrowSpace(
 				size
 			)
 		)
-		const pagePoint = Matrix2d.applyToPoint(editor.getShapePageTransform(boundShape)!, shapePoint)
-		const arrowPoint = Matrix2d.applyToPoint(Matrix2d.Inverse(arrowPageTransform), pagePoint)
+		const pagePoint = Mat.applyToPoint(editor.getShapePageTransform(boundShape)!, shapePoint)
+		const arrowPoint = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), pagePoint)
 		return arrowPoint
 	}
 }

@@ -1,6 +1,6 @@
 import { TLArrowShape } from '@tldraw/tlschema'
 import { Box } from '../../../../primitives/Box'
-import { Matrix2d, Matrix2dModel } from '../../../../primitives/Mat'
+import { Mat, Matrix2dModel } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import {
 	intersectLineSegmentPolygon,
@@ -224,12 +224,12 @@ function updateArrowheadPointWithBoundShape(
 	}
 
 	// From and To in page space
-	const pageFrom = Matrix2d.applyToPoint(arrowPageTransform, opposite)
-	const pageTo = Matrix2d.applyToPoint(arrowPageTransform, point)
+	const pageFrom = Mat.applyToPoint(arrowPageTransform, opposite)
+	const pageTo = Mat.applyToPoint(arrowPageTransform, point)
 
 	// From and To in local space of the target shape
-	const targetFrom = Matrix2d.applyToPoint(Matrix2d.Inverse(targetShapeInfo.transform), pageFrom)
-	const targetTo = Matrix2d.applyToPoint(Matrix2d.Inverse(targetShapeInfo.transform), pageTo)
+	const targetFrom = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageFrom)
+	const targetTo = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageTo)
 
 	const isClosed = targetShapeInfo.isClosed
 	const fn = isClosed ? intersectLineSegmentPolygon : intersectLineSegmentPolyline
@@ -249,8 +249,8 @@ function updateArrowheadPointWithBoundShape(
 		return
 	}
 
-	const pageInt = Matrix2d.applyToPoint(targetShapeInfo.transform, targetInt)
-	const arrowInt = Matrix2d.applyToPoint(Matrix2d.Inverse(arrowPageTransform), pageInt)
+	const pageInt = Mat.applyToPoint(targetShapeInfo.transform, targetInt)
+	const arrowInt = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), pageInt)
 
 	point.setTo(arrowInt)
 
