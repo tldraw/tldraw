@@ -1,6 +1,8 @@
 import { DefaultColorThemePalette, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
+// There's a guide at the bottom of this file!
+
 // [1]
 DefaultColorThemePalette.lightMode.black.solid = 'aqua'
 
