@@ -10,13 +10,9 @@ import {
 import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
 
-// The tldraw component shares its App instance via its onMount callback prop.
+// There's a guide at the bottom of this file!
 
-// The App instance is tldraw's "god object". You can use the app to do
-// just about everything that's possible in tldraw. Internally, the canvas
-// component and all shapes, tools, and UI components use this instance to
-// send events, observe changes, and perform actions.
-
+//[1]
 export default function APIExample() {
 	const handleMount = (editor: Editor) => {
 		// Create a shape id
@@ -77,10 +73,7 @@ export default function APIExample() {
 	)
 }
 
-// Another (sneakier) way to access the current app is through React context.
-// The Tldraw component provides the context, so you can add children to
-// the component and access the app through the useEditor hook.
-
+//[2]
 const InsideOfEditorContext = () => {
 	const editor = useEditor()
 
@@ -103,3 +96,28 @@ const InsideOfEditorContext = () => {
 
 	return null
 }
+
+
+/* 
+Introduction: 
+
+This example shows how to use the tldraw editor instance to make changes 
+to the canvas. The editor instance is tldraw's "god object". You can use 
+the app to do just about everything that's possible in tldraw. Internally, 
+the canvas component and all shapes, tools, and UI components use this instance 
+to send events, observe changes, and perform actions. 
+
+There are two main ways to use the editor:
+
+[1] 
+The tldraw component shares its editor instance via its onMount callback prop.
+When you define a function for the onMount callback, it receives the editor 
+instance as an argument. You can use this to manipulate the canvas.
+
+
+[2]
+Another (sneakier) way to access the current app is through React context.
+The Tldraw component provides the context, so you can add children to
+the component and access the app through the useEditor hook. This is cool.
+
+*/
