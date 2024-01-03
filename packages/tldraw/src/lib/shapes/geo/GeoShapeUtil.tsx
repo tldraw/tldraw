@@ -5,8 +5,8 @@ import {
 	Ellipse2d,
 	Geometry2d,
 	Group2d,
+	HALF_PI,
 	HTMLContainer,
-	PI2,
 	Polygon2d,
 	Polyline2d,
 	Rectangle2d,
@@ -165,16 +165,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				// it will have a bigger minY than maxY. This is because it'll
 				// have 2 points at the bottom.
 				const sides = 5
-				const step = PI2 / sides / 2
+				const step = TAU / sides / 2
 				const rightMostIndex = Math.floor(sides / 4) * 2
 				const leftMostIndex = sides * 2 - rightMostIndex
 				const topMostIndex = 0
 				const bottomMostIndex = Math.floor(sides / 2) * 2
-				const maxX = (Math.cos(-TAU + rightMostIndex * step) * w) / 2
-				const minX = (Math.cos(-TAU + leftMostIndex * step) * w) / 2
+				const maxX = (Math.cos(-HALF_PI + rightMostIndex * step) * w) / 2
+				const minX = (Math.cos(-HALF_PI + leftMostIndex * step) * w) / 2
 
-				const minY = (Math.sin(-TAU + topMostIndex * step) * h) / 2
-				const maxY = (Math.sin(-TAU + bottomMostIndex * step) * h) / 2
+				const minY = (Math.sin(-HALF_PI + topMostIndex * step) * h) / 2
+				const maxY = (Math.sin(-HALF_PI + bottomMostIndex * step) * h) / 2
 				const diffX = w - Math.abs(maxX - minX)
 				const diffY = h - Math.abs(maxY - minY)
 				const offsetX = w / 2 + minX - (w / 2 - maxX)
@@ -190,7 +190,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 				body = new Polygon2d({
 					points: Array.from(Array(sides * 2)).map((_, i) => {
-						const theta = -TAU + i * step
+						const theta = -HALF_PI + i * step
 						return new Vec(
 							cx + (i % 2 ? ix : ox) * Math.cos(theta),
 							cy + (i % 2 ? iy : oy) * Math.sin(theta)

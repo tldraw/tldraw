@@ -1,13 +1,13 @@
 import {
 	BoxModel,
 	Editor,
+	HALF_PI,
 	Mat,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
-	TAU,
 	TLContent,
 	TLEditorOptions,
 	TLEventInfo,
@@ -627,7 +627,7 @@ export const createDefaultShapes = (): TLShapePartial[] => [
 		type: 'geo',
 		x: 200,
 		y: 200,
-		rotation: TAU / 2,
+		rotation: HALF_PI / 2,
 		props: {
 			w: 100,
 			h: 100,

@@ -1,6 +1,6 @@
 import { Box } from '../Box'
 import { Vec } from '../Vec'
-import { PI, PI2 } from '../utils'
+import { PI, TAU } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
@@ -50,7 +50,7 @@ export class Ellipse2d extends Geometry2d {
 		// Number of points
 		const len = getVerticesCountForLength(p)
 		// Size of step
-		const step = PI2 / len
+		const step = TAU / len
 
 		const a = Math.cos(step)
 		const b = Math.sin(step)

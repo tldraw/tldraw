@@ -1,7 +1,7 @@
 import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
-import { PI2 } from '../utils'
+import { TAU } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
@@ -34,10 +34,10 @@ export class Circle2d extends Geometry2d {
 
 	getVertices(): Vec[] {
 		const { _center, radius } = this
-		const perimeter = PI2 * radius
+		const perimeter = TAU * radius
 		const vertices: Vec[] = []
 		for (let i = 0, n = getVerticesCountForLength(perimeter); i < n; i++) {
-			const angle = (i / n) * PI2
+			const angle = (i / n) * TAU
 			vertices.push(_center.clone().add(Vec.FromAngle(angle).mul(radius)))
 		}
 		return vertices

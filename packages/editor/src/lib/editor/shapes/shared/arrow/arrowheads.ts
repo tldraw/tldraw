@@ -1,6 +1,6 @@
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCircleCircle } from '../../../../primitives/intersect'
-import { PI, TAU } from '../../../../primitives/utils'
+import { HALF_PI, PI } from '../../../../primitives/utils'
 import { TLArrowInfo } from './arrow-types'
 
 type TLArrowPointsInfo = {
@@ -58,8 +58,8 @@ export function getTriangleHead({ point, int }: TLArrowPointsInfo) {
 
 export function getInvertedTriangleHead({ point, int }: TLArrowPointsInfo) {
 	const d = Vec.Sub(int, point).div(2)
-	const PL = Vec.Add(point, Vec.Rot(d, TAU))
-	const PR = Vec.Sub(point, Vec.Rot(d, TAU))
+	const PL = Vec.Add(point, Vec.Rot(d, HALF_PI))
+	const PR = Vec.Sub(point, Vec.Rot(d, HALF_PI))
 
 	return `M ${PL.x} ${PL.y} L ${int.x} ${int.y} L ${PR.x} ${PR.y} Z`
 }
@@ -87,10 +87,10 @@ export function getDiamondHead({ point, int }: TLArrowPointsInfo) {
 export function getSquareHead({ int, point }: TLArrowPointsInfo) {
 	const PB = Vec.Lrp(point, int, 0.85)
 	const d = Vec.Sub(PB, point).div(2)
-	const PL1 = Vec.Add(point, Vec.Rot(d, TAU))
-	const PR1 = Vec.Sub(point, Vec.Rot(d, TAU))
-	const PL2 = Vec.Add(PB, Vec.Rot(d, TAU))
-	const PR2 = Vec.Sub(PB, Vec.Rot(d, TAU))
+	const PL1 = Vec.Add(point, Vec.Rot(d, HALF_PI))
+	const PR1 = Vec.Sub(point, Vec.Rot(d, HALF_PI))
+	const PL2 = Vec.Add(PB, Vec.Rot(d, HALF_PI))
+	const PR2 = Vec.Sub(PB, Vec.Rot(d, HALF_PI))
 
 	return `M ${PL1.x} ${PL1.y} L ${PL2.x} ${PL2.y} L ${PR2.x} ${PR2.y} L ${PR1.x} ${PR1.y} Z`
 }
@@ -98,8 +98,8 @@ export function getSquareHead({ int, point }: TLArrowPointsInfo) {
 export function getBarHead({ int, point }: TLArrowPointsInfo) {
 	const d = Vec.Sub(int, point).div(2)
 
-	const PL = Vec.Add(point, Vec.Rot(d, TAU))
-	const PR = Vec.Sub(point, Vec.Rot(d, TAU))
+	const PL = Vec.Add(point, Vec.Rot(d, HALF_PI))
+	const PR = Vec.Sub(point, Vec.Rot(d, HALF_PI))
 
 	return `M ${PL.x} ${PL.y} L ${PR.x} ${PR.y}`
 }

@@ -2,7 +2,7 @@ import {
 	ANIMATION_MEDIUM_MS,
 	Box,
 	Editor,
-	TAU,
+	HALF_PI,
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLFrameShape,
@@ -877,11 +877,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('rotate-cw', { source })
 					editor.mark('rotate-cw')
-					const offset = editor.getSelectionRotation() % (TAU / 2)
-					const dontUseOffset = approximately(offset, 0) || approximately(offset, TAU / 2)
+					const offset = editor.getSelectionRotation() % (HALF_PI / 2)
+					const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 2)
 					editor.rotateShapesBy(
 						editor.getSelectedShapeIds(),
-						TAU / 2 - (dontUseOffset ? 0 : offset)
+						HALF_PI / 2 - (dontUseOffset ? 0 : offset)
 					)
 				},
 			},
@@ -896,11 +896,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('rotate-ccw', { source })
 					editor.mark('rotate-ccw')
-					const offset = editor.getSelectionRotation() % (TAU / 2)
+					const offset = editor.getSelectionRotation() % (HALF_PI / 2)
 					const offsetCloseToZero = approximately(offset, 0)
 					editor.rotateShapesBy(
 						editor.getSelectedShapeIds(),
-						offsetCloseToZero ? -(TAU / 2) : -offset
+						offsetCloseToZero ? -(HALF_PI / 2) : -offset
 					)
 				},
 			},

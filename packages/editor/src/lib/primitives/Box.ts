@@ -1,6 +1,6 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { Vec, VecLike } from './Vec'
-import { PI, PI2, toPrecision } from './utils'
+import { PI, TAU, toPrecision } from './utils'
 
 /** @public */
 export type BoxLike = BoxModel | Box
@@ -632,7 +632,7 @@ const ORDERED_SELECTION_HANDLES = [
 /** @public */
 export function rotateSelectionHandle(handle: SelectionHandle, rotation: number): SelectionHandle {
 	// first find out how many tau we need to rotate by
-	rotation = rotation % PI2
+	rotation = rotation % TAU
 	const numSteps = Math.round(rotation / (PI / 4))
 
 	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)

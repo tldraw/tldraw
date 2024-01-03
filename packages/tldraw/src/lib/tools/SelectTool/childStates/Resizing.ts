@@ -1,7 +1,7 @@
 import {
+	HALF_PI,
 	Mat,
 	PI,
-	PI2,
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
@@ -231,7 +231,7 @@ export class Resizing extends StateNode {
 
 		const shouldSnap = this.editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
 
-		if (shouldSnap && selectionRotation % TAU === 0) {
+		if (shouldSnap && selectionRotation % HALF_PI === 0) {
 			const { nudge } = this.editor.snaps.snapResize({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
@@ -509,7 +509,7 @@ const ORDERED_SELECTION_HANDLES: (SelectionEdge | SelectionCorner)[] = [
 
 export function rotateSelectionHandle(handle: SelectionEdge | SelectionCorner, rotation: number) {
 	// first find out how many tau we need to rotate by
-	rotation = rotation % PI2
+	rotation = rotation % TAU
 	const numSteps = Math.round(rotation / (PI / 4))
 
 	const currentIndex = ORDERED_SELECTION_HANDLES.indexOf(handle)

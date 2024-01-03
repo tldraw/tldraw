@@ -5,7 +5,7 @@ import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
 import {
 	PI,
-	PI2,
+	TAU,
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
 	isSafeFloat,
@@ -480,7 +480,7 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 	const largeArcFlag = +(PI > theta)
 
 	// The size of the arc to draw in radians
-	const size = (PI2 - theta) * (sweepFlag ? 1 : -1)
+	const size = (TAU - theta) * (sweepFlag ? 1 : -1)
 
 	// The length of the arc to draw in distance units
 	const length = size * radius
@@ -507,7 +507,7 @@ function placeCenterHandle(
 	const aCA = Vec.Angle(center, tempA) // angle center -> a
 	const aCB = Vec.Angle(center, tempB) // angle center -> b
 	let dAB = clockwiseAngleDist(aCA, aCB) // angle distance between a and b
-	if (!isClockwise) dAB = PI2 - dAB
+	if (!isClockwise) dAB = TAU - dAB
 
 	const n = 0.5 * (isClockwise ? 1 : -1)
 	const u = Vec.FromAngle(aCA + dAB * n)

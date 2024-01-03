@@ -13,9 +13,9 @@ export function average(A: VecLike, B: VecLike) {
 /** @public */
 export const PI = Math.PI
 /** @public */
-export const TAU = PI / 2
+export const HALF_PI = PI / 2
 /** @public */
-export const PI2 = PI * 2
+export const TAU = PI * 2
 /** @public */
 export const EPSILON = Math.PI / 180
 /** @public */
@@ -98,9 +98,9 @@ export function perimeterOfEllipse(rx: number, ry: number): number {
  * @public
  */
 export function canonicalizeRotation(a: number) {
-	a = a % PI2
+	a = a % TAU
 	if (a < 0) {
-		a = a + PI2
+		a = a + TAU
 	} else if (a === 0) {
 		// prevent negative zero
 		a = 0
@@ -119,7 +119,7 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
 	a0 = canonicalizeRotation(a0)
 	a1 = canonicalizeRotation(a1)
 	if (a0 > a1) {
-		a1 += PI2
+		a1 += TAU
 	}
 	return a1 - a0
 }
@@ -132,7 +132,7 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function counterClockwiseAngleDist(a0: number, a1: number): number {
-	return PI2 - clockwiseAngleDist(a0, a1)
+	return TAU - clockwiseAngleDist(a0, a1)
 }
 
 /**
@@ -143,19 +143,8 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function shortAngleDist(a0: number, a1: number): number {
-	const da = (a1 - a0) % PI2
-	return ((2 * da) % PI2) - da
-}
-
-/**
- * Get the short distance between two angles.
- *
- * @param a0 - The first angle.
- * @param a1 - The second angle.
- * @public
- */
-export function angleDelta(a0: number, a1: number): number {
-	return shortAngleDist(a0, a1)
+	const da = (a1 - a0) % TAU
+	return ((2 * da) % TAU) - da
 }
 
 /**
@@ -165,7 +154,7 @@ export function angleDelta(a0: number, a1: number): number {
  * @public
  */
 export function clampRadians(r: number): number {
-	return (PI2 + r) % PI2
+	return (TAU + r) % TAU
 }
 
 /**
@@ -176,10 +165,10 @@ export function clampRadians(r: number): number {
  * @public
  */
 export function snapAngle(r: number, segments: number): number {
-	const seg = PI2 / segments
-	let ang = (Math.floor((clampRadians(r) + seg / 2) / seg) * seg) % PI2
-	if (ang < PI) ang += PI2
-	if (ang > PI) ang -= PI2
+	const seg = TAU / segments
+	let ang = (Math.floor((clampRadians(r) + seg / 2) / seg) * seg) % TAU
+	if (ang < PI) ang += TAU
+	if (ang > PI) ang -= TAU
 	return ang
 }
 
@@ -238,8 +227,8 @@ export function getPolygonVertices(width: number, height: number, sides: number)
 	let minY = Infinity
 	let maxY = -Infinity
 	for (let i = 0; i < sides; i++) {
-		const step = PI2 / sides
-		const t = -TAU + i * step
+		const step = TAU / sides
+		const t = -HALF_PI + i * step
 		const x = cx + cx * Math.cos(t)
 		const y = cy + cy * Math.sin(t)
 		if (x < minX) minX = x

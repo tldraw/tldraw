@@ -1,5 +1,5 @@
 import { Vec } from '../Vec'
-import { PI, TAU } from '../utils'
+import { HALF_PI, PI } from '../utils'
 import { Ellipse2d } from './Ellipse2d'
 import { Geometry2dOptions } from './Geometry2d'
 
@@ -30,8 +30,8 @@ export class Stadium2d extends Ellipse2d {
 			}
 		} else {
 			for (let i = 0; i < len - 1; i++) {
-				const t1 = -TAU + (PI * i) / (len - 2)
-				const t2 = TAU + (PI * -i) / (len - 2)
+				const t1 = -HALF_PI + (PI * i) / (len - 2)
+				const t2 = HALF_PI + (PI * -i) / (len - 2)
 				points[i] = new Vec(w - cy + cy * Math.cos(t1), h - cy + cy * Math.sin(t1))
 				points[i + (len - 1)] = new Vec(cy - cy * Math.cos(t2), h - cy + cy * Math.sin(t2))
 			}

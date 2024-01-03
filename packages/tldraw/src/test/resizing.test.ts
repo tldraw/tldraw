@@ -2,9 +2,9 @@ import {
 	EPSILON,
 	GapsSnapLine,
 	PI,
-	PI2,
 	PointsSnapLine,
 	RotateCorner,
+	TAU,
 	TLGeoShape,
 	TLSelectionHandle,
 	TLShapeId,
@@ -29,7 +29,7 @@ const ORDERED_ROTATE_CORNERS: TLSelectionHandle[] = [
 
 export function rotateRotateCorner(corner: RotateCorner, rotation: number): TLSelectionHandle {
 	// first find out how many 90deg we need to rotate by
-	rotation = rotation % PI2
+	rotation = rotation % TAU
 	const numSteps = Math.round(rotation / (PI / 2))
 
 	const currentIndex = ORDERED_ROTATE_CORNERS.indexOf(corner)

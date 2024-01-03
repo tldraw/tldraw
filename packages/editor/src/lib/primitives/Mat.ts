@@ -1,5 +1,5 @@
 import { Box } from './Box'
-import { clampRadians, TAU, toDomPrecision } from './utils'
+import { clampRadians, HALF_PI, toDomPrecision } from './utils'
 import { Vec, VecLike } from './Vec'
 
 /** @public */
@@ -231,7 +231,7 @@ export class Mat {
 			rotation = Math.acos(m.a / hypotAc) * (m.c > 0 ? -1 : 1)
 		} else if (m.b !== 0 || m.d !== 0) {
 			const hypotBd = Math.hypot(m.b, m.d)
-			rotation = TAU + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
+			rotation = HALF_PI + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
 		} else {
 			rotation = 0
 		}
@@ -251,7 +251,7 @@ export class Mat {
 			const hypotBd = Math.hypot(m.b, m.d)
 			scaleX = (m.a * m.d - m.b * m.c) / hypotBd
 			scaleY = hypotBd
-			rotation = TAU + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
+			rotation = HALF_PI + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
 		} else {
 			scaleX = 0
 			scaleY = 0

@@ -1,7 +1,7 @@
 import {
 	Box,
 	Editor,
-	PI2,
+	TAU,
 	TLInstancePresence,
 	TLShapeId,
 	Vec,
@@ -318,7 +318,7 @@ export class MinimapManager {
 				5 / sy,
 				0,
 				0,
-				PI2
+				TAU
 			)
 			ctx.fillStyle = collaborator.color
 			ctx.fill()

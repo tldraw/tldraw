@@ -1,6 +1,6 @@
 import { Vec } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
-import { PI, PI2, shortAngleDist } from '../utils'
+import { PI, TAU, shortAngleDist } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
@@ -131,7 +131,7 @@ function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
  * @public
  */
 function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number) {
-	const m = ((2 * ((B - A) % PI2)) % PI2) - ((B - A) % PI2)
+	const m = ((2 * ((B - A) % TAU)) % TAU) - ((B - A) % TAU)
 	if (!largeArcFlag) return m
-	return (PI2 - Math.abs(m)) * (sweepFlag ? 1 : -1)
+	return (TAU - Math.abs(m)) * (sweepFlag ? 1 : -1)
 }

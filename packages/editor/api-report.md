@@ -74,9 +74,6 @@ import { useValue } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
-// @public
-export function angleDelta(a0: number, a1: number): number;
-
 // @internal (undocumented)
 export const ANIMATION_MEDIUM_MS = 320;
 
@@ -1176,6 +1173,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     static type: "group";
 }
 
+// @public (undocumented)
+export const HALF_PI: number;
+
 // @public
 export function hardReset({ shouldReload }?: {
     shouldReload?: boolean | undefined;
@@ -1369,9 +1369,6 @@ export function perimeterOfEllipse(rx: number, ry: number): number;
 
 // @public (undocumented)
 export const PI: number;
-
-// @public (undocumented)
-export const PI2: number;
 
 // @public
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean;

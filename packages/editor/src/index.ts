@@ -292,11 +292,10 @@ export {
 } from './lib/primitives/intersect'
 export {
 	EPSILON,
+	HALF_PI,
 	PI,
-	PI2,
 	SIN,
 	TAU,
-	angleDelta,
 	approximately,
 	areAnglesCompatible,
 	average,
