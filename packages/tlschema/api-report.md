@@ -1230,9 +1230,6 @@ export type TLVideoAsset = TLBaseAsset<'video', {
 // @public (undocumented)
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 
-// @public (undocumented)
-export const vec2dModelValidator: T.Validator<VecModel>;
-
 // @public
 export interface VecModel {
     // (undocumented)
@@ -1242,6 +1239,9 @@ export interface VecModel {
     // (undocumented)
     z?: number;
 }
+
+// @public (undocumented)
+export const vecModelValidator: T.Validator<VecModel>;
 
 // @internal (undocumented)
 export const videoShapeMigrations: Migrations;

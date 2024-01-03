@@ -9262,43 +9262,6 @@
           }
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!vec2dModelValidator:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "vec2dModelValidator: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "VecModel",
-              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">"
-            }
-          ],
-          "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "vec2dModelValidator",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 5
-          }
-        },
-        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/tlschema!VecModel:interface",
           "docComment": "/**\n * A serializable model for 2D vectors.\n *\n * @public\n */\n",
@@ -9396,6 +9359,43 @@
             }
           ],
           "extendsTokenRanges": []
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tlschema!vecModelValidator:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "vecModelValidator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "vecModelValidator",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
         },
         {
           "kind": "Variable",

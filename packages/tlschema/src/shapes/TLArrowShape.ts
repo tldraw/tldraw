@@ -1,6 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { vec2dModelValidator } from '../misc/geometry-types'
+import { vecModelValidator } from '../misc/geometry-types'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -41,7 +41,7 @@ const ArrowShapeTerminal = T.union('type', {
 	binding: T.object({
 		type: T.literal('binding'),
 		boundShapeId: shapeIdValidator,
-		normalizedAnchor: vec2dModelValidator,
+		normalizedAnchor: vecModelValidator,
 		isExact: T.boolean,
 		isPrecise: T.boolean,
 	}),

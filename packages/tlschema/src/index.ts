@@ -22,7 +22,7 @@ export { opacityValidator, type TLOpacityType } from './misc/TLOpacity'
 export { scribbleValidator, type TLScribble } from './misc/TLScribble'
 export {
 	box2dModelValidator,
-	vecModelValidator as vec2dModelValidator,
+	vecModelValidator,
 	type Box2dModel,
 	type VecModel,
 } from './misc/geometry-types'
