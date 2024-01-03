@@ -1,4 +1,4 @@
-import { EDGE_SCROLL_DISTANCE, EDGE_SCROLL_SPEED } from '../constants'
+import { COARSE_POINTER_WIDTH, EDGE_SCROLL_DISTANCE, EDGE_SCROLL_SPEED } from '../constants'
 import { Editor } from '../editor/Editor'
 
 /**
@@ -7,15 +7,17 @@ import { Editor } from '../editor/Editor'
  * @param dimension - The component dimension on the axis.
  * @internal
  */
-function getEdgeProximityFactor(position: number, dimension: number) {
-	if (position < 0) {
+function getEdgeProximityFactor(position: number, dimension: number, isCoarse: boolean) {
+	const dist = EDGE_SCROLL_DISTANCE
+	const pw = isCoarse ? COARSE_POINTER_WIDTH : 0 // pointer width
+	if (position - pw < 0) {
 		return 1
-	} else if (position > dimension) {
+	} else if (position + pw > dimension) {
 		return -1
-	} else if (position < EDGE_SCROLL_DISTANCE) {
-		return (EDGE_SCROLL_DISTANCE - position) / EDGE_SCROLL_DISTANCE
-	} else if (position > dimension - EDGE_SCROLL_DISTANCE) {
-		return -(EDGE_SCROLL_DISTANCE - dimension + position) / EDGE_SCROLL_DISTANCE
+	} else if (position - pw < dist) {
+		return (dist - (position - pw)) / dist
+	} else if (position + pw > dimension - dist) {
+		return -(dist - dimension + (position + pw)) / dist
 	}
 	return 0
 }
@@ -39,8 +41,9 @@ export function moveCameraWhenCloseToEdge(editor: Editor) {
 	const screenSizeFactorX = screenBounds.w < 1000 ? 0.612 : 1
 	const screenSizeFactorY = screenBounds.h < 1000 ? 0.612 : 1
 
-	const proximityFactorX = getEdgeProximityFactor(x - screenBounds.x, screenBounds.w)
-	const proximityFactorY = getEdgeProximityFactor(y - screenBounds.y, screenBounds.h)
+	const isCoarse = editor.getInstanceState().isCoarsePointer
+	const proximityFactorX = getEdgeProximityFactor(x - screenBounds.x, screenBounds.w, isCoarse)
+	const proximityFactorY = getEdgeProximityFactor(y - screenBounds.y, screenBounds.h, isCoarse)
 
 	if (proximityFactorX === 0 && proximityFactorY === 0) return
 
