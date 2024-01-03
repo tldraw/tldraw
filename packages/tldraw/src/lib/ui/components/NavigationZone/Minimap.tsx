@@ -1,6 +1,6 @@
 import {
 	ANIMATION_MEDIUM_MS,
-	Box2d,
+	Box,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
@@ -194,17 +194,17 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			const _dpr = devicePixelRatio.get() // dereference
 
 			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
-				? Box2d.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
+				? Box.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
 				: viewportPageBounds
 
 			minimap.updateContentScreenBounds()
 
 			// All shape bounds
 
-			const allShapeBounds = [] as (Box2d & { id: TLShapeId })[]
+			const allShapeBounds = [] as (Box & { id: TLShapeId })[]
 
 			shapeIdsOnCurrentPage.forEach((id) => {
-				let pageBounds = editor.getShapePageBounds(id) as Box2d & { id: TLShapeId }
+				let pageBounds = editor.getShapePageBounds(id) as Box & { id: TLShapeId }
 				if (!pageBounds) return
 
 				const pageMask = editor.getShapeMask(id)
@@ -214,7 +214,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 					if (!intersection) {
 						return
 					}
-					pageBounds = Box2d.FromPoints(intersection) as Box2d & { id: TLShapeId }
+					pageBounds = Box.FromPoints(intersection) as Box & { id: TLShapeId }
 				}
 
 				if (pageBounds) {

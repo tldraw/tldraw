@@ -1,5 +1,5 @@
 import { VecModel } from '@tldraw/tlschema'
-import { Box2d } from '../../../primitives/Box'
+import { Box } from '../../../primitives/Box'
 import { Vec } from '../../../primitives/Vec'
 import { TLResizeHandle } from '../../types/selection-types'
 import { TLBaseBoxShape } from '../BaseBoxShapeUtil'
@@ -22,7 +22,7 @@ export function resizeBox(
 		mode: TLResizeMode
 		scaleX: number
 		scaleY: number
-		initialBounds: Box2d
+		initialBounds: Box
 		initialShape: TLBaseBoxShape
 	},
 	opts = {} as ResizeBoxOptions

@@ -1,4 +1,4 @@
-import { Box2d } from '../Box'
+import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI2 } from '../utils'
@@ -29,7 +29,7 @@ export class Circle2d extends Geometry2d {
 	}
 
 	getBounds() {
-		return new Box2d(this.x, this.y, this.radius * 2, this.radius * 2)
+		return new Box(this.x, this.y, this.radius * 2, this.radius * 2)
 	}
 
 	getVertices(): Vec[] {

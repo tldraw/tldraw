@@ -1,4 +1,4 @@
-import { Box2d } from '../Box'
+import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { PI, PI2 } from '../utils'
 import { Edge2d } from './Edge2d'
@@ -94,6 +94,6 @@ export class Ellipse2d extends Geometry2d {
 	}
 
 	getBounds() {
-		return new Box2d(0, 0, this.w, this.h)
+		return new Box(0, 0, this.w, this.h)
 	}
 }

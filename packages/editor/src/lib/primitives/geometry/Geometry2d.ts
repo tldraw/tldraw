@@ -1,4 +1,4 @@
-import { Box2d } from '../Box'
+import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { pointInPolygon } from '../utils'
 
@@ -88,13 +88,13 @@ export abstract class Geometry2d {
 	}
 
 	getBounds() {
-		return Box2d.FromPoints(this.vertices)
+		return Box.FromPoints(this.vertices)
 	}
 
-	_bounds: Box2d | undefined
+	_bounds: Box | undefined
 
 	// eslint-disable-next-line no-restricted-syntax
-	get bounds(): Box2d {
+	get bounds(): Box {
 		if (!this._bounds) {
 			this._bounds = this.getBounds()
 		}

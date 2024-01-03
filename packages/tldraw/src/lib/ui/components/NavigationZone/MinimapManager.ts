@@ -1,5 +1,5 @@
 import {
-	Box2d,
+	Box,
 	Editor,
 	PI2,
 	TLInstancePresence,
@@ -22,14 +22,14 @@ export class MinimapManager {
 
 	id = uniqueId()
 	cvs: HTMLCanvasElement | null = null
-	pageBounds: (Box2d & { id: TLShapeId })[] = []
+	pageBounds: (Box & { id: TLShapeId })[] = []
 	collaborators: TLInstancePresence[] = []
 
-	canvasScreenBounds = new Box2d()
-	canvasPageBounds = new Box2d()
+	canvasScreenBounds = new Box()
+	canvasPageBounds = new Box()
 
-	contentPageBounds = new Box2d()
-	contentScreenBounds = new Box2d()
+	contentPageBounds = new Box()
+	contentScreenBounds = new Box()
 
 	originPagePoint = new Vec()
 	originPageCenter = new Vec()
@@ -224,7 +224,7 @@ export class MinimapManager {
 		// When there are many shapes, don't draw rounded rectangles;
 		// consider using the shape's size instead.
 
-		let pb: Box2d & { id: TLShapeId }
+		let pb: Box & { id: TLShapeId }
 		for (let i = 0, n = pageBounds.length; i < n; i++) {
 			pb = pageBounds[i]
 			MinimapManager.roundedRect(
@@ -248,7 +248,7 @@ export class MinimapManager {
 
 		if (this.debug) {
 			// Page bounds
-			const commonBounds = Box2d.Common(pageBounds)
+			const commonBounds = Box.Common(pageBounds)
 			const { minX, minY, width, height } = commonBounds
 			ctx.strokeStyle = 'green'
 			ctx.lineWidth = 2 / sx

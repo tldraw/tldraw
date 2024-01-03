@@ -1,6 +1,6 @@
 import {
 	ANIMATION_MEDIUM_MS,
-	Box2d,
+	Box,
 	Editor,
 	TAU,
 	TLBookmarkShape,
@@ -407,7 +407,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('duplicate-shapes', { source })
 					const ids = editor.getSelectedShapeIds()
-					const commonBounds = Box2d.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
+					const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
 					const offset = editor.getInstanceState().canMoveCamera
 						? {
 								x: commonBounds.width + 10,

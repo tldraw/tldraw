@@ -1,9 +1,9 @@
-import { Box2d } from './Box'
+import { Box } from './Box'
 import { Vec } from './Vec'
 
 describe('Box2d', () => {
 	it('Creates a box', () => {
-		const mat3 = new Box2d(0, 0, 100, 100)
+		const mat3 = new Box(0, 0, 100, 100)
 		expect(mat3).toMatchObject({
 			x: 0,
 			y: 0,
@@ -13,7 +13,7 @@ describe('Box2d', () => {
 	})
 
 	it('can have the point set with a vec2d', () => {
-		const box = new Box2d(0, 0, 100, 100)
+		const box = new Box(0, 0, 100, 100)
 
 		expect(box).toMatchObject({ x: 0, y: 0 })
 

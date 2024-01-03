@@ -1,5 +1,5 @@
 import {
-	Box2d,
+	Box,
 	GroupShapeUtil,
 	TLArrowShape,
 	TLGroupShape,
@@ -1276,7 +1276,7 @@ describe('creating new shapes', () => {
 			}
 			editor.pointerUp()
 
-			const roundToNearestTen = (vals: Box2d) => {
+			const roundToNearestTen = (vals: Box) => {
 				return {
 					x: Math.round(vals.x / 10) * 10,
 					y: Math.round(vals.y / 10) * 10,
@@ -1304,7 +1304,7 @@ describe('creating new shapes', () => {
 			}
 			editor.pointerUp()
 
-			const roundToNearestTen = (vals: Box2d) => {
+			const roundToNearestTen = (vals: Box) => {
 				return {
 					x: Math.round(vals.x / 10) * 10,
 					y: Math.round(vals.y / 10) * 10,

@@ -1,5 +1,5 @@
 import { TLArrowShape } from '@tldraw/tlschema'
-import { Box2d } from '../../../../primitives/Box'
+import { Box } from '../../../../primitives/Box'
 import { Matrix2d } from '../../../../primitives/Matrix2d'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
@@ -437,7 +437,7 @@ export function getArcBoundingBox(center: VecLike, radius: number, start: VecLik
 		maxY = Math.max(y, maxY)
 	}
 
-	return new Box2d(minX, minY, maxX - minX, maxY - minY)
+	return new Box(minX, minY, maxX - minX, maxY - minY)
 }
 
 /**

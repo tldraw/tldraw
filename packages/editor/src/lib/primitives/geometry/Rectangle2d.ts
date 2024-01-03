@@ -1,4 +1,4 @@
-import { Box2d } from '../Box'
+import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { Geometry2dOptions } from './Geometry2d'
 import { Polygon2d } from './Polygon2d'
@@ -35,6 +35,6 @@ export class Rectangle2d extends Polygon2d {
 	}
 
 	getBounds() {
-		return new Box2d(this.x, this.y, this.w, this.h)
+		return new Box(this.x, this.y, this.w, this.h)
 	}
 }

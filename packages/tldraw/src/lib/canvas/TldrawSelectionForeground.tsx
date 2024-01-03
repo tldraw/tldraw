@@ -1,5 +1,5 @@
 import {
-	Box2d,
+	Box,
 	RotateCorner,
 	TLEmbedShape,
 	TLSelectionForegroundComponent,
@@ -19,7 +19,7 @@ import { TldrawCropHandles } from './TldrawCropHandles'
 
 /** @public */
 export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
-	function TldrawSelectionForeground({ bounds, rotation }: { bounds: Box2d; rotation: number }) {
+	function TldrawSelectionForeground({ bounds, rotation }: { bounds: Box; rotation: number }) {
 		const editor = useEditor()
 		const rSvg = useRef<SVGSVGElement>(null)
 

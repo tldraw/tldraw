@@ -1,4 +1,4 @@
-import { Box2d, Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/editor'
+import { Box, Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/editor'
 
 export function getLegacyOffsetX(
 	align: TLDefaultHorizontalAlignStyle | string,
@@ -7,7 +7,7 @@ export function getLegacyOffsetX(
 	totalWidth: number
 ): number | undefined {
 	if ((align === 'start-legacy' || align === 'end-legacy') && spans.length !== 0) {
-		const spansBounds = Box2d.From(spans[0].box)
+		const spansBounds = Box.From(spans[0].box)
 		for (const { box } of spans) {
 			spansBounds.union(box)
 		}

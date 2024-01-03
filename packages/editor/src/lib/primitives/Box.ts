@@ -3,7 +3,7 @@ import { Vec, VecLike } from './Vec'
 import { PI, PI2, toPrecision } from './utils'
 
 /** @public */
-export type BoxLike = Box2dModel | Box2d
+export type BoxLike = Box2dModel | Box
 
 /** @public */
 export type SelectionEdge = 'top' | 'right' | 'bottom' | 'left'
@@ -23,7 +23,7 @@ export type RotateCorner =
 	| 'mobile_rotate'
 
 /** @public */
-export class Box2d {
+export class Box {
 	constructor(x = 0, y = 0, w = 0, h = 0) {
 		this.x = x
 		this.y = y
@@ -168,7 +168,7 @@ export class Box2d {
 		return this
 	}
 
-	setTo(B: Box2d) {
+	setTo(B: Box) {
 		this.x = B.x
 		this.y = B.y
 		this.w = B.w
@@ -184,7 +184,7 @@ export class Box2d {
 		return this
 	}
 
-	expand(A: Box2d) {
+	expand(A: Box) {
 		const minX = Math.min(this.minX, A.minX)
 		const minY = Math.min(this.minY, A.minY)
 		const maxX = Math.max(this.maxX, A.maxX)
@@ -215,7 +215,7 @@ export class Box2d {
 
 	clone() {
 		const { x, y, w, h } = this
-		return new Box2d(x, y, w, h)
+		return new Box(x, y, w, h)
 	}
 
 	translate(delta: VecLike) {
@@ -235,20 +235,20 @@ export class Box2d {
 		this.height = Math.max(1, maxY - minY)
 	}
 
-	collides(B: Box2d) {
-		return Box2d.Collides(this, B)
+	collides(B: Box) {
+		return Box.Collides(this, B)
 	}
 
-	contains(B: Box2d) {
-		return Box2d.Contains(this, B)
+	contains(B: Box) {
+		return Box.Contains(this, B)
 	}
 
-	includes(B: Box2d) {
-		return Box2d.Includes(this, B)
+	includes(B: Box) {
+		return Box.Includes(this, B)
 	}
 
 	containsPoint(V: VecLike, margin = 0) {
-		return Box2d.ContainsPoint(this, V, margin)
+		return Box.ContainsPoint(this, V, margin)
 	}
 
 	getHandlePoint(handle: SelectionCorner | SelectionEdge) {
@@ -351,11 +351,11 @@ export class Box2d {
 	}
 
 	static From(box: Box2dModel) {
-		return new Box2d(box.x, box.y, box.w, box.h)
+		return new Box(box.x, box.y, box.w, box.h)
 	}
 
 	static FromPoints(points: VecLike[]) {
-		if (points.length === 0) return new Box2d()
+		if (points.length === 0) return new Box()
 		let minX = Infinity
 		let minY = Infinity
 		let maxX = -Infinity
@@ -369,35 +369,35 @@ export class Box2d {
 			maxY = Math.max(point.y, maxY)
 		}
 
-		return new Box2d(minX, minY, maxX - minX, maxY - minY)
+		return new Box(minX, minY, maxX - minX, maxY - minY)
 	}
 
-	static Expand(A: Box2d, B: Box2d) {
+	static Expand(A: Box, B: Box) {
 		const minX = Math.min(B.minX, A.minX)
 		const minY = Math.min(B.minY, A.minY)
 		const maxX = Math.max(B.maxX, A.maxX)
 		const maxY = Math.max(B.maxY, A.maxY)
 
-		return new Box2d(minX, minY, maxX - minX, maxY - minY)
+		return new Box(minX, minY, maxX - minX, maxY - minY)
 	}
 
-	static ExpandBy(A: Box2d, n: number) {
-		return new Box2d(A.minX - n, A.minY - n, A.width + n * 2, A.height + n * 2)
+	static ExpandBy(A: Box, n: number) {
+		return new Box(A.minX - n, A.minY - n, A.width + n * 2, A.height + n * 2)
 	}
 
-	static Collides = (A: Box2d, B: Box2d) => {
+	static Collides = (A: Box, B: Box) => {
 		return !(A.maxX < B.minX || A.minX > B.maxX || A.maxY < B.minY || A.minY > B.maxY)
 	}
 
-	static Contains = (A: Box2d, B: Box2d) => {
+	static Contains = (A: Box, B: Box) => {
 		return A.minX < B.minX && A.minY < B.minY && A.maxY > B.maxY && A.maxX > B.maxX
 	}
 
-	static Includes = (A: Box2d, B: Box2d) => {
-		return Box2d.Collides(A, B) || Box2d.Contains(A, B)
+	static Includes = (A: Box, B: Box) => {
+		return Box.Collides(A, B) || Box.Contains(A, B)
 	}
 
-	static ContainsPoint = (A: Box2d, B: VecLike, margin = 0) => {
+	static ContainsPoint = (A: Box, B: VecLike, margin = 0) => {
 		return !(
 			B.x < A.minX - margin ||
 			B.y < A.minY - margin ||
@@ -406,7 +406,7 @@ export class Box2d {
 		)
 	}
 
-	static Common = (boxes: Box2d[]): Box2d => {
+	static Common = (boxes: Box[]): Box => {
 		let minX = Infinity
 		let minY = Infinity
 		let maxX = -Infinity
@@ -420,10 +420,10 @@ export class Box2d {
 			maxY = Math.max(maxY, B.maxY)
 		}
 
-		return new Box2d(minX, minY, maxX - minX, maxY - minY)
+		return new Box(minX, minY, maxX - minX, maxY - minY)
 	}
 
-	static Sides = (A: Box2d, inset = 0) => {
+	static Sides = (A: Box, inset = 0) => {
 		const { corners } = A
 		if (inset) {
 			// TODO: Inset the corners by the inset amount.
@@ -438,7 +438,7 @@ export class Box2d {
 	}
 
 	static Resize(
-		box: Box2d,
+		box: Box,
 		handle: SelectionCorner | SelectionEdge | string,
 		dx: number,
 		dy: number,
@@ -550,7 +550,7 @@ export class Box2d {
 			b0y = t
 		}
 
-		const final = new Box2d(b0x, b0y, Math.abs(b1x - b0x), Math.abs(b1y - b0y))
+		const final = new Box(b0x, b0y, Math.abs(b1x - b0x), Math.abs(b1y - b0y))
 
 		return {
 			box: final,
@@ -559,11 +559,11 @@ export class Box2d {
 		}
 	}
 
-	equals(other: Box2d | Box2dModel) {
-		return Box2d.Equals(this, other)
+	equals(other: Box | Box2dModel) {
+		return Box.Equals(this, other)
 	}
 
-	static Equals(a: Box2d | Box2dModel, b: Box2d | Box2dModel) {
+	static Equals(a: Box | Box2dModel, b: Box | Box2dModel) {
 		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
 	}
 
@@ -573,8 +573,8 @@ export class Box2d {
 		return this
 	}
 
-	static ZeroFix(other: Box2d | Box2dModel) {
-		return new Box2d(other.x, other.y, Math.max(1, other.w), Math.max(1, other.h))
+	static ZeroFix(other: Box | Box2dModel) {
+		return new Box(other.x, other.y, Math.max(1, other.w), Math.max(1, other.h))
 	}
 }
 

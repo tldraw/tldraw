@@ -1,4 +1,4 @@
-import { Box2d, PI, TLShapeId } from '@tldraw/editor'
+import { Box, PI, TLShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../test-jsx'
 
@@ -133,7 +133,7 @@ describe('when multiple shapes are selected', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'center-horizontal')
 		jest.advanceTimersByTime(1000)
 
-		const commonBounds = Box2d.Common([
+		const commonBounds = Box.Common([
 			editor.getShapePageBounds(ids.boxA)!,
 			editor.getShapePageBounds(ids.boxB)!,
 			editor.getShapePageBounds(ids.boxC)!,
@@ -172,7 +172,7 @@ describe('when multiple shapes are selected', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'left')
 		jest.advanceTimersByTime(1000)
 
-		const commonBounds = Box2d.Common([
+		const commonBounds = Box.Common([
 			editor.getShapePageBounds(ids.boxA)!,
 			editor.getShapePageBounds(ids.boxB)!,
 			editor.getShapePageBounds(ids.boxC)!,
@@ -212,7 +212,7 @@ describe('when multiple shapes are selected', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'right')
 		jest.advanceTimersByTime(1000)
 
-		const commonBounds = Box2d.Common([
+		const commonBounds = Box.Common([
 			editor.getShapePageBounds(ids.boxA)!,
 			editor.getShapePageBounds(ids.boxC)!,
 		])
@@ -245,7 +245,7 @@ describe('When shapes are parented to other shapes...', () => {
 	it('Aligns to the top left.', () => {
 		editor.setSelectedShapes([ids.boxC, ids.boxB])
 
-		const commonBoundsBefore = Box2d.Common([
+		const commonBoundsBefore = Box.Common([
 			editor.getShapePageBounds(ids.boxC)!,
 			editor.getShapePageBounds(ids.boxB)!,
 		])
@@ -255,7 +255,7 @@ describe('When shapes are parented to other shapes...', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'left')
 		jest.advanceTimersByTime(1000)
 
-		const commonBoundsAfter = Box2d.Common([
+		const commonBoundsAfter = Box.Common([
 			editor.getShapePageBounds(ids.boxC)!,
 			editor.getShapePageBounds(ids.boxB)!,
 		])
@@ -267,7 +267,7 @@ describe('When shapes are parented to other shapes...', () => {
 	it('Aligns to the bottom right.', () => {
 		editor.setSelectedShapes([ids.boxC, ids.boxB])
 
-		const commonBoundsBefore = Box2d.Common([
+		const commonBoundsBefore = Box.Common([
 			editor.getShapePageBounds(ids.boxC)!,
 			editor.getShapePageBounds(ids.boxB)!,
 		])
@@ -277,7 +277,7 @@ describe('When shapes are parented to other shapes...', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'right')
 		jest.advanceTimersByTime(1000)
 
-		const commonBoundsAfter = Box2d.Common([
+		const commonBoundsAfter = Box.Common([
 			editor.getShapePageBounds(ids.boxC)!,
 			editor.getShapePageBounds(ids.boxB)!,
 		])
@@ -333,7 +333,7 @@ describe('When shapes are parented to a rotated shape...', () => {
 	it('Aligns to the top left.', () => {
 		editor.setSelectedShapes([ids.boxC, ids.boxB])
 
-		const commonBoundsBefore = Box2d.Common([
+		const commonBoundsBefore = Box.Common([
 			editor.getShapePageBounds(ids.boxC)!,
 			editor.getShapePageBounds(ids.boxB)!,
 		])
@@ -343,7 +343,7 @@ describe('When shapes are parented to a rotated shape...', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'left')
 		jest.advanceTimersByTime(1000)
 
-		const commonBoundsAfter = Box2d.Common([
+		const commonBoundsAfter = Box.Common([
 			editor.getShapePageBounds(ids.boxC)!,
 			editor.getShapePageBounds(ids.boxB)!,
 		])
@@ -361,7 +361,7 @@ describe('When shapes are parented to a rotated shape...', () => {
 	it('Aligns to the bottom right.', () => {
 		editor.setSelectedShapes([ids.boxC, ids.boxB])
 
-		const commonBoundsBefore = Box2d.Common([
+		const commonBoundsBefore = Box.Common([
 			editor.getShapePageBounds(ids.boxC)!,
 			editor.getShapePageBounds(ids.boxB)!,
 		])
@@ -371,7 +371,7 @@ describe('When shapes are parented to a rotated shape...', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'right')
 		jest.advanceTimersByTime(1000)
 
-		const commonBoundsAfter = Box2d.Common([
+		const commonBoundsAfter = Box.Common([
 			editor.getShapePageBounds(ids.boxC)!,
 			editor.getShapePageBounds(ids.boxB)!,
 		])

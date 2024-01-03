@@ -1,5 +1,5 @@
 import { TLArrowShape } from '@tldraw/tlschema'
-import { Box2d } from '../../../../primitives/Box'
+import { Box } from '../../../../primitives/Box'
 import { Matrix2d, Matrix2dModel } from '../../../../primitives/Matrix2d'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import {
@@ -273,7 +273,7 @@ function getArrowPath(start: VecLike, end: VecLike) {
 
 /** @public */
 export function getStraightArrowBoundingBox(start: VecLike, end: VecLike) {
-	return new Box2d(
+	return new Box(
 		Math.min(start.x, end.x),
 		Math.min(start.y, end.y),
 		Math.abs(start.x - end.x),

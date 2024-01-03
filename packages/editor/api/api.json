@@ -1303,24 +1303,24 @@
         },
         {
           "kind": "Class",
-          "canonicalReference": "@tldraw/editor!Box2d:class",
+          "canonicalReference": "@tldraw/editor!Box:class",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare class Box2d "
+              "text": "export declare class Box "
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/primitives/Box.ts",
           "releaseTag": "Public",
           "isAbstract": false,
-          "name": "Box2d",
+          "name": "Box",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "Constructor",
-              "canonicalReference": "@tldraw/editor!Box2d:constructor(1)",
-              "docComment": "/**\n * Constructs a new instance of the `Box2d` class\n */\n",
+              "canonicalReference": "@tldraw/editor!Box:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `Box` class\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1399,7 +1399,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#aspectRatio:member",
+              "canonicalReference": "@tldraw/editor!Box#aspectRatio:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1429,7 +1429,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#center:member",
+              "canonicalReference": "@tldraw/editor!Box#center:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1469,7 +1469,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#clone:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#clone:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1478,8 +1478,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1501,7 +1501,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#collides:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#collides:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1510,8 +1510,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1550,7 +1550,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d.Collides:member",
+              "canonicalReference": "@tldraw/editor!Box.Collides:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1563,8 +1563,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1572,8 +1572,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1598,7 +1598,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d.Common:member",
+              "canonicalReference": "@tldraw/editor!Box.Common:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1611,8 +1611,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1620,8 +1620,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1642,7 +1642,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#contains:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#contains:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1651,8 +1651,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1691,7 +1691,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d.Contains:member",
+              "canonicalReference": "@tldraw/editor!Box.Contains:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1704,8 +1704,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1713,8 +1713,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1739,7 +1739,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#containsPoint:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#containsPoint:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1804,7 +1804,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d.ContainsPoint:member",
+              "canonicalReference": "@tldraw/editor!Box.ContainsPoint:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1817,8 +1817,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1852,7 +1852,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#corners:member",
+              "canonicalReference": "@tldraw/editor!Box#corners:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1887,7 +1887,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#equals:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#equals:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1896,8 +1896,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1945,7 +1945,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d.Equals:member(1)",
+              "canonicalReference": "@tldraw/editor!Box.Equals:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1954,8 +1954,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -1972,8 +1972,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2029,7 +2029,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#expand:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#expand:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2038,8 +2038,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2078,7 +2078,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d.Expand:member(1)",
+              "canonicalReference": "@tldraw/editor!Box.Expand:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2087,8 +2087,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2096,8 +2096,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2105,8 +2105,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2145,7 +2145,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#expandBy:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#expandBy:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2193,7 +2193,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d.ExpandBy:member(1)",
+              "canonicalReference": "@tldraw/editor!Box.ExpandBy:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2202,8 +2202,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2219,8 +2219,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2259,7 +2259,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d.From:member(1)",
+              "canonicalReference": "@tldraw/editor!Box.From:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2277,8 +2277,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2309,7 +2309,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d.FromPoints:member(1)",
+              "canonicalReference": "@tldraw/editor!Box.FromPoints:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2331,8 +2331,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2363,7 +2363,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#getHandlePoint:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#getHandlePoint:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2422,7 +2422,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#h:member",
+              "canonicalReference": "@tldraw/editor!Box#h:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2452,7 +2452,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#height:member",
+              "canonicalReference": "@tldraw/editor!Box#height:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2482,7 +2482,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#includes:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#includes:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2491,8 +2491,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2531,7 +2531,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d.Includes:member",
+              "canonicalReference": "@tldraw/editor!Box.Includes:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2544,8 +2544,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2553,8 +2553,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2579,7 +2579,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#maxX:member",
+              "canonicalReference": "@tldraw/editor!Box#maxX:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2609,7 +2609,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#maxY:member",
+              "canonicalReference": "@tldraw/editor!Box#maxY:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2639,7 +2639,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#midX:member",
+              "canonicalReference": "@tldraw/editor!Box#midX:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2669,7 +2669,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#midY:member",
+              "canonicalReference": "@tldraw/editor!Box#midY:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2699,7 +2699,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#minX:member",
+              "canonicalReference": "@tldraw/editor!Box#minX:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2729,7 +2729,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#minY:member",
+              "canonicalReference": "@tldraw/editor!Box#minY:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2759,7 +2759,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#point:member",
+              "canonicalReference": "@tldraw/editor!Box#point:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2799,7 +2799,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#resize:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#resize:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2893,7 +2893,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d.Resize:member(1)",
+              "canonicalReference": "@tldraw/editor!Box.Resize:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -2902,8 +2902,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -2961,8 +2961,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -3029,7 +3029,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#scale:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#scale:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3077,7 +3077,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#set:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#set:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3173,7 +3173,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#setTo:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#setTo:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3182,8 +3182,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -3222,7 +3222,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#sides:member",
+              "canonicalReference": "@tldraw/editor!Box#sides:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3275,7 +3275,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d.Sides:member",
+              "canonicalReference": "@tldraw/editor!Box.Sides:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3288,8 +3288,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -3323,7 +3323,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#size:member",
+              "canonicalReference": "@tldraw/editor!Box#size:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3354,7 +3354,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#snapPoints:member",
+              "canonicalReference": "@tldraw/editor!Box#snapPoints:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3389,7 +3389,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#snapToGrid:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#snapToGrid:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3437,7 +3437,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#toFixed:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#toFixed:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3468,7 +3468,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#toJson:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#toJson:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3500,7 +3500,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#translate:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#translate:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3549,7 +3549,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#union:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#union:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3598,7 +3598,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#w:member",
+              "canonicalReference": "@tldraw/editor!Box#w:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3628,7 +3628,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#width:member",
+              "canonicalReference": "@tldraw/editor!Box#width:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3658,7 +3658,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#x:member",
+              "canonicalReference": "@tldraw/editor!Box#x:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3688,7 +3688,7 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Box2d#y:member",
+              "canonicalReference": "@tldraw/editor!Box#y:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3718,7 +3718,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d#zeroFix:member(1)",
+              "canonicalReference": "@tldraw/editor!Box#zeroFix:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3749,7 +3749,7 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Box2d.ZeroFix:member(1)",
+              "canonicalReference": "@tldraw/editor!Box.ZeroFix:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -3758,8 +3758,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -3776,8 +3776,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -3820,8 +3820,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",
@@ -4093,8 +4093,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -9627,8 +9627,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -11154,8 +11154,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -11186,8 +11186,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -11258,8 +11258,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -11420,8 +11420,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -11456,8 +11456,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -12199,8 +12199,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -12337,8 +12337,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -13270,8 +13270,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -13334,8 +13334,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -18782,8 +18782,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -19185,8 +19185,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -19955,8 +19955,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -20131,8 +20131,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -20355,8 +20355,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -22211,8 +22211,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
@@ -24599,8 +24599,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -24608,8 +24608,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -26932,8 +26932,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",
@@ -29082,8 +29082,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -29475,8 +29475,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",
@@ -32862,8 +32862,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -32956,8 +32956,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2d",
-                  "canonicalReference": "@tldraw/editor!Box2d:class"
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
                 },
                 {
                   "kind": "Content",
@@ -35641,8 +35641,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",
@@ -39934,8 +39934,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",
@@ -40013,8 +40013,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",
@@ -40191,8 +40191,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",
@@ -40231,8 +40231,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",
@@ -41388,8 +41388,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2d",
-              "canonicalReference": "@tldraw/editor!Box2d:class"
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
             },
             {
               "kind": "Content",

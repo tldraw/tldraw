@@ -1,4 +1,4 @@
-import { Box2d } from './Box'
+import { Box } from './Box'
 import { pointInPolygon } from './utils'
 import { Vec, VecLike } from './Vec'
 
@@ -209,7 +209,7 @@ export function intersectCirclePolyline(c: VecLike, r: number, points: VecLike[]
  *
  * @public
  */
-export function intersectPolygonBounds(points: VecLike[], bounds: Box2d) {
+export function intersectPolygonBounds(points: VecLike[], bounds: Box) {
 	const result: VecLike[] = []
 	let segmentIntersection: VecLike[] | null
 

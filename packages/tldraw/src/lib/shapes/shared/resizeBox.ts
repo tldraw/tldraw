@@ -1,4 +1,4 @@
-import { Box2d, TLBaseBoxShape, TLResizeHandle, TLResizeMode, Vec, VecModel } from '@tldraw/editor'
+import { Box, TLBaseBoxShape, TLResizeHandle, TLResizeMode, Vec, VecModel } from '@tldraw/editor'
 
 /** @public */
 export type ResizeBoxOptions = Partial<{
@@ -17,7 +17,7 @@ export function resizeBox(
 		mode: TLResizeMode
 		scaleX: number
 		scaleY: number
-		initialBounds: Box2d
+		initialBounds: Box
 		initialShape: TLBaseBoxShape
 	},
 	opts = {} as ResizeBoxOptions

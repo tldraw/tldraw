@@ -1,5 +1,5 @@
 import {
-	Box2d,
+	Box,
 	Editor,
 	Matrix2d,
 	Matrix2dModel,
@@ -351,7 +351,7 @@ export function moveShapesToPoint({
 	editor: Editor
 	shapeSnapshots: MovingShapeSnapshot[]
 	averagePagePoint: Vec
-	initialSelectionPageBounds: Box2d
+	initialSelectionPageBounds: Box
 	initialSelectionSnapPoints: SnapPoint[]
 }) {
 	const { inputs } = editor

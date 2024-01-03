@@ -1,5 +1,5 @@
 import {
-	Box2d,
+	Box,
 	Box2dModel,
 	Editor,
 	TLDefaultHorizontalAlignStyle,
@@ -46,7 +46,7 @@ export function createTextSvgElementFromSpans(
 
 	if (spans.length === 0) return textElm
 
-	const bounds = Box2d.From(spans[0].box)
+	const bounds = Box.From(spans[0].box)
 	for (const { box } of spans) {
 		bounds.union(box)
 	}

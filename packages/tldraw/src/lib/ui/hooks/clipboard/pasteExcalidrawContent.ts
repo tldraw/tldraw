@@ -1,6 +1,6 @@
 import {
 	AssetRecordType,
-	Box2d,
+	Box,
 	Editor,
 	TLArrowShapeArrowheadStyle,
 	TLAssetId,
@@ -346,7 +346,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 	}
 
 	const rootShapes = compact(rootShapeIds.map((id) => editor.getShape(id)))
-	const bounds = Box2d.Common(rootShapes.map((s) => editor.getShapePageBounds(s)!))
+	const bounds = Box.Common(rootShapes.map((s) => editor.getShapePageBounds(s)!))
 	const viewPortCenter = editor.getViewportPageBounds().center
 	editor.updateShapes(
 		rootShapes.map((s) => {

@@ -1,4 +1,4 @@
-import { Box2d } from './Box'
+import { Box } from './Box'
 import { Vec, VecLike } from './Vec'
 
 /** @public */
@@ -396,7 +396,7 @@ export function rangeIntersection(
  * @returns Box2d
  * @public
  */
-export const getStarBounds = (sides: number, w: number, h: number): Box2d => {
+export const getStarBounds = (sides: number, w: number, h: number): Box => {
 	const step = PI2 / sides / 2
 	const rightMostIndex = Math.floor(sides / 4) * 2
 	const leftMostIndex = sides * 2 - rightMostIndex
@@ -406,7 +406,7 @@ export const getStarBounds = (sides: number, w: number, h: number): Box2d => {
 	const minX = (Math.cos(-TAU + leftMostIndex * step) * w) / 2
 	const minY = (Math.sin(-TAU + topMostIndex * step) * h) / 2
 	const maxY = (Math.sin(-TAU + bottomMostIndex * step) * h) / 2
-	return new Box2d(0, 0, maxX - minX, maxY - minY)
+	return new Box(0, 0, maxX - minX, maxY - minY)
 }
 
 /** Helper for point in polygon */
@@ -510,7 +510,7 @@ export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
  * @returns Boolean
  * @public
  */
-export function pointInBounds(A: VecLike, b: Box2d): boolean {
+export function pointInBounds(A: VecLike, b: Box): boolean {
 	return !(A.x < b.minX || A.x > b.maxX || A.y < b.minY || A.y > b.maxY)
 }
 

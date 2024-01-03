@@ -1,4 +1,4 @@
-import { Box2d } from './Box'
+import { Box } from './Box'
 import { clampRadians, TAU, toDomPrecision } from './utils'
 import { Vec, VecLike } from './Vec'
 
@@ -310,8 +310,8 @@ export class Matrix2d {
 		)
 	}
 
-	static applyToBounds(m: MatLike, box: Box2d) {
-		return new Box2d(m.e + box.minX, m.f + box.minY, box.width, box.height)
+	static applyToBounds(m: MatLike, box: Box) {
+		return new Box(m.e + box.minX, m.f + box.minY, box.width, box.height)
 	}
 
 	static From(m: MatLike) {

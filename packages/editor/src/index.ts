@@ -259,7 +259,7 @@ export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export {
-	Box2d,
+	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	rotateSelectionHandle,
 	type BoxLike,

@@ -1,5 +1,5 @@
 import {
-	Box2d,
+	Box,
 	TLEditorComponents,
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
@@ -73,7 +73,7 @@ function ScreenshotBox() {
 				editor.pageToScreen({ x: box.x, y: box.y }),
 				editor.getViewportScreenBounds()
 			)
-			return new Box2d(x, y, box.w * zoomLevel, box.h * zoomLevel)
+			return new Box(x, y, box.w * zoomLevel, box.h * zoomLevel)
 		},
 		[editor]
 	)

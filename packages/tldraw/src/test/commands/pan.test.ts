@@ -1,4 +1,4 @@
-import { Box2d, Vec } from '@tldraw/editor'
+import { Box, Vec } from '@tldraw/editor'
 import { TestEditor, createDefaultShapes } from '../TestEditor'
 
 let editor: TestEditor
@@ -16,7 +16,7 @@ describe('When panning', () => {
 
 	it('Updates the pageBounds', () => {
 		const screenBounds = editor.getViewportScreenBounds()
-		const beforeScreenBounds = new Box2d(
+		const beforeScreenBounds = new Box(
 			screenBounds.x,
 			screenBounds.y,
 			screenBounds.w,

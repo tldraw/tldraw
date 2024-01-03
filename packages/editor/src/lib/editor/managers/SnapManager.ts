@@ -2,7 +2,7 @@ import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
 import { TLGroupShape, TLParentId, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { dedupe, deepCopy } from '@tldraw/utils'
 import {
-	Box2d,
+	Box,
 	flipSelectionHandleX,
 	flipSelectionHandleY,
 	isSelectionCorner,
@@ -82,7 +82,7 @@ type NearestSnap =
 
 type GapNode = {
 	id: TLShapeId
-	pageBounds: Box2d
+	pageBounds: Box
 	isClosed: boolean
 }
 
@@ -410,7 +410,7 @@ export class SnapManager {
 	}: {
 		lockedAxis: 'x' | 'y' | null
 		initialSelectionSnapPoints: SnapPoint[]
-		initialSelectionPageBounds: Box2d
+		initialSelectionPageBounds: Box
 		dragDelta: Vec
 	}): SnapData {
 		const snapThreshold = this.getSnapThreshold()
@@ -561,7 +561,7 @@ export class SnapManager {
 		isResizingFromCenter,
 	}: {
 		// the page bounds when the pointer went down, before any dragging
-		initialSelectionPageBounds: Box2d
+		initialSelectionPageBounds: Box
 		// how far the pointer has been dragged
 		dragDelta: Vec
 
@@ -576,7 +576,7 @@ export class SnapManager {
 			box: unsnappedResizedPageBounds,
 			scaleX,
 			scaleY,
-		} = Box2d.Resize(
+		} = Box.Resize(
 			initialSelectionPageBounds,
 			originalHandle,
 			isResizingFromCenter ? dragDelta.x * 2 : dragDelta.x,
@@ -660,7 +660,7 @@ export class SnapManager {
 		const snappedDelta = Vec.Add(dragDelta, nudge)
 
 		// first figure out the new bounds of the selection
-		const { box: snappedResizedPageBounds } = Box2d.Resize(
+		const { box: snappedResizedPageBounds } = Box.Resize(
 			initialSelectionPageBounds,
 			originalHandle,
 			isResizingFromCenter ? snappedDelta.x * 2 : snappedDelta.x,
@@ -756,7 +756,7 @@ export class SnapManager {
 		nearestSnapsX,
 		nearestSnapsY,
 	}: {
-		selectionPageBounds: Box2d
+		selectionPageBounds: Box
 		minOffset: Vec
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
@@ -1091,7 +1091,7 @@ export class SnapManager {
 		nearestSnapsX,
 		nearestSnapsY,
 	}: {
-		selectionPageBounds: Box2d
+		selectionPageBounds: Box
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
 	}): GapsSnapLine[] {
@@ -1320,7 +1320,7 @@ export class SnapManager {
 
 function getResizeSnapPointsForHandle(
 	handle: SelectionCorner | SelectionEdge | 'any',
-	selectionPageBounds: Box2d
+	selectionPageBounds: Box
 ): SnapPoint[] {
 	const { minX, maxX, minY, maxY } = selectionPageBounds
 	const result: SnapPoint[] = []
