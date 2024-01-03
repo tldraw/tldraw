@@ -1,6 +1,6 @@
 import { generateNKeysBetween } from './dgreensp'
 
-const generateKeyBetween = (a?: string, b?: string) => generateNKeysBetween(a, b, 1)
+const generateKeyBetween = (a?: string, b?: string) => generateNKeysBetween(a, b, 1)[0]
 
 describe('get order between', () => {
 	it('passes tests', () => {
