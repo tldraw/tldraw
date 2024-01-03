@@ -24381,7 +24381,7 @@
               "text": "export declare class Matrix2d "
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Matrix2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Mat.ts",
           "releaseTag": "Public",
           "isAbstract": false,
           "name": "Matrix2d",
@@ -26528,7 +26528,7 @@
               "text": "export interface Matrix2dModel "
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/Matrix2d.ts",
+          "fileUrlPath": "packages/editor/src/lib/primitives/Mat.ts",
           "releaseTag": "Public",
           "name": "Matrix2dModel",
           "preserveMemberOrder": false,

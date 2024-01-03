@@ -77,7 +77,7 @@ import {
 	ZOOMS,
 } from '../constants'
 import { Box } from '../primitives/Box'
-import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
+import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'

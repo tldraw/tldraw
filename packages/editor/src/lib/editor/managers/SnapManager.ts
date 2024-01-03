@@ -9,7 +9,7 @@ import {
 	SelectionCorner,
 	SelectionEdge,
 } from '../../primitives/Box'
-import { Matrix2d } from '../../primitives/Matrix2d'
+import { Matrix2d } from '../../primitives/Mat'
 import { rangeIntersection, rangesOverlap } from '../../primitives/utils'
 import { Vec, VecLike } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'

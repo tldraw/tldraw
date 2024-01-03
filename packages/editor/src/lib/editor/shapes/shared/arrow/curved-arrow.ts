@@ -1,6 +1,6 @@
 import { TLArrowShape } from '@tldraw/tlschema'
 import { Box } from '../../../../primitives/Box'
-import { Matrix2d } from '../../../../primitives/Matrix2d'
+import { Matrix2d } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
 import {

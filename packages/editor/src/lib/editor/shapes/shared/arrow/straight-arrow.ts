@@ -1,6 +1,6 @@
 import { TLArrowShape } from '@tldraw/tlschema'
 import { Box } from '../../../../primitives/Box'
-import { Matrix2d, Matrix2dModel } from '../../../../primitives/Matrix2d'
+import { Matrix2d, Matrix2dModel } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import {
 	intersectLineSegmentPolygon,

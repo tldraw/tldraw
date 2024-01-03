@@ -1,7 +1,7 @@
 import { isShapeId, TLShape, TLShapePartial } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
-import { Matrix2d } from '../primitives/Matrix2d'
+import { Matrix2d } from '../primitives/Mat'
 import { canonicalizeRotation } from '../primitives/utils'
 import { Vec } from '../primitives/Vec'
 

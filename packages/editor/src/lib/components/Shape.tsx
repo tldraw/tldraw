@@ -5,7 +5,7 @@ import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { nearestMultiple } from '../hooks/useDPRMultiple'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
-import { Matrix2d } from '../primitives/Matrix2d'
+import { Matrix2d } from '../primitives/Mat'
 import { toDomPrecision } from '../primitives/utils'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 

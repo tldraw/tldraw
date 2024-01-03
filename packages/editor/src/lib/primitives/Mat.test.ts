@@ -1,4 +1,4 @@
-import { Matrix2d } from './Matrix2d'
+import { Matrix2d } from './Mat'
 
 describe('Matrix2d', () => {
 	it('Creates a matrix', () => {
