@@ -145,6 +145,15 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export type {
+	TLAfterChangeHandler,
+	TLAfterCreateHandler,
+	TLAfterDeleteHandler,
+	TLBatchCompleteHandler,
+	TLBeforeChangeHandler,
+	TLBeforeCreateHandler,
+	TLBeforeDeleteHandler,
+} from './lib/editor/managers/SideEffectManager'
 export {
 	SnapManager,
 	type GapsSnapLine,
@@ -181,16 +190,12 @@ export {
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export { getArrowheadPathForType } from './lib/editor/shapes/shared/arrow/arrowheads'
 export {
-	getCurvedArrowHandlePath,
-	getSolidCurvedArrowPath,
-} from './lib/editor/shapes/shared/arrow/curved-arrow'
+	type TLArcInfo,
+	type TLArrowInfo,
+	type TLArrowPoint,
+} from './lib/editor/shapes/shared/arrow/arrow-types'
 export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/shared'
-export {
-	getSolidStraightArrowPath,
-	getStraightArrowHandlePath,
-} from './lib/editor/shapes/shared/arrow/straight-arrow'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
@@ -284,8 +289,14 @@ export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
 export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
 export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
 export {
+	intersectCircleCircle,
+	intersectCirclePolygon,
+	intersectCirclePolyline,
+	intersectLineSegmentCircle,
+	intersectLineSegmentLineSegment,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
+	intersectPolygonBounds,
 	intersectPolygonPolygon,
 	linesIntersect,
 	polygonsIntersect,

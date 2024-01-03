@@ -26,12 +26,7 @@ import {
 	arrowShapeProps,
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
-	getArrowheadPathForType,
-	getCurvedArrowHandlePath,
 	getDefaultColorTheme,
-	getSolidCurvedArrowPath,
-	getSolidStraightArrowPath,
-	getStraightArrowHandlePath,
 	toDomPrecision,
 	useIsEditing,
 } from '@tldraw/editor'
@@ -50,6 +45,13 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { getArrowheadPathForType } from './arrowheads'
+import {
+	getCurvedArrowHandlePath,
+	getSolidCurvedArrowPath,
+	getSolidStraightArrowPath,
+	getStraightArrowHandlePath,
+} from './arrowpaths'
 import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0

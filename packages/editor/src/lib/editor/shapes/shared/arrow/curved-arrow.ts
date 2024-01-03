@@ -360,36 +360,6 @@ export function getCurvedArrowInfo(
 }
 
 /**
- * Get a solid path for a curved arrow's handles.
- *
- * @param info - The arrow info.
- * @public
- */
-export function getCurvedArrowHandlePath(info: TLArrowInfo & { isStraight: false }) {
-	const {
-		start,
-		end,
-		handleArc: { radius, largeArcFlag, sweepFlag },
-	} = info
-	return `M${start.handle.x},${start.handle.y} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.handle.x},${end.handle.y}`
-}
-
-/**
- * Get a solid path for a curved arrow's body.
- *
- * @param info - The arrow info.
- * @public
- */
-export function getSolidCurvedArrowPath(info: TLArrowInfo & { isStraight: false }) {
-	const {
-		start,
-		end,
-		bodyArc: { radius, largeArcFlag, sweepFlag },
-	} = info
-	return `M${start.point.x},${start.point.y} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.point.x},${end.point.y}`
-}
-
-/**
  * Get a point along an arc.
  *
  * @param center - The arc's center.

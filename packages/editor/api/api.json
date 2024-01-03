@@ -8981,7 +8981,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLArrowInfo",
-                  "canonicalReference": "@tldraw/editor!~TLArrowInfo:type"
+                  "canonicalReference": "@tldraw/editor!TLArrowInfo:type"
                 },
                 {
                   "kind": "Content",
@@ -20899,84 +20899,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/editor!getArrowheadPathForType:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getArrowheadPathForType(info: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLArrowInfo",
-              "canonicalReference": "@tldraw/editor!~TLArrowInfo:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", side: "
-            },
-            {
-              "kind": "Content",
-              "text": "'end' | 'start'"
-            },
-            {
-              "kind": "Content",
-              "text": ", strokeWidth: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "string | undefined"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/shared/arrow/arrowheads.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 8
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "info",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "side",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "strokeWidth",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getArrowheadPathForType"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "@tldraw/editor!getArrowTerminalsInArrowSpace:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -21133,56 +21055,6 @@
             }
           ],
           "name": "getCursor"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!getCurvedArrowHandlePath:function(1)",
-          "docComment": "/**\n * Get a solid path for a curved arrow's handles.\n *\n * @param info - The arrow info.\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getCurvedArrowHandlePath(info: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLArrowInfo",
-              "canonicalReference": "@tldraw/editor!~TLArrowInfo:type"
-            },
-            {
-              "kind": "Content",
-              "text": " & {\n    isStraight: false;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/shared/arrow/curved-arrow.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 4,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "info",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getCurvedArrowHandlePath"
         },
         {
           "kind": "Function",
@@ -21915,156 +21787,6 @@
             }
           ],
           "name": "getPolygonVertices"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!getSolidCurvedArrowPath:function(1)",
-          "docComment": "/**\n * Get a solid path for a curved arrow's body.\n *\n * @param info - The arrow info.\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getSolidCurvedArrowPath(info: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLArrowInfo",
-              "canonicalReference": "@tldraw/editor!~TLArrowInfo:type"
-            },
-            {
-              "kind": "Content",
-              "text": " & {\n    isStraight: false;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/shared/arrow/curved-arrow.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 4,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "info",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getSolidCurvedArrowPath"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!getSolidStraightArrowPath:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getSolidStraightArrowPath(info: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLArrowInfo",
-              "canonicalReference": "@tldraw/editor!~TLArrowInfo:type"
-            },
-            {
-              "kind": "Content",
-              "text": " & {\n    isStraight: true;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/shared/arrow/straight-arrow.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 4,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "info",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getSolidStraightArrowPath"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!getStraightArrowHandlePath:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getStraightArrowHandlePath(info: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLArrowInfo",
-              "canonicalReference": "@tldraw/editor!~TLArrowInfo:type"
-            },
-            {
-              "kind": "Content",
-              "text": " & {\n    isStraight: true;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/shared/arrow/straight-arrow.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 4,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "info",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getStraightArrowHandlePath"
         },
         {
           "kind": "Function",
@@ -23351,6 +23073,497 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/editor!intersectCircleCircle:function(1)",
+          "docComment": "/**\n * Find the intersections between a circle and a circle.\n *\n * @param c1 - The first circle's center.\n *\n * @param r1 - The first circle's radius.\n *\n * @param c2 - The second circle's center.\n *\n * @param r2 - The second circle's radius.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function intersectCircleCircle(c1: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", r1: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ", c2: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", r2: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Vec",
+              "canonicalReference": "@tldraw/editor!Vec:class"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 9,
+            "endIndex": 11
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "c1",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "r1",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "c2",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "r2",
+              "parameterTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "intersectCircleCircle"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!intersectCirclePolygon:function(1)",
+          "docComment": "/**\n * Find the intersections between a circle and a bounding box.\n *\n * @param c - The circle's center.\n *\n * @param r - The circle's radius.\n *\n * @param points - The points in the polygon.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function intersectCirclePolygon(c: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", r: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ", points: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 8,
+            "endIndex": 11
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "c",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "r",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "points",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "intersectCirclePolygon"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!intersectCirclePolyline:function(1)",
+          "docComment": "/**\n * Find the intersections between a circle and a bounding box.\n *\n * @param c - The circle's center.\n *\n * @param r - The circle's radius.\n *\n * @param points - The points in the polyline.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function intersectCirclePolyline(c: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", r: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ", points: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 8,
+            "endIndex": 11
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "c",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "r",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "points",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "intersectCirclePolyline"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!intersectLineSegmentCircle:function(1)",
+          "docComment": "/**\n * Find the intersections between a line segment and a circle.\n *\n * @param a1 - The segment's first point.\n *\n * @param a2 - The segment's second point.\n *\n * @param c - The circle's center.\n *\n * @param r - The circle's radius.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function intersectLineSegmentCircle(a1: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", a2: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", c: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", r: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 9,
+            "endIndex": 12
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "a1",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "a2",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "c",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "r",
+              "parameterTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "intersectLineSegmentCircle"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!intersectLineSegmentLineSegment:function(1)",
+          "docComment": "/**\n * Find the intersection between a line segment and a line segment.\n *\n * @param a1 - The first segment's first point.\n *\n * @param a2 - The first segment's second point.\n *\n * @param b1 - The second segment's first point.\n *\n * @param b2 - The second segment's second point.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function intersectLineSegmentLineSegment(a1: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", a2: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", b1: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", b2: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Vec",
+              "canonicalReference": "@tldraw/editor!Vec:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 9,
+            "endIndex": 11
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "a1",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "a2",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "b1",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "b2",
+              "parameterTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "intersectLineSegmentLineSegment"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/editor!intersectLineSegmentPolygon:function(1)",
           "docComment": "/**\n * Find the intersections between a line segment and a closed polygon.\n *\n * @param a1 - The segment's first point.\n *\n * @param a2 - The segment's second point.\n *\n * @param points - The points in the polygon.\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -23534,6 +23747,82 @@
             }
           ],
           "name": "intersectLineSegmentPolyline"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!intersectPolygonBounds:function(1)",
+          "docComment": "/**\n * Find the intersections between a polygon and a bounding box.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function intersectPolygonBounds(points: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", bounds: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 6,
+            "endIndex": 9
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "points",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "bounds",
+              "parameterTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 5
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "intersectPolygonBounds"
         },
         {
           "kind": "Function",
@@ -34089,6 +34378,150 @@
         },
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLAfterChangeHandler:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLAfterChangeHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLRecord",
+              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(prev: R, next: R, source: 'remote' | 'user') => void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "TLAfterChangeHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLAfterCreateHandler:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLAfterCreateHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLRecord",
+              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(record: R, source: 'remote' | 'user') => void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "TLAfterCreateHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLAfterDeleteHandler:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLAfterDeleteHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLRecord",
+              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(record: R, source: 'remote' | 'user') => void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "TLAfterDeleteHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLAnimationOptions:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -34147,6 +34580,338 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/editor!TLArcInfo:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface TLArcInfo "
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/shapes/shared/arrow/arrow-types.ts",
+          "releaseTag": "Public",
+          "name": "TLArcInfo",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLArcInfo#center:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "center: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "center",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLArcInfo#largeArcFlag:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "largeArcFlag: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "largeArcFlag",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLArcInfo#length:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "length: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "length",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLArcInfo#radius:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "radius: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "radius",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLArcInfo#size:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "size: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "size",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLArcInfo#sweepFlag:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "sweepFlag: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "sweepFlag",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLArrowInfo:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLArrowInfo = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    isStraight: false;\n    start: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLArrowPoint",
+              "canonicalReference": "@tldraw/editor!TLArrowPoint:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    end: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLArrowPoint",
+              "canonicalReference": "@tldraw/editor!TLArrowPoint:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    middle: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    handleArc: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLArcInfo",
+              "canonicalReference": "@tldraw/editor!TLArcInfo:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    bodyArc: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLArcInfo",
+              "canonicalReference": "@tldraw/editor!TLArcInfo:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    isValid: boolean;\n} | {\n    isStraight: true;\n    start: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLArrowPoint",
+              "canonicalReference": "@tldraw/editor!TLArrowPoint:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    end: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLArrowPoint",
+              "canonicalReference": "@tldraw/editor!TLArrowPoint:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    middle: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    isValid: boolean;\n    length: number;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/shapes/shared/arrow/arrow-types.ts",
+          "releaseTag": "Public",
+          "name": "TLArrowInfo",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 18
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLArrowPoint:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLArrowPoint = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    handle: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    point: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    arrowhead: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLArrowShapeArrowheadStyle",
+              "canonicalReference": "@tldraw/tlschema!TLArrowShapeArrowheadStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/shapes/shared/arrow/arrow-types.ts",
+          "releaseTag": "Public",
+          "name": "TLArrowPoint",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 8
           }
         },
         {
@@ -34333,6 +35098,176 @@
             }
           ],
           "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLBatchCompleteHandler:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBatchCompleteHandler = "
+            },
+            {
+              "kind": "Content",
+              "text": "() => void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "TLBatchCompleteHandler",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLBeforeChangeHandler:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBeforeChangeHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLRecord",
+              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(prev: R, next: R, source: 'remote' | 'user') => R"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "TLBeforeChangeHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLBeforeCreateHandler:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBeforeCreateHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLRecord",
+              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(record: R, source: 'remote' | 'user') => R"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "TLBeforeCreateHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLBeforeDeleteHandler:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLBeforeDeleteHandler<R extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLRecord",
+              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(record: R, source: 'remote' | 'user') => false | void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SideEffectManager.ts",
+          "releaseTag": "Public",
+          "name": "TLBeforeDeleteHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "R",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          }
         },
         {
           "kind": "TypeAlias",

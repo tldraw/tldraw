@@ -258,20 +258,6 @@ function updateArrowheadPointWithBoundShape(
 }
 
 /** @public */
-export function getStraightArrowHandlePath(info: TLArrowInfo & { isStraight: true }) {
-	return getArrowPath(info.start.handle, info.end.handle)
-}
-
-/** @public */
-export function getSolidStraightArrowPath(info: TLArrowInfo & { isStraight: true }) {
-	return getArrowPath(info.start.point, info.end.point)
-}
-
-function getArrowPath(start: VecLike, end: VecLike) {
-	return `M${start.x},${start.y}L${end.x},${end.y}`
-}
-
-/** @public */
 export function getStraightArrowBoundingBox(start: VecLike, end: VecLike) {
 	return new Box(
 		Math.min(start.x, end.x),

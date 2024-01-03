@@ -1026,9 +1026,6 @@ export abstract class Geometry2d {
 }
 
 // @public (undocumented)
-export function getArrowheadPathForType(info: TLArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;
-
-// @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
     start: Vec;
     end: Vec;
@@ -1036,11 +1033,6 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
-
-// @public
-export function getCurvedArrowHandlePath(info: TLArrowInfo & {
-    isStraight: false;
-}): string;
 
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
@@ -1094,21 +1086,6 @@ export function getPolygonVertices(width: number, height: number, sides: number)
 export function getRotationSnapshot({ editor }: {
     editor: Editor;
 }): null | TLRotationSnapshot;
-
-// @public
-export function getSolidCurvedArrowPath(info: TLArrowInfo & {
-    isStraight: false;
-}): string;
-
-// @public (undocumented)
-export function getSolidStraightArrowPath(info: TLArrowInfo & {
-    isStraight: true;
-}): string;
-
-// @public (undocumented)
-export function getStraightArrowHandlePath(info: TLArrowInfo & {
-    isStraight: true;
-}): string;
 
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
@@ -1194,10 +1171,28 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
 // @public
+export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
+
+// @public
+export function intersectCirclePolygon(c: VecLike, r: number, points: VecLike[]): null | VecLike[];
+
+// @public
+export function intersectCirclePolyline(c: VecLike, r: number, points: VecLike[]): null | VecLike[];
+
+// @public
+export function intersectLineSegmentCircle(a1: VecLike, a2: VecLike, c: VecLike, r: number): null | VecLike[];
+
+// @public
+export function intersectLineSegmentLineSegment(a1: VecLike, a2: VecLike, b1: VecLike, b2: VecLike): null | Vec;
+
+// @public
 export function intersectLineSegmentPolygon(a1: VecLike, a2: VecLike, points: VecLike[]): null | VecLike[];
 
 // @public
 export function intersectLineSegmentPolyline(a1: VecLike, a2: VecLike, points: VecLike[]): null | VecLike[];
+
+// @public
+export function intersectPolygonBounds(points: VecLike[], bounds: Box): null | VecLike[];
 
 // @public
 export function intersectPolygonPolygon(polygonA: VecLike[], polygonB: VecLike[]): null | VecLike[];
@@ -1851,6 +1846,15 @@ export interface SvgExportDef {
 export const TAB_ID: string;
 
 // @public (undocumented)
+export type TLAfterChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;
+
+// @public (undocumented)
+export type TLAfterCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
+
+// @public (undocumented)
+export type TLAfterDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
+
+// @public (undocumented)
 export type TLAnimationOptions = Partial<{
     duration: number;
     easing: (t: number) => number;
@@ -1858,6 +1862,47 @@ export type TLAnimationOptions = Partial<{
 
 // @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
+
+// @public (undocumented)
+export interface TLArcInfo {
+    // (undocumented)
+    center: VecLike;
+    // (undocumented)
+    largeArcFlag: number;
+    // (undocumented)
+    length: number;
+    // (undocumented)
+    radius: number;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    sweepFlag: number;
+}
+
+// @public (undocumented)
+export type TLArrowInfo = {
+    isStraight: false;
+    start: TLArrowPoint;
+    end: TLArrowPoint;
+    middle: VecLike;
+    handleArc: TLArcInfo;
+    bodyArc: TLArcInfo;
+    isValid: boolean;
+} | {
+    isStraight: true;
+    start: TLArrowPoint;
+    end: TLArrowPoint;
+    middle: VecLike;
+    isValid: boolean;
+    length: number;
+};
+
+// @public (undocumented)
+export type TLArrowPoint = {
+    handle: VecLike;
+    point: VecLike;
+    arrowhead: TLArrowShapeArrowheadStyle;
+};
 
 // @public (undocumented)
 export type TLBackgroundComponent = ComponentType;
@@ -1879,6 +1924,18 @@ export interface TLBaseEventInfo {
     // (undocumented)
     type: UiEventType;
 }
+
+// @public (undocumented)
+export type TLBatchCompleteHandler = () => void;
+
+// @public (undocumented)
+export type TLBeforeChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => R;
+
+// @public (undocumented)
+export type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => R;
+
+// @public (undocumented)
+export type TLBeforeDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => false | void;
 
 // @public (undocumented)
 export type TLBrushComponent = ComponentType<{
