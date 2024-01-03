@@ -382,11 +382,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				if (recordAtom) {
-					if (beforeUpdate) record = beforeUpdate(recordAtom.get(), record, source)
-
 					// If we already have an atom for this record, update its value.
-
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
+
+					// If we have a beforeUpdate callback, run it against the initial and next records
+					if (beforeUpdate) record = beforeUpdate(initialValue, record, source)
 
 					// Validate the record
 					record = this.schema.validateRecord(
@@ -402,6 +402,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					const finalValue = recordAtom.__unsafe__getWithoutCapture()
 
 					// If the value has changed, assign it to updates.
+					// todo: is this always going to be true?
 					if (initialValue !== finalValue) {
 						didChange = true
 						updates[record.id] = [initialValue, finalValue]
