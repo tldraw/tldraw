@@ -158,22 +158,22 @@ export class Mat {
 		const cosAngle = Math.cos(r)
 		const sinAngle = Math.sin(r)
 
-		const rotationMatrix2d = new Mat(cosAngle, sinAngle, -sinAngle, cosAngle, 0.0, 0.0)
+		const rotationMatrix = new Mat(cosAngle, sinAngle, -sinAngle, cosAngle, 0.0, 0.0)
 
-		if (cx === undefined) return rotationMatrix2d
+		if (cx === undefined) return rotationMatrix
 
-		return Mat.Compose(Mat.Translate(cx, cy!), rotationMatrix2d, Mat.Translate(-cx, -cy!))
+		return Mat.Compose(Mat.Translate(cx, cy!), rotationMatrix, Mat.Translate(-cx, -cy!))
 	}
 
 	static Scale: {
 		(x: number, y: number): MatModel
 		(x: number, y: number, cx: number, cy: number): MatModel
 	} = (x: number, y: number, cx?: number, cy?: number) => {
-		const scaleMatrix2d = new Mat(x, 0, 0, y, 0, 0)
+		const scaleMatrix = new Mat(x, 0, 0, y, 0, 0)
 
-		if (cx === undefined) return scaleMatrix2d
+		if (cx === undefined) return scaleMatrix
 
-		return Mat.Compose(Mat.Translate(cx, cy!), scaleMatrix2d, Mat.Translate(-cx, -cy!))
+		return Mat.Compose(Mat.Translate(cx, cy!), scaleMatrix, Mat.Translate(-cx, -cy!))
 	}
 
 	static Multiply(m1: MatModel, m2: MatModel): MatModel {
@@ -316,7 +316,7 @@ export class Mat {
 }
 
 /** @public */
-export function decomposeMatrix2d(m: MatLike) {
+export function decomposeMatrix(m: MatLike) {
 	return {
 		x: m.e,
 		y: m.f,

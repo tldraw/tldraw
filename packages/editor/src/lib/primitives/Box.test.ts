@@ -1,7 +1,7 @@
 import { Box } from './Box'
 import { Vec } from './Vec'
 
-describe('Box2d', () => {
+describe('Box', () => {
 	it('Creates a box', () => {
 		const mat3 = new Box(0, 0, 100, 100)
 		expect(mat3).toMatchObject({

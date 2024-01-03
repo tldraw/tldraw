@@ -1,6 +1,6 @@
 import { Mat } from './Mat'
 
-describe('Matrix2d', () => {
+describe('Mat', () => {
 	it('Creates a matrix', () => {
 		const mat3 = new Mat(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 		expect(mat3).toMatchObject(Mat.Identity())

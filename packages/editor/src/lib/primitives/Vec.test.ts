@@ -9,14 +9,14 @@ describe('iteratable', () => {
 	})
 })
 
-describe('Vec2d.Clamp', () => {
+describe('Vec.Clamp', () => {
 	it('Clamps a vector between a range.', () => {
 		expect(Vec.Clamp(new Vec(9, 5), 7, 10)).toMatchObject(new Vec(9, 7))
 		expect(Vec.Clamp(new Vec(-9, 5), 0, 10)).toMatchObject(new Vec(0, 5))
 	})
 })
 
-describe('Vec2d.Clamp', () => {
+describe('Vec.Clamp', () => {
 	it('Clamps a vector between a range.', () => {
 		expect(Vec.Clamp(new Vec(9, 5), 7, 10)).toMatchObject(new Vec(9, 7))
 		expect(Vec.Clamp(new Vec(-9, 5), 0, 10)).toMatchObject(new Vec(0, 5))
@@ -27,77 +27,77 @@ describe('Vec2d.Clamp', () => {
 	})
 })
 
-describe('Vec2d.Neg', () => {
+describe('Vec.Neg', () => {
 	it('Negates a vector.', () => {
 		expect(Vec.Neg(new Vec(9, 5))).toMatchObject(new Vec(-9, -5))
 		expect(Vec.Neg(new Vec(-9, 0))).toMatchObject(new Vec(9, -0))
 	})
 })
 
-describe('Vec2d.Add', () => {
+describe('Vec.Add', () => {
 	it('Adds two vectors.', () => {
 		expect(Vec.Add(new Vec(9, 5), new Vec(2, 1))).toMatchObject(new Vec(11, 6))
 		expect(Vec.Add(new Vec(-9, 5), new Vec(2, -1))).toMatchObject(new Vec(-7, 4))
 	})
 })
 
-describe('Vec2d.AddScalar', () => {
+describe('Vec.AddScalar', () => {
 	it('Adds a scalar to a vector.', () => {
 		expect(Vec.AddScalar(new Vec(9, 5), 2)).toMatchObject(new Vec(11, 7))
 		expect(Vec.AddScalar(new Vec(-9, 5), 2)).toMatchObject(new Vec(-7, 7))
 	})
 })
 
-describe('Vec2d.Sub', () => {
+describe('Vec.Sub', () => {
 	it('Subtracts two vectors.', () => {
 		expect(Vec.Sub(new Vec(9, 5), new Vec(2, 1))).toMatchObject(new Vec(7, 4))
 		expect(Vec.Sub(new Vec(-9, 5), new Vec(2, -1))).toMatchObject(new Vec(-11, 6))
 	})
 })
 
-describe('Vec2d.SubScalar', () => {
+describe('Vec.SubScalar', () => {
 	it('Subtracts a scalar from a vector.', () => {
 		expect(Vec.SubScalar(new Vec(9, 5), 2)).toMatchObject(new Vec(7, 3))
 		expect(Vec.SubScalar(new Vec(-9, 5), 2)).toMatchObject(new Vec(-11, 3))
 	})
 })
 
-describe('Vec2d.Mul', () => {
+describe('Vec.Mul', () => {
 	it('Get a vector multiplied by a scalar.', () => {
 		expect(Vec.Mul(new Vec(9, 9), 3)).toMatchObject(new Vec(27, 27))
 		expect(Vec.Mul(new Vec(10, 10), 2)).toMatchObject(new Vec(20, 20))
 	})
 })
 
-describe('Vec2d.DivV', () => {
+describe('Vec.DivV', () => {
 	it('Get a vector multiplied by a vector.', () => {
 		expect(Vec.MulV(new Vec(16, 12), new Vec(2, 4))).toMatchObject(new Vec(32, 48))
 		expect(Vec.MulV(new Vec(5, 15), new Vec(5, 3))).toMatchObject(new Vec(25, 45))
 	})
 })
 
-describe('Vec2d.Div', () => {
+describe('Vec.Div', () => {
 	it('Get a vector divided by a scalar.', () => {
 		expect(Vec.Div(new Vec(9, 9), 3)).toMatchObject(new Vec(3, 3))
 		expect(Vec.Div(new Vec(10, 10), 2)).toMatchObject(new Vec(5, 5))
 	})
 })
 
-describe('Vec2d.DivV', () => {
+describe('Vec.DivV', () => {
 	it('Get a vector divided by a vector.', () => {
 		expect(Vec.DivV(new Vec(16, 12), new Vec(2, 4))).toMatchObject(new Vec(8, 3))
 		expect(Vec.DivV(new Vec(5, 15), new Vec(5, 3))).toMatchObject(new Vec(1, 5))
 	})
 })
 
-describe('Vec2d.Per', () => {
+describe('Vec.Per', () => {
 	it('Gets the perpendicular rotation of a vector.', () => {
 		expect(Vec.Per(new Vec(1, -1))).toMatchObject(new Vec(-1, -1))
 		expect(Vec.Per(new Vec(-1, 1))).toMatchObject(new Vec(1, 1))
 	})
 })
 
-describe('Vec2d.Dpr', () => {
+describe('Vec.Dpr', () => {
 	it('Gets the dot product of two vectors.', () => {
 		expect(Vec.Dpr(new Vec(1, 0), new Vec(1, 0))).toEqual(1)
 		expect(Vec.Dpr(new Vec(1, 0), new Vec(0, 0))).toEqual(0)
@@ -105,7 +105,7 @@ describe('Vec2d.Dpr', () => {
 	})
 })
 
-describe('Vec2d.Cpr', () => {
+describe('Vec.Cpr', () => {
 	it('Gets the cross product (outer product) of two vectors.', () => {
 		expect(Vec.Cpr(new Vec(0, 1), new Vec(1, 1))).toEqual(-1)
 		expect(Vec.Cpr(new Vec(1, 1), new Vec(1, 1))).toEqual(0)
@@ -113,7 +113,7 @@ describe('Vec2d.Cpr', () => {
 	})
 })
 
-describe('Vec2d.Len2', () => {
+describe('Vec.Len2', () => {
 	it('Gets the length of a vector squared.', () => {
 		expect(Vec.Len2(new Vec(0, 0))).toEqual(0)
 		expect(Vec.Len2(new Vec(0, 1))).toEqual(1)
@@ -121,7 +121,7 @@ describe('Vec2d.Len2', () => {
 	})
 })
 
-describe('Vec2d.Len', () => {
+describe('Vec.Len', () => {
 	it('Gets the length of a vector.', () => {
 		expect(Vec.Len(new Vec(0, 0))).toEqual(0)
 		expect(Vec.Len(new Vec(0, 1))).toEqual(1)
@@ -129,7 +129,7 @@ describe('Vec2d.Len', () => {
 	})
 })
 
-describe('Vec2d.Pry', () => {
+describe('Vec.Pry', () => {
 	it('Projects a vector A over vector B.', () => {
 		expect(Vec.Pry(new Vec(0, 0), new Vec(0, 10))).toEqual(0)
 		expect(Vec.Pry(new Vec(0, 0), new Vec(10, 10))).toEqual(0)
@@ -138,14 +138,14 @@ describe('Vec2d.Pry', () => {
 	})
 })
 
-describe('Vec2d.Uni', () => {
+describe('Vec.Uni', () => {
 	it('Gets the normalized vector.', () => {
 		expect(Vec.Uni(new Vec(0, 10))).toMatchObject(new Vec(0, 1))
 		expect(Vec.Uni(new Vec(10, 10))).toMatchObject(new Vec(0.7071067811865475, 0.7071067811865475))
 	})
 })
 
-describe('Vec2d.Tan', () => {
+describe('Vec.Tan', () => {
 	it('Gets the tangent between two vectors.', () => {
 		expect(Vec.Tan(new Vec(0, 0), new Vec(0, 10))).toMatchObject(new Vec(0, -1))
 		expect(Vec.Tan(new Vec(0, 0), new Vec(10, 10))).toMatchObject(
@@ -154,34 +154,34 @@ describe('Vec2d.Tan', () => {
 	})
 })
 
-describe('Vec2d.Dist2', () => {
+describe('Vec.Dist2', () => {
 	it('Finds the squared distance between two points.', () => {
 		expect(Vec.Dist2(new Vec(0, 0), new Vec(0, 10))).toEqual(100)
 		expect(Vec.Dist2(new Vec(0, 0), new Vec(10, 10))).toEqual(200)
 	})
 })
 
-describe('Vec2d.Dist', () => {
+describe('Vec.Dist', () => {
 	it('Finds the distance between two points.', () => {
 		expect(Vec.Dist(new Vec(0, 0), new Vec(0, 10))).toEqual(10)
 		expect(Vec.Dist(new Vec(0, 0), new Vec(10, 10))).toEqual(14.142135623730951)
 	})
 })
 
-// describe('Vec2d.Ang2', () => {
+// describe('Vec.Ang2', () => {
 //   it('Finds the angle in radians between two vectors.', () => {
-//     expect(Vec2d.Ang2(new Vec2d(1, 0), new Vec2d(0, 1))).toEqual(Math.PI / 2)
+//     expect(Vec.Ang2(new Vec(1, 0), new Vec(0, 1))).toEqual(Math.PI / 2)
 //   })
 // })
 
-// describe('Vec2d.Ang3', () => {
+// describe('Vec.Ang3', () => {
 //   it('Gets the angle of ∠ABC', () => {
-//     expect(Vec2d.Ang3([5, 0], new Vec2d(0, 0), new Vec2d(0, 5))).toEqual(Math.PI / 2)
-//     expect(Vec2d.Ang3(new Vec2d(1, 0), new Vec2d(0, 0), new Vec2d(0, 1))).toEqual(Math.PI / 2)
+//     expect(Vec.Ang3([5, 0], new Vec(0, 0), new Vec(0, 5))).toEqual(Math.PI / 2)
+//     expect(Vec.Ang3(new Vec(1, 0), new Vec(0, 0), new Vec(0, 1))).toEqual(Math.PI / 2)
 //   })
 // })
 
-describe('Vec2d.Angle', () => {
+describe('Vec.Angle', () => {
 	it('Finds the angle in radians between two points.', () => {
 		expect(Vec.Angle(new Vec(0, 0), new Vec(10, 10))).toEqual(Math.PI / 4)
 		expect(Vec.Angle(new Vec(0, 0), new Vec(10, 0))).toEqual(0)
@@ -189,7 +189,7 @@ describe('Vec2d.Angle', () => {
 	})
 })
 
-describe('Vec2d.Med', () => {
+describe('Vec.Med', () => {
 	it('Finds the midpoint between two vectors.', () => {
 		expect(Vec.Med(new Vec(0, 0), new Vec(10, 10))).toMatchObject(new Vec(5, 5))
 		expect(Vec.Med(new Vec(0, 0), new Vec(10, 0))).toMatchObject(new Vec(5, 0))
@@ -198,7 +198,7 @@ describe('Vec2d.Med', () => {
 	})
 })
 
-describe('Vec2d.Rot', () => {
+describe('Vec.Rot', () => {
 	it('Rotates a vector by a rotation in radians.', () => {
 		const { x, y } = Vec.Rot(new Vec(1, 0), Math.PI / 4)
 		expect(x).toBeCloseTo(0.7, 1)
@@ -206,7 +206,7 @@ describe('Vec2d.Rot', () => {
 	})
 })
 
-describe('Vec2d.RotWith', () => {
+describe('Vec.RotWith', () => {
 	it('Rotates a vector around a second vector by a rotation in radians.', () => {
 		expect(Vec.RotWith(new Vec(1, 0), new Vec(0, 0), Math.PI / 4)).toMatchObject(
 			new Vec(0.7071067811865476, 0.7071067811865475)
@@ -214,7 +214,7 @@ describe('Vec2d.RotWith', () => {
 	})
 })
 
-describe('Vec2d.Equals', () => {
+describe('Vec.Equals', () => {
 	it('Gets whether two vectors are identical.', () => {
 		expect(Vec.Equals(new Vec(1, 2), new Vec(1, 2))).toEqual(true)
 		expect(Vec.Equals(new Vec(1, 2), new Vec(1, 3))).toEqual(false)
@@ -222,14 +222,14 @@ describe('Vec2d.Equals', () => {
 	})
 })
 
-describe('Vec2d.Int', () => {
+describe('Vec.Int', () => {
 	it('Interpolate from A to B', () => {
 		expect(Vec.Lrp(new Vec(0, 0), new Vec(10, 10), 0.5)).toMatchObject(new Vec(5, 5))
 		expect(Vec.Lrp(new Vec(0, 0), new Vec(10, 10), 2)).toMatchObject(new Vec(20, 20))
 	})
 })
 
-describe('Vec2d.Rescale', () => {
+describe('Vec.Rescale', () => {
 	it('Rescales a vector by a scalar', () => {
 		expect(Vec.Rescale(new Vec(5, 0), 1)).toMatchObject(new Vec(1, 0))
 		expect(Vec.Rescale(new Vec(5, 0), 2)).toMatchObject(new Vec(2, 0))
@@ -239,7 +239,7 @@ describe('Vec2d.Rescale', () => {
 	})
 })
 
-describe('Vec2d.IsClockwise', () => {
+describe('Vec.IsClockwise', () => {
 	it('Gets whether point A and point B wind clockwise around point C.', () => {
 		expect(Vec.Clockwise(new Vec(0, 0), new Vec(5, 5), new Vec(0, 5))).toEqual(true)
 		expect(Vec.Clockwise(new Vec(5, 5), new Vec(0, 0), new Vec(0, 5))).toEqual(false)
@@ -247,20 +247,20 @@ describe('Vec2d.IsClockwise', () => {
 	})
 })
 
-describe('Vec2d.ToFixed', () => {
+describe('Vec.ToFixed', () => {
 	it('Rounds a vector to the a given precision.', () => {
 		expect(Vec.ToFixed(new Vec(1.2345, 5.678), 1)).toMatchObject(new Vec(1.2, 5.7))
 		expect(Vec.ToFixed(new Vec(1.2345, 5.678), 2)).toMatchObject(new Vec(1.23, 5.68))
 	})
 })
 
-describe('Vec2d.Snap', () => {
+describe('Vec.Snap', () => {
 	it('Snaps a vector to the nearest increment provided.', () => {
 		expect(Vec.Snap(new Vec(10.5, 28), 10)).toMatchObject(new Vec(10, 30))
 	})
 })
 
-describe('Vec2d.NearestPointOnLineThroughPoint', () => {
+describe('Vec.NearestPointOnLineThroughPoint', () => {
 	it('Gets the distance from a point to a line that passes through a given point.', () => {
 		expect(
 			Vec.NearestPointOnLineThroughPoint(new Vec(0, 0), new Vec(0, 1), new Vec(5, 5))
@@ -268,13 +268,13 @@ describe('Vec2d.NearestPointOnLineThroughPoint', () => {
 	})
 })
 
-describe('Vec2d.DistanceToLineThroughPoint', () => {
+describe('Vec.DistanceToLineThroughPoint', () => {
 	it('Gets the distance from a point to a line that passes through a given point.', () => {
 		expect(Vec.DistanceToLineThroughPoint(new Vec(0, 0), new Vec(0, 1), new Vec(5, 5))).toEqual(5)
 	})
 })
 
-describe('Vec2d.NearestPointOnLineSegment', () => {
+describe('Vec.NearestPointOnLineSegment', () => {
 	it('Gets the distance from a point to a line segment.', () => {
 		expect(
 			Vec.NearestPointOnLineSegment(new Vec(0, 0), new Vec(0, 10), new Vec(5, 5))
@@ -282,52 +282,52 @@ describe('Vec2d.NearestPointOnLineSegment', () => {
 	})
 })
 
-describe('Vec2d.DistanceToLineSegment', () => {
+describe('Vec.DistanceToLineSegment', () => {
 	it('Gets the distance from a point to a line segment.', () => {
 		expect(Vec.DistanceToLineSegment(new Vec(0, 0), new Vec(0, 10), new Vec(5, 5))).toEqual(5)
 	})
 })
 
-describe('Vec2d.Nudge', () => {
+describe('Vec.Nudge', () => {
 	it('Pushes a point towards another point by a given distance.', () => {
 		expect(Vec.Nudge(new Vec(0, 0), new Vec(0, 10), 5)).toMatchObject(new Vec(0, 5))
 	})
 })
 
-// describe('Vec2d.NudgeAtVector', () => {
+// describe('Vec.NudgeAtVector', () => {
 //   it('Pushes a point in a given direction vector by a given distance.', () => {
-//     expect(Vec2d.NudgeAtVector(new Vec2d(0, 0), new Vec2d(0.5, 0.75), 10)).toEqual(
-//       new Vec2d(5, 7.5)
+//     expect(Vec.NudgeAtVector(new Vec(0, 0), new Vec(0.5, 0.75), 10)).toEqual(
+//       new Vec(5, 7.5)
 //     )
 //   })
 // })
 
-// describe('Vec2d.NudgeAtAngle', () => {
+// describe('Vec.NudgeAtAngle', () => {
 //   it('Pushes a point in a given angle by a given distance.', () => {
-//     expect(Vec2d.NudgeAtAngle(new Vec2d(0, 0), Math.PI / 8, 10)).toEqual(
-//       new Vec2d(9.238795325112868, 3.826834323650898)
+//     expect(Vec.NudgeAtAngle(new Vec(0, 0), Math.PI / 8, 10)).toEqual(
+//       new Vec(9.238795325112868, 3.826834323650898)
 //     )
 //   })
 // })
 
-// describe('Vec2d.PointsBetween', () => {
+// describe('Vec.PointsBetween', () => {
 //   it('Interpolates points between two points.', () => {
-//     expect(Vec2d.PointsBetween(new Vec2d(0, 0), [100, 100], 10)).toMatchObject(new Vec2)(
-//       new Vec2d(0, 0, 1),
-//       new Vec2d(11.11111111111111, 11.11111111111111, 0.8888888888888888),
-//       new Vec2d(22.22222222222222, 22.22222222222222, 0.7777777777777778),
-//       new Vec2d(33.33333333333333, 33.33333333333333, 0.6666666666666667),
-//       new Vec2d(44.44444444444444, 44.44444444444444, 0.5555555555555556),
-//       new Vec2d(55.55555555555556, 55.55555555555556, 0.5555555555555556),
-//       new Vec2d(66.66666666666666, 66.66666666666666, 0.6666666666666666),
-//       new Vec2d(77.77777777777779, 77.77777777777779, 0.7777777777777778),
-//       new Vec2d(88.88888888888889, 88.88888888888889, 0.8888888888888888),
-//       new Vec2d(100, 100, 1),
+//     expect(Vec.PointsBetween(new Vec(0, 0), [100, 100], 10)).toMatchObject(new Vec2)(
+//       new Vec(0, 0, 1),
+//       new Vec(11.11111111111111, 11.11111111111111, 0.8888888888888888),
+//       new Vec(22.22222222222222, 22.22222222222222, 0.7777777777777778),
+//       new Vec(33.33333333333333, 33.33333333333333, 0.6666666666666667),
+//       new Vec(44.44444444444444, 44.44444444444444, 0.5555555555555556),
+//       new Vec(55.55555555555556, 55.55555555555556, 0.5555555555555556),
+//       new Vec(66.66666666666666, 66.66666666666666, 0.6666666666666666),
+//       new Vec(77.77777777777779, 77.77777777777779, 0.7777777777777778),
+//       new Vec(88.88888888888889, 88.88888888888889, 0.8888888888888888),
+//       new Vec(100, 100, 1),
 //     ])
 //   })
 // })
 
-describe('Vec2d.Slope', () => {
+describe('Vec.Slope', () => {
 	it('Gets a slope from a vector.', () => {
 		expect(Vec.Slope(new Vec(0, 0), new Vec(100, 100))).toEqual(1)
 		expect(Vec.Slope(new Vec(0, 0), new Vec(50, 100))).toEqual(2)
@@ -336,27 +336,27 @@ describe('Vec2d.Slope', () => {
 	})
 })
 
-describe('Vec2d.ToAngle', () => {
+describe('Vec.ToAngle', () => {
 	it('Gets an angle from a vector.', () => {
 		expect(Vec.ToAngle(new Vec(1, 0.5))).toEqual(0.4636476090008061)
 	})
 })
 
-describe('Vec2d.Max', () => {
+describe('Vec.Max', () => {
 	it('Gets the minimum of the given vectors', () => {
 		expect(Vec.Max(new Vec(4, 1), new Vec(3, 2))).toMatchObject(new Vec(4, 2))
 		expect(Vec.Max(new Vec(3, 2), new Vec(4, 1))).toMatchObject(new Vec(4, 2))
 	})
 })
 
-describe('Vec2d.Min', () => {
+describe('Vec.Min', () => {
 	it('Gets the minimum of the given vectors', () => {
 		expect(Vec.Min(new Vec(4, 1), new Vec(3, 2))).toMatchObject(new Vec(3, 1))
 		expect(Vec.Min(new Vec(3, 2), new Vec(4, 1))).toMatchObject(new Vec(3, 1))
 	})
 })
 
-describe('Vec2d.snapToGrid', () => {
+describe('Vec.snapToGrid', () => {
 	it('snaps to the nearest given increment, mutating the original vector and returning it', () => {
 		expect(new Vec(25, 29).snapToGrid(8)).toMatchObject(new Vec(24, 32))
 		expect(new Vec(25, 29).snapToGrid(8)).toMatchObject(new Vec(24, 32))
