@@ -77,7 +77,7 @@ import {
 	ZOOMS,
 } from '../constants'
 import { Box } from '../primitives/Box'
-import { Mat, MatLike, Matrix2dModel } from '../primitives/Mat'
+import { Mat, MatLike, MatModel } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
@@ -7610,7 +7610,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!ids) return
 		if (ids.length === 0) return
 
-		const pageTransforms: Record<string, Matrix2dModel> = {}
+		const pageTransforms: Record<string, MatModel> = {}
 
 		let shapesForContent = dedupe(
 			ids

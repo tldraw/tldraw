@@ -1246,7 +1246,7 @@ export class Mat {
     // (undocumented)
     a: number;
     // (undocumented)
-    static Absolute(m: MatLike): Matrix2dModel;
+    static Absolute(m: MatLike): MatModel;
     // (undocumented)
     static applyToBounds(m: MatLike, box: Box): Box;
     // (undocumented)
@@ -1280,7 +1280,7 @@ export class Mat {
     // (undocumented)
     e: number;
     // (undocumented)
-    equals(m: Mat | Matrix2dModel): boolean;
+    equals(m: Mat | MatModel): boolean;
     // (undocumented)
     f: number;
     // (undocumented)
@@ -1290,13 +1290,13 @@ export class Mat {
     // (undocumented)
     identity(): this;
     // (undocumented)
-    static Inverse(m: Matrix2dModel): Matrix2dModel;
+    static Inverse(m: MatModel): MatModel;
     // (undocumented)
     invert(): this;
     // (undocumented)
-    static Multiply(m1: Matrix2dModel, m2: Matrix2dModel): Matrix2dModel;
+    static Multiply(m1: MatModel, m2: MatModel): MatModel;
     // (undocumented)
-    multiply(m: Mat | Matrix2dModel): this;
+    multiply(m: Mat | MatModel): this;
     // (undocumented)
     static Point(m: MatLike): Vec;
     // (undocumented)
@@ -1311,13 +1311,13 @@ export class Mat {
     rotation(): number;
     // (undocumented)
     static Scale: {
-        (x: number, y: number): Matrix2dModel;
-        (x: number, y: number, cx: number, cy: number): Matrix2dModel;
+        (x: number, y: number): MatModel;
+        (x: number, y: number, cx: number, cy: number): MatModel;
     };
     // (undocumented)
     scale(x: number, y: number): this;
     // (undocumented)
-    setTo(model: Matrix2dModel): this;
+    setTo(model: MatModel): this;
     // (undocumented)
     static Smooth(m: MatLike, precision?: number): MatLike;
     // (undocumented)
@@ -1331,7 +1331,10 @@ export class Mat {
 }
 
 // @public (undocumented)
-export interface Matrix2dModel {
+export type MatLike = Mat | MatModel;
+
+// @public (undocumented)
+export interface MatModel {
     // (undocumented)
     a: number;
     // (undocumented)

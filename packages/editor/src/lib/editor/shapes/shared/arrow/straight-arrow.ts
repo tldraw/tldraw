@@ -1,6 +1,6 @@
 import { TLArrowShape } from '@tldraw/tlschema'
 import { Box } from '../../../../primitives/Box'
-import { Mat, Matrix2dModel } from '../../../../primitives/Mat'
+import { Mat, MatModel } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import {
 	intersectLineSegmentPolygon,
@@ -210,7 +210,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 function updateArrowheadPointWithBoundShape(
 	point: Vec,
 	opposite: Vec,
-	arrowPageTransform: Matrix2dModel,
+	arrowPageTransform: MatModel,
 	targetShapeInfo?: BoundShapeInfo
 ) {
 	if (targetShapeInfo === undefined) {

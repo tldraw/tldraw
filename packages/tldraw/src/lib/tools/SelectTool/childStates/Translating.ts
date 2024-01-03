@@ -2,7 +2,7 @@ import {
 	Box,
 	Editor,
 	Mat,
-	Matrix2dModel,
+	MatModel,
 	PageRecordType,
 	SnapPoint,
 	StateNode,
@@ -338,7 +338,7 @@ export type TranslatingSnapshot = ReturnType<typeof getTranslatingSnapshot>
 export interface MovingShapeSnapshot {
 	shape: TLShape
 	pagePoint: Vec
-	parentTransform: Matrix2dModel | null
+	parentTransform: MatModel | null
 }
 
 export function moveShapesToPoint({

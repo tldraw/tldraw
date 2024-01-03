@@ -3,7 +3,7 @@ import { clampRadians, TAU, toDomPrecision } from './utils'
 import { Vec, VecLike } from './Vec'
 
 /** @public */
-export type MatLike = Matrix2dModel | Mat
+export type MatLike = MatModel | Mat
 
 /** @public */
 export interface MatrixInfo {
@@ -15,7 +15,7 @@ export interface MatrixInfo {
 }
 
 /** @public */
-export interface Matrix2dModel {
+export interface MatModel {
 	a: number
 	b: number
 	c: number
@@ -25,7 +25,7 @@ export interface Matrix2dModel {
 }
 
 // function getIdentity() {
-//   return new Matrix2d(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+//   return new Mat(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 // }
 
 /** @public */
@@ -46,7 +46,7 @@ export class Mat {
 	e = 0.0
 	f = 0.0
 
-	equals(m: Mat | Matrix2dModel) {
+	equals(m: Mat | MatModel) {
 		return (
 			this.a === m.a &&
 			this.b === m.b &&
@@ -67,8 +67,8 @@ export class Mat {
 		return this
 	}
 
-	multiply(m: Mat | Matrix2dModel) {
-		const m2: Matrix2dModel = m
+	multiply(m: Mat | MatModel) {
+		const m2: MatModel = m
 		const { a, b, c, d, e, f } = this
 		this.a = a * m2.a + c * m2.b
 		this.c = a * m2.c + c * m2.d
@@ -129,7 +129,7 @@ export class Mat {
 		return Mat.toCssString(this)
 	}
 
-	setTo(model: Matrix2dModel) {
+	setTo(model: MatModel) {
 		Object.assign(this, model)
 		return this
 	}
@@ -166,8 +166,8 @@ export class Mat {
 	}
 
 	static Scale: {
-		(x: number, y: number): Matrix2dModel
-		(x: number, y: number, cx: number, cy: number): Matrix2dModel
+		(x: number, y: number): MatModel
+		(x: number, y: number, cx: number, cy: number): MatModel
 	} = (x: number, y: number, cx?: number, cy?: number) => {
 		const scaleMatrix2d = new Mat(x, 0, 0, y, 0, 0)
 
@@ -176,7 +176,7 @@ export class Mat {
 		return Mat.Compose(Mat.Translate(cx, cy!), scaleMatrix2d, Mat.Translate(-cx, -cy!))
 	}
 
-	static Multiply(m1: Matrix2dModel, m2: Matrix2dModel): Matrix2dModel {
+	static Multiply(m1: MatModel, m2: MatModel): MatModel {
 		return {
 			a: m1.a * m2.a + m1.c * m2.b,
 			c: m1.a * m2.c + m1.c * m2.d,
@@ -187,7 +187,7 @@ export class Mat {
 		}
 	}
 
-	static Inverse(m: Matrix2dModel): Matrix2dModel {
+	static Inverse(m: MatModel): MatModel {
 		const denom = m.a * m.d - m.b * m.c
 		return {
 			a: m.d / denom,
@@ -199,7 +199,7 @@ export class Mat {
 		}
 	}
 
-	static Absolute(m: MatLike): Matrix2dModel {
+	static Absolute(m: MatLike): MatModel {
 		const denom = m.a * m.d - m.b * m.c
 		return {
 			a: m.d / denom,
