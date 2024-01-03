@@ -2689,6 +2689,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _willSetInitialBounds = true
+	private _wasInset = false
 
 	/**
 	 * Update the viewport. The viewport will measure the size and screen position of its container
@@ -2706,8 +2707,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateViewportScreenBounds(center = false): this {
 		const container = this.getContainer()
-
 		if (!container) return this
+
 		const rect = container.getBoundingClientRect()
 		const screenBounds = new Box(
 			rect.left || rect.x,
@@ -2715,6 +2716,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			Math.max(rect.width, 1),
 			Math.max(rect.height, 1)
 		)
+
+		const insets = [
+			// top
+			screenBounds.minY !== 0,
+			// right
+			document.body.scrollWidth !== screenBounds.maxX,
+			// bottom
+			document.body.scrollHeight !== screenBounds.maxY,
+			// left
+			screenBounds.minX !== 0,
+		]
+
 		const boundsAreEqual = screenBounds.equals(this.getViewportScreenBounds())
 
 		const { _willSetInitialBounds } = this
@@ -2726,7 +2739,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If we have just received the initial bounds, don't center the camera.
 				this._willSetInitialBounds = false
 				this.updateInstanceState(
-					{ screenBounds: screenBounds.toJson() },
+					{ screenBounds: screenBounds.toJson(), insets },
 					{ squashing: true, ephemeral: true }
 				)
 			} else {
@@ -2734,14 +2747,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// Get the page center before the change, make the change, and restore it
 					const before = this.getViewportPageCenter()
 					this.updateInstanceState(
-						{ screenBounds: screenBounds.toJson() },
+						{ screenBounds: screenBounds.toJson(), insets },
 						{ squashing: true, ephemeral: true }
 					)
 					this.centerOnPoint(before)
 				} else {
 					// Otherwise,
 					this.updateInstanceState(
-						{ screenBounds: screenBounds.toJson() },
+						{ screenBounds: screenBounds.toJson(), insets },
 						{ squashing: true, ephemeral: true }
 					)
 				}
@@ -2772,6 +2785,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getViewportScreenCenter() {
 		return this.getViewportScreenBounds().center
 	}
+
 	/**
 	 * The current viewport in the current page space.
 	 *

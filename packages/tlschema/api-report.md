@@ -1016,6 +1016,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     highlightedUserIds: string[];
     // (undocumented)
+    insets: boolean[];
+    // (undocumented)
     isChangingStyle: boolean;
     // (undocumented)
     isChatting: boolean;
