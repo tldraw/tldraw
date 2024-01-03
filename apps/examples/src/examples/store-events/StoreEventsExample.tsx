@@ -95,7 +95,7 @@ kind of changes were made and logging a more readable message to the to our pane
 
 [2]
 This is the function that subscribes to changes to the store. You pass in the callback function that 
-you want to execute, along with a handy filter object. In this case, we're only listening to changes
+you want to execute along with a handy filter object. In this case, we're only listening to changes
 that were made by the user. It also returns a cleanup function that you can shove into the return of 
 a useeffect hook.
 
