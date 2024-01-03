@@ -291,7 +291,6 @@ export {
 	polygonsIntersect,
 } from './lib/primitives/intersect'
 export {
-	EPSILON,
 	HALF_PI,
 	PI,
 	PI2,

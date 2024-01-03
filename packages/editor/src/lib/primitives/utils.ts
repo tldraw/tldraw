@@ -17,8 +17,6 @@ export const HALF_PI = PI / 2
 /** @public */
 export const PI2 = PI * 2
 /** @public */
-export const EPSILON = Math.PI / 180
-/** @public */
 export const SIN = Math.sin
 
 /**

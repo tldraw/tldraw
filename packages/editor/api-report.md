@@ -934,9 +934,6 @@ export class Ellipse2d extends Geometry2d {
 export { EMPTY_ARRAY }
 
 // @public (undocumented)
-export const EPSILON: number;
-
-// @public (undocumented)
 export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<TLErrorBoundaryProps>>, TLErrorBoundaryState> {
     // (undocumented)
     componentDidCatch(error: unknown): void;

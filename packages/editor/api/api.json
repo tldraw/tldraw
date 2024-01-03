@@ -19376,29 +19376,6 @@
           "implementsTokenRanges": []
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!EPSILON:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "EPSILON: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "EPSILON",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
           "kind": "Class",
           "canonicalReference": "@tldraw/editor!ErrorBoundary:class",
           "docComment": "/**\n * @public\n */\n",

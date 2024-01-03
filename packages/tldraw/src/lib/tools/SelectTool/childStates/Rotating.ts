@@ -1,5 +1,4 @@
 import {
-	EPSILON,
 	RotateCorner,
 	StateNode,
 	TLEventHandlers,
@@ -12,6 +11,8 @@ import {
 	snapAngle,
 } from '@tldraw/editor'
 import { CursorTypeMap } from './PointingResizeHandle'
+
+const ONE_DEGREE = Math.PI / 180
 
 export class Rotating extends StateNode {
 	static override id = 'rotating'
@@ -159,7 +160,7 @@ export class Rotating extends StateNode {
 		if (shiftKey) {
 			newSelectionRotation = snapAngle(newSelectionRotation, 24)
 		} else if (snapToNearestDegree) {
-			newSelectionRotation = Math.round(newSelectionRotation / EPSILON) * EPSILON
+			newSelectionRotation = Math.round(newSelectionRotation / ONE_DEGREE) * ONE_DEGREE
 
 			if (this.editor.getInstanceState().isCoarsePointer) {
 				const snappedToRightAngle = snapAngle(newSelectionRotation, 4)

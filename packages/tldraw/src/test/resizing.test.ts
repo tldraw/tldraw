@@ -1,5 +1,4 @@
 import {
-	EPSILON,
 	GapsSnapLine,
 	PI,
 	PI2,
@@ -3448,7 +3447,7 @@ describe('resizing a selection of mixed rotations', () => {
 		expect(roundedPageBounds(ids.boxD)).toMatchObject({ x: 0, y: 20, w: 20, h: 5 })
 	})
 	it('does lock the aspect ratio if the rotations are not compatible', () => {
-		editor.updateShapes([{ id: ids.boxC, type: 'geo', rotation: Math.PI + EPSILON }])
+		editor.updateShapes([{ id: ids.boxC, type: 'geo', rotation: Math.PI + Math.PI / 180 }])
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
 		editor.pointerDown(50, 50, { target: 'selection', handle: 'bottom_right' }).pointerMove(100, 25)
 		expect(roundedPageBounds(ids.boxA, 0.5)).toMatchObject({ x: 0, y: 0, w: 20, h: 20 })
@@ -3456,7 +3455,7 @@ describe('resizing a selection of mixed rotations', () => {
 
 	it('does lock the aspect ratio if one of the shapes has a child with an incompatible aspect ratio', () => {
 		editor.updateShapes([
-			{ id: ids.boxC, type: 'geo', rotation: Math.PI + EPSILON, parentId: ids.boxA },
+			{ id: ids.boxC, type: 'geo', rotation: Math.PI + Math.PI / 180, parentId: ids.boxA },
 		])
 
 		editor.select(ids.boxA, ids.boxB, ids.boxD)
