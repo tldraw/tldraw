@@ -1,211 +1,157 @@
-import { TLHandle, Vec, VecLike, lerp } from '@tldraw/tldraw'
+import { Vec2d, VecLike, lerp, pointInPolygon } from '@tldraw/tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
-export const getSpeechBubbleGeometry = (shape: SpeechBubbleShape): Vec[] => {
-	const {
-		adjustedIntersection: intersection,
-		offset,
-		line,
-	} = getHandleIntersectionPoint({
-		w: shape.props.w,
-		h: shape.props.h,
-		handle: shape.props.handles.handle,
-	})
+export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec2d[] => {
+	const { w, h, handles } = shape.props
 
-	const handle = shape.props.handles.handle
+	const handleInShapeSpace = new Vec2d(handles.handle.x * w, handles.handle.y * h)
 
-	const initialSegments = [
-		new Vec(0, 0),
-		new Vec(shape.props.w, 0),
-		new Vec(shape.props.w, shape.props.h),
-		new Vec(0, shape.props.h),
-	]
+	const [tl, tr, br, bl] = [new Vec2d(0, 0), new Vec2d(w, 0), new Vec2d(w, h), new Vec2d(0, h)]
 
-	if (!intersection) {
-		throw new Error('No intersection')
-	}
+	const offsetH = w / 10
+	const offsetV = h / 10
 
-	const createTailSegments = (orientation: 'horizontal' | 'vertical') => {
-		// Is it a horizontal or vertical line? Which line are we intersecting?
-		return orientation === 'horizontal'
-			? [
-					line === 0
-						? new Vec(intersection.x - offset.horizontal, intersection.y)
-						: new Vec(intersection.x + offset.horizontal, intersection.y),
-					new Vec(handle.x, handle.y),
-					line === 0
-						? new Vec(intersection.x + offset.horizontal, intersection.y)
-						: new Vec(intersection.x - offset.horizontal, intersection.y),
-			  ]
-			: [
-					line === 1
-						? new Vec(intersection.x, intersection.y - offset.vertical)
-						: new Vec(intersection.x, intersection.y + offset.vertical),
-					new Vec(handle.x, handle.y),
-					line === 1
-						? new Vec(intersection.x, intersection.y + offset.vertical)
-						: new Vec(intersection.x, intersection.y - offset.vertical),
-			  ]
-	}
+	const { adjustedIntersection, intersectionSegmentIndex } = getHandleIntersectionPoint(shape)
 
-	let modifiedSegments = [...initialSegments]
+	let vertices: Vec2d[]
 
 	// Inject the tail segments into the geometry of the shape
-	switch (line) {
+	switch (intersectionSegmentIndex) {
 		case 0:
-			modifiedSegments.splice(1, 0, ...createTailSegments('horizontal'))
+			// top
+			vertices = [
+				tl,
+				new Vec2d(adjustedIntersection.x - offsetH, adjustedIntersection.y),
+				new Vec2d(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec2d(adjustedIntersection.x + offsetH, adjustedIntersection.y),
+				tr,
+				br,
+				bl,
+			]
 			break
 		case 1:
-			modifiedSegments.splice(2, 0, ...createTailSegments('vertical'))
+			// right
+			vertices = [
+				tl,
+				tr,
+				new Vec2d(adjustedIntersection.x, adjustedIntersection.y - offsetV),
+				new Vec2d(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec2d(adjustedIntersection.x, adjustedIntersection.y + offsetV),
+				br,
+				bl,
+			]
 			break
 		case 2:
-			modifiedSegments.splice(3, 0, ...createTailSegments('horizontal'))
+			// bottom
+			vertices = [
+				tl,
+				tr,
+				br,
+				new Vec2d(adjustedIntersection.x + offsetH, adjustedIntersection.y),
+				new Vec2d(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec2d(adjustedIntersection.x - offsetH, adjustedIntersection.y),
+				bl,
+			]
 			break
 		case 3:
-			modifiedSegments = [...modifiedSegments, ...createTailSegments('vertical')]
+			// left
+			vertices = [
+				tl,
+				tr,
+				br,
+				bl,
+				new Vec2d(adjustedIntersection.x, adjustedIntersection.y + offsetV),
+				new Vec2d(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec2d(adjustedIntersection.x, adjustedIntersection.y - offsetV),
+			]
 			break
 		default:
-			// eslint-disable-next-line no-console
-			console.log('default')
+			throw Error("no intersection found, this shouldn't happen")
 	}
 
-	return modifiedSegments
+	return vertices
 }
 
-export function getHandleIntersectionPoint({
-	w,
-	h,
-	handle,
-}: {
-	w: number
-	h: number
-	handle: TLHandle
-}) {
-	const offset = { horizontal: w / 10, vertical: h / 10 }
-	const handleVec = new Vec(handle.x, handle.y)
-	const center = new Vec(w / 2, h / 2)
-	const box = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
+export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
+	const { w, h, handles } = shape.props
+	const handleInShapeSpace = new Vec2d(handles.handle.x * w, handles.handle.y * h)
 
-	const result = checkIntersection(handleVec, center, box)
-	if (!result) return { intersection: null, offset: null, line: null }
-	const { result: intersection, line } = result
+	const center = new Vec2d(w / 2, h / 2)
+	const corners = [new Vec2d(0, 0), new Vec2d(w, 0), new Vec2d(w, h), new Vec2d(0, h)]
+	const segments = [
+		[corners[0], corners[1]],
+		[corners[1], corners[2]],
+		[corners[2], corners[3]],
+		[corners[3], corners[0]],
+	]
 
-	// lines
-	///      0
-	//  _____________
-	//  |           |
-	// 3|           | 1
-	//  |           |
-	//  -------------
-	//        2
+	let segmentsIntersection: Vec2d | null = null
+	let intersectionSegment: Vec2d[] | null = null
 
-	const intersectionVec = new Vec(intersection[0].x, intersection[0].y)
-	const lineCoordinates = {
-		0: { start: new Vec(0, 0), end: new Vec(w, 0) },
-		1: { start: new Vec(w, 0), end: new Vec(w, h) },
-		2: { start: new Vec(0, h), end: new Vec(w, h) },
-		3: { start: new Vec(0, 0), end: new Vec(0, h) },
+	// If the point inside of the box's corners?
+	const insideShape = pointInPolygon(handleInShapeSpace, corners)
+
+	// We want to be sure we get an intersection, so if the point is
+	// inside the shape, push it away from the center by a big distance
+	const pointToCheck = insideShape
+		? Vec2d.Add(handleInShapeSpace, Vec2d.Sub(handleInShapeSpace, center).uni().mul(1000000))
+		: handleInShapeSpace
+
+	// Test each segment for an intersection
+	for (const segment of segments) {
+		segmentsIntersection = intersectLineSegmentLineSegment(
+			segment[0],
+			segment[1],
+			center,
+			pointToCheck
+		)
+
+		if (segmentsIntersection) {
+			intersectionSegment = segment
+			break
+		}
 	}
 
-	const { start, end } = lineCoordinates[line]
-	const whichOffset = line === 0 || line === 2 ? offset.horizontal : offset.vertical
-
-	// let's make the intersection more likely to be in the middle and also stay away from the edges
-	const adjustedIntersection = getAdjustedIntersectionPoint({
-		start,
-		end,
-		intersectionVec,
-		offset: whichOffset,
-	})
-
-	// We need the adjusted intersection to draw the tail, but the original intersection
-	// for the onBeforeUpdate handler
-	return {
-		originalIntersection: intersectionVec,
-		adjustedIntersection: adjustedIntersection,
-		offset,
-		line,
-		insideShape: result.insideShape,
+	if (!(segmentsIntersection && intersectionSegment)) {
+		throw Error("no intersection found, this shouldn't happen")
 	}
-}
 
-export const getAdjustedIntersectionPoint = ({
-	start,
-	end,
-	intersectionVec,
-	offset,
-}: {
-	start: Vec
-	end: Vec
-	intersectionVec: Vec
-	offset: number
-}): Vec | null => {
+	const [start, end] = intersectionSegment
+	const intersectionSegmentIndex = segments.indexOf(intersectionSegment)
+
 	// a normalised vector from start to end, so this can work in any direction
-	const unit = Vec.Sub(end, start).norm()
+	const unit = Vec2d.Sub(end, start).uni()
 
 	// Where is the intersection relative to the start?
-	const totalDistance = start.dist(end)
-	const distance = intersectionVec.dist(start)
+	const totalDistance = Vec2d.Dist(start, end)
+	const distance = Vec2d.Dist(segmentsIntersection, start)
 
+	// make it stick to the middle
 	const middleRelative = mapRange(0, totalDistance, -1, 1, distance) // absolute -> -1 to 1
 	const squaredRelative = Math.abs(middleRelative) ** 2 * Math.sign(middleRelative) // square it and keep the sign
-	// make it stick to the middle
 	const squared = mapRange(-1, 1, 0, totalDistance, squaredRelative) // -1 to 1 -> absolute
 
 	//keep it away from the edges
-	const constrained = mapRange(0, totalDistance, offset * 3, totalDistance - offset * 3, distance)
+	const offset = (segments.indexOf(intersectionSegment) % 2 === 0 ? w / 10 : h / 10) * 3
+	const constrained = mapRange(0, totalDistance, offset, totalDistance - offset, distance)
 
 	// combine the two
 	const interpolated = lerp(constrained, squared, 0.5)
 
-	return unit.mul(interpolated).add(start)
-}
+	const adjustedIntersection = unit.mul(interpolated).add(start)
 
-// This works similarly to the function intersectLineSegmentPolygon in the tldraw codebase,
-// but we want to return which line was intersected, and also call the function recursively
-export function checkIntersection(
-	handle: Vec,
-	center: Vec,
-	points: Vec[]
-): { result: VecLike[]; line: 0 | 1 | 2 | 3; insideShape?: boolean } | null {
-	const result: VecLike[] = []
-	let segmentIntersection: VecLike | null
-
-	for (let i = 1, n = points.length; i < n + 1; i++) {
-		segmentIntersection = intersectLineSegmentLineSegment(
-			handle,
-			center,
-			points[i - 1],
-			points[i % points.length]
-		)
-
-		if (segmentIntersection) {
-			result.push(segmentIntersection)
-			return { result, line: (i - 1) as 0 | 1 | 2 | 3 }
-		}
-	}
-	//We're inside the shape, look backwards to find the intersection
-	const angle = Math.atan2(handle.y - center.y, handle.x - center.x)
-	//the third point's coordinates are the same as the height and width of the shape
-	const direction = Vec.FromAngle(angle, Math.max(points[2].x, points[2].y))
-	const newPoint = handle.add(direction)
-	// Call this function again with the new point
-	const intersection = checkIntersection(newPoint, center, points)
-	if (!intersection) return null
+	// We need the adjusted intersection to draw the tail, but the original intersection
+	// for the onBeforeUpdate handler
 	return {
-		result: intersection.result,
-		line: intersection.line,
-		insideShape: true,
+		segmentsIntersection,
+		adjustedIntersection,
+		intersectionSegmentIndex,
+		insideShape,
 	}
 }
 
 // This function is copied from the tldraw codebase
-export function intersectLineSegmentLineSegment(
-	a1: VecLike,
-	a2: VecLike,
-	b1: VecLike,
-	b2: VecLike
-) {
+function intersectLineSegmentLineSegment(a1: VecLike, a2: VecLike, b1: VecLike, b2: VecLike) {
 	const ABx = a1.x - b1.x
 	const ABy = a1.y - b1.y
 	const BVx = b2.x - b1.x
@@ -224,7 +170,7 @@ export function intersectLineSegmentLineSegment(
 		const ua = ua_t / u_b
 		const ub = ub_t / u_b
 		if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
-			return Vec.AddXY(a1, ua * AVx, ua * AVy)
+			return Vec2d.AddXY(a1, ua * AVx, ua * AVy)
 		}
 	}
 
@@ -234,13 +180,13 @@ export function intersectLineSegmentLineSegment(
 /**
  * Inverse linear interpolation
  */
-export function invLerp(a: number, b: number, v: number) {
+function invLerp(a: number, b: number, v: number) {
 	return (v - a) / (b - a)
 }
 /**
  * Maps a value from one range to another.
  * e.g. mapRange(10, 20, 50, 100, 15) => 75
  */
-export function mapRange(a1: number, b1: number, a2: number, b2: number, s: number) {
+function mapRange(a1: number, b1: number, a2: number, b2: number, s: number) {
 	return lerp(a2, b2, invLerp(a1, b1, s))
 }
