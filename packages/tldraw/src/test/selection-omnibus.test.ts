@@ -1710,6 +1710,44 @@ describe('right clicking', () => {
 })
 
 describe('When brushing close to the edges of the screen', () => {
+	it('moves the camera', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera1 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(0, 0)
+		jest.advanceTimersByTime(100)
+		const camera2 = editor.getCamera()
+		expect(camera2.x).toBeGreaterThan(camera1.x) // for some reason > is left
+		expect(camera2.y).toBeGreaterThan(camera1.y) // for some reason > is up
+	})
+
+	it('moves the camera correctly when the viewport is nonzero', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera1 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		jest.advanceTimersByTime(100)
+		const camera2 = editor.getCamera()
+		// should NOT have moved the camera by edge scrolling
+		expect(camera2.x).toEqual(camera1.x)
+		expect(camera2.y).toEqual(camera1.y)
+
+		// Now change the bounds so that the corner is at 100,100 on the screen
+		editor.setScreenBounds({ ...editor.getViewportScreenBounds(), x: 100, y: 100 })
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera3 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		jest.advanceTimersByTime(100)
+		const camera4 = editor.getCamera()
+		// should have moved the camera by edge scrolling
+		expect(camera4.x).toBeGreaterThan(camera3.x)
+		expect(camera4.y).toBeGreaterThan(camera3.y)
+	})
+
 	it('selects shapes that are outside of the viewport', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])

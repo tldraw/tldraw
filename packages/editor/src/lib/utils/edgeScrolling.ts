@@ -39,8 +39,8 @@ export function moveCameraWhenCloseToEdge(editor: Editor) {
 	const screenSizeFactorX = screenBounds.w < 1000 ? 0.612 : 1
 	const screenSizeFactorY = screenBounds.h < 1000 ? 0.612 : 1
 
-	const proximityFactorX = getEdgeProximityFactor(x, screenBounds.w)
-	const proximityFactorY = getEdgeProximityFactor(y, screenBounds.h)
+	const proximityFactorX = getEdgeProximityFactor(x - screenBounds.x, screenBounds.w)
+	const proximityFactorY = getEdgeProximityFactor(y - screenBounds.y, screenBounds.h)
 
 	if (proximityFactorX === 0 && proximityFactorY === 0) return
 
