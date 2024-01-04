@@ -10,8 +10,9 @@ import {
 	getDefaultColorTheme,
 } from '@tldraw/tldraw'
 
-// Define a style that can be used across multiple shapes.
-// The ID (myApp:filter) must be globally unique, so we recommend prefixing it with a namespace.
+// There's a guide at the bottom of this file!
+
+// [1]
 export const MyFilterStyle = StyleProp.defineEnum('myApp:filter', {
 	defaultValue: 'none',
 	values: ['none', 'invert', 'grayscale', 'blur'],
@@ -19,6 +20,7 @@ export const MyFilterStyle = StyleProp.defineEnum('myApp:filter', {
 
 export type MyFilterStyle = T.TypeOf<typeof MyFilterStyle>
 
+// [2]
 export type CardShape = TLBaseShape<
 	'card',
 	{
@@ -29,15 +31,15 @@ export type CardShape = TLBaseShape<
 	}
 >
 
+//[3]
 export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	static override type = 'card' as const
 
+	//[a]
 	static override props = {
 		w: T.number,
 		h: T.number,
-		// You can re-use tldraw built-in styles...
 		color: DefaultColorStyle,
-		// ...or your own custom styles.
 		filter: MyFilterStyle,
 	}
 
@@ -54,6 +56,7 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		}
 	}
 
+	// [b]
 	component(shape: CardShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
@@ -77,11 +80,11 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		)
 	}
 
-	// Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
 	indicator(shape: CardShape) {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 
+	//[c]
 	filterStyleToCss(filter: MyFilterStyle) {
 		if (filter === 'invert') return 'invert(100%)'
 		if (filter === 'grayscale') return 'grayscale(100%)'
@@ -90,17 +93,49 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	}
 }
 
-// Extending the base box shape tool gives us a lot of functionality for free.
+// [4]
 export class CardShapeTool extends BaseBoxShapeTool {
 	static override id = 'card'
 	static override initial = 'idle'
 	override shapeType = 'card'
-	props = {
-		w: T.number,
-		h: T.number,
-		// You can re-use tldraw built-in styles...
-		color: DefaultColorStyle,
-		// ...or your own custom styles.
-		filter: MyFilterStyle,
-	}
 }
+/* 
+Introduction:
+This file contains the logic for how the custom shape and style work. This guide will
+mostly focus on the custom style features, for a more in-depth look at creating a custom
+shape check out the custom shapes/tools example. For a closer look at creating more 
+custom tool interactions, checkout out the screenshot example.
+
+
+[1]
+This is where we define our custom style. We use the `StyleProp.defineEnum` method to
+define an enum style. This will create a style that can be one of the values we pass
+in to the `values` property. We also pass in a `defaultValue` property, this will be
+the default value for the style. It's important that the StyleProp is unique, so we
+reccomend prefixing it with your app name. 
+
+[2]
+Defining our shape's type. Here we import a type for color, the default tldraw style, 
+and also use our own type for our custom style: filter.
+
+[3]
+This is our util, where we define the logic for our shape, it's geometry, resize behaviour 
+and render method.
+	- [a] The props for our shape. We can import a validator for the default color style
+		  and use our own for our custom style.
+	- [b] The render method for our custom shape, this is where we tell the browser how
+		  how to render our different styles using the style attribute. Using the 
+		  getDefaultColorTheme function along with the getIsDarkMode method gives us access 
+		  to the tldraw default colorsand ensures they stay up to date when switching between 
+		  light and dark mode.
+		  We apply our filter style using a method we've defined on the shape util called
+		  filterStyleToCss
+	- [c] This is our method for converting the style the user selected into CSS
+
+Check out FilterStyleUi.tsx to see how we render the UI for our custom style.
+
+[4] 
+This is our tool, it's very simple, we just define the id and initial state. Extending the 
+BaseBoxShapeTool gives us a lot of the default behaviour for free.
+
+ */
