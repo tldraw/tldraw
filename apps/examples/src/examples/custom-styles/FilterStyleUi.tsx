@@ -51,7 +51,7 @@ export const FilterStyleUi = track(function FilterStyleUi() {
 
 /* 
 Introduction:
-This is a very simple example of how to create a custom ui for your custom style. We want
+This is a an example of how to create a custom ui for your custom style. We want
 to render the UI when the user has selected our card tool, or when they've selected a card
 shape. Here, we've chosen a drop-down to let the user select the filter type, and we render
 it in the top left corner of the editor. You could render your UI anywhere you want. Check
