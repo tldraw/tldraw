@@ -322,7 +322,7 @@ export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
 		if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
 
 		if (a.y <= A.y) {
-			if (b.y > A.y && cross(a, b, A) >= 0) {
+			if (b.y > A.y && cross(a, b, A) > 0) {
 				windingNumber += 1
 			}
 		} else if (b.y <= A.y && cross(a, b, A) < 0) {
