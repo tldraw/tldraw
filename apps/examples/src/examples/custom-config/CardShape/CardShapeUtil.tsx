@@ -31,7 +31,6 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 			w: 300,
 			h: 300,
 			color: 'black',
-			weight: 'regular',
 		}
 	}
 
@@ -64,7 +63,6 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					justifyContent: 'center',
 					pointerEvents: 'all',
 					backgroundColor: theme[shape.props.color].semi,
-					fontWeight: shape.props.weight,
 					color: theme[shape.props.color].solid,
 				}}
 			>
@@ -118,10 +116,11 @@ Render method — the React component that will be rendered for the shape. It ta
 shape as an argument. HTMLContainer is just a div that's being used to wrap our text 
 and button. We can get the shape's bounds using our own getGeometry method.
 	
-- [a] eslint sometimes thinks this is a class component, but it's not.
+- [a] Check it out! We can do normal React stuff here like using setState.
+   Annoying: eslint sometimes thinks this is a class component, but it's not.
 
-- [b] You need to stop the pointer down event on buttons. that should prevent shape 
-	  selection or click and drag
+- [b] You need to stop the pointer down event on buttons, otherwise the editor will
+	   think you're trying to select drag the shape.
 
 [7]
 Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
