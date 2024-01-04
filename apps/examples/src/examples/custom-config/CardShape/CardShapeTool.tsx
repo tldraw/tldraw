@@ -1,7 +1,4 @@
 import { BaseBoxShapeTool, TLClickEvent } from '@tldraw/tldraw'
-
-// A tool used to create our custom card shapes. Extending the base
-// box shape tool gives us a lot of functionality for free.
 export class CardShapeTool extends BaseBoxShapeTool {
 	static override id = 'card'
 	static override initial = 'idle'
@@ -12,3 +9,12 @@ export class CardShapeTool extends BaseBoxShapeTool {
 		// check the BaseBoxShapeTool source as an example
 	}
 }
+
+/*
+This file contains our custom tool. The tool is a StateNode with the `id` "card".
+
+We get a lot of functionality for free by extending the BaseBoxShapeTool. but we can
+handle events in out own way by overriding methods like onDoubleClick. For an example 
+of a tool with more custom functionality, check out the screenshot-tool example. 
+
+*/
