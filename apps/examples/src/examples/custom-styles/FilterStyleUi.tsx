@@ -9,7 +9,19 @@ export const FilterStyleUi = track(function FilterStyleUi() {
 	if (!filterStyle) return null
 
 	return (
-		<div style={{ position: 'absolute', zIndex: 300, top: 64, left: 12 }}>
+		<div
+			className="tlui-style-panel__wrapper"
+			style={{
+				position: 'absolute',
+				zIndex: 300,
+				top: 50,
+				left: 8,
+				padding: 15,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+			}}
+		>
 			filter:{' '}
 			<select
 				value={filterStyle.type === 'mixed' ? 'mixed' : filterStyle.value}
