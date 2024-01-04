@@ -111,7 +111,8 @@ custom tool interactions, checkout out the screenshot example.
 This is where we define our custom style. We use the `StyleProp.defineEnum` method to
 define an enum style. This will create a style that can be one of the values we pass
 in to the `values` property. We also pass in a `defaultValue` property, this will be
-the default value for the style.
+the default value for the style. It's important that the StyleProp is unique, so we
+reccomend prefixing it with your app name. 
 
 [2]
 Defining our shape's type. Here we import a type for color, the default tldraw style, 
