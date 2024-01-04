@@ -243,26 +243,32 @@ export function intersectPolygonPolygon(
 	polygonA: VecLike[],
 	polygonB: VecLike[]
 ): VecLike[] | null {
-	// Create an empty polygon as P
-	const result: VecLike[] = []
+	// Create an empty polygon as result
+	const result: Map<string, VecLike> = new Map()
 	let a: VecLike, b: VecLike, c: VecLike, d: VecLike
 
-	// Add all corners of PolygonA that is inside PolygonB to P
+	// Add all corners of PolygonA that is inside PolygonB to result
 	for (let i = 0, n = polygonA.length; i < n; i++) {
 		a = polygonA[i]
 		if (pointInPolygon(a, polygonB)) {
-			result.push(a)
+			const id = getPointId(a)
+			if (!result.has(id)) {
+				result.set(id, a)
+			}
 		}
 	}
-	// Add all corners of PolygonB that is inside PolygonA to P
+	// Add all corners of PolygonB that is inside PolygonA to result
 	for (let i = 0, n = polygonB.length; i < n; i++) {
 		a = polygonB[i]
 		if (pointInPolygon(a, polygonA)) {
-			result.push(a)
+			const id = getPointId(a)
+			if (!result.has(id)) {
+				result.set(id, a)
+			}
 		}
 	}
 
-	// Add all intersection points to P
+	// Add all intersection points to result
 	for (let i = 0, n = polygonA.length; i < n; i++) {
 		a = polygonA[i]
 		b = polygonA[(i + 1) % polygonA.length]
@@ -273,15 +279,22 @@ export function intersectPolygonPolygon(
 			const intersection = intersectLineSegmentLineSegment(a, b, c, d)
 
 			if (intersection !== null) {
-				result.push(intersection)
+				const id = getPointId(intersection)
+				if (!result.has(id)) {
+					result.set(id, intersection)
+				}
 			}
 		}
 	}
 
-	if (result.length === 0) return null // no intersection
+	if (result.size === 0) return null // no intersection
 
-	// Order all points in the P counter-clockwise.
-	return orderClockwise(result)
+	// Order all points in the result counter-clockwise.
+	return orderClockwise([...result.values()])
+}
+
+function getPointId(point: VecLike) {
+	return `${point.x},${point.y}`
 }
 
 function orderClockwise(points: VecLike[]): VecLike[] {
