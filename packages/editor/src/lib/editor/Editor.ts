@@ -4066,7 +4066,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (pageMask.length === 0) return undefined
 
 			const { corners } = pageBounds
-			if (corners.every((p, i) => Vec.Equals(p, pageMask[i]))) return pageBounds.clone()
+			if (corners.every((p, i) => p && Vec.Equals(p, pageMask[i]))) return pageBounds.clone()
 
 			// todo: find out why intersect polygon polygon for identical polygons produces zero w/h intersections
 			const intersection = intersectPolygonPolygon(pageMask, corners)
