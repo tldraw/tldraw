@@ -5,8 +5,6 @@ body {
 	padding: 0;
 	margin: 0;
 	font-family: 'Inter', sans-serif;
-	overscroll-behavior: none;
-	touch-action: none;
 	min-height: 100vh;
 	font-size: 16px;
 	/* mobile viewport bug fix */
@@ -29,6 +27,8 @@ html,
 	position: absolute;
 	inset: 0px;
 	overflow: hidden;
+	overscroll-behavior: none;
+	touch-action: none;
 }
 
 .examples {
@@ -119,9 +119,13 @@ html,
 	opacity: 0;
 	transition: opacity 0.12s ease-in-out;
 }
-.examples__list__item:hover::before,
 .examples__list__item__active::before {
 	opacity: 1;
+}
+@media screen and (pointer: fine) {
+	.examples__list__item:hover::before {
+		opacity: 1;
+	}
 }
 
 .examples__list__item h3 {
