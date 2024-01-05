@@ -24,7 +24,7 @@ export default function ErrorBoundaryExample() {
 						y: 0,
 						props: { message: 'Something has gone wrong' },
 					}
-					// []
+					// [3]
 					// When the app starts, create our error shape so we can see.
 					editor.createShapes<ErrorShape>([errorShapePartial])
 
