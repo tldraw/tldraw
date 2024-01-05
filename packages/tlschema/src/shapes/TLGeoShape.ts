@@ -1,5 +1,4 @@
 import { defineMigrations } from '@tldraw/store'
-import { isValidUrl } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
@@ -54,7 +53,7 @@ export const geoShapeProps = {
 	font: DefaultFontStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
-	url: T.url,
+	url: T.linkUrl,
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
@@ -227,7 +226,7 @@ export const geoShapeMigrations = defineMigrations({
 		[Versions.MakeUrlsValid]: {
 			up: (shape) => {
 				const url = shape.props.url
-				if (url !== '' && !isValidUrl(shape.props.url)) {
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
 					return { ...shape, props: { ...shape.props, url: '' } }
 				}
 				return shape

@@ -1,10 +1,4 @@
-import {
-	JsonValue,
-	exhaustiveSwitchError,
-	getOwnProperty,
-	hasOwnProperty,
-	isValidUrl,
-} from '@tldraw/utils'
+import { JsonValue, exhaustiveSwitchError, getOwnProperty, hasOwnProperty } from '@tldraw/utils'
 
 /** @public */
 export type ValidatorFn<T> = (value: unknown) => T
@@ -102,6 +96,16 @@ export class Validator<T> implements Validatable<T> {
 			throw new ValidationError('Validator functions must return the same value they were passed')
 		}
 		return validated
+	}
+
+	/** Checks that the passed value is of the correct type. */
+	isValid(value: unknown): value is T {
+		try {
+			this.validate(value)
+			return true
+		} catch {
+			return false
+		}
 	}
 
 	/**
@@ -609,24 +613,44 @@ export function literalEnum<const Values extends readonly unknown[]>(
 	return setEnum(new Set(values))
 }
 
+function parseUrl(str: string) {
+	try {
+		return new URL(str)
+	} catch (error) {
+		throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
+	}
+}
+
+const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
+
 /**
- * Validates that a value is an url.
+ * Validates that a value is a url safe to use as a link.
  *
  * @public
  */
-export const url = string.check((value) => {
-	if (value !== '' && !isValidUrl(value)) {
-		throw new ValidationError(`Expected a valid url, got ${value}`)
+export const linkUrl = string.check((value) => {
+	const url = parseUrl(value)
+
+	if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
 	}
 })
 
+const validSrcProtocols = new Set(['http:', 'https:', 'data:'])
+
 /**
- * Validates that a value is a valid src.
+ * Validates that a valid is a url safe to load as an asset.
  *
  * @public
  */
-export const src = string.nullable().check((value) => {
-	if (value && !value.startsWith('data:image')) {
-		url.validate(value)
+export const srcUrl = string.check((value) => {
+	const url = parseUrl(value)
+
+	if (!validSrcProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
 	}
 })

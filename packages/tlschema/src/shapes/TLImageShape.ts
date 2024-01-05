@@ -1,5 +1,4 @@
 import { defineMigrations } from '@tldraw/store'
-import { isValidUrl } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { vecModelValidator } from '../misc/geometry-types'
@@ -18,7 +17,7 @@ export const imageShapeProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	playing: T.boolean,
-	url: T.url,
+	url: T.linkUrl,
 	assetId: assetIdValidator.nullable(),
 	crop: ImageShapeCrop.nullable(),
 }
@@ -60,7 +59,7 @@ export const imageShapeMigrations = defineMigrations({
 		[Versions.MakeUrlsValid]: {
 			up: (shape) => {
 				const url = shape.props.url
-				if (url !== '' && !isValidUrl(shape.props.url)) {
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
 					return { ...shape, props: { ...shape.props, url: '' } }
 				}
 				return shape

@@ -93,9 +93,6 @@ export function isNonNull<T>(value: T): value is typeof value extends null ? nev
 export function isNonNullish<T>(value: T): value is typeof value extends undefined ? never : typeof value extends null ? never : T;
 
 // @public (undocumented)
-export function isValidUrl(url: string): boolean;
-
-// @public (undocumented)
 export type JsonArray = JsonValue[];
 
 // @public (undocumented)

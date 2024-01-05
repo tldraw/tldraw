@@ -44,6 +44,7 @@ import { SnapPoint } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StoreSnapshot } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
+import { T } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
@@ -243,10 +244,10 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
     // (undocumented)
     static props: {
-        w: Validator<number>;
-        h: Validator<number>;
-        assetId: Validator<null | TLAssetId>;
-        url: Validator<string>;
+        w: T.Validator<number>;
+        h: T.Validator<number>;
+        assetId: T.Validator<null | TLAssetId>;
+        url: T.Validator<string>;
     };
     // (undocumented)
     static type: "bookmark";

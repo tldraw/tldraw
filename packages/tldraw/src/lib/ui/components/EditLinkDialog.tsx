@@ -1,4 +1,4 @@
-import { TLBaseShape, isValidUrl, track, useEditor } from '@tldraw/editor'
+import { T, TLBaseShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -9,10 +9,10 @@ import { Input } from './primitives/Input'
 // A url can either be invalid, or valid with a protocol, or valid without a protocol.
 // For example, "aol.com" would be valid with a protocol ()
 function validateUrl(url: string) {
-	if (isValidUrl(url)) {
+	if (T.linkUrl.isValid(url)) {
 		return { isValid: true, hasProtocol: true }
 	}
-	if (isValidUrl('https://' + url)) {
+	if (T.linkUrl.isValid('https://' + url)) {
 		return { isValid: true, hasProtocol: false }
 	}
 	return { isValid: false, hasProtocol: false }

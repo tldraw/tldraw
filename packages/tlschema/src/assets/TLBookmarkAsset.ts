@@ -1,5 +1,4 @@
 import { defineMigrations } from '@tldraw/store'
-import { isValidUrl } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
@@ -24,7 +23,7 @@ export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetV
 		title: T.string,
 		description: T.string,
 		image: T.string,
-		src: T.url.nullable(),
+		src: T.srcUrl.nullable(),
 	})
 )
 
@@ -39,7 +38,7 @@ export const bookmarkAssetMigrations = defineMigrations({
 		[Versions.MakeUrlsValid]: {
 			up: (asset) => {
 				const src = asset.props.src
-				if (src && src !== '' && !isValidUrl(src)) {
+				if (src && !T.srcUrl.isValid(src)) {
 					return { ...asset, props: { ...asset.props, src: '' } }
 				}
 				return asset

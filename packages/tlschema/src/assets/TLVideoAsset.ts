@@ -1,5 +1,4 @@
 import { defineMigrations } from '@tldraw/store'
-import { isValidUrl } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
@@ -28,7 +27,7 @@ export const videoAssetValidator: T.Validator<TLVideoAsset> = createAssetValidat
 		name: T.string,
 		isAnimated: T.boolean,
 		mimeType: T.string.nullable(),
-		src: T.src,
+		src: T.srcUrl,
 	})
 )
 
@@ -74,7 +73,7 @@ export const videoAssetMigrations = defineMigrations({
 		[Versions.MakeUrlsValid]: {
 			up: (asset: TLVideoAsset) => {
 				const src = asset.props.src
-				if (src && !src.startsWith('data:') && src !== '' && !isValidUrl(src)) {
+				if (src && !T.srcUrl.isValid(src)) {
 					return { ...asset, props: { ...asset.props, src: '' } }
 				}
 				return asset
