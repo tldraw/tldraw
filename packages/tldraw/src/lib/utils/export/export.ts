@@ -25,7 +25,8 @@ export async function getSvgAsImage(
 	let scaledWidth = width * scale
 	let scaledHeight = height * scale
 
-	const dataUrl = await getSvgAsDataUrl(svg)
+	const svgString = await getSvgAsString(svg)
+	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvasSizes = await getBrowserCanvasMaxSize()
 	if (width > canvasSizes.maxWidth) {
@@ -69,7 +70,7 @@ export async function getSvgAsImage(
 			ctx.imageSmoothingQuality = 'high'
 			ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight)
 
-			URL.revokeObjectURL(dataUrl)
+			URL.revokeObjectURL(svgUrl)
 
 			resolve(canvas)
 		}
@@ -78,7 +79,7 @@ export async function getSvgAsImage(
 			resolve(null)
 		}
 
-		image.src = dataUrl
+		image.src = svgUrl
 	})
 
 	if (!canvas) return null
@@ -134,14 +135,6 @@ async function getSvgAsString(svg: SVGElement) {
 		.replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
 
 	return out
-}
-
-async function getSvgAsDataUrl(svg: SVGElement) {
-	const svgStr = await getSvgAsString(svg)
-	// NOTE: `unescape` works everywhere although deprecated
-	// eslint-disable-next-line deprecation/deprecation
-	const base64SVG = window.btoa(unescape(encodeURIComponent(svgStr)))
-	return `data:image/svg+xml;base64,${base64SVG}`
 }
 
 async function getSvg(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
