@@ -94,7 +94,7 @@ Here we've passed the default components object to the TldrawEditor component. A
 with default tools and shapeutils, You could input your own custom shapes/tools here. 
 For help creating your own shapes/tools check out the custom config example.
 
-We also set the initial state to 'select' and render the UI, conrtext menu and canvas
+We also set the initial state to 'select' and render the UI, context menu and canvas
 components. You could add your own custom components here, omit these ones, and/or 
 change the initial state of the application to whatever you want. 
 
