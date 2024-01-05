@@ -63,6 +63,30 @@ test.describe('Keyboard Shortcuts', () => {
 				data: { id: tool, source: 'kbd' },
 			})
 		}
+
+		// make sure that the first dropdown item is rectangle
+		await page.keyboard.press('r')
+
+		const positionalToolKbds = [
+			['1', 'select'],
+			['2', 'hand'],
+			['3', 'draw'],
+			['4', 'eraser'],
+			['5', 'arrow'],
+			['6', 'text'],
+			['7', 'note'],
+			// 8 is image which is complicated because it opens a dialog - skipping
+			// 9 is the first drop down item
+			['9', 'rectangle'],
+		]
+		for (const [key, tool] of positionalToolKbds) {
+			await page.keyboard.press('v') // set back to select
+			await page.keyboard.press(key)
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+				name: 'select-tool',
+				data: { id: tool, source: 'kbd' },
+			})
+		}
 	})
 })
 
