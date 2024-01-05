@@ -1,4 +1,10 @@
-import { JsonValue, exhaustiveSwitchError, getOwnProperty, hasOwnProperty } from '@tldraw/utils'
+import {
+	JsonValue,
+	exhaustiveSwitchError,
+	getOwnProperty,
+	hasOwnProperty,
+	isValidUrl,
+} from '@tldraw/utils'
 
 /** @public */
 export type ValidatorFn<T> = (value: unknown) => T
@@ -602,3 +608,25 @@ export function literalEnum<const Values extends readonly unknown[]>(
 ): Validator<Values[number]> {
 	return setEnum(new Set(values))
 }
+
+/**
+ * Validates that a value is an url.
+ *
+ * @public
+ */
+export const url = string.check((value) => {
+	if (value !== '' && !isValidUrl(value)) {
+		throw new ValidationError(`Expected a valid url, got ${value}`)
+	}
+})
+
+/**
+ * Validates that a value is a valid src.
+ *
+ * @public
+ */
+export const src = string.nullable().check((value) => {
+	if (value && !value.startsWith('data:image')) {
+		url.validate(value)
+	}
+})

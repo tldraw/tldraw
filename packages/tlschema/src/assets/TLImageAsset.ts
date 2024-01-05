@@ -1,4 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
+import { isValidUrl } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
@@ -27,18 +28,19 @@ export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidat
 		name: T.string,
 		isAnimated: T.boolean,
 		mimeType: T.string.nullable(),
-		src: T.string.nullable(),
+		src: T.src,
 	})
 )
 
 const Versions = {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
+	MakeUrlsValid: 3,
 } as const
 
 /** @internal */
 export const imageAssetMigrations = defineMigrations({
-	currentVersion: Versions.RenameWidthHeight,
+	currentVersion: Versions.MakeUrlsValid,
 	migrators: {
 		[Versions.AddIsAnimated]: {
 			up: (asset) => {
@@ -68,6 +70,16 @@ export const imageAssetMigrations = defineMigrations({
 				const { w, h, ...others } = asset.props
 				return { ...asset, props: { width: w, height: h, ...others } }
 			},
+		},
+		[Versions.MakeUrlsValid]: {
+			up: (asset: TLImageAsset) => {
+				const src = asset.props.src
+				if (src && !src.startsWith('data:') && src !== '' && !isValidUrl(src)) {
+					return { ...asset, props: { ...asset.props, src: '' } }
+				}
+				return asset
+			},
+			down: (asset) => asset,
 		},
 	},
 })

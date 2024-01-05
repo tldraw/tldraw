@@ -110,6 +110,9 @@ const positiveNumber: Validator<number>;
 function setEnum<T>(values: ReadonlySet<T>): Validator<T>;
 
 // @public
+const src: Validator<null | string>;
+
+// @public
 const string: Validator<string>;
 
 declare namespace T {
@@ -147,7 +150,9 @@ declare namespace T {
         bigint,
         array,
         unknownObject,
-        jsonValue
+        jsonValue,
+        url,
+        src
     }
 }
 export { T }
@@ -170,6 +175,9 @@ const unknown: Validator<unknown>;
 
 // @public (undocumented)
 const unknownObject: Validator<Record<string, unknown>>;
+
+// @public
+const url: Validator<string>;
 
 // @public (undocumented)
 type Validatable<T> = {

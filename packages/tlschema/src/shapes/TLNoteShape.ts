@@ -1,4 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
+import { isValidUrl } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
@@ -18,7 +19,7 @@ export const noteShapeProps = {
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
-	url: T.string,
+	url: T.url,
 	text: T.string,
 }
 
@@ -33,11 +34,12 @@ const Versions = {
 	RemoveJustify: 2,
 	MigrateLegacyAlign: 3,
 	AddVerticalAlign: 4,
+	MakeUrlsValid: 5,
 } as const
 
 /** @internal */
 export const noteShapeMigrations = defineMigrations({
-	currentVersion: Versions.AddVerticalAlign,
+	currentVersion: Versions.MakeUrlsValid,
 	migrators: {
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
@@ -132,6 +134,16 @@ export const noteShapeMigrations = defineMigrations({
 					props,
 				}
 			},
+		},
+		[Versions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !isValidUrl(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
 		},
 	},
 })

@@ -2587,6 +2587,34 @@
             },
             {
               "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.src:var",
+              "docComment": "/**\n * Validates that a value is a valid src.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "src: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<null | string>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "src",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Variable",
               "canonicalReference": "@tldraw/validate!T.string:var",
               "docComment": "/**\n * Validates that a value is a string.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -3087,6 +3115,34 @@
               "variableTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 5
+              }
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.url:var",
+              "docComment": "/**\n * Validates that a value is an url.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "url: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "url",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
               }
             },
             {
