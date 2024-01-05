@@ -13,7 +13,7 @@ test.describe('Keyboard Shortcuts', () => {
 		await setupPage(page)
 	})
 
-	test('tools', async () => {
+	test('tools', async ({ isMobile }) => {
 		const geoToolKds = [
 			['r', 'rectangle'],
 			['o', 'ellipse'],
@@ -74,11 +74,16 @@ test.describe('Keyboard Shortcuts', () => {
 			['4', 'eraser'],
 			['5', 'arrow'],
 			['6', 'text'],
-			['7', 'note'],
-			// 8 is image which is complicated because it opens a dialog - skipping
-			// 9 is the first drop down item
-			['9', 'rectangle'],
 		]
+
+		if (isMobile) {
+			// on mobile, the last item (first from the dropdown) is 7
+			positionalToolKbds.push(['7', 'geo-rectangle'])
+		} else {
+			// on desktop, the last item (first from the dropdown) is 9. 8 is the image tool which
+			// we skip here because it opens a browser dialog
+			positionalToolKbds.push(['9', 'geo-rectangle'])
+		}
 		for (const [key, tool] of positionalToolKbds) {
 			await page.keyboard.press('v') // set back to select
 			await page.keyboard.press(key)
