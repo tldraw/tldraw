@@ -53,11 +53,11 @@ build the tldraw component from its subcomponents for max customisation. You
 can edit, omit or add to these subcomponents to create your app.
 
 [1]
-Here we've imported the default components from the tldraw library and made them
-into an object that we'll pass to the TldrawEditor component. You could replace
-any of these components with your own custom components. Omiting a component 
-will use the default component instead. Check out the custom components example
-for an idea of exactly how to do this.
+Here we've imported some components from the tldraw library which we will later
+pass to the TldrawEditor component. These components are not part of the more 
+minimal defaults, so we need to import them separately. For help creating your
+own components to pass into the components prop check out the custom components 
+example.
 
 [2]
 Here we've passed the default components object to the TldrawEditor component. Along
