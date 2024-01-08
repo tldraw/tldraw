@@ -95,18 +95,19 @@ handler. Check out the API example for more details.
 	for more. 
 
 	[b]
-	After uploading the file to our server, we create an asset from it. We'll 
+	After uploading the file to our server, we create an asset fror it. We'll 
 	need to create a record for the asset, which is an object that contains 
 	the asset's id, type, and props. We'll start by creating the id with the 
 	AssetRecordType.createId method.
 
 	[c]
-	Now it's time to figure out how big the media is using our MediaHelpers. 
-	And whether it's a gif, image or video.
+	Now it's time to figure out the dimensions of the media is using our 
+	MediaHelpers, and whether it's a gif, image or video.
 
 	[d]
 	Finally we create the asset record using the AssetRecordType.create method
-	and return it.
+	and return it. Note that we don't create a shape on the canvas here, if you
+	want to see an example that does this, check out the local images example.
 
 
 */
