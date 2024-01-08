@@ -80,6 +80,7 @@ import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleChangeHandler } from '@tldraw/editor';
 import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
+import { TLOnTranslateHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
@@ -161,6 +162,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     onHandleChange: TLOnHandleChangeHandler<TLArrowShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
+    // (undocumented)
+    onTranslate?: TLOnTranslateHandler<TLArrowShape>;
     // (undocumented)
     onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
     // (undocumented)

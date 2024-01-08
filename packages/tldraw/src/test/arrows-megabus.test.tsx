@@ -1,5 +1,6 @@
-import { TLArrowShape, Vec, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
+import { TL } from './test-jsx'
 
 let editor: TestEditor
 
@@ -648,5 +649,86 @@ describe('When binding an arrow to an ancestor', () => {
 		expect(arrow.props.end.boundShapeId).toBe(ids.box1)
 		expect(arrow.props.start.isPrecise).toBe(false)
 		expect(arrow.props.end.isPrecise).toBe(true)
+	})
+})
+
+describe('Moving a bound arrow', () => {
+	function setup() {
+		editor.createShapesFromJsx([
+			<TL.geo id={ids.box1} x={0} y={0} w={200} h={200} />,
+			<TL.geo id={ids.box2} x={300} y={0} w={200} h={200} />,
+		])
+	}
+
+	function expectBound(handle: 'start' | 'end', boundShapeId: TLShapeId) {
+		expect(editor.getOnlySelectedShape()).toMatchObject({
+			props: { [handle]: { type: 'binding', boundShapeId } },
+		})
+	}
+
+	function expectUnbound(handle: 'start' | 'end') {
+		expect(editor.getOnlySelectedShape()).toMatchObject({
+			props: { [handle]: { type: 'point' } },
+		})
+	}
+
+	it('keeps the start of the arrow bound to the original shape as it moves', () => {
+		setup()
+
+		// draw an arrow pointing down from box1
+		editor.setCurrentTool('arrow').pointerDown(100, 100).pointerMove(100, 300).pointerUp(100, 300)
+		expectBound('start', ids.box1)
+		expectUnbound('end')
+
+		// start translating it:
+		editor.setCurrentTool('select').pointerDown(100, 200)
+
+		// arrow should stay bound to box1 as long as its end is within it:
+		editor.pointerMove(150, 200)
+		expectBound('start', ids.box1)
+		expectUnbound('end')
+
+		// arrow becomes unbound when its end is outside of box1:
+		editor.pointerMove(250, 200)
+		expectUnbound('start')
+		expectUnbound('end')
+
+		// arrow remains unbound when its end is inside of box2:
+		editor.pointerMove(350, 200)
+		expectUnbound('start')
+		expectUnbound('end')
+
+		// arrow becomes re-bound to box1 when it goes back inside box1:
+		editor.pointerMove(100, 200)
+		expectBound('start', ids.box1)
+		expectUnbound('end')
+	})
+
+	it('keeps the end of the arrow bound to the original shape as it moves', () => {
+		setup()
+
+		// draw an arrow pointing from box1 to box2
+		editor.setCurrentTool('arrow').pointerDown(100, 100).pointerMove(400, 200).pointerUp(400, 200)
+		expectBound('start', ids.box1)
+		expectBound('end', ids.box2)
+
+		// start translating it:
+		const center = editor.getShapePageBounds(editor.getOnlySelectedShape()!)!.center
+		editor.setCurrentTool('select').pointerDown(center.x, center.y)
+
+		// arrow should stay bound to box2 as long as its end is within it:
+		editor.pointerMove(center.x + 50, center.y)
+		expectBound('start', ids.box1)
+		expectBound('end', ids.box2)
+
+		// arrow becomes unbound when its end is outside of box2:
+		editor.pointerMove(center.x + 200, 200)
+		expectUnbound('start')
+		expectUnbound('end')
+
+		// arrow becomes re-bound to box2 when it goes back inside box2:
+		editor.pointerMove(center.x + 50, center.y)
+		expectBound('start', ids.box1)
+		expectBound('end', ids.box2)
 	})
 })
