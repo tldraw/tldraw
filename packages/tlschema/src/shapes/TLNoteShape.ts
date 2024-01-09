@@ -18,7 +18,7 @@ export const noteShapeProps = {
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
-	url: T.string,
+	url: T.linkUrl,
 	text: T.string,
 }
 
@@ -33,11 +33,12 @@ const Versions = {
 	RemoveJustify: 2,
 	MigrateLegacyAlign: 3,
 	AddVerticalAlign: 4,
+	MakeUrlsValid: 5,
 } as const
 
 /** @internal */
 export const noteShapeMigrations = defineMigrations({
-	currentVersion: Versions.AddVerticalAlign,
+	currentVersion: Versions.MakeUrlsValid,
 	migrators: {
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
@@ -132,6 +133,16 @@ export const noteShapeMigrations = defineMigrations({
 					props,
 				}
 			},
+		},
+		[Versions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
 		},
 	},
 })

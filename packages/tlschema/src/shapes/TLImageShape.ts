@@ -17,7 +17,7 @@ export const imageShapeProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	playing: T.boolean,
-	url: T.string,
+	url: T.linkUrl,
 	assetId: assetIdValidator.nullable(),
 	crop: ImageShapeCrop.nullable(),
 }
@@ -31,11 +31,12 @@ export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
 const Versions = {
 	AddUrlProp: 1,
 	AddCropProp: 2,
+	MakeUrlsValid: 3,
 } as const
 
 /** @internal */
 export const imageShapeMigrations = defineMigrations({
-	currentVersion: Versions.AddCropProp,
+	currentVersion: Versions.MakeUrlsValid,
 	migrators: {
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
@@ -54,6 +55,16 @@ export const imageShapeMigrations = defineMigrations({
 				const { crop: _, ...props } = shape.props
 				return { ...shape, props }
 			},
+		},
+		[Versions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
 		},
 	},
 })

@@ -98,6 +98,16 @@ export class Validator<T> implements Validatable<T> {
 		return validated
 	}
 
+	/** Checks that the passed value is of the correct type. */
+	isValid(value: unknown): value is T {
+		try {
+			this.validate(value)
+			return true
+		} catch {
+			return false
+		}
+	}
+
 	/**
 	 * Returns a new validator that also accepts null or undefined. The resulting value will always be
 	 * null.
@@ -602,3 +612,47 @@ export function literalEnum<const Values extends readonly unknown[]>(
 ): Validator<Values[number]> {
 	return setEnum(new Set(values))
 }
+
+function parseUrl(str: string) {
+	try {
+		return new URL(str)
+	} catch (error) {
+		throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
+	}
+}
+
+const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
+
+/**
+ * Validates that a value is a url safe to use as a link.
+ *
+ * @public
+ */
+export const linkUrl = string.check((value) => {
+	if (value === '') return
+	const url = parseUrl(value)
+
+	if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
+})
+
+const validSrcProtocols = new Set(['http:', 'https:', 'data:'])
+
+/**
+ * Validates that a valid is a url safe to load as an asset.
+ *
+ * @public
+ */
+export const srcUrl = string.check((value) => {
+	if (value === '') return
+	const url = parseUrl(value)
+
+	if (!validSrcProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
+})

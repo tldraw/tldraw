@@ -1889,29 +1889,29 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        w: import(\"@tldraw/editor\")."
+                  "text": "{\n        w: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "Validator",
+                  "text": "T.Validator",
                   "canonicalReference": "@tldraw/validate!Validator:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "<number>;\n        h: import(\"@tldraw/editor\")."
+                  "text": "<number>;\n        h: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "Validator",
+                  "text": "T.Validator",
                   "canonicalReference": "@tldraw/validate!Validator:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "<number>;\n        assetId: import(\"@tldraw/editor\")."
+                  "text": "<number>;\n        assetId: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "Validator",
+                  "text": "T.Validator",
                   "canonicalReference": "@tldraw/validate!Validator:class"
                 },
                 {
@@ -1925,11 +1925,11 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ">;\n        url: import(\"@tldraw/editor\")."
+                  "text": ">;\n        url: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "Validator",
+                  "text": "T.Validator",
                   "canonicalReference": "@tldraw/validate!Validator:class"
                 },
                 {

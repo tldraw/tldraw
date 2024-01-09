@@ -54,6 +54,9 @@ function jsonDict(): DictValidator<string, JsonValue>;
 const jsonValue: Validator<JsonValue>;
 
 // @public
+const linkUrl: Validator<string>;
+
+// @public
 function literal<T extends boolean | number | string>(expectedValue: T): Validator<T>;
 
 // @public (undocumented)
@@ -110,6 +113,9 @@ const positiveNumber: Validator<number>;
 function setEnum<T>(values: ReadonlySet<T>): Validator<T>;
 
 // @public
+const srcUrl: Validator<string>;
+
+// @public
 const string: Validator<string>;
 
 declare namespace T {
@@ -147,7 +153,9 @@ declare namespace T {
         bigint,
         array,
         unknownObject,
-        jsonValue
+        jsonValue,
+        linkUrl,
+        srcUrl
     }
 }
 export { T }
@@ -193,6 +201,7 @@ export class Validator<T> implements Validatable<T> {
     check(name: string, checkFn: (value: T) => void): Validator<T>;
     // (undocumented)
     check(checkFn: (value: T) => void): Validator<T>;
+    isValid(value: unknown): value is T;
     nullable(): Validator<null | T>;
     optional(): Validator<T | undefined>;
     refine<U>(otherValidationFn: (value: T) => U): Validator<U>;
