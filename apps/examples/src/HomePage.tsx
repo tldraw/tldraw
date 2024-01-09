@@ -18,7 +18,7 @@ export function HomePage() {
 					.filter((example) => !example.hide)
 					.filter((example) => example.order !== null)
 					.map((example) => (
-						<ListLink key={example.path} example={example} showDescription />
+						<ListLink key={example.path} example={example} showDescriptionWhenInactive />
 					))}
 			</ul>
 			<hr />
@@ -27,7 +27,7 @@ export function HomePage() {
 					.filter((example) => !example.hide)
 					.filter((example) => example.order === null)
 					.map((example) => (
-						<ListLink key={example.path} example={example} showDescription />
+						<ListLink key={example.path} example={example} showDescriptionWhenInactive />
 					))}
 			</ul>
 		</div>
