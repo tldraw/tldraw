@@ -1759,7 +1759,7 @@ describe('add isPrecise to arrow handles', () => {
 	})
 })
 
-const invalidUrl = 'https://tldraw'
+const invalidUrl = 'invalid-url'
 const validUrl = ''
 
 describe('Make urls valid for all the shapes', () => {
