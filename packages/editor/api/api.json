@@ -16888,7 +16888,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#setStyleForNextShapes:member(1)",
-              "docComment": "/**\n * Set the value of a {@link @tldraw/tlschema#StyleProp} for the selected shapes.\n *\n * @param style - The style to set.\n *\n * @param value - The value to set.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { ephemeral: true })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Set the value of a {@link @tldraw/tlschema#StyleProp} for the next shapes. This change will be applied to subsequently created shapes.\n *\n * @param style - The style to set.\n *\n * @param value - The value to set.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.setStyleForNextShapes(DefaultColorStyle, 'red')\n * editor.setStyleForNextShapes(DefaultColorStyle, 'red', { ephemeral: true })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
