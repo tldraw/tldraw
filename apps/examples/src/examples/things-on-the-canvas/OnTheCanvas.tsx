@@ -31,7 +31,7 @@ function MyComponent() {
 				onPointerDown={stopEventPropagation}
 				onPointerMove={stopEventPropagation}
 			>
-				The count is {state}! <button onClick={() => setState((s) => s - 1)}>+1</button>
+				The count is {state}! <button onClick={() => setState((s) => s - 1)}>-1</button>
 			</div>
 			<div
 				style={{
