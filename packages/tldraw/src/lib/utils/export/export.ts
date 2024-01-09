@@ -1,4 +1,11 @@
-import { PngHelpers, debugFlags } from '@tldraw/editor'
+import {
+	Editor,
+	PngHelpers,
+	TLShapeId,
+	TLSvgOptions,
+	debugFlags,
+	exhaustiveSwitchError,
+} from '@tldraw/editor'
 import { getBrowserCanvasMaxSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 
 /** @public */
@@ -6,7 +13,7 @@ export async function getSvgAsImage(
 	svg: SVGElement,
 	isSafari: boolean,
 	options: {
-		type: 'svg' | 'png' | 'jpeg' | 'webp'
+		type: 'png' | 'jpeg' | 'webp'
 		quality: number
 		scale: number
 	}
@@ -18,7 +25,8 @@ export async function getSvgAsImage(
 	let scaledWidth = width * scale
 	let scaledHeight = height * scale
 
-	const dataUrl = await getSvgAsDataUrl(svg)
+	const svgString = await getSvgAsString(svg)
+	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvasSizes = await getBrowserCanvasMaxSize()
 	if (width > canvasSizes.maxWidth) {
@@ -62,7 +70,7 @@ export async function getSvgAsImage(
 			ctx.imageSmoothingQuality = 'high'
 			ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight)
 
-			URL.revokeObjectURL(dataUrl)
+			URL.revokeObjectURL(svgUrl)
 
 			resolve(canvas)
 		}
@@ -71,7 +79,7 @@ export async function getSvgAsImage(
 			resolve(null)
 		}
 
-		image.src = dataUrl
+		image.src = svgUrl
 	})
 
 	if (!canvas) return null
@@ -97,10 +105,11 @@ export async function getSvgAsImage(
 	})
 }
 
-/** @public */
-export async function getSvgAsDataUrl(svg: SVGElement) {
+async function getSvgAsString(svg: SVGElement) {
 	const clone = svg.cloneNode(true) as SVGGraphicsElement
-	clone.setAttribute('encoding', 'UTF-8"')
+
+	svg.setAttribute('width', +svg.getAttribute('width')! + '')
+	svg.setAttribute('height', +svg.getAttribute('height')! + '')
 
 	const fileReader = new FileReader()
 	const imgs = Array.from(clone.querySelectorAll('image')) as SVGImageElement[]
@@ -120,9 +129,96 @@ export async function getSvgAsDataUrl(svg: SVGElement) {
 		}
 	}
 
-	const svgStr = new XMLSerializer().serializeToString(clone)
-	// NOTE: `unescape` works everywhere although deprecated
-	// eslint-disable-next-line deprecation/deprecation
-	const base64SVG = window.btoa(unescape(encodeURIComponent(svgStr)))
-	return `data:image/svg+xml;base64,${base64SVG}`
+	const out = new XMLSerializer()
+		.serializeToString(clone)
+		.replaceAll('&#10;      ', '')
+		.replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
+
+	return out
+}
+
+async function getSvg(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
+	const svg = await editor.getSvg(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
+		scale: 1,
+		background: editor.getInstanceState().exportBackground,
+		...opts,
+	})
+	if (!svg) {
+		throw new Error('Could not construct SVG.')
+	}
+	return svg
+}
+
+export async function exportToString(
+	editor: Editor,
+	ids: TLShapeId[],
+	format: 'svg' | 'json',
+	opts = {} as Partial<TLSvgOptions>
+) {
+	switch (format) {
+		case 'svg': {
+			return getSvgAsString(await getSvg(editor, ids, opts))
+		}
+		case 'json': {
+			const data = editor.getContentFromCurrentPage(ids)
+			return JSON.stringify(data)
+		}
+		default: {
+			exhaustiveSwitchError(format)
+		}
+	}
+}
+
+export async function exportToBlob(
+	editor: Editor,
+	ids: TLShapeId[],
+	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json',
+	opts = {} as Partial<TLSvgOptions>
+): Promise<Blob> {
+	switch (format) {
+		case 'svg':
+			return new Blob([await exportToString(editor, ids, 'svg', opts)], { type: 'text/plain' })
+		case 'json':
+			return new Blob([await exportToString(editor, ids, 'json', opts)], { type: 'text/plain' })
+		case 'jpeg':
+		case 'png':
+		case 'webp': {
+			const image = await getSvgAsImage(
+				await getSvg(editor, ids, opts),
+				editor.environment.isSafari,
+				{
+					type: format,
+					quality: 1,
+					scale: 2,
+				}
+			)
+			if (!image) {
+				throw new Error('Could not construct image.')
+			}
+			return image
+		}
+		default: {
+			exhaustiveSwitchError(format)
+		}
+	}
+}
+
+const mimeTypeByFormat = {
+	jpeg: 'image/jpeg',
+	png: 'image/png',
+	webp: 'image/webp',
+	json: 'text/plain',
+	svg: 'text/plain',
+}
+
+export function exportToBlobPromise(
+	editor: Editor,
+	ids: TLShapeId[],
+	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json',
+	opts = {} as Partial<TLSvgOptions>
+): { blobPromise: Promise<Blob>; mimeType: string } {
+	return {
+		blobPromise: exportToBlob(editor, ids, format, opts),
+		mimeType: mimeTypeByFormat[format],
+	}
 }

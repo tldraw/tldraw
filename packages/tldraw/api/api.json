@@ -7799,7 +7799,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    type: 'jpeg' | 'png' | 'svg' | 'webp';\n    quality: number;\n    scale: number;\n}"
+              "text": "{\n    type: 'jpeg' | 'png' | 'webp';\n    quality: number;\n    scale: number;\n}"
             },
             {
               "kind": "Content",

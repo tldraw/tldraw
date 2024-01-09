@@ -700,7 +700,7 @@ export function getResizedImageDataUrl(dataURLForImage: string, width: number, h
 
 // @public (undocumented)
 export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
-    type: 'jpeg' | 'png' | 'svg' | 'webp';
+    type: 'jpeg' | 'png' | 'webp';
     quality: number;
     scale: number;
 }): Promise<Blob | null>;
