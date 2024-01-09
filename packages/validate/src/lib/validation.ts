@@ -629,6 +629,7 @@ const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
  * @public
  */
 export const linkUrl = string.check((value) => {
+	if (value === '') return
 	const url = parseUrl(value)
 
 	if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
