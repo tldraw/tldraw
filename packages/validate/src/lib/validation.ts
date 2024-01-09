@@ -647,6 +647,7 @@ const validSrcProtocols = new Set(['http:', 'https:', 'data:'])
  * @public
  */
 export const srcUrl = string.check((value) => {
+	if (value === '') return
 	const url = parseUrl(value)
 
 	if (!validSrcProtocols.has(url.protocol.toLowerCase())) {
