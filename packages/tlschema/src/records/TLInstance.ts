@@ -31,6 +31,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isToolLocked: boolean
 	exportBackground: boolean
 	screenBounds: BoxModel
+	insets: boolean[]
 	zoomBrush: BoxModel | null
 	chatMessage: string
 	isChatting: boolean
@@ -80,6 +81,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isToolLocked: T.boolean,
 			exportBackground: T.boolean,
 			screenBounds: boxModelValidator,
+			insets: T.arrayOf(T.boolean),
 			zoomBrush: boxModelValidator.nullable(),
 			isPenMode: T.boolean,
 			isGridMode: T.boolean,
@@ -118,6 +120,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isDebugMode: process.env.NODE_ENV === 'development',
 			isToolLocked: false,
 			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
+			insets: [false, false, false, false],
 			zoomBrush: null,
 			isGridMode: false,
 			isPenMode: false,
@@ -161,11 +164,12 @@ export const instanceVersions = {
 	ReadOnlyReadonly: 20,
 	AddHoveringCanvas: 21,
 	AddScribbles: 22,
+	AddInset: 23,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddScribbles,
+	currentVersion: instanceVersions.AddInset,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -484,6 +488,19 @@ export const instanceMigrations = defineMigrations({
 			},
 			down: ({ scribbles: _, ...record }) => {
 				return { ...record, scribble: null }
+			},
+		},
+		[instanceVersions.AddInset]: {
+			up: (record) => {
+				return {
+					...record,
+					insets: [false, false, false, false],
+				}
+			},
+			down: ({ insets: _, ...record }) => {
+				return {
+					...record,
+				}
 			},
 		},
 	},
