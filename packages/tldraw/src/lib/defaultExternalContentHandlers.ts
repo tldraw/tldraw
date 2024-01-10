@@ -35,15 +35,6 @@ export type TLExternalContentProps = {
 	acceptedVideoMimeTypes: string[]
 }
 
-async function time<T>(label: string, fn: () => Promise<T>) {
-	const start = performance.now()
-	try {
-		return await fn()
-	} finally {
-		console.log(label, `${(performance.now() - start).toFixed(2)}ms`)
-	}
-}
-
 export function registerDefaultExternalContentHandlers(
 	editor: Editor,
 	{
@@ -55,68 +46,62 @@ export function registerDefaultExternalContentHandlers(
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
-		return time('overall', async () => {
-			const name = _file.name
-			let file: Blob = _file
-			const isImageType = acceptedImageMimeTypes.includes(file.type)
-			const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+		const name = _file.name
+		let file: Blob = _file
+		const isImageType = acceptedImageMimeTypes.includes(file.type)
+		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
-			assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
-			assert(
-				file.size <= maxAssetSize,
-				`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
-					maxAssetSize / 1024
-				).toFixed()}kb`
-			)
+		assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
+		assert(
+			file.size <= maxAssetSize,
+			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
+		)
 
-			if (file.type === 'video/quicktime') {
-				// hack to make .mov videos work
-				file = new Blob([file], { type: 'video/mp4' })
+		if (file.type === 'video/quicktime') {
+			// hack to make .mov videos work
+			file = new Blob([file], { type: 'video/mp4' })
+		}
+
+		let size = isImageType
+			? await MediaHelpers.getImageSize(file)
+			: await MediaHelpers.getVideoSize(file)
+
+		const isAnimated = file.type === 'image/gif' ? await isGifAnimated(file) : isVideoType
+
+		const hash = await getHashForBuffer(await file.arrayBuffer())
+
+		if (isFinite(maxImageDimension)) {
+			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
+			if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+				size = resizedSize
 			}
+		}
 
-			let size = await time('get size', async () =>
-				isImageType ? await MediaHelpers.getImageSize(file) : await MediaHelpers.getVideoSize(file)
-			)
-
-			const isAnimated = file.type === 'image/gif' ? await isGifAnimated(file) : isVideoType
-
-			const hash = await time('hash', async () => getHashForBuffer(await file.arrayBuffer()))
-
-			if (isFinite(maxImageDimension)) {
-				const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
-				if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-					size = resizedSize
-				}
-			}
-
-			// Always rescale the image
-			if (file.type === 'image/jpeg' || file.type === 'image/png') {
-				file = await time('resize', () =>
-					downsizeImage(file, size.w, size.h, {
-						type: file.type,
-						quality: 0.92,
-					})
-				)
-			}
-
-			const assetId: TLAssetId = AssetRecordType.createId(hash)
-
-			const asset = AssetRecordType.create({
-				id: assetId,
-				type: isImageType ? 'image' : 'video',
-				typeName: 'asset',
-				props: {
-					name,
-					src: await time('toDataUrl', () => MediaHelpers.blobToDataUrl(file)),
-					w: size.w,
-					h: size.h,
-					mimeType: file.type,
-					isAnimated,
-				},
+		// Always rescale the image
+		if (file.type === 'image/jpeg' || file.type === 'image/png') {
+			file = await downsizeImage(file, size.w, size.h, {
+				type: file.type,
+				quality: 0.92,
 			})
+		}
 
-			return asset
+		const assetId: TLAssetId = AssetRecordType.createId(hash)
+
+		const asset = AssetRecordType.create({
+			id: assetId,
+			type: isImageType ? 'image' : 'video',
+			typeName: 'asset',
+			props: {
+				name,
+				src: await MediaHelpers.blobToDataUrl(file),
+				w: size.w,
+				h: size.h,
+				mimeType: file.type,
+				isAnimated,
+			},
 		})
+
+		return asset
 	})
 
 	// urls -> bookmark asset

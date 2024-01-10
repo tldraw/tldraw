@@ -1301,7 +1301,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/utils!MediaHelpers.getImageSize:member(1)",
-              "docComment": "/**\n * Get the size of an image from its source.\n *\n * @param dataURL - A Blob containing the image.\n *\n * @public\n */\n",
+              "docComment": "/**\n * Get the size of an image blob\n *\n * @param dataURL - A Blob containing the image.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1355,7 +1355,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/utils!MediaHelpers.getVideoSize:member(1)",
-              "docComment": "/**\n * Get the size of a video from its source.\n *\n * @param src - A SharedBlob containing the video\n *\n * @public\n */\n",
+              "docComment": "/**\n * Get the size of a video blob\n *\n * @param src - A SharedBlob containing the video\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

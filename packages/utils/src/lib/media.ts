@@ -57,7 +57,7 @@ export class MediaHelpers {
 	}
 
 	/**
-	 * Get the size of a video from its source.
+	 * Get the size of a video blob
 	 *
 	 * @param src - A SharedBlob containing the video
 	 * @public
@@ -70,7 +70,7 @@ export class MediaHelpers {
 	}
 
 	/**
-	 * Get the size of an image from its source.
+	 * Get the size of an image blob
 	 *
 	 * @param dataURL - A Blob containing the image.
 	 * @public

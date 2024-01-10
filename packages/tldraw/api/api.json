@@ -2830,7 +2830,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!downsizeImage:function(1)",
-          "docComment": "/**\n * Resize an image Blob to be smaller than it is currently.\n *\n * @param image - The image Blob.\n *\n * @param width - The desired width.\n *\n * @param height - The desired height.\n *\n * @param opts - Options for the image.\n *\n * @example\n * ```ts\n * const image = await (await fetch('/image.jpg')).blob()\n * const size = await getImageSize(image)\n * const resizedImage = await resizeImage(image, size.w, size.h, { type: \"image/jpeg\", quality: 0.92 })\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * Resize an image Blob to be smaller than it is currently.\n *\n * @param image - The image Blob.\n *\n * @param width - The desired width.\n *\n * @param height - The desired height.\n *\n * @param opts - Options for the image.\n *\n * @example\n * ```ts\n * const image = await (await fetch('/image.jpg')).blob()\n * const size = await getImageSize(image)\n * const resizedImage = await downsizeImage(image, size.w / 2, size.h / 2, { type: \"image/jpeg\", quality: 0.92 })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

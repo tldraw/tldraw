@@ -27,4 +27,4 @@ async function calculateBrowserCanvasMaxSize(): Promise<CanvasMaxSize> {
 	}
 }
 
-export const MAX_SAFE_CANVAS_LENGTH = 8192
+export const MAX_SAFE_CANVAS_DIMENSION = 8192

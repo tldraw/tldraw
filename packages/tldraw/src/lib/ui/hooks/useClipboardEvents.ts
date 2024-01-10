@@ -204,7 +204,6 @@ const handlePasteFromEventClipboardData = async (
 	const things: ClipboardThing[] = []
 
 	for (const item of Object.values(clipboardData.items)) {
-		console.log(item)
 		switch (item.kind) {
 			case 'file': {
 				// files are always blobs

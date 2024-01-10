@@ -1,6 +1,6 @@
 import { MediaHelpers, assertExists } from '@tldraw/editor'
 import {
-	MAX_SAFE_CANVAS_LENGTH,
+	MAX_SAFE_CANVAS_DIMENSION,
 	getBrowserCanvasMaxSize,
 } from '../../shapes/shared/getBrowserCanvasMaxSize'
 import { isAnimated } from './is-gif-animated'
@@ -47,7 +47,7 @@ export function containBoxSize(
  * ```ts
  * const image = await (await fetch('/image.jpg')).blob()
  * const size = await getImageSize(image)
- * const resizedImage = await resizeImage(image, size.w, size.h, { type: "image/jpeg", quality: 0.92 })
+ * const resizedImage = await downsizeImage(image, size.w / 2, size.h / 2, { type: "image/jpeg", quality: 0.92 })
  * ```
  *
  * @param image - The image Blob.
@@ -65,9 +65,9 @@ export async function downsizeImage(
 	const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
 	let desiredWidth = Math.min(width * 2, image.naturalWidth)
 	let desiredHeight = Math.min(height * 2, image.naturalHeight)
-	const { type = 'image/jpeg', quality = 0.92 } = opts
+	const { type = blob.type, quality = 0.92 } = opts
 
-	if (desiredWidth > MAX_SAFE_CANVAS_LENGTH || desiredHeight > MAX_SAFE_CANVAS_LENGTH) {
+	if (desiredWidth > MAX_SAFE_CANVAS_DIMENSION || desiredHeight > MAX_SAFE_CANVAS_DIMENSION) {
 		const canvasSizes = await getBrowserCanvasMaxSize()
 
 		const aspectRatio = width / height
