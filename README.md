@@ -7,7 +7,7 @@
 
 # tldraw
 
-Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). tldraw is an open source library for creating infinite canvas experiences in React. It's the software behind the digital whiteboard [tldraw.com](https://tldraw.com).
+Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). tldraw is a library for creating infinite canvas experiences in React. It's the software behind the digital whiteboard [tldraw.com](https://tldraw.com).
 
 👉 Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
 
