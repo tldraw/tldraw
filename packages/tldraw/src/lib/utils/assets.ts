@@ -1,5 +1,5 @@
 import downscale from 'downscale'
-import { getBrowserCanvasMaxSize } from '../shapes/shared/getBrowserCanvasMaxSize'
+import { clampToBrowserMaxCanvasSize } from '../shapes/shared/getBrowserCanvasMaxSize'
 import { isAnimated } from './assets/is-gif-animated'
 
 type BoxWidthHeight = {
@@ -58,29 +58,8 @@ export async function getResizedImageDataUrl(
 	height: number,
 	opts = {} as { type?: string; quality?: number }
 ): Promise<string> {
-	let desiredWidth = width * 2
-	let desiredHeight = height * 2
 	const { type = 'image/jpeg', quality = 0.92 } = opts
-
-	const canvasSizes = await getBrowserCanvasMaxSize()
-
-	const aspectRatio = width / height
-
-	if (desiredWidth > canvasSizes.maxWidth) {
-		desiredWidth = canvasSizes.maxWidth
-		desiredHeight = desiredWidth / aspectRatio
-	}
-
-	if (desiredHeight > canvasSizes.maxHeight) {
-		desiredHeight = canvasSizes.maxHeight
-		desiredWidth = desiredHeight * aspectRatio
-	}
-
-	if (desiredWidth * desiredHeight > canvasSizes.maxArea) {
-		const ratio = Math.sqrt(canvasSizes.maxArea / (desiredWidth * desiredHeight))
-		desiredWidth *= ratio
-		desiredHeight *= ratio
-	}
+	const [desiredWidth, desiredHeight] = await clampToBrowserMaxCanvasSize(width * 2, height * 2)
 
 	return await downscale(dataURLForImage, desiredWidth, desiredHeight, { imageType: type, quality })
 }
