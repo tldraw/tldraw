@@ -86,7 +86,7 @@ This is our shape util. It's a class that extends BaseBoxShapeUtil. For a more d
 example of how to create a custom shape, see the custom config example.
 
 [3]
-Where the action is. We use the onMount prop to get access to the editor instance via 
+We use the onMount prop to get access to the editor instance via 
 the handleMount callback (check out the API example for a more detailed look at this). Then we 
 call the registerExternalContentHandler method, we could choose to handle embeds, files, svgs, 
 text, images, or urls. For this example we will handle text/html content. The handler is called
