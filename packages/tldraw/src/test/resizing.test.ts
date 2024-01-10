@@ -3906,7 +3906,7 @@ describe('When resizing near the edges of the screen', () => {
 				target: 'selection',
 				handle: 'top_left',
 			})
-			.pointerMove(10, 25)
+			.pointerMove(-1, -1) // into the edge scrolling distance
 		jest.advanceTimersByTime(1000)
 		const after = editor.getShape<TLGeoShape>(ids.boxA)!
 		expect(after.x).toBeLessThan(before.x)

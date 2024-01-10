@@ -6701,6 +6701,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLInstance#insets:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "insets: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "insets",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLInstance#isChangingStyle:member",
               "docComment": "",
               "excerptTokens": [

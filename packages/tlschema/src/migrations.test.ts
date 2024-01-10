@@ -1608,6 +1608,18 @@ describe('add isHoveringCanvas to TLInstance', () => {
 	})
 })
 
+describe('add isInset to TLInstance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddInset]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ insets: [false, false, false, false] })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ insets: [false, false, false, false] })).toEqual({})
+	})
+})
+
 describe('add scribbles to TLInstance', () => {
 	const { up, down } = instanceMigrations.migrators[instanceVersions.AddScribbles]
 
