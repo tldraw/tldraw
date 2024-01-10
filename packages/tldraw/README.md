@@ -7,18 +7,20 @@
 
 # @tldraw/tldraw
 
-This package contains the source code for the tldraw library. Learn more at our docs site: [tldraw.dev](https://tldraw.dev).
+This package contains the source code for the tldraw library.
+
+Learn more at our docs site: [tldraw.dev](https://tldraw.dev).
 
 ## Installation
 
-Install the `@tldraw/tldraw` package using `@canary` for the latest canary release. (Or `@alpha` for the latest alpha release.)
+Install the `@tldraw/tldraw` package.
 
 ```bash
-yarn add @tldraw/tldraw@canary
+yarn add @tldraw/tldraw
 # or
-npm install @tldraw/tldraw@canary
+npm install @tldraw/tldraw
 # or
-pnpm i @tldraw/tldraw@canary
+pnpm i @tldraw/tldraw
 ```
 
 Then start the local development server.
@@ -40,7 +42,7 @@ import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 export default function () {
-	return <Tldraw/>
+	return <Tldraw />
 }
 ```
 
