@@ -651,7 +651,7 @@ export const LANGUAGES: readonly [{
     readonly label: "Tiếng Việt";
 }, {
     readonly locale: "zh-cn";
-    readonly label: "Chinese - Simplified";
+    readonly label: "简体中文";
 }, {
     readonly locale: "zh-tw";
     readonly label: "繁體中文 (台灣)";
@@ -1015,6 +1015,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     followingUserId: null | string;
     // (undocumented)
     highlightedUserIds: string[];
+    // (undocumented)
+    insets: boolean[];
     // (undocumented)
     isChangingStyle: boolean;
     // (undocumented)

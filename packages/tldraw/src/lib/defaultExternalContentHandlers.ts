@@ -12,12 +12,14 @@ import {
 	TLTextShapeProps,
 	Vec,
 	VecLike,
+	assert,
 	compact,
 	createShapeId,
+	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
-import { containBoxSize, getResizedImageDataUrl, isGifAnimated } from './utils/assets/assets'
+import { containBoxSize, downsizeImage, isGifAnimated } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
 
@@ -43,87 +45,63 @@ export function registerDefaultExternalContentHandlers(
 	}: TLExternalContentProps
 ) {
 	// files -> asset
-	editor.registerExternalAssetHandler('file', async ({ file }) => {
-		return await new Promise((resolve, reject) => {
-			if (
-				!acceptedImageMimeTypes.includes(file.type) &&
-				!acceptedVideoMimeTypes.includes(file.type)
-			) {
-				console.warn(`File type not allowed: ${file.type}`)
-				reject()
+	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
+		const name = _file.name
+		let file: Blob = _file
+		const isImageType = acceptedImageMimeTypes.includes(file.type)
+		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+
+		assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
+		assert(
+			file.size <= maxAssetSize,
+			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
+		)
+
+		if (file.type === 'video/quicktime') {
+			// hack to make .mov videos work
+			file = new Blob([file], { type: 'video/mp4' })
+		}
+
+		let size = isImageType
+			? await MediaHelpers.getImageSize(file)
+			: await MediaHelpers.getVideoSize(file)
+
+		const isAnimated = file.type === 'image/gif' ? await isGifAnimated(file) : isVideoType
+
+		const hash = await getHashForBuffer(await file.arrayBuffer())
+
+		if (isFinite(maxImageDimension)) {
+			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
+			if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+				size = resizedSize
 			}
+		}
 
-			if (file.size > maxAssetSize) {
-				console.warn(
-					`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
-						maxAssetSize / 1024
-					).toFixed()}kb`
-				)
-				reject()
-			}
+		// Always rescale the image
+		if (file.type === 'image/jpeg' || file.type === 'image/png') {
+			file = await downsizeImage(file, size.w, size.h, {
+				type: file.type,
+				quality: 0.92,
+			})
+		}
 
-			const reader = new FileReader()
-			reader.onerror = () => reject(reader.error)
-			reader.onload = async () => {
-				let dataUrl = reader.result as string
+		const assetId: TLAssetId = AssetRecordType.createId(hash)
 
-				// Hack to make .mov videos work via dataURL.
-				if (file.type === 'video/quicktime' && dataUrl.includes('video/quicktime')) {
-					dataUrl = dataUrl.replace('video/quicktime', 'video/mp4')
-				}
-
-				const isImageType = acceptedImageMimeTypes.includes(file.type)
-
-				let size: {
-					w: number
-					h: number
-				}
-				let isAnimated: boolean
-
-				if (isImageType) {
-					size = await MediaHelpers.getImageSizeFromSrc(dataUrl)
-					isAnimated = file.type === 'image/gif' && (await isGifAnimated(file))
-				} else {
-					isAnimated = true
-					size = await MediaHelpers.getVideoSizeFromSrc(dataUrl)
-				}
-
-				if (isFinite(maxImageDimension)) {
-					const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
-					if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-						size = resizedSize
-					}
-				}
-
-				// Always rescale the image
-				if (file.type === 'image/jpeg' || file.type === 'image/png') {
-					dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h, {
-						type: file.type,
-						quality: 0.92,
-					})
-				}
-
-				const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
-
-				const asset = AssetRecordType.create({
-					id: assetId,
-					type: isImageType ? 'image' : 'video',
-					typeName: 'asset',
-					props: {
-						name: file.name,
-						src: dataUrl,
-						w: size.w,
-						h: size.h,
-						mimeType: file.type,
-						isAnimated,
-					},
-				})
-
-				resolve(asset)
-			}
-
-			reader.readAsDataURL(file)
+		const asset = AssetRecordType.create({
+			id: assetId,
+			type: isImageType ? 'image' : 'video',
+			typeName: 'asset',
+			props: {
+				name,
+				src: await MediaHelpers.blobToDataUrl(file),
+				w: size.w,
+				h: size.h,
+				mimeType: file.type,
+				isAnimated,
+			},
 		})
+
+		return asset
 	})
 
 	// urls -> bookmark asset

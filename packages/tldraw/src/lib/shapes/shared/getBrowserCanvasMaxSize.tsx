@@ -56,3 +56,4 @@ export async function clampToBrowserMaxCanvasSize(width: number, height: number)
 
 	return [width, height]
 }
+export const MAX_SAFE_CANVAS_DIMENSION = 8192

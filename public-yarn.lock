@@ -4562,12 +4562,10 @@ __metadata:
     "@tldraw/editor": "workspace:*"
     "@types/canvas-size": ^1.2.0
     "@types/classnames": ^2.3.1
-    "@types/downscale": ^1.0.4
     "@types/lz-string": ^1.3.34
     canvas-size: ^1.2.6
     chokidar-cli: ^3.0.0
     classnames: ^2.3.2
-    downscale: ^1.0.6
     hotkeys-js: ^3.11.2
     jest-canvas-mock: ^2.5.2
     jest-environment-jsdom: ^28.1.2
@@ -4828,13 +4826,6 @@ __metadata:
   dependencies:
     "@types/ms": "*"
   checksum: 0a7b89d8ed72526858f0b61c6fd81f477853e8c4415bb97f48b1b5545248d2ae389931680b94b393b993a7cfe893537a200647d93defe6d87159b96812305adc
-  languageName: node
-  linkType: hard
-
-"@types/downscale@npm:^1.0.4":
-  version: 1.0.4
-  resolution: "@types/downscale@npm:1.0.4"
-  checksum: b29ca279b616e06896c01795effa5c483e243e85a137462f98eb43dec3598acab3f72b0637225a4087080e0326cf4bde89ba21d0473a9254a7661c5fd29f98d9
   languageName: node
   linkType: hard
 
@@ -8012,13 +8003,6 @@ __metadata:
   version: 8.6.0
   resolution: "dotenv@npm:8.6.0"
   checksum: 38e902c80b0666ab59e9310a3d24ed237029a7ce34d976796349765ac96b8d769f6df19090f1f471b77a25ca391971efde8a1ea63bb83111bd8bec8e5cc9b2cd
-  languageName: node
-  linkType: hard
-
-"downscale@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "downscale@npm:1.0.6"
-  checksum: f69beb8fe7711964b259ef3d3502fd9f5dd0c4472aa279537dc58d69dcff8a619c77b0209db65841aab014930b97e82f92d43558acc1e569407b8fbc63fb04ee
   languageName: node
   linkType: hard
 
