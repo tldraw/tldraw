@@ -204,6 +204,7 @@ const handlePasteFromEventClipboardData = async (
 	const things: ClipboardThing[] = []
 
 	for (const item of Object.values(clipboardData.items)) {
+		console.log(item)
 		switch (item.kind) {
 			case 'file': {
 				// files are always blobs
@@ -669,6 +670,9 @@ export function useNativeClipboardEvents() {
 				event.stopPropagation()
 				return
 			}
+
+			console.log('paste', event)
+			debugger
 
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or

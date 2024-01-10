@@ -8,18 +8,16 @@ import { PngHelpers } from './png'
  */
 export class MediaHelpers {
 	/**
-	 * Get the size of a video from its source.
-	 *
-	 * @param src - The source of the video.
+	 * Load a video from a url.
 	 * @public
 	 */
-	static async getVideoSizeFromSrc(src: string): Promise<{ w: number; h: number }> {
-		return await new Promise((resolve, reject) => {
+	static loadVideo(src: string): Promise<HTMLVideoElement> {
+		return new Promise((resolve, reject) => {
 			const video = document.createElement('video')
-			video.onloadeddata = () => resolve({ w: video.videoWidth, h: video.videoHeight })
+			video.onloadeddata = () => resolve(video)
 			video.onerror = (e) => {
 				console.error(e)
-				reject(new Error('Could not get video size'))
+				reject(new Error('Could not load video'))
 			}
 			video.crossOrigin = 'anonymous'
 			video.src = src
@@ -27,12 +25,55 @@ export class MediaHelpers {
 	}
 
 	/**
-	 * Get the size of an image from its source.
-	 *
-	 * @param dataURL - The file as a string.
+	 * Load an image from a url.
 	 * @public
 	 */
-	static async getImageSizeFromSrc(dataURL: string): Promise<{ w: number; h: number }> {
+	static loadImage(src: string): Promise<HTMLImageElement> {
+		return new Promise((resolve, reject) => {
+			const img = new Image()
+			img.onload = () => resolve(img)
+			img.onerror = (e) => {
+				console.error(e)
+				reject(new Error('Could not load image'))
+			}
+			img.crossOrigin = 'anonymous'
+			img.src = src
+		})
+	}
+
+	/**
+	 * Get the size of a video from its source.
+	 *
+	 * @param src - A SharedBlob containing the video
+	 * @public
+	 */
+	static async getVideoSize(blob: SharedBlob): Promise<{ w: number; h: number }> {
+		try {
+			const video = await MediaHelpers.loadVideo(blob.getUrl())
+			return { w: video.videoWidth, h: video.videoHeight }
+		} finally {
+			blob.revokeUrl()
+		}
+	}
+
+	/**
+	 * Get the size of an image from its source.
+	 *
+	 * @param dataURL - A SharedBlob containing the image.
+	 * @public
+	 */
+	static async getImageSize(blob: SharedBlob): Promise<{ w: number; h: number }> {
+		try {
+			const image = await MediaHelpers.loadImage(blob.getUrl())
+			try {
+			} catch (err) {
+				console.error(err)
+				return { w: image.naturalWidth, h: image.naturalHeight }
+			}
+		} finally {
+			blob.revokeUrl()
+		}
+
 		return await new Promise((resolve, reject) => {
 			const img = new Image()
 			img.onload = async () => {
@@ -67,5 +108,34 @@ export class MediaHelpers {
 			img.crossOrigin = 'anonymous'
 			img.src = dataURL
 		})
+	}
+}
+
+export class SharedBlob {
+	constructor(readonly blob: Blob) {}
+
+	urlRefCount = 0
+	url: string | null = null
+
+	getUrl() {
+		if (!this.url) {
+			this.url = URL.createObjectURL(this.blob)
+		}
+
+		this.urlRefCount++
+
+		return this.url
+	}
+
+	revokeUrl() {
+		// we give a grace period of 1 second before revoking the url for real
+		setTimeout(() => {
+			this.urlRefCount--
+
+			if (this.urlRefCount <= 0) {
+				URL.revokeObjectURL(this.url!)
+				this.url = null
+			}
+		}, 1000)
 	}
 }
