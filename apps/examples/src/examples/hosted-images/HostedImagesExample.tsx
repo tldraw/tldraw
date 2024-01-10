@@ -39,12 +39,12 @@ export default function HostedImagesExample() {
 
 			if (['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].includes(file.type)) {
 				shapeType = 'image'
-				size = await MediaHelpers.getImageSizeFromSrc(url)
+				size = await MediaHelpers.getImageSize(file)
 				isAnimated = file.type === 'image/gif' && (await isGifAnimated(file))
 			} else {
 				shapeType = 'video'
 				isAnimated = true
-				size = await MediaHelpers.getVideoSizeFromSrc(url)
+				size = await MediaHelpers.getVideoSize(file)
 			}
 
 			const asset: TLAsset = AssetRecordType.create({
