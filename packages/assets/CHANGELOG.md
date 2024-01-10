@@ -1,3 +1,25 @@
+# v2.0.0-beta.2 (Wed Jan 10 2024)
+
+### Release Notes
+
+#### Fix trademark links ([#2380](https://github.com/tldraw/tldraw/pull/2380))
+
+- Fixes broken links in a number of docs files.
+
+---
+
+#### 📝 Documentation
+
+- Fix trademark links [#2380](https://github.com/tldraw/tldraw/pull/2380) ([@nonparibus](https://github.com/nonparibus))
+- Another typo fix. [#2366](https://github.com/tldraw/tldraw/pull/2366) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 2
+
+- David @ HASH ([@nonparibus](https://github.com/nonparibus))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.1 (Wed Dec 20 2023)
 
 ### Release Notes

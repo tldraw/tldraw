@@ -1,3 +1,15 @@
+# v2.0.0-beta.2 (Wed Jan 10 2024)
+
+#### 🐛 Bug Fix
+
+- Fix meta examples [#2379](https://github.com/tldraw/tldraw/pull/2379) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.1 (Wed Dec 20 2023)
 
 ### Release Notes

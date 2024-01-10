@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state",
 	"description": "A tiny little drawing app (state).",
-	"version": "2.0.0-beta.1",
+	"version": "2.0.0-beta.2",
 	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw Inc.",
