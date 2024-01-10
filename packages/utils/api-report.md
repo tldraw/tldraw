@@ -69,6 +69,9 @@ export function getErrorAnnotations(error: Error): ErrorAnnotations;
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
 // @public
+export function getHashForBuffer(buffer: ArrayBuffer): string;
+
+// @public
 export function getHashForObject(obj: any): string;
 
 // @public

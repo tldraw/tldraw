@@ -15,9 +15,9 @@ import {
 	assert,
 	compact,
 	createShapeId,
+	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
-import { getHashForBuffer } from '@tldraw/utils/src/lib/hash'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { containBoxSize, downsizeImage, isGifAnimated } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
