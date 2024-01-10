@@ -21,4 +21,5 @@ export type TLHighlightShapeProps = ShapePropsType<typeof highlightShapeProps>
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const highlightShapeMigrations = defineMigrations({})

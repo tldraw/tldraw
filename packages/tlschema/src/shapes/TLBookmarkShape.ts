@@ -23,6 +23,7 @@ const Versions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const bookmarkShapeMigrations = defineMigrations({
 	currentVersion: Versions.MakeUrlsValid,
 	migrators: {

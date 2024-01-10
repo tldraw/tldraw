@@ -1,4 +1,4 @@
-import { MigrationFailureReason } from '../migrate'
+import { MigrationFailureReason } from '../legacy_migrate'
 import { SerializedStore } from '../Store'
 import { testSchemaV0 } from './testSchema.v0'
 import { testSchemaV1 } from './testSchema.v1'

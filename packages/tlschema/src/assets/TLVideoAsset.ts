@@ -38,6 +38,7 @@ const Versions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const videoAssetMigrations = defineMigrations({
 	currentVersion: Versions.MakeUrlsValid,
 	migrators: {

@@ -40,6 +40,7 @@ export const cameraVersions = {
 }
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const cameraMigrations = defineMigrations({
 	currentVersion: cameraVersions.AddMeta,
 	migrators: {

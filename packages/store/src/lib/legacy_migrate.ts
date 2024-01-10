@@ -1,10 +1,11 @@
+/* eslint-disable deprecation/deprecation */
 import { UnknownRecord, isRecord } from './BaseRecord'
 import { SerializedSchema } from './StoreSchema'
 
 type EMPTY_SYMBOL = symbol
 
-/** @public */
-export function defineMigrations<
+/** @internal */
+export function unsafe_defineMigrations<
 	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
 	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL,
 >(opts: {
@@ -40,7 +41,19 @@ export function defineMigrations<
 	}
 }
 
-/** @public */
+/**
+ * @deprecated - Use [???] instead
+ * @public
+ */
+export const defineMigrations: typeof unsafe_defineMigrations = (...args) => {
+	console.warn('defineMigrations is deprecated. Use [???] instead')
+	return unsafe_defineMigrations(...args)
+}
+
+/**
+ * @deprecated - use the new stuff
+ * @public
+ */
 export type Migration<Before = any, After = any> = {
 	up: (oldState: Before) => After
 	down: (newState: After) => Before
@@ -52,13 +65,19 @@ interface BaseMigrationsInfo {
 	migrators: { [version: number]: Migration }
 }
 
-/** @public */
+/**
+ * @deprecated - use the new stuff
+ * @public
+ */
 export interface Migrations extends BaseMigrationsInfo {
 	subTypeKey?: string
 	subTypeMigrations?: Record<string, BaseMigrationsInfo>
 }
 
-/** @public */
+/**
+ * @deprecated - use the new stuff
+ * @public
+ */
 export type MigrationResult<T> =
 	| { type: 'success'; value: T }
 	| { type: 'error'; reason: MigrationFailureReason }
@@ -73,9 +92,15 @@ export enum MigrationFailureReason {
 	UnrecognizedSubtype = 'unrecognized-subtype',
 }
 
-/** @public */
+/**
+ * @deprecated - use the new stuff
+ * @public
+ */
 export type RecordVersion = { rootVersion: number; subTypeVersion?: number }
-/** @public */
+/**
+ * @deprecated - use the new stuff
+ * @public
+ */
 export function getRecordVersion(
 	record: UnknownRecord,
 	serializedSchema: SerializedSchema
@@ -92,7 +117,10 @@ export function getRecordVersion(
 	return { rootVersion: persistedType.version }
 }
 
-/** @public */
+/**
+ * @deprecated - use the new stuff
+ * @public
+ */
 export function compareRecordVersions(a: RecordVersion, b: RecordVersion) {
 	if (a.rootVersion > b.rootVersion) {
 		return 1
@@ -111,7 +139,10 @@ export function compareRecordVersions(a: RecordVersion, b: RecordVersion) {
 	return 0
 }
 
-/** @public */
+/**
+ * @deprecated - use the new stuff
+ * @public
+ */
 export function migrateRecord<R extends UnknownRecord>({
 	record,
 	migrations,
@@ -160,7 +191,10 @@ export function migrateRecord<R extends UnknownRecord>({
 	}
 }
 
-/** @public */
+/**
+ * @deprecated - use the new stuff
+ * @public
+ */
 export function migrate<T>({
 	value,
 	migrations,

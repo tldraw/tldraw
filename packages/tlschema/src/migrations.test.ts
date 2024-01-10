@@ -56,6 +56,7 @@ for (const [fileName, module] of allModules) {
 
 	if (!migrationsKey) continue
 
+	// eslint-disable-next-line deprecation/deprecation
 	const migrations: Migrations = module[migrationsKey]
 
 	for (const version of Object.keys(migrations.migrators)) {

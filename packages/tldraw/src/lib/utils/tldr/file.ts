@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 import {
 	Editor,
 	FileHelpers,

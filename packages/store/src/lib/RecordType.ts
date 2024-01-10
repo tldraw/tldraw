@@ -2,7 +2,7 @@ import { structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
-import { Migrations } from './migrate'
+import { Migrations } from './legacy_migrate'
 
 export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['create']>
 
@@ -28,6 +28,7 @@ export class RecordType<
 	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>,
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+	// eslint-disable-next-line deprecation/deprecation
 	readonly migrations: Migrations
 	readonly validator: StoreValidator<R> | { validate: (r: unknown) => R }
 
@@ -43,6 +44,7 @@ export class RecordType<
 		public readonly typeName: R['typeName'],
 		config: {
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+			// eslint-disable-next-line deprecation/deprecation
 			readonly migrations: Migrations
 			readonly validator?: StoreValidator<R> | { validate: (r: unknown) => R }
 			readonly scope?: RecordScope
@@ -218,6 +220,7 @@ export class RecordType<
 export function createRecordType<R extends UnknownRecord>(
 	typeName: R['typeName'],
 	config: {
+		// eslint-disable-next-line deprecation/deprecation
 		migrations?: Migrations
 		validator?: StoreValidator<R>
 		scope: RecordScope

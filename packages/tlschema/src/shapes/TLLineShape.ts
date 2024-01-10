@@ -38,6 +38,7 @@ export const lineShapeVersions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const lineShapeMigrations = defineMigrations({
 	currentVersion: lineShapeVersions.AddSnapHandles,
 	migrators: {

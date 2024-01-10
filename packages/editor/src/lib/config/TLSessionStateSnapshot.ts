@@ -120,6 +120,7 @@ const sessionStateSnapshotValidator: T.Validator<TLSessionStateSnapshot> = T.obj
 	),
 })
 
+// eslint-disable-next-line deprecation/deprecation
 const sessionStateSnapshotMigrations = defineMigrations({
 	currentVersion: CURRENT_SESSION_STATE_SNAPSHOT_VERSION,
 })
@@ -133,6 +134,7 @@ function migrateAndValidateSessionStateSnapshot(state: unknown): TLSessionStateS
 		console.warn('No version in instance state')
 		return null
 	}
+	// eslint-disable-next-line deprecation/deprecation
 	const result = migrate<TLSessionStateSnapshot>({
 		value: state,
 		fromVersion: state.version,

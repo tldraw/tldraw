@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 import { atom } from '@tldraw/state'
 import { defineMigrations, migrate } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'

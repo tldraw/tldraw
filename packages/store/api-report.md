@@ -27,7 +27,7 @@ export type CollectionDiff<T> = {
     removed?: Set<T>;
 };
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function compareRecordVersions(a: RecordVersion, b: RecordVersion): -1 | 0 | 1;
 
 // @public (undocumented)
@@ -45,25 +45,13 @@ export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'
     scope: RecordScope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
-// @public (undocumented)
-export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EMPTY_SYMBOL, CurrentVersion extends EMPTY_SYMBOL | Exclude<number, 0> = EMPTY_SYMBOL>(opts: {
-    firstVersion?: CurrentVersion extends number ? FirstVersion : never;
-    currentVersion?: CurrentVersion;
-    migrators?: CurrentVersion extends number ? FirstVersion extends number ? CurrentVersion extends FirstVersion ? {
-        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
-    } : {
-        [version in Exclude<Range_2<FirstVersion, CurrentVersion>, FirstVersion>]: Migration;
-    } : {
-        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
-    } : never;
-    subTypeKey?: string;
-    subTypeMigrations?: Record<string, BaseMigrationsInfo>;
-}): Migrations;
+// @public @deprecated (undocumented)
+export const defineMigrations: typeof unsafe_defineMigrations;
 
 // @public
 export function devFreeze<T>(object: T): T;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function getRecordVersion(record: UnknownRecord, serializedSchema: SerializedSchema): RecordVersion;
 
 // @public
@@ -90,7 +78,7 @@ export class IncrementalSetConstructor<T> {
     remove(item: T): void;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
     value: unknown;
     migrations: Migrations;
@@ -98,7 +86,7 @@ export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
     toVersion: number;
 }): MigrationResult<T>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, }: {
     record: unknown;
     migrations: Migrations;
@@ -106,7 +94,7 @@ export function migrateRecord<R extends UnknownRecord>({ record, migrations, fro
     toVersion: number;
 }): MigrationResult<R>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type Migration<Before = any, After = any> = {
     up: (oldState: Before) => After;
     down: (newState: After) => Before;
@@ -128,7 +116,7 @@ export enum MigrationFailureReason {
     UnrecognizedSubtype = "unrecognized-subtype"
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type MigrationResult<T> = {
     type: 'error';
     reason: MigrationFailureReason;
@@ -137,7 +125,7 @@ export type MigrationResult<T> = {
     value: T;
 };
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface Migrations extends BaseMigrationsInfo {
     // (undocumented)
     subTypeKey?: string;
@@ -191,7 +179,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     withDefaultProperties<DefaultProps extends Omit<Partial<R>, 'id' | 'typeName'>>(createDefaultProperties: () => DefaultProps): RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type RecordVersion = {
     rootVersion: number;
     subTypeVersion?: number;

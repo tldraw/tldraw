@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
@@ -8,7 +9,7 @@ import {
 	Migrations,
 	migrate,
 	migrateRecord,
-} from './migrate'
+} from './legacy_migrate'
 
 /** @public */
 export interface SerializedSchema {
@@ -36,7 +37,7 @@ export interface SerializedSchema {
 
 /** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-	/** @public */
+	/** @deprecated - use the new stuff */
 	snapshotMigrations?: Migrations
 	/** @public */
 	onValidationFailure?: (data: {

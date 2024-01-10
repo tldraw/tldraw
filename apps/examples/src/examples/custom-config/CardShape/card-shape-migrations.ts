@@ -1,6 +1,7 @@
 import { defineMigrations } from '@tldraw/tldraw'
 
 // Migrations for the custom card shape (optional but very helpful)
+// eslint-disable-next-line deprecation/deprecation
 export const cardShapeMigrations = defineMigrations({
 	currentVersion: 1,
 	migrators: {

@@ -90,6 +90,7 @@ export const rootShapeVersions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const rootShapeMigrations = defineMigrations({
 	currentVersion: rootShapeVersions.AddMeta,
 	migrators: {
@@ -186,11 +187,13 @@ export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>
 /** @internal */
 export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 	return createRecordType<TLShape>('shape', {
+		// eslint-disable-next-line deprecation/deprecation
 		migrations: defineMigrations({
 			currentVersion: rootShapeMigrations.currentVersion,
 			firstVersion: rootShapeMigrations.firstVersion,
 			migrators: rootShapeMigrations.migrators,
 			subTypeKey: 'type',
+			// eslint-disable-next-line deprecation/deprecation
 			subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
 		}),
 		scope: 'document',

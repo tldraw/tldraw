@@ -32,6 +32,7 @@ export const documentVersions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const documentMigrations = defineMigrations({
 	currentVersion: documentVersions.AddMeta,
 	migrators: {

@@ -1,9 +1,10 @@
+/* eslint-disable deprecation/deprecation */
 import { assert } from '@tldraw/utils'
 import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { SerializedStore } from '../Store'
 import { StoreSchema } from '../StoreSchema'
-import { defineMigrations } from '../migrate'
+import { defineMigrations } from '../legacy_migrate'
 
 const UserVersion = {
 	AddLocale: 1,

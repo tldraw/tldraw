@@ -8280,7 +8280,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		keys: new Set<string>(),
 		/** A set containing the currently pressed buttons. */
 		buttons: new Set<number>(),
-		/** Whether the input is from a pe. */
+		/** Whether the input is from a pen. */
 		isPen: false,
 		/** Whether the shift key is currently pressed. */
 		shiftKey: false,

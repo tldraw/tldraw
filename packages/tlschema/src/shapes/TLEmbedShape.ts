@@ -635,6 +635,7 @@ const Versions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const embedShapeMigrations = defineMigrations({
 	currentVersion: Versions.RemovePermissionOverrides,
 	migrators: {

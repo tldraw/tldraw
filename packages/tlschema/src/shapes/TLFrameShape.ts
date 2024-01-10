@@ -15,4 +15,5 @@ type TLFrameShapeProps = ShapePropsType<typeof frameShapeProps>
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const frameShapeMigrations = defineMigrations({})

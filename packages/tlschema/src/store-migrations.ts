@@ -11,6 +11,7 @@ const Versions = {
 export { Versions as storeVersions }
 
 /** @public */
+// eslint-disable-next-line deprecation/deprecation
 export const storeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveUserDocument,
 	migrators: {

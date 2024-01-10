@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'

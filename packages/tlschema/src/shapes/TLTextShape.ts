@@ -29,6 +29,7 @@ const Versions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const textShapeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveJustify,
 	migrators: {

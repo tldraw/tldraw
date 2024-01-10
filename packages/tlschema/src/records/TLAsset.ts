@@ -29,6 +29,7 @@ export const assetVersions = {
 }
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const assetMigrations = defineMigrations({
 	subTypeKey: 'type',
 	subTypeMigrations: {

@@ -1,8 +1,9 @@
+/* eslint-disable deprecation/deprecation */
 import assert from 'assert'
 import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { StoreSchema } from '../StoreSchema'
-import { defineMigrations } from '../migrate'
+import { defineMigrations } from '../legacy_migrate'
 
 /** A user of tldraw */
 interface User extends BaseRecord<'user', RecordId<User>> {

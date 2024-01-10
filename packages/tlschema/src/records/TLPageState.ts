@@ -56,6 +56,7 @@ export const instancePageStateVersions = {
 } as const
 
 /** @public */
+// eslint-disable-next-line deprecation/deprecation
 export const instancePageStateMigrations = defineMigrations({
 	currentVersion: instancePageStateVersions.RenamePropertiesAgain,
 	migrators: {

@@ -37,6 +37,7 @@ export const pointerVersions = {
 }
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const pointerMigrations = defineMigrations({
 	currentVersion: pointerVersions.AddMeta,
 	migrators: {

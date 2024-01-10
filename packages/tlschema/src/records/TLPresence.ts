@@ -76,6 +76,7 @@ export const instancePresenceVersions = {
 	RenameSelectedShapeIds: 5,
 } as const
 
+// eslint-disable-next-line deprecation/deprecation
 export const instancePresenceMigrations = defineMigrations({
 	currentVersion: instancePresenceVersions.RenameSelectedShapeIds,
 	migrators: {

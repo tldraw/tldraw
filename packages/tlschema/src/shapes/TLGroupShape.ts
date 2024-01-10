@@ -11,4 +11,5 @@ export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
 export const groupShapeProps: ShapeProps<TLGroupShape> = {}
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const groupShapeMigrations = defineMigrations({})

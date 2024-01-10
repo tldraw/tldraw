@@ -37,6 +37,7 @@ const Versions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const noteShapeMigrations = defineMigrations({
 	currentVersion: Versions.MakeUrlsValid,
 	migrators: {

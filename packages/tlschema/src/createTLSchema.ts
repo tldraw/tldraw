@@ -16,6 +16,7 @@ import { StyleProp } from './styles/StyleProp'
 
 /** @public */
 export type SchemaShapeInfo = {
+	// eslint-disable-next-line deprecation/deprecation
 	migrations?: Migrations
 	props?: Record<string, { validate: (prop: any) => any }>
 	meta?: Record<string, { validate: (prop: any) => any }>

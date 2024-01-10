@@ -38,6 +38,7 @@ export const pageVersions = {
 }
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const pageMigrations = defineMigrations({
 	currentVersion: pageVersions.AddMeta,
 	migrators: {

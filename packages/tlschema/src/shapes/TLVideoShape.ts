@@ -25,6 +25,7 @@ const Versions = {
 } as const
 
 /** @internal */
+// eslint-disable-next-line deprecation/deprecation
 export const videoShapeMigrations = defineMigrations({
 	currentVersion: Versions.MakeUrlsValid,
 	migrators: {
