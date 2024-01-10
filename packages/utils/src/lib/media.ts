@@ -1,4 +1,3 @@
-import { FileHelpers } from './file'
 import { PngHelpers } from './png'
 
 /**
@@ -42,100 +41,73 @@ export class MediaHelpers {
 	}
 
 	/**
+	 * Read a blob into a data url
+	 * @public
+	 */
+	static blobToDataUrl(blob: Blob): Promise<string> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader()
+			reader.onload = () => resolve(reader.result as string)
+			reader.onerror = (e) => {
+				console.error(e)
+				reject(new Error('Could not read blob'))
+			}
+			reader.readAsDataURL(blob)
+		})
+	}
+
+	/**
 	 * Get the size of a video from its source.
 	 *
 	 * @param src - A SharedBlob containing the video
 	 * @public
 	 */
-	static async getVideoSize(blob: SharedBlob): Promise<{ w: number; h: number }> {
-		try {
-			const video = await MediaHelpers.loadVideo(blob.getUrl())
+	static async getVideoSize(blob: Blob): Promise<{ w: number; h: number }> {
+		return MediaHelpers.usingObjectURL(blob, async (url) => {
+			const video = await MediaHelpers.loadVideo(url)
 			return { w: video.videoWidth, h: video.videoHeight }
-		} finally {
-			blob.revokeUrl()
-		}
+		})
 	}
 
 	/**
 	 * Get the size of an image from its source.
 	 *
-	 * @param dataURL - A SharedBlob containing the image.
+	 * @param dataURL - A Blob containing the image.
 	 * @public
 	 */
-	static async getImageSize(blob: SharedBlob): Promise<{ w: number; h: number }> {
-		try {
-			const image = await MediaHelpers.loadImage(blob.getUrl())
-			try {
-			} catch (err) {
-				console.error(err)
-				return { w: image.naturalWidth, h: image.naturalHeight }
-			}
-		} finally {
-			blob.revokeUrl()
-		}
+	static async getImageSize(blob: Blob): Promise<{ w: number; h: number }> {
+		const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
 
-		return await new Promise((resolve, reject) => {
-			const img = new Image()
-			img.onload = async () => {
-				try {
-					const blob = await FileHelpers.base64ToFile(dataURL)
-					const view = new DataView(blob)
-					if (PngHelpers.isPng(view, 0)) {
-						const physChunk = PngHelpers.findChunk(view, 'pHYs')
-						if (physChunk) {
-							const physData = PngHelpers.parsePhys(view, physChunk.dataOffset)
-							if (physData.unit === 0 && physData.ppux === physData.ppuy) {
-								const pixelRatio = Math.max(physData.ppux / 2834.5, 1)
-								resolve({
-									w: Math.round(img.width / pixelRatio),
-									h: Math.round(img.height / pixelRatio),
-								})
-								return
+		try {
+			if (blob.type === 'image/png') {
+				const view = new DataView(await blob.arrayBuffer())
+				if (PngHelpers.isPng(view, 0)) {
+					const physChunk = PngHelpers.findChunk(view, 'pHYs')
+					if (physChunk) {
+						const physData = PngHelpers.parsePhys(view, physChunk.dataOffset)
+						if (physData.unit === 0 && physData.ppux === physData.ppuy) {
+							const pixelRatio = Math.max(physData.ppux / 2834.5, 1)
+							return {
+								w: Math.round(image.naturalWidth / pixelRatio),
+								h: Math.round(image.naturalHeight / pixelRatio),
 							}
 						}
 					}
-
-					resolve({ w: img.width, h: img.height })
-				} catch (err) {
-					console.error(err)
-					resolve({ w: img.width, h: img.height })
 				}
 			}
-			img.onerror = (err) => {
-				console.error(err)
-				reject(new Error('Could not get image size'))
-			}
-			img.crossOrigin = 'anonymous'
-			img.src = dataURL
-		})
-	}
-}
-
-export class SharedBlob {
-	constructor(readonly blob: Blob) {}
-
-	urlRefCount = 0
-	url: string | null = null
-
-	getUrl() {
-		if (!this.url) {
-			this.url = URL.createObjectURL(this.blob)
+		} catch (err) {
+			console.error(err)
+			return { w: image.naturalWidth, h: image.naturalHeight }
 		}
-
-		this.urlRefCount++
-
-		return this.url
+		return { w: image.naturalWidth, h: image.naturalHeight }
 	}
 
-	revokeUrl() {
-		// we give a grace period of 1 second before revoking the url for real
-		setTimeout(() => {
-			this.urlRefCount--
-
-			if (this.urlRefCount <= 0) {
-				URL.revokeObjectURL(this.url!)
-				this.url = null
-			}
-		}, 1000)
+	static async usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T> {
+		const url = URL.createObjectURL(blob)
+		try {
+			return await fn(url)
+		} finally {
+			URL.revokeObjectURL(url)
+		}
 	}
 }

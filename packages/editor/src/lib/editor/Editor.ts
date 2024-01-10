@@ -1,4 +1,4 @@
-import { Atom, EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -7538,24 +7538,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	async getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined> {
 		return await this.externalAssetContentHandlers[info.type]?.(info as any)
-	}
-
-	private assetPlaceholderUrls: Atom<{ readonly [id: TLAssetId]: { id: string; url: string } }> =
-		atom('assetPlaceholderUrls', {})
-
-	setAssetPlaceholderUrl(assetId: TLAssetId, url: string) {
-		const urlId = uniqueId()
-		this.assetPlaceholderUrls.set({
-			...this.assetPlaceholderUrls.get(),
-			[assetId]: { id: urlId, url },
-		})
-		return () => {
-			const urls = this.assetPlaceholderUrls.get()
-			if (urls[assetId]?.id === urlId) {
-				const { [assetId]: _, ...rest } = urls
-				this.assetPlaceholderUrls.set(rest)
-			}
-		}
 	}
 
 	/** @internal */

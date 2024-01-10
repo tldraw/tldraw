@@ -124,14 +124,19 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 
 // @public
 export class MediaHelpers {
-    static getImageSizeFromSrc(dataURL: string): Promise<{
+    static blobToDataUrl(blob: Blob): Promise<string>;
+    static getImageSize(blob: Blob): Promise<{
         w: number;
         h: number;
     }>;
-    static getVideoSizeFromSrc(src: string): Promise<{
+    static getVideoSize(blob: Blob): Promise<{
         w: number;
         h: number;
     }>;
+    static loadImage(src: string): Promise<HTMLImageElement>;
+    static loadVideo(src: string): Promise<HTMLVideoElement>;
+    // (undocumented)
+    static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
 
 // @internal (undocumented)
