@@ -1,3 +1,8 @@
+## 2.0.21
+
+- Improves translations.
+- Fixes and issue with frames. The contents of the frame could become invisible when stacked inside other frames.
+
 ## 2.0.20
 
 - Adds edge scrolling functionality. The camera will now move when the pointer is close to the edge of the screen (when resizing, moving, or brush selecting),
