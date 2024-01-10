@@ -1,8 +1,5 @@
 import { MediaHelpers, assertExists } from '@tldraw/editor'
-import {
-	MAX_SAFE_CANVAS_DIMENSION,
-	getBrowserCanvasMaxSize,
-} from '../../shapes/shared/getBrowserCanvasMaxSize'
+import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 import { isAnimated } from './is-gif-animated'
 
 type BoxWidthHeight = {
@@ -63,31 +60,11 @@ export async function downsizeImage(
 	opts = {} as { type?: string; quality?: number }
 ): Promise<Blob> {
 	const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
-	let desiredWidth = Math.min(width * 2, image.naturalWidth)
-	let desiredHeight = Math.min(height * 2, image.naturalHeight)
 	const { type = blob.type, quality = 0.92 } = opts
-
-	if (desiredWidth > MAX_SAFE_CANVAS_DIMENSION || desiredHeight > MAX_SAFE_CANVAS_DIMENSION) {
-		const canvasSizes = await getBrowserCanvasMaxSize()
-
-		const aspectRatio = width / height
-
-		if (desiredWidth > canvasSizes.maxWidth) {
-			desiredWidth = canvasSizes.maxWidth
-			desiredHeight = desiredWidth / aspectRatio
-		}
-
-		if (desiredHeight > canvasSizes.maxHeight) {
-			desiredHeight = canvasSizes.maxHeight
-			desiredWidth = desiredHeight * aspectRatio
-		}
-
-		if (desiredWidth * desiredHeight > canvasSizes.maxArea) {
-			const ratio = Math.sqrt(canvasSizes.maxArea / (desiredWidth * desiredHeight))
-			desiredWidth *= ratio
-			desiredHeight *= ratio
-		}
-	}
+	const [desiredWidth, desiredHeight] = await clampToBrowserMaxCanvasSize(
+		Math.min(width * 2, image.naturalWidth),
+		Math.min(height * 2, image.naturalHeight)
+	)
 
 	const canvas = document.createElement('canvas')
 	canvas.width = desiredWidth
