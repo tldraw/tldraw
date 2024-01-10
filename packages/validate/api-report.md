@@ -113,7 +113,7 @@ const positiveNumber: Validator<number>;
 function setEnum<T>(values: ReadonlySet<T>): Validator<T>;
 
 // @public
-const srcUrl: Validator<string>;
+const srcUrl: Validator<null | string>;
 
 // @public
 const string: Validator<string>;
