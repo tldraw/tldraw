@@ -97,4 +97,7 @@ export const HIT_TEST_MARGIN = 8
 export const EDGE_SCROLL_SPEED = 20
 
 /** @internal */
-export const EDGE_SCROLL_DISTANCE = 32
+export const EDGE_SCROLL_DISTANCE = 8
+
+/** @internal */
+export const COARSE_POINTER_WIDTH = 12

@@ -2688,7 +2688,7 @@
             },
             {
               "kind": "Content",
-              "text": "readonly [{\n    readonly locale: \"ar\";\n    readonly label: \"عربي\";\n}, {\n    readonly locale: \"ca\";\n    readonly label: \"Català\";\n}, {\n    readonly locale: \"cs\";\n    readonly label: \"Čeština\";\n}, {\n    readonly locale: \"da\";\n    readonly label: \"Danish\";\n}, {\n    readonly locale: \"de\";\n    readonly label: \"Deutsch\";\n}, {\n    readonly locale: \"en\";\n    readonly label: \"English\";\n}, {\n    readonly locale: \"es\";\n    readonly label: \"Español\";\n}, {\n    readonly locale: \"fa\";\n    readonly label: \"فارسی\";\n}, {\n    readonly locale: \"fi\";\n    readonly label: \"Suomi\";\n}, {\n    readonly locale: \"fr\";\n    readonly label: \"Français\";\n}, {\n    readonly locale: \"gl\";\n    readonly label: \"Galego\";\n}, {\n    readonly locale: \"he\";\n    readonly label: \"עברית\";\n}, {\n    readonly locale: \"it\";\n    readonly label: \"Italiano\";\n}, {\n    readonly locale: \"ja\";\n    readonly label: \"日本語\";\n}, {\n    readonly locale: \"ko-kr\";\n    readonly label: \"한국어\";\n}, {\n    readonly locale: \"ku\";\n    readonly label: \"کوردی\";\n}, {\n    readonly locale: \"hi-in\";\n    readonly label: \"हिन्दी\";\n}, {\n    readonly locale: \"hu\";\n    readonly label: \"Magyar\";\n}, {\n    readonly locale: \"my\";\n    readonly label: \"မြန်မာစာ\";\n}, {\n    readonly locale: \"ne\";\n    readonly label: \"नेपाली\";\n}, {\n    readonly locale: \"no\";\n    readonly label: \"Norwegian\";\n}, {\n    readonly locale: \"pl\";\n    readonly label: \"Polski\";\n}, {\n    readonly locale: \"pt-br\";\n    readonly label: \"Português - Brasil\";\n}, {\n    readonly locale: \"pt-pt\";\n    readonly label: \"Português - Europeu\";\n}, {\n    readonly locale: \"ro\";\n    readonly label: \"Română\";\n}, {\n    readonly locale: \"ru\";\n    readonly label: \"Russian\";\n}, {\n    readonly locale: \"sv\";\n    readonly label: \"Svenska\";\n}, {\n    readonly locale: \"te\";\n    readonly label: \"తెలుగు\";\n}, {\n    readonly locale: \"th\";\n    readonly label: \"ภาษาไทย\";\n}, {\n    readonly locale: \"tr\";\n    readonly label: \"Türkçe\";\n}, {\n    readonly locale: \"uk\";\n    readonly label: \"Ukrainian\";\n}, {\n    readonly locale: \"vi\";\n    readonly label: \"Tiếng Việt\";\n}, {\n    readonly locale: \"zh-cn\";\n    readonly label: \"Chinese - Simplified\";\n}, {\n    readonly locale: \"zh-tw\";\n    readonly label: \"繁體中文 (台灣)\";\n}]"
+              "text": "readonly [{\n    readonly locale: \"ar\";\n    readonly label: \"عربي\";\n}, {\n    readonly locale: \"ca\";\n    readonly label: \"Català\";\n}, {\n    readonly locale: \"cs\";\n    readonly label: \"Čeština\";\n}, {\n    readonly locale: \"da\";\n    readonly label: \"Danish\";\n}, {\n    readonly locale: \"de\";\n    readonly label: \"Deutsch\";\n}, {\n    readonly locale: \"en\";\n    readonly label: \"English\";\n}, {\n    readonly locale: \"es\";\n    readonly label: \"Español\";\n}, {\n    readonly locale: \"fa\";\n    readonly label: \"فارسی\";\n}, {\n    readonly locale: \"fi\";\n    readonly label: \"Suomi\";\n}, {\n    readonly locale: \"fr\";\n    readonly label: \"Français\";\n}, {\n    readonly locale: \"gl\";\n    readonly label: \"Galego\";\n}, {\n    readonly locale: \"he\";\n    readonly label: \"עברית\";\n}, {\n    readonly locale: \"it\";\n    readonly label: \"Italiano\";\n}, {\n    readonly locale: \"ja\";\n    readonly label: \"日本語\";\n}, {\n    readonly locale: \"ko-kr\";\n    readonly label: \"한국어\";\n}, {\n    readonly locale: \"ku\";\n    readonly label: \"کوردی\";\n}, {\n    readonly locale: \"hi-in\";\n    readonly label: \"हिन्दी\";\n}, {\n    readonly locale: \"hu\";\n    readonly label: \"Magyar\";\n}, {\n    readonly locale: \"my\";\n    readonly label: \"မြန်မာစာ\";\n}, {\n    readonly locale: \"ne\";\n    readonly label: \"नेपाली\";\n}, {\n    readonly locale: \"no\";\n    readonly label: \"Norwegian\";\n}, {\n    readonly locale: \"pl\";\n    readonly label: \"Polski\";\n}, {\n    readonly locale: \"pt-br\";\n    readonly label: \"Português - Brasil\";\n}, {\n    readonly locale: \"pt-pt\";\n    readonly label: \"Português - Europeu\";\n}, {\n    readonly locale: \"ro\";\n    readonly label: \"Română\";\n}, {\n    readonly locale: \"ru\";\n    readonly label: \"Russian\";\n}, {\n    readonly locale: \"sv\";\n    readonly label: \"Svenska\";\n}, {\n    readonly locale: \"te\";\n    readonly label: \"తెలుగు\";\n}, {\n    readonly locale: \"th\";\n    readonly label: \"ภาษาไทย\";\n}, {\n    readonly locale: \"tr\";\n    readonly label: \"Türkçe\";\n}, {\n    readonly locale: \"uk\";\n    readonly label: \"Ukrainian\";\n}, {\n    readonly locale: \"vi\";\n    readonly label: \"Tiếng Việt\";\n}, {\n    readonly locale: \"zh-cn\";\n    readonly label: \"简体中文\";\n}, {\n    readonly locale: \"zh-tw\";\n    readonly label: \"繁體中文 (台灣)\";\n}]"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/translations/languages.ts",
@@ -6694,6 +6694,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "highlightedUserIds",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLInstance#insets:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "insets: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "insets",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

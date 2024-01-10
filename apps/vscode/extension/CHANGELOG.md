@@ -1,3 +1,8 @@
+## 2.0.21
+
+- Improves translations.
+- Fixes an issue with frames. The contents of the frame could become invisible when stacked inside other frames.
+
 ## 2.0.20
 
 - Adds edge scrolling functionality. The camera will now move when the pointer is close to the edge of the screen (when resizing, moving, or brush selecting),
@@ -32,6 +37,7 @@
 - Fixed a bug with exporting shapes that have the same dimensions as their parent frame shape.
 
 ## 2.0.16
+
 - Fixed keyboard shortcuts.
 - Fixed edit link button stopping the mouse events from working.
 - Fixed a bug with grouping / ungrouping which prevented the actions menu from closing correctly.
@@ -39,23 +45,29 @@
 - Fixed a bug where arrows with length 0 could crash the app.
 
 ## 2.0.15
+
 - Bug fixes and performance improvements.
 
 ## 2.0.14
+
 - Bug fixes and performance improvements. More info:
-https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.17
+  https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.17
 
 ## 2.0.13
+
 - Bug fixes and performance improvements. More info:
-https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.16 
+  https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.16
 
 ## 2.0.12
+
 - Bug fixes and performance improvements.
 
 ## 2.0.11
+
 - Added cloud shape.
 
 ## 2.0.10
+
 - Removed the lock option from the highlighter tool.
 - Disabled the styles button for the laser tool on small screens.
 - Fixed mouse cursor after resizing during text creation. We now revert back to the default cursor.

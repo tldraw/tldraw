@@ -320,6 +320,12 @@ declare namespace Dialog {
 }
 export { Dialog }
 
+// @public
+export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
+    type?: string | undefined;
+    quality?: number | undefined;
+}): Promise<Blob>;
+
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
@@ -692,12 +698,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
-// @public
-export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number, opts?: {
-    type?: string | undefined;
-    quality?: number | undefined;
-}): Promise<string>;
-
 // @public (undocumented)
 export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
@@ -834,7 +834,7 @@ function Indicator(): JSX.Element;
 export const Input: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
-export function isGifAnimated(file: File): Promise<boolean>;
+export function isGifAnimated(file: Blob): Promise<boolean>;
 
 // @public (undocumented)
 function Item({ noClose, ...props }: DropdownMenuItemProps): JSX.Element;
