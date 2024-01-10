@@ -1,3 +1,54 @@
+# v2.0.0-beta.2 (Wed Jan 10 2024)
+
+### Release Notes
+
+#### Fix validation when pasting images. ([#2436](https://github.com/tldraw/tldraw/pull/2436))
+
+- Fixes url validations.
+
+#### Add url validation ([#2428](https://github.com/tldraw/tldraw/pull/2428))
+
+- Add validation to urls.
+
+#### [tech debt] Primitives renaming party / cleanup ([#2396](https://github.com/tldraw/tldraw/pull/2396))
+
+- renames Vec2d to Vec
+- renames Vec2dModel to VecModel
+- renames Box2d to Box
+- renames Box2dModel to BoxModel
+- renames Matrix2d to Mat
+- renames Matrix2dModel to MatModel
+- removes unused primitive helpers
+
+#### Fix trademark links ([#2380](https://github.com/tldraw/tldraw/pull/2380))
+
+- Fixes broken links in a number of docs files.
+
+---
+
+#### 💥 Breaking Change
+
+- [tech debt] Primitives renaming party / cleanup [#2396](https://github.com/tldraw/tldraw/pull/2396) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Fix validation when pasting images. [#2436](https://github.com/tldraw/tldraw/pull/2436) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@SomeHats](https://github.com/SomeHats))
+- Add url validation [#2428](https://github.com/tldraw/tldraw/pull/2428) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@SomeHats](https://github.com/SomeHats))
+
+#### 📝 Documentation
+
+- Fix trademark links [#2380](https://github.com/tldraw/tldraw/pull/2380) ([@nonparibus](https://github.com/nonparibus))
+- Another typo fix. [#2366](https://github.com/tldraw/tldraw/pull/2366) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David @ HASH ([@nonparibus](https://github.com/nonparibus))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.1 (Wed Dec 20 2023)
 
 ### Release Notes
