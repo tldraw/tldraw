@@ -66,14 +66,7 @@ function EditorA() {
 		<div style={{ padding: 32 }}>
 			<h2>A</h2>
 			<div tabIndex={-1} onFocus={() => setFocusedEditor('A')} style={{ height: 600 }}>
-				<Tldraw
-					persistenceKey="steve"
-					className="A"
-					autoFocus={isFocused}
-					onMount={(editor) => {
-						;(window as any).EDITOR_A = editor
-					}}
-				/>
+				<Tldraw persistenceKey="steve" className="A" autoFocus={isFocused} />
 			</div>
 		</div>
 	)
@@ -88,14 +81,7 @@ function EditorB() {
 		<div>
 			<h2>B</h2>
 			<div tabIndex={-1} onFocus={() => setFocusedEditor('B')} style={{ height: 600 }}>
-				<Tldraw
-					persistenceKey="david"
-					className="B"
-					autoFocus={isFocused}
-					onMount={(editor) => {
-						;(window as any).EDITOR_B = editor
-					}}
-				/>
+				<Tldraw persistenceKey="david" className="B" autoFocus={isFocused} />
 			</div>
 		</div>
 	)
@@ -109,14 +95,7 @@ function EditorC() {
 		<div>
 			<h2>C</h2>
 			<div tabIndex={-1} onFocus={() => setFocusedEditor('C')} style={{ height: 600 }}>
-				<Tldraw
-					persistenceKey="david"
-					className="C"
-					autoFocus={isFocused}
-					onMount={(editor) => {
-						;(window as any).EDITOR_C = editor
-					}}
-				/>
+				<Tldraw persistenceKey="david" className="C" autoFocus={isFocused} />
 			</div>
 		</div>
 	)
