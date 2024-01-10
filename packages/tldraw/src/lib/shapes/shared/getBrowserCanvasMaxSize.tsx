@@ -28,10 +28,10 @@ async function calculateBrowserCanvasMaxSize(): Promise<CanvasMaxSize> {
 }
 
 // https://github.com/jhildenbiddle/canvas-size?tab=readme-ov-file#test-results
-const LOWER_BOUND = 8192
+export const MAX_SAFE_CANVAS_DIMENSION = 8192
 
 export async function clampToBrowserMaxCanvasSize(width: number, height: number) {
-	if (width <= LOWER_BOUND && height <= LOWER_BOUND) {
+	if (width <= MAX_SAFE_CANVAS_DIMENSION && height <= MAX_SAFE_CANVAS_DIMENSION) {
 		return [width, height]
 	}
 
@@ -56,4 +56,3 @@ export async function clampToBrowserMaxCanvasSize(width: number, height: number)
 
 	return [width, height]
 }
-export const MAX_SAFE_CANVAS_DIMENSION = 8192
