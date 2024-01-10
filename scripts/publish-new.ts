@@ -62,8 +62,7 @@ async function main() {
 		'add',
 		'lerna.json',
 		...packageJsonFilesToAdd,
-		BUBLIC_ROOT + '/packages/*/src/version.ts',
-		BUBLIC_ROOT + '/packages/*/src/lib/ui/version.ts',
+		BUBLIC_ROOT + '/packages/*/src/**/version.ts',
 	])
 
 	// this creates a new commit
