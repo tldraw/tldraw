@@ -2629,7 +2629,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<null | string>"
+                  "text": "<string>"
                 }
               ],
               "fileUrlPath": "packages/validate/src/lib/validation.ts",

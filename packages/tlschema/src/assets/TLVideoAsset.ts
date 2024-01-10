@@ -27,7 +27,7 @@ export const videoAssetValidator: T.Validator<TLVideoAsset> = createAssetValidat
 		name: T.string,
 		isAnimated: T.boolean,
 		mimeType: T.string.nullable(),
-		src: T.srcUrl,
+		src: T.srcUrl.nullable(),
 	})
 )
 
