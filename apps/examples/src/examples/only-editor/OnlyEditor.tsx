@@ -58,7 +58,9 @@ create your own custom UI, shape and tool interactions.
 We create a custom tool and shape util for this example. These are classes that extend
 the built-in state node and shape classes. Check out MiniSelectTool.ts and 
 MiniBoxShapeUtil.tsx to see how they work. Or check out the custom config example for 
-a more in-depth look at how to create custom tools and shapes.
+a more in-depth look at how to create custom tools and shapes. 
+
+There is an even simpler implementation of the select tool in MicroSelectTool.tsx.
 
 [2]
 We pass our custom tools and shape utils to the TldrawEditor component. We also pass in our custom
