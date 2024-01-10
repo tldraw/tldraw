@@ -4,9 +4,13 @@ import { Editor, PositionedOnCanvas, TldrawEditor, createShapeId, track } from '
 import { MiniBoxShapeUtil } from './MiniBoxShape'
 import { MiniSelectTool } from './MiniSelectTool'
 
+// There's a guide at the bottom of this page!
+
+// [1]
 const myTools = [MiniSelectTool]
 const myShapeUtils = [MiniBoxShapeUtil]
 
+// [2]
 export default function OnlyEditorExample() {
 	return (
 		<div className="tldraw__editor">
@@ -35,9 +39,7 @@ export default function OnlyEditorExample() {
 	)
 }
 
-/**
- * This one will move with the camera, just like shapes do.
- */
+// [3]
 const BackgroundComponent = track(() => {
 	return (
 		<PositionedOnCanvas x={16} y={16}>
@@ -47,3 +49,18 @@ const BackgroundComponent = track(() => {
 		</PositionedOnCanvas>
 	)
 })
+
+/* 
+This example shows how to use the TldrawEditor component on its own. This is useful if you want to
+create your own custom UI, shape and tool interactions.
+
+[1]
+We create a custom tool and shape util for this example. These are classes that extend
+the built-in state node and shape classes. Check out MiniSelectTool.ts and 
+MiniBoxShapeUtil.tsx to see how they work. Or check out the custom config example for 
+a more in-depth look at how to create custom tools and shapes.
+
+[2]
+We pass our custom tools and shape utils to the TldrawEditor component. We also pass in our custom
+background component to the background prop and set the initial state to the 'select' tool.
+*/
