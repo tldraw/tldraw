@@ -1,6 +1,6 @@
 <div alt style="text-align: center; transform: scale(.5);">
 	<picture>
-		<img alt="tldraw logo" src="./assets/card_repo.svg"/>
+		<img alt="tldraw logo" src="https://raw.githubusercontent.com/tldraw/tldraw/main/assets/card_repo.svg"/>
 	</picture>
 	<picture>
 		<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tldraw/tldraw/main/assets/github-hero-dark-2.png"/>
