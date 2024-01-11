@@ -159,22 +159,21 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const hideBottomRightCorner =
 			!shouldDisplayControls || !showHandles || (showOnlyOneHandle && !showCropHandles)
 
-		let hideEdgeTargetsDueToCoarsePointer = isCoarsePointer
-
-		if (hideEdgeTargetsDueToCoarsePointer && onlyShape && onlyShape.type === 'text') {
-			hideEdgeTargetsDueToCoarsePointer = false
-		}
-
 		// If we're showing crop handles, then show the edges too.
 		// If we're showing resize handles, then show the edges only
-		// if we're not hiding them for some other reason
-		let hideEdgeTargets = true
+		// if we're not hiding them for some other reason.
+		let hideVerticalEdgeTargets = true
+		// The same logic above applies here, except another nuance is that
+		// we enable resizing for text on mobile (coarse).
+		let hideHorizontalEdgeTargets = true
 
 		if (showCropHandles) {
-			hideEdgeTargets = hideAlternateCropHandles
+			hideVerticalEdgeTargets = hideAlternateCropHandles
+			hideHorizontalEdgeTargets = hideAlternateCropHandles
 		} else if (showResizeHandles) {
-			hideEdgeTargets =
-				hideAlternateCornerHandles || showOnlyOneHandle || hideEdgeTargetsDueToCoarsePointer
+			hideVerticalEdgeTargets = hideAlternateCornerHandles || showOnlyOneHandle || isCoarsePointer
+			const isMobileAndTextShape = isCoarsePointer && onlyShape && onlyShape.type === 'text'
+			hideHorizontalEdgeTargets = hideVerticalEdgeTargets && !isMobileAndTextShape
 		}
 
 		const textHandleHeight = Math.min(24 / zoom, height - targetSizeY * 3)
@@ -244,7 +243,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					{/* Targets */}
 					<rect
 						className={classNames('tl-transparent', {
-							'tl-hidden': hideEdgeTargets,
+							'tl-hidden': hideVerticalEdgeTargets,
 						})}
 						data-testid="selection.resize.top"
 						aria-label="top target"
@@ -258,7 +257,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					/>
 					<rect
 						className={classNames('tl-transparent', {
-							'tl-hidden': hideEdgeTargets,
+							'tl-hidden': hideHorizontalEdgeTargets,
 						})}
 						data-testid="selection.resize.right"
 						aria-label="right target"
@@ -272,7 +271,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					/>
 					<rect
 						className={classNames('tl-transparent', {
-							'tl-hidden': hideEdgeTargets,
+							'tl-hidden': hideVerticalEdgeTargets,
 						})}
 						data-testid="selection.resize.bottom"
 						aria-label="bottom target"
@@ -286,7 +285,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					/>
 					<rect
 						className={classNames('tl-transparent', {
-							'tl-hidden': hideEdgeTargets,
+							'tl-hidden': hideHorizontalEdgeTargets,
 						})}
 						data-testid="selection.resize.left"
 						aria-label="left target"

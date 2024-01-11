@@ -1019,7 +1019,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     isChangingStyle: boolean;
     // (undocumented)
     isChatting: boolean;
-    // (undocumented)
     isCoarsePointer: boolean;
     // (undocumented)
     isDebugMode: boolean;
