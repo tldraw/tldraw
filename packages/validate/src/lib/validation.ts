@@ -617,6 +617,13 @@ function parseUrl(str: string) {
 	try {
 		return new URL(str)
 	} catch (error) {
+		if (str.startsWith('/') || str.startsWith('./')) {
+			try {
+				return new URL(str, 'http://example.com')
+			} catch (error) {
+				throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
+			}
+		}
 		throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
 	}
 }
