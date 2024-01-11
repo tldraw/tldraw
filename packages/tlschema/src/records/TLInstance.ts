@@ -40,7 +40,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isFocused: boolean
 	devicePixelRatio: number
 	/**
-	 * This is whether the primary input mechanism includes a pointing device of limited accuracy, such as a finger on a touchscreen.
+	 * This is whether the primary input mechanism includes a pointing device of limited accuracy,
+	 * such as a finger on a touchscreen.
 	 * See: https://developer.mozilla.org/en-US/docs/Web/CSS/\@media/pointer
 	 */
 	isCoarsePointer: boolean
