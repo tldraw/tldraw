@@ -38,7 +38,7 @@ export class MiniBoxShapeUtil extends BaseBoxShapeUtil<MiniBoxShape> {
 /* 
 This is our shape util, in tldraw all shapes extend the shape util class. In this
 example we're extending the built-in BaseBoxShapeUtil class. This class provides
-the basic functionality for our shape. 
+the functionality for our shape. 
 
 [1]
 The type for our shape, we can extend the built-in TLBaseShape generic to create ours.
