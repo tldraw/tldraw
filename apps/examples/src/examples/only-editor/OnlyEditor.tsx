@@ -1,13 +1,13 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
 import { Editor, PositionedOnCanvas, TldrawEditor, createShapeId, track } from '@tldraw/editor'
-import { MicroSelectTool } from './MicroSelectTool'
 import { MiniBoxShapeUtil } from './MiniBoxShape'
+import { MiniSelectTool } from './MiniSelectTool'
 
 // There's a guide at the bottom of this page!
 
 // [1]
-const myTools = [MicroSelectTool]
+const myTools = [MiniSelectTool]
 const myShapeUtils = [MiniBoxShapeUtil]
 
 // [2]
