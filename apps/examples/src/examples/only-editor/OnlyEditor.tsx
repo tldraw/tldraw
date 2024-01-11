@@ -43,7 +43,7 @@ export default function OnlyEditorExample() {
 const BackgroundComponent = track(() => {
 	return (
 		<PositionedOnCanvas x={16} y={16}>
-			<p>Double click to create shapes.</p>
+			<p>Double click to create or delete shapes.</p>
 			<p>Click or Shift+Click to select shapes.</p>
 			<p>Click and drag to move shapes.</p>
 		</PositionedOnCanvas>
