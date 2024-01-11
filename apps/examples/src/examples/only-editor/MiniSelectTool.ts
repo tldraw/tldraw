@@ -165,9 +165,9 @@ We have some handy methods available to help us handle events:
 		shape as the target, and delete the shape. Otherwise we create a new shape.
 
 [3]
-The pointing something of a transitionary state. Its job is to transition to the
-dragging state when the user starts dragging, or go back to the idle state on
-pointer up.
+The pointing state is something of a transitionary state. Its job is to transition 
+to the dragging state when the user starts dragging, or go back to the idle state 
+on pointer up.
 
 	[a] onPointerUp
 		The user let go of the mouse, let's go back to the idle state.
