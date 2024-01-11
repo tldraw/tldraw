@@ -19,3 +19,7 @@ export default function ScrollExample() {
 		</div>
 	)
 }
+
+/*
+This example shows how you can use the Tldraw component inside a scrollable container.
+*/
