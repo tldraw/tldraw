@@ -34,7 +34,7 @@ create a custom style for a card shape that lets the user apply a filter to blur
 invert or grayscale the card.
 
 [1]
-We define an array to hold the custom shape util and cusom tool. It's important to 
+We define an array to hold the custom shape util and custom tool. It's important to 
 do this outside of any React component so that this array doesn't get redefined on 
 every render. We'll pass this into the Tldraw component's `shapeUtils` and `tools` 
 props.
