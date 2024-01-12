@@ -1,6 +1,6 @@
 ---
-title: Presence Records
-component: ./PresenceRecordsExample.tsx
+title: User Presence
+component: ./UserPresenceExample.tsx
 ---
 
 Show other users editing the same document.

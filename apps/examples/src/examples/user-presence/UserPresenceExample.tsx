@@ -12,7 +12,7 @@ const MOVING_CURSOR_RADIUS = 100
 const CURSOR_CHAT_MESSAGE = 'Hey, I think this is just great.'
 
 // [2]
-export default function PresenceRecordsExample() {
+export default function UserPresenceExample() {
 	const rRaf = useRef<any>(-1)
 	return (
 		<div className="tldraw__editor">
