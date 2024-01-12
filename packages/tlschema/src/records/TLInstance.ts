@@ -40,6 +40,11 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	canMoveCamera: boolean
 	isFocused: boolean
 	devicePixelRatio: number
+	/**
+	 * This is whether the primary input mechanism includes a pointing device of limited accuracy,
+	 * such as a finger on a touchscreen.
+	 * See: https://developer.mozilla.org/en-US/docs/Web/CSS/\@media/pointer
+	 */
 	isCoarsePointer: boolean
 	/**
 	 * Will be null if the pointer doesn't support hovering (e.g. touch), but true or false
