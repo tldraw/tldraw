@@ -94,7 +94,6 @@ const MyComponentInFront = track(() => {
 const components: TLEditorComponents = {
 	OnTheCanvas: MyComponent,
 	InFrontOfTheCanvas: MyComponentInFront,
-	SnapLine: null,
 }
 
 // [4]
@@ -107,33 +106,37 @@ export default function OnTheCanvasExample() {
 }
 
 /* 
-This example shows how you can use the onTheCanvas and inFrontOfTheCanvas components. 
+This example shows how you can use the onTheCanvas and inFrontOfTheCanvas components.
 onTheCanvas components will behave similarly to shapes, they will scale with the zoom
 and move when the page is panned. inFrontOfTheCanvas components don't scale with the
-zoom, but still move when the page is panned. To do this we need to use the components
-prop to pass our components to the editor.
+zoom, but still move when the page is panned. 
+
+For another example that shows how to customize components, check out the custom
+components example.
+
+To have a component that ignores the camera entirely, you should check out the custom 
+UI example.
+
 
 [1]
-This is our component that we want to render on the canvas. We render it inside a 
-div that has pointer-events: all. This will allow us to interact
-with the component without selecting it. We also stop event propagation on the pointer
-events so that we don't accidentally select shapes when interacting with the component.
+This is our onTheCanvas component. We also stop event propagation on the pointer events 
+so that we don't accidentally select shapes when interacting with the component.
 
 [2]
-We use the track function to wrap our component. This makes our component reactive- it will
+This is our inFrontOfTheCanvas component. We want to render this next to a selected shape,
+so we need to make sure it's reactive to changes in the editor. We use the track function
+to make sure the component is re-rendered whenever the selection changes. Check out the
+Signia docs for more info: https://signia.tldraw.dev/docs/API/signia_react/functions/track
 
+Using the editor instance we can get the bounds of the selection box and convert them to
+screen coordinates. We then render the component at those coordinates.
 
 
 [3]
-We pass our component to the editor via the components prop. We pass it as the OnTheCanvas
-component, which means it will be rendered on the canvas. We also pass it as the 
-InFrontOfTheCanvas component, which means it will be rendered in front of the canvas. We
-pass null as the SnapLine component, which means the editor will use the default snap line
-component.
+This is where we define the object that will be passed to the Tldraw component prop. 
 
 [4]
-We render the Tldraw component with the persistenceKey prop. This will persist the editor
-state to localStorage. We also pass our components to the Tldraw component via the
-components prop. This gives us access to the editor instance via React context.
+This is where we render the Tldraw component. Let's pass the components object to the 
+components prop.
 
 */
