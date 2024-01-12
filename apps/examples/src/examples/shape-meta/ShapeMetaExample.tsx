@@ -56,9 +56,10 @@ This example shows how to use the `getInitialMetaForShape` function to set initi
 meta data for a shape and update it.
 
 [1]
-We pass a function to the `onMount` prop of the Tldraw component. This function will
-override the default `getInitialMetaForShape` function. This function is called when
-a shape is created and when a shape is duplicated. 
+In the Tldraw component's `onMount` callback, we override the default 
+`Editor.getInitialMetaForShape` function. This function is called when
+a new shape is created and provides the `meta` property value for the 
+new shape.
 
 [2]
 By default, the TLShape type's meta property is { [key: string]: any }, but we can type
