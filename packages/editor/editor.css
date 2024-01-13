@@ -139,23 +139,23 @@
 
 .tl-theme__dark {
 	--color-accent: #e64a4a;
-	--color-background: #212529;
-	--color-brush-fill: rgba(180, 180, 180, 0.05);
-	--color-brush-stroke: rgba(180, 180, 180, 0.25);
-	--color-grid: #909090;
-	--color-low: #2c3136;
-	--color-low-border: #30363b;
-	--color-culled: rgb(47, 52, 57);
-	--color-muted-none: rgba(255, 255, 255, 0);
-	--color-muted-0: rgba(255, 255, 255, 0.02);
+	--color-background: hsl(240, 5%, 8%);
+	--color-brush-fill: hsla(0, 0%, 71%, 0.051);
+	--color-brush-stroke: hsla(0, 0%, 71%, 0.251);
+	--color-grid: hsl(0, 0%, 56%);
+	--color-low: hsl(260, 5%, 5%);
+	--color-low-border: hsl(207, 10%, 10%);
+	--color-culled: hsl(210, 11%, 19%);
+	--color-muted-none: hsla(0, 0%, 100%, 0);
+	--color-muted-0: hsla(0, 0%, 100%, 0.02);
 	--color-muted-1: rgba(255, 255, 255, 0.1);
 	--color-muted-2: rgba(255, 255, 255, 0.05);
 	--color-hint: rgba(255, 255, 255, 0.1);
 	--color-overlay: rgba(0, 0, 0, 0.35);
-	--color-divider: #49555f;
-	--color-panel-contrast: #49555f;
-	--color-panel: #363d44;
-	--color-panel-overlay: rgba(54, 61, 68, 0.82);
+	--color-divider: hsl(240, 13%, 33%);
+	--color-panel-contrast: hsl(240, 13%, 19%);
+	--color-panel: hsl(220, 8%, 15%);
+	--color-panel-overlay: hsla(210, 11%, 24%, 0.82);
 	--color-focus: #a5c3f3;
 	--color-selected: #4285f4;
 	--color-selected-contrast: #ffffff;
