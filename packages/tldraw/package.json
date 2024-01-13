@@ -31,7 +31,7 @@
 	"scripts": {
 		"test": "lazy inherit",
 		"test-coverage": "lazy inherit",
-		"dev": "chokidar '../{editor/src/lib/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs' --initial",
+		"dev": "chokidar '../{editor/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs' --initial",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",

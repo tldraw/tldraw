@@ -101,26 +101,26 @@
 .tl-theme__light {
 	--color-accent: hsl(0, 76%, 60%);
 	--color-background: hsl(210, 20%, 98%);
-	--color-brush-fill: hsla(0, 0%, 56%, 0.102);
-	--color-brush-stroke: hsla(0, 0%, 56%, 0.251);
+	--color-brush-fill: hsl(0, 0%, 56%, 10.2%);
+	--color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
 	--color-grid: hsl(0, 0%, 43%);
 	--color-low: hsl(204, 16%, 94%);
 	--color-low-border: hsl(204, 16%, 92%);
 	--color-culled: hsl(204, 14%, 93%);
-	--color-muted-none: hsla(0, 0%, 0%, 0);
-	--color-muted-0: hsla(0, 0%, 0%, 0.02);
-	--color-muted-1: hsla(0, 0%, 0%, 0.1);
-	--color-muted-2: hsla(0, 0%, 0%, 0.043);
-	--color-hint: hsla(0, 0%, 0%, 0.055);
-	--color-overlay: hsla(0, 0%, 0%, 0.2);
+	--color-muted-none: hsl(0, 0%, 0%, 0%);
+	--color-muted-0: hsl(0, 0%, 0%, 2%);
+	--color-muted-1: hsl(0, 0%, 0%, 10%);
+	--color-muted-2: hsl(0, 0%, 0%, 4.3%);
+	--color-hint: hsl(0, 0%, 0%, 5.5%);
+	--color-overlay: hsl(0, 0%, 0% 20%);
 	--color-divider: hsl(0, 0%, 91%);
 	--color-panel-contrast: hsl(0, 0%, 100%);
-	--color-panel-overlay: hsla(0, 0%, 100%, 0.82)
+	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
 	--color-panel: hsl(0, 0%, 99%);
 	--color-focus: hsl(214, 100%, 29%);
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
-	--color-selection-fill: hsla(210, 100%, 56%, 0.024);
+	--color-selection-fill: hsl(210, 100%, 56% 2.4%);
 	--color-selection-stroke: hsl(214, 84%, 56%);
 	--color-text-0: hsl(0, 0%, 11%);
 	--color-text-1: hsl(0, 0%, 18%);
@@ -131,38 +131,38 @@
 	--color-text: hsl(0, 0%, 0%);
 	--color-laser: hsl(0, 100%, 50%);
 	/* Shadows */
-	--shadow-1: 0px 1px 2px hsla(0, 0%, 0%, 0.25), 0px 1px 3px hsla(0, 0%, 0%, 0.09);
-	--shadow-2: 0px 0px 2px hsla(0, 0%, 0%, 0.16), 0px 2px 3px hsla(0, 0%, 0%, 0.24),
-		0px 2px 6px hsla(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3: 0px 1px 2px hsla(0, 0%, 0%, 0.28), 0px 2px 6px hsla(0, 0%, 0%, 0.14),
+	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
+	--shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
+	--shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-4: 0px 0px 3px hsla(0, 0%, 0%, 0.19), 0px 5px 4px hsla(0, 0%, 0%, 0.16),
-		0px 2px 16px hsla(0, 0%, 0%, 0.06), inset 0px 0px 0px 1px var(--color-panel-contrast);
+	--shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
 .tl-theme__dark {
 	--color-accent: hsl(0, 76%, 60%);
 	--color-background: hsl(240, 5%, 8%);
-	--color-brush-fill: hsla(0, 0%, 71%, 0.051);
-	--color-brush-stroke: hsla(0, 0%, 71%, 0.251);
+	--color-brush-fill: hsl(0, 0%, 71%, 5.1%);
+	--color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
 	--color-grid: hsl(0, 0%, 56%);
 	--color-low: hsl(260, 5%, 5%);
 	--color-low-border: hsl(207, 10%, 10%);
 	--color-culled: hsl(210, 11%, 19%);
-	--color-muted-none: hsla(0, 0%, 100%, 0);
-	--color-muted-0: hsla(0, 0%, 100%, 0.02);
-	--color-muted-1: hsla(0, 0%, 100%, 0.1);
-	--color-muted-2: hsla(0, 0%, 100%, 0.05);
-	--color-hint: hsla(0, 0%, 100%, 0.1);
-	--color-overlay: hsla(0, 0%, 0%, 0.35);
-	--color-divider: hsl(240, 13%, 33%);
+	--color-muted-none: hsl(0, 0%, 100%, 0%);
+	--color-muted-0: hsl(0, 0%, 100%, 2%);
+	--color-muted-1: hsl(0, 0%, 100%, 10%);
+	--color-muted-2: hsl(0, 0%, 100%, 5%);
+	--color-hint: hsl(0, 0%, 100%, 10%);
+	--color-overlay: hsl(0, 0%, 0%, 35%);
+	--color-divider: hsl(240, 9%, 25%);
 	--color-panel-contrast: hsl(240, 13%, 19%);
 	--color-panel: hsl(220, 8%, 15%);
-	--color-panel-overlay: hsla(210, 11%, 24%, 0.82);
+	--color-panel-overlay: hsl(210, 11%, 24%, 82%);
 	--color-focus: hsl(217, 76%, 80%);
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
-	--color-selection-fill: hsla(209, 100%, 57%, 0.05);
+	--color-selection-fill: hsl(209, 100%, 57%, 5%);
 	--color-selection-stroke: hsl(214, 84%, 56%);
 	--color-text-0: hsl(0, 9%, 94%);
 	--color-text-1: hsl(0, 0%, 85%);
@@ -173,11 +173,11 @@
 	--color-text: hsl(210, 17%, 98%);
 	--color-laser: hsl(0, 100%, 50%);
 	/* Shadows */
-	--shadow-1: 0px 1px 2px hsla(0, 0%, 0%, 0.161), 0px 1px 3px hsla(0, 0%, 0%, 0.22),
+	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-2: 0px 1px 3px hsla(0, 0%, 0%, 0.467), 0px 2px 6px hsla(0, 0%, 0%, 0.333),
+	--shadow-2: 0px 1px 3px hsl(0, 0%, 0%, 46.7%), 0px 2px 6px hsl(0, 0%, 0%, 33.3%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3: 0px 1px 3px hsla(0, 0%, 0%, 0.467), 0px 2px 12px hsla(0, 0%, 0%, 0.22),
+	--shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 46.7%), 0px 2px 12px hsl(0, 0%, 0%, 22%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
