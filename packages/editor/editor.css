@@ -138,7 +138,7 @@
 }
 
 .tl-theme__dark {
-	--color-accent: #e64a4a;
+	--color-accent: hsl(0, 76%, 60%);
 	--color-background: hsl(240, 5%, 8%);
 	--color-brush-fill: hsla(0, 0%, 71%, 0.051);
 	--color-brush-stroke: hsla(0, 0%, 71%, 0.251);
@@ -156,19 +156,19 @@
 	--color-panel-contrast: hsl(240, 13%, 19%);
 	--color-panel: hsl(220, 8%, 15%);
 	--color-panel-overlay: hsla(210, 11%, 24%, 0.82);
-	--color-focus: #a5c3f3;
-	--color-selected: #4285f4;
-	--color-selected-contrast: #ffffff;
+	--color-focus: hsl(217, 76%, 80%);
+	--color-selected: hsl(217, 89%, 61%);
+	--color-selected-contrast: hsl(0, 0%, 100%);
 	--color-selection-fill: rgba(38, 150, 255, 0.05);
-	--color-selection-stroke: #2f80ed;
-	--color-text-0: #f0eded;
-	--color-text-1: #d9d9d9;
-	--color-text-3: #6d747b;
-	--color-text-shadow: #292f35;
-	--color-primary: #2f80ed;
-	--color-warn: #ef6464;
-	--color-text: #f8f9fa;
-	--color-laser: #ff0000;
+	--color-selection-stroke: hsl(214, 84%, 56%);
+	--color-text-0: hsl(0, 9%, 94%);
+	--color-text-1: hsl(0, 0%, 85%);
+	--color-text-3: hsl(210, 6%, 45%);
+	--color-text-shadow: hsl(210, 13%, 18%);
+	--color-primary: hsl(214, 84%, 56%);
+	--color-warn: hsl(0, 81%, 66%);
+	--color-text: hsl(210, 17%, 98%);
+	--color-laser: hsl(0, 100%, 50%);
 
 	--shadow-1: 0px 1px 2px #00000029, 0px 1px 3px #00000038,
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
