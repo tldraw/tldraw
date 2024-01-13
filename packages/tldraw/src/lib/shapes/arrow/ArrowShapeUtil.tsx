@@ -341,20 +341,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return next
 	}
 
-	private shapeAtTranslationStart = new WeakMap<
-		TLArrowShape,
-		{
-			pagePosition: Vec
-			terminalBindings: Record<
-				'start' | 'end',
-				{
-					pagePosition: Vec
-					shapePosition: Vec
-					binding: Extract<TLArrowShapeProps['start'], { type: 'binding' }>
-				} | null
-			>
-		}
-	>()
 	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
 		const startBindingId =
 			shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : null
@@ -382,7 +368,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// When we start translating shapes, record where their bindings were in page space so we
 		// can maintain them as we translate the arrow
-		this.shapeAtTranslationStart.set(shape, {
+		shapeAtTranslationStart.set(shape, {
 			pagePosition: shapePageTransform.applyToPoint(shape),
 			terminalBindings: mapObjectMapValues(terminalsInArrowSpace, (terminalName, point) => {
 				const terminal = shape.props[terminalName]
@@ -408,7 +394,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override onTranslate?: TLOnTranslateHandler<TLArrowShape> = (initialShape, shape) => {
-		const atTranslationStart = this.shapeAtTranslationStart.get(initialShape)
+		const atTranslationStart = shapeAtTranslationStart.get(initialShape)
 		if (!atTranslationStart) return
 
 		const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
@@ -1124,3 +1110,18 @@ function getArrowheadSvgPath(
 		return path
 	}
 }
+
+const shapeAtTranslationStart = new WeakMap<
+	TLArrowShape,
+	{
+		pagePosition: Vec
+		terminalBindings: Record<
+			'start' | 'end',
+			{
+				pagePosition: Vec
+				shapePosition: Vec
+				binding: Extract<TLArrowShapeProps['start'], { type: 'binding' }>
+			} | null
+		>
+	}
+>()
