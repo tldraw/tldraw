@@ -5076,6 +5076,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	private getChangesToTranslateShape(initialShape: TLShape, newShapeCoords: VecLike): TLShape {
+		let workingShape = initialShape
+		const util = this.getShapeUtil(initialShape)
+
+		workingShape = applyPartialToShape(
+			workingShape,
+			util.onTranslateStart?.(workingShape) ?? undefined
+		)
+
+		workingShape = applyPartialToShape(workingShape, {
+			id: initialShape.id,
+			type: initialShape.type,
+			x: newShapeCoords.x,
+			y: newShapeCoords.y,
+		})
+
+		workingShape = applyPartialToShape(
+			workingShape,
+			util.onTranslate?.(initialShape, workingShape) ?? undefined
+		)
+
+		workingShape = applyPartialToShape(
+			workingShape,
+			util.onTranslateEnd?.(initialShape, workingShape) ?? undefined
+		)
+
+		return workingShape
+	}
+
 	/**
 	 * Move shapes by a delta.
 	 *
@@ -5103,32 +5132,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const changes: TLShapePartial[] = []
 
 		for (const id of ids) {
-			const shape = this.getShape(id)
-
-			if (!shape) {
-				throw Error(`Could not find a shape with the id ${id}.`)
-			}
-
+			const shape = this.getShape(id)!
 			const localDelta = Vec.Cast(offset)
 			const parentTransform = this.getShapeParentTransform(shape)
 			if (parentTransform) localDelta.rot(-parentTransform.rotation())
 
-			const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
-
-			changes.push(
-				translateStartChanges
-					? {
-							...translateStartChanges,
-							x: shape.x + localDelta.x,
-							y: shape.y + localDelta.y,
-					  }
-					: {
-							id,
-							x: shape.x + localDelta.x,
-							y: shape.y + localDelta.y,
-							type: shape.type,
-					  }
-			)
+			changes.push(this.getChangesToTranslateShape(shape, localDelta.add(shape)))
 		}
 
 		this.updateShapes(changes, {
@@ -5989,22 +5998,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? Vec.Rot(delta, -this.getShapePageTransform(parent)!.decompose().rotation)
 				: delta
 
-			const translateChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
-
-			changes.push(
-				translateChanges
-					? {
-							...translateChanges,
-							x: shape.x + localDelta.x,
-							y: shape.y + localDelta.y,
-					  }
-					: {
-							id: shape.id,
-							type: shape.type,
-							x: shape.x + localDelta.x,
-							y: shape.y + localDelta.y,
-					  }
-			)
+			changes.push(this.getChangesToTranslateShape(shape, Vec.Add(shape, localDelta)))
 		})
 
 		this.updateShapes(changes)
@@ -6082,20 +6076,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const localDelta = parent
 					? Vec.Rot(delta, -this.getShapePageTransform(parent)!.rotation())
 					: delta
-				const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
 
-				changes.push(
-					translateStartChanges
-						? {
-								...translateStartChanges,
-								[val]: shape[val] + localDelta[val],
-						  }
-						: {
-								id: shape.id,
-								type: shape.type,
-								[val]: shape[val] + localDelta[val],
-						  }
-				)
+				changes.push(this.getChangesToTranslateShape(shape, Vec.Add(shape, localDelta)))
 			})
 
 		this.updateShapes(changes)
@@ -7017,47 +6999,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				partials.map((partial) => {
 					const prev = snapshots[partial.id]
 					if (!prev) return null
-					let newRecord = null as null | TLShape
-					for (const [k, v] of Object.entries(partial)) {
-						if (v === undefined) continue
-						switch (k) {
-							case 'id':
-							case 'type':
-								continue
-							default: {
-								if (v !== (prev as any)[k]) {
-									if (!newRecord) {
-										newRecord = { ...prev }
-									}
-
-									if (k === 'props') {
-										// props property
-										const nextProps = { ...prev.props } as JsonObject
-										for (const [propKey, propValue] of Object.entries(v as object)) {
-											if (propValue !== undefined) {
-												nextProps[propKey] = propValue
-											}
-										}
-										newRecord!.props = nextProps
-									} else if (k === 'meta') {
-										// meta property
-										const nextMeta = { ...prev.meta } as JsonObject
-										for (const [metaKey, metaValue] of Object.entries(v as object)) {
-											if (metaValue !== undefined) {
-												nextMeta[metaKey] = metaValue
-											}
-										}
-										newRecord!.meta = nextMeta
-									} else {
-										// base property
-										;(newRecord as any)[k] = v
-									}
-								}
-							}
-						}
-					}
-
-					return newRecord ?? prev
+					return applyPartialToShape(prev, partial)
 				})
 			)
 
@@ -8986,4 +8928,49 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
+}
+
+function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
+	if (!partial) return prev
+	let next = null as null | T
+	for (const [k, v] of Object.entries(partial)) {
+		if (v === undefined) continue
+		switch (k) {
+			case 'id':
+			case 'type':
+				continue
+			default: {
+				if (v !== (prev as any)[k]) {
+					if (!next) {
+						next = { ...prev }
+					}
+
+					if (k === 'props') {
+						// props property
+						const nextProps = { ...prev.props } as JsonObject
+						for (const [propKey, propValue] of Object.entries(v as object)) {
+							if (propValue !== undefined) {
+								nextProps[propKey] = propValue
+							}
+						}
+						next!.props = nextProps
+					} else if (k === 'meta') {
+						// meta property
+						const nextMeta = { ...prev.meta } as JsonObject
+						for (const [metaKey, metaValue] of Object.entries(v as object)) {
+							if (metaValue !== undefined) {
+								nextMeta[metaKey] = metaValue
+							}
+						}
+						next!.meta = nextMeta
+					} else {
+						// base property
+						;(next as any)[k] = v
+					}
+				}
+			}
+		}
+	}
+
+	return next ?? prev
 }
