@@ -614,7 +614,7 @@
 	background-color: var(--color-panel);
 	height: fit-content;
 	max-height: 100%;
-	margin: 4px 8px;
+	margin: 8px;
 	touch-action: auto;
 	overscroll-behavior: none;
 	overflow-y: auto;
