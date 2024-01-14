@@ -595,8 +595,8 @@
 	position: relative;
 	z-index: var(--layer-panels);
 	width: fit-content;
-	border-right: 4px solid var(--color-background);
-	border-bottom: 4px solid var(--color-background);
+	border-right: 2px solid var(--color-background);
+	border-bottom: 2px solid var(--color-background);
 	border-bottom-right-radius: var(--radius-4);
 	background-color: var(--color-low);
 }
@@ -614,7 +614,7 @@
 	background-color: var(--color-panel);
 	height: fit-content;
 	max-height: 100%;
-	margin: 4px 8px;
+	margin: 8px;
 	touch-action: auto;
 	overscroll-behavior: none;
 	overflow-y: auto;
@@ -663,11 +663,6 @@
 /* Only really used for the alignment picker */
 .tlui-style-panel__row__extra-button {
 	margin-left: -2px;
-}
-
-.tlui-style-panel__double-select-picker__wrapper {
-	width: 100%;
-	max-width: 100%;
 }
 
 .tlui-style-panel__double-select-picker {
@@ -741,56 +736,6 @@
 			font-size: 16px;
 		}
 	}
-}
-
-/* ---------------- Prompt ---------------- */
-
-.tlui-prompt__overlay {
-	background: var(--color-overlay);
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	right: 0px;
-	bottom: 0px;
-	display: grid;
-	place-items: center;
-	overflow-y: auto;
-	z-index: var(--layer-overlays);
-}
-
-.tlui-prompt__content {
-	cursor: default;
-	background-color: var(--color-panel);
-	box-shadow: var(--shadow-3);
-	border-radius: var(--radius-4);
-	padding: var(--space-5);
-	font-size: 12px;
-	overflow-y: auto;
-	min-width: 300px;
-	max-width: 80vw;
-	max-height: 80vh;
-}
-
-.tlui-prompt__actions {
-	border: none;
-	padding: 0px;
-	margin: 0px;
-	display: flex;
-	justify-content: flex-end;
-	margin-right: calc(-1 * var(--space-3));
-	margin-bottom: calc(-1 * var(--space-3));
-}
-
-.tlui-prompt__title {
-	margin: 0px;
-	font-size: 12px;
-}
-
-.tlui-prompt__error {
-	color: #d10b0b;
-	display: flex;
-	gap: var(--space-2);
-	align-items: center;
 }
 
 /* ---------------- Dialog ---------------- */
@@ -905,7 +850,7 @@
 	z-index: 1;
 	width: 100%;
 	pointer-events: none;
-	top: 4px;
+	top: 6px;
 	height: 48px;
 }
 
@@ -917,7 +862,7 @@
 	background-color: var(--color-low);
 	border-top-left-radius: var(--radius-4);
 	border-top-right-radius: var(--radius-4);
-	border: 4px solid var(--color-background);
+	border: 2px solid var(--color-background);
 	margin-left: 8px;
 	margin-right: 0px;
 	pointer-events: all;
@@ -928,7 +873,7 @@
 	display: flex;
 	flex-direction: row;
 	background-color: var(--color-low);
-	border-radius: 11px;
+	border-radius: var(--radius-4);
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: relative;
@@ -960,7 +905,7 @@
 	bottom: var(--space-2);
 	right: var(--space-2);
 	z-index: var(--layer-panels);
-	border: 4px solid var(--color-background);
+	border: 2px solid var(--color-background);
 	border-radius: 100%;
 }
 
@@ -1172,10 +1117,10 @@
 	display: block;
 	position: absolute;
 	z-index: -1;
-	inset: -4px -4px 0px 0px;
+	inset: -2px -2px 0px 0px;
 	border-radius: 0;
-	border-top: 4px solid var(--color-background);
-	border-right: 4px solid var(--color-background);
+	border-top: 2px solid var(--color-background);
+	border-right: 2px solid var(--color-background);
 	border-top-right-radius: var(--radius-4);
 	background-color: var(--color-low);
 }
@@ -1448,34 +1393,6 @@
 	display: flex;
 	flex-direction: column;
 	padding-bottom: var(--space-5);
-}
-
-.tlui-embed-dialog__item {
-	position: relative;
-	border: none;
-	background: none;
-	font-family: inherit;
-	display: flex;
-	text-align: left;
-	gap: var(--space-3);
-	margin: 0px -8px;
-	cursor: pointer;
-	padding: 0px 4px;
-	align-items: center;
-	color: var(--color-text);
-	font-size: var(--font-size-1);
-	height: 44px;
-}
-
-@media (hover: hover) {
-	.tlui-embed-dialog__item:not(:disabled, :focus-visible):hover::after {
-		display: block;
-		content: '';
-		position: absolute;
-		inset: 4px;
-		background-color: var(--color-muted-2);
-		border-radius: var(--radius-1);
-	}
 }
 
 .tlui-embed-dialog__item__image {
