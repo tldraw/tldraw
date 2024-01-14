@@ -59,7 +59,7 @@ export async function createApiMarkdown() {
 						'Enum',
 						'Interface',
 						'TypeAlias',
-					].map((title, i) => ({
+					].map((title) => ({
 						id: title,
 						path: null,
 					})),
