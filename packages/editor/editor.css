@@ -120,7 +120,7 @@
 	--color-focus: hsl(214, 100%, 29%);
 	--color-selected: hsl(214, 84%, 56%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
-	--color-selection-fill: hsl(210, 100%, 56% 2.4%);
+	--color-selection-fill: hsl(210, 100%, 56%, 24%);
 	--color-selection-stroke: hsl(214, 84%, 56%);
 	--color-text-0: hsl(0, 0%, 11%);
 	--color-text-1: hsl(0, 0%, 18%);
@@ -156,13 +156,13 @@
 	--color-hint: hsl(0, 0%, 100%, 10%);
 	--color-overlay: hsl(0, 0%, 0%, 35%);
 	--color-divider: hsl(240, 9%, 25%);
-	--color-panel-contrast: hsl(240, 13%, 19%);
+	--color-panel-contrast: hsl(240, 13%, 22%);
 	--color-panel: hsl(220, 8%, 15%);
 	--color-panel-overlay: hsl(210, 11%, 24%, 82%);
 	--color-focus: hsl(217, 76%, 80%);
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
-	--color-selection-fill: hsl(209, 100%, 57%, 5%);
+	--color-selection-fill: hsl(209, 100%, 57%, 20%);
 	--color-selection-stroke: hsl(214, 84%, 56%);
 	--color-text-0: hsl(0, 9%, 94%);
 	--color-text-1: hsl(0, 0%, 85%);
@@ -177,7 +177,7 @@
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 	--shadow-2: 0px 1px 3px hsl(0, 0%, 0%, 46.7%), 0px 2px 6px hsl(0, 0%, 0%, 33.3%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 46.7%), 0px 2px 12px hsl(0, 0%, 0%, 22%),
+	--shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
@@ -538,7 +538,7 @@ input,
 }
 
 .tl-handle__fg {
-	fill: var(--color-background);
+	fill: var(--color-selected-contrast);
 	stroke: var(--color-selection-stroke);
 	stroke-width: calc(1.5px * var(--tl-scale));
 	pointer-events: none;
