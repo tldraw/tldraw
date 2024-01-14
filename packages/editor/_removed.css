@@ -1,0 +1,102 @@
+/* ------------------- Code Editor ------------------ */
+
+.tl-image__button {
+	padding: 4px 8px;
+	color: var(--color-text);
+	background-color: var(--color-panel);
+	border-radius: var(--radius-2);
+	box-shadow: var(--shadow-1);
+	pointer-events: all;
+	cursor: var(--tl-cursor-pointer);
+	outline: none;
+	display: flex;
+}
+
+.tl-image__button:disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.tl-image__toolbox {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	display: flex;
+	justify-content: flex-end;
+	align-items: flex-end;
+	padding: 10px;
+}
+
+.tl-image__toolbox__hidden {
+	display: none;
+}
+
+.tl-frame__hitarea {
+	border-style: solid;
+	border-width: calc(8px * var(--tl-scale));
+	border-color: transparent;
+	background: none;
+	pointer-events: stroke;
+	box-sizing: border-box;
+	top: calc(-8px * var(--tl-scale));
+	left: calc(-8px * var(--tl-scale));
+	width: calc(100% + calc(16px * var(--tl-scale)));
+	height: calc(100% + calc(16px * var(--tl-scale)));
+	z-index: 1;
+	position: absolute;
+}
+
+.tl-text-edit-container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+/* -------------------- IconShape ------------------- */
+
+.tl-iconshape__icon {
+	pointer-events: all;
+	width: 100%;
+	height: 100%;
+}
+
+.tl-icon-preview {
+	width: 14px;
+	height: 14px;
+}
+
+.tl-spinner::after {
+	content: '';
+	box-sizing: border-box;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 20px;
+	height: 20px;
+	margin-top: -10px;
+	margin-left: -10px;
+	border-radius: 50%;
+	border: 2px solid #ccc;
+	border-top-color: #000;
+	animation: spinner 0.6s linear infinite;
+	pointer-events: none;
+}
+
+.tl-rotate-handle {
+	stroke: var(--color-selection-stroke);
+	fill: var(--color-background);
+	stroke-width: calc(1.5px * var(--tl-scale));
+	pointer-events: all;
+}
+
+.tl-screenshot-brush {
+	stroke: var(--color-text-0);
+	fill: none;
+}
+
+@media screen and (pointer: coarse) {
+	/* If mobile always show handle-hint as there is no hover state */
+	.tl-canvas__mobile .tl-handle__hint {
+		opacity: 1;
+	}
+}

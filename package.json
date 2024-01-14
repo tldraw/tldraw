@@ -97,6 +97,7 @@
 		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch"
 	},
 	"dependencies": {
+		"purgecss": "^5.0.0",
 		"svgo": "^3.0.2"
 	}
 }
