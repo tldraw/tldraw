@@ -20,7 +20,7 @@
 	--radius-1: 4px;
 	--radius-2: 6px;
 	--radius-3: 9px;
-	--radius-4: 13px;
+	--radius-4: 11px;
 	/* Z Index */
 	--layer-background: 100;
 	--layer-grid: 150;
@@ -153,7 +153,7 @@
 	--color-muted-0: hsl(0, 0%, 100%, 2%);
 	--color-muted-1: hsl(0, 0%, 100%, 10%);
 	--color-muted-2: hsl(0, 0%, 100%, 5%);
-	--color-hint: hsl(0, 0%, 100%, 10%);
+	--color-hint: hsl(0, 0%, 100%, 7%);
 	--color-overlay: hsl(0, 0%, 0%, 50%);
 	--color-divider: hsl(240, 9%, 25%);
 	--color-panel-contrast: hsl(240, 13%, 22%);
@@ -175,7 +175,7 @@
 	/* Shadows */
 	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-2: 0px 1px 3px hsl(0, 0%, 0%, 46.7%), 0px 2px 6px hsl(0, 0%, 0%, 33.3%),
+	--shadow-2: 0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 	--shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
