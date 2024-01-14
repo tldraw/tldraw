@@ -112,7 +112,7 @@
 	--color-muted-1: hsl(0, 0%, 0%, 10%);
 	--color-muted-2: hsl(0, 0%, 0%, 4.3%);
 	--color-hint: hsl(0, 0%, 0%, 5.5%);
-	--color-overlay: hsl(0, 0%, 0% 20%);
+	--color-overlay: hsl(0, 0%, 0%, 20%);
 	--color-divider: hsl(0, 0%, 91%);
 	--color-panel-contrast: hsl(0, 0%, 100%);
 	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
