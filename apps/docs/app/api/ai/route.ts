@@ -1,6 +1,5 @@
 import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
-import { getVectorDb } from '@/utils/ContentVectorDatabase'
 import assert from 'assert'
 import { NextRequest } from 'next/server'
 
@@ -39,6 +38,9 @@ export async function GET(req: NextRequest) {
 			apiDocs: [],
 		}
 		const db = await getDb()
+
+		const getVectorDb = (await import('@/utils/ContentVectorDatabase')).getVectorDb
+
 		const vdb = await getVectorDb()
 		const queryResults = await vdb.query(query, 25)
 		queryResults.sort((a, b) => b.score - a.score)
