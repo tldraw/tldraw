@@ -11,7 +11,7 @@ import { TLResizeHandle } from '../types/selection-types'
 /** @public */
 export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
-	U extends ShapeUtil<T> = ShapeUtil<T>
+	U extends ShapeUtil<T> = ShapeUtil<T>,
 > {
 	new (editor: Editor): U
 	type: T['type']

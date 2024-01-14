@@ -261,7 +261,7 @@ type UnionValidatorConfig<Key extends string, Config> = {
 export class UnionValidator<
 	Key extends string,
 	Config extends UnionValidatorConfig<Key, Config>,
-	UnknownValue = never
+	UnknownValue = never,
 > extends Validator<TypeOf<Config[keyof Config]> | UnknownValue> {
 	constructor(
 		private readonly key: Key,

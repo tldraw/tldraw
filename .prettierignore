@@ -3,6 +3,7 @@
 **/dist/*
 **/dist-cjs/*
 **/dist-esm/*
+**/.next/*
 **/api/*
 !**/pages/api/*
 **/.tsbuild*
@@ -13,3 +14,5 @@ apps/docs/api-content.json
 apps/docs/content.json
 apps/vscode/extension/editor/*
 apps/examples/www
+content.json
+apps/docs/utils/vector-db/index.json

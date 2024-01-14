@@ -47,7 +47,10 @@ export const WithDiff = singleton(
 	'WithDiff',
 	() =>
 		class WithDiff<Value, Diff> {
-			constructor(public value: Value, public diff: Diff) {}
+			constructor(
+				public value: Value,
+				public diff: Diff
+			) {}
 		}
 )
 export type WithDiff<Value, Diff> = { value: Value; diff: Diff }

@@ -44,7 +44,7 @@ export class SideEffectManager<
 	CTX extends {
 		store: TLStore
 		history: { onBatchComplete: () => void }
-	}
+	},
 > {
 	constructor(public editor: CTX) {
 		editor.store.onBeforeCreate = (record, source) => {

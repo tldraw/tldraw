@@ -140,7 +140,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			shouldDisplayControls &&
 			(onlyShape
 				? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
-				  !editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
+					!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
 				: true) &&
 			!showCropHandles &&
 			!isLockedShape

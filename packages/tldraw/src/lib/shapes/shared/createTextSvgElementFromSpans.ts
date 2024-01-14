@@ -59,8 +59,8 @@ export function createTextSvgElementFromSpans(
 		(opts.verticalTextAlign === 'start'
 			? padding
 			: opts.verticalTextAlign === 'end'
-			? opts.height - padding - bounds.height
-			: (Math.ceil(opts.height) - bounds.height) / 2)
+				? opts.height - padding - bounds.height
+				: (Math.ceil(opts.height) - bounds.height) / 2)
 
 	// Create text span elements for each word
 	let currentLineTop = null

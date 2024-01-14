@@ -61,7 +61,7 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 			type: T['type']
 			props?: Partial<T['props']>
 			meta?: Partial<T['meta']>
-	  } & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
+		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
 /** @public */
