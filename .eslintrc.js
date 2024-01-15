@@ -91,7 +91,7 @@ module.exports = {
 			},
 		},
 		{
-			files: ['apps/repo-sync/**/*', 'scripts/**/*'],
+			files: ['apps/huppy/**/*', 'scripts/**/*'],
 			rules: {
 				'no-console': 'off',
 			},
