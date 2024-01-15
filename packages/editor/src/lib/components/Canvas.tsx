@@ -67,7 +67,7 @@ export function Canvas({ className }: { className?: string }) {
 	const shapeSvgDefs = useValue(
 		'shapeSvgDefs',
 		() => {
-			const shapeSvgDefsByKey = new Map<string, JSX.Element>()
+			const shapeSvgDefsByKey = new Map<string, React.JSX.Element>()
 			for (const util of objectMapValues(editor.shapeUtils)) {
 				if (!util) return
 				const defs = util.getCanvasSvgDefs()

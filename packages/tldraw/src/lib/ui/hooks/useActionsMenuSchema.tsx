@@ -80,8 +80,8 @@ export const ActionsMenuSchemaProvider = ({
 			allowGroup
 				? menuItem(actions['group'], { disabled: !twoSelected })
 				: allowUngroup
-				? menuItem(actions['ungroup'])
-				: menuItem(actions['group'], { disabled: !twoSelected }),
+					? menuItem(actions['ungroup'])
+					: menuItem(actions['group'], { disabled: !twoSelected }),
 		]
 
 		if (overrides) {

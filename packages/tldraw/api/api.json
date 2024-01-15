@@ -489,9 +489,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -505,7 +509,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 5
+                "endIndex": 6
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -895,9 +899,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -911,7 +919,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 5
+                "endIndex": 6
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -1652,9 +1660,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -1664,7 +1676,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -1768,9 +1780,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -1780,7 +1796,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -2052,19 +2068,23 @@
               "text": "): "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
               "kind": "Reference",
               "text": "JSX.Element",
-              "canonicalReference": "@types/react!__global.JSX.Element:interface"
+              "canonicalReference": "@types/react!JSX.Element:interface"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/hooks/useBreakpoint.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useBreakpoint.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
-            "endIndex": 4
+            "endIndex": 5
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -2273,12 +2293,12 @@
             },
             {
               "kind": "Content",
-              "text": "({ children }: {\n    children: any;\n}) => "
+              "text": "({ children }: {\n    children: any;\n}) => import(\"react/jsx-runtime\")."
             },
             {
               "kind": "Reference",
               "text": "JSX.Element",
-              "canonicalReference": "@types/react!__global.JSX.Element:interface"
+              "canonicalReference": "@types/react!JSX.Element:interface"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
@@ -2674,9 +2694,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -2686,7 +2710,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -2712,9 +2736,13 @@
                   "text": "export declare function CloseButton(): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -2724,7 +2752,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 3
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -2749,9 +2777,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -2761,7 +2793,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -2795,9 +2827,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -2807,7 +2843,7 @@
               "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/primitives/Dialog.d.ts",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -2841,9 +2877,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -2853,7 +2893,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -3236,9 +3276,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -3248,7 +3292,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -3583,9 +3627,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -3595,7 +3643,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -3937,9 +3985,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -3949,7 +4001,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -3983,9 +4035,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -3995,7 +4051,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4250,9 +4306,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4262,7 +4322,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4288,9 +4348,13 @@
                   "text": "export declare function Indicator(): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4300,7 +4364,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 3
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4326,9 +4390,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4338,7 +4406,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4373,9 +4441,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4385,7 +4457,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4419,9 +4491,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4431,7 +4507,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4465,9 +4541,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4477,7 +4557,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4511,9 +4591,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4523,7 +4607,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4584,9 +4668,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4596,7 +4684,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 9,
-                "endIndex": 10
+                "endIndex": 11
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4630,9 +4718,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4642,7 +4734,7 @@
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -4874,9 +4966,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4886,7 +4982,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -5004,9 +5100,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -5016,7 +5116,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -6132,9 +6232,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -6144,7 +6248,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -6268,9 +6372,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -6280,7 +6388,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -6959,9 +7067,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -6971,7 +7083,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -7131,9 +7243,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -7143,7 +7259,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -8416,9 +8532,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -8428,7 +8548,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -8466,9 +8586,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -8478,7 +8602,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -8728,9 +8852,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -8740,7 +8868,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -9187,9 +9315,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -9199,7 +9331,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -9273,9 +9405,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -9289,7 +9425,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 5
+                "endIndex": 6
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -10170,9 +10306,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -10186,7 +10326,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 5
+                "endIndex": 6
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -10547,9 +10687,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -10559,7 +10703,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -11457,9 +11601,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -11469,7 +11617,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -11702,9 +11850,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -11714,7 +11866,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -12169,19 +12321,23 @@
               "text": "export declare function OfflineIndicator(): "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
               "kind": "Reference",
               "text": "JSX.Element",
-              "canonicalReference": "@types/react!__global.JSX.Element:interface"
+              "canonicalReference": "@types/react!JSX.Element:interface"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/OfflineIndicator/OfflineIndicator.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/OfflineIndicator/OfflineIndicator.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 3
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -13051,9 +13207,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -13063,7 +13223,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -13236,9 +13396,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -13252,7 +13416,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 5
+                "endIndex": 6
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -13884,9 +14048,13 @@
               "text": "): "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
               "kind": "Reference",
               "text": "JSX.Element",
-              "canonicalReference": "@types/react!__global.JSX.Element:interface"
+              "canonicalReference": "@types/react!JSX.Element:interface"
             },
             {
               "kind": "Content",
@@ -13896,7 +14064,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/Tldraw.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
-            "endIndex": 4
+            "endIndex": 5
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -13931,9 +14099,13 @@
               "text": "): "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
               "kind": "Reference",
               "text": "JSX.Element",
-              "canonicalReference": "@types/react!__global.JSX.Element:interface"
+              "canonicalReference": "@types/react!JSX.Element:interface"
             },
             {
               "kind": "Content",
@@ -13943,7 +14115,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawCropHandles.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
-            "endIndex": 4
+            "endIndex": 5
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -13969,7 +14141,7 @@
               "text": "export interface TldrawCropHandlesProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/canvas/TldrawCropHandles.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawCropHandles.tsx",
           "releaseTag": "Public",
           "name": "TldrawCropHandlesProps",
           "preserveMemberOrder": false,
@@ -13992,7 +14164,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawCropHandles.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
@@ -14020,7 +14191,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawCropHandles.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
@@ -14048,7 +14218,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawCropHandles.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
@@ -14076,7 +14245,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawCropHandles.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
@@ -14625,9 +14793,13 @@
               "text": "): "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
               "kind": "Reference",
               "text": "JSX.Element",
-              "canonicalReference": "@types/react!__global.JSX.Element:interface"
+              "canonicalReference": "@types/react!JSX.Element:interface"
             },
             {
               "kind": "Content",
@@ -14637,7 +14809,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/TldrawUiContextProvider.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
-            "endIndex": 4
+            "endIndex": 5
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -15776,7 +15948,7 @@
               "text": "export interface TLUiContextMenuProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ContextMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiContextMenuProps",
           "preserveMemberOrder": false,
@@ -15799,7 +15971,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
@@ -20419,9 +20590,13 @@
               "text": "): "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
               "kind": "Reference",
               "text": "JSX.Element",
-              "canonicalReference": "@types/react!__global.JSX.Element:interface"
+              "canonicalReference": "@types/react!JSX.Element:interface"
             },
             {
               "kind": "Content",
@@ -20431,7 +20606,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useEventsProvider.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
-            "endIndex": 4
+            "endIndex": 5
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -21475,9 +21650,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -21487,7 +21666,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -21561,9 +21740,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
                   "text": "JSX.Element",
-                  "canonicalReference": "@types/react!__global.JSX.Element:interface"
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -21573,7 +21756,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,

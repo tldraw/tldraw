@@ -54,7 +54,7 @@
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.14.188",
-		"@types/react": "^18.0.24",
+		"@types/react": "^18.2.47",
 		"@types/react-test-renderer": "^18.0.0",
 		"lodash": "^4.17.21",
 		"react-test-renderer": "^18.2.0"

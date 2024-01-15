@@ -29,7 +29,7 @@
 	"devDependencies": {
 		"@auto-it/core": "^10.45.0",
 		"@types/is-ci": "^3.0.0",
-		"@types/node": "^18.13.0",
+		"@types/node": "^18.7.3",
 		"@typescript-eslint/utils": "^5.59.0",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.1.5",
@@ -39,12 +39,12 @@
 		"is-ci": "^3.0.1",
 		"kleur": "^4.1.5",
 		"lazyrepo": "0.0.0-alpha.27",
-		"prettier": "^2.8.7",
+		"prettier": "^3.0.3",
 		"recast": "^0.22.0",
 		"rimraf": "^4.4.0",
 		"semver": "^7.3.8",
 		"svgo": "^3.0.2",
-		"typescript": "^4.5.2"
+		"typescript": "^5.2.2"
 	},
 	"scripts": {
 		"lint": "yarn run -T tsx lint.ts"

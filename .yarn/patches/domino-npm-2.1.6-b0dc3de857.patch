@@ -1,0 +1,32 @@
+diff --git a/lib/sloppy.js b/lib/sloppy.js
+index b5d8950a8ea98d2d58723c1f96eeabb260699e24..81e57113edc1b16d681f157cd9b923dba190567c 100644
+--- a/lib/sloppy.js
++++ b/lib/sloppy.js
+@@ -1,24 +1,4 @@
+-/* Domino uses sloppy-mode features (in particular, `with`) for a few
+- * minor things.  This file encapsulates all the sloppiness; every
+- * other module should be strict. */
+-/* jshint strict: false */
+-/* jshint evil: true */
+-/* jshint -W085 */
+ module.exports = {
+-  Window_run: function _run(code, file) {
+-    if (file) code += '\n//@ sourceURL=' + file;
+-    with(this) eval(code);
+-  },
+-  EventHandlerBuilder_build: function build() {
+-    try {
+-      with(this.document.defaultView || Object.create(null))
+-        with(this.document)
+-          with(this.form)
+-            with(this.element)
+-              return eval("(function(event){" + this.body + "})");
+-    }
+-    catch (err) {
+-      return function() { throw err; };
+-    }
+-  }
+-};
++	Window_run: function _run(code, file) {},
++	EventHandlerBuilder_build: function build() {},
++}
