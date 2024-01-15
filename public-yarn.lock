@@ -7606,6 +7606,7 @@ __metadata:
     "@aws-sdk/lib-storage": ^3.440.0
     "@types/is-ci": ^3.0.0
     "@types/node": ^18.7.3
+    "@types/tar": ^6.1.7
     "@typescript-eslint/utils": ^5.59.0
     ast-types: ^0.14.2
     cross-fetch: ^3.1.5
@@ -8525,6 +8526,16 @@ __metadata:
   version: 0.0.30
   resolution: "@types/strip-json-comments@npm:0.0.30"
   checksum: 829ddd389645073f347c5b1924a8c34b8813af29756576e511c46f40e218193cf93ccbade62661d47fc70f707e98f410331729b8c20edfcb2e807d51df1ad4b7
+  languageName: node
+  linkType: hard
+
+"@types/tar@npm:^6.1.7":
+  version: 6.1.10
+  resolution: "@types/tar@npm:6.1.10"
+  dependencies:
+    "@types/node": "*"
+    minipass: ^4.0.0
+  checksum: 82d46f1246e830b98833ed94fbdfbcb3ffb8a5d7173609622d56c9326124523a3cc541607876c63a6ab9117eb59fb37ef8a6284b194164ab1d1d8c03a8ba59c6
   languageName: node
   linkType: hard
 
@@ -19300,7 +19311,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minipass@npm:^4.2.4":
+"minipass@npm:^4.0.0, minipass@npm:^4.2.4":
   version: 4.2.8
   resolution: "minipass@npm:4.2.8"
   checksum: 7f4914d5295a9a30807cae5227a37a926e6d910c03f315930fde52332cf0575dfbc20295318f91f0baf0e6bb11a6f668e30cde8027dea7a11b9d159867a3c830
