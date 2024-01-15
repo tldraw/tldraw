@@ -53,6 +53,7 @@
 		"lint": "yarn run -T tsx lint.ts"
 	},
 	"dependencies": {
-		"ignore": "^5.2.4"
+		"ignore": "^5.2.4",
+		"tar": "^6.2.0"
 	}
 }

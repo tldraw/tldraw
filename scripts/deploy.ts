@@ -8,8 +8,8 @@ import path, { join } from 'path'
 import { PassThrough } from 'stream'
 import tar from 'tar'
 import { exec } from './lib/exec'
+import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
-import { makeEnv } from './utils/makeEnv'
 
 const worker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/tlsync-worker'))
 const assetUpload = path.relative(process.cwd(), path.resolve(__dirname, '../apps/asset-upload'))
