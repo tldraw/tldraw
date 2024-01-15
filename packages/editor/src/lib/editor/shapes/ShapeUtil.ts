@@ -150,7 +150,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	hideResizeHandles: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape should hide its resize handles when selected.
+	 * Whether the shape should hide its rotation handles when selected.
 	 *
 	 * @public
 	 */
