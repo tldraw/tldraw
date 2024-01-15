@@ -8,6 +8,11 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+**/node_modules
+
+.git
+**/.git
+
 dist
 dist-cjs
 dist-esm
@@ -37,8 +42,9 @@ coverage
 
 **/*.css.map
 **/*.js.map
-apps/examples/www/index.js
-apps/examples/www/index.css
+apps/webdriver/www/index.js
+apps/webdriver/www/index.css
+apps/tlsync-worker/.dev.vars
 nohup.out
 
 packages/*/package
@@ -50,16 +56,8 @@ tsconfig.build.json
 api-json
 api-md
 
-packages/tldraw/tldraw.css
-
-packages/assets/embed-icons
-packages/assets/fonts
-packages/assets/icons
-packages/assets/translations
-apps/examples/www/embed-icons
-apps/examples/www/fonts
-apps/examples/www/icons
-apps/examples/www/translations
+apps/webdriver/www
+!apps/webdriver/www/index.html
 
 # yarn v2
 .pnp.*
@@ -70,25 +68,8 @@ apps/examples/www/translations
 !.yarn/sdks
 !.yarn/versions
 
-packages/*/api/temp
-packages/*/api/internal.d.ts
-packages/*/api/public.d.ts
-
+packages/*/api
 apps/examples/www/index.css
 apps/examples/www/index.js
 .tsbuild
-
-apps/examples/build.esbuild.json
-
-apps/examples/e2e/test-results
-apps/examples/playwright-report
-
-docs/gen
-
-.dev.vars
-.env.local
-.env.development.local
-.env*
-
-.wrangler
-/vercel.json
+packages/tlsync-worker/.dev.vars

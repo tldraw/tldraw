@@ -1,7 +1,22 @@
 import { LazyConfig } from 'lazyrepo'
 
-export function generateSharedScripts() {
-	return {
+const config = {
+	baseCacheConfig: {
+		include: [
+			'<rootDir>/package.json',
+			'<rootDir>/public-yarn.lock',
+			'<rootDir>/lazy.config.ts',
+			'<rootDir>/config/**/*',
+			'<rootDir>/scripts/**/*',
+		],
+		exclude: [
+			'<allWorkspaceDirs>/coverage/**/*',
+			'<allWorkspaceDirs>/dist*/**/*',
+			'**/*.tsbuildinfo',
+			'<rootDir>/docs/gen/**/*',
+		],
+	},
+	scripts: {
 		build: {
 			baseCommand: 'exit 0',
 			runsAfter: { prebuild: {}, 'refresh-assets': {} },
@@ -50,14 +65,14 @@ export function generateSharedScripts() {
 		},
 		'refresh-assets': {
 			execution: 'top-level',
-			baseCommand: 'tsx <rootDir>/scripts/refresh-assets.ts',
+			baseCommand: `tsx <rootDir>/scripts/refresh-assets.ts`,
 			cache: {
-				inputs: ['package.json', '<rootDir>/scripts/refresh-assets.ts', '<rootDir>/assets/**/*'],
+				inputs: ['package.json', `<rootDir>/scripts/refresh-assets.ts`, `<rootDir>/assets/**/*`],
 			},
 		},
 		'build-types': {
 			execution: 'top-level',
-			baseCommand: 'tsx <rootDir>/scripts/typecheck.ts',
+			baseCommand: `tsx <rootDir>/scripts/typecheck.ts`,
 			cache: {
 				inputs: {
 					include: ['<allWorkspaceDirs>/**/*.{ts,tsx}', '<allWorkspaceDirs>/tsconfig.json'],
@@ -88,33 +103,12 @@ export function generateSharedScripts() {
 		},
 		'api-check': {
 			execution: 'top-level',
-			baseCommand: 'tsx <rootDir>/scripts/api-check.ts',
+			baseCommand: `tsx <rootDir>/scripts/api-check.ts`,
 			runsAfter: { 'build-api': {} },
 			cache: {
-				inputs: ['<rootDir>/packages/*/api/public.d.ts'],
+				inputs: [`<rootDir>/packages/*/api/public.d.ts`],
 			},
 		},
-	} satisfies LazyConfig['scripts']
-}
-
-const config = {
-	baseCacheConfig: {
-		include: [
-			'<rootDir>/package.json',
-			'<rootDir>/public-yarn.lock',
-			'<rootDir>/lazy.config.ts',
-			'<rootDir>/config/**/*',
-			'<rootDir>/scripts/**/*',
-		],
-		exclude: [
-			'<allWorkspaceDirs>/coverage/**/*',
-			'<allWorkspaceDirs>/dist*/**/*',
-			'**/*.tsbuildinfo',
-			'<rootDir>/docs/gen/**/*',
-		],
-	},
-	scripts: {
-		...generateSharedScripts(),
 	},
 } satisfies LazyConfig
 

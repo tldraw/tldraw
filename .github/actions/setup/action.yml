@@ -1,0 +1,19 @@
+name: Setup tldraw/brivate
+description: Set up node & yarn
+
+runs:
+  using: composite
+  steps:
+    - name: Enable corepack
+      run: corepack enable
+      shell: bash
+
+    - name: Setup Node.js Environment
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.18.2
+        cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+      shell: bash
