@@ -4,7 +4,7 @@ const config = {
 	baseCacheConfig: {
 		include: [
 			'<rootDir>/package.json',
-			'<rootDir>/public-yarn.lock',
+			'<rootDir>/yarn.lock',
 			'<rootDir>/lazy.config.ts',
 			'<rootDir>/config/**/*',
 			'<rootDir>/scripts/**/*',
