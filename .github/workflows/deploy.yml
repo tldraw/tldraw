@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - production
+      - dot-com-in
 
 env:
   CI: 1
