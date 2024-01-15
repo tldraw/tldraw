@@ -1,7 +1,7 @@
 import { IssueCommentEvent } from '@octokit/webhooks-types'
 import { assert } from '@tldraw/utils'
 import { createOrUpdateHuppyComment, updateHuppyCommentIfExists } from '../comment'
-import { TLDRAW_ORG, TLDRAW_PRIVATE_REPO, TLDRAW_PUBLIC_REPO } from '../config'
+import { TLDRAW_ORG, TLDRAW_PUBLIC_REPO } from '../config'
 import { Ctx } from '../ctx'
 import { Flow } from '../flow'
 
@@ -84,7 +84,7 @@ async function addSignatureFromComment(ctx: Ctx, event: IssueCommentEvent) {
 
 	await ctx.octokit.rest.repos.createOrUpdateFileContents({
 		owner: TLDRAW_ORG,
-		repo: TLDRAW_PRIVATE_REPO,
+		repo: TLDRAW_PUBLIC_REPO,
 		path: `${event.comment.user.login.toLowerCase()}.json`,
 		branch: CLA_SIGNATURES_BRANCH,
 		content: Buffer.from(JSON.stringify(newSigning, null, '\t')).toString('base64'),
@@ -121,7 +121,7 @@ async function checkAllContributorsHaveSignedCla(
 			context: 'CLA Signatures',
 			description: getStatusDescription(info),
 		})
-		await updateHuppyCommentIfExists(ctx, TARGET_REPO, pr.number, getHuppyCommentContents(info))
+		await updateHuppyCommentIfExists(ctx, pr.number, getHuppyCommentContents(info))
 		return
 	}
 
@@ -134,7 +134,7 @@ async function checkAllContributorsHaveSignedCla(
 		description: getStatusDescription(info),
 	})
 
-	await createOrUpdateHuppyComment(ctx, TARGET_REPO, pr.number, getHuppyCommentContents(info))
+	await createOrUpdateHuppyComment(ctx, pr.number, getHuppyCommentContents(info))
 }
 
 async function getClaSigneesFromPr(ctx: Ctx, pr: { number: number }): Promise<SigneeInfo> {
@@ -173,7 +173,7 @@ async function getClaSigneeInfo(ctx: Ctx, authorName: string) {
 	try {
 		const response = await ctx.octokit.rest.repos.getContent({
 			owner: TLDRAW_ORG,
-			repo: TLDRAW_PRIVATE_REPO,
+			repo: TLDRAW_PUBLIC_REPO,
 			path: `${authorName}.json`,
 			ref: 'cla-signees',
 		})
