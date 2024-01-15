@@ -38,9 +38,9 @@
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
 		"build": "lazy build",
-		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='{,bublic/}apps/examples' --filter='{,bublic/}packages/tldraw'",
-		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='{,bublic/}apps/vscode/{extension,editor}'",
-		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker,control}' --filter='bublic/packages/tldraw'",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw'",
+		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
+		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker,control}' --filter='packages/tldraw'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
 		"build-package": "lazy build-package",
@@ -50,7 +50,7 @@
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api-check": "lazy api-check",
 		"test": "lazy test",
-		"e2e": "lazy e2e --filter='{,bublic/}apps/examples'"
+		"e2e": "lazy e2e --filter='apps/examples'"
 	},
 	"engines": {
 		"npm": ">=7.0.0"

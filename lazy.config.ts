@@ -1,13 +1,13 @@
 import { LazyConfig } from 'lazyrepo'
 
-export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') {
+export function generateSharedScripts() {
 	return {
 		build: {
 			baseCommand: 'exit 0',
 			runsAfter: { prebuild: {}, 'refresh-assets': {} },
 			workspaceOverrides: {
-				'{bublic/,}apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
-				'{bublic/,}packages/*': {
+				'apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
+				'packages/*': {
 					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
 					cache: {
 						inputs: ['api/**/*', 'src/**/*'],
@@ -20,7 +20,7 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 			runsAfter: { 'refresh-assets': {} },
 			cache: 'none',
 			workspaceOverrides: {
-				'{bublic/,}apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
+				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
 			},
 		},
 		test: {
@@ -50,14 +50,14 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 		},
 		'refresh-assets': {
 			execution: 'top-level',
-			baseCommand: `tsx ${bublic}/scripts/refresh-assets.ts`,
+			baseCommand: 'tsx <rootDir>/scripts/refresh-assets.ts',
 			cache: {
-				inputs: ['package.json', `${bublic}/scripts/refresh-assets.ts`, `${bublic}/assets/**/*`],
+				inputs: ['package.json', '<rootDir>/scripts/refresh-assets.ts', '<rootDir>/assets/**/*'],
 			},
 		},
 		'build-types': {
 			execution: 'top-level',
-			baseCommand: `tsx ${bublic}/scripts/typecheck.ts`,
+			baseCommand: 'tsx <rootDir>/scripts/typecheck.ts',
 			cache: {
 				inputs: {
 					include: ['<allWorkspaceDirs>/**/*.{ts,tsx}', '<allWorkspaceDirs>/tsconfig.json'],
@@ -88,10 +88,10 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 		},
 		'api-check': {
 			execution: 'top-level',
-			baseCommand: `tsx ${bublic}/scripts/api-check.ts`,
+			baseCommand: 'tsx <rootDir>/scripts/api-check.ts',
 			runsAfter: { 'build-api': {} },
 			cache: {
-				inputs: [`${bublic}/packages/*/api/public.d.ts`],
+				inputs: ['<rootDir>/packages/*/api/public.d.ts'],
 			},
 		},
 	} satisfies LazyConfig['scripts']
@@ -100,21 +100,21 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 const config = {
 	baseCacheConfig: {
 		include: [
-			'<rootDir>/{,bublic/}package.json',
-			'<rootDir>/{,bublic/}public-yarn.lock',
-			'<rootDir>/{,bublic/}lazy.config.ts',
-			'<rootDir>/{,bublic/}config/**/*',
-			'<rootDir>/{,bublic/}scripts/**/*',
+			'<rootDir>/package.json',
+			'<rootDir>/public-yarn.lock',
+			'<rootDir>/lazy.config.ts',
+			'<rootDir>/config/**/*',
+			'<rootDir>/scripts/**/*',
 		],
 		exclude: [
 			'<allWorkspaceDirs>/coverage/**/*',
 			'<allWorkspaceDirs>/dist*/**/*',
 			'**/*.tsbuildinfo',
-			'<rootDir>/{,bublic/}docs/gen/**/*',
+			'<rootDir>/docs/gen/**/*',
 		],
 	},
 	scripts: {
-		...generateSharedScripts('<rootDir>'),
+		...generateSharedScripts(),
 	},
 } satisfies LazyConfig
 
