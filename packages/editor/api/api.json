@@ -30380,7 +30380,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#hideRotateHandle:member",
-              "docComment": "/**\n * Whether the shape should hide its resize handles when selected.\n *\n * @public\n */\n",
+              "docComment": "/**\n * Whether the shape should hide its rotation handles when selected.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
