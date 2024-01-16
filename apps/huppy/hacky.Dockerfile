@@ -9,4 +9,4 @@
 # docker push dgroshev/huppy
 # [adjust the image hash below]
 # fly deploy --config apps/huppy/fly.toml --dockerfile apps/huppy/hacky.Dockerfile --local-only
-FROM dgroshev/huppy@sha256:88a95b27cd8bcbe3f97874cbe9dac25043eb56a0b2189af3c9d84da9911d9fb9
+FROM dgroshev/huppy@sha256:3dd947e860cb919ba8b5147f51b286ee413057c12bc973d021fbe8313f28401c

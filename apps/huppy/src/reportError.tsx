@@ -1,9 +1,12 @@
 import os from 'os'
 
-const discordWebhookUrl =
-	'https://discord.com/api/webhooks/1102993417744683088/Zzp9eokOuJiANzEAa-b3GLGcuLPkdYRatWsj6WeMmKicoI4Q9VscmjzQTTG_9THbWZcy'
+const discordWebhookUrl = process.env.HUPPY_WEBHOOK_URL
 
 export async function reportError(context: string, error: Error) {
+	if (typeof discordWebhookUrl === 'undefined') {
+		throw new Error('HUPPY_WEBHOOK_URL not set')
+	}
+
 	const body = JSON.stringify({
 		content: `[${os.hostname}] ${context}:\n\`\`\`\n${error.stack}\n\`\`\``,
 	})
