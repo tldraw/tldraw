@@ -1,15 +1,23 @@
+import { existsSync, readFileSync } from 'fs'
 import { readFile, writeFile as writeFileUnchecked } from 'fs/promises'
 import json5 from 'json5'
-import { basename, dirname, join, relative } from 'path'
+import { dirname, join, relative } from 'path'
 import prettier from 'prettier'
 import { fileURLToPath } from 'url'
 import { nicelog } from './nicelog'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const isBublic = basename(join(__dirname, '../..')) === 'bublic'
-export const REPO_ROOT = join(__dirname, isBublic ? '../../../' : '../..')
-export const BUBLIC_ROOT = join(__dirname, '../..')
+export const REPO_ROOT = join(__dirname, '../..')
+
+const _rootPackageJsonPath = join(REPO_ROOT, 'package.json')
+if (!existsSync(_rootPackageJsonPath)) {
+	throw new Error('expected to find package.json in REPO_ROOT')
+}
+const _rootPackageJson = JSON.parse(readFileSync(_rootPackageJsonPath, 'utf8'))
+if (_rootPackageJson['name'] !== '@tldraw/monorepo') {
+	throw new Error('expected to find @tldraw/monorepo in REPO_ROOT package.json')
+}
 
 export async function readJsonIfExists(file: string) {
 	const fileContents = await readFileIfExists(file)

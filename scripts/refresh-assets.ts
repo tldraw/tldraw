@@ -2,8 +2,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs'
 import { join } from 'path'
 import { optimize } from 'svgo'
 import {
-	BUBLIC_ROOT,
 	readJsonIfExists,
+	REPO_ROOT,
 	writeCodeFile,
 	writeFile,
 	writeJsonFile,
@@ -12,7 +12,7 @@ import {
 import { nicelog } from './lib/nicelog'
 
 // We'll need to copy the assets into these folders
-const PUBLIC_FOLDER_PATHS = [join(BUBLIC_ROOT, 'packages', 'assets')]
+const PUBLIC_FOLDER_PATHS = [join(REPO_ROOT, 'packages', 'assets')]
 
 const FONT_MAPPING: Record<string, string> = {
 	'IBMPlexMono-Medium': 'monospace',
@@ -21,7 +21,7 @@ const FONT_MAPPING: Record<string, string> = {
 	'Shantell_Sans-Tldrawish': 'draw',
 }
 
-const ASSETS_FOLDER_PATH = join(BUBLIC_ROOT, 'assets')
+const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')
 
 const collectedAssetUrls: {
 	fonts: Record<string, string>
@@ -92,7 +92,7 @@ async function copyIcons() {
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
-		join(BUBLIC_ROOT, 'packages', 'tldraw', 'src', 'lib', 'ui', 'icon-types.ts'),
+		join(REPO_ROOT, 'packages', 'tldraw', 'src', 'lib', 'ui', 'icon-types.ts'),
 		iconTypeFile
 	)
 
@@ -202,7 +202,7 @@ async function copyTranslations() {
 
 	// Create hardcoded files
 	const uiPath = join(
-		BUBLIC_ROOT,
+		REPO_ROOT,
 		'packages',
 		'tldraw',
 		'src',
@@ -219,7 +219,7 @@ async function copyTranslations() {
 		/** @public */
 		export const LANGUAGES = ${JSON.stringify(languagesSource)} as const
 	`
-	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src', 'translations')
+	const schemaPath = join(REPO_ROOT, 'packages', 'tlschema', 'src', 'translations')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
@@ -267,7 +267,7 @@ async function copyTranslations() {
 
 // 4. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
-	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'urls.js')
+	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'urls.js')
 	const codeFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
@@ -333,7 +333,7 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 		}
 	`
 
-	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'imports.js')
+	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'imports.js')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'javascript',
@@ -343,7 +343,7 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 }
 
 async function writeSelfHostedAssetDeclarationFile(): Promise<void> {
-	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'selfHosted.js')
+	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'selfHosted.js')
 	const codeFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
@@ -391,7 +391,7 @@ async function writeAssetDeclarationDTSFile() {
 		}
 	`
 
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'types.d.ts')
+	const assetDeclarationFilePath = join(REPO_ROOT, 'packages', 'assets', 'types.d.ts')
 	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
