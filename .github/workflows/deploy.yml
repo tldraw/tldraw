@@ -20,7 +20,7 @@ jobs:
   deploy:
     name: Deploy to ${{ (github.event.ref == 'refs/heads/production' && 'production') || (github.event.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-16-cores-open
     environment: ${{ github.event.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
     concurrency: ${{ github.event.ref == 'refs/heads/production' && 'deploy-production' || github.event.ref }}
 
