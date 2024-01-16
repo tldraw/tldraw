@@ -92,9 +92,9 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"lint-staged": ">=10",
 		"prettier": "^3.0.3",
-		"prettier-plugin-organize-imports": "^3.2.2",
+		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
-		"tsx": "^3.12.7",
+		"tsx": "^4.0.0",
 		"typescript": "^5.2.2",
 		"vercel": "^28.16.15"
 	},

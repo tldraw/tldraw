@@ -3,7 +3,6 @@
 	"description": "A Cloudflare Worker to upload and serve images",
 	"version": "2.0.0-alpha.8",
 	"private": true,
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -17,11 +16,11 @@
 	},
 	"dependencies": {
 		"itty-cors": "^0.3.4",
-		"itty-router": "^2.6.6"
+		"itty-router": "^4.0.13"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230821.0",
-		"@types/ws": "^8.5.3",
+		"@types/ws": "^8.5.9",
 		"lazyrepo": "0.0.0-alpha.27",
 		"wrangler": "3.16.0"
 	},

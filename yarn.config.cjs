@@ -18,7 +18,7 @@ function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
 	for (const workspace of Yarn.workspaces()) {
 		if (workspace.cwd === '.') continue
 
-		workspace.set('packageManager', null)
+		workspace.set('packageManager', undefined)
 	}
 }
 
