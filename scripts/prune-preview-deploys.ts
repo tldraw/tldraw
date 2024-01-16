@@ -18,7 +18,7 @@ async function isPrClosedForAWhile(prNumber: number) {
 	}
 	const prResult = await github.getOctokit(env.GH_TOKEN).rest.pulls.get({
 		owner: 'tldraw',
-		repo: 'brivate',
+		repo: 'tldraw',
 		pull_number: prNumber,
 	})
 	const twoDays = 1000 * 60 * 60 * 24 * 2

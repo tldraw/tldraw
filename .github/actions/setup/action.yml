@@ -1,4 +1,4 @@
-name: Setup tldraw/brivate
+name: Setup tldraw/tldraw
 description: Set up node & yarn
 
 runs:

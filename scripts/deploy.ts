@@ -330,7 +330,7 @@ async function createGithubDeployment(deploymentUrl: string, inspectUrl: string)
 
 	const deployment = await client.rest.repos.createDeployment({
 		owner: 'tldraw',
-		repo: 'brivate',
+		repo: 'tldraw',
 		ref: sha,
 		payload: { web_url: deploymentUrl },
 		environment: env.TLDRAW_ENV,
@@ -342,7 +342,7 @@ async function createGithubDeployment(deploymentUrl: string, inspectUrl: string)
 
 	await client.rest.repos.createDeploymentStatus({
 		owner: 'tldraw',
-		repo: 'brivate',
+		repo: 'tldraw',
 		deployment_id: (deployment.data as any).id,
 		state: 'success',
 		environment_url: deploymentUrl,
