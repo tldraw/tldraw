@@ -261,7 +261,7 @@ type UnionValidatorConfig<Key extends string, Config> = {
 export class UnionValidator<
 	Key extends string,
 	Config extends UnionValidatorConfig<Key, Config>,
-	UnknownValue = never
+	UnknownValue = never,
 > extends Validator<TypeOf<Config[keyof Config]> | UnknownValue> {
 	constructor(
 		private readonly key: Key,
@@ -617,6 +617,13 @@ function parseUrl(str: string) {
 	try {
 		return new URL(str)
 	} catch (error) {
+		if (str.startsWith('/') || str.startsWith('./')) {
+			try {
+				return new URL(str, 'http://example.com')
+			} catch (error) {
+				throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
+			}
+		}
 		throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
 	}
 }

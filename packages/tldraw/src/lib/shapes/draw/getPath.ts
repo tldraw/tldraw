@@ -72,10 +72,10 @@ export function getFreehandOptions(
 		...(forceSolid
 			? solidSettings(strokeWidth)
 			: shapeProps.dash === 'draw'
-			? shapeProps.isPen
-				? realPressureSettings(strokeWidth)
-				: simulatePressureSettings(strokeWidth)
-			: solidSettings(strokeWidth)),
+				? shapeProps.isPen
+					? realPressureSettings(strokeWidth)
+					: simulatePressureSettings(strokeWidth)
+				: solidSettings(strokeWidth)),
 		last: shapeProps.isComplete || forceComplete,
 	}
 }

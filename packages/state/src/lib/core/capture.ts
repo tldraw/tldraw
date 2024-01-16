@@ -7,7 +7,10 @@ class CaptureStackFrame {
 
 	maybeRemoved?: Signal<any>[]
 
-	constructor(public readonly below: CaptureStackFrame | null, public readonly child: Child) {}
+	constructor(
+		public readonly below: CaptureStackFrame | null,
+		public readonly child: Child
+	) {}
 }
 
 const inst = singleton('capture', () => ({ stack: null as null | CaptureStackFrame }))

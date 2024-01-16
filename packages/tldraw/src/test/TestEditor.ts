@@ -222,7 +222,7 @@ export class TestEditor extends Editor {
 			? ({
 					target: 'shape',
 					shape: this.getShape(info as any),
-			  } as T)
+				} as T)
 			: info
 	}
 
@@ -267,18 +267,18 @@ export class TestEditor extends Editor {
 				key === 'Shift'
 					? 'ShiftLeft'
 					: key === 'Alt'
-					? 'AltLeft'
-					: key === 'Control' || key === 'Meta'
-					? 'CtrlLeft'
-					: key === ' '
-					? 'Space'
-					: key === 'Enter' ||
-					  key === 'ArrowRight' ||
-					  key === 'ArrowLeft' ||
-					  key === 'ArrowUp' ||
-					  key === 'ArrowDown'
-					? key
-					: 'Key' + key[0].toUpperCase() + key.slice(1),
+						? 'AltLeft'
+						: key === 'Control' || key === 'Meta'
+							? 'CtrlLeft'
+							: key === ' '
+								? 'Space'
+								: key === 'Enter' ||
+									  key === 'ArrowRight' ||
+									  key === 'ArrowLeft' ||
+									  key === 'ArrowUp' ||
+									  key === 'ArrowDown'
+									? key
+									: 'Key' + key[0].toUpperCase() + key.slice(1),
 			type: 'keyboard',
 			key,
 		}
@@ -556,7 +556,9 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId> {
+	createShapesFromJsx(
+		shapesJsx: React.JSX.Element | React.JSX.Element[]
+	): Record<string, TLShapeId> {
 		const { shapes, ids } = shapesFromJsx(shapesJsx)
 		this.createShapes(shapes)
 		return ids

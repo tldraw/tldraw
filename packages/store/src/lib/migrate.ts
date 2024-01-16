@@ -6,7 +6,7 @@ type EMPTY_SYMBOL = symbol
 /** @public */
 export function defineMigrations<
 	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
-	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL
+	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL,
 >(opts: {
 	firstVersion?: CurrentVersion extends number ? FirstVersion : never
 	currentVersion?: CurrentVersion
@@ -213,105 +213,105 @@ type Range<From extends number, To extends number> = To extends From
 type Decrement<n extends number> = n extends 0
 	? never
 	: n extends 1
-	? 0
-	: n extends 2
-	? 1
-	: n extends 3
-	? 2
-	: n extends 4
-	? 3
-	: n extends 5
-	? 4
-	: n extends 6
-	? 5
-	: n extends 7
-	? 6
-	: n extends 8
-	? 7
-	: n extends 9
-	? 8
-	: n extends 10
-	? 9
-	: n extends 11
-	? 10
-	: n extends 12
-	? 11
-	: n extends 13
-	? 12
-	: n extends 14
-	? 13
-	: n extends 15
-	? 14
-	: n extends 16
-	? 15
-	: n extends 17
-	? 16
-	: n extends 18
-	? 17
-	: n extends 19
-	? 18
-	: n extends 20
-	? 19
-	: n extends 21
-	? 20
-	: n extends 22
-	? 21
-	: n extends 23
-	? 22
-	: n extends 24
-	? 23
-	: n extends 25
-	? 24
-	: n extends 26
-	? 25
-	: n extends 27
-	? 26
-	: n extends 28
-	? 27
-	: n extends 29
-	? 28
-	: n extends 30
-	? 29
-	: n extends 31
-	? 30
-	: n extends 32
-	? 31
-	: n extends 33
-	? 32
-	: n extends 34
-	? 33
-	: n extends 35
-	? 34
-	: n extends 36
-	? 35
-	: n extends 37
-	? 36
-	: n extends 38
-	? 37
-	: n extends 39
-	? 38
-	: n extends 40
-	? 39
-	: n extends 41
-	? 40
-	: n extends 42
-	? 41
-	: n extends 43
-	? 42
-	: n extends 44
-	? 43
-	: n extends 45
-	? 44
-	: n extends 46
-	? 45
-	: n extends 47
-	? 46
-	: n extends 48
-	? 47
-	: n extends 49
-	? 48
-	: n extends 50
-	? 49
-	: n extends 51
-	? 50
-	: never
+		? 0
+		: n extends 2
+			? 1
+			: n extends 3
+				? 2
+				: n extends 4
+					? 3
+					: n extends 5
+						? 4
+						: n extends 6
+							? 5
+							: n extends 7
+								? 6
+								: n extends 8
+									? 7
+									: n extends 9
+										? 8
+										: n extends 10
+											? 9
+											: n extends 11
+												? 10
+												: n extends 12
+													? 11
+													: n extends 13
+														? 12
+														: n extends 14
+															? 13
+															: n extends 15
+																? 14
+																: n extends 16
+																	? 15
+																	: n extends 17
+																		? 16
+																		: n extends 18
+																			? 17
+																			: n extends 19
+																				? 18
+																				: n extends 20
+																					? 19
+																					: n extends 21
+																						? 20
+																						: n extends 22
+																							? 21
+																							: n extends 23
+																								? 22
+																								: n extends 24
+																									? 23
+																									: n extends 25
+																										? 24
+																										: n extends 26
+																											? 25
+																											: n extends 27
+																												? 26
+																												: n extends 28
+																													? 27
+																													: n extends 29
+																														? 28
+																														: n extends 30
+																															? 29
+																															: n extends 31
+																																? 30
+																																: n extends 32
+																																	? 31
+																																	: n extends 33
+																																		? 32
+																																		: n extends 34
+																																			? 33
+																																			: n extends 35
+																																				? 34
+																																				: n extends 36
+																																					? 35
+																																					: n extends 37
+																																						? 36
+																																						: n extends 38
+																																							? 37
+																																							: n extends 39
+																																								? 38
+																																								: n extends 40
+																																									? 39
+																																									: n extends 41
+																																										? 40
+																																										: n extends 42
+																																											? 41
+																																											: n extends 43
+																																												? 42
+																																												: n extends 44
+																																													? 43
+																																													: n extends 45
+																																														? 44
+																																														: n extends 46
+																																															? 45
+																																															: n extends 47
+																																																? 46
+																																																: n extends 48
+																																																	? 47
+																																																	: n extends 49
+																																																		? 48
+																																																		: n extends 50
+																																																			? 49
+																																																			: n extends 51
+																																																				? 50
+																																																				: never

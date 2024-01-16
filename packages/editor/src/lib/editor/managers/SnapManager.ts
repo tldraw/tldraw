@@ -625,8 +625,8 @@ export class SnapManager {
 						? 'x'
 						: 'y'
 					: nearestSnapsX.length
-					? 'x'
-					: 'y'
+						? 'x'
+						: 'y'
 
 			const ratio = initialSelectionPageBounds.aspectRatio
 
@@ -1175,7 +1175,7 @@ export class SnapManager {
 												'forward',
 												gapBreadthIntersection
 											),
-									  ]
+										]
 									: [
 											...findAdjacentGaps(
 												horizontal,
@@ -1191,7 +1191,7 @@ export class SnapManager {
 												) as [Vec, Vec],
 												endEdge: selectionSides.left,
 											},
-									  ],
+										],
 						})
 
 						break
@@ -1279,7 +1279,7 @@ export class SnapManager {
 													'forward',
 													gapBreadthIntersection
 												),
-										  ]
+											]
 										: [
 												...findAdjacentGaps(
 													vertical,
@@ -1295,7 +1295,7 @@ export class SnapManager {
 													) as [Vec, Vec],
 													endEdge: selectionSides.top,
 												},
-										  ],
+											],
 							})
 						}
 						break

@@ -25,6 +25,7 @@
 		"infinite"
 	],
 	"workspaces": [
+		"docs",
 		"apps/*",
 		"packages/*",
 		"apps/vscode/*",
@@ -66,9 +67,9 @@
 		"@swc/jest": "^0.2.26",
 		"@types/glob": "^8.1.0",
 		"@types/jest": "^28.1.2",
-		"@types/node": "18.7.3",
-		"@types/react": "^18.0.24",
-		"@types/react-dom": "^18.0.6",
+		"@types/node": "^18.7.3",
+		"@types/react": "^18.2.47",
+		"@types/react-dom": "^18.2.18",
 		"@typescript-eslint/eslint-plugin": "^5.57.0",
 		"@typescript-eslint/parser": "^5.57.0",
 		"auto": "^10.46.0",
@@ -86,15 +87,17 @@
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lint-staged": ">=10",
-		"prettier": "^2.8.6",
+		"prettier": "^3.0.3",
 		"prettier-plugin-organize-imports": "^3.2.2",
 		"rimraf": "^4.4.0",
 		"tsx": "^3.12.7",
-		"typescript": "^5.0.2",
+		"typescript": "^5.2.2",
 		"vercel": "^28.16.15"
 	},
 	"resolutions": {
-		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch"
+		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch",
+		"vectra@^0.4.4": "patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch",
+		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch"
 	},
 	"dependencies": {
 		"purgecss": "^5.0.0",
