@@ -25,7 +25,6 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"@types/jsonwebtoken": "^9.0.1",
-		"airtable": "^0.11.6",
 		"json5": "^2.2.3",
 		"jsonwebtoken": "^9.0.0",
 		"next": "^13.2.3",

@@ -8346,13 +8346,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:>=8.0.0 <15":
-  version: 14.18.63
-  resolution: "@types/node@npm:14.18.63"
-  checksum: be909061a54931778c71c49dc562586c32f909c4b6197e3d71e6dac726d8bd9fccb9f599c0df99f52742b68153712b5097c0f00cac4e279fa894b0ea6719a8fd
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:^18.11.18, @types/node@npm:^18.7.3":
   version: 18.19.6
   resolution: "@types/node@npm:18.19.6"
@@ -9167,13 +9160,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"abortcontroller-polyfill@npm:^1.4.0":
-  version: 1.7.5
-  resolution: "abortcontroller-polyfill@npm:1.7.5"
-  checksum: daf4169f4228ae0e4f4dbcfa782e501b923667f2666b7c55bd3b7664e5d6b100e333a93371173985fdf21f65d7dfba15bdb2e6031bdc9e57e4ce0297147da3aa
-  languageName: node
-  linkType: hard
-
 "accepts@npm:~1.3.8":
   version: 1.3.8
   resolution: "accepts@npm:1.3.8"
@@ -9314,19 +9300,6 @@ __metadata:
     clean-stack: ^2.0.0
     indent-string: ^4.0.0
   checksum: 1101a33f21baa27a2fa8e04b698271e64616b886795fd43c31068c07533c7b3facfcaf4e9e0cab3624bd88f729a592f1c901a1a229c9e490eafce411a8644b79
-  languageName: node
-  linkType: hard
-
-"airtable@npm:^0.11.6":
-  version: 0.11.6
-  resolution: "airtable@npm:0.11.6"
-  dependencies:
-    "@types/node": ">=8.0.0 <15"
-    abort-controller: ^3.0.0
-    abortcontroller-polyfill: ^1.4.0
-    lodash: ^4.17.21
-    node-fetch: ^2.6.7
-  checksum: 758d3109914b09d2216645d10b7cff3a2a7f1821184e71dc012407b034174a1b3ada26206ea4a9eaf586a5da05178ee4ca0c76b71630c858e998e4f4d1208942
   languageName: node
   linkType: hard
 
@@ -15539,7 +15512,6 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/jsonwebtoken": ^9.0.1
-    airtable: ^0.11.6
     eslint-config-next: 12.2.5
     json5: ^2.2.3
     jsonwebtoken: ^9.0.0
