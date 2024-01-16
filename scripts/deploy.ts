@@ -70,7 +70,7 @@ async function main() {
 
 	await discordMessage(`--- **${env.TLDRAW_ENV} deploy pre-flight** ---`)
 
-	await discordStep('[1/8] setting up deploy', async () => {
+	await discordStep('[1/6] setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
 		await exec('yarn', ['lazy', 'prebuild'])
 
@@ -80,14 +80,14 @@ async function main() {
 
 	// deploy pre-flight steps:
 	// 1. get the dotcom app ready to go (env vars and pre-build)
-	await discordStep('[2/8] building dotcom app', async () => {
+	await discordStep('[2/6] building dotcom app', async () => {
 		await createSentryRelease()
 		await prepareDotcomApp()
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
 
-	await discordStep('[4/8] cloudflare deploy dry run', async () => {
+	await discordStep('[3/6] cloudflare deploy dry run', async () => {
 		await deployAssetUploadWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
 	})
@@ -97,16 +97,16 @@ async function main() {
 	await discordMessage(`--- **pre-flight complete, starting real deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	await discordStep('[6/8] deploying asset uploader to cloudflare', async () => {
+	await discordStep('[4/6] deploying asset uploader to cloudflare', async () => {
 		await deployAssetUploadWorker({ dryRun: false })
 	})
-	await discordStep('[7/8] deploying multiplayer worker to cloudflare', async () => {
+	await discordStep('[5/6] deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
 	})
 
 	// 3. deploy the pre-build dotcom app:
 	const { deploymentUrl, inspectUrl } = await discordStep(
-		'[8/8] deploying dotcom app to vercel',
+		'[6/6] deploying dotcom app to vercel',
 		async () => {
 			return await deploySpa()
 		}
@@ -116,7 +116,7 @@ async function main() {
 
 	if (previewId) {
 		const aliasDomain = `${previewId}-preview-deploy.tldraw.com`
-		await discordStep('[9/8] aliasing preview deployment', async () => {
+		await discordStep('[7/6] aliasing preview deployment', async () => {
 			await vercelCli('alias', ['set', deploymentUrl, aliasDomain])
 		})
 
