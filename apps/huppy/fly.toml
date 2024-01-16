@@ -8,9 +8,6 @@ processes = []
 
 [build]
 
-[build.args]
-NEXT_PUBLIC_EXAMPLE = "Value goes here"
-
 [env]
 PORT = "8080"
 
