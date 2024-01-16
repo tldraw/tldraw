@@ -37,9 +37,12 @@
 		"clean": "scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw'",
+		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
+		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker}' --filter='packages/tldraw'",
+		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/huppy'",
 		"build": "lazy build",
-		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='{,bublic/}apps/examples' --filter='{,bublic/}packages/tldraw'",
-		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='{,bublic/}apps/vscode/{extension,editor}'",
+		"build-app": "lazy run build --filter 'apps/dotcom'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
 		"build-package": "lazy build-package",
@@ -49,7 +52,8 @@
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api-check": "lazy api-check",
 		"test": "lazy test",
-		"e2e": "lazy e2e --filter='{,bublic/}apps/examples'"
+		"test-coverage": "lazy test-coverage && node scripts/offer-coverage.mjs",
+		"e2e": "lazy e2e --filter='apps/examples'"
 	},
 	"engines": {
 		"npm": ">=7.0.0"
@@ -100,6 +104,8 @@
 		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch"
 	},
 	"dependencies": {
+		"@sentry/cli": "^2.25.0",
+		"cross-env": "^7.0.3",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.0.2"
 	}

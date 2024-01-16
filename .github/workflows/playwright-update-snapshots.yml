@@ -56,7 +56,6 @@ jobs:
         with:
           node-version: 18.18.2
           cache: 'yarn'
-          cache-dependency-path: 'public-yarn.lock'
 
       - name: Enable corepack
         run: corepack enable

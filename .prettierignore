@@ -16,3 +16,10 @@ apps/vscode/extension/editor/*
 apps/examples/www
 content.json
 apps/docs/utils/vector-db/index.json
+**/gen/**/*.md
+
+**/.vercel/*
+**/.wrangler/*
+**/.out/*
+**/.temp/*
+apps/dotcom/public/**/*.*
