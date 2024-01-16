@@ -11,8 +11,11 @@ import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
-const worker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/tlsync-worker'))
-const assetUpload = path.relative(process.cwd(), path.resolve(__dirname, '../apps/asset-upload'))
+const worker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dotcom-worker'))
+const assetUpload = path.relative(
+	process.cwd(),
+	path.resolve(__dirname, '../apps/dotcom-asset-upload')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dotcom'))
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
