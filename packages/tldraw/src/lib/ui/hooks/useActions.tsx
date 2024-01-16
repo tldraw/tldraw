@@ -406,19 +406,39 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('duplicate-shapes', { source })
-					const ids = editor.getSelectedShapeIds()
-					const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-					const offset = editor.getInstanceState().canMoveCamera
-						? {
-								x: commonBounds.width + 10,
-								y: 0,
-						  }
-						: {
-								x: 16 / editor.getZoomLevel(),
-								y: 16 / editor.getZoomLevel(),
-						  }
+					const instanceState = editor.getInstanceState()
+					let ids: TLShapeId[]
+					let offset: { x: number; y: number }
+
+					if (instanceState.duplicateProps) {
+						ids = instanceState.duplicateProps.shapeIds
+						offset = instanceState.duplicateProps.offset
+					} else {
+						ids = editor.getSelectedShapeIds()
+						const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
+						offset = instanceState.canMoveCamera
+							? {
+									x: commonBounds.width + 10,
+									y: 0,
+							  }
+							: {
+									x: 16 / editor.getZoomLevel(),
+									y: 16 / editor.getZoomLevel(),
+							  }
+					}
+
 					editor.mark('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
+					if (instanceState.duplicateProps) {
+						// If we are using duplicate props then we update the shape ids to the
+						// ids of the newly created shapes to keep the duplication going
+						editor.updateInstanceState({
+							duplicateProps: {
+								...instanceState.duplicateProps,
+								...{ shapeIds: editor.getSelectedShapeIds() },
+							},
+						})
+					}
 				},
 			},
 			{

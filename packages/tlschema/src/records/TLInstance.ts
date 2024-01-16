@@ -8,6 +8,7 @@ import { opacityValidator, TLOpacityType } from '../misc/TLOpacity'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
 import { StyleProp } from '../styles/StyleProp'
 import { pageIdValidator, TLPageId } from './TLPage'
+import { TLShapeId } from './TLShape'
 
 /**
  * TLInstance
@@ -55,6 +56,13 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isChangingStyle: boolean
 	isReadonly: boolean
 	meta: JsonObject
+	duplicateProps: {
+		shapeIds: TLShapeId[]
+		offset: {
+			x: number
+			y: number
+		}
+	} | null
 }
 
 /** @public */
@@ -102,6 +110,13 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isChangingStyle: T.boolean,
 			isReadonly: T.boolean,
 			meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+			duplicateProps: T.object({
+				shapeIds: T.arrayOf(idValidator<TLShapeId>('shape')),
+				offset: T.object({
+					x: T.number,
+					y: T.number,
+				}),
+			}).nullable(),
 		})
 	)
 
@@ -141,6 +156,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isChangingStyle: false,
 			isReadonly: false,
 			meta: {},
+			duplicateProps: null,
 		})
 	)
 }
