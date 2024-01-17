@@ -1,6 +1,8 @@
 interface Env {
-	// env vars
 	DISCORD_HEALTH_WEBHOOK_URL: string | undefined
+	// it needs to be passed in because it's effectively a secret, unless we want everyone to be able
+	// to stress us out with spurious discord alerts
+	HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: string | undefined
 }
 
 // docs: https://updown.io/api#webhooks
@@ -52,6 +54,25 @@ async function handleUpdown(request: Request, discordUrl: string): Promise<Respo
 	return new Response(null, { status })
 }
 
+const encoder = new TextEncoder()
+
+// per https://developers.cloudflare.com/workers/examples/basic-auth/
+function timingSafeEqual(a: string, b: string): boolean {
+	const aBytes = encoder.encode(a)
+	const bBytes = encoder.encode(b)
+
+	if (aBytes.byteLength !== bBytes.byteLength) {
+		// Strings must be the same length in order to compare
+		// with crypto.subtle.timingSafeEqual
+		return false
+	}
+
+	// timinsSafeEqual is a non-standard Cloudflare extension to the crypto API, see
+	// https://developers.cloudflare.com/workers/runtime-apis/web-crypto/#timingsafeequal
+	// @ts-ignore
+	return crypto.subtle.timingSafeEqual(aBytes, bBytes)
+}
+
 const handler: ExportedHandler<Env> = {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		const discordUrl = env.DISCORD_HEALTH_WEBHOOK_URL
@@ -60,11 +81,16 @@ const handler: ExportedHandler<Env> = {
 			return new Response('Internal error', { status: 500 })
 		}
 
+		const updownWebhookPath = env.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH
+		if (!updownWebhookPath) {
+			console.error('missing HEALTH_WORKER_UPDOWN_WEBHOOK_PATH')
+			return new Response('Internal error', { status: 500 })
+		}
+
 		const url = new URL(request.url)
 
-		switch (url.pathname) {
-			case '/hook/updown':
-				return handleUpdown(request, discordUrl)
+		if (timingSafeEqual(url.pathname, updownWebhookPath)) {
+			return handleUpdown(request, discordUrl)
 		}
 
 		return new Response('Not Found', { status: 404 })
