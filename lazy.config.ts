@@ -32,7 +32,7 @@ const config = {
 		},
 		dev: {
 			execution: 'independent',
-			runsAfter: { 'refresh-assets': {} },
+			runsAfter: { predev: {}, 'refresh-assets': {} },
 			cache: 'none',
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
