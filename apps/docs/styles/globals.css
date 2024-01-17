@@ -222,7 +222,7 @@ body {
 .article__details {
 	display: flex;
 	align-items: flex-start;
-	justify-content: flex-end;
+	justify-content: space-between;
 	margin: 40px 0px;
 	gap: 16px;
 	max-width: 100%;
