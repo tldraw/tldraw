@@ -2340,6 +2340,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/workers-types@npm:^4.20231218.0":
+  version: 4.20240117.0
+  resolution: "@cloudflare/workers-types@npm:4.20240117.0"
+  checksum: 91a051dd414fe2e838c81f2c8376b160dc9da6d54493ad3490a7d34bfce1dee83bed20cfb98daceb8bb1d3c6f4119d60172358f0ee98c978c9faa2208c769950
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -15295,6 +15302,16 @@ __metadata:
   checksum: 3d4d6babccccd79c5c5a3f929a68af33360d6445587d628087f39a965079d84f18ce9c3d3f917ee1e3978916fc833bb8b29377c3b403f919426f91bc6965e7a7
   languageName: node
   linkType: hard
+
+"health-worker@workspace:apps/health-worker":
+  version: 0.0.0-use.local
+  resolution: "health-worker@workspace:apps/health-worker"
+  dependencies:
+    "@cloudflare/workers-types": ^4.20231218.0
+    typescript: ^5.0.2
+    wrangler: 3.16.0
+  languageName: unknown
+  linkType: soft
 
 "highlight.js@npm:~11.9.0":
   version: 11.9.0
