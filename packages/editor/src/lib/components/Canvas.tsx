@@ -475,7 +475,10 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			const renderId = Math.random()
 			latest = renderId
 			const bb = editor.getShapePageBounds(id)
-			const el = await editor.getSvg([id], { padding: 0 })
+			const el = await editor.getSvg([id], {
+				padding: 0,
+				background: editor.getInstanceState().exportBackground,
+			})
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')
 				el.setAttribute('preserveAspectRatio', 'xMidYMin slice')
