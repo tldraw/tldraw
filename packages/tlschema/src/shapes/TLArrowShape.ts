@@ -118,14 +118,14 @@ export const arrowShapeMigrations = defineMigrations({
 										isPrecise: !(
 											start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5
 										),
-								  }
+									}
 								: start,
 						end:
 							(end as TLArrowShapeTerminal).type === 'binding'
 								? {
 										...end,
 										isPrecise: !(end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5),
-								  }
+									}
 								: end,
 					},
 				}

@@ -65,8 +65,8 @@ function MenuContent() {
 							depth <= 1
 								? 'medium'
 								: breakpoint < 3 || (parent?.type === 'submenu' && depth > 2)
-								? 'tiny'
-								: 'medium'
+									? 'tiny'
+									: 'medium'
 						}
 						key={item.id}
 					>

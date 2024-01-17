@@ -31,6 +31,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isToolLocked: boolean
 	exportBackground: boolean
 	screenBounds: BoxModel
+	insets: boolean[]
 	zoomBrush: BoxModel | null
 	chatMessage: string
 	isChatting: boolean
@@ -39,6 +40,11 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	canMoveCamera: boolean
 	isFocused: boolean
 	devicePixelRatio: number
+	/**
+	 * This is whether the primary input mechanism includes a pointing device of limited accuracy,
+	 * such as a finger on a touchscreen.
+	 * See: https://developer.mozilla.org/en-US/docs/Web/CSS/\@media/pointer
+	 */
 	isCoarsePointer: boolean
 	/**
 	 * Will be null if the pointer doesn't support hovering (e.g. touch), but true or false
@@ -80,6 +86,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isToolLocked: T.boolean,
 			exportBackground: T.boolean,
 			screenBounds: boxModelValidator,
+			insets: T.arrayOf(T.boolean),
 			zoomBrush: boxModelValidator.nullable(),
 			isPenMode: T.boolean,
 			isGridMode: T.boolean,
@@ -118,6 +125,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isDebugMode: process.env.NODE_ENV === 'development',
 			isToolLocked: false,
 			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
+			insets: [false, false, false, false],
 			zoomBrush: null,
 			isGridMode: false,
 			isPenMode: false,
@@ -161,11 +169,12 @@ export const instanceVersions = {
 	ReadOnlyReadonly: 20,
 	AddHoveringCanvas: 21,
 	AddScribbles: 22,
+	AddInset: 23,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddScribbles,
+	currentVersion: instanceVersions.AddInset,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -338,12 +347,12 @@ export const instanceMigrations = defineMigrations({
 							opacity < 0.175
 								? '0.1'
 								: opacity < 0.375
-								? '0.25'
-								: opacity < 0.625
-								? '0.5'
-								: opacity < 0.875
-								? '0.75'
-								: '1',
+									? '0.25'
+									: opacity < 0.625
+										? '0.5'
+										: opacity < 0.875
+											? '0.75'
+											: '1',
 					},
 				}
 			},
@@ -484,6 +493,19 @@ export const instanceMigrations = defineMigrations({
 			},
 			down: ({ scribbles: _, ...record }) => {
 				return { ...record, scribble: null }
+			},
+		},
+		[instanceVersions.AddInset]: {
+			up: (record) => {
+				return {
+					...record,
+					insets: [false, false, false, false],
+				}
+			},
+			down: ({ insets: _, ...record }) => {
+				return {
+					...record,
+				}
 			},
 		},
 	},

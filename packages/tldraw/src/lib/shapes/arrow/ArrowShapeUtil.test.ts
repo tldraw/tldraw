@@ -131,22 +131,6 @@ describe('When translating a bound shape', () => {
 })
 
 describe('When translating the arrow', () => {
-	it('unbinds all handles if neither bound shape is not also translating', () => {
-		editor.select(ids.arrow1)
-		editor.pointerDown(200, 200, { target: 'shape', shape: editor.getShape(ids.arrow1)! })
-		editor.pointerMove(200, 190)
-		editor.expectShapeToMatch({
-			id: ids.arrow1,
-			type: 'arrow',
-			x: 150,
-			y: 140,
-			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: { type: 'point', x: 200, y: 200 },
-			},
-		})
-	})
-
 	it('retains all handles if either bound shape is also translating', () => {
 		editor.select(ids.arrow1, ids.box2)
 		expect(editor.getSelectionPageBounds()).toMatchObject({
@@ -196,12 +180,15 @@ describe('Other cases when arrow are moved', () => {
 			},
 		})
 
-		// unbinds when only the arrow is selected (not its bound shapes)
+		// when only the arrow is selected, we keep the binding but make it precise:
 		editor.select(ids.arrow1)
 		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: -1 })
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
-			props: { start: { type: 'point' }, end: { type: 'point' } },
+			props: {
+				start: { type: 'binding', boundShapeId: ids.box1, isPrecise: true },
+				end: { type: 'binding', boundShapeId: ids.box2, isPrecise: true },
+			},
 		})
 	})
 
@@ -220,7 +207,7 @@ describe('Other cases when arrow are moved', () => {
 			},
 		})
 
-		// unbinds when only the arrow is selected (not its bound shapes)
+		// maintains bindings if they would still be over the same shape (but makes them precise), but unbinds others
 		editor.select(ids.arrow1, ids.box3)
 		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
 		jest.advanceTimersByTime(1000)
@@ -228,7 +215,8 @@ describe('Other cases when arrow are moved', () => {
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
 			props: {
 				start: {
-					type: 'point',
+					type: 'binding',
+					isPrecise: true,
 				},
 				end: {
 					type: 'point',

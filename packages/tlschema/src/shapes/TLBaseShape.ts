@@ -35,7 +35,7 @@ export const shapeIdValidator = idValidator<TLShapeId>('shape')
 export function createShapeValidator<
 	Type extends string,
 	Props extends JsonObject,
-	Meta extends JsonObject
+	Meta extends JsonObject,
 >(
 	type: Type,
 	props?: { [K in keyof Props]: T.Validatable<Props[K]> },

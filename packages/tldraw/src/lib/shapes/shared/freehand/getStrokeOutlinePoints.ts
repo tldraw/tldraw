@@ -207,15 +207,15 @@ export function getStrokeOutlinePoints(
 		start.taper === false
 			? 0
 			: start.taper === true
-			? Math.max(size, totalLength)
-			: (start.taper as number)
+				? Math.max(size, totalLength)
+				: (start.taper as number)
 
 	const taperEnd =
 		end.taper === false
 			? 0
 			: end.taper === true
-			? Math.max(size, totalLength)
-			: (end.taper as number)
+				? Math.max(size, totalLength)
+				: (end.taper as number)
 
 	// The minimum allowed distance between points (squared)
 	// Our collected left and right points

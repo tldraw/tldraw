@@ -90,11 +90,24 @@ module.exports = {
 				'import/no-internal-modules': 'off',
 			},
 		},
-		// {
-		// 	files: ['packages/tldraw/src/test/**/*'],
-		// 	rules: {
-		// 		'import/no-internal-modules': 'off',
-		// 	},
-		// },
+		{
+			files: ['apps/huppy/**/*', 'scripts/**/*'],
+			rules: {
+				'no-console': 'off',
+			},
+		},
+		{
+			files: ['apps/dotcom/**/*'],
+			rules: {
+				'no-restricted-properties': [
+					2,
+					{
+						object: 'crypto',
+						property: 'randomUUID',
+						message: 'Please use the makeUUID util instead.',
+					},
+				],
+			},
+		},
 	],
 }

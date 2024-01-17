@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state",
 	"description": "A tiny little drawing app (state).",
-	"version": "2.0.0-beta.1",
+	"version": "2.0.0-beta.2",
 	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw Inc.",
@@ -54,7 +54,7 @@
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.14.188",
-		"@types/react": "^18.0.24",
+		"@types/react": "^18.2.47",
 		"@types/react-test-renderer": "^18.0.0",
 		"lodash": "^4.17.21",
 		"react-test-renderer": "^18.2.0"

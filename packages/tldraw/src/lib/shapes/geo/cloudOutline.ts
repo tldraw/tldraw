@@ -59,7 +59,7 @@ export function getPillPoints(width: number, height: number, numPoints: number) 
 						center: new Vec(radius, radius),
 						startAngle: PI / 2,
 					},
-			  ]
+				]
 			: [
 					{
 						type: 'straight',
@@ -81,7 +81,7 @@ export function getPillPoints(width: number, height: number, numPoints: number) 
 						center: new Vec(radius, radius),
 						startAngle: PI,
 					},
-			  ]
+				]
 
 	let sectionOffset = 0
 

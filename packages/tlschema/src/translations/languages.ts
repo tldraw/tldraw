@@ -35,6 +35,6 @@ export const LANGUAGES = [
 	{ locale: 'tr', label: 'Türkçe' },
 	{ locale: 'uk', label: 'Ukrainian' },
 	{ locale: 'vi', label: 'Tiếng Việt' },
-	{ locale: 'zh-cn', label: 'Chinese - Simplified' },
+	{ locale: 'zh-cn', label: '简体中文' },
 	{ locale: 'zh-tw', label: '繁體中文 (台灣)' },
 ] as const

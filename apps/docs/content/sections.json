@@ -1,0 +1,206 @@
+[
+	{
+		"id": "getting-started",
+		"title": "Getting Started",
+		"description": "Introduction articles for tldraw.",
+		"categories": [],
+		"sidebar_behavior": "show-links"
+	},
+	{
+		"id": "docs",
+		"title": "Documentation",
+		"description": "Developer documentation for tldraw.",
+		"categories": [],
+		"sidebar_behavior": "show-links"
+	},
+	{
+		"id": "community",
+		"title": "Community",
+		"description": "Guides for contributing to tldraw's open source project.",
+		"categories": [],
+		"sidebar_behavior": "show-links"
+	},
+	{
+		"id": "gen",
+		"title": "API Reference",
+		"description": "Reference for the tldraw package's APIs (generated).",
+		"categories": [
+			{
+				"id": "editor",
+				"title": "@tldraw/editor",
+				"description": "",
+				"groups": [
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					}
+				]
+			},
+			{
+				"id": "store",
+				"title": "@tldraw/store",
+				"description": "",
+				"groups": [
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					}
+				]
+			},
+			{
+				"id": "tldraw",
+				"title": "@tldraw/tldraw",
+				"description": "",
+				"groups": [
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					}
+				]
+			},
+			{
+				"id": "tlschema",
+				"title": "@tldraw/tlschema",
+				"description": "",
+				"groups": [
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					}
+				]
+			},
+			{
+				"id": "validate",
+				"title": "@tldraw/validate",
+				"description": "",
+				"groups": [
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					}
+				]
+			}
+		],
+		"sidebar_behavior": "show-title"
+	}
+]

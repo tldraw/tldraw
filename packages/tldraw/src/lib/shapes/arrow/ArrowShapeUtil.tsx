@@ -10,6 +10,7 @@ import {
 	SvgExportContext,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
+	TLArrowShapeProps,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
@@ -17,6 +18,7 @@ import {
 	TLOnEditEndHandler,
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
+	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
 	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
@@ -27,6 +29,8 @@ import {
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
+	mapObjectMapValues,
+	objectMapEntries,
 	toDomPrecision,
 	useIsEditing,
 } from '@tldraw/editor'
@@ -96,7 +100,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			? new Edge2d({
 					start: Vec.From(info.start.point),
 					end: Vec.From(info.end.point),
-			  })
+				})
 			: new Arc2d({
 					center: Vec.Cast(info.handleArc.center),
 					radius: info.handleArc.radius,
@@ -104,7 +108,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					end: Vec.Cast(info.end.point),
 					sweepFlag: info.bodyArc.sweepFlag,
 					largeArcFlag: info.bodyArc.largeArcFlag,
-			  })
+				})
 
 		let labelGeom: Rectangle2d | undefined
 
@@ -342,6 +346,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : null
 		const endBindingId = shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : null
 
+		const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(this.editor, shape)
+		const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
+
 		// If at least one bound shape is in the selection, do nothing;
 		// If no bound shapes are in the selection, unbind any bound shapes
 
@@ -357,25 +364,91 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return
 		}
 
-		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
+		let result = shape
 
-		return {
-			id: shape.id,
-			type: shape.type,
-			props: {
-				...shape.props,
-				start: {
-					type: 'point',
-					x: start.x,
-					y: start.y,
-				},
-				end: {
-					type: 'point',
-					x: end.x,
-					y: end.y,
-				},
-			},
+		// When we start translating shapes, record where their bindings were in page space so we
+		// can maintain them as we translate the arrow
+		shapeAtTranslationStart.set(shape, {
+			pagePosition: shapePageTransform.applyToPoint(shape),
+			terminalBindings: mapObjectMapValues(terminalsInArrowSpace, (terminalName, point) => {
+				const terminal = shape.props[terminalName]
+				if (terminal.type !== 'binding') return null
+				return {
+					binding: terminal,
+					shapePosition: point,
+					pagePosition: shapePageTransform.applyToPoint(point),
+				}
+			}),
+		})
+
+		for (const handleName of ['start', 'end'] as const) {
+			const terminal = shape.props[handleName]
+			if (terminal.type !== 'binding') continue
+			result = {
+				...shape,
+				props: { ...shape.props, [handleName]: { ...terminal, isPrecise: true } },
+			}
 		}
+
+		return result
+	}
+
+	override onTranslate?: TLOnTranslateHandler<TLArrowShape> = (initialShape, shape) => {
+		const atTranslationStart = shapeAtTranslationStart.get(initialShape)
+		if (!atTranslationStart) return
+
+		const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
+		const pageDelta = Vec.Sub(
+			shapePageTransform.applyToPoint(shape),
+			atTranslationStart.pagePosition
+		)
+
+		let result = shape
+		for (const [terminalName, terminalBinding] of objectMapEntries(
+			atTranslationStart.terminalBindings
+		)) {
+			if (!terminalBinding) continue
+
+			const newPagePoint = Vec.Add(terminalBinding.pagePosition, Vec.Mul(pageDelta, 0.5))
+			const newTarget = this.editor.getShapeAtPoint(newPagePoint, {
+				hitInside: true,
+				hitFrameInside: true,
+				margin: 0,
+				filter: (targetShape) => {
+					return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				},
+			})
+
+			if (newTarget?.id === terminalBinding.binding.boundShapeId) {
+				const targetBounds = Box.ZeroFix(this.editor.getShapeGeometry(newTarget).bounds)
+				const pointInTargetSpace = this.editor.getPointInShapeSpace(newTarget, newPagePoint)
+				const normalizedAnchor = {
+					x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+					y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+				}
+				result = {
+					...result,
+					props: {
+						...result.props,
+						[terminalName]: { ...terminalBinding.binding, isPrecise: true, normalizedAnchor },
+					},
+				}
+			} else {
+				result = {
+					...result,
+					props: {
+						...result.props,
+						[terminalName]: {
+							type: 'point',
+							x: terminalBinding.shapePosition.x,
+							y: terminalBinding.shapePosition.y,
+						},
+					},
+				}
+			}
+		}
+
+		return result
 	}
 
 	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
@@ -494,11 +567,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
+
 		const shouldDisplayHandles =
 			this.editor.isInAny(
 				'select.idle',
 				'select.pointing_handle',
 				'select.dragging_handle',
+				'select.translating',
 				'arrow.dragging'
 			) && !this.editor.getInstanceState().isReadonly
 
@@ -520,7 +595,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
 
-		let handlePath: null | JSX.Element = null
+		let handlePath: null | React.JSX.Element = null
 
 		if (onlySelectedShape === shape && shouldDisplayHandles) {
 			const sw = 2
@@ -549,8 +624,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 								? shape.props.start.isExact
 									? ''
 									: shape.props.start.isPrecise
-									? 'url(#arrowhead-cross)'
-									: 'url(#arrowhead-dot)'
+										? 'url(#arrowhead-cross)'
+										: 'url(#arrowhead-dot)'
 								: ''
 						}
 						markerEnd={
@@ -558,8 +633,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 								? shape.props.end.isExact
 									? ''
 									: shape.props.end.isPrecise
-									? 'url(#arrowhead-cross)'
-									: 'url(#arrowhead-dot)'
+										? 'url(#arrowhead-cross)'
+										: 'url(#arrowhead-dot)'
 								: ''
 						}
 						opacity={0.16}
@@ -1036,3 +1111,18 @@ function getArrowheadSvgPath(
 		return path
 	}
 }
+
+const shapeAtTranslationStart = new WeakMap<
+	TLArrowShape,
+	{
+		pagePosition: Vec
+		terminalBindings: Record<
+			'start' | 'end',
+			{
+				pagePosition: Vec
+				shapePosition: Vec
+				binding: Extract<TLArrowShapeProps['start'], { type: 'binding' }>
+			} | null
+		>
+	}
+>()

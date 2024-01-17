@@ -6,7 +6,7 @@ import {
 	debugFlags,
 	exhaustiveSwitchError,
 } from '@tldraw/editor'
-import { getBrowserCanvasMaxSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
+import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 
 /** @public */
 export async function getSvgAsImage(
@@ -22,30 +22,16 @@ export async function getSvgAsImage(
 
 	const width = +svg.getAttribute('width')!
 	const height = +svg.getAttribute('height')!
-	let scaledWidth = width * scale
-	let scaledHeight = height * scale
+	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
+		width * scale,
+		height * scale
+	)
+	clampedWidth = Math.floor(clampedWidth)
+	clampedHeight = Math.floor(clampedHeight)
+	const effectiveScale = clampedWidth / width
 
 	const svgString = await getSvgAsString(svg)
 	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
-
-	const canvasSizes = await getBrowserCanvasMaxSize()
-	if (width > canvasSizes.maxWidth) {
-		scaledWidth = canvasSizes.maxWidth
-		scaledHeight = (scaledWidth / width) * height
-	}
-	if (height > canvasSizes.maxHeight) {
-		scaledHeight = canvasSizes.maxHeight
-		scaledWidth = (scaledHeight / height) * width
-	}
-	if (scaledWidth * scaledHeight > canvasSizes.maxArea) {
-		const ratio = Math.sqrt(canvasSizes.maxArea / (scaledWidth * scaledHeight))
-		scaledWidth *= ratio
-		scaledHeight *= ratio
-	}
-
-	scaledWidth = Math.floor(scaledWidth)
-	scaledHeight = Math.floor(scaledHeight)
-	const effectiveScale = scaledWidth / width
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
 		const image = new Image()
@@ -63,12 +49,12 @@ export async function getSvgAsImage(
 			const canvas = document.createElement('canvas') as HTMLCanvasElement
 			const ctx = canvas.getContext('2d')!
 
-			canvas.width = scaledWidth
-			canvas.height = scaledHeight
+			canvas.width = clampedWidth
+			canvas.height = clampedHeight
 
 			ctx.imageSmoothingEnabled = true
 			ctx.imageSmoothingQuality = 'high'
-			ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight)
+			ctx.drawImage(image, 0, 0, clampedWidth, clampedHeight)
 
 			URL.revokeObjectURL(svgUrl)
 

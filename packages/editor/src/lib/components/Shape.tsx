@@ -2,11 +2,11 @@ import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
-import { nearestMultiple } from '../hooks/useDPRMultiple'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
 import { toDomPrecision } from '../primitives/utils'
+import { nearestMultiple } from '../utils/nearestMultiple'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
