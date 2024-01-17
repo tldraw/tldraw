@@ -1,13 +1,6 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# if the folder we're in is called bublic, it means we're a submodule in the brivate repo.
-# We need to grab .envrc to set up yarn correctly.
-current_file="$(readlink -f "$0")"
-if [[ $current_file == */bublic/.husky/pre-commit ]]; then
-	source "$(dirname -- "$0")/../../.envrc"
-fi
-
 npx lazy run build-api
 git add packages/*/api-report.md
 git add packages/*/api/api.json

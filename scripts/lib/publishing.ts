@@ -4,7 +4,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { compare, parse } from 'semver'
 import { exec } from './exec'
-import { BUBLIC_ROOT } from './file'
+import { REPO_ROOT } from './file'
 import { nicelog } from './nicelog'
 
 export type PackageDetails = {
@@ -34,9 +34,9 @@ function getPackageDetails(dir: string): PackageDetails | null {
 }
 
 export function getAllPackageDetails(): Record<string, PackageDetails> {
-	const dirs = readdirSync(join(BUBLIC_ROOT, 'packages'))
+	const dirs = readdirSync(join(REPO_ROOT, 'packages'))
 	const results = dirs
-		.map((dir) => getPackageDetails(path.join(BUBLIC_ROOT, 'packages', dir)))
+		.map((dir) => getPackageDetails(path.join(REPO_ROOT, 'packages', dir)))
 		.filter((x): x is PackageDetails => Boolean(x))
 
 	return Object.fromEntries(results.map((result) => [result.name, result]))
