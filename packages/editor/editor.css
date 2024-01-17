@@ -30,8 +30,6 @@
 	--layer-following-indicator: 1000;
 	/* Misc */
 	--tl-zoom: 1;
-	--tl-dpr-multiple: 100;
-	--tl-dpr-multiple-px: calc(var(--tl-dpr-multiple) * 1px);
 
 	/* Cursor SVGs */
 	--tl-cursor-none: none;
@@ -256,8 +254,6 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: var(--tl-dpr-multiple-px);
-	width: var(--tl-dpr-multiple-px);
 	overflow: visible;
 	pointer-events: none;
 	transform-origin: top left;
@@ -267,8 +263,6 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: var(--tl-dpr-multiple-px);
-	width: var(--tl-dpr-multiple-px);
 	pointer-events: none;
 }
 
