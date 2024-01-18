@@ -100,7 +100,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 					label={'share-menu.title'}
 				/>
 			</Popover.Trigger>
-			<Popover.Portal dir="ltr" container={container}>
+			<Popover.Portal container={container}>
 				<Popover.Content
 					dir="ltr"
 					className="tlui-menu tlui-share-zone__popover"

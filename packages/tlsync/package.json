@@ -3,7 +3,6 @@
 	"description": "A tiny little drawing app (multiplayer sync).",
 	"version": "2.0.0-alpha.11",
 	"private": true,
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -38,7 +37,7 @@
 	},
 	"devDependencies": {
 		"@tldraw/tldraw": "workspace:*",
-		"typescript": "^5.0.2",
+		"typescript": "^5.2.2",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2"
 	},

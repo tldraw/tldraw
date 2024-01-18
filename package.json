@@ -58,7 +58,7 @@
 	"engines": {
 		"npm": ">=7.0.0"
 	},
-	"packageManager": "yarn@3.5.0",
+	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache"
@@ -92,9 +92,9 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"lint-staged": ">=10",
 		"prettier": "^3.0.3",
-		"prettier-plugin-organize-imports": "^3.2.2",
+		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
-		"tsx": "^3.12.7",
+		"tsx": "^4.0.0",
 		"typescript": "^5.2.2",
 		"vercel": "^28.16.15"
 	},
@@ -107,6 +107,7 @@
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.25.0",
+		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.0.2"
