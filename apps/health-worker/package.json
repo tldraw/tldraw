@@ -5,7 +5,8 @@
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
-		"start": "wrangler dev"
+		"start": "wrangler dev",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20231218.0",
