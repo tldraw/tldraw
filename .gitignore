@@ -84,3 +84,11 @@ apps/examples/e2e/test-results
 apps/examples/playwright-report
 
 docs/gen
+
+.dev.vars
+.env.local
+.env.development.local
+.env*
+
+.wrangler
+/vercel.json

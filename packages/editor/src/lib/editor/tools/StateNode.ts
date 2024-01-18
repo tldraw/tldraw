@@ -22,7 +22,10 @@ export interface TLStateNodeConstructor {
 
 /** @public */
 export abstract class StateNode implements Partial<TLEventHandlers> {
-	constructor(public editor: Editor, parent?: StateNode) {
+	constructor(
+		public editor: Editor,
+		parent?: StateNode
+	) {
 		const { id, children, initial } = this.constructor as TLStateNodeConstructor
 
 		this.id = id

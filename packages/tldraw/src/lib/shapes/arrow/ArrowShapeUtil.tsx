@@ -100,7 +100,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			? new Edge2d({
 					start: Vec.From(info.start.point),
 					end: Vec.From(info.end.point),
-			  })
+				})
 			: new Arc2d({
 					center: Vec.Cast(info.handleArc.center),
 					radius: info.handleArc.radius,
@@ -108,7 +108,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					end: Vec.Cast(info.end.point),
 					sweepFlag: info.bodyArc.sweepFlag,
 					largeArcFlag: info.bodyArc.largeArcFlag,
-			  })
+				})
 
 		let labelGeom: Rectangle2d | undefined
 
@@ -595,7 +595,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
 
-		let handlePath: null | JSX.Element = null
+		let handlePath: null | React.JSX.Element = null
 
 		if (onlySelectedShape === shape && shouldDisplayHandles) {
 			const sw = 2
@@ -624,8 +624,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 								? shape.props.start.isExact
 									? ''
 									: shape.props.start.isPrecise
-									? 'url(#arrowhead-cross)'
-									: 'url(#arrowhead-dot)'
+										? 'url(#arrowhead-cross)'
+										: 'url(#arrowhead-dot)'
 								: ''
 						}
 						markerEnd={
@@ -633,8 +633,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 								? shape.props.end.isExact
 									? ''
 									: shape.props.end.isPrecise
-									? 'url(#arrowhead-cross)'
-									: 'url(#arrowhead-dot)'
+										? 'url(#arrowhead-cross)'
+										: 'url(#arrowhead-dot)'
 								: ''
 						}
 						opacity={0.16}

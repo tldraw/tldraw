@@ -67,7 +67,7 @@ export function Canvas({ className }: { className?: string }) {
 	const shapeSvgDefs = useValue(
 		'shapeSvgDefs',
 		() => {
-			const shapeSvgDefsByKey = new Map<string, JSX.Element>()
+			const shapeSvgDefsByKey = new Map<string, React.JSX.Element>()
 			for (const util of objectMapValues(editor.shapeUtils)) {
 				if (!util) return
 				const defs = util.getCanvasSvgDefs()
@@ -475,7 +475,10 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			const renderId = Math.random()
 			latest = renderId
 			const bb = editor.getShapePageBounds(id)
-			const el = await editor.getSvg([id], { padding: 0 })
+			const el = await editor.getSvg([id], {
+				padding: 0,
+				background: editor.getInstanceState().exportBackground,
+			})
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')
 				el.setAttribute('preserveAspectRatio', 'xMidYMin slice')

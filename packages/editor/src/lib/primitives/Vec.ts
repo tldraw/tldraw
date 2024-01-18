@@ -6,7 +6,11 @@ export type VecLike = Vec | VecModel
 
 /** @public */
 export class Vec {
-	constructor(public x = 0, public y = 0, public z = 1) {}
+	constructor(
+		public x = 0,
+		public y = 0,
+		public z = 1
+	) {}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get pressure() {

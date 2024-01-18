@@ -99,7 +99,11 @@ export class StyleProp<Type> implements T.Validatable<Type> {
  */
 export class EnumStyleProp<T> extends StyleProp<T> {
 	/** @internal */
-	constructor(id: string, defaultValue: T, readonly values: readonly T[]) {
+	constructor(
+		id: string,
+		defaultValue: T,
+		readonly values: readonly T[]
+	) {
 		super(id, defaultValue, T.literalEnum(...values))
 	}
 }

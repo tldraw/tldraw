@@ -4,7 +4,7 @@ module.exports = {
 	extends: ['prettier'],
 	settings: {
 		next: {
-			rootDir: ['apps/*/', 'packages/*/', 'bublic/apps/*/', 'bublic/packages/*/'],
+			rootDir: ['apps/*/', 'packages/*/'],
 		},
 	},
 	rules: {

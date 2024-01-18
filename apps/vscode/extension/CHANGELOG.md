@@ -1,3 +1,8 @@
+## 2.0.22
+
+- Improves the dark mode appearance.
+- Fixes an issue with bookmarks not showing images or descriptions.
+
 ## 2.0.21
 
 - Improves translations.
