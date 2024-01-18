@@ -9,9 +9,9 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20231218.0",
+		"@cloudflare/workers-types": "^4.20230821.0",
 		"@types/node": "^18.7.3",
-		"typescript": "^5.0.2",
+		"typescript": "^5.2.2",
 		"wrangler": "3.16.0"
 	}
 }
