@@ -243,6 +243,8 @@ name = "${previewId}-tldraw-health"`
 			env.TLDRAW_ENV,
 			'--var',
 			`DISCORD_HEALTH_WEBHOOK_URL:${env.DISCORD_HEALTH_WEBHOOK_URL}`,
+			'--var',
+			`HEALTH_WORKER_UPDOWN_WEBHOOK_PATH:${env.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH}`,
 		],
 		{
 			pwd: worker,
