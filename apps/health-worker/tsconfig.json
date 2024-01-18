@@ -5,7 +5,7 @@
 	"compilerOptions": {
 		"noEmit": true,
 		"emitDeclarationOnly": false,
-		"types": ["@cloudflare/workers-types"]
+		"types": ["@cloudflare/workers-types", "@types/node"]
 	},
 	"references": []
 }

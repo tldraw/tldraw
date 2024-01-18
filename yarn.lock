@@ -14777,6 +14777,7 @@ __metadata:
   resolution: "health-worker@workspace:apps/health-worker"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20231218.0"
+    "@types/node": "npm:^18.7.3"
     typescript: "npm:^5.0.2"
     wrangler: "npm:3.16.0"
   languageName: unknown
