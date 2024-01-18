@@ -1,6 +1,7 @@
 ---
 title: Basic
 component: ./BasicExample.tsx
+category: basic
 order: 1
 ---
 

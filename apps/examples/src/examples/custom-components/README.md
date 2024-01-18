@@ -1,6 +1,8 @@
 ---
 title: Canvas components
 component: ./CustomComponentsExample.tsx
+category: ui
+order: 3
 ---
 
 Replace tldraw's on-canvas UI with your own.

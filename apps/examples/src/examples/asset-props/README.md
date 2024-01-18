@@ -1,6 +1,8 @@
 ---
 title: Asset props
 component: ./AssetPropsExample.tsx
+category: data/assets
+order: 1
 ---
 
 Control the assets (images, videos, etc.) that can be added to the canvas.
