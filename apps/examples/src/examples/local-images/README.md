@@ -1,6 +1,8 @@
 ---
 title: Local images
 component: ./LocalImagesExample.tsx
+category: data/assets
+order: 2
 hide: false
 ---
 

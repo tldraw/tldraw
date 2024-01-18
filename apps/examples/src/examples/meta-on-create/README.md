@@ -1,6 +1,8 @@
 ---
 title: Shape Meta (on create)
 component: ./OnCreateShapeMetaExample.tsx
+category: data/assets
+order: 6
 ---
 
 Add custom metadata to shapes when they're created.

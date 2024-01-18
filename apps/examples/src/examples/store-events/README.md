@@ -1,6 +1,8 @@
 ---
 title: Store events
 component: ./StoreEventsExample.tsx
+category: editor
+order: 4
 ---
 
 Listen to changes from tldraw's store.

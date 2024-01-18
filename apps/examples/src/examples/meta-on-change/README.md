@@ -1,6 +1,8 @@
 ---
 title: Shape Meta (on change)
 component: ./OnChangeShapeMetaExample.tsx
+category: data/assets
+order: 5
 ---
 
 Add custom metadata to shapes when they're changed.

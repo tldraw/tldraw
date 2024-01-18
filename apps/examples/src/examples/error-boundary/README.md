@@ -1,6 +1,8 @@
 ---
 title: Error boundary
 component: ./ErrorBoundaryExample.tsx
+category: ui
+order: 6
 ---
 
 Catch errors in shapes.

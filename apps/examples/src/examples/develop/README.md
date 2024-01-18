@@ -1,6 +1,7 @@
 ---
 title: Basic (development)
 component: ./BasicExample.tsx
+category: basic
 order: 1
 ---
 
