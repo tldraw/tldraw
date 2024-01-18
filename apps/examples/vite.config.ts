@@ -52,6 +52,7 @@ function exampleReadmePlugin(): PluginOption {
 			const result = [
 				`export const title = ${JSON.stringify(frontmatter.title)};`,
 				`export const order = ${JSON.stringify(frontmatter.order)};`,
+				`export const category = ${JSON.stringify(frontmatter.category)};`,
 				`export const hide = ${JSON.stringify(frontmatter.hide)};`,
 				`export const description = ${JSON.stringify(description)};`,
 				`export const details = ${JSON.stringify(details)};`,
@@ -87,6 +88,11 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		throw new Error(`Frontmatter key 'order' must be number in ${fileName}`)
 	}
 
+	const category = 'category' in data ? data.category : null
+	if (category !== null && typeof category !== 'string') {
+		throw new Error(`Frontmatter key 'category' must be string in ${fileName}`)
+	}
+
 	const hide = 'hide' in data ? data.hide : false
 	if (hide !== false && hide !== true) {
 		throw new Error(`Frontmatter key 'hide' must be boolean in ${fileName}`)
@@ -96,6 +102,7 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		title: data.title,
 		component: data.component,
 		order,
+		category,
 		hide,
 	}
 }
