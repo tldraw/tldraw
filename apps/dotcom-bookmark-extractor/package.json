@@ -3,7 +3,6 @@
 	"description": "A tiny little drawing app (merge server).",
 	"version": "2.0.0-alpha.11",
 	"private": true,
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -19,6 +18,6 @@
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
-		"typescript": "^5.0.2"
+		"typescript": "^5.2.2"
 	}
 }

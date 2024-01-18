@@ -40,9 +40,11 @@
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
 		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker}' --filter='packages/tldraw'",
+		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/huppy'",
 		"build": "lazy build",
 		"build-app": "lazy run build --filter 'apps/dotcom'",
+		"build-docs": "lazy run build --filter 'apps/docs'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
 		"build-package": "lazy build-package",
@@ -58,7 +60,7 @@
 	"engines": {
 		"npm": ">=7.0.0"
 	},
-	"packageManager": "yarn@3.5.0",
+	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache"
@@ -92,19 +94,22 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"lint-staged": ">=10",
 		"prettier": "^3.0.3",
-		"prettier-plugin-organize-imports": "^3.2.2",
+		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
-		"tsx": "^3.12.7",
+		"tsx": "^4.0.0",
 		"typescript": "^5.2.2",
 		"vercel": "^28.16.15"
 	},
 	"resolutions": {
 		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch",
 		"vectra@^0.4.4": "patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch",
-		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch"
+		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
+		"@auto-it/core@^10.45.0": "patch:@auto-it/core@npm%3A10.46.0#./.yarn/patches/@auto-it-core-npm-10.46.0-4ce8f196af.patch",
+		"@auto-it/core@10.46.0": "patch:@auto-it/core@npm%3A10.46.0#./.yarn/patches/@auto-it-core-npm-10.46.0-4ce8f196af.patch"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.25.0",
+		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.0.2"

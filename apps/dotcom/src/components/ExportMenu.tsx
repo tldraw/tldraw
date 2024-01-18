@@ -39,7 +39,7 @@ export const ExportMenu = React.memo(function ExportMenu() {
 					icon={showIcon ? 'collab' : undefined}
 				/>
 			</Popover.Trigger>
-			<Popover.Portal dir="ltr" container={container}>
+			<Popover.Portal container={container}>
 				<Popover.Content
 					dir="ltr"
 					className="tlui-menu tlui-share-zone__popover"

@@ -1,0 +1,13 @@
+diff --git a/dist/auto.js b/dist/auto.js
+index f85465f2bf6968bbc2a8c9d66eaa181a6a3cdabd..8723c86f2be2c41a7638fc842964093808c55cc4 100644
+--- a/dist/auto.js
++++ b/dist/auto.js
+@@ -34,7 +34,7 @@ const is_binary_1 = tslib_1.__importDefault(require("./utils/is-binary"));
+ const git_reset_1 = require("./utils/git-reset");
+ try {
+     if (require.resolve("typescript")) {
+-        require("ts-node/register/transpile-only");
++        // require("ts-node/register/transpile-only");
+     }
+ }
+ catch (error) {
