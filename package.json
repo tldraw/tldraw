@@ -46,6 +46,7 @@
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
 		"build-package": "lazy build-package",
+		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
 		"format": "prettier --write --cache \"**/*.{ts,tsx,js,jsx,json}\"",
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
