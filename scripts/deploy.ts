@@ -12,6 +12,7 @@ import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
 const worker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dotcom-worker'))
+const healthWorker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/health-worker'))
 const assetUpload = path.relative(
 	process.cwd(),
 	path.resolve(__dirname, '../apps/dotcom-asset-upload')
@@ -226,7 +227,7 @@ let didUpdateHealthWorker = false
 async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateHealthWorker) {
 		appendFileSync(
-			join(worker, 'wrangler.toml'),
+			join(healthWorker, 'wrangler.toml'),
 			`
 [env.preview]
 name = "${previewId}-tldraw-health"`
@@ -247,7 +248,7 @@ name = "${previewId}-tldraw-health"`
 			`HEALTH_WORKER_UPDOWN_WEBHOOK_PATH:${env.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH}`,
 		],
 		{
-			pwd: worker,
+			pwd: healthWorker,
 			env: {
 				NODE_ENV: 'production',
 				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
