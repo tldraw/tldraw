@@ -160,9 +160,9 @@ export const DefaultColorThemePalette: {
 	},
 	darkMode: {
 		id: 'dark',
-		text: '#f8f9fa',
-		background: '#212529',
-		solid: '#28292e',
+		text: 'hsl(210, 17%, 98%)',
+		background: 'hsl(240, 5%, 8%)',
+		solid: '#010403',
 
 		black: {
 			solid: '#e1e1e1',
