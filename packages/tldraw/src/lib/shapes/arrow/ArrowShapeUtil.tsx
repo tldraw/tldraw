@@ -201,6 +201,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				isLabel: true,
 			})
 
+			const strokeWidth = STROKE_SIZES[shape.props.size]
+			const labelToArrowPadding =
+				LABEL_TO_ARROW_PADDING +
+				(strokeWidth - STROKE_SIZES.s) * 2 +
+				(strokeWidth === STROKE_SIZES.xl ? 20 : 0)
+
 			// This is very involved logic to make sure that the labels have padding between them an the arrowhead.
 			if (info.isStraight) {
 				const segmentIntersections = labelGeom.bounds.sides.map((side) =>
@@ -208,12 +214,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				)
 				const isVerticalIntersection = !!(segmentIntersections[0] || segmentIntersections[2])
 				const angle = Vec.Cast(info.start.point).angle(Vec.Cast(info.end.point))
-				const startOffset = Vec.AddDistance(
-					info.start.point,
-					info.end.point,
-					LABEL_TO_ARROW_PADDING
-				)
-				const endOffset = Vec.AddDistance(info.end.point, info.start.point, LABEL_TO_ARROW_PADDING)
+				const startOffset = Vec.AddDistance(info.start.point, info.end.point, labelToArrowPadding)
+				const endOffset = Vec.AddDistance(info.end.point, info.start.point, labelToArrowPadding)
 				const startLabelCenterConstraintUsingHeight = Vec.AddDistance(
 					startOffset,
 					endOffset,
@@ -273,8 +275,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				// This is part 2 of the very involved logic to make sure that the labels have padding between them an the arrowhead.
 				// However, with arcs there's no easy way to know where the rectangle can be placed safely.
 				// So, if we get too close to the endpoint, we detect the intersection and then nudge the label away from the arrowhead.
-				const minPositionAngle = bodyGeom.angleStart + LABEL_TO_ARROW_PADDING / bodyGeom.radius
-				const maxPositionAngle = bodyGeom.angleEnd + LABEL_TO_ARROW_PADDING / bodyGeom.radius
+				const minPositionAngle = bodyGeom.angleStart + labelToArrowPadding / bodyGeom.radius
+				const maxPositionAngle = bodyGeom.angleEnd + labelToArrowPadding / bodyGeom.radius
 				let minPosition = Math.abs(
 					getPointInArcT(bodyGeom.measure, bodyGeom.angleStart, bodyGeom.angleEnd, minPositionAngle)
 				)
