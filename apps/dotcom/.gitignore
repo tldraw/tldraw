@@ -13,7 +13,6 @@
 /out/
 
 # PWA build artifacts
-/public/*.js
 /dev-dist
 
 # production
