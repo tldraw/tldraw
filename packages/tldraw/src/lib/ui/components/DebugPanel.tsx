@@ -49,17 +49,6 @@ export const DebugPanel = React.memo(function DebugPanel({
 }) {
 	const msg = useTranslation()
 
-	React.useEffect(() => {
-		isFPSCounterRunning = true
-		refreshFpsLoop()
-
-		return () => {
-			// Ensure we're not running the fps loop after we've disposed of the DebugPanel
-			// since it's setup at the global scope.
-			isFPSCounterRunning = false
-		}
-	}, [])
-
 	return (
 		<div className="tlui-debug-panel">
 			<CurrentState />
@@ -82,36 +71,66 @@ const CurrentState = track(function CurrentState() {
 	return <div className="tlui-debug-panel__current-state">{editor.getPath()}</div>
 })
 
-const times: number[] = []
-let isFPSCounterRunning = false
-let fps = 0
-function refreshFpsLoop() {
-	window.requestAnimationFrame(function () {
-		const now = performance.now()
-		while (times.length > 0 && times[0] <= now - 1000) {
-			times.shift()
-		}
-		times.push(now)
-		fps = times.length
-		isFPSCounterRunning && refreshFpsLoop()
-	})
-}
+const TICK_LENGTH = 1000
 
 function FPS() {
-	const [rerender, setRerender] = React.useState(0)
-	React.useEffect(() => {
-		setTimeout(() => setRerender(rerender + 1), 33)
-	}, [rerender])
+	const rCanvas = React.useRef<HTMLCanvasElement>(null)
 
-	const isLow = fps < 90
+	React.useEffect(() => {
+		let cancelled = false
+		const canvas = rCanvas.current!
+		const ctx = canvas.getContext('2d')!
+		ctx.font = '12px/12px monospace'
+
+		let start = performance.now()
+		let now = start
+		let currentTickLength = 0
+		let framesInCurrentTick = 0
+
+		// A "tick" is the amount of time between renders. Even though
+		// we'll loop on every frame, we will only paint when the time
+		// since the last paint is greater than the tick length.
+
+		// When we paint, we'll calculate the FPS based on the number
+		// of frames that we've seen since the last time we rendered,
+		// and the actual time since the last render.
+
+		function loop() {
+			if (cancelled) return
+			if (!ctx) return
+
+			// Count the frame
+			framesInCurrentTick++
+
+			// Check if we should render
+			now = performance.now()
+			currentTickLength = now - start
+
+			if (currentTickLength > TICK_LENGTH) {
+				// Calculate the FPS and paint it
+				const fps = framesInCurrentTick * (TICK_LENGTH / currentTickLength)
+				ctx.fillStyle = fps < 30 ? 'red' : 'black'
+				ctx.clearRect(0, 0, canvas.width, canvas.height)
+				ctx.fillText(fps.toFixed(0) + '', 8, 20)
+
+				// Reset the values
+				currentTickLength -= TICK_LENGTH
+				framesInCurrentTick = 0
+				start = now
+			}
+
+			requestAnimationFrame(loop)
+		}
+
+		loop()
+
+		return () => {
+			cancelled = true
+		}
+	}, [])
+
 	return (
-		<div
-			className={classNames('tlui-debug-panel__fps', {
-				'tlui-debug-panel__fps__slow ': isLow,
-			})}
-		>
-			FPS {fps}
-		</div>
+		<canvas ref={rCanvas} width={64} height={32} className={classNames('tlui-debug-panel__fps')} />
 	)
 }
 
