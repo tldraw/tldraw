@@ -14,22 +14,20 @@ export function HomePage() {
 				</p>
 			</div>
 			<ul className="examples__list">
-				{examples
-					.filter((example) => !example.hide)
-					.filter((example) => example.order !== null)
-					.map((example) => (
-						<ListLink key={example.path} example={example} showDescriptionWhenInactive />
-					))}
+				{examples.map((e, i) => (
+					<li key={'homeli ' + i}>
+						<ul key={'homeul' + i}>
+							{e
+								.filter((item) => !item.hide)
+								.map((item) => (
+									<ListLink key={item.path} example={item} />
+								))}
+						</ul>
+					</li>
+				))}
 			</ul>
 			<hr />
-			<ul className="examples__list">
-				{examples
-					.filter((example) => !example.hide)
-					.filter((example) => example.order === null)
-					.map((example) => (
-						<ListLink key={example.path} example={example} showDescriptionWhenInactive />
-					))}
-			</ul>
+			<ul className="examples__list"></ul>
 		</div>
 	)
 }
