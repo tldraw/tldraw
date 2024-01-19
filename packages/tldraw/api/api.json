@@ -1450,7 +1450,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n    }"
+                  "text": "<string>;\n        labelPosition: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -1463,7 +1472,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 42
+                "endIndex": 44
               },
               "isStatic": true,
               "isProtected": false,

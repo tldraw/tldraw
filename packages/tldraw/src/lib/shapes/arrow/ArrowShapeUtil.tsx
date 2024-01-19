@@ -3,6 +3,7 @@ import {
 	Box,
 	DefaultFontFamilies,
 	Edge2d,
+	Geometry2d,
 	Group2d,
 	Rectangle2d,
 	SVGContainer,
@@ -26,9 +27,16 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	clamp,
+	clockwiseAngleDist,
+	counterClockwiseAngleDist,
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
+	getPointInArcT,
+	getPointOnCircle,
+	intersectLineSegmentCircle,
+	intersectLineSegmentLineSegment,
 	mapObjectMapValues,
 	objectMapEntries,
 	toDomPrecision,
@@ -40,6 +48,7 @@ import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFro
 import {
 	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,
+	LABEL_TO_ARROW_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
@@ -61,6 +70,13 @@ import { ArrowTextLabel } from './components/ArrowTextLabel'
 let globalRenderIndex = 0
 
 export const ARROW_END_OFFSET = 0.1
+
+enum ARROW_HANDLES {
+	START = 'start',
+	MIDDLE = 'middle',
+	LABEL = 'middle-text',
+	END = 'end',
+}
 
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -89,6 +105,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',
 			text: '',
+			labelPosition: 0.5,
 			font: 'draw',
 		}
 	}
@@ -159,14 +176,162 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				height = squishedHeight
 			}
 
+			const scaledLabelPosition = Vec.ScaleWithOrigin(
+				info.end.point,
+				shape.props.labelPosition,
+				info.start.point
+			)
+
+			let labelLocation = scaledLabelPosition
+			if (!info.isStraight && bodyGeom instanceof Arc2d) {
+				const t = shape.props.labelPosition * bodyGeom.measure
+				const angle = bodyGeom.angleStart + t
+				labelLocation = getPointOnCircle(bodyGeom._center, bodyGeom.radius, angle)
+			}
+
+			const LABEL_PADDING = 4.25
+			const labelHalfWidth = width / 2 + LABEL_PADDING
+			const labelHalfHeight = height / 2 + LABEL_PADDING
 			labelGeom = new Rectangle2d({
-				x: info.middle.x - width / 2 - 4.25,
-				y: info.middle.y - height / 2 - 4.25,
-				width: width + 8.5,
-				height: height + 8.5,
+				x: labelLocation.x - labelHalfWidth,
+				y: labelLocation.y - labelHalfHeight,
+				width: width + LABEL_PADDING * 2,
+				height: height + LABEL_PADDING * 2,
 				isFilled: true,
 				isLabel: true,
 			})
+
+			// This is very involved logic to make sure that the labels have padding between them an the arrowhead.
+			if (info.isStraight) {
+				const segmentIntersections = labelGeom.bounds.sides.map((side) =>
+					intersectLineSegmentLineSegment(info.start.point, info.end.point, side[0], side[1])
+				)
+				const isVerticalIntersection = !!(segmentIntersections[0] || segmentIntersections[2])
+				const angle = Vec.Cast(info.start.point).angle(Vec.Cast(info.end.point))
+				const startOffset = Vec.AddDistance(
+					info.start.point,
+					info.end.point,
+					LABEL_TO_ARROW_PADDING
+				)
+				const endOffset = Vec.AddDistance(info.end.point, info.start.point, LABEL_TO_ARROW_PADDING)
+				const startLabelCenterConstraintUsingHeight = Vec.AddDistance(
+					startOffset,
+					endOffset,
+					Math.abs(labelHalfHeight / Math.sin(angle))
+				)
+				const endLabelCenterConstraintUsingHeight = Vec.AddDistance(
+					endOffset,
+					startOffset,
+					Math.abs(labelHalfHeight / Math.sin(angle))
+				)
+				const startLabelCenterConstraintUsingWidth = Vec.AddDistance(
+					startOffset,
+					endOffset,
+					Math.abs(labelHalfWidth / Math.cos(angle))
+				)
+				const endLabelCenterConstraintUsingWidth = Vec.AddDistance(
+					endOffset,
+					startOffset,
+					Math.abs(labelHalfWidth / Math.cos(angle))
+				)
+				const xStartConstraint =
+					(isVerticalIntersection
+						? startLabelCenterConstraintUsingHeight.x
+						: startLabelCenterConstraintUsingWidth.x) - labelHalfWidth
+				const xEndConstraint =
+					(isVerticalIntersection
+						? endLabelCenterConstraintUsingHeight.x
+						: endLabelCenterConstraintUsingWidth.x) - labelHalfWidth
+				const yStartConstraint =
+					(isVerticalIntersection
+						? startLabelCenterConstraintUsingHeight.y
+						: startLabelCenterConstraintUsingWidth.y) - labelHalfHeight
+				const yEndConstraint =
+					(isVerticalIntersection
+						? endLabelCenterConstraintUsingHeight.y
+						: endLabelCenterConstraintUsingWidth.y) - labelHalfHeight
+				const xLocation = labelLocation.x - labelHalfWidth
+				const yLocation = labelLocation.y - labelHalfHeight
+				labelGeom = new Rectangle2d({
+					x: clamp(
+						xLocation,
+						Math.min(xStartConstraint, xEndConstraint),
+						Math.max(xStartConstraint, xEndConstraint)
+					),
+					y: clamp(
+						yLocation,
+						Math.min(yStartConstraint, yEndConstraint),
+						Math.max(yStartConstraint, yEndConstraint)
+					),
+					width: width + LABEL_PADDING * 2,
+					height: height + LABEL_PADDING * 2,
+					isFilled: true,
+					isLabel: true,
+				})
+			} else if (bodyGeom instanceof Arc2d) {
+				// Ok, so.
+				// This is part 2 of the very involved logic to make sure that the labels have padding between them an the arrowhead.
+				// However, with arcs there's no easy way to know where the rectangle can be placed safely.
+				// So, if we get too close to the endpoint, we detect the intersection and then nudge the label away from the arrowhead.
+				const minPositionAngle = bodyGeom.angleStart + LABEL_TO_ARROW_PADDING / bodyGeom.radius
+				const maxPositionAngle = bodyGeom.angleEnd + LABEL_TO_ARROW_PADDING / bodyGeom.radius
+				let minPosition = Math.abs(
+					getPointInArcT(bodyGeom.measure, bodyGeom.angleStart, bodyGeom.angleEnd, minPositionAngle)
+				)
+				minPosition = minPosition > 1 ? minPosition - 1 : minPosition
+				let maxPosition = Math.abs(
+					getPointInArcT(bodyGeom.measure, bodyGeom.angleStart, bodyGeom.angleEnd, maxPositionAngle)
+				)
+				maxPosition = maxPosition > 1 ? 1 - (maxPosition - 1) : maxPosition
+				const startPoint = Vec.Cast(info.start.point)
+				const endPoint = Vec.Cast(info.end.point)
+				let loopIterationsFailsafe = 0
+				let labelPosition = shape.props.labelPosition
+
+				// We max it at a 100 iterations just in case this has an edge case where it's never satisified.
+				while (loopIterationsFailsafe < 100) {
+					const segmentIntersections = labelGeom.bounds.sides.map((side) =>
+						intersectLineSegmentCircle(
+							side[0],
+							side[1],
+							info.handleArc.center,
+							info.handleArc.radius
+						)
+					)
+					const points = segmentIntersections.map(
+						(intersection) =>
+							intersection &&
+							getPointInArcT(
+								bodyGeom.measure,
+								bodyGeom.angleStart,
+								bodyGeom.angleEnd,
+								bodyGeom._center.angle(Vec.Cast(intersection[0]))
+							)
+					)
+					if (points.every((point) => !point || (point >= minPosition && point <= maxPosition))) {
+						// Our label satifies the constraints, so we're done.
+						break
+					}
+
+					const rectCenter = Vec.Cast(labelGeom.center)
+					const nudgeRate = 0.005
+					labelPosition +=
+						(startPoint.dist(rectCenter) < endPoint.dist(rectCenter) ? 1 : -1) * nudgeRate
+					const t = labelPosition * bodyGeom.measure
+					const angle = bodyGeom.angleStart + t
+					labelLocation = getPointOnCircle(bodyGeom._center, bodyGeom.radius, angle)
+					labelGeom = new Rectangle2d({
+						x: labelLocation.x - labelHalfWidth,
+						y: labelLocation.y - labelHalfHeight,
+						width: width + LABEL_PADDING * 2,
+						height: height + LABEL_PADDING * 2,
+						isFilled: true,
+						isLabel: true,
+					})
+
+					++loopIterationsFailsafe
+				}
+			}
 		}
 
 		return new Group2d({
@@ -175,11 +340,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		})
 	}
 
+	private getLength(shape: TLArrowShape): number {
+		const info = this.editor.getArrowInfo(shape)!
+
+		return info.isStraight
+			? Vec.Dist(info.start.handle, info.end.handle)
+			: Math.abs(info.handleArc.length)
+	}
+
 	override getHandles(shape: TLArrowShape): TLHandle[] {
 		const info = this.editor.getArrowInfo(shape)!
+
+		const hasText = shape.props.text.trim()
+		const labelGeometry = hasText
+			? (this.editor.getShapeGeometry<Group2d>(shape).children[1] as Rectangle2d)
+			: null
+
 		return [
 			{
-				id: 'start',
+				id: ARROW_HANDLES.START,
 				type: 'vertex',
 				index: 'a0',
 				x: info.start.handle.x,
@@ -187,31 +366,41 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				canBind: true,
 			},
 			{
-				id: 'middle',
+				id: ARROW_HANDLES.MIDDLE,
 				type: 'virtual',
 				index: 'a2',
 				x: info.middle.x,
 				y: info.middle.y,
 				canBind: false,
 			},
+			labelGeometry && {
+				id: ARROW_HANDLES.LABEL,
+				type: 'text-adjust',
+				index: 'a4',
+				x: labelGeometry.x,
+				y: labelGeometry.y,
+				w: labelGeometry.w,
+				h: labelGeometry.h,
+				canBind: false,
+			},
 			{
-				id: 'end',
+				id: ARROW_HANDLES.END,
 				type: 'vertex',
 				index: 'a3',
 				x: info.end.handle.x,
 				y: info.end.handle.y,
 				canBind: true,
 			},
-		]
+		].filter(Boolean) as TLHandle[]
 	}
 
 	override onHandleChange: TLOnHandleChangeHandler<TLArrowShape> = (
 		shape,
 		{ handle, isPrecise }
 	) => {
-		const handleId = handle.id as 'start' | 'middle' | 'end'
+		const handleId = handle.id as ARROW_HANDLES
 
-		if (handleId === 'middle') {
+		if (handleId === ARROW_HANDLES.MIDDLE) {
 			// Bending the arrow...
 			const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
@@ -228,12 +417,45 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return { id: shape.id, type: shape.type, props: { bend } }
 		}
 
+		// This is for moving the text label to a different position on the arrow.
+		if (handleId === ARROW_HANDLES.LABEL) {
+			const next = deepCopy(shape) as TLArrowShape
+			const info = this.editor.getArrowInfo(shape)!
+
+			const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+			const labelGeometry = geometry.children[1] as Rectangle2d
+			const lineGeometry = geometry.children[0] as Geometry2d
+			const pointInShapeSpace = this.editor.getPointInShapeSpace(
+				shape,
+				this.editor.inputs.currentPagePoint
+			)
+			const handleOffset = new Vec(0, labelGeometry.h / 2)
+			const nearestPoint = lineGeometry.nearestPoint(Vec.Add(pointInShapeSpace, handleOffset))
+
+			let nextLabelPosition
+			if (info.isStraight) {
+				const lineLength = Vec.Dist(info.start.point, info.end.point)
+				const segmentLength = Vec.Dist(info.end.point, nearestPoint)
+				nextLabelPosition = 1 - segmentLength / lineLength
+			} else {
+				const isClockwise = shape.props.bend < 0
+				const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
+
+				const angleCenterNearestPoint = Vec.Angle(info.handleArc.center, nearestPoint)
+				const angleCenterStart = Vec.Angle(info.handleArc.center, info.start.point)
+				const angleCenterEnd = Vec.Angle(info.handleArc.center, info.end.point)
+				const arcLength = distFn(angleCenterStart, angleCenterEnd)
+				const segmentLength = distFn(angleCenterNearestPoint, angleCenterEnd)
+				nextLabelPosition = 1 - segmentLength / arcLength
+			}
+			next.props.labelPosition = nextLabelPosition
+
+			return next
+		}
+
 		// Start or end, pointing the arrow...
 
 		const next = deepCopy(shape) as TLArrowShape
-
-		const pageTransform = this.editor.getShapePageTransform(next.id)!
-		const pointInPageSpace = pageTransform.applyToPoint(handle)
 
 		if (this.editor.inputs.ctrlKey) {
 			// todo: maybe double check that this isn't equal to the other handle too?
@@ -271,6 +493,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const targetGeometry = this.editor.getShapeGeometry(target)
 		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
+		const pageTransform = this.editor.getShapePageTransform(next.id)!
+		const pointInPageSpace = pageTransform.applyToPoint(handle)
 		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
 		let precise = isPrecise
@@ -293,7 +517,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 			// Double check that we're not going to be doing an imprecise snap on
 			// the same shape twice, as this would result in a zero length line
-			const otherHandle = next.props[handleId === 'start' ? 'end' : 'start']
+			const otherHandle =
+				next.props[handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START]
 			if (
 				otherHandle.type === 'binding' &&
 				target.id === otherHandle.boundShapeId &&
@@ -381,7 +606,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}),
 		})
 
-		for (const handleName of ['start', 'end'] as const) {
+		for (const handleName of [ARROW_HANDLES.START, ARROW_HANDLES.END] as const) {
 			const terminal = shape.props[handleName]
 			if (terminal.type !== 'binding') continue
 			result = {
@@ -539,7 +764,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		handle: TLHandle
 	): TLShapePartial<TLArrowShape> | void => {
 		switch (handle.id) {
-			case 'start': {
+			case ARROW_HANDLES.START: {
 				return {
 					id: shape.id,
 					type: shape.type,
@@ -549,7 +774,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					},
 				}
 			}
-			case 'end': {
+			case ARROW_HANDLES.END: {
 				return {
 					id: shape.id,
 					type: shape.type,
@@ -599,17 +824,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (onlySelectedShape === shape && shouldDisplayHandles) {
 			const sw = 2
-			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-				info.isStraight
-					? Vec.Dist(info.start.handle, info.end.handle)
-					: Math.abs(info.handleArc.length),
-				sw,
-				{
-					end: 'skip',
-					start: 'skip',
-					lengthRatio: 2.5,
-				}
-			)
+			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(this.getLength(shape), sw, {
+				end: 'skip',
+				start: 'skip',
+				lengthRatio: 2.5,
+			})
 
 			handlePath =
 				shape.props.start.type === 'binding' || shape.props.end.type === 'binding' ? (
@@ -742,7 +961,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					text={shape.props.text}
 					font={shape.props.font}
 					size={shape.props.size}
-					position={info.middle}
+					position={
+						labelGeometry
+							? new Vec(
+									labelGeometry.x + labelGeometry.w / 2,
+									labelGeometry.y + labelGeometry.h / 2
+								)
+							: info.middle
+					}
 					width={labelGeometry?.w ?? 0}
 					labelColor={theme[shape.props.labelColor].solid}
 				/>

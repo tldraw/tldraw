@@ -208,6 +208,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         }, never>;
         bend: Validator<number>;
         text: Validator<string>;
+        labelPosition: Validator<number>;
     };
     // (undocumented)
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): SVGGElement;

@@ -276,7 +276,7 @@ export {
 export { Mat, type MatLike, type MatModel } from './lib/primitives/Mat'
 export { Vec, type VecLike } from './lib/primitives/Vec'
 export { EASINGS } from './lib/primitives/easings'
-export { Arc2d } from './lib/primitives/geometry/Arc2d'
+export { Arc2d, getPointInArcT } from './lib/primitives/geometry/Arc2d'
 export { Circle2d } from './lib/primitives/geometry/Circle2d'
 export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
 export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
@@ -314,6 +314,7 @@ export {
 	clamp,
 	clampRadians,
 	clockwiseAngleDist,
+	counterClockwiseAngleDist,
 	degreesToRadians,
 	getPointOnCircle,
 	getPolygonVertices,

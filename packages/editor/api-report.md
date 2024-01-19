@@ -340,6 +340,9 @@ export { computed }
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
 // @public
+export function counterClockwiseAngleDist(a0: number, a1: number): number;
+
+// @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
@@ -1078,7 +1081,10 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
 };
 
 // @public
-export function getPointOnCircle(cx: number, cy: number, r: number, a: number): Vec;
+export function getPointInArcT(mAB: number, A: number, B: number, P: number): number;
+
+// @public
+export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
 
 // @public (undocumented)
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
@@ -2769,6 +2775,7 @@ export class Vec {
     static Add(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     add(V: VecLike): this;
+    static AddDistance(A: VecLike, B: VecLike, distance: number): Vec;
     // (undocumented)
     static AddScalar(A: VecLike, n: number): Vec;
     // (undocumented)
@@ -2793,7 +2800,6 @@ export class Vec {
     static Clockwise(A: VecLike, B: VecLike, C: VecLike): boolean;
     // (undocumented)
     clone(): Vec;
-    // (undocumented)
     static Cpr(A: VecLike, B: VecLike): number;
     // (undocumented)
     cpr(V: VecLike): number;
@@ -2821,7 +2827,6 @@ export class Vec {
     static DivV(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     divV(V: VecLike): this;
-    // (undocumented)
     static Dpr(A: VecLike, B: VecLike): number;
     // (undocumented)
     dpr(V: VecLike): number;
@@ -2847,7 +2852,6 @@ export class Vec {
     static Len2(A: VecLike): number;
     // (undocumented)
     len2(): number;
-    // (undocumented)
     static Lrp(A: VecLike, B: VecLike, t: number): Vec;
     // (undocumented)
     lrp(B: VecLike, t: number): Vec;
@@ -2878,14 +2882,12 @@ export class Vec {
     static Nudge(A: VecLike, B: VecLike, distance: number): Vec;
     // (undocumented)
     nudge(B: VecLike, distance: number): this;
-    // (undocumented)
     static Per(A: VecLike): Vec;
     // (undocumented)
     per(): this;
     static PointsBetween(A: VecModel, B: VecModel, steps?: number): Vec[];
     // (undocumented)
     get pressure(): number;
-    // (undocumented)
     static Pry(A: VecLike, B: VecLike): number;
     // (undocumented)
     pry(V: VecLike): number;
@@ -2955,7 +2957,6 @@ export class Vec {
     static ToString(A: VecLike): string;
     // (undocumented)
     toString(): string;
-    // (undocumented)
     static Uni(A: VecLike): Vec;
     // (undocumented)
     uni(): Vec;

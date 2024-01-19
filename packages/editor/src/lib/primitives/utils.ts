@@ -205,15 +205,15 @@ export function radiansToDegrees(r: number): number {
 /**
  * Get a point on the perimeter of a circle.
  *
- * @param cx - The center x of the circle.
- * @param cy - The center y of the circle.
+ * @param center - The center of the circle.
  * @param r - The radius of the circle.
- * @param a - The normalized point on the circle.
+ * @param a - The angle in radians.
  * @public
  */
-export function getPointOnCircle(cx: number, cy: number, r: number, a: number) {
-	return new Vec(cx + r * Math.cos(a), cy + r * Math.sin(a))
+export function getPointOnCircle(center: VecLike, r: number, a: number) {
+	return new Vec(center.x, center.y).add(Vec.FromAngle(a, r))
 }
+
 /** @public */
 export function getPolygonVertices(width: number, height: number, sides: number) {
 	const cx = width / 2
