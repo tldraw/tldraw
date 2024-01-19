@@ -5,7 +5,6 @@ import {
 	TLFrameShape,
 	TLGroupShape,
 	TLParentId,
-	TLRecord,
 	TLShape,
 	TLShapeId,
 	VecModel,
@@ -301,7 +300,6 @@ export class SnapManager {
 		const getParentId = () => this.getCurrentCommonAncestor() ?? this.editor.getCurrentPageId()
 
 		const fromScratch = (renderingBounds: Box, selectedShapeIds: TLShapeId[]) => {
-			console.log('from scratch')
 			lastParentId = getParentId()
 			return this.collectSnappableShapesFromParent(lastParentId, renderingBounds, selectedShapeIds)
 		}
@@ -311,18 +309,14 @@ export class SnapManager {
 			const renderingBounds = editor.getRenderingBounds()
 
 			if (isUninitialized(prevValue)) {
-				console.log('uninitialized')
 				// No previous value, so we need to compute from scratch
 				return fromScratch(renderingBounds, selectedShapeIds)
 			}
 			const currentParentId = getParentId()
 			if (currentParentId !== lastParentId) {
 				// Parent has changed, so we need to compute from scratch
-				console.log('parent changed')
 				return fromScratch(renderingBounds, selectedShapeIds)
 			}
-
-			console.log('incremental')
 
 			const diff = editor.store.history.getDiffSince(lastComputedEpoch)
 
@@ -330,56 +324,56 @@ export class SnapManager {
 				return fromScratch(renderingBounds, selectedShapeIds)
 			}
 
-			const candidates = editor
-				.getSortedChildIdsForParent(lastParentId)
-				.filter((id) => !selectedShapeIds.includes(id))
-			const shouldCheckRecord = (record: TLRecord) =>
-				isShape(record) && !selectedShapeIds.includes(record.id) && candidates.includes(record.id)
-			const shapesIdsToRemove: TLShapeId[] = []
-			const shapeIdsToCheck: TLShapeId[] = []
+			// All the shapes that have the same parent as the current selection and are not selected
+			const siblings = new Set(
+				editor
+					.getSortedChildIdsForParent(currentParentId)
+					.filter((id) => !selectedShapeIds.includes(id))
+			)
+			const shapeIdsToAdd: Set<TLShapeId> = new Set()
+			const shapeIdsToRemove: Set<TLShapeId> = new Set()
+			const previousShapeIds = new Set<TLShapeId>(prevValue.map((shape) => shape.id))
 			for (const changes of diff) {
 				for (const record of Object.values(changes.added)) {
-					if (shouldCheckRecord(record)) {
-						shapeIdsToCheck.push(record.id as TLShapeId)
+					if (isShape(record) && siblings.has(record.id)) {
+						shapeIdsToAdd.add(record.id as TLShapeId)
 					}
 				}
 
 				for (const [_from, to] of Object.values(changes.updated)) {
-					if (shouldCheckRecord(to)) {
-						shapeIdsToCheck.push(to.id as TLShapeId)
+					if (isShape(to) && siblings.has(to.id)) {
+						shapeIdsToAdd.add(to.id as TLShapeId)
 					}
 				}
 
 				for (const id of Object.keys(changes.removed)) {
-					if (isShapeId(id)) {
-						shapesIdsToRemove.push(id)
+					if (isShapeId(id) && previousShapeIds.has(id)) {
+						shapeIdsToRemove.add(id)
 					}
 				}
 			}
 
 			// If selection has changed we might need to check some additional shapes (the ones that were previously selected)
-			const coveredShapes = new Set<TLShapeId>(shapeIdsToCheck.concat(prevValue.map((s) => s.id)))
-			for (const childId of candidates) {
-				if (!coveredShapes.has(childId)) {
-					shapeIdsToCheck.push(childId)
+			for (const shapeId of siblings) {
+				if (!previousShapeIds.has(shapeId) && !shapeIdsToAdd.has(shapeId)) {
+					shapeIdsToAdd.add(shapeId)
 				}
 			}
-			// Similarly, we need to remove the shapes that are newly selected
+			// Similarly we might need to remove the shapes that are newly selected
 			for (const shapeId of selectedShapeIds) {
-				if (coveredShapes.has(shapeId)) {
-					shapesIdsToRemove.push(shapeId)
+				if (previousShapeIds.has(shapeId) && !shapeIdsToRemove.has(shapeId)) {
+					shapeIdsToRemove.add(shapeId)
 				}
 			}
-			if (shapesIdsToRemove.length === 0 && shapeIdsToCheck.length === 0) {
-				console.log('no changes')
+			if (shapeIdsToRemove.size === 0 && shapeIdsToAdd.size === 0) {
 				return prevValue
 			}
-			console.log('shapes to remove', shapesIdsToRemove)
-			console.log('shapes to check', shapeIdsToCheck)
+			// We also remove the shapes ids that we'll add in the next step, so that we avoid duplicates
+			// (shapes might already be in the previous value, but might have changed so they would be added again)
 			let newValue = [...prevValue].filter(
-				(shape) => !shapesIdsToRemove.includes(shape.id) && !shapeIdsToCheck.includes(shape.id)
+				(shape) => !shapeIdsToRemove.has(shape.id) && !shapeIdsToAdd.has(shape.id)
 			)
-			for (const shapeId of shapeIdsToCheck) {
+			for (const shapeId of shapeIdsToAdd) {
 				const snappableShapes = this.getSnappableShape(shapeId, selectedShapeIds, renderingBounds)
 				newValue = newValue.concat(snappableShapes)
 			}
