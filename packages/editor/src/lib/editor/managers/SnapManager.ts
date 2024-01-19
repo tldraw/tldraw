@@ -347,7 +347,7 @@ export class SnapManager {
 				}
 
 				for (const id of Object.keys(changes.removed)) {
-					if (isShapeId(id) && previousShapeIds.has(id)) {
+					if (isShapeId(id)) {
 						shapeIdsToRemove.add(id)
 					}
 				}
