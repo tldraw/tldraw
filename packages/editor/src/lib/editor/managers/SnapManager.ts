@@ -325,7 +325,7 @@ export class SnapManager {
 			}
 
 			// All the shapes that have the same parent as the current selection and are not selected
-			const siblings = new Set(
+			const siblingIds = new Set(
 				editor
 					.getSortedChildIdsForParent(currentParentId)
 					.filter((id) => !selectedShapeIds.includes(id))
@@ -335,13 +335,13 @@ export class SnapManager {
 			const previousShapeIds = new Set<TLShapeId>(prevValue.map((shape) => shape.id))
 			for (const changes of diff) {
 				for (const record of Object.values(changes.added)) {
-					if (isShape(record) && siblings.has(record.id)) {
+					if (isShape(record) && siblingIds.has(record.id)) {
 						shapeIdsToAdd.add(record.id as TLShapeId)
 					}
 				}
 
 				for (const [_from, to] of Object.values(changes.updated)) {
-					if (isShape(to) && siblings.has(to.id)) {
+					if (isShape(to) && siblingIds.has(to.id)) {
 						shapeIdsToAdd.add(to.id as TLShapeId)
 					}
 				}
@@ -354,7 +354,7 @@ export class SnapManager {
 			}
 
 			// If selection has changed we might need to check some additional shapes (the ones that were previously selected)
-			for (const shapeId of siblings) {
+			for (const shapeId of siblingIds) {
 				if (!previousShapeIds.has(shapeId) && !shapeIdsToAdd.has(shapeId)) {
 					shapeIdsToAdd.add(shapeId)
 				}
