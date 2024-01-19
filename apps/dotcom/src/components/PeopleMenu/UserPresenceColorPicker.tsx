@@ -96,7 +96,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 					title={msg('people-menu.change-color')}
 				/>
 			</Popover.Trigger>
-			<Popover.Portal dir="ltr" container={container}>
+			<Popover.Portal container={container}>
 				<Popover.Content
 					dir="ltr"
 					className="tlui-menu tlui-people-menu__user__color-picker"

@@ -38,6 +38,9 @@ jobs:
       - name: Check API declarations and docs work as intended
         run: yarn api-check
 
+      - name: Check version constraints
+        run: yarn constraints
+
       - name: Test
         run: yarn test
 
