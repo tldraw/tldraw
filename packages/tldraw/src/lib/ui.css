@@ -575,7 +575,7 @@
 	width: 100%;
 	display: grid;
 	align-items: center;
-	grid-template-columns: 1fr auto auto;
+	grid-template-columns: 1fr auto auto auto;
 	justify-content: space-between;
 	padding-left: var(--space-4);
 	border-top: 1px solid var(--color-background);
@@ -587,6 +587,15 @@
 
 .tlui-debug-panel__current-state {
 	white-space: nowrap;
+}
+
+.tlui-debug-panel__fps {
+	margin-right: 8px;
+}
+
+.tlui-debug-panel__fps__slow {
+	font-weight: bold;
+	color: var(--color-warn);
 }
 
 /* -------------------- Menu Zone ------------------- */

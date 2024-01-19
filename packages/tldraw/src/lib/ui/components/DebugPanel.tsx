@@ -11,6 +11,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import * as React from 'react'
 import { useDialogs } from '../hooks/useDialogsProvider'
 import { useToasts } from '../hooks/useToastsProvider'
@@ -47,9 +48,22 @@ export const DebugPanel = React.memo(function DebugPanel({
 	renderDebugMenuItems: (() => React.ReactNode) | null
 }) {
 	const msg = useTranslation()
+
+	React.useEffect(() => {
+		isFPSCounterRunning = true
+		refreshFpsLoop()
+
+		return () => {
+			// Ensure we're not running the fps loop after we've disposed of the DebugPanel
+			// since it's setup at the global scope.
+			isFPSCounterRunning = false
+		}
+	}, [])
+
 	return (
 		<div className="tlui-debug-panel">
 			<CurrentState />
+			<FPS />
 			<ShapeCount />
 			<DropdownMenu.Root id="debug">
 				<DropdownMenu.Trigger>
@@ -67,6 +81,39 @@ const CurrentState = track(function CurrentState() {
 	const editor = useEditor()
 	return <div className="tlui-debug-panel__current-state">{editor.getPath()}</div>
 })
+
+const times: number[] = []
+let isFPSCounterRunning = false
+let fps = 0
+function refreshFpsLoop() {
+	window.requestAnimationFrame(function () {
+		const now = performance.now()
+		while (times.length > 0 && times[0] <= now - 1000) {
+			times.shift()
+		}
+		times.push(now)
+		fps = times.length
+		isFPSCounterRunning && refreshFpsLoop()
+	})
+}
+
+function FPS() {
+	const [rerender, setRerender] = React.useState(0)
+	React.useEffect(() => {
+		setTimeout(() => setRerender(rerender + 1), 33)
+	}, [rerender])
+
+	const isLow = fps < 90
+	return (
+		<div
+			className={classNames('tlui-debug-panel__fps', {
+				'tlui-debug-panel__fps__slow ': isLow,
+			})}
+		>
+			FPS {fps}
+		</div>
+	)
+}
 
 const ShapeCount = function ShapeCount() {
 	const editor = useEditor()
