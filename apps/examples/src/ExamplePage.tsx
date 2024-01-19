@@ -54,12 +54,13 @@ export function ExamplePage({
 				</Link>
 				<Accordion.Root
 					type="multiple"
+					defaultValue={['basic', 'ui', 'shapes', 'editor', 'data', 'collaboration']}
 					className="example__info__list scroll-light"
 					ref={scrollElRef}
 				>
 					{basicExamples && (
 						<Accordion.Item value={'basic'}>
-							<Accordion.Trigger>Basic</Accordion.Trigger>
+							<Accordion.Trigger className="accordion__trigger">Basic</Accordion.Trigger>
 							<Accordion.Content>
 								{basicExamples.map((e) => (
 									<ListLink
@@ -74,7 +75,7 @@ export function ExamplePage({
 					)}
 					{uiExamples && (
 						<Accordion.Item value={'ui'}>
-							<Accordion.Trigger>UI</Accordion.Trigger>
+							<Accordion.Trigger className="accordion__trigger">UI</Accordion.Trigger>
 							<Accordion.Content>
 								{uiExamples.map((e) => (
 									<ListLink
@@ -89,7 +90,7 @@ export function ExamplePage({
 					)}
 					{shapeExamples && (
 						<Accordion.Item value={'shapes'}>
-							<Accordion.Trigger>Shapes</Accordion.Trigger>
+							<Accordion.Trigger className="accordion__trigger">Shapes</Accordion.Trigger>
 							<Accordion.Content>
 								{shapeExamples.map((e) => (
 									<ListLink
@@ -104,7 +105,7 @@ export function ExamplePage({
 					)}
 					{editorExamples && (
 						<Accordion.Item value={'editor'}>
-							<Accordion.Trigger>Editor</Accordion.Trigger>
+							<Accordion.Trigger className="accordion__trigger">Editor</Accordion.Trigger>
 							<Accordion.Content>
 								{editorExamples.map((e) => (
 									<ListLink
@@ -119,7 +120,7 @@ export function ExamplePage({
 					)}
 					{dataExamples && (
 						<Accordion.Item value={'data'}>
-							<Accordion.Trigger>Data</Accordion.Trigger>
+							<Accordion.Trigger className="accordion__trigger">Data</Accordion.Trigger>
 							<Accordion.Content>
 								{dataExamples.map((e) => (
 									<ListLink
@@ -134,7 +135,7 @@ export function ExamplePage({
 					)}
 					{collaborationExamples && (
 						<Accordion.Item value={'collaboration'}>
-							<Accordion.Trigger>Collaboration</Accordion.Trigger>
+							<Accordion.Trigger className="accordion__trigger">Collaboration</Accordion.Trigger>
 							<Accordion.Content>
 								{collaborationExamples.map((e) => (
 									<ListLink
