@@ -95,10 +95,10 @@ const collaborationExamples = (
 		}
 	})
 export const examples = [
-	...basicExamples,
-	...uiExamples,
-	...shapeExamples,
-	...editorExamples,
-	...dataExamples,
-	...collaborationExamples,
+	basicExamples,
+	uiExamples,
+	shapeExamples,
+	editorExamples,
+	dataExamples,
+	collaborationExamples,
 ]

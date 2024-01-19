@@ -38,7 +38,6 @@ export function ExamplePage({
 		})
 		return () => cancelAnimationFrame(frame)
 	}, [example])
-
 	return (
 		<div className="example">
 			<div className="example__info">
@@ -46,31 +45,25 @@ export function ExamplePage({
 					<ExamplesTldrawLogo /> examples
 				</Link>
 				<ul className="example__info__list scroll-light" ref={scrollElRef}>
-					{examples
-						.filter((e) => !e.hide)
-						.filter((e) => e.order !== null)
-						.map((e) => (
-							<ListLink
-								key={e.path}
-								ref={e.path === example.path ? activeElRef : undefined}
-								example={e}
-								isActive={e.path === example.path}
-							/>
-						))}
+					{examples.map((e, i) => (
+						<li key={'exampleli ' + i}>
+							<ul key={'exampleul' + i}>
+								{e
+									.filter((item) => !item.hide)
+									.map((item) => (
+										<ListLink
+											key={item.path}
+											ref={item.path === example.path ? activeElRef : undefined}
+											example={item}
+											isActive={item.path === example.path}
+										/>
+									))}
+							</ul>
+						</li>
+					))}
 					<li>
 						<hr />
 					</li>
-					{examples
-						.filter((e) => !e.hide)
-						.filter((e) => e.order === null)
-						.map((e) => (
-							<ListLink
-								key={e.path}
-								ref={e.path === example.path ? activeElRef : undefined}
-								example={e}
-								isActive={e.path === example.path}
-							/>
-						))}
 				</ul>
 			</div>
 			<div className="example__content">{children}</div>

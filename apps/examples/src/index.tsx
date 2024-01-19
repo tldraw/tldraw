@@ -29,30 +29,32 @@ const router = createBrowserRouter([
 		path: 'end-to-end',
 		element: <EndToEnd />,
 	},
-	...examples.flatMap((example) => [
-		{
-			path: example.path,
-			lazy: async () => {
-				const Component = await example.loadComponent()
-				return {
-					element: (
-						<ExamplePage example={example}>
-							<Component />
-						</ExamplePage>
-					),
-				}
+	...examples.flatMap((exampleArray) =>
+		exampleArray.flatMap((example) => [
+			{
+				path: example.path,
+				lazy: async () => {
+					const Component = await example.loadComponent()
+					return {
+						element: (
+							<ExamplePage example={example}>
+								<Component />
+							</ExamplePage>
+						),
+					}
+				},
 			},
-		},
-		{
-			path: `${example.path}/full`,
-			lazy: async () => {
-				const Component = await example.loadComponent()
-				return {
-					element: <Component />,
-				}
+			{
+				path: `${example.path}/full`,
+				lazy: async () => {
+					const Component = await example.loadComponent()
+					return {
+						element: <Component />,
+					}
+				},
 			},
-		},
-	]),
+		])
+	),
 ])
 
 document.addEventListener('DOMContentLoaded', () => {
