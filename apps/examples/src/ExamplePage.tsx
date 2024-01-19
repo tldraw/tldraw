@@ -1,3 +1,4 @@
+import * as Accordion from '@radix-ui/react-accordion'
 import { assert, assertExists } from '@tldraw/tldraw'
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
@@ -12,7 +13,7 @@ export function ExamplePage({
 	example: Example
 	children: React.ReactNode
 }) {
-	const scrollElRef = useRef<HTMLUListElement>(null)
+	const scrollElRef = useRef<HTMLDivElement>(null)
 	const activeElRef = useRef<HTMLLIElement>(null)
 	const isFirstScroll = useRef(true)
 
@@ -38,33 +39,115 @@ export function ExamplePage({
 		})
 		return () => cancelAnimationFrame(frame)
 	}, [example])
+	const basicExamples = examples.find((e) => e.id === 'basic')?.array || []
+	const uiExamples = examples.find((e) => e.id === 'ui')?.array || []
+	const shapeExamples = examples.find((e) => e.id === 'shapes/tools')?.array || []
+	const editorExamples = examples.find((e) => e.id === 'editor')?.array || []
+	const dataExamples = examples.find((e) => e.id === 'data')?.array || []
+
+	const collaborationExamples = examples.find((e) => e.id === 'collaboration')?.array || []
 	return (
 		<div className="example">
 			<div className="example__info">
 				<Link className="example__logo" to="/">
 					<ExamplesTldrawLogo /> examples
 				</Link>
-				<ul className="example__info__list scroll-light" ref={scrollElRef}>
-					{examples.map((e, i) => (
-						<li key={'exampleli ' + i}>
-							<ul key={'exampleul' + i}>
-								{e
-									.filter((item) => !item.hide)
-									.map((item) => (
-										<ListLink
-											key={item.path}
-											ref={item.path === example.path ? activeElRef : undefined}
-											example={item}
-											isActive={item.path === example.path}
-										/>
-									))}
-							</ul>
-						</li>
-					))}
-					<li>
-						<hr />
-					</li>
-				</ul>
+				<Accordion.Root
+					type="multiple"
+					className="example__info__list scroll-light"
+					ref={scrollElRef}
+				>
+					{basicExamples && (
+						<Accordion.Item value={'basic'}>
+							<Accordion.Trigger>Basic</Accordion.Trigger>
+							<Accordion.Content>
+								{basicExamples.map((e) => (
+									<ListLink
+										key={e.path}
+										example={e}
+										isActive={e.path === example.path}
+										ref={e.path === example.path ? activeElRef : undefined}
+									/>
+								))}
+							</Accordion.Content>
+						</Accordion.Item>
+					)}
+					{uiExamples && (
+						<Accordion.Item value={'ui'}>
+							<Accordion.Trigger>UI</Accordion.Trigger>
+							<Accordion.Content>
+								{uiExamples.map((e) => (
+									<ListLink
+										key={e.path}
+										example={e}
+										isActive={e.path === example.path}
+										ref={e.path === example.path ? activeElRef : undefined}
+									/>
+								))}
+							</Accordion.Content>
+						</Accordion.Item>
+					)}
+					{shapeExamples && (
+						<Accordion.Item value={'shapes'}>
+							<Accordion.Trigger>Shapes</Accordion.Trigger>
+							<Accordion.Content>
+								{shapeExamples.map((e) => (
+									<ListLink
+										key={e.path}
+										example={e}
+										isActive={e.path === example.path}
+										ref={e.path === example.path ? activeElRef : undefined}
+									/>
+								))}
+							</Accordion.Content>
+						</Accordion.Item>
+					)}
+					{editorExamples && (
+						<Accordion.Item value={'editor'}>
+							<Accordion.Trigger>Editor</Accordion.Trigger>
+							<Accordion.Content>
+								{editorExamples.map((e) => (
+									<ListLink
+										key={e.path}
+										example={e}
+										isActive={e.path === example.path}
+										ref={e.path === example.path ? activeElRef : undefined}
+									/>
+								))}
+							</Accordion.Content>
+						</Accordion.Item>
+					)}
+					{dataExamples && (
+						<Accordion.Item value={'data'}>
+							<Accordion.Trigger>Data</Accordion.Trigger>
+							<Accordion.Content>
+								{dataExamples.map((e) => (
+									<ListLink
+										key={e.path}
+										example={e}
+										isActive={e.path === example.path}
+										ref={e.path === example.path ? activeElRef : undefined}
+									/>
+								))}
+							</Accordion.Content>
+						</Accordion.Item>
+					)}
+					{collaborationExamples && (
+						<Accordion.Item value={'collaboration'}>
+							<Accordion.Trigger>Collaboration</Accordion.Trigger>
+							<Accordion.Content>
+								{collaborationExamples.map((e) => (
+									<ListLink
+										key={e.path}
+										example={e}
+										isActive={e.path === example.path}
+										ref={e.path === example.path ? activeElRef : undefined}
+									/>
+								))}
+							</Accordion.Content>
+						</Accordion.Item>
+					)}
+				</Accordion.Root>
 			</div>
 			<div className="example__content">{children}</div>
 		</div>

@@ -228,6 +228,15 @@ html,
 	position: relative;
 	font-size: 13px;
 }
+.examples__category {
+	flex: auto;
+	margin: 0;
+	list-style: none;
+	padding: 0;
+	overflow: auto;
+	position: relative;
+	font-size: 13px;
+}
 .example__info__list .examples__list__item {
 	padding: 0.75rem 1rem;
 }

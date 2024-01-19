@@ -14,20 +14,11 @@ export function HomePage() {
 				</p>
 			</div>
 			<ul className="examples__list">
-				{examples.map((e, i) => (
-					<li key={'homeli ' + i}>
-						<ul key={'homeul' + i}>
-							{e
-								.filter((item) => !item.hide)
-								.map((item) => (
-									<ListLink key={item.path} example={item} />
-								))}
-						</ul>
-					</li>
-				))}
+				{examples.map((e) =>
+					e.array.map((e) => <ListLink key={e.path} example={e} showDescriptionWhenInactive />)
+				)}
 			</ul>
 			<hr />
-			<ul className="examples__list"></ul>
 		</div>
 	)
 }

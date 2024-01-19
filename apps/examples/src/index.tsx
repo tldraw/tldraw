@@ -30,7 +30,7 @@ const router = createBrowserRouter([
 		element: <EndToEnd />,
 	},
 	...examples.flatMap((exampleArray) =>
-		exampleArray.flatMap((example) => [
+		exampleArray.array.flatMap((example) => [
 			{
 				path: example.path,
 				lazy: async () => {
@@ -56,7 +56,6 @@ const router = createBrowserRouter([
 		])
 	),
 ])
-
 document.addEventListener('DOMContentLoaded', () => {
 	const rootElement = document.getElementById('root')!
 	const root = createRoot(rootElement!)

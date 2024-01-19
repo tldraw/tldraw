@@ -7,7 +7,7 @@ export type Example = {
 	path: string
 	codeUrl: string
 	hide: boolean
-	category: 'basic' | 'editor' | 'ui' | 'collaboration' | 'data' | 'shapes/tools' | null
+	category: 'basic' | 'editor' | 'ui' | 'collaboration' | 'data/assets' | 'shapes/tools' | null
 	order: number | null
 	componentFile: string
 	loadComponent: () => Promise<ComponentType>
@@ -70,7 +70,7 @@ const editorExamples = (
 const dataExamples = (
 	Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[]
 )
-	.filter((e) => e.category === 'data')
+	.filter((e) => e.category === 'data/assets')
 	.sort((a, b) => {
 		if (a.order === null) {
 			return 1
@@ -94,11 +94,12 @@ const collaborationExamples = (
 			return a.order - b.order
 		}
 	})
+
 export const examples = [
-	basicExamples,
-	uiExamples,
-	shapeExamples,
-	editorExamples,
-	dataExamples,
-	collaborationExamples,
+	{ id: 'basic', array: basicExamples },
+	{ id: 'ui', array: uiExamples },
+	{ id: 'shapes/tools', array: shapeExamples },
+	{ id: 'editor', array: editorExamples },
+	{ id: 'data', array: dataExamples },
+	{ id: 'collaboration', array: collaborationExamples },
 ]
