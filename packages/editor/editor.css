@@ -30,8 +30,6 @@
 	--layer-following-indicator: 1000;
 	/* Misc */
 	--tl-zoom: 1;
-	--tl-dpr-multiple: 100;
-	--tl-dpr-multiple-px: calc(var(--tl-dpr-multiple) * 1px);
 
 	/* Cursor SVGs */
 	--tl-cursor-none: none;
@@ -146,7 +144,7 @@
 	--color-brush-fill: hsl(0, 0%, 71%, 5.1%);
 	--color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
 	--color-grid: hsl(0, 0%, 56%);
-	--color-low: hsl(260, 5%, 5%);
+	--color-low: hsl(260, 5%, 12.5%);
 	--color-low-border: hsl(207, 10%, 10%);
 	--color-culled: hsl(210, 11%, 19%);
 	--color-muted-none: hsl(0, 0%, 100%, 0%);
@@ -256,8 +254,6 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: var(--tl-dpr-multiple-px);
-	width: var(--tl-dpr-multiple-px);
 	overflow: visible;
 	pointer-events: none;
 	transform-origin: top left;
@@ -267,8 +263,6 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: var(--tl-dpr-multiple-px);
-	width: var(--tl-dpr-multiple-px);
 	pointer-events: none;
 }
 

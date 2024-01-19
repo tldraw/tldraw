@@ -1,4 +1,5 @@
 import { Footer } from '@/components/Footer'
+import { Analytics } from '@vercel/analytics/react'
 import { Metadata, Viewport } from 'next'
 import AutoRefresh from '../components/AutoRefresh'
 import '../styles/globals.css'
@@ -74,13 +75,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 							<div className="layout">{children}</div>
 							<Footer />
 						</div>
+						<Analytics />
 					</Providers>
 				</body>
-				<script
-					async
-					src="https://tag.clearbitscripts.com/v1/pk_98af4b0c7c25466da0035c32bc6789bd/tags.js"
-					referrerPolicy="strict-origin-when-cross-origin"
-				/>
 			</html>
 		</AutoRefresh>
 	)

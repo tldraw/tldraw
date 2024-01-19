@@ -3,7 +3,6 @@
 	"description": "build scripts",
 	"version": "2.0.0-alpha.8",
 	"private": true,
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -27,9 +26,13 @@
 		"infinite"
 	],
 	"devDependencies": {
+		"@actions/github": "^6.0.0",
 		"@auto-it/core": "^10.45.0",
+		"@aws-sdk/client-s3": "^3.440.0",
+		"@aws-sdk/lib-storage": "^3.440.0",
 		"@types/is-ci": "^3.0.0",
 		"@types/node": "^18.7.3",
+		"@types/tar": "^6.1.7",
 		"@typescript-eslint/utils": "^5.59.0",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.1.5",
@@ -50,6 +53,7 @@
 		"lint": "yarn run -T tsx lint.ts"
 	},
 	"dependencies": {
-		"ignore": "^5.2.4"
+		"ignore": "^5.2.4",
+		"tar": "^6.2.0"
 	}
 }

@@ -1,5 +1,6 @@
 import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
+import { ArticleDetails } from './ArticleDetails'
 import { ArticleNavLinks } from './ArticleNavLinks'
 import { Breadcrumb } from './Breadcrumb'
 import { Header } from './Header'
@@ -20,17 +21,20 @@ export async function ArticleDocsPage({ article }: { article: Article }) {
 		articleId: article.id,
 	})
 
+	const isGenerated = article.sectionId === 'gen'
+
 	return (
 		<>
 			<Header activeId={article.id} />
 			<Sidebar {...sidebar} />
-			<main className={`article${section.id === 'gen' ? ' article__api-docs' : ''}`}>
+			<main className={`article${isGenerated ? ' article__api-docs' : ''}`}>
 				<div className="page-header">
 					<Breadcrumb section={section} category={category} />
 					<h1>{article.title}</h1>
 				</div>
 				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}
 				{article.content && <Mdx content={article.content} />}
+				{isGenerated ? null : <ArticleDetails article={article} />}
 				{links && <ArticleNavLinks links={links} />}
 			</main>
 			{headings.length > 0 ? <HeadingLinks article={article} headingLinks={headings} /> : null}
