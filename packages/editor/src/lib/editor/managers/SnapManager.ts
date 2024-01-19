@@ -1,9 +1,11 @@
-import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
+import { atom, computed, EMPTY_ARRAY, isUninitialized, RESET_VALUE } from '@tldraw/state'
 import {
+	isShape,
 	isShapeId,
 	TLFrameShape,
 	TLGroupShape,
 	TLParentId,
+	TLRecord,
 	TLShape,
 	TLShapeId,
 	VecModel,
@@ -243,54 +245,149 @@ export class SnapManager {
 		return 8 / this.editor.getZoomLevel()
 	}
 
-	// TODO: make this an incremental derivation
-	@computed getSnappableShapes(): GapNode[] {
+	getSnappableShape = (childId: TLShapeId, selectedShapeIds: TLShapeId[], renderingBounds: Box) => {
 		const { editor } = this
-		const renderingBounds = editor.getRenderingBounds()
-		const selectedShapeIds = editor.getSelectedShapeIds()
+		// Skip any selected ids
+		if (selectedShapeIds.includes(childId)) return []
+		const childShape = editor.getShape(childId)
+		if (!childShape) return []
+		const util = editor.getShapeUtil(childShape)
+		// Skip any shapes that don't allow snapping
+		if (!util.canSnap(childShape)) return []
+		// Only consider shapes if they're inside of the viewport page bounds
+		const pageBounds = editor.getShapePageBounds(childId)
+		if (!(pageBounds && renderingBounds.includes(pageBounds))) return []
+		// Snap to children of groups but not group itself
+		if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
+			return this.collectSnappableShapesFromParent(childId, renderingBounds, selectedShapeIds)
+		}
+		return [
+			{
+				id: childId,
+				pageBounds,
+				isClosed: editor.getShapeGeometry(childShape).isClosed,
+			},
+		]
+	}
 
-		const snappableShapes: GapNode[] = []
+	collectSnappableShapesFromParent(
+		parentId: TLParentId,
+		renderingBounds: Box,
+		selectedShapeIds: TLShapeId[]
+	) {
+		const { editor } = this
+		let snappableShapes: GapNode[] = []
 
-		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
-			if (isShapeId(parentId)) {
-				const parent = editor.getShape(parentId)
-				if (parent && editor.isShapeOfType<TLFrameShape>(parent, 'frame')) {
-					snappableShapes.push({
-						id: parentId,
-						pageBounds: editor.getShapePageBounds(parentId)!,
-						isClosed: editor.getShapeGeometry(parent).isClosed,
-					})
-				}
-			}
-			const sortedChildIds = editor.getSortedChildIdsForParent(parentId)
-			for (const childId of sortedChildIds) {
-				// Skip any selected ids
-				if (selectedShapeIds.includes(childId)) continue
-				const childShape = editor.getShape(childId)
-				if (!childShape) continue
-				const util = editor.getShapeUtil(childShape)
-				// Skip any shapes that don't allow snapping
-				if (!util.canSnap(childShape)) continue
-				// Only consider shapes if they're inside of the viewport page bounds
-				const pageBounds = editor.getShapePageBounds(childId)
-				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
-				// Snap to children of groups but not group itself
-				if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
-					collectSnappableShapesFromParent(childId)
-					continue
-				}
+		if (isShapeId(parentId)) {
+			const parent = editor.getShape(parentId)
+			if (parent && editor.isShapeOfType<TLFrameShape>(parent, 'frame')) {
 				snappableShapes.push({
-					id: childId,
-					pageBounds,
-					isClosed: editor.getShapeGeometry(childShape).isClosed,
+					id: parentId,
+					pageBounds: editor.getShapePageBounds(parentId)!,
+					isClosed: editor.getShapeGeometry(parent).isClosed,
 				})
 			}
 		}
-
-		collectSnappableShapesFromParent(this.getCurrentCommonAncestor() ?? editor.getCurrentPageId())
-
+		const sortedChildIds = editor.getSortedChildIdsForParent(parentId)
+		for (const childId of sortedChildIds) {
+			const childShapes = this.getSnappableShape(childId, selectedShapeIds, renderingBounds)
+			snappableShapes = snappableShapes.concat(childShapes)
+		}
 		return snappableShapes
 	}
+
+	_getSnappableShapes = () => {
+		let lastParentId: TLParentId | null = null
+		const getParentId = () => this.getCurrentCommonAncestor() ?? this.editor.getCurrentPageId()
+
+		const fromScratch = (renderingBounds: Box, selectedShapeIds: TLShapeId[]) => {
+			console.log('from scratch')
+			lastParentId = getParentId()
+			return this.collectSnappableShapesFromParent(lastParentId, renderingBounds, selectedShapeIds)
+		}
+		return computed<GapNode[]>('getSnappableShapes', (prevValue, lastComputedEpoch) => {
+			const { editor } = this
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			const renderingBounds = editor.getRenderingBounds()
+
+			if (isUninitialized(prevValue)) {
+				console.log('uninitialized')
+				// No previous value, so we need to compute from scratch
+				return fromScratch(renderingBounds, selectedShapeIds)
+			}
+			const currentParentId = getParentId()
+			if (currentParentId !== lastParentId) {
+				// Parent has changed, so we need to compute from scratch
+				console.log('parent changed')
+				return fromScratch(renderingBounds, selectedShapeIds)
+			}
+
+			console.log('incremental')
+
+			const diff = editor.store.history.getDiffSince(lastComputedEpoch)
+
+			if (diff === RESET_VALUE) {
+				return fromScratch(renderingBounds, selectedShapeIds)
+			}
+
+			const candidates = editor
+				.getSortedChildIdsForParent(lastParentId)
+				.filter((id) => !selectedShapeIds.includes(id))
+			const shouldCheckRecord = (record: TLRecord) =>
+				isShape(record) && !selectedShapeIds.includes(record.id) && candidates.includes(record.id)
+			const shapesIdsToRemove: TLShapeId[] = []
+			const shapeIdsToCheck: TLShapeId[] = []
+			for (const changes of diff) {
+				for (const record of Object.values(changes.added)) {
+					if (shouldCheckRecord(record)) {
+						shapeIdsToCheck.push(record.id as TLShapeId)
+					}
+				}
+
+				for (const [_from, to] of Object.values(changes.updated)) {
+					if (shouldCheckRecord(to)) {
+						shapeIdsToCheck.push(to.id as TLShapeId)
+					}
+				}
+
+				for (const id of Object.keys(changes.removed)) {
+					if (isShapeId(id)) {
+						shapesIdsToRemove.push(id)
+					}
+				}
+			}
+
+			// If selection has changed we might need to check some additional shapes (the ones that were previously selected)
+			const coveredShapes = new Set<TLShapeId>(shapeIdsToCheck.concat(prevValue.map((s) => s.id)))
+			for (const childId of candidates) {
+				if (!coveredShapes.has(childId)) {
+					shapeIdsToCheck.push(childId)
+				}
+			}
+			// Similarly, we need to remove the shapes that are newly selected
+			for (const shapeId of selectedShapeIds) {
+				if (coveredShapes.has(shapeId)) {
+					shapesIdsToRemove.push(shapeId)
+				}
+			}
+			if (shapesIdsToRemove.length === 0 && shapeIdsToCheck.length === 0) {
+				console.log('no changes')
+				return prevValue
+			}
+			console.log('shapes to remove', shapesIdsToRemove)
+			console.log('shapes to check', shapeIdsToCheck)
+			let newValue = [...prevValue].filter(
+				(shape) => !shapesIdsToRemove.includes(shape.id) && !shapeIdsToCheck.includes(shape.id)
+			)
+			for (const shapeId of shapeIdsToCheck) {
+				const snappableShapes = this.getSnappableShape(shapeId, selectedShapeIds, renderingBounds)
+				newValue = newValue.concat(snappableShapes)
+			}
+			return newValue
+		})
+	}
+
+	getSnappableShapes = () => this._getSnappableShapes().get()
 
 	// This needs to be external from any expensive work
 	@computed getCurrentCommonAncestor() {

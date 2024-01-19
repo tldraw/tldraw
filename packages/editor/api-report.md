@@ -1698,6 +1698,8 @@ export class SnapManager {
     // (undocumented)
     clear(): void;
     // (undocumented)
+    collectSnappableShapesFromParent(parentId: TLParentId, renderingBounds: Box, selectedShapeIds: TLShapeId[]): GapNode[];
+    // (undocumented)
     readonly editor: Editor;
     // (undocumented)
     getCurrentCommonAncestor(): TLShapeId | undefined;
@@ -1708,7 +1710,11 @@ export class SnapManager {
     // (undocumented)
     getSnappablePoints(): SnapPoint[];
     // (undocumented)
-    getSnappableShapes(): GapNode[];
+    getSnappableShape: (childId: TLShapeId, selectedShapeIds: TLShapeId[], renderingBounds: Box) => GapNode[];
+    // (undocumented)
+    getSnappableShapes: () => GapNode[];
+    // (undocumented)
+    _getSnappableShapes: () => Computed<GapNode[], unknown>;
     // (undocumented)
     getSnappingHandleDelta({ handlePoint, additionalSegments, }: {
         handlePoint: Vec;

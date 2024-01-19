@@ -31854,6 +31854,54 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!SnapManager#_getSnappableShapes:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_getSnappableShapes: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => import(\"@tldraw/state\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Computed",
+                  "canonicalReference": "@tldraw/state!Computed:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "GapNode",
+                  "canonicalReference": "@tldraw/editor!~GapNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[], unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_getSnappableShapes",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Constructor",
               "canonicalReference": "@tldraw/editor!SnapManager:constructor(1)",
               "docComment": "/**\n * Constructs a new instance of the `SnapManager` class\n */\n",
@@ -31916,6 +31964,98 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "clear"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SnapManager#collectSnappableShapesFromParent:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "collectSnappableShapesFromParent(parentId: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", renderingBounds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", selectedShapeIds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "GapNode",
+                  "canonicalReference": "@tldraw/editor!~GapNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 10
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "parentId",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "renderingBounds",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "selectedShapeIds",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "collectSnappableShapesFromParent"
             },
             {
               "kind": "Property",
@@ -32093,13 +32233,44 @@
               "name": "getSnappablePoints"
             },
             {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#getSnappableShapes:member(1)",
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnappableShape:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getSnappableShapes(): "
+                  "text": "getSnappableShape: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(childId: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", selectedShapeIds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[], renderingBounds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => "
                 },
                 {
                   "kind": "Reference",
@@ -32115,18 +32286,56 @@
                   "text": ";"
                 }
               ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
+              "isReadonly": false,
               "isOptional": false,
-              "isAbstract": false,
-              "name": "getSnappableShapes"
+              "releaseTag": "Public",
+              "name": "getSnappableShape",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 10
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!SnapManager#getSnappableShapes:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSnappableShapes: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "GapNode",
+                  "canonicalReference": "@tldraw/editor!~GapNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "getSnappableShapes",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Method",
