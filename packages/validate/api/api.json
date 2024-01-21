@@ -1651,6 +1651,34 @@
               }
             },
             {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.linkUrl:var",
+              "docComment": "/**\n * Validates that a value is a url safe to use as a link.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "linkUrl: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "linkUrl",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
               "kind": "Function",
               "canonicalReference": "@tldraw/validate!T.literal:function(1)",
               "docComment": "/**\n * Validates that a value matches another that was passed in.\n *\n * @example\n * ```ts\n * const trueValidator = T.literal(true)\n * ```\n *\n * @public\n */\n",
@@ -2587,6 +2615,34 @@
             },
             {
               "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.srcUrl:var",
+              "docComment": "/**\n * Validates that a valid is a url safe to load as an asset.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "srcUrl: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "srcUrl",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Variable",
               "canonicalReference": "@tldraw/validate!T.string:var",
               "docComment": "/**\n * Validates that a value is a string.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -3511,6 +3567,59 @@
                 },
                 {
                   "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.Validator#isValid:member(1)",
+                  "docComment": "/**\n * Checks that the passed value is of the correct type.\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "isValid(value: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "unknown"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "value",
+                      "canonicalReference": "@tldraw/validate!~value"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": " is T"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "value",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 2
+                      },
+                      "isOptional": false
+                    }
+                  ],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "isValid"
+                },
+                {
+                  "kind": "Method",
                   "canonicalReference": "@tldraw/validate!T.Validator#nullable:member(1)",
                   "docComment": "/**\n * Returns a new validator that also accepts null or undefined. The resulting value will always be null.\n */\n",
                   "excerptTokens": [
@@ -4218,6 +4327,59 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "check"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!Validator#isValid:member(1)",
+              "docComment": "/**\n * Checks that the passed value is of the correct type.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isValid(value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "unknown"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "value",
+                  "canonicalReference": "@tldraw/validate!~value"
+                },
+                {
+                  "kind": "Content",
+                  "text": " is T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "isValid"
             },
             {
               "kind": "Method",

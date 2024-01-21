@@ -1,5 +1,13 @@
 import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
-import { TLGroupShape, TLParentId, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
+import {
+	isShapeId,
+	TLFrameShape,
+	TLGroupShape,
+	TLParentId,
+	TLShape,
+	TLShapeId,
+	VecModel,
+} from '@tldraw/tlschema'
 import { dedupe, deepCopy } from '@tldraw/utils'
 import {
 	Box,
@@ -244,6 +252,16 @@ export class SnapManager {
 		const snappableShapes: GapNode[] = []
 
 		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
+			if (isShapeId(parentId)) {
+				const parent = editor.getShape(parentId)
+				if (parent && editor.isShapeOfType<TLFrameShape>(parent, 'frame')) {
+					snappableShapes.push({
+						id: parentId,
+						pageBounds: editor.getShapePageBounds(parentId)!,
+						isClosed: editor.getShapeGeometry(parent).isClosed,
+					})
+				}
+			}
 			const sortedChildIds = editor.getSortedChildIdsForParent(parentId)
 			for (const childId of sortedChildIds) {
 				// Skip any selected ids
@@ -625,8 +643,8 @@ export class SnapManager {
 						? 'x'
 						: 'y'
 					: nearestSnapsX.length
-					? 'x'
-					: 'y'
+						? 'x'
+						: 'y'
 
 			const ratio = initialSelectionPageBounds.aspectRatio
 
@@ -1175,7 +1193,7 @@ export class SnapManager {
 												'forward',
 												gapBreadthIntersection
 											),
-									  ]
+										]
 									: [
 											...findAdjacentGaps(
 												horizontal,
@@ -1191,7 +1209,7 @@ export class SnapManager {
 												) as [Vec, Vec],
 												endEdge: selectionSides.left,
 											},
-									  ],
+										],
 						})
 
 						break
@@ -1279,7 +1297,7 @@ export class SnapManager {
 													'forward',
 													gapBreadthIntersection
 												),
-										  ]
+											]
 										: [
 												...findAdjacentGaps(
 													vertical,
@@ -1295,7 +1313,7 @@ export class SnapManager {
 													) as [Vec, Vec],
 													endEdge: selectionSides.top,
 												},
-										  ],
+											],
 							})
 						}
 						break

@@ -10,8 +10,8 @@ export const ListLink = forwardRef(function ListLink(
 	{
 		example,
 		isActive,
-		showDescription,
-	}: { example: Example; isActive?: boolean; showDescription?: boolean },
+		showDescriptionWhenInactive,
+	}: { example: Example; isActive?: boolean; showDescriptionWhenInactive?: boolean },
 	ref: ForwardedRef<HTMLLIElement>
 ) {
 	const id = useId()
@@ -53,7 +53,7 @@ export const ListLink = forwardRef(function ListLink(
 					</Link>
 				)}
 			</h3>
-			{showDescription && <Markdown sanitizedHtml={example.description} />}
+			{showDescriptionWhenInactive && <Markdown sanitizedHtml={example.description} />}
 		</>
 	)
 
@@ -63,6 +63,7 @@ export const ListLink = forwardRef(function ListLink(
 	// )
 	const extraDetails = (
 		<div className="examples__list__item__details" aria-hidden={!isActive}>
+			{!showDescriptionWhenInactive && <Markdown sanitizedHtml={example.description} />}
 			<Markdown sanitizedHtml={example.details} />
 			<div className="examples__list__item__code">
 				<a href={example.codeUrl} target="_blank" rel="noreferrer">

@@ -3,17 +3,15 @@ import { InstancePresenceRecordType, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useRef } from 'react'
 
+// There's a guide at the bottom of this file!
+
+// [1]
 const USER_NAME = 'huppy da arrow'
 const MOVING_CURSOR_SPEED = 0.25 // 0 is stopped, 1 is full send
 const MOVING_CURSOR_RADIUS = 100
 const CURSOR_CHAT_MESSAGE = 'Hey, I think this is just great.'
 
-// Note:
-// Almost all of the information below is calculated automatically by helpers in the editor.
-// For a more realistic implementation, see https://github.com/tldraw/tldraw-yjs-example. If anything,
-// this example should be used to understand the data model and test designs, not as a reference
-// for how to implement user presence.
-
+// [2]
 export default function UserPresenceExample() {
 	const rRaf = useRef<any>(-1)
 	return (
@@ -21,9 +19,7 @@ export default function UserPresenceExample() {
 			<Tldraw
 				persistenceKey="user-presence-example"
 				onMount={(editor) => {
-					// For every connected peer you should put a TLInstancePresence record in the
-					// store with their cursor position etc.
-
+					// [a]
 					const peerPresence = InstancePresenceRecordType.create({
 						id: InstancePresenceRecordType.createId(editor.store.id),
 						currentPageId: editor.getCurrentPageId(),
@@ -35,7 +31,7 @@ export default function UserPresenceExample() {
 
 					editor.store.put([peerPresence])
 
-					// Make the fake user's cursor rotate in a circle
+					// [b]
 					const raf = rRaf.current
 					cancelAnimationFrame(raf)
 
@@ -64,8 +60,11 @@ export default function UserPresenceExample() {
 									t < 1
 										? ''
 										: t > 2
-										? CURSOR_CHAT_MESSAGE
-										: CURSOR_CHAT_MESSAGE.slice(0, Math.ceil((t - 1) * CURSOR_CHAT_MESSAGE.length))
+											? CURSOR_CHAT_MESSAGE
+											: CURSOR_CHAT_MESSAGE.slice(
+													0,
+													Math.ceil((t - 1) * CURSOR_CHAT_MESSAGE.length)
+												)
 							}
 
 							editor.store.put([
@@ -92,3 +91,21 @@ export default function UserPresenceExample() {
 		</div>
 	)
 }
+
+/* 
+This example shows how to add instance presence records to the store to show other users' cursors.
+It is not an example of how to implement user presence, check out the yjs example for that:
+https://github.com/tldraw/tldraw-yjs-example
+
+[1]
+We're going to a fake a user's cursor and chat message, these are the values we'll use.
+
+[2]
+This is where we'll render the Tldraw component. We'll use the onMount callback to access the editor 
+instance.
+	[a] For every connected peer we need to add an instance presence record to the store. We can do
+		this using the InstancePresenceRecordType.create function and add it to the store using the
+		store.put method.
+	[b] We'll use the requestAnimationFrame function to update the cursor position and chat message.
+		This is just for demonstration purposes.
+*/

@@ -39,7 +39,7 @@ export class PointingSelection extends StateNode {
 						hitInside: true,
 						margin: 0,
 						renderingOnly: true,
-				  })
+					})
 
 		if (hitShape) {
 			// todo: extract the double click shape logic from idle so that we can share it here

@@ -20,7 +20,8 @@
 	--radius-1: 4px;
 	--radius-2: 6px;
 	--radius-3: 9px;
-	--radius-4: 13px;
+	--radius-4: 11px;
+	/* Z Index */
 	--layer-background: 100;
 	--layer-grid: 150;
 	--layer-canvas: 200;
@@ -29,8 +30,6 @@
 	--layer-following-indicator: 1000;
 	/* Misc */
 	--tl-zoom: 1;
-	--tl-dpr-multiple: 100;
-	--tl-dpr-multiple-px: calc(var(--tl-dpr-multiple) * 1px);
 
 	/* Cursor SVGs */
 	--tl-cursor-none: none;
@@ -77,16 +76,18 @@
 	--tl-cursor-senw-rotate: pointer;
 	--tl-cursor-swne-rotate: pointer;
 	--tl-scale: calc(1 / var(--tl-zoom));
+	/* fonts */
 	--tl-font-draw: 'tldraw_draw', sans-serif;
 	--tl-font-sans: 'tldraw_sans', sans-serif;
 	--tl-font-serif: 'tldraw_serif', serif;
 	--tl-font-mono: 'tldraw_mono', monospace;
+	/* fext outline */
 	--a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
 	--b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
 	--tl-text-outline: 0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
 		var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
 		var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background);
-	/* Own properties */
+	/* own properties */
 	position: relative;
 	top: 0px;
 	left: 0px;
@@ -96,85 +97,85 @@
 }
 
 .tl-theme__light {
-	--color-accent: #e64a4a;
-	--color-background: rgb(249, 250, 251);
-	--color-brush-fill: rgba(144, 144, 144, 0.102);
-	--color-brush-stroke: rgba(144, 144, 144, 0.251);
-	--color-grid: rgb(109, 109, 109);
+	--color-accent: hsl(0, 76%, 60%);
+	--color-background: hsl(210, 20%, 98%);
+	--color-brush-fill: hsl(0, 0%, 56%, 10.2%);
+	--color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
+	--color-grid: hsl(0, 0%, 43%);
 	--color-low: hsl(204, 16%, 94%);
 	--color-low-border: hsl(204, 16%, 92%);
-	--color-culled: rgb(235, 238, 240);
-	--color-muted-none: rgba(0, 0, 0, 0);
-	--color-muted-0: rgba(0, 0, 0, 0.02);
-	--color-muted-1: rgba(0, 0, 0, 0.1);
-	--color-muted-2: rgba(0, 0, 0, 0.042);
-	--color-hint: rgba(0, 0, 0, 0.055);
-	--color-overlay: rgba(0, 0, 0, 0.2);
-	--color-divider: #e8e8e8;
-	--color-panel-contrast: #ffffff;
-	--color-panel-overlay: rgba(255, 255, 255, 0.82);
-	--color-panel: #fdfdfd;
-	--color-focus: #004094;
-	--color-selected: #2f80ed;
-	--color-selected-contrast: #ffffff;
-	--color-selection-fill: #1e90ff06;
-	--color-selection-stroke: #2f80ed;
-	--color-text-0: #1d1d1d;
-	--color-text-1: #2d2d2d;
-	--color-text-3: #a4a5a7;
-	--color-text-shadow: #ffffff;
-	--color-primary: #2f80ed;
-	--color-warn: #d10b0b;
-	--color-text: #000000;
-	--color-laser: #ff0000;
-
-	--shadow-1: 0px 1px 2px rgba(0, 0, 0, 0.25), 0px 1px 3px rgba(0, 0, 0, 0.09);
-	--shadow-2: 0px 0px 2px rgba(0, 0, 0, 0.16), 0px 2px 3px rgba(0, 0, 0, 0.24),
-		0px 2px 6px rgba(0, 0, 0, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3: 0px 1px 2px rgba(0, 0, 0, 0.28), 0px 2px 6px rgba(0, 0, 0, 0.14),
+	--color-culled: hsl(204, 14%, 93%);
+	--color-muted-none: hsl(0, 0%, 0%, 0%);
+	--color-muted-0: hsl(0, 0%, 0%, 2%);
+	--color-muted-1: hsl(0, 0%, 0%, 10%);
+	--color-muted-2: hsl(0, 0%, 0%, 4.3%);
+	--color-hint: hsl(0, 0%, 0%, 5.5%);
+	--color-overlay: hsl(0, 0%, 0%, 20%);
+	--color-divider: hsl(0, 0%, 91%);
+	--color-panel-contrast: hsl(0, 0%, 100%);
+	--color-panel-overlay: hsl(0, 0%, 100%, 82%);
+	--color-panel: hsl(0, 0%, 99%);
+	--color-focus: hsl(214, 100%, 29%);
+	--color-selected: hsl(214, 84%, 56%);
+	--color-selected-contrast: hsl(0, 0%, 100%);
+	--color-selection-fill: hsl(210, 100%, 56%, 24%);
+	--color-selection-stroke: hsl(214, 84%, 56%);
+	--color-text-0: hsl(0, 0%, 11%);
+	--color-text-1: hsl(0, 0%, 18%);
+	--color-text-3: hsl(220, 2%, 65%);
+	--color-text-shadow: hsl(0, 0%, 100%);
+	--color-primary: hsl(214, 84%, 56%);
+	--color-warn: hsl(0, 90%, 43%);
+	--color-text: hsl(0, 0%, 0%);
+	--color-laser: hsl(0, 100%, 50%);
+	/* Shadows */
+	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
+	--shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
+	--shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-4: 0px 0px 3px rgba(0, 0, 0, 0.19), 0px 5px 4px rgba(0, 0, 0, 0.16),
-		0px 2px 16px rgba(0, 0, 0, 0.06), inset 0px 0px 0px 1px var(--color-panel-contrast);
+	--shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
 .tl-theme__dark {
-	--color-accent: #e64a4a;
-	--color-background: #212529;
-	--color-brush-fill: rgba(180, 180, 180, 0.05);
-	--color-brush-stroke: rgba(180, 180, 180, 0.25);
-	--color-grid: #909090;
-	--color-low: #2c3136;
-	--color-low-border: #30363b;
-	--color-culled: rgb(47, 52, 57);
-	--color-muted-none: rgba(255, 255, 255, 0);
-	--color-muted-0: rgba(255, 255, 255, 0.02);
-	--color-muted-1: rgba(255, 255, 255, 0.1);
-	--color-muted-2: rgba(255, 255, 255, 0.05);
-	--color-hint: rgba(255, 255, 255, 0.1);
-	--color-overlay: rgba(0, 0, 0, 0.35);
-	--color-divider: #49555f;
-	--color-panel-contrast: #49555f;
-	--color-panel: #363d44;
-	--color-panel-overlay: rgba(54, 61, 68, 0.82);
-	--color-focus: #a5c3f3;
-	--color-selected: #4285f4;
-	--color-selected-contrast: #ffffff;
-	--color-selection-fill: rgba(38, 150, 255, 0.05);
-	--color-selection-stroke: #2f80ed;
-	--color-text-0: #f0eded;
-	--color-text-1: #d9d9d9;
-	--color-text-3: #6d747b;
-	--color-text-shadow: #292f35;
-	--color-primary: #2f80ed;
-	--color-warn: #ef6464;
-	--color-text: #f8f9fa;
-	--color-laser: #ff0000;
-
-	--shadow-1: 0px 1px 2px #00000029, 0px 1px 3px #00000038,
+	--color-accent: hsl(0, 76%, 60%);
+	--color-background: hsl(240, 5%, 8%);
+	--color-brush-fill: hsl(0, 0%, 71%, 5.1%);
+	--color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
+	--color-grid: hsl(0, 0%, 56%);
+	--color-low: hsl(260, 5%, 12.5%);
+	--color-low-border: hsl(207, 10%, 10%);
+	--color-culled: hsl(210, 11%, 19%);
+	--color-muted-none: hsl(0, 0%, 100%, 0%);
+	--color-muted-0: hsl(0, 0%, 100%, 2%);
+	--color-muted-1: hsl(0, 0%, 100%, 10%);
+	--color-muted-2: hsl(0, 0%, 100%, 5%);
+	--color-hint: hsl(0, 0%, 100%, 7%);
+	--color-overlay: hsl(0, 0%, 0%, 50%);
+	--color-divider: hsl(240, 9%, 25%);
+	--color-panel-contrast: hsl(240, 13%, 22%);
+	--color-panel: hsl(220, 8%, 15%);
+	--color-panel-overlay: hsl(210, 11%, 24%, 82%);
+	--color-focus: hsl(217, 76%, 80%);
+	--color-selected: hsl(217, 89%, 61%);
+	--color-selected-contrast: hsl(0, 0%, 100%);
+	--color-selection-fill: hsl(209, 100%, 57%, 20%);
+	--color-selection-stroke: hsl(214, 84%, 56%);
+	--color-text-0: hsl(0, 9%, 94%);
+	--color-text-1: hsl(0, 0%, 85%);
+	--color-text-3: hsl(210, 6%, 45%);
+	--color-text-shadow: hsl(210, 13%, 18%);
+	--color-primary: hsl(214, 84%, 56%);
+	--color-warn: hsl(0, 81%, 66%);
+	--color-text: hsl(210, 17%, 98%);
+	--color-laser: hsl(0, 100%, 50%);
+	/* Shadows */
+	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-2: 0px 1px 3px #00000077, 0px 2px 6px #00000055,
+	--shadow-2: 0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3: 0px 1px 3px #00000077, 0px 2px 12px rgba(0, 0, 0, 0.22),
+	--shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
@@ -253,8 +254,6 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: var(--tl-dpr-multiple-px);
-	width: var(--tl-dpr-multiple-px);
 	overflow: visible;
 	pointer-events: none;
 	transform-origin: top left;
@@ -264,8 +263,6 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: var(--tl-dpr-multiple-px);
-	width: var(--tl-dpr-multiple-px);
 	pointer-events: none;
 }
 
@@ -324,11 +321,6 @@ input,
 .tl-brush__default {
 	stroke: var(--color-brush-stroke);
 	fill: var(--color-brush-fill);
-}
-
-.tl-screenshot-brush {
-	stroke: var(--color-text-0);
-	fill: none;
 }
 
 /* -------------------- Scribble -------------------- */
@@ -497,13 +489,6 @@ input,
 	stroke: var(--color-selection-stroke);
 }
 
-.tl-rotate-handle {
-	stroke: var(--color-selection-stroke);
-	fill: var(--color-background);
-	stroke-width: calc(1.5px * var(--tl-scale));
-	pointer-events: all;
-}
-
 .tl-mobile-rotate__bg {
 	pointer-events: all;
 	cursor: var(--tl-cursor-grab);
@@ -535,7 +520,7 @@ input,
 }
 
 .tl-handle__fg {
-	fill: var(--color-background);
+	fill: var(--color-selected-contrast);
 	stroke: var(--color-selection-stroke);
 	stroke-width: calc(1.5px * var(--tl-scale));
 	pointer-events: none;
@@ -578,7 +563,6 @@ input,
 }
 
 .tl-image-container,
-.tl-video-container,
 .tl-embed-container {
 	width: 100%;
 	height: 100%;
@@ -709,36 +693,6 @@ input,
 	}
 }
 
-.tl-spinner::after {
-	content: '';
-	box-sizing: border-box;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 20px;
-	height: 20px;
-	margin-top: -10px;
-	margin-left: -10px;
-	border-radius: 50%;
-	border: 2px solid #ccc;
-	border-top-color: #000;
-	animation: spinner 0.6s linear infinite;
-	pointer-events: none;
-}
-
-/* -------------------- IconShape ------------------- */
-
-.tl-iconshape__icon {
-	pointer-events: all;
-	width: 100%;
-	height: 100%;
-}
-
-.tl-icon-preview {
-	width: 14px;
-	height: 14px;
-}
-
 /* ------------------- Text Shape ------------------- */
 
 .tl-text-shape__wrapper {
@@ -840,12 +794,6 @@ input,
 	user-select: none;
 	contain: style paint;
 	-webkit-user-select: none;
-}
-
-.tl-text-edit-container {
-	position: relative;
-	width: 100%;
-	height: 100%;
 }
 
 .tl-text-input,
@@ -1320,21 +1268,6 @@ input,
 	fill: none;
 }
 
-.tl-frame__hitarea {
-	border-style: solid;
-	border-width: calc(8px * var(--tl-scale));
-	border-color: transparent;
-	background: none;
-	pointer-events: stroke;
-	box-sizing: border-box;
-	top: calc(-8px * var(--tl-scale));
-	left: calc(-8px * var(--tl-scale));
-	width: calc(100% + calc(16px * var(--tl-scale)));
-	height: calc(100% + calc(16px * var(--tl-scale)));
-	z-index: 1;
-	position: absolute;
-}
-
 .tl-frame-heading {
 	display: flex;
 	align-items: center;
@@ -1417,39 +1350,6 @@ input,
 .tl-embed {
 	border: none;
 	border-radius: var(--radius-2);
-}
-
-/* ------------------- Code Editor ------------------ */
-
-.tl-image__button {
-	padding: 4px 8px;
-	color: var(--color-text);
-	background-color: var(--color-panel);
-	border-radius: var(--radius-2);
-	box-shadow: var(--shadow-1);
-	pointer-events: all;
-	cursor: var(--tl-cursor-pointer);
-	outline: none;
-	display: flex;
-}
-
-.tl-image__button:disabled {
-	opacity: 0.5;
-	pointer-events: none;
-}
-
-.tl-image__toolbox {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	display: flex;
-	justify-content: flex-end;
-	align-items: flex-end;
-	padding: 10px;
-}
-
-.tl-image__toolbox__hidden {
-	display: none;
 }
 
 /* -------------- Shape Error Boundary -------------- */
@@ -1632,13 +1532,6 @@ it from receiving any pointer events or affecting the cursor. */
 }
 
 /* --------------------- Coarse --------------------- */
-
-@media screen and (pointer: coarse) {
-	/* If mobile always show handle-hint as there is no hover state */
-	.tl-canvas__mobile .tl-handle__hint {
-		opacity: 1;
-	}
-}
 
 .tl-hidden {
 	opacity: 0;

@@ -2689,6 +2689,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _willSetInitialBounds = true
+	private _wasInset = false
 
 	/**
 	 * Update the viewport. The viewport will measure the size and screen position of its container
@@ -2706,8 +2707,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateViewportScreenBounds(center = false): this {
 		const container = this.getContainer()
-
 		if (!container) return this
+
 		const rect = container.getBoundingClientRect()
 		const screenBounds = new Box(
 			rect.left || rect.x,
@@ -2715,6 +2716,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			Math.max(rect.width, 1),
 			Math.max(rect.height, 1)
 		)
+
+		const insets = [
+			// top
+			screenBounds.minY !== 0,
+			// right
+			document.body.scrollWidth !== screenBounds.maxX,
+			// bottom
+			document.body.scrollHeight !== screenBounds.maxY,
+			// left
+			screenBounds.minX !== 0,
+		]
+
 		const boundsAreEqual = screenBounds.equals(this.getViewportScreenBounds())
 
 		const { _willSetInitialBounds } = this
@@ -2726,7 +2739,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If we have just received the initial bounds, don't center the camera.
 				this._willSetInitialBounds = false
 				this.updateInstanceState(
-					{ screenBounds: screenBounds.toJson() },
+					{ screenBounds: screenBounds.toJson(), insets },
 					{ squashing: true, ephemeral: true }
 				)
 			} else {
@@ -2734,14 +2747,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// Get the page center before the change, make the change, and restore it
 					const before = this.getViewportPageCenter()
 					this.updateInstanceState(
-						{ screenBounds: screenBounds.toJson() },
+						{ screenBounds: screenBounds.toJson(), insets },
 						{ squashing: true, ephemeral: true }
 					)
 					this.centerOnPoint(before)
 				} else {
 					// Otherwise,
 					this.updateInstanceState(
-						{ screenBounds: screenBounds.toJson() },
+						{ screenBounds: screenBounds.toJson(), insets },
 						{ squashing: true, ephemeral: true }
 					)
 				}
@@ -2772,6 +2785,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getViewportScreenCenter() {
 		return this.getViewportScreenBounds().center
 	}
+
 	/**
 	 * The current viewport in the current page space.
 	 *
@@ -5062,6 +5076,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	private getChangesToTranslateShape(initialShape: TLShape, newShapeCoords: VecLike): TLShape {
+		let workingShape = initialShape
+		const util = this.getShapeUtil(initialShape)
+
+		workingShape = applyPartialToShape(
+			workingShape,
+			util.onTranslateStart?.(workingShape) ?? undefined
+		)
+
+		workingShape = applyPartialToShape(workingShape, {
+			id: initialShape.id,
+			type: initialShape.type,
+			x: newShapeCoords.x,
+			y: newShapeCoords.y,
+		})
+
+		workingShape = applyPartialToShape(
+			workingShape,
+			util.onTranslate?.(initialShape, workingShape) ?? undefined
+		)
+
+		workingShape = applyPartialToShape(
+			workingShape,
+			util.onTranslateEnd?.(initialShape, workingShape) ?? undefined
+		)
+
+		return workingShape
+	}
+
 	/**
 	 * Move shapes by a delta.
 	 *
@@ -5089,32 +5132,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const changes: TLShapePartial[] = []
 
 		for (const id of ids) {
-			const shape = this.getShape(id)
-
-			if (!shape) {
-				throw Error(`Could not find a shape with the id ${id}.`)
-			}
-
+			const shape = this.getShape(id)!
 			const localDelta = Vec.Cast(offset)
 			const parentTransform = this.getShapeParentTransform(shape)
 			if (parentTransform) localDelta.rot(-parentTransform.rotation())
 
-			const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
-
-			changes.push(
-				translateStartChanges
-					? {
-							...translateStartChanges,
-							x: shape.x + localDelta.x,
-							y: shape.y + localDelta.y,
-					  }
-					: {
-							id,
-							x: shape.x + localDelta.x,
-							y: shape.y + localDelta.y,
-							type: shape.type,
-					  }
-			)
+			changes.push(this.getChangesToTranslateShape(shape, localDelta.add(shape)))
 		}
 
 		this.updateShapes(changes, {
@@ -5728,12 +5751,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? {
 							...translateStartChanges,
 							[val]: shape[val] + localDelta[val],
-					  }
+						}
 					: {
 							id: shape.id as any,
 							type: shape.type,
 							[val]: shape[val] + localDelta[val],
-					  }
+						}
 			)
 
 			v += pageBounds[shape.id][dim] + shapeGap
@@ -5975,22 +5998,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? Vec.Rot(delta, -this.getShapePageTransform(parent)!.decompose().rotation)
 				: delta
 
-			const translateChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
-
-			changes.push(
-				translateChanges
-					? {
-							...translateChanges,
-							x: shape.x + localDelta.x,
-							y: shape.y + localDelta.y,
-					  }
-					: {
-							id: shape.id,
-							type: shape.type,
-							x: shape.x + localDelta.x,
-							y: shape.y + localDelta.y,
-					  }
-			)
+			changes.push(this.getChangesToTranslateShape(shape, Vec.Add(shape, localDelta)))
 		})
 
 		this.updateShapes(changes)
@@ -6068,20 +6076,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const localDelta = parent
 					? Vec.Rot(delta, -this.getShapePageTransform(parent)!.rotation())
 					: delta
-				const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
 
-				changes.push(
-					translateStartChanges
-						? {
-								...translateStartChanges,
-								[val]: shape[val] + localDelta[val],
-						  }
-						: {
-								id: shape.id,
-								type: shape.type,
-								[val]: shape[val] + localDelta[val],
-						  }
-				)
+				changes.push(this.getChangesToTranslateShape(shape, Vec.Add(shape, localDelta)))
 			})
 
 		this.updateShapes(changes)
@@ -7003,47 +6999,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				partials.map((partial) => {
 					const prev = snapshots[partial.id]
 					if (!prev) return null
-					let newRecord = null as null | TLShape
-					for (const [k, v] of Object.entries(partial)) {
-						if (v === undefined) continue
-						switch (k) {
-							case 'id':
-							case 'type':
-								continue
-							default: {
-								if (v !== (prev as any)[k]) {
-									if (!newRecord) {
-										newRecord = { ...prev }
-									}
-
-									if (k === 'props') {
-										// props property
-										const nextProps = { ...prev.props } as JsonObject
-										for (const [propKey, propValue] of Object.entries(v as object)) {
-											if (propValue !== undefined) {
-												nextProps[propKey] = propValue
-											}
-										}
-										newRecord!.props = nextProps
-									} else if (k === 'meta') {
-										// meta property
-										const nextMeta = { ...prev.meta } as JsonObject
-										for (const [metaKey, metaValue] of Object.entries(v as object)) {
-											if (metaValue !== undefined) {
-												nextMeta[metaKey] = metaValue
-											}
-										}
-										newRecord!.meta = nextMeta
-									} else {
-										// base property
-										;(newRecord as any)[k] = v
-									}
-								}
-							}
-						}
-					}
-
-					return newRecord ?? prev
+					return applyPartialToShape(prev, partial)
 				})
 			)
 
@@ -7390,12 +7346,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the value of a {@link @tldraw/tlschema#StyleProp} for the selected shapes.
+	 * Set the value of a {@link @tldraw/tlschema#StyleProp} for the next shapes. This change will be applied to subsequently created shapes.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
-	 * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { ephemeral: true })
+	 * editor.setStyleForNextShapes(DefaultColorStyle, 'red')
+	 * editor.setStyleForNextShapes(DefaultColorStyle, 'red', { ephemeral: true })
 	 * ```
 	 *
 	 * @param style - The style to set.
@@ -7886,16 +7842,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 					newShape.props.start = mappedId
 						? { ...newShape.props.start, boundShapeId: mappedId }
 						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-						  // convert the binding to a point at the time of copying
-						  { type: 'point', x: 0, y: 0 }
+							// convert the binding to a point at the time of copying
+							{ type: 'point', x: 0, y: 0 }
 				}
 				if (newShape.props.end.type === 'binding') {
 					const mappedId = idMap.get(newShape.props.end.boundShapeId)
 					newShape.props.end = mappedId
 						? { ...newShape.props.end, boundShapeId: mappedId }
 						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-						  // convert the binding to a point at the time of copying
-						  { type: 'point', x: 0, y: 0 }
+							// convert the binding to a point at the time of copying
+							{ type: 'point', x: 0, y: 0 }
 				}
 			}
 
@@ -8972,4 +8928,49 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
+}
+
+function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
+	if (!partial) return prev
+	let next = null as null | T
+	for (const [k, v] of Object.entries(partial)) {
+		if (v === undefined) continue
+		switch (k) {
+			case 'id':
+			case 'type':
+				continue
+			default: {
+				if (v !== (prev as any)[k]) {
+					if (!next) {
+						next = { ...prev }
+					}
+
+					if (k === 'props') {
+						// props property
+						const nextProps = { ...prev.props } as JsonObject
+						for (const [propKey, propValue] of Object.entries(v as object)) {
+							if (propValue !== undefined) {
+								nextProps[propKey] = propValue
+							}
+						}
+						next!.props = nextProps
+					} else if (k === 'meta') {
+						// meta property
+						const nextMeta = { ...prev.meta } as JsonObject
+						for (const [metaKey, metaValue] of Object.entries(v as object)) {
+							if (metaValue !== undefined) {
+								nextMeta[metaKey] = metaValue
+							}
+						}
+						next!.meta = nextMeta
+					} else {
+						// base property
+						;(next as any)[k] = v
+					}
+				}
+			}
+		}
+	}
+
+	return next ?? prev
 }

@@ -1,5 +1,6 @@
 import { Migrations, Store, createRecordType } from '@tldraw/store'
 import fs from 'fs'
+import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { assetMigrations, assetVersions } from './records/TLAsset'
@@ -1607,6 +1608,18 @@ describe('add isHoveringCanvas to TLInstance', () => {
 	})
 })
 
+describe('add isInset to TLInstance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddInset]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ insets: [false, false, false, false] })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ insets: [false, false, false, false] })).toEqual({})
+	})
+})
+
 describe('add scribbles to TLInstance', () => {
 	const { up, down } = instanceMigrations.migrators[instanceVersions.AddScribbles]
 
@@ -1756,6 +1769,43 @@ describe('add isPrecise to arrow handles', () => {
 			},
 		})
 	})
+})
+
+const invalidUrl = 'invalid-url'
+const validUrl = ''
+
+describe('Make urls valid for all the shapes', () => {
+	const migrations = [
+		['bookmark shape', bookmarkShapeMigrations.migrators[2]],
+		['geo shape', geoShapeMigrations.migrators[8]],
+		['image shape', imageShapeMigrations.migrators[3]],
+		['note shape', noteShapeMigrations.migrators[5]],
+		['video shape', videoShapeMigrations.migrators[2]],
+	] as const
+
+	for (const [shapeName, { up, down }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			const shape = { props: { url: invalidUrl } }
+			expect(up(shape)).toEqual({ props: { url: validUrl } })
+			expect(down(shape)).toEqual(shape)
+		})
+	}
+})
+
+describe('Make urls valid for all the assets', () => {
+	const migrations = [
+		['bookmark asset', bookmarkAssetMigrations.migrators[1]],
+		['image asset', imageAssetMigrations.migrators[3]],
+		['video asset', videoAssetMigrations.migrators[3]],
+	] as const
+
+	for (const [assetName, { up, down }] of migrations) {
+		it(`works for ${assetName}`, () => {
+			const asset = { props: { src: invalidUrl } }
+			expect(up(asset)).toEqual({ props: { src: validUrl } })
+			expect(down(asset)).toEqual(asset)
+		})
+	}
 })
 
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */

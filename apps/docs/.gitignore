@@ -1,0 +1,6 @@
+content/gen
+api-content.json
+content.db
+.env
+.next
+.vercel

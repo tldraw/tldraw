@@ -1,0 +1,111 @@
+name: Trigger production build
+
+on:
+  push:
+    branches:
+      - hotfixes
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target ref to deploy'
+        required: true
+        default: 'main'
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TARGET: ${{ github.event.inputs.target }}
+
+jobs:
+  trigger:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Manual trigger' || 'Hotfix' }}
+    runs-on: ubuntu-latest-16-cores-open
+    concurrency: trigger-production
+
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+          ref: refs/heads/production
+          fetch-depth: 0
+
+      - name: Get target commit hash (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -x
+
+          # if the target exists on its own use that
+          if git rev-parse "$TARGET" --quiet; then
+            target_hash=$(git rev-parse "$TARGET")
+          fi
+          # if not try prefixed with origin:
+          if [ -z "$target_hash" ]; then
+            target_hash=$(git rev-parse "origin/$TARGET")
+          fi
+
+          echo "SHOULD_DEPLOY=true" >> $GITHUB_ENV
+          echo "TARGET_HASH=$target_hash" >> $GITHUB_ENV
+
+      - name: Get target commit hash (hotfix)
+        if: github.event_name == 'push'
+        run: |
+          set -x
+          echo "TARGET_HASH=$GITHUB_SHA" >> $GITHUB_ENV
+          echo "TARGET=hotfix" >> $GITHUB_ENV
+          # is the hotfix sha already on production?
+          if git merge-base --is-ancestor "$GITHUB_SHA" production; then
+            echo "SHOULD_DEPLOY=false" >> $GITHUB_ENV
+          else
+            echo "SHOULD_DEPLOY=true" >> $GITHUB_ENV
+          fi
+
+      - name: Author setup (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -x
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email 'huppy+${{ github.actor }}@tldraw.com'
+
+      - name: Author setup (hotfix)
+        if: github.event_name == 'push'
+        run: |
+          set -x
+          commit_author_name=$(git log -1 --pretty=format:%cn "$TARGET_HASH")
+          commit_author_email=$(git log -1 --pretty=format:%ce "$TARGET_HASH")
+          git config --global user.name "$commit_author_name"
+          git config --global user.email "$commit_author_email"
+
+      - name: Get target tree hash
+        run: |
+          set -x
+          tree_hash=$(git show --quiet --pretty=format:%T "$TARGET_HASH")
+          echo "TREE_HASH=$tree_hash" >> $GITHUB_ENV
+
+      - name: Create commit & update production branch
+        run: |
+          set -eux
+          now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          message="Deploy from $TARGET ($TARGET_HASH) at $now"
+          current_prod_hash=$(git rev-parse HEAD)
+
+          commit=$(git commit-tree -m "$message" -p "$current_prod_hash" -p "$TARGET_HASH" "$TREE_HASH")
+
+          git update-ref refs/heads/production "$commit"
+          git checkout production
+
+      - name: Push commit to trigger deployment
+        if: env.SHOULD_DEPLOY == 'true'
+        run: |
+          set -x
+          git push origin production
+          # reset hotfixes to the latest production
+          git push origin production:hotfixes --force

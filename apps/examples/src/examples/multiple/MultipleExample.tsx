@@ -2,6 +2,9 @@ import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { createContext, useCallback, useContext, useState } from 'react'
 
+// There's a guide at the bottom of this page!
+
+//[1]
 const focusedEditorContext = createContext(
 	{} as {
 		focusedEditor: string | null
@@ -9,6 +12,7 @@ const focusedEditorContext = createContext(
 	}
 )
 
+// [2]
 export default function MultipleExample() {
 	const [focusedEditor, _setFocusedEditor] = useState<string | null>('A')
 
@@ -53,6 +57,7 @@ export default function MultipleExample() {
 	)
 }
 
+// [3]
 function EditorA() {
 	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
 	const isFocused = focusedEditor === 'A'
@@ -74,6 +79,7 @@ function EditorA() {
 	)
 }
 
+// [4]
 function EditorB() {
 	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
 	const isFocused = focusedEditor === 'B'
@@ -116,6 +122,7 @@ function EditorC() {
 	)
 }
 
+// [5]
 function ABunchOfText() {
 	return (
 		<article style={{ maxWidth: 500 }}>
@@ -159,3 +166,31 @@ function ABunchOfText() {
 		</article>
 	)
 }
+
+/* 
+This example shows how to use multiple editors on the same page. When doing this, you'll
+need to make sure that only one editor is focused at a time. We can manage this using 
+the autofocus prop on the tldraw component, along with React's context and set state 
+APIs.
+
+[1]
+We first create a context that will hold the focused editor id and a setter for that id. 
+We'll use this to keep track of which editor is focused.
+
+[2]
+Wrap the editors in the context provider. This will make the context available to all
+of the editors.
+
+[3]	
+Get the focused editor id and the setter from the context. We'll use these to determine
+if the editor should be focused or not. We wrap the Tldraw component in a div and use 
+the onFocus event to set the focused editor id. 
+
+[4]
+Same again, but we're using the same persistence key for editors B and C. This means
+that they will share a document. 
+
+[5]
+A long story that doesn't really go anywhere, clearly written by a computer. But it's	
+a good way to test the scroll behavior of the page.
+*/

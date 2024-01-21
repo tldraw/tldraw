@@ -1,3 +1,64 @@
+# v2.0.0-beta.2 (Wed Jan 10 2024)
+
+### Release Notes
+
+#### [fix] next selected shapes comment ([#2427](https://github.com/tldraw/tldraw/pull/2427))
+
+- Fix error in setStyleForNextSelectedShapes comment
+
+#### Fix issues with clip paths for frames ([#2406](https://github.com/tldraw/tldraw/pull/2406))
+
+- Add a brief release note for your PR here.
+
+#### [fix] edge scrolling when component is inside of screen ([#2398](https://github.com/tldraw/tldraw/pull/2398))
+
+- Add a brief release note for your PR here.
+
+#### [tech debt] Primitives renaming party / cleanup ([#2396](https://github.com/tldraw/tldraw/pull/2396))
+
+- renames Vec2d to Vec
+- renames Vec2dModel to VecModel
+- renames Box2d to Box
+- renames Box2dModel to BoxModel
+- renames Matrix2d to Mat
+- renames Matrix2dModel to MatModel
+- removes unused primitive helpers
+
+#### Fix trademark links ([#2380](https://github.com/tldraw/tldraw/pull/2380))
+
+- Fixes broken links in a number of docs files.
+
+#### [fix] polygon bounds ([#2378](https://github.com/tldraw/tldraw/pull/2378))
+
+- Fixed a bug with the bounds calculation for polygons.
+
+---
+
+#### 💥 Breaking Change
+
+- [tech debt] Primitives renaming party / cleanup [#2396](https://github.com/tldraw/tldraw/pull/2396) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Fix issues with clip paths for frames [#2406](https://github.com/tldraw/tldraw/pull/2406) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [fix] edge scrolling when component is inside of screen [#2398](https://github.com/tldraw/tldraw/pull/2398) ([@steveruizok](https://github.com/steveruizok))
+- [fix] polygon bounds [#2378](https://github.com/tldraw/tldraw/pull/2378) ([@steveruizok](https://github.com/steveruizok))
+
+#### 📝 Documentation
+
+- [fix] next selected shapes comment [#2427](https://github.com/tldraw/tldraw/pull/2427) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- Fix trademark links [#2380](https://github.com/tldraw/tldraw/pull/2380) ([@nonparibus](https://github.com/nonparibus))
+- Another typo fix. [#2366](https://github.com/tldraw/tldraw/pull/2366) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- David @ HASH ([@nonparibus](https://github.com/nonparibus))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.0.0-beta.1 (Wed Dec 20 2023)
 
 ### Release Notes

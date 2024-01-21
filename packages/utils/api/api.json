@@ -656,6 +656,52 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/utils!getHashForBuffer:function(1)",
+          "docComment": "/**\n * Hash an ArrayBuffer using the FNV-1a algorithm.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function getHashForBuffer(buffer: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ArrayBuffer",
+              "canonicalReference": "!ArrayBuffer:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/hash.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "buffer",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "getHashForBuffer"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/utils!getHashForObject:function(1)",
           "docComment": "/**\n * Hash a string using the FNV-1a algorithm.\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -970,51 +1016,6 @@
           "name": "isNonNullish"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/utils!isValidUrl:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function isValidUrl(url: "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "boolean"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/utils/src/lib/url.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "url",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "isValidUrl"
-        },
-        {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/utils!JsonArray:type",
           "docComment": "/**\n * @public\n */\n",
@@ -1291,16 +1292,71 @@
           "members": [
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/utils!MediaHelpers.getImageSizeFromSrc:member(1)",
-              "docComment": "/**\n * Get the size of an image from its source.\n *\n * @param dataURL - The file as a string.\n *\n * @public\n */\n",
+              "canonicalReference": "@tldraw/utils!MediaHelpers.blobToDataUrl:member(1)",
+              "docComment": "/**\n * Read a blob into a data url\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "static getImageSizeFromSrc(dataURL: "
+                  "text": "static blobToDataUrl(blob: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Blob",
+                  "canonicalReference": "!Blob:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": "string"
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "blob",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "blobToDataUrl"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!MediaHelpers.getImageSize:member(1)",
+              "docComment": "/**\n * Get the size of an image blob\n *\n * @param dataURL - A Blob containing the image.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static getImageSize(blob: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Blob",
+                  "canonicalReference": "!Blob:interface"
                 },
                 {
                   "kind": "Content",
@@ -1330,7 +1386,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "dataURL",
+                  "parameterName": "blob",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -1340,20 +1396,21 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "getImageSizeFromSrc"
+              "name": "getImageSize"
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/utils!MediaHelpers.getVideoSizeFromSrc:member(1)",
-              "docComment": "/**\n * Get the size of a video from its source.\n *\n * @param src - The source of the video.\n *\n * @public\n */\n",
+              "canonicalReference": "@tldraw/utils!MediaHelpers.getVideoSize:member(1)",
+              "docComment": "/**\n * Get the size of a video blob\n *\n * @param src - A SharedBlob containing the video\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "static getVideoSizeFromSrc(src: "
+                  "text": "static getVideoSize(blob: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "Blob",
+                  "canonicalReference": "!Blob:interface"
                 },
                 {
                   "kind": "Content",
@@ -1377,6 +1434,68 @@
               "returnTypeTokenRange": {
                 "startIndex": 3,
                 "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "blob",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getVideoSize"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!MediaHelpers.loadImage:member(1)",
+              "docComment": "/**\n * Load an image from a url.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static loadImage(src: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HTMLImageElement",
+                  "canonicalReference": "!HTMLImageElement:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -1393,7 +1512,161 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "getVideoSizeFromSrc"
+              "name": "loadImage"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!MediaHelpers.loadVideo:member(1)",
+              "docComment": "/**\n * Load a video from a url.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static loadVideo(src: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HTMLVideoElement",
+                  "canonicalReference": "!HTMLVideoElement:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "src",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "loadVideo"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!MediaHelpers.usingObjectURL:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static usingObjectURL<T>(blob: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Blob",
+                  "canonicalReference": "!Blob:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", fn: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(url: string) => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "blob",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "fn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "usingObjectURL"
             }
           ],
           "implementsTokenRanges": []

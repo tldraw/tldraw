@@ -11,7 +11,7 @@ import { TLResizeHandle } from '../types/selection-types'
 /** @public */
 export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
-	U extends ShapeUtil<T> = ShapeUtil<T>
+	U extends ShapeUtil<T> = ShapeUtil<T>,
 > {
 	new (editor: Editor): U
 	type: T['type']
@@ -150,7 +150,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	hideResizeHandles: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape should hide its resize handles when selected.
+	 * Whether the shape should hide its rotation handles when selected.
 	 *
 	 * @public
 	 */

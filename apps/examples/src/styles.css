@@ -5,8 +5,6 @@ body {
 	padding: 0;
 	margin: 0;
 	font-family: 'Inter', sans-serif;
-	overscroll-behavior: none;
-	touch-action: none;
 	min-height: 100vh;
 	font-size: 16px;
 	/* mobile viewport bug fix */
@@ -29,6 +27,8 @@ html,
 	position: absolute;
 	inset: 0px;
 	overflow: hidden;
+	overscroll-behavior: none;
+	touch-action: none;
 }
 
 .examples {
@@ -92,6 +92,7 @@ html,
 	overflow: hidden;
 	position: relative;
 	padding: 1.5rem;
+	display: block;
 }
 .examples__list__item__link {
 	position: absolute;
@@ -101,7 +102,6 @@ html,
 }
 
 .examples__list__item__active {
-	display: block;
 	padding: 1.5rem;
 	text-decoration: none;
 	color: inherit;
@@ -119,27 +119,34 @@ html,
 	opacity: 0;
 	transition: opacity 0.12s ease-in-out;
 }
-.examples__list__item:hover::before,
 .examples__list__item__active::before {
 	opacity: 1;
+}
+@media screen and (pointer: fine) {
+	.examples__list__item:hover::before {
+		opacity: 1;
+	}
 }
 
 .examples__list__item h3 {
 	all: unset;
 	font-weight: 700;
 	font-size: 1rem;
-	margin: 0.25rem 0rem;
+	margin-top: 0.25rem;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
 .examples__list__item__details {
-	margin-top: 1rem;
 	position: absolute;
 	left: 1rem;
 	right: 1rem;
 	opacity: 0;
 	transition: opacity 0.12s ease-in-out;
+	margin-top: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
 }
 .examples__list__item__active .examples__list__item__details {
 	position: static;
@@ -164,7 +171,6 @@ html,
 	gap: 0.5rem;
 }
 .examples__list__item__code a {
-	margin-top: 0.5rem;
 	padding: 0.5rem 0.5rem;
 	border-radius: 6px;
 	background-color: white;

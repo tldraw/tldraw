@@ -17,7 +17,7 @@ import { isLegacyAlign } from './legacyProps'
 import { useEditableText } from './useEditableText'
 
 export const TextLabel = React.memo(function TextLabel<
-	T extends Extract<TLShape, { props: { text: string } }>
+	T extends Extract<TLShape, { props: { text: string } }>,
 >({
 	id,
 	type,
@@ -82,7 +82,7 @@ export const TextLabel = React.memo(function TextLabel<
 							width: bounds.width,
 							height: bounds.height,
 							position: 'absolute',
-					  }
+						}
 					: {}),
 			}}
 		>

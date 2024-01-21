@@ -10,7 +10,7 @@ import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 /** @public */
 export interface TLUiToolItem<
 	TranslationKey extends string = string,
-	IconType extends string = string
+	IconType extends string = string,
 > {
 	id: string
 	label: TranslationKey
