@@ -1,21 +1,7 @@
 // eslint-disable-next-line import/no-internal-modules
-import type { AssetUrls } from '@tldraw/assets/types'
-// eslint-disable-next-line import/no-internal-modules
-import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
-import { isProductionEnv } from './env'
+import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 
-const _assetUrls = getAssetUrlsByMetaUrl()
-
-export const assetUrls: AssetUrls = isProductionEnv
-	? _assetUrls
-	: // let's try out shantell sans 'informal' style for a bit on staging/dev
-		{
-			..._assetUrls,
-			fonts: {
-				..._assetUrls.fonts,
-				draw: '/Shantell_Sans-Tldrawish.woff2',
-			},
-		}
+export const assetUrls = getAssetUrlsByImport()
 
 let didPreloadIcons = false
 async function preloadIcons() {
