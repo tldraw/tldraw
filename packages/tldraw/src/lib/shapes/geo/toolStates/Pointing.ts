@@ -94,8 +94,8 @@ export class Pointing extends StateNode {
 			shape.props.geo === 'star'
 				? new Box(0, 0, 200, 190)
 				: shape.props.geo === 'cloud'
-				? new Box(0, 0, 300, 180)
-				: new Box(0, 0, 200, 200)
+					? new Box(0, 0, 300, 180)
+					: new Box(0, 0, 200, 200)
 
 		const delta = bounds.center
 		const parentTransform = this.editor.getShapeParentTransform(shape)

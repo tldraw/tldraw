@@ -1717,6 +1717,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerDown()
 		editor.pointerMove(0, 0)
 		jest.advanceTimersByTime(100)
+		editor.pointerUp()
 		const camera2 = editor.getCamera()
 		expect(camera2.x).toBeGreaterThan(camera1.x) // for some reason > is left
 		expect(camera2.y).toBeGreaterThan(camera1.y) // for some reason > is up
@@ -1729,6 +1730,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerDown()
 		editor.pointerMove(100, 100)
 		jest.advanceTimersByTime(100)
+		editor.pointerUp()
 		const camera2 = editor.getCamera()
 		// should NOT have moved the camera by edge scrolling
 		expect(camera2.x).toEqual(camera1.x)
@@ -1742,10 +1744,19 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerDown()
 		editor.pointerMove(100, 100)
 		jest.advanceTimersByTime(100)
+		editor.pointerUp()
 		const camera4 = editor.getCamera()
-		// should have moved the camera by edge scrolling
-		expect(camera4.x).toBeGreaterThan(camera3.x)
-		expect(camera4.y).toBeGreaterThan(camera3.y)
+		// should NOT have moved the camera by edge scrolling because the edge is now "inset"
+		expect(camera4.x).toEqual(camera3.x)
+		expect(camera4.y).toEqual(camera3.y)
+
+		editor.pointerDown()
+		editor.pointerMove(90, 90) // off the edge of the component
+		jest.advanceTimersByTime(100)
+		const camera5 = editor.getCamera()
+		// should have moved the camera by edge scrolling off the component edge
+		expect(camera5.x).toBeGreaterThan(camera4.x)
+		expect(camera5.y).toBeGreaterThan(camera4.y)
 	})
 
 	it('selects shapes that are outside of the viewport', () => {

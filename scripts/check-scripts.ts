@@ -65,8 +65,7 @@ async function main({ fix }: { fix?: boolean }) {
 		const packageScripts = packageJson.scripts
 
 		let expected =
-			name.startsWith('@tldraw/') &&
-			(relativePath.startsWith('bublic/packages/') || relativePath.startsWith('packages/'))
+			name.startsWith('@tldraw/') && relativePath.startsWith('packages/')
 				? packageJson.private
 					? expectedPackageScripts
 					: expectedPublishedPackageScripts

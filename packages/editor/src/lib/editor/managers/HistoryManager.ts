@@ -18,7 +18,7 @@ type ExtractArgs<Fn> = Parameters<Extract<Fn, (...args: any[]) => any>>
 export class HistoryManager<
 	CTX extends {
 		emit: (name: 'change-history' | 'mark-history', ...args: any) => void
-	}
+	},
 > {
 	_undos = atom<Stack<TLHistoryEntry>>('HistoryManager.undos', stack()) // Updated by each action that includes and undo
 	_redos = atom<Stack<TLHistoryEntry>>('HistoryManager.redos', stack()) // Updated when a user undoes

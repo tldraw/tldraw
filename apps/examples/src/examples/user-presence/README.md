@@ -1,5 +1,5 @@
 ---
-title: User presence
+title: User Presence
 component: ./UserPresenceExample.tsx
 ---
 

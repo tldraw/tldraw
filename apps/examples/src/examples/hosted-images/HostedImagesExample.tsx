@@ -12,11 +12,13 @@ import {
 import '@tldraw/tldraw/tldraw.css'
 import { useCallback } from 'react'
 
+// [1]
 const UPLOAD_URL = '/SOME_ENDPOINT'
 
+// [2]
 export default function HostedImagesExample() {
 	const handleMount = useCallback((editor: Editor) => {
-		// When a user uploads a file, create an asset from it
+		//[a]
 		editor.registerExternalAssetHandler('file', async ({ file }: { type: 'file'; file: File }) => {
 			const id = uniqueId()
 
@@ -27,7 +29,7 @@ export default function HostedImagesExample() {
 				method: 'POST',
 				body: file,
 			})
-
+			//[b]
 			const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
 			let size: {
@@ -37,16 +39,17 @@ export default function HostedImagesExample() {
 			let isAnimated: boolean
 			let shapeType: 'image' | 'video'
 
+			//[c]
 			if (['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].includes(file.type)) {
 				shapeType = 'image'
-				size = await MediaHelpers.getImageSizeFromSrc(url)
+				size = await MediaHelpers.getImageSize(file)
 				isAnimated = file.type === 'image/gif' && (await isGifAnimated(file))
 			} else {
 				shapeType = 'video'
 				isAnimated = true
-				size = await MediaHelpers.getVideoSizeFromSrc(url)
+				size = await MediaHelpers.getVideoSize(file)
 			}
-
+			//[d]
 			const asset: TLAsset = AssetRecordType.create({
 				id: assetId,
 				type: shapeType,
@@ -71,3 +74,40 @@ export default function HostedImagesExample() {
 		</div>
 	)
 }
+/* 
+Introduction:
+This example shows how to handle images uploaded by the user. to do this we'll
+need to register an external asset handler, which is called when the user uploads
+a file. We'll then upload the file to our server and create an asset from it.
+
+[1]
+You'll want to have an endpoint on your server that accepts a file and returns 
+a url.
+
+[2]
+We use the onMount prop to get access to the editor instance and register our 
+handler. Check out the API example for more details. 
+
+	[a]
+	We then register a handler for the 'file' type.
+	You could also use this method to handle other types of external assets, 
+	like embeds or pasted text, check out the external content sources example 
+	for more. 
+
+	[b]
+	After uploading the file to our server, we create an asset fror it. We'll 
+	need to create a record for the asset, which is an object that contains 
+	the asset's id, type, and props. We'll start by creating the id with the 
+	AssetRecordType.createId method.
+
+	[c]
+	Now it's time to figure out the dimensions of the media is using our 
+	MediaHelpers, and whether it's a gif, image or video.
+
+	[d]
+	Finally we create the asset record using the AssetRecordType.create method
+	and return it. Note that we don't create a shape on the canvas here, if you
+	want to see an example that does this, check out the local images example.
+
+
+*/

@@ -1,5 +1,5 @@
-import downscale from 'downscale'
-import { getBrowserCanvasMaxSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
+import { MediaHelpers, assertExists } from '@tldraw/editor'
+import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 import { isAnimated } from './is-gif-animated'
 
 type BoxWidthHeight = {
@@ -38,54 +38,57 @@ export function containBoxSize(
 }
 
 /**
- * Get the size of an image from its source.
+ * Resize an image Blob to be smaller than it is currently.
  *
  * @example
  * ```ts
- * const size = await getImageSize('https://example.com/image.jpg')
- * const dataUrl = await getResizedImageDataUrl('https://example.com/image.jpg', size.w, size.h, { type: "image/jpeg", quality: 0.92 })
+ * const image = await (await fetch('/image.jpg')).blob()
+ * const size = await getImageSize(image)
+ * const resizedImage = await downsizeImage(image, size.w / 2, size.h / 2, { type: "image/jpeg", quality: 0.92 })
  * ```
  *
- * @param dataURLForImage - The image file as a string.
+ * @param image - The image Blob.
  * @param width - The desired width.
  * @param height - The desired height.
  * @param opts - Options for the image.
  * @public
  */
-export async function getResizedImageDataUrl(
-	dataURLForImage: string,
+export async function downsizeImage(
+	blob: Blob,
 	width: number,
 	height: number,
 	opts = {} as { type?: string; quality?: number }
-): Promise<string> {
-	let desiredWidth = width * 2
-	let desiredHeight = height * 2
-	const { type = 'image/jpeg', quality = 0.92 } = opts
+): Promise<Blob> {
+	const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
+	const { type = blob.type, quality = 0.92 } = opts
+	const [desiredWidth, desiredHeight] = await clampToBrowserMaxCanvasSize(
+		Math.min(width * 2, image.naturalWidth),
+		Math.min(height * 2, image.naturalHeight)
+	)
 
-	const canvasSizes = await getBrowserCanvasMaxSize()
+	const canvas = document.createElement('canvas')
+	canvas.width = desiredWidth
+	canvas.height = desiredHeight
+	const ctx = assertExists(
+		canvas.getContext('2d', { willReadFrequently: true }),
+		'Could not get canvas context'
+	)
+	ctx.imageSmoothingEnabled = true
+	ctx.imageSmoothingQuality = 'high'
+	ctx.drawImage(image, 0, 0, desiredWidth, desiredHeight)
 
-	const aspectRatio = width / height
-
-	if (desiredWidth > canvasSizes.maxWidth) {
-		desiredWidth = canvasSizes.maxWidth
-		desiredHeight = desiredWidth / aspectRatio
-	}
-
-	if (desiredHeight > canvasSizes.maxHeight) {
-		desiredHeight = canvasSizes.maxHeight
-		desiredWidth = desiredHeight * aspectRatio
-	}
-
-	if (desiredWidth * desiredHeight > canvasSizes.maxArea) {
-		const ratio = Math.sqrt(canvasSizes.maxArea / (desiredWidth * desiredHeight))
-		desiredWidth *= ratio
-		desiredHeight *= ratio
-	}
-
-	return await downscale(dataURLForImage, desiredWidth, desiredHeight, {
-		// downscale expects the type without the `image/` prefix
-		imageType: type.replace('image/', ''),
-		quality,
+	return new Promise((resolve, reject) => {
+		canvas.toBlob(
+			(blob) => {
+				if (blob) {
+					resolve(blob)
+				} else {
+					reject(new Error('Could not resize image'))
+				}
+			},
+			type,
+			quality
+		)
 	})
 }
 
@@ -95,13 +98,6 @@ export const DEFAULT_ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif'
 export const DEFAULT_ACCEPTED_VID_TYPE = ['video/mp4', 'video/quicktime']
 
 /** @public */
-export async function isGifAnimated(file: File): Promise<boolean> {
-	return await new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onerror = () => reject(reader.error)
-		reader.onload = () => {
-			resolve(reader.result ? isAnimated(reader.result as ArrayBuffer) : false)
-		}
-		reader.readAsArrayBuffer(file)
-	})
+export async function isGifAnimated(file: Blob): Promise<boolean> {
+	return isAnimated(await file.arrayBuffer())
 }

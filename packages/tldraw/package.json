@@ -2,7 +2,6 @@
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
 	"version": "2.0.0",
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -31,7 +30,8 @@
 	"scripts": {
 		"test": "lazy inherit",
 		"test-coverage": "lazy inherit",
-		"dev": "chokidar '../{editor/src/lib/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs' --initial",
+		"predev": "node ./scripts/copy-css-files.mjs",
+		"dev": "chokidar '../{editor/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
@@ -55,7 +55,6 @@
 		"@tldraw/editor": "workspace:*",
 		"canvas-size": "^1.2.6",
 		"classnames": "^2.3.2",
-		"downscale": "^1.0.6",
 		"hotkeys-js": "^3.11.2",
 		"lz-string": "^1.4.4"
 	},
@@ -65,15 +64,14 @@
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
-		"@testing-library/jest-dom": "^5.14.1",
+		"@testing-library/jest-dom": "^5.16.5",
 		"@testing-library/react": "^14.0.0",
 		"@types/canvas-size": "^1.2.0",
 		"@types/classnames": "^2.3.1",
-		"@types/downscale": "^1.0.4",
 		"@types/lz-string": "^1.3.34",
 		"chokidar-cli": "^3.0.0",
 		"jest-canvas-mock": "^2.5.2",
-		"jest-environment-jsdom": "^28.1.2",
+		"jest-environment-jsdom": "^29.4.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"resize-observer-polyfill": "^1.5.1"
 	},

@@ -1,6 +1,8 @@
 import { Tldraw, TLEditorComponents } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
+// There's a guide at the bottom of this file!
+
 const components: TLEditorComponents = {
 	Brush: function MyBrush({ brush }) {
 		return (
@@ -38,3 +40,10 @@ export default function CustomComponentsExample() {
 		</div>
 	)
 }
+
+/* 
+This example shows how to change the default components that tldraw uses on the canvas via the `components` prop.
+Components include things like the background, the grid, handles, spinners etc. In this case we change the box 
+that appears when drag-selecting shapes, and the scribble left behind when using the eraser and laser pointer.
+
+*/

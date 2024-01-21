@@ -7,7 +7,10 @@ import {
 import { TLUser } from '../../config/createTLUser'
 
 export class UserPreferencesManager {
-	constructor(private readonly user: TLUser, private readonly inferDarkMode: boolean) {}
+	constructor(
+		private readonly user: TLUser,
+		private readonly inferDarkMode: boolean
+	) {}
 
 	updateUserPreferences = (userPreferences: Partial<TLUserPreferences>) => {
 		this.user.setUserPreferences({

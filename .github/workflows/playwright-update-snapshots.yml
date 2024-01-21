@@ -51,18 +51,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.18.2
-          cache: 'yarn'
-          cache-dependency-path: 'public-yarn.lock'
-
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        run: yarn
+      - name: Run our setup
+        uses: ./.github/actions/setup
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium chrome

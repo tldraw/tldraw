@@ -15,8 +15,8 @@ defaults:
     shell: bash
 
 jobs:
-  build:
-    name: 'Build and run checks'
+  test:
+    name: 'Tests & checks'
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open # TODO: this should probably run on multiple OSes
 
@@ -24,18 +24,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.18.2
-          cache: 'yarn'
-          cache-dependency-path: 'public-yarn.lock'
-
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        run: yarn
+      - uses: ./.github/actions/setup
 
       - name: Typecheck
         run: yarn build-types
@@ -49,13 +38,27 @@ jobs:
       - name: Check API declarations and docs work as intended
         run: yarn api-check
 
+      - name: Check version constraints
+        run: yarn constraints
+
+      - name: Test
+        run: yarn test
+
+  build:
+    name: 'Build all projects'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup
+
       - name: Build all projects
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "yarn build | sed -E 's/^.*? ::/::/'"
-
-      - name: Test
-        run: yarn test
 
       - name: Pack public packages
         run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"

@@ -21,7 +21,6 @@ import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
-import { useDPRMultiple } from './hooks/useDPRMultiple'
 import { useDarkMode } from './hooks/useDarkMode'
 import { EditorContext, useEditor } from './hooks/useEditor'
 import {
@@ -356,7 +355,6 @@ function Layout({
 	useForceUpdate()
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
-	useDPRMultiple()
 
 	const editor = useEditor()
 	editor.updateViewportScreenBounds()

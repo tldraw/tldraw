@@ -218,7 +218,7 @@ This is where we define the shape's props and a type validator for each key. tld
 validators for us to use. We can also define our own, at the moment our handle validator just returns true 
 though, because I like to live dangerously. Props you define here will determine which style options show 
 up in the style menu, e.g. we define 'size' and 'color' props, but we could add 'dash', 'fill' or any other
-of the defauly props.
+of the default props.
 
 [3]
 Here is where we set the default props for our shape, this will determine how the shape looks when we
