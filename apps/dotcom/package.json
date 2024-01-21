@@ -44,7 +44,6 @@
 		"fast-glob": "^3.3.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"vite": "^5.0.0",
-		"vite-plugin-pwa": "^0.17.0",
 		"ws": "^8.16.0"
 	},
 	"jest": {
