@@ -71,7 +71,7 @@ const CurrentState = track(function CurrentState() {
 	return <div className="tlui-debug-panel__current-state">{editor.getPath()}</div>
 })
 
-const TICK_LENGTH = 1000
+const TICK_LENGTH = 250
 
 function FPS() {
 	const rCanvas = React.useRef<HTMLCanvasElement>(null)
@@ -80,12 +80,14 @@ function FPS() {
 		let cancelled = false
 		const canvas = rCanvas.current!
 		const ctx = canvas.getContext('2d')!
-		ctx.font = '12px/12px monospace'
+		ctx.font = '10px/10px monospace'
+		ctx.textAlign = 'right'
+		ctx.textBaseline = 'middle'
 
 		let start = performance.now()
-		let now = start
 		let currentTickLength = 0
 		let framesInCurrentTick = 0
+		let warn = false
 
 		// A "tick" is the amount of time between renders. Even though
 		// we'll loop on every frame, we will only paint when the time
@@ -103,20 +105,26 @@ function FPS() {
 			framesInCurrentTick++
 
 			// Check if we should render
-			now = performance.now()
-			currentTickLength = now - start
+			currentTickLength = performance.now() - start
 
 			if (currentTickLength > TICK_LENGTH) {
 				// Calculate the FPS and paint it
-				const fps = framesInCurrentTick * (TICK_LENGTH / currentTickLength)
-				ctx.fillStyle = fps < 30 ? 'red' : 'black'
+				const fps = Math.round(
+					framesInCurrentTick * (TICK_LENGTH / currentTickLength) * (1000 / TICK_LENGTH)
+				)
+
+				if ((fps < 30 && !warn) || (fps >= 30 && warn)) {
+					warn = !warn
+					ctx.fillStyle = warn ? 'red' : 'black'
+				}
+
 				ctx.clearRect(0, 0, canvas.width, canvas.height)
-				ctx.fillText(fps.toFixed(0) + '', 8, 20)
+				ctx.fillText(fps.toFixed(0) + '', 48, 17)
 
 				// Reset the values
 				currentTickLength -= TICK_LENGTH
 				framesInCurrentTick = 0
-				start = now
+				start = performance.now()
 			}
 
 			requestAnimationFrame(loop)
@@ -130,7 +138,7 @@ function FPS() {
 	}, [])
 
 	return (
-		<canvas ref={rCanvas} width={64} height={32} className={classNames('tlui-debug-panel__fps')} />
+		<canvas ref={rCanvas} width={48} height={32} className={classNames('tlui-debug-panel__fps')} />
 	)
 }
 
