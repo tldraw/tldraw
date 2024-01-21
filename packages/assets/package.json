@@ -31,6 +31,8 @@
 		"translations",
 		"imports.js",
 		"imports.d.ts",
+		"imports.vite.js",
+		"imports.vite.d.ts",
 		"selfHosted.js",
 		"selfHosted.d.ts",
 		"types.d.ts",
