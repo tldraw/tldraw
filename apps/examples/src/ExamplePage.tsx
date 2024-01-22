@@ -57,11 +57,13 @@ export function ExamplePage({
 					{categories.map((c) => (
 						<Accordion.Item key={c} value={c}>
 							<Accordion.Trigger className="accordion__trigger">
-								<div className="examples__list__item">{c}</div>
+								<div className="examples__list__item">
+									<h3>{c}</h3>
+								</div>
 							</Accordion.Trigger>
 							<Accordion.Content className="accordion__content">
 								<span className="accordion__content__separator"></span>
-								<div>
+								<div className="accordion__content__examples">
 									{examples
 										.find((e) => e.id === c)
 										?.array.map((e) => (
