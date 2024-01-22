@@ -3,7 +3,7 @@ import { assert, assertExists } from '@tldraw/tldraw'
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
-import { SpanLink } from './components/ListLink'
+import { SpanLink } from './components/SpanLink'
 import { Example, examples } from './examples'
 
 export function ExamplePage({
@@ -56,18 +56,23 @@ export function ExamplePage({
 				>
 					{categories.map((c) => (
 						<Accordion.Item key={c} value={c}>
-							<Accordion.Trigger className="accordion__trigger">{c}</Accordion.Trigger>
-							<Accordion.Content>
-								{examples
-									.find((e) => e.id === c)
-									?.array.map((e) => (
-										<SpanLink
-											key={e.path}
-											example={e}
-											isActive={e.path === example.path}
-											ref={e.path === example.path ? activeElRef : undefined}
-										/>
-									))}
+							<Accordion.Trigger className="accordion__trigger">
+								<div className="examples__list__item">{c}</div>
+							</Accordion.Trigger>
+							<Accordion.Content className="accordion__content">
+								<span className="accordion__content__separator"></span>
+								<div>
+									{examples
+										.find((e) => e.id === c)
+										?.array.map((e) => (
+											<SpanLink
+												key={e.path}
+												example={e}
+												isActive={e.path === example.path}
+												ref={e.path === example.path ? activeElRef : undefined}
+											/>
+										))}
+								</div>
 							</Accordion.Content>
 						</Accordion.Item>
 					))}
