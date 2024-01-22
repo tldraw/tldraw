@@ -318,6 +318,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>
 
 	/**
+	 * A callback called when a shape starts being dragged.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onDragStart?: TLOnDragStartHandler<Shape>
+
+	/**
 	 * A callback called when some other shapes are dragged over this one.
 	 *
 	 * @example
@@ -576,6 +585,9 @@ export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>
 export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>
 
 /* -------------------- Dragging -------------------- */
+
+/** @public */
+export type TLOnDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 
 /** @public */
 export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R

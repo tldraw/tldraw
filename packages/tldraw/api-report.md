@@ -78,6 +78,7 @@ import { TLNoteShape } from '@tldraw/editor';
 import { TLOnBeforeCreateHandler } from '@tldraw/editor';
 import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
 import { TLOnDoubleClickHandler } from '@tldraw/editor';
+import { TLOnDragStartHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleChangeHandler } from '@tldraw/editor';
 import { TLOnResizeEndHandler } from '@tldraw/editor';
@@ -158,6 +159,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     static migrations: Migrations;
     // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
+    // (undocumented)
+    onDragStart: TLOnDragStartHandler<TLArrowShape>;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLArrowShape>;
     // (undocumented)

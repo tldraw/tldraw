@@ -16,6 +16,7 @@ import {
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLHandle,
+	TLOnDragStartHandler,
 	TLOnEditEndHandler,
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
@@ -68,8 +69,6 @@ import {
 import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0
-
-export const ARROW_END_OFFSET = 0.1
 
 enum ARROW_HANDLES {
 	START = 'start',
@@ -211,8 +210,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			// This logic is to make sure that the labels have fixed padding between them and the arrowhead.
 			if (info.isStraight) {
 				// First, get offset points from the arrowheads.
-				const startOffset = Vec.AddDistance(info.start.point, info.end.point, labelToArrowPadding)
-				const endOffset = Vec.AddDistance(info.end.point, info.start.point, labelToArrowPadding)
+				const startOffset = Vec.Nudge(info.start.point, info.end.point, labelToArrowPadding)
+				const endOffset = Vec.Nudge(info.end.point, info.start.point, labelToArrowPadding)
 				const directionX = startOffset.x < endOffset.x ? 1 : -1
 				const directionY = startOffset.y < endOffset.y ? 1 : -1
 
@@ -517,6 +516,19 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		].filter(Boolean) as TLHandle[]
 	}
 
+	private _labelDragOffset = new Vec(0, 0)
+	override onDragStart: TLOnDragStartHandler<TLArrowShape> = (shape) => {
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+		const labelGeometry = geometry.children[1] as Rectangle2d
+		if (labelGeometry) {
+			const pointInShapeSpace = this.editor.getPointInShapeSpace(
+				shape,
+				this.editor.inputs.currentPagePoint
+			)
+			this._labelDragOffset = Vec.Sub(labelGeometry.center, pointInShapeSpace)
+		}
+	}
+
 	override onHandleChange: TLOnHandleChangeHandler<TLArrowShape> = (
 		shape,
 		{ handle, isPrecise }
@@ -546,14 +558,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const info = this.editor.getArrowInfo(shape)!
 
 			const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-			const labelGeometry = geometry.children[1] as Rectangle2d
 			const lineGeometry = geometry.children[0] as Geometry2d
 			const pointInShapeSpace = this.editor.getPointInShapeSpace(
 				shape,
 				this.editor.inputs.currentPagePoint
 			)
-			const handleOffset = new Vec(0, labelGeometry.h / 2)
-			const nearestPoint = lineGeometry.nearestPoint(Vec.Add(pointInShapeSpace, handleOffset))
+			const nearestPoint = lineGeometry.nearestPoint(
+				Vec.Add(pointInShapeSpace, this._labelDragOffset)
+			)
 
 			let nextLabelPosition
 			if (info.isStraight) {

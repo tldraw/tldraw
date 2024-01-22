@@ -1644,6 +1644,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDragShapesOver?: TLOnDragHandler<Shape, {
         shouldHint: boolean;
     }>;
+    onDragStart?: TLOnDragStartHandler<Shape>;
     onDropShapesOver?: TLOnDragHandler<Shape>;
     onEditEnd?: TLOnEditEndHandler<Shape>;
     onHandleChange?: TLOnHandleChangeHandler<Shape>;
@@ -2350,6 +2351,9 @@ export type TLOnDoubleClickHandler<T extends TLShape> = (shape: T) => TLShapePar
 export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R;
 
 // @public (undocumented)
+export type TLOnDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
+
+// @public (undocumented)
 export type TLOnEditEndHandler<T extends TLShape> = (shape: T) => void;
 
 // @public (undocumented)
@@ -2772,7 +2776,6 @@ export class Vec {
     static Add(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     add(V: VecLike): this;
-    static AddDistance(A: VecLike, B: VecLike, distance: number): Vec;
     // (undocumented)
     static AddScalar(A: VecLike, n: number): Vec;
     // (undocumented)

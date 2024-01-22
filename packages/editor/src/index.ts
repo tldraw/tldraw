@@ -172,6 +172,7 @@ export {
 	type TLOnDoubleClickHandleHandler,
 	type TLOnDoubleClickHandler,
 	type TLOnDragHandler,
+	type TLOnDragStartHandler,
 	type TLOnEditEndHandler,
 	type TLOnHandleChangeHandler,
 	type TLOnResizeEndHandler,

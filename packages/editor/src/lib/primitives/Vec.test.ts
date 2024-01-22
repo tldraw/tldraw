@@ -268,41 +268,6 @@ describe('Vec.NearestPointOnLineThroughPoint', () => {
 	})
 })
 
-describe('Vec.AddDistance', () => {
-	it('should add a distance along a line', () => {
-		const A = { x: 0, y: 0 }
-		const B = { x: 1, y: 1 }
-		const distance = 2
-
-		const result = Vec.AddDistance(A, B, distance)
-
-		// Expect the result to be a point 2 units away from A along the line AB
-		expect(result).toEqual(Vec.From({ x: 1.414213562373095, y: 1.414213562373095 }))
-	})
-
-	it('should work with negative distances', () => {
-		const A = { x: 0, y: 0 }
-		const B = { x: 1, y: 1 }
-		const distance = -2
-
-		const result = Vec.AddDistance(A, B, distance)
-
-		// Expect the result to be a point 2 units away from A along the line BA
-		expect(result).toEqual(Vec.From({ x: -1.414213562373095, y: -1.414213562373095 }))
-	})
-
-	it('should work with zero distance', () => {
-		const A = { x: 0, y: 0 }
-		const B = { x: 1, y: 1 }
-		const distance = 0
-
-		const result = Vec.AddDistance(A, B, distance)
-
-		// Expect the result to be the same as A
-		expect(result).toEqual(Vec.From({ x: 0, y: 0, z: 1 }))
-	})
-})
-
 describe('Vec.DistanceToLineThroughPoint', () => {
 	it('Gets the distance from a point to a line that passes through a given point.', () => {
 		expect(Vec.DistanceToLineThroughPoint(new Vec(0, 0), new Vec(0, 1), new Vec(5, 5))).toEqual(5)

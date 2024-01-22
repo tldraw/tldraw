@@ -430,14 +430,6 @@ export class Vec {
 		return C
 	}
 
-	/**
-	 * Add a distance to a point along a line.
-	 */
-	static AddDistance(A: VecLike, B: VecLike, distance: number): Vec {
-		const tan = Vec.Tan(B, A)
-		return Vec.Add(A, tan.mul(distance))
-	}
-
 	static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number {
 		return Vec.Dist(P, Vec.NearestPointOnLineThroughPoint(A, u, P))
 	}
