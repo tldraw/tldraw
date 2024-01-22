@@ -1,5 +1,5 @@
 import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
-import { ListLink } from './components/ListLink'
+import { SpanLink } from './components/ListLink'
 import { examples } from './examples'
 
 export function HomePage() {
@@ -15,7 +15,7 @@ export function HomePage() {
 			</div>
 			<ul className="examples__list">
 				{examples.map((e) =>
-					e.array.map((e) => <ListLink key={e.path} example={e} showDescriptionWhenInactive />)
+					e.array.map((e) => <SpanLink key={e.path} example={e} showDescriptionWhenInactive />)
 				)}
 			</ul>
 			<hr />
