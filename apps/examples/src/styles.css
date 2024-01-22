@@ -92,6 +92,8 @@ html,
 	cursor: pointer;
 	width: 100%;
 	text-align: left;
+	font-size: 11px;
+	color:rgba(0, 0, 0, 0.5);
 }
 
 .accordion__content{
@@ -104,12 +106,18 @@ html,
 	padding-right: 1.5rem;
 }
 
+.accordion__content__examples{
+	width: 100%;
+}
+
 .examples__list__item {
 	overflow: hidden;
 	position: relative;
 	padding: 1.5rem;
 	display: block;
+	width: 100%;
 }
+
 .examples__list__item__link {
 	position: absolute;
 	inset: 0;
