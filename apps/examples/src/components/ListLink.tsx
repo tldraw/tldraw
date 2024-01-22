@@ -81,7 +81,7 @@ export const ListLink = forwardRef(function ListLink(
 	)
 
 	return (
-		<li
+		<span
 			ref={useMergedRefs(ref, containerRef)}
 			className={classNames('examples__list__item', isActive && 'examples__list__item__active')}
 		>
@@ -90,6 +90,6 @@ export const ListLink = forwardRef(function ListLink(
 			)}
 			{mainDetails}
 			{extraDetails}
-		</li>
+		</span>
 	)
 })
