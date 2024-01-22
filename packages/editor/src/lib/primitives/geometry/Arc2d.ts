@@ -102,7 +102,7 @@ export class Arc2d extends Geometry2d {
  *
  * @public
  */
-export function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
+function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
 	let mAP: number
 	if (Math.abs(mAB) > PI) {
 		mAP = shortAngleDist(A, P)

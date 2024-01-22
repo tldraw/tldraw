@@ -25,6 +25,7 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec,
+	VecLike,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	clamp,
@@ -33,7 +34,6 @@ import {
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
-	getPointInArcT,
 	getPointOnCircle,
 	intersectLineSegmentCircle,
 	intersectLineSegmentLineSegment,
@@ -189,6 +189,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				labelLocation = getPointOnCircle(bodyGeom._center, bodyGeom.radius, angle)
 			}
 
+			const A_BIG_NUMBER = Math.pow(2, 16)
 			const LABEL_PADDING = 4.25
 			const labelHalfWidth = width / 2 + LABEL_PADDING
 			const labelHalfHeight = height / 2 + LABEL_PADDING
@@ -207,63 +208,89 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				(strokeWidth - STROKE_SIZES.s) * 2 +
 				(strokeWidth === STROKE_SIZES.xl ? 20 : 0)
 
-			// This is very involved logic to make sure that the labels have padding between them an the arrowhead.
+			// This logic is to make sure that the labels have fixed padding between them and the arrowhead.
 			if (info.isStraight) {
-				const segmentIntersections = labelGeom.bounds.sides.map((side) =>
-					intersectLineSegmentLineSegment(info.start.point, info.end.point, side[0], side[1])
-				)
-				const isVerticalIntersection = !!(segmentIntersections[0] || segmentIntersections[2])
-				const angle = Vec.Cast(info.start.point).angle(Vec.Cast(info.end.point))
+				// First, get offset points from the arrowheads.
 				const startOffset = Vec.AddDistance(info.start.point, info.end.point, labelToArrowPadding)
 				const endOffset = Vec.AddDistance(info.end.point, info.start.point, labelToArrowPadding)
-				const startLabelCenterConstraintUsingHeight = Vec.AddDistance(
-					startOffset,
-					endOffset,
-					Math.abs(labelHalfHeight / Math.sin(angle))
+				const directionX = startOffset.x < endOffset.x ? 1 : -1
+				const directionY = startOffset.y < endOffset.y ? 1 : -1
+
+				// Draw lines away from the offset points based on width and height of the label.
+				const startOffsetAndHalfWidthAway = new Vec(
+					startOffset.x + directionX * labelHalfWidth,
+					startOffset.y
 				)
-				const endLabelCenterConstraintUsingHeight = Vec.AddDistance(
-					endOffset,
-					startOffset,
-					Math.abs(labelHalfHeight / Math.sin(angle))
+				const endOffsetAndHalfWidthAway = new Vec(
+					endOffset.x + -1 * directionX * labelHalfWidth,
+					endOffset.y
 				)
-				const startLabelCenterConstraintUsingWidth = Vec.AddDistance(
-					startOffset,
-					endOffset,
-					Math.abs(labelHalfWidth / Math.cos(angle))
+				const startOffsetAndHalfHeightAway = new Vec(
+					startOffset.x,
+					startOffset.y + directionY * labelHalfHeight
 				)
-				const endLabelCenterConstraintUsingWidth = Vec.AddDistance(
-					endOffset,
-					startOffset,
-					Math.abs(labelHalfWidth / Math.cos(angle))
+				const endOffsetAndHalfHeightAway = new Vec(
+					endOffset.x,
+					endOffset.y + -1 * directionY * labelHalfHeight
 				)
-				const xStartConstraint =
-					(isVerticalIntersection
-						? startLabelCenterConstraintUsingHeight.x
-						: startLabelCenterConstraintUsingWidth.x) - labelHalfWidth
-				const xEndConstraint =
-					(isVerticalIntersection
-						? endLabelCenterConstraintUsingHeight.x
-						: endLabelCenterConstraintUsingWidth.x) - labelHalfWidth
-				const yStartConstraint =
-					(isVerticalIntersection
-						? startLabelCenterConstraintUsingHeight.y
-						: startLabelCenterConstraintUsingWidth.y) - labelHalfHeight
-				const yEndConstraint =
-					(isVerticalIntersection
-						? endLabelCenterConstraintUsingHeight.y
-						: endLabelCenterConstraintUsingWidth.y) - labelHalfHeight
+
+				// Then, we use perpendicular lines from the those new points and see where they intersect with the arrow.
+				const startLabelConstraintUsingWidth = intersectLineSegmentLineSegment(
+					new Vec(startOffsetAndHalfWidthAway.x, -A_BIG_NUMBER),
+					new Vec(startOffsetAndHalfWidthAway.x, A_BIG_NUMBER),
+					info.start.point,
+					info.end.point
+				)
+				const endLabelConstraintUsingWidth = intersectLineSegmentLineSegment(
+					new Vec(endOffsetAndHalfWidthAway.x, -A_BIG_NUMBER),
+					new Vec(endOffsetAndHalfWidthAway.x, A_BIG_NUMBER),
+					info.start.point,
+					info.end.point
+				)
+				const startLabelConstraintUsingHeight = intersectLineSegmentLineSegment(
+					new Vec(-A_BIG_NUMBER, startOffsetAndHalfHeightAway.y),
+					new Vec(A_BIG_NUMBER, startOffsetAndHalfHeightAway.y),
+					info.start.point,
+					info.end.point
+				)
+				const endLabelConstraintUsingHeight = intersectLineSegmentLineSegment(
+					new Vec(-A_BIG_NUMBER, endOffsetAndHalfHeightAway.y),
+					new Vec(A_BIG_NUMBER, endOffsetAndHalfHeightAway.y),
+					info.start.point,
+					info.end.point
+				)
+
+				// Finally, use the closer of the two intersection points.
+				const startConstraint = (
+					(startLabelConstraintUsingWidth &&
+						startLabelConstraintUsingHeight &&
+						Vec.Dist(startLabelConstraintUsingWidth, startOffset) <
+							Vec.Dist(startLabelConstraintUsingHeight, startOffset)) ||
+					!startLabelConstraintUsingHeight
+						? startLabelConstraintUsingWidth
+						: startLabelConstraintUsingHeight
+				)!
+				const endConstraint = (
+					(endLabelConstraintUsingWidth &&
+						endLabelConstraintUsingHeight &&
+						Vec.Dist(endLabelConstraintUsingWidth, endOffset) <
+							Vec.Dist(endLabelConstraintUsingHeight, endOffset)) ||
+					!endLabelConstraintUsingHeight
+						? endLabelConstraintUsingWidth
+						: endLabelConstraintUsingHeight
+				)!
 				const xLocation = labelLocation.x - labelHalfWidth
 				const yLocation = labelLocation.y - labelHalfHeight
 				labelGeom = new Rectangle2d({
 					x: clamp(
 						xLocation,
-						Math.min(xStartConstraint, xEndConstraint),
-						Math.max(xStartConstraint, xEndConstraint)
+						Math.min(startConstraint.x, endConstraint.x) - labelHalfWidth,
+						Math.max(startConstraint.x, endConstraint.x) - labelHalfWidth
 					),
 					y: clamp(
 						yLocation,
-						Math.min(yStartConstraint, yEndConstraint),
-						Math.max(yStartConstraint, yEndConstraint)
+						Math.min(startConstraint.y, endConstraint.y) - labelHalfHeight,
+						Math.max(startConstraint.y, endConstraint.y) - labelHalfHeight
 					),
 					width: width + LABEL_PADDING * 2,
 					height: height + LABEL_PADDING * 2,
@@ -271,68 +298,162 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					isLabel: true,
 				})
 			} else if (bodyGeom instanceof Arc2d) {
-				// Ok, so.
-				// This is part 2 of the very involved logic to make sure that the labels have padding between them an the arrowhead.
-				// However, with arcs there's no easy way to know where the rectangle can be placed safely.
-				// So, if we get too close to the endpoint, we detect the intersection and then nudge the label away from the arrowhead.
-				const minPositionAngle = bodyGeom.angleStart + labelToArrowPadding / bodyGeom.radius
-				const maxPositionAngle = bodyGeom.angleEnd + labelToArrowPadding / bodyGeom.radius
-				let minPosition = Math.abs(
-					getPointInArcT(bodyGeom.measure, bodyGeom.angleStart, bodyGeom.angleEnd, minPositionAngle)
+				// First, get offset points from the arrowheads on the arc.
+				const direction = shape.props.bend < 0 ? 1 : -1
+				const startOffsetAngle =
+					bodyGeom.angleStart + (direction * labelToArrowPadding) / info.handleArc.radius
+				const endOffsetAngle =
+					bodyGeom.angleEnd + (-1 * direction * labelToArrowPadding) / info.handleArc.radius
+				const startOffset = getPointOnCircle(
+					info.handleArc.center,
+					info.handleArc.radius,
+					startOffsetAngle
 				)
-				minPosition = minPosition > 1 ? minPosition - 1 : minPosition
-				let maxPosition = Math.abs(
-					getPointInArcT(bodyGeom.measure, bodyGeom.angleStart, bodyGeom.angleEnd, maxPositionAngle)
+				const endOffset = getPointOnCircle(
+					info.handleArc.center,
+					info.handleArc.radius,
+					endOffsetAngle
 				)
-				maxPosition = maxPosition > 1 ? 1 - (maxPosition - 1) : maxPosition
-				const startPoint = Vec.Cast(info.start.point)
-				const endPoint = Vec.Cast(info.end.point)
-				let loopIterationsFailsafe = 0
-				let labelPosition = shape.props.labelPosition
+				const startDirectionX = info.start.point.x < startOffset.x ? 1 : -1
+				const startDirectionY = info.start.point.y < startOffset.y ? 1 : -1
+				const endDirectionX = info.end.point.x < endOffset.x ? 1 : -1
+				const endDirectionY = info.end.point.y < endOffset.y ? 1 : -1
 
-				// We max it at a 100 iterations just in case this has an edge case where it's never satisified.
-				while (loopIterationsFailsafe < 100) {
-					const segmentIntersections = labelGeom.bounds.sides.map((side) =>
-						intersectLineSegmentCircle(
-							side[0],
-							side[1],
-							info.handleArc.center,
-							info.handleArc.radius
-						)
-					)
-					const points = segmentIntersections.map(
-						(intersection) =>
-							intersection &&
-							getPointInArcT(
-								bodyGeom.measure,
-								bodyGeom.angleStart,
-								bodyGeom.angleEnd,
-								bodyGeom._center.angle(Vec.Cast(intersection[0]))
-							)
-					)
-					if (points.every((point) => !point || (point >= minPosition && point <= maxPosition))) {
-						// Our label satifies the constraints, so we're done.
-						break
+				// Draw lines away from the offset points based on width and height of the label.
+				const startOffsetAndHalfWidthAway = new Vec(
+					startOffset.x + startDirectionX * labelHalfWidth,
+					startOffset.y
+				)
+				const endOffsetAndHalfWidthAway = new Vec(
+					endOffset.x + endDirectionX * labelHalfWidth,
+					endOffset.y
+				)
+				const startOffsetAndHalfHeightAway = new Vec(
+					startOffset.x,
+					startOffset.y + startDirectionY * labelHalfHeight
+				)
+				const endOffsetAndHalfHeightAway = new Vec(
+					endOffset.x,
+					endOffset.y + endDirectionY * labelHalfHeight
+				)
+
+				const getClosest = (intersections: VecLike[] | null, offsetPoint: Vec) => {
+					if (!intersections) {
+						return null
 					}
 
-					const rectCenter = Vec.Cast(labelGeom.center)
-					const nudgeRate = 0.005
-					labelPosition +=
-						(startPoint.dist(rectCenter) < endPoint.dist(rectCenter) ? 1 : -1) * nudgeRate
-					const t = labelPosition * bodyGeom.measure
-					const angle = bodyGeom.angleStart + t
-					labelLocation = getPointOnCircle(bodyGeom._center, bodyGeom.radius, angle)
-					labelGeom = new Rectangle2d({
-						x: labelLocation.x - labelHalfWidth,
-						y: labelLocation.y - labelHalfHeight,
-						width: width + LABEL_PADDING * 2,
-						height: height + LABEL_PADDING * 2,
-						isFilled: true,
-						isLabel: true,
-					})
-
-					++loopIterationsFailsafe
+					const sortedByDistance = intersections.sort(
+						(a, b) => Vec.Dist(a, offsetPoint) - Vec.Dist(b, offsetPoint)
+					)
+					return sortedByDistance[0]
 				}
+
+				// Then, we use perpendicular lines from the those new points and see where they intersect with the arrow.
+				const startLabelConstraintUsingWidth = getClosest(
+					intersectLineSegmentCircle(
+						new Vec(startOffsetAndHalfWidthAway.x, -A_BIG_NUMBER),
+						new Vec(startOffsetAndHalfWidthAway.x, A_BIG_NUMBER),
+						info.handleArc.center,
+						info.handleArc.radius
+					),
+					startOffset
+				)
+				const endLabelConstraintUsingWidth = getClosest(
+					intersectLineSegmentCircle(
+						new Vec(endOffsetAndHalfWidthAway.x, -A_BIG_NUMBER),
+						new Vec(endOffsetAndHalfWidthAway.x, A_BIG_NUMBER),
+						info.handleArc.center,
+						info.handleArc.radius
+					),
+					endOffset
+				)
+				const startLabelConstraintUsingHeight = getClosest(
+					intersectLineSegmentCircle(
+						new Vec(-A_BIG_NUMBER, startOffsetAndHalfHeightAway.y),
+						new Vec(A_BIG_NUMBER, startOffsetAndHalfHeightAway.y),
+						info.handleArc.center,
+						info.handleArc.radius
+					),
+					startOffset
+				)
+				const endLabelConstraintUsingHeight = getClosest(
+					intersectLineSegmentCircle(
+						new Vec(-A_BIG_NUMBER, endOffsetAndHalfHeightAway.y),
+						new Vec(A_BIG_NUMBER, endOffsetAndHalfHeightAway.y),
+						info.handleArc.center,
+						info.handleArc.radius
+					),
+					endOffset
+				)
+
+				// Finally, Use the closer of the two intersection points.
+				const startConstraint = (
+					(startLabelConstraintUsingWidth &&
+						startLabelConstraintUsingHeight &&
+						Vec.Dist(startLabelConstraintUsingWidth, startOffset) <
+							Vec.Dist(startLabelConstraintUsingHeight, startOffset)) ||
+					!startLabelConstraintUsingHeight
+						? startLabelConstraintUsingWidth
+						: startLabelConstraintUsingHeight
+				)!
+				const endConstraint = (
+					(endLabelConstraintUsingWidth &&
+						endLabelConstraintUsingHeight &&
+						Vec.Dist(endLabelConstraintUsingWidth, endOffset) <
+							Vec.Dist(endLabelConstraintUsingHeight, endOffset)) ||
+					!endLabelConstraintUsingHeight
+						? endLabelConstraintUsingWidth
+						: endLabelConstraintUsingHeight
+				)!
+				const xLocation = labelLocation.x - labelHalfWidth
+				const yLocation = labelLocation.y - labelHalfHeight
+				const closeToStartEndpoint = Vec.Dist(labelLocation, startOffset) < 100
+				const closeToEndpoint = Vec.Dist(labelLocation, endOffset) < 100
+				const xFn =
+					(closeToStartEndpoint && startDirectionX === 1) ||
+					(closeToEndpoint && endDirectionX === 1)
+						? 'max'
+						: 'min'
+				const yFn =
+					(closeToStartEndpoint && startDirectionY === 1) ||
+					(closeToEndpoint && endDirectionY === 1)
+						? 'max'
+						: 'min'
+				const labelXConstraint =
+					(closeToStartEndpoint ? startConstraint.x : endConstraint.x) - labelHalfWidth
+				const labelYConstraint =
+					(closeToStartEndpoint ? startConstraint.y : endConstraint.y) - labelHalfHeight
+				const isNearAnEndpoint = closeToStartEndpoint || closeToEndpoint
+				const isAtFinalXPosition =
+					isNearAnEndpoint && Math[xFn](xLocation, labelXConstraint) === labelXConstraint
+				const isAtFinalYPosition =
+					isNearAnEndpoint && Math[yFn](yLocation, labelYConstraint) === labelYConstraint
+
+				let x, y
+				if (isNearAnEndpoint) {
+					if (isAtFinalYPosition) {
+						x = labelXConstraint
+					} else {
+						x = Math[xFn](xLocation, labelXConstraint)
+					}
+
+					if (isAtFinalXPosition) {
+						y = labelYConstraint
+					} else {
+						y = Math[yFn](yLocation, labelYConstraint)
+					}
+				} else {
+					x = xLocation
+					y = yLocation
+				}
+				labelGeom = new Rectangle2d({
+					x,
+					y,
+					width: width + LABEL_PADDING * 2,
+					height: height + LABEL_PADDING * 2,
+					isFilled: true,
+					isLabel: true,
+				})
 			}
 		}
 

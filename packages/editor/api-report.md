@@ -1081,9 +1081,6 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
 };
 
 // @public
-export function getPointInArcT(mAB: number, A: number, B: number, P: number): number;
-
-// @public
 export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
 
 // @public (undocumented)
