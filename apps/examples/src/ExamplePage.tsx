@@ -3,7 +3,7 @@ import { assert, assertExists } from '@tldraw/tldraw'
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
-import { ListLink } from './components/ListLink'
+import { SpanLink } from './components/ListLink'
 import { Example, examples } from './examples'
 
 export function ExamplePage({
@@ -61,7 +61,7 @@ export function ExamplePage({
 								{examples
 									.find((e) => e.id === c)
 									?.array.map((e) => (
-										<ListLink
+										<SpanLink
 											key={e.path}
 											example={e}
 											isActive={e.path === example.path}
