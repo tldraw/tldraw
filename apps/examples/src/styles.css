@@ -72,8 +72,6 @@ html,
 	grid-template-columns: repeat(1, 1fr);
 	padding: 0;
 	margin: 0 -1.5rem 0 -1.5rem;
-	list-style: none;
-	gap: 0rem;
 }
 
 @media screen and (max-width: 800px) {
@@ -91,7 +89,19 @@ html,
 .accordion__trigger{
 	border: none;
 	background: none;
-	padding: 1rem;
+	cursor: pointer;
+	width: 100%;
+	text-align: left;
+}
+
+.accordion__content{
+	display: flex;
+	flex-direction: row;
+}
+.accordion__content__separator{
+	border-right: 1px solid #e8e8e8;
+	opacity: 0.5;
+	padding-right: 1.5rem;
 }
 
 .examples__list__item {
@@ -99,7 +109,6 @@ html,
 	position: relative;
 	padding: 1.5rem;
 	display: block;
-	
 }
 .examples__list__item__link {
 	position: absolute;
@@ -112,8 +121,8 @@ html,
 	padding: 1.5rem;
 	text-decoration: none;
 	color: inherit;
-	width: 100%;
 	position: relative;
+	width: 100%;
 }
 
 .examples__list__item::before {

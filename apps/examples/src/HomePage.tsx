@@ -1,5 +1,5 @@
 import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
-import { SpanLink } from './components/ListLink'
+import { SpanLink } from './components/SpanLink'
 import { examples } from './examples'
 
 export function HomePage() {
