@@ -40,7 +40,7 @@ export const SpanLink = forwardRef(function ListLink(
 
 	const mainDetails = (
 		<>
-			<h3 id={id}>
+			<h3 className="examples__list__item__heading" id={id}>
 				{example.title}
 				{isActive && (
 					<Link
