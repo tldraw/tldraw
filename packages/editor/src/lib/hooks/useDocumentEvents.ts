@@ -1,6 +1,6 @@
 import { useValue } from '@tldraw/state'
 import { useEffect } from 'react'
-import { TLKeyboardEventInfo, TLPointerEventInfo } from '../editor/types/event-types'
+import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
@@ -93,33 +93,12 @@ export function useDocumentEvents() {
 					break
 				}
 				case ',': {
-					// todo: extract to extension
-					// This seems very fragile; the comma key here is used to send pointer events,
-					// but that means it also needs to know about pen mode, hovered ids, etc.
-					if (!isFocusingInput()) {
-						preventDefault(e)
-						if (!editor.inputs.keys.has('Comma')) {
-							const { x, y, z } = editor.inputs.currentScreenPoint
-							editor.inputs.keys.add('Comma')
-
-							const info: TLPointerEventInfo = {
-								type: 'pointer',
-								name: 'pointer_down',
-								point: { x, y, z },
-								shiftKey: e.shiftKey,
-								altKey: e.altKey,
-								ctrlKey: e.metaKey || e.ctrlKey,
-								pointerId: 0,
-								button: 0,
-								isPen: editor.getInstanceState().isPenMode,
-								target: 'canvas',
-							}
-
-							editor.dispatch(info)
-							return
-						}
-					}
-					break
+					// this was moved to useKeyBoardShortcuts; it's possible
+					// that the comma key is pressed when the container is not
+					// focused, for example when the user has just interacted
+					// with the toolbar. We need to handle it on the window
+					// (ofc ensuring it's a correct time for a shortcut)
+					return
 				}
 				case 'Escape': {
 					// In certain browsers, pressing escape while in full screen mode
@@ -178,29 +157,8 @@ export function useDocumentEvents() {
 				return
 			}
 
-			// Use the , key to send pointer events
 			if (e.key === ',') {
-				if (document.activeElement?.ELEMENT_NODE) preventDefault(e)
-				if (editor.inputs.keys.has(e.code)) {
-					const { x, y, z } = editor.inputs.currentScreenPoint
-
-					editor.inputs.keys.delete(e.code)
-
-					const info: TLPointerEventInfo = {
-						type: 'pointer',
-						name: 'pointer_up',
-						point: { x, y, z },
-						shiftKey: e.shiftKey,
-						altKey: e.altKey,
-						ctrlKey: e.metaKey || e.ctrlKey,
-						pointerId: 0,
-						button: 0,
-						isPen: editor.getInstanceState().isPenMode,
-						target: 'canvas',
-					}
-					editor.dispatch(info)
-					return
-				}
+				return
 			}
 
 			const info: TLKeyboardEventInfo = {

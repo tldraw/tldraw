@@ -1,7 +1,6 @@
 import react from '@vitejs/plugin-react-swc'
 import { config } from 'dotenv'
 import { defineConfig } from 'vite'
-import { VitePWA, VitePWAOptions } from 'vite-plugin-pwa'
 
 config({
 	path: './.env.local',
@@ -11,57 +10,9 @@ export const getMultiplayerServerURL = () => {
 	return process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http') ?? 'http://127.0.0.1:8787'
 }
 
-const pwaConfig: Partial<VitePWAOptions> = {
-	registerType: 'autoUpdate',
-	// Make sure the service worker doesn't try to handle API requests
-	workbox: {
-		navigateFallbackDenylist: [/^\/api/],
-		runtimeCaching: [{ handler: 'NetworkFirst', urlPattern: /\/.*/ }],
-	},
-	// Uncomment this to test the PWA install flow locally
-	// devOptions: { enabled: true },
-	manifest: {
-		name: 'tldraw',
-		short_name: 'tldraw',
-		description: 'a very good free whiteboard',
-
-		icons: [
-			{
-				src: '/android-chrome-512x512.png',
-				sizes: '512x512',
-				type: 'image/png',
-				purpose: 'any',
-			},
-			{
-				src: '/android-chrome-maskable-512x512.png',
-				sizes: '512x512',
-				type: 'image/png',
-				purpose: 'any maskable',
-			},
-			{
-				src: '/android-chrome-192x192.png',
-				sizes: '192x192',
-				type: 'image/png',
-				purpose: 'any',
-			},
-			{
-				src: '/android-chrome-maskable-192x192.png',
-				sizes: '192x192',
-				type: 'image/png',
-				purpose: 'any maskable',
-			},
-		],
-		theme_color: '#ffffff',
-		background_color: '#ffffff',
-		start_url: '/',
-		display: 'standalone',
-		orientation: 'any',
-	},
-}
-
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [react({ tsDecorators: true }), VitePWA(pwaConfig)],
+	plugins: [react({ tsDecorators: true })],
 	publicDir: './public',
 	build: {
 		// output source maps to .map files and include //sourceMappingURL comments in JavaScript files

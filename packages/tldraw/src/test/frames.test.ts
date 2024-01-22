@@ -492,12 +492,19 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150, innerBoxId).pointerMove(150, 50).pointerMove(150, 148)
 		editor.keyDown('Control')
-		expect(editor.snaps.getLines()).toHaveLength(0)
+		let shapes = editor.snaps.getSnappableShapes()
+		// We can snap to the parent frame
+		expect(shapes).toHaveLength(1)
+		expect(shapes[0].id).toBe(frameId)
 
 		// move shape inside the frame to make sure it snaps in there
 		editor.reparentShapes([outerBoxId], frameId).pointerMove(150, 149, { ctrlKey: true })
 
-		expect(editor.snaps.getLines()).toHaveLength(1)
+		shapes = editor.snaps.getSnappableShapes()
+		expect(shapes).toHaveLength(2)
+		const ids = new Set(shapes.map((s) => s.id))
+		expect(ids).toContain(frameId)
+		expect(ids).toContain(outerBoxId)
 	})
 
 	it('masks its children', () => {
