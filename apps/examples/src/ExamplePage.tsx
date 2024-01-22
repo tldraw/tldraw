@@ -57,8 +57,9 @@ export function ExamplePage({
 					{categories.map((c) => (
 						<Accordion.Item key={c} value={c}>
 							<Accordion.Trigger className="accordion__trigger">
-								<div className="examples__list__item">
-									<h3>{c}</h3>
+								<div className="examples__list__item accordion__trigger__container">
+									<h3 className="accordion__trigger__heading">{c}</h3>
+									<Chevron />
 								</div>
 							</Accordion.Trigger>
 							<Accordion.Content className="accordion__content">
@@ -82,5 +83,26 @@ export function ExamplePage({
 			</div>
 			<div className="example__content">{children}</div>
 		</div>
+	)
+}
+
+const Chevron = () => {
+	return (
+		<svg
+			width="16"
+			height="16"
+			viewBox="0 0 16 16"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+			className="accordion__trigger__chevron"
+		>
+			<path
+				d="M4 6L8 10L12 6"
+				stroke="currentColor"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		</svg>
 	)
 }
