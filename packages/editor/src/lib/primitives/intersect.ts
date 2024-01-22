@@ -1,5 +1,5 @@
 import { Box } from './Box'
-import { pointInPolygon } from './utils'
+import { getArcMeasure, getPointInArcT, pointInPolygon } from './utils'
 import { Vec, VecLike } from './Vec'
 
 // need even more intersections? See https://gist.github.com/steveruizok/35c02d526c707003a5c79761bfb89a52
@@ -315,4 +315,25 @@ export function polygonsIntersect(a: VecLike[], b: VecLike[]) {
 		}
 	}
 	return false
+}
+
+/**
+ * Given a set of intersections with a circle, filter out any intersections that are not on the arc between angleStart and angleEnd.
+ * @public
+ */
+export function filterIntersectionsToArc(
+	intersections: VecLike[] | null,
+	center: VecLike,
+	angleStart: number,
+	angleEnd: number,
+	sweepFlag: boolean,
+	largeArcFlag: boolean
+) {
+	if (!intersections) return null
+
+	const measure = getArcMeasure(angleStart, angleEnd, sweepFlag, largeArcFlag)
+	return intersections.filter((p) => {
+		const t = getPointInArcT(measure, angleStart, angleEnd, Vec.Angle(center, p))
+		return t >= 0 && t <= 1
+	})
 }

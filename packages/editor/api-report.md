@@ -199,6 +199,8 @@ export class Box {
     // (undocumented)
     static From(box: BoxModel): Box;
     // (undocumented)
+    static FromCenter(center: VecLike, size: VecLike): Box;
+    // (undocumented)
     static FromPoints(points: VecLike[]): Box;
     // (undocumented)
     getHandlePoint(handle: SelectionCorner | SelectionEdge): Vec;
@@ -965,6 +967,9 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 // @internal (undocumented)
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
+// @public
+export function filterIntersectionsToArc(intersections: null | VecLike[], center: VecLike, angleStart: number, angleEnd: number, sweepFlag: boolean, largeArcFlag: boolean): null | VecLike[];
+
 // @public (undocumented)
 export type GapsSnapLine = {
     id: string;
@@ -990,6 +995,8 @@ export abstract class Geometry2d {
     // (undocumented)
     get center(): Vec;
     // (undocumented)
+    debugColor?: string;
+    // (undocumented)
     distanceToLineSegment(A: Vec, B: Vec): number;
     // (undocumented)
     distanceToPoint(point: Vec, hitInside?: boolean): number;
@@ -1003,6 +1010,8 @@ export abstract class Geometry2d {
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
     // (undocumented)
     hitTestPoint(point: Vec, margin?: number, hitInside?: boolean): boolean;
+    // (undocumented)
+    ignore?: boolean;
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -1028,6 +1037,12 @@ export abstract class Geometry2d {
     // (undocumented)
     _vertices: undefined | Vec[];
 }
+
+// @public
+export function getAngleOnArc(mAB: number, A: number, B: number, t: number): number;
+
+// @public
+export function getArcMeasure(A: number, B: number, sweepFlag: boolean, largeArcFlag: boolean): number;
 
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
@@ -1081,6 +1096,9 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
 };
 
 // @public
+export function getPointInArcT(mAB: number, A: number, B: number, P: number): number;
+
+// @public
 export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
 
 // @public (undocumented)
@@ -1121,6 +1139,8 @@ export class Group2d extends Geometry2d {
     hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
     // (undocumented)
     hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean;
+    // (undocumented)
+    ignoredChildren: Geometry2d[];
     // (undocumented)
     nearestPoint(point: Vec): Vec;
     // (undocumented)
