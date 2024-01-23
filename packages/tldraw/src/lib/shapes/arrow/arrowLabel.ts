@@ -219,11 +219,16 @@ export function getCurvedArrowLabelRange(
 			ignore: true,
 		})
 	)
-	for (const pt of [...(startIntersections ?? []), ...(endIntersections ?? [])]) {
+	for (const pt of [
+		...(startIntersections ?? []),
+		...(endIntersections ?? []),
+		startOffset,
+		endOffset,
+	]) {
 		dbg.push(
 			new Circle2d({
-				x: pt.x - 1.5,
-				y: pt.y - 1.5,
+				x: pt.x - 3,
+				y: pt.y - 3,
 				radius: 3,
 				isFilled: false,
 				debugColor: 'magenta',
