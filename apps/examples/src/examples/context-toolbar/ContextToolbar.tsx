@@ -76,11 +76,9 @@ const ContextToolbarComponent = track(() => {
 									width: 32,
 									background: isActive ? 'var(--color-muted-2)' : 'transparent',
 								}}
-								onClick={() => {
-									if (editor.isIn('select')) {
-										editor.setStyleForSelectedShapes(DefaultSizeStyle, value, { squashing: false })
-									}
-								}}
+								onClick={() =>
+									editor.setStyleForSelectedShapes(DefaultSizeStyle, value, { squashing: false })
+								}
 							>
 								<Icon icon={v.icon} />
 							</div>
