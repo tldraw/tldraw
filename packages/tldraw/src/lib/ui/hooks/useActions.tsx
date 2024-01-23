@@ -36,7 +36,7 @@ import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 /** @public */
 export interface TLUiActionItem<
 	TransationKey extends string = string,
-	IconType extends string = string
+	IconType extends string = string,
 > {
 	icon?: IconType
 	id: string
@@ -420,11 +420,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							? {
 									x: commonBounds.width + 10,
 									y: 0,
-							  }
+								}
 							: {
 									x: 16 / editor.getZoomLevel(),
 									y: 16 / editor.getZoomLevel(),
-							  }
+								}
 					}
 
 					editor.mark('duplicate shapes')
@@ -435,7 +435,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.updateInstanceState({
 							duplicateProps: {
 								...instanceState.duplicateProps,
-								...{ shapeIds: editor.getSelectedShapeIds() },
+								shapeIds: editor.getSelectedShapeIds(),
 							},
 						})
 					}
