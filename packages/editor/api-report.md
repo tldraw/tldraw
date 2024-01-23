@@ -968,7 +968,9 @@ export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyo
 export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
 // @internal (undocumented)
-export const featureFlags: Record<string, DebugFlag<boolean>>;
+export const featureFlags: {
+    canMoveArrowLabel: DebugFlag<boolean>;
+};
 
 // @public (undocumented)
 export type GapsSnapLine = {

@@ -133,7 +133,6 @@ function getStraightArrowLabelRange(
 		startOffset,
 		endOffset,
 		Box.FromCenter(info.middle, labelSize).corners
-		// labelGeom.points
 	)
 	if (!intersectionPoints || intersectionPoints.length !== 2) {
 		return { start: 0.5, end: 0.5 }
@@ -160,7 +159,7 @@ function getStraightArrowLabelRange(
  * Return the range of possible label positions for a curved arrow. The full possible range is 0
  * to 1, but as the label itself takes up space the usable range is smaller.
  */
-export function getCurvedArrowLabelRange(
+function getCurvedArrowLabelRange(
 	editor: Editor,
 	shape: TLArrowShape,
 	info: Extract<TLArrowInfo, { isStraight: false }>
@@ -332,12 +331,7 @@ function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
  * @param t - A number between 0 and 1 representing the position along the arc
  * @returns
  */
-export function interpolateArcAngles(
-	angleStart: number,
-	angleEnd: number,
-	direction: number,
-	t: number
-) {
+function interpolateArcAngles(angleStart: number, angleEnd: number, direction: number, t: number) {
 	const dist = angleDistance(angleStart, angleEnd, direction)
 	return angleStart + dist * t * direction * -1
 }
