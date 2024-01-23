@@ -186,11 +186,12 @@ export const instanceVersions = {
 	AddHoveringCanvas: 21,
 	AddScribbles: 22,
 	AddInset: 23,
+	AddDuplicateProps: 24,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddInset,
+	currentVersion: instanceVersions.AddDuplicateProps,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -519,6 +520,19 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 			down: ({ insets: _, ...record }) => {
+				return {
+					...record,
+				}
+			},
+		},
+		[instanceVersions.AddDuplicateProps]: {
+			up: (record) => {
+				return {
+					...record,
+					duplicateProps: null,
+				}
+			},
+			down: ({ duplicateProps: _, ...record }) => {
 				return {
 					...record,
 				}
