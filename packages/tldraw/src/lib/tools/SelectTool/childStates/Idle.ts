@@ -37,9 +37,6 @@ export class Idle extends StateNode {
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		if (this.editor.getIsMenuOpen()) return
 
-		// We want to clear the duplicate props when we deselect the current shapes or when we select other shapes
-		this.editor.updateInstanceState({ duplicateProps: null })
-
 		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
 
 		if (info.ctrlKey && !shouldEnterCropMode) {
