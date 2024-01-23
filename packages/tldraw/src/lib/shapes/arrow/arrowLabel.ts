@@ -12,7 +12,6 @@ import {
 	VecLike,
 	angleDistance,
 	clamp,
-	filterIntersectionsToArc,
 	getPointOnCircle,
 	intersectCirclePolygon,
 	intersectLineSegmentPolygon,
@@ -295,13 +294,14 @@ function intersectArcPolygon(
 	direction: number,
 	polygon: VecLike[]
 ) {
-	return filterIntersectionsToArc(
-		intersectCirclePolygon(center, radius, polygon),
-		center,
-		angleStart,
-		angleEnd,
-		direction
-	)
+	const intersections = intersectCirclePolygon(center, radius, polygon)
+
+	// filter the circle intersections to just the ones from the arc
+	const fullArcDistance = angleDistance(angleStart, angleEnd, direction)
+	return intersections?.filter((pt) => {
+		const pDistance = angleDistance(angleStart, Vec.Angle(center, pt), direction)
+		return pDistance >= 0 && pDistance <= fullArcDistance
+	})
 }
 
 function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {

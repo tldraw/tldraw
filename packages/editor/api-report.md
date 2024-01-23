@@ -970,9 +970,6 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 // @internal (undocumented)
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
-// @public
-export function filterIntersectionsToArc(intersections: null | VecLike[], center: VecLike, angleStart: number, angleEnd: number, direction: number): null | VecLike[];
-
 // @public (undocumented)
 export type GapsSnapLine = {
     id: string;

@@ -291,7 +291,6 @@ export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
 export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
 export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
 export {
-	filterIntersectionsToArc,
 	intersectCircleCircle,
 	intersectCirclePolygon,
 	intersectCirclePolyline,
