@@ -33,7 +33,7 @@ export class Arc2d extends Geometry2d {
 		// ensure that the start and end are clockwise
 		this.angleStart = Vec.Angle(center, start)
 		this.angleEnd = Vec.Angle(center, end)
-		this.measure = getArcMeasure(this.angleStart, this.angleEnd, !!sweepFlag, !!largeArcFlag)
+		this.measure = getArcMeasure(this.angleStart, this.angleEnd, sweepFlag, largeArcFlag)
 		this.length = this.measure * radius
 
 		this.start = start
@@ -102,7 +102,7 @@ export class Arc2d extends Geometry2d {
  *
  * @public
  */
-export function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
+function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
 	let mAP: number
 	if (Math.abs(mAB) > PI) {
 		mAP = shortAngleDist(A, P)
@@ -121,16 +121,16 @@ export function getPointInArcT(mAB: number, A: number, B: number, P: number): nu
 /**
  * Get the measure of an arc.
  *
- * @param A - The angle from center to arc's start point (A) on the circle
- * @param B - The angle from center to arc's end point (B) on the circle
- * @param sweepFlag - 1 if the arc is clockwise, 0 if counter-clockwise
- * @param largeArcFlag - 1 if the arc is greater than 180 degrees, 0 if less than 180 degrees
+ * @param A The angle from center to arc's start point (A) on the circle
+ * @param B The angle from center to arc's end point (B) on the circle
+ * @param sweepFlag 1 if the arc is clockwise, 0 if counter-clockwise
+ * @param largeArcFlag 1 if the arc is greater than 180 degrees, 0 if less than 180 degrees
  *
  * @returns The measure of the arc, negative if counter-clockwise
  *
  * @public
  */
-function getArcMeasure(A: number, B: number, sweepFlag: boolean, largeArcFlag: boolean) {
+function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number) {
 	const m = ((2 * ((B - A) % PI2)) % PI2) - ((B - A) % PI2)
 	if (!largeArcFlag) return m
 	return (PI2 - Math.abs(m)) * (sweepFlag ? 1 : -1)
