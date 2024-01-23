@@ -103,8 +103,8 @@ export default function ContextToolbar() {
 }
 
 /*
-This example shows how you can impelemnt a context toolbar that appears when you select shapes.
-It's using the `InFrontOfTheCanvas` component to render the toolbar. This allows use to render
+This example shows how you can implement a context toolbar that appears when you select shapes.
+It's using the `InFrontOfTheCanvas` component to render the toolbar. This allows us to render
 the toolbar on top of the shapes, but behind the existing UI. The toolbar is only rendered when
 we are in the `select.idle` state (so we are not rotating, moving, resizing, drawing,...).
 You can also check the `Things on the canvas` example for more info on how to use `TLEditorComponents`.
@@ -122,7 +122,7 @@ toolbar. If the shapes have different sizes then the type of the size property i
 of the sizes will be highlighted.
 
 [3]
-We will show the toolbar in the middle of the selected shapes. We'll achive this by making the parent
+We will show the toolbar in the middle of the selected shapes. We'll achieve this by making the parent
 take the whole width, then use flexbox to center the toolbar.
 
 [4]
