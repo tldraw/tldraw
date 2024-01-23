@@ -1039,9 +1039,6 @@ export abstract class Geometry2d {
 }
 
 // @public
-export function getAngleOnArc(mAB: number, A: number, B: number, t: number): number;
-
-// @public
 export function getArcMeasure(A: number, B: number, sweepFlag: boolean, largeArcFlag: boolean): number;
 
 // @public (undocumented)

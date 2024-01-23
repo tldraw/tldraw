@@ -233,15 +233,54 @@ export function getCurvedArrowLabelRange(
 	// if we have one or more intersections (we shouldn't have more than two) then the one we need
 	// is the one furthest from the arrow terminal
 	const startConstrained =
-		(startIntersections && furthest(info.start.point, startIntersections)) ?? startOffset
+		(startIntersections && furthest(info.start.point, startIntersections)) ?? info.middle
 	const endConstrained =
-		(endIntersections && furthest(info.end.point, endIntersections)) ?? endOffset
+		(endIntersections && furthest(info.end.point, endIntersections)) ?? info.middle
+
+	const startAngle = Vec.Angle(info.bodyArc.center, info.start.point)
+	let constrainedStartAngle = Vec.Angle(info.bodyArc.center, startConstrained)
+	let constrainedEndAngle = Vec.Angle(info.bodyArc.center, endConstrained)
+
+	// if the arc is small enough that there's no room for the label to move, we constrain it to the middle.
+	if (
+		arcDistance(startAngle, constrainedStartAngle, direction) >
+		arcDistance(startAngle, constrainedEndAngle, direction)
+	) {
+		const middleAngle = Vec.Angle(info.bodyArc.center, info.middle)
+		constrainedStartAngle = middleAngle
+		constrainedEndAngle = middleAngle
+	}
 
 	return {
-		startAngle: Vec.Angle(info.bodyArc.center, startConstrained),
-		endAngle: Vec.Angle(info.bodyArc.center, endConstrained),
+		startAngle: constrainedStartAngle,
+		endAngle: constrainedEndAngle,
 		dbg,
 	}
+}
+
+export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
+	let labelCenter
+	const debugGeom: Geometry2d[] = []
+	const info = editor.getArrowInfo(shape)!
+
+	if (info.isStraight) {
+		const range = getStraightArrowLabelRange(editor, shape)
+		labelCenter = Vec.Lrp(range.start, range.end, shape.props.labelPosition)
+	} else {
+		const range = getCurvedArrowLabelRange(editor, shape)
+		if (range.dbg) debugGeom.push(...range.dbg)
+		const labelAngle = interpolateArcAngles(
+			range.startAngle,
+			range.endAngle,
+			Math.sign(shape.props.bend),
+			shape.props.labelPosition
+		)
+		labelCenter = getPointOnCircle(info.bodyArc.center, info.bodyArc.radius, labelAngle)
+	}
+
+	const labelSize = getArrowLabelSize(editor, shape)
+
+	return { box: Box.FromCenter(labelCenter, labelSize), debugGeom }
 }
 
 function intersectArcPolygon(
@@ -292,9 +331,14 @@ export function interpolateArcAngles(
 	direction: number,
 	t: number
 ) {
+	const dist = arcDistance(angleStart, angleEnd, direction)
+	return angleStart + dist * t * direction * -1
+}
+
+function arcDistance(fromAngle: number, toAngle: number, direction: number) {
 	const dist =
 		direction < 0
-			? clockwiseAngleDist(angleStart, angleEnd)
-			: counterClockwiseAngleDist(angleStart, angleEnd)
-	return angleStart + dist * t * direction * -1
+			? clockwiseAngleDist(fromAngle, toAngle)
+			: counterClockwiseAngleDist(fromAngle, toAngle)
+	return dist
 }

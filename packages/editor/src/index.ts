@@ -318,7 +318,6 @@ export {
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
 	degreesToRadians,
-	getAngleOnArc,
 	getArcMeasure,
 	getPointInArcT,
 	getPointOnCircle,

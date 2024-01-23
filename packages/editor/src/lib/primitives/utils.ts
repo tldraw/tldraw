@@ -386,22 +386,6 @@ export function getPointInArcT(mAB: number, A: number, B: number, P: number): nu
 }
 
 /**
- * Returns the angle value of the point t on the arc.
- *
- * @param mAB - The measure of the arc from A to B, negative if counter-clockwise
- * @param A - The angle from center to arc's start point (A) on the circle
- * @param B - The angle from center to arc's end point (B) on the circle
- * @param t - The position on the arc from 0 to 1 to find the angle for
- *
- * @returns The p the angle of t on the circle of the arc
- *
- * @public
- */
-export function getAngleOnArc(mAB: number, A: number, B: number, t: number) {
-	return A + mAB * t
-}
-
-/**
  * Get the measure of an arc.
  *
  * @param A - The angle from center to arc's start point (A) on the circle

@@ -29,14 +29,12 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	assert,
 	clamp,
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
-	getPointOnCircle,
 	lerp,
 	mapObjectMapValues,
 	objectMapEntries,
@@ -54,10 +52,9 @@ import {
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import {
-	getArrowLabelSize,
+	getArrowLabelPosition,
 	getCurvedArrowLabelRange,
 	getStraightArrowLabelRange,
-	interpolateArcAngles,
 } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {
@@ -130,31 +127,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		let labelGeom
 		if (shape.props.text.trim()) {
-			// This logic is to make sure that the labels have fixed padding between them and the arrowhead.
-			let labelCenter
-			if (info.isStraight) {
-				const range = getStraightArrowLabelRange(this.editor, shape)
-				labelCenter = Vec.Lrp(range.start, range.end, shape.props.labelPosition)
-			} else {
-				assert(bodyGeom instanceof Arc2d)
-				const range = getCurvedArrowLabelRange(this.editor, shape)
-				if (range.dbg) debugGeom.push(...range.dbg)
-				const labelAngle = interpolateArcAngles(
-					range.startAngle,
-					range.endAngle,
-					Math.sign(shape.props.bend),
-					shape.props.labelPosition
-				)
-				labelCenter = getPointOnCircle(info.bodyArc.center, bodyGeom.radius, labelAngle)
-			}
-
-			const labelSize = getArrowLabelSize(this.editor, shape)
-			const labelPosition = Vec.Sub(labelCenter, Vec.Div(labelSize, 2))
+			const labelPosition = getArrowLabelPosition(this.editor, shape)
+			debugGeom.push(...labelPosition.debugGeom)
 			labelGeom = new Rectangle2d({
-				x: labelPosition.x,
-				y: labelPosition.y,
-				width: labelSize.x,
-				height: labelSize.y,
+				x: labelPosition.box.x,
+				y: labelPosition.box.y,
+				width: labelPosition.box.w,
+				height: labelPosition.box.h,
 				isFilled: true,
 				isLabel: true,
 			})
@@ -719,9 +698,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		)
 
-		const labelGeometry = shape.props.text.trim()
-			? (this.editor.getShapeGeometry<Group2d>(shape).children[1] as Rectangle2d)
-			: null
+		const labelPosition = getArrowLabelPosition(this.editor, shape)
 
 		const maskStartArrowhead = !(
 			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
@@ -745,12 +722,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 								height={toDomPrecision(bounds.height + 200)}
 								fill="white"
 							/>
-							{labelGeometry && (
+							{shape.props.text.trim() && (
 								<rect
-									x={labelGeometry.x}
-									y={labelGeometry.y}
-									width={labelGeometry.w}
-									height={labelGeometry.h}
+									x={labelPosition.box.x}
+									y={labelPosition.box.y}
+									width={labelPosition.box.w}
+									height={labelPosition.box.h}
 									fill="black"
 									rx={4}
 									ry={4}
@@ -811,15 +788,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					text={shape.props.text}
 					font={shape.props.font}
 					size={shape.props.size}
-					position={
-						labelGeometry
-							? new Vec(
-									labelGeometry.x + labelGeometry.w / 2,
-									labelGeometry.y + labelGeometry.h / 2
-								)
-							: info.middle
-					}
-					width={labelGeometry?.w ?? 0}
+					position={labelPosition.box.center}
+					width={labelPosition.box.w}
 					labelColor={theme[shape.props.labelColor].solid}
 				/>
 			</>
