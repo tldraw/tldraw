@@ -96,7 +96,7 @@ export class Arc2d extends Geometry2d {
  * @param mAB - The measure of the arc from A to B, negative if counter-clockwise
  * @param A - The angle from center to arc's start point (A) on the circle
  * @param B - The angle from center to arc's end point (B) on the circle
- * @param P - The point on the circle (P) to find the t value for
+ * @param P - The angle on the circle (P) to find the t value for
  *
  * @returns The t value of the point on the arc, with 0 being the start and 1 being the end
  *

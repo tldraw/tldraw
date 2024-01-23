@@ -308,6 +308,7 @@ export {
 	PI,
 	PI2,
 	SIN,
+	angleDistance,
 	approximately,
 	areAnglesCompatible,
 	average,

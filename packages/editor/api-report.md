@@ -75,6 +75,9 @@ import { useValue } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
+// @public
+export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
+
 // @internal (undocumented)
 export const ANIMATION_MEDIUM_MS = 320;
 
@@ -198,6 +201,8 @@ export class Box {
     expandBy(n: number): this;
     // (undocumented)
     static From(box: BoxModel): Box;
+    // (undocumented)
+    static FromCenter(center: VecLike, size: VecLike): Box;
     // (undocumented)
     static FromPoints(points: VecLike[]): Box;
     // (undocumented)
@@ -963,7 +968,9 @@ export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyo
 export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
 // @internal (undocumented)
-export const featureFlags: Record<string, DebugFlag<boolean>>;
+export const featureFlags: {
+    canMoveArrowLabel: DebugFlag<boolean>;
+};
 
 // @public (undocumented)
 export type GapsSnapLine = {
@@ -990,6 +997,8 @@ export abstract class Geometry2d {
     // (undocumented)
     get center(): Vec;
     // (undocumented)
+    debugColor?: string;
+    // (undocumented)
     distanceToLineSegment(A: Vec, B: Vec): number;
     // (undocumented)
     distanceToPoint(point: Vec, hitInside?: boolean): number;
@@ -1003,6 +1012,8 @@ export abstract class Geometry2d {
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
     // (undocumented)
     hitTestPoint(point: Vec, margin?: number, hitInside?: boolean): boolean;
+    // (undocumented)
+    ignore?: boolean;
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -1121,6 +1132,8 @@ export class Group2d extends Geometry2d {
     hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
     // (undocumented)
     hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean;
+    // (undocumented)
+    ignoredChildren: Geometry2d[];
     // (undocumented)
     nearestPoint(point: Vec): Vec;
     // (undocumented)

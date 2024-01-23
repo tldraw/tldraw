@@ -356,3 +356,19 @@ export function toFixed(v: number) {
 export const isSafeFloat = (n: number) => {
 	return Math.abs(n) < Number.MAX_SAFE_INTEGER
 }
+
+/**
+ * Get the angle of a point on an arc.
+ * @param fromAngle - The angle from center to arc's start point (A) on the circle
+ * @param toAngle - The angle from center to arc's end point (B) on the circle
+ * @param direction - The direction of the arc (1 = counter-clockwise, -1 = clockwise)
+ * @returns The distance in radians between the two angles according to the direction
+ * @public
+ */
+export function angleDistance(fromAngle: number, toAngle: number, direction: number) {
+	const dist =
+		direction < 0
+			? clockwiseAngleDist(fromAngle, toAngle)
+			: counterClockwiseAngleDist(fromAngle, toAngle)
+	return dist
+}
