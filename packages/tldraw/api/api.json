@@ -1041,50 +1041,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onDragStart:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onDragStart: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnDragStartHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnDragStartHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLArrowShape",
-                  "canonicalReference": "@tldraw/tlschema!TLArrowShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onDragStart",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onEditEnd:member",
               "docComment": "",
               "excerptTokens": [
@@ -1129,17 +1085,17 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onHandleChange:member",
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onHandleDrag:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onHandleChange: "
+                  "text": "onHandleDrag: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLOnHandleChangeHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnHandleChangeHandler:type"
+                  "text": "TLOnHandleDragHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnHandleDragHandler:type"
                 },
                 {
                   "kind": "Content",
@@ -1162,7 +1118,51 @@
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "onHandleChange",
+              "name": "onHandleDrag",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onHandleDragStart:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onHandleDragStart: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLOnHandleDragStartHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnHandleDragStartHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLArrowShape",
+                  "canonicalReference": "@tldraw/tlschema!TLArrowShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onHandleDragStart",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 5
@@ -10812,17 +10812,17 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!LineShapeUtil#onHandleChange:member",
+              "canonicalReference": "@tldraw/tldraw!LineShapeUtil#onHandleDrag:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onHandleChange: "
+                  "text": "onHandleDrag: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLOnHandleChangeHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnHandleChangeHandler:type"
+                  "text": "TLOnHandleDragHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnHandleDragHandler:type"
                 },
                 {
                   "kind": "Content",
@@ -10845,7 +10845,7 @@
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "onHandleChange",
+              "name": "onHandleDrag",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 5

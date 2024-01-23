@@ -318,15 +318,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>
 
 	/**
-	 * A callback called when a shape starts being dragged.
-	 *
-	 * @param shape - The shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onDragStart?: TLOnDragStartHandler<Shape>
-
-	/**
 	 * A callback called when some other shapes are dragged over this one.
 	 *
 	 * @example
@@ -421,6 +412,34 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onTranslateEnd?: TLOnTranslateEndHandler<Shape>
 
 	/**
+	 * A callback called when a shape starts being dragged.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDragStart?: TLOnHandleDragStartHandler<Shape>
+
+	/**
+	 * A callback called when a shape's handle changes.
+	 *
+	 * @param shape - The current shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDrag?: TLOnHandleDragHandler<Shape>
+
+	/**
+	 * A callback called when a shape starts being dragged.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDragEnd?: TLOnHandleDragStartHandler<Shape>
+
+	/**
 	 * A callback called when a shape starts being rotated.
 	 *
 	 * @param shape - The shape.
@@ -448,16 +467,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onRotateEnd?: TLOnRotateEndHandler<Shape>
-
-	/**
-	 * A callback called when a shape's handle changes.
-	 *
-	 * @param shape - The current shape.
-	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onHandleChange?: TLOnHandleChangeHandler<Shape>
 
 	/**
 	 * Not currently used.
@@ -587,9 +596,6 @@ export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>
 /* -------------------- Dragging -------------------- */
 
 /** @public */
-export type TLOnDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-
-/** @public */
 export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R
 
 /** @internal */
@@ -599,7 +605,10 @@ export type TLOnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapeP
 export type TLOnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void
 
 /** @public */
-export type TLOnHandleChangeHandler<T extends TLShape> = (
+export type TLOnHandleDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
+
+/** @public */
+export type TLOnHandleDragHandler<T extends TLShape> = (
 	shape: T,
 	info: {
 		handle: TLHandle
@@ -607,6 +616,9 @@ export type TLOnHandleChangeHandler<T extends TLShape> = (
 		initial?: T | undefined
 	}
 ) => TLShapePartial<T> | void
+
+/** @public */
+export type TLOnHandleDragEndHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 
 /** @public */
 export type TLOnClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void

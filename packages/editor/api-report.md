@@ -1657,10 +1657,11 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDragShapesOver?: TLOnDragHandler<Shape, {
         shouldHint: boolean;
     }>;
-    onDragStart?: TLOnDragStartHandler<Shape>;
     onDropShapesOver?: TLOnDragHandler<Shape>;
     onEditEnd?: TLOnEditEndHandler<Shape>;
-    onHandleChange?: TLOnHandleChangeHandler<Shape>;
+    onHandleDrag?: TLOnHandleDragHandler<Shape>;
+    onHandleDragEnd?: TLOnHandleDragStartHandler<Shape>;
+    onHandleDragStart?: TLOnHandleDragStartHandler<Shape>;
     onResize?: TLOnResizeHandler<Shape>;
     onResizeEnd?: TLOnResizeEndHandler<Shape>;
     onResizeStart?: TLOnResizeStartHandler<Shape>;
@@ -2364,17 +2365,17 @@ export type TLOnDoubleClickHandler<T extends TLShape> = (shape: T) => TLShapePar
 export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R;
 
 // @public (undocumented)
-export type TLOnDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
 export type TLOnEditEndHandler<T extends TLShape> = (shape: T) => void;
 
 // @public (undocumented)
-export type TLOnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
+export type TLOnHandleDragHandler<T extends TLShape> = (shape: T, info: {
     handle: TLHandle;
     isPrecise: boolean;
     initial?: T | undefined;
 }) => TLShapePartial<T> | void;
+
+// @public (undocumented)
+export type TLOnHandleDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;

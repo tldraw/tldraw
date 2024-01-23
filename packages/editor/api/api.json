@@ -31235,41 +31235,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onDragStart:member",
-              "docComment": "/**\n * A callback called when a shape starts being dragged.\n *\n * @param shape - The shape.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onDragStart?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnDragStartHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnDragStartHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<Shape>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onDragStart",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#onDropShapesOver:member",
               "docComment": "/**\n * A callback called when some other shapes are dropped over this one.\n *\n * @param shape - The shape.\n *\n * @param shapes - The shapes that are being dropped over this one.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -31340,17 +31305,17 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onHandleChange:member",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onHandleDrag:member",
               "docComment": "/**\n * A callback called when a shape's handle changes.\n *\n * @param shape - The current shape.\n *\n * @param info - An object containing the handle and whether the handle is 'precise' or not.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onHandleChange?: "
+                  "text": "onHandleDrag?: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLOnHandleChangeHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnHandleChangeHandler:type"
+                  "text": "TLOnHandleDragHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnHandleDragHandler:type"
                 },
                 {
                   "kind": "Content",
@@ -31364,7 +31329,77 @@
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
-              "name": "onHandleChange",
+              "name": "onHandleDrag",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onHandleDragEnd:member",
+              "docComment": "/**\n * A callback called when a shape starts being dragged.\n *\n * @param shape - The shape.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onHandleDragEnd?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLOnHandleDragStartHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnHandleDragStartHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onHandleDragEnd",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onHandleDragStart:member",
+              "docComment": "/**\n * A callback called when a shape starts being dragged.\n *\n * @param shape - The shape.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onHandleDragStart?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLOnHandleDragStartHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnHandleDragStartHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onHandleDragStart",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
@@ -39373,63 +39408,6 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLOnDragStartHandler:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLOnDragStartHandler<T extends "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShape",
-              "canonicalReference": "@tldraw/tlschema!TLShape:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> = "
-            },
-            {
-              "kind": "Content",
-              "text": "(shape: T) => "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShapePartial",
-              "canonicalReference": "@tldraw/tlschema!TLShapePartial:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<T> | void"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/ShapeUtil.ts",
-          "releaseTag": "Public",
-          "name": "TLOnDragStartHandler",
-          "typeParameters": [
-            {
-              "typeParameterName": "T",
-              "constraintTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "typeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 6
-          }
-        },
-        {
-          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLOnEditEndHandler:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -39478,12 +39456,12 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLOnHandleChangeHandler:type",
+          "canonicalReference": "@tldraw/editor!TLOnHandleDragHandler:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLOnHandleChangeHandler<T extends "
+              "text": "export type TLOnHandleDragHandler<T extends "
             },
             {
               "kind": "Reference",
@@ -39523,7 +39501,7 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/editor/shapes/ShapeUtil.ts",
           "releaseTag": "Public",
-          "name": "TLOnHandleChangeHandler",
+          "name": "TLOnHandleDragHandler",
           "typeParameters": [
             {
               "typeParameterName": "T",
@@ -39540,6 +39518,63 @@
           "typeTokenRange": {
             "startIndex": 3,
             "endIndex": 8
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLOnHandleDragStartHandler:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLOnHandleDragStartHandler<T extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShape",
+              "canonicalReference": "@tldraw/tlschema!TLShape:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(shape: T) => "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapePartial",
+              "canonicalReference": "@tldraw/tlschema!TLShapePartial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<T> | void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/shapes/ShapeUtil.ts",
+          "releaseTag": "Public",
+          "name": "TLOnHandleDragStartHandler",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
           }
         },
         {

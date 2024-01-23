@@ -78,9 +78,9 @@ import { TLNoteShape } from '@tldraw/editor';
 import { TLOnBeforeCreateHandler } from '@tldraw/editor';
 import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
 import { TLOnDoubleClickHandler } from '@tldraw/editor';
-import { TLOnDragStartHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
-import { TLOnHandleChangeHandler } from '@tldraw/editor';
+import { TLOnHandleDragHandler } from '@tldraw/editor';
+import { TLOnHandleDragStartHandler } from '@tldraw/editor';
 import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
 import { TLOnTranslateHandler } from '@tldraw/editor';
@@ -160,11 +160,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
     // (undocumented)
-    onDragStart: TLOnDragStartHandler<TLArrowShape>;
-    // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLArrowShape>;
     // (undocumented)
-    onHandleChange: TLOnHandleChangeHandler<TLArrowShape>;
+    onHandleDrag: TLOnHandleDragHandler<TLArrowShape>;
+    // (undocumented)
+    onHandleDragStart: TLOnHandleDragStartHandler<TLArrowShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
     // (undocumented)
@@ -912,7 +912,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)
-    onHandleChange: TLOnHandleChangeHandler<TLLineShape>;
+    onHandleDrag: TLOnHandleDragHandler<TLLineShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLLineShape>;
     // (undocumented)

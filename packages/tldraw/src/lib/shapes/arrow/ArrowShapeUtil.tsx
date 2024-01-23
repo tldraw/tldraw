@@ -16,9 +16,9 @@ import {
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLHandle,
-	TLOnDragStartHandler,
 	TLOnEditEndHandler,
-	TLOnHandleChangeHandler,
+	TLOnHandleDragHandler,
+	TLOnHandleDragStartHandler,
 	TLOnResizeHandler,
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
@@ -195,7 +195,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	private _labelDragOffset = new Vec(0, 0)
-	override onDragStart: TLOnDragStartHandler<TLArrowShape> = (shape) => {
+	override onHandleDragStart: TLOnHandleDragStartHandler<TLArrowShape> = (shape) => {
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const labelGeometry = geometry.children[1] as Rectangle2d
 		if (labelGeometry) {
@@ -207,10 +207,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	override onHandleChange: TLOnHandleChangeHandler<TLArrowShape> = (
-		shape,
-		{ handle, isPrecise }
-	) => {
+	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
 		const handleId = handle.id as ARROW_HANDLES
 
 		if (handleId === ARROW_HANDLES.MIDDLE) {
