@@ -174,6 +174,83 @@
       "members": [
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/editor!angleDistance:function(1)",
+          "docComment": "/**\n * Get the angle of a point on an arc.\n *\n * @param fromAngle - The angle from center to arc's start point (A) on the circle\n *\n * @param toAngle - The angle from center to arc's end point (B) on the circle\n *\n * @param direction - The direction of the arc (1 = counter-clockwise, -1 = clockwise)\n *\n * @returns The distance in radians between the two angles according to the direction\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function angleDistance(fromAngle: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ", toAngle: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ", direction: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 7,
+            "endIndex": 8
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "fromAngle",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "toAngle",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "direction",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "angleDistance"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/editor!approximately:function(1)",
           "docComment": "/**\n * Whether two numbers numbers a and b are approximately equal.\n *\n * @param a - The first point.\n *\n * @param b - The second point.\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -19895,7 +19972,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!filterIntersectionsToArc:function(1)",
-          "docComment": "/**\n * Given a set of intersections with a circle, filter out any intersections that are not on the arc between angleStart and angleEnd.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Given a set of intersections with a circle, filter out any intersections that are not on the arc between angleStart and angleEnd.\n *\n * @param intersections - The intersections to filter\n *\n * @param center - The center of the arc\n *\n * @param angleStart - The start angle of the arc\n *\n * @param angleEnd - The end angle of the arc\n *\n * @param direction - The direction of the arc (1 = counter-clockwise, -1 = clockwise)\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -19941,19 +20018,11 @@
             },
             {
               "kind": "Content",
-              "text": ", sweepFlag: "
+              "text": ", direction: "
             },
             {
               "kind": "Content",
-              "text": "boolean"
-            },
-            {
-              "kind": "Content",
-              "text": ", largeArcFlag: "
-            },
-            {
-              "kind": "Content",
-              "text": "boolean"
+              "text": "number"
             },
             {
               "kind": "Content",
@@ -19979,8 +20048,8 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
           "returnTypeTokenRange": {
-            "startIndex": 15,
-            "endIndex": 18
+            "startIndex": 13,
+            "endIndex": 16
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -20018,18 +20087,10 @@
               "isOptional": false
             },
             {
-              "parameterName": "sweepFlag",
+              "parameterName": "direction",
               "parameterTypeTokenRange": {
                 "startIndex": 11,
                 "endIndex": 12
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "largeArcFlag",
-              "parameterTypeTokenRange": {
-                "startIndex": 13,
-                "endIndex": 14
               },
               "isOptional": false
             }
@@ -21252,99 +21313,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/editor!getArcMeasure:function(1)",
-          "docComment": "/**\n * Get the measure of an arc.\n *\n * @param A - The angle from center to arc's start point (A) on the circle\n *\n * @param B - The angle from center to arc's end point (B) on the circle\n *\n * @param sweepFlag - 1 if the arc is clockwise, 0 if counter-clockwise\n *\n * @param largeArcFlag - 1 if the arc is greater than 180 degrees, 0 if less than 180 degrees\n *\n * @returns The measure of the arc, negative if counter-clockwise\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getArcMeasure(A: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": ", B: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": ", sweepFlag: "
-            },
-            {
-              "kind": "Content",
-              "text": "boolean"
-            },
-            {
-              "kind": "Content",
-              "text": ", largeArcFlag: "
-            },
-            {
-              "kind": "Content",
-              "text": "boolean"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 9,
-            "endIndex": 10
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "A",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "B",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "sweepFlag",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "largeArcFlag",
-              "parameterTypeTokenRange": {
-                "startIndex": 7,
-                "endIndex": 8
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getArcMeasure"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "@tldraw/editor!getArrowTerminalsInArrowSpace:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -22057,99 +22025,6 @@
             }
           ],
           "name": "getPointerInfo"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!getPointInArcT:function(1)",
-          "docComment": "/**\n * Returns the t value of the point on the arc.\n *\n * @param mAB - The measure of the arc from A to B, negative if counter-clockwise\n *\n * @param A - The angle from center to arc's start point (A) on the circle\n *\n * @param B - The angle from center to arc's end point (B) on the circle\n *\n * @param P - The angle on the circle (P) to find the t value for\n *\n * @returns The t value of the point on the arc, with 0 being the start and 1 being the end\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getPointInArcT(mAB: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": ", A: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": ", B: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": ", P: "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "number"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 9,
-            "endIndex": 10
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "mAB",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "A",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "B",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "P",
-              "parameterTypeTokenRange": {
-                "startIndex": 7,
-                "endIndex": 8
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getPointInArcT"
         },
         {
           "kind": "Function",

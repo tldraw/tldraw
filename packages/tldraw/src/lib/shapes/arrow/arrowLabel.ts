@@ -9,9 +9,8 @@ import {
 	TLArrowShape,
 	Vec,
 	VecLike,
+	angleDistance,
 	assert,
-	clockwiseAngleDist,
-	counterClockwiseAngleDist,
 	filterIntersectionsToArc,
 	getPointOnCircle,
 	intersectCirclePolygon,
@@ -185,8 +184,7 @@ export function getCurvedArrowLabelRange(
 		info.bodyArc.radius,
 		startOffsetAngle,
 		endOffsetAngle,
-		!!info.bodyArc.sweepFlag,
-		!!info.bodyArc.largeArcFlag,
+		direction,
 		Box.FromCenter(startOffset, labelSize).corners
 	)
 
@@ -204,8 +202,7 @@ export function getCurvedArrowLabelRange(
 		info.bodyArc.radius,
 		startOffsetAngle,
 		endOffsetAngle,
-		!!info.bodyArc.sweepFlag,
-		!!info.bodyArc.largeArcFlag,
+		direction,
 		Box.FromCenter(endOffset, labelSize).corners
 	)
 
@@ -243,8 +240,8 @@ export function getCurvedArrowLabelRange(
 
 	// if the arc is small enough that there's no room for the label to move, we constrain it to the middle.
 	if (
-		arcDistance(startAngle, constrainedStartAngle, direction) >
-		arcDistance(startAngle, constrainedEndAngle, direction)
+		angleDistance(startAngle, constrainedStartAngle, direction) >
+		angleDistance(startAngle, constrainedEndAngle, direction)
 	) {
 		const middleAngle = Vec.Angle(info.bodyArc.center, info.middle)
 		constrainedStartAngle = middleAngle
@@ -288,8 +285,7 @@ function intersectArcPolygon(
 	radius: number,
 	angleStart: number,
 	angleEnd: number,
-	sweepFlag: boolean,
-	largArcFlag: boolean,
+	direction: number,
 	polygon: VecLike[]
 ) {
 	return filterIntersectionsToArc(
@@ -297,8 +293,7 @@ function intersectArcPolygon(
 		center,
 		angleStart,
 		angleEnd,
-		sweepFlag,
-		largArcFlag
+		direction
 	)
 }
 
@@ -331,14 +326,6 @@ export function interpolateArcAngles(
 	direction: number,
 	t: number
 ) {
-	const dist = arcDistance(angleStart, angleEnd, direction)
+	const dist = angleDistance(angleStart, angleEnd, direction)
 	return angleStart + dist * t * direction * -1
-}
-
-function arcDistance(fromAngle: number, toAngle: number, direction: number) {
-	const dist =
-		direction < 0
-			? clockwiseAngleDist(fromAngle, toAngle)
-			: counterClockwiseAngleDist(fromAngle, toAngle)
-	return dist
 }

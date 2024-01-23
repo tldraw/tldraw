@@ -75,6 +75,9 @@ import { useValue } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
+// @public
+export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
+
 // @internal (undocumented)
 export const ANIMATION_MEDIUM_MS = 320;
 
@@ -968,7 +971,7 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
 // @public
-export function filterIntersectionsToArc(intersections: null | VecLike[], center: VecLike, angleStart: number, angleEnd: number, sweepFlag: boolean, largeArcFlag: boolean): null | VecLike[];
+export function filterIntersectionsToArc(intersections: null | VecLike[], center: VecLike, angleStart: number, angleEnd: number, direction: number): null | VecLike[];
 
 // @public (undocumented)
 export type GapsSnapLine = {
@@ -1038,9 +1041,6 @@ export abstract class Geometry2d {
     _vertices: undefined | Vec[];
 }
 
-// @public
-export function getArcMeasure(A: number, B: number, sweepFlag: boolean, largeArcFlag: boolean): number;
-
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
     start: Vec;
@@ -1091,9 +1091,6 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
     button: number;
     isPen: boolean;
 };
-
-// @public
-export function getPointInArcT(mAB: number, A: number, B: number, P: number): number;
 
 // @public
 export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
