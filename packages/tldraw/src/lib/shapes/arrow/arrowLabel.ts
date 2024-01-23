@@ -6,11 +6,12 @@ import {
 	Editor,
 	Geometry2d,
 	Polygon2d,
+	TLArrowInfo,
 	TLArrowShape,
 	Vec,
 	VecLike,
 	angleDistance,
-	assert,
+	clamp,
 	filterIntersectionsToArc,
 	getPointOnCircle,
 	intersectCirclePolygon,
@@ -112,13 +113,15 @@ function getLabelToArrowPadding(editor: Editor, shape: TLArrowShape) {
 	return labelToArrowPadding
 }
 
-export function getStraightArrowLabelRange(
+/**
+ * Return the range of possible label positions for a straight arrow. The full possible range is 0
+ * to 1, but as the label itself takes up space the usable range is smaller.
+ */
+function getStraightArrowLabelRange(
 	editor: Editor,
-	shape: TLArrowShape
-): { start: VecLike; end: VecLike } {
-	const info = editor.getArrowInfo(shape)!
-	assert(info.isStraight)
-
+	shape: TLArrowShape,
+	info: Extract<TLArrowInfo, { isStraight: true }>
+): { start: number; end: number } {
 	const labelSize = getArrowLabelSize(editor, shape)
 	const labelToArrowPadding = getLabelToArrowPadding(editor, shape)
 
@@ -134,7 +137,7 @@ export function getStraightArrowLabelRange(
 		// labelGeom.points
 	)
 	if (!intersectionPoints || intersectionPoints.length !== 2) {
-		return { start: info.middle, end: info.middle }
+		return { start: 0.5, end: 0.5 }
 	}
 
 	// there should be two intersection points - one near the start, and one near the end
@@ -145,19 +148,24 @@ export function getStraightArrowLabelRange(
 
 	// take our nudged start and end points and scooch them in even further to give us the possible
 	// range for the position of the _center_ of the label
-	return {
-		start: startOffset.add(Vec.Sub(info.middle, startIntersect)),
-		end: endOffset.add(Vec.Sub(info.middle, endIntersect)),
-	}
+	const startConstrained = startOffset.add(Vec.Sub(info.middle, startIntersect))
+	const endConstrained = endOffset.add(Vec.Sub(info.middle, endIntersect))
+
+	// now we can work out the range of possible label positions
+	const start = Vec.Dist(info.start.point, startConstrained) / info.length
+	const end = Vec.Dist(info.start.point, endConstrained) / info.length
+	return { start, end }
 }
 
+/**
+ * Return the range of possible label positions for a curved arrow. The full possible range is 0
+ * to 1, but as the label itself takes up space the usable range is smaller.
+ */
 export function getCurvedArrowLabelRange(
 	editor: Editor,
-	shape: TLArrowShape
-): { startAngle: number; endAngle: number; dbg?: Geometry2d[] } {
-	const info = editor.getArrowInfo(shape)!
-	assert(!info.isStraight)
-
+	shape: TLArrowShape,
+	info: Extract<TLArrowInfo, { isStraight: false }>
+): { start: number; end: number; dbg?: Geometry2d[] } {
 	const labelSize = getArrowLabelSize(editor, shape)
 	const labelToArrowPadding = getLabelToArrowPadding(editor, shape)
 	const direction = Math.sign(shape.props.bend)
@@ -170,8 +178,6 @@ export function getCurvedArrowLabelRange(
 	const endOffset = getPointOnCircle(info.bodyArc.center, info.bodyArc.radius, endOffsetAngle)
 
 	const dbg: Geometry2d[] = []
-
-	// const endOffset = Vec.RotWith(info.end.point, info.bodyArc.center, labelToArrowPaddingRad)
 
 	// unlike the straight arrow, we can't just stick the label in the middle of the shape when
 	// we're working out the range. this is because as the label moves along the curve, the place
@@ -217,8 +223,8 @@ export function getCurvedArrowLabelRange(
 	for (const pt of [...(startIntersections ?? []), ...(endIntersections ?? [])]) {
 		dbg.push(
 			new Circle2d({
-				x: pt.x,
-				y: pt.y,
+				x: pt.x - 1.5,
+				y: pt.y - 1.5,
 				radius: 3,
 				isFilled: false,
 				debugColor: 'magenta',
@@ -235,24 +241,23 @@ export function getCurvedArrowLabelRange(
 		(endIntersections && furthest(info.end.point, endIntersections)) ?? info.middle
 
 	const startAngle = Vec.Angle(info.bodyArc.center, info.start.point)
-	let constrainedStartAngle = Vec.Angle(info.bodyArc.center, startConstrained)
-	let constrainedEndAngle = Vec.Angle(info.bodyArc.center, endConstrained)
+	const endAngle = Vec.Angle(info.bodyArc.center, info.end.point)
+	const constrainedStartAngle = Vec.Angle(info.bodyArc.center, startConstrained)
+	const constrainedEndAngle = Vec.Angle(info.bodyArc.center, endConstrained)
 
 	// if the arc is small enough that there's no room for the label to move, we constrain it to the middle.
 	if (
 		angleDistance(startAngle, constrainedStartAngle, direction) >
 		angleDistance(startAngle, constrainedEndAngle, direction)
 	) {
-		const middleAngle = Vec.Angle(info.bodyArc.center, info.middle)
-		constrainedStartAngle = middleAngle
-		constrainedEndAngle = middleAngle
+		return { start: 0.5, end: 0.5, dbg }
 	}
 
-	return {
-		startAngle: constrainedStartAngle,
-		endAngle: constrainedEndAngle,
-		dbg,
-	}
+	// now we can work out the range of possible label positions
+	const fullDistance = angleDistance(startAngle, endAngle, direction)
+	const start = angleDistance(startAngle, constrainedStartAngle, direction) / fullDistance
+	const end = angleDistance(startAngle, constrainedEndAngle, direction) / fullDistance
+	return { start, end, dbg }
 }
 
 export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
@@ -261,16 +266,18 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	const info = editor.getArrowInfo(shape)!
 
 	if (info.isStraight) {
-		const range = getStraightArrowLabelRange(editor, shape)
-		labelCenter = Vec.Lrp(range.start, range.end, shape.props.labelPosition)
+		const range = getStraightArrowLabelRange(editor, shape, info)
+		const clampedPosition = clamp(shape.props.labelPosition, range.start, range.end)
+		labelCenter = Vec.Lrp(info.start.point, info.end.point, clampedPosition)
 	} else {
-		const range = getCurvedArrowLabelRange(editor, shape)
+		const range = getCurvedArrowLabelRange(editor, shape, info)
 		if (range.dbg) debugGeom.push(...range.dbg)
+		const clampedPosition = clamp(shape.props.labelPosition, range.start, range.end)
 		const labelAngle = interpolateArcAngles(
-			range.startAngle,
-			range.endAngle,
+			Vec.Angle(info.bodyArc.center, info.start.point),
+			Vec.Angle(info.bodyArc.center, info.end.point),
 			Math.sign(shape.props.bend),
-			shape.props.labelPosition
+			clampedPosition
 		)
 		labelCenter = getPointOnCircle(info.bodyArc.center, info.bodyArc.radius, labelAngle)
 	}

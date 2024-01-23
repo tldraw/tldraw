@@ -5,7 +5,6 @@ import {
 	Edge2d,
 	Geometry2d,
 	Group2d,
-	PI2,
 	Rectangle2d,
 	SVGContainer,
 	ShapeUtil,
@@ -29,13 +28,11 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	clamp,
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
-	lerp,
 	mapObjectMapValues,
 	objectMapEntries,
 	toDomPrecision,
@@ -51,11 +48,7 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import {
-	getArrowLabelPosition,
-	getCurvedArrowLabelRange,
-	getStraightArrowLabelRange,
-} from './arrowLabel'
+import { getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {
 	getCurvedArrowHandlePath,
@@ -240,42 +233,31 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const next = deepCopy(shape) as TLArrowShape
 			const info = this.editor.getArrowInfo(shape)!
 
+			const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+			const lineGeometry = geometry.children[0] as Geometry2d
 			const pointInShapeSpace = this.editor.getPointInShapeSpace(
 				shape,
 				this.editor.inputs.currentPagePoint
 			)
+			const nearestPoint = lineGeometry.nearestPoint(
+				Vec.Add(pointInShapeSpace, this._labelDragOffset)
+			)
 
 			let nextLabelPosition
 			if (info.isStraight) {
-				const range = getStraightArrowLabelRange(this.editor, shape)
-				const nearestPoint = Vec.NearestPointOnLineSegment(
-					range.start,
-					range.end,
-					Vec.Add(pointInShapeSpace, this._labelDragOffset),
-					true
-				)
-				const lineLength = Vec.Dist(range.start, range.end)
-				if (lineLength === 0) {
-					nextLabelPosition = shape.props.labelPosition
-				} else {
-					const segmentLength = Vec.Dist(range.end, nearestPoint)
-					nextLabelPosition = 1 - segmentLength / lineLength
-				}
+				const lineLength = Vec.Dist(info.start.point, info.end.point)
+				const segmentLength = Vec.Dist(info.end.point, nearestPoint)
+				nextLabelPosition = 1 - segmentLength / lineLength
 			} else {
 				const isClockwise = shape.props.bend < 0
 				const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
 
-				const range = getCurvedArrowLabelRange(this.editor, shape)
-
-				const angleCenterNearestPoint = Vec.Angle(
-					info.handleArc.center,
-					Vec.Add(pointInShapeSpace, this._labelDragOffset)
-				)
-				const arcLength = distFn(range.startAngle, range.endAngle)
-				const arcOffset = PI2 - lerp(arcLength, PI2, 0.5)
-				const segmentLength =
-					((distFn(angleCenterNearestPoint, range.endAngle) + arcOffset) % PI2) - arcOffset
-				nextLabelPosition = clamp(1 - segmentLength / arcLength, 0, 1)
+				const angleCenterNearestPoint = Vec.Angle(info.handleArc.center, nearestPoint)
+				const angleCenterStart = Vec.Angle(info.handleArc.center, info.start.point)
+				const angleCenterEnd = Vec.Angle(info.handleArc.center, info.end.point)
+				const arcLength = distFn(angleCenterStart, angleCenterEnd)
+				const segmentLength = distFn(angleCenterNearestPoint, angleCenterEnd)
+				nextLabelPosition = 1 - segmentLength / arcLength
 			}
 			next.props.labelPosition = nextLabelPosition
 
