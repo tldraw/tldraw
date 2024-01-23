@@ -71,6 +71,17 @@ export function ExamplePage({
 								isActive={e.path === example.path}
 							/>
 						))}
+					<li>
+						<div className="request__example__container">
+							<p>Can't find what you're looking for?</p>
+							<Link
+								className="link__button link__button--grey"
+								to="https://github.com/tldraw/tldraw/issues/new/choose"
+							>
+								Request an example
+							</Link>
+						</div>
+					</li>
 				</ul>
 			</div>
 			<div className="example__content">{children}</div>
