@@ -21,11 +21,9 @@ import { Translating } from './childStates/Translating'
 export class SelectTool extends StateNode {
 	static override id = 'select'
 	static override initial = 'idle'
+	reactor: undefined | (() => void) = undefined
 	constructor(editor: Editor, parent?: StateNode) {
 		super(editor, parent)
-		react('clean duplicate props', () => {
-			this.cleanUpDuplicateProps()
-		})
 	}
 
 	// We want to clean up the duplicate props when the selection changes
@@ -65,7 +63,14 @@ export class SelectTool extends StateNode {
 		DraggingHandle,
 	]
 
+	override onEnter = () => {
+		this.reactor = react('clean duplicate props', () => {
+			this.cleanUpDuplicateProps()
+		})
+	}
+
 	override onExit = () => {
+		this.reactor?.()
 		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)
 		}
