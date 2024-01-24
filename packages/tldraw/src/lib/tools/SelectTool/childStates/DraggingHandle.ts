@@ -182,11 +182,14 @@ export class DraggingHandle extends StateNode {
 
 		const { editor, shapeId } = this
 		const shape = editor.getShape(shapeId) as TLArrowShape | (TLUnknownShape & TLArrowShape)
-		const util = this.editor.getShapeUtil(shape)
-		const changes = util.onHandleDragEnd?.(shape)
-		const next: TLShapePartial<any> = { ...shape, ...changes }
-		if (changes) {
-			this.editor.updateShapes([next], { squashing: true })
+
+		if (shape) {
+			const util = this.editor.getShapeUtil(shape)
+			const changes = util.onHandleDragEnd?.(shape)
+			const next: TLShapePartial<any> = { ...shape, ...changes }
+			if (changes) {
+				this.editor.updateShapes([next], { squashing: true })
+			}
 		}
 
 		this.editor.updateInstanceState(
