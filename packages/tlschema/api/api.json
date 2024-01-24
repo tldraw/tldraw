@@ -427,7 +427,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n}"
+              "text": "<string>;\n    labelPosition: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLArrowShape.ts",
@@ -436,7 +445,7 @@
           "name": "arrowShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 42
+            "endIndex": 44
           }
         },
         {
@@ -6020,6 +6029,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLHandle#h:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "h?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "h",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLHandle#id:member",
               "docComment": "/**\n * A unique identifier for the handle.\n */\n",
               "excerptTokens": [
@@ -6095,6 +6131,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "type",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLHandle#w:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "w?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "w",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
