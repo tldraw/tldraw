@@ -114,7 +114,7 @@ This is our context toolbar. It's positioned absolutely on top of the selected s
 
 [2]
 Different shapes support different style properties and this is how we get the styles that are 
-supported by all selected shapes. If some of the selected shapes don't support the `DefaultSizeStyle`
+supported by all selected shapes. If none of the selected shapes supported the `DefaultSizeStyle`
 we wouldn't show the toolbar at all.
 We also get the current value of the size property. If all the shapes have the same size then the
 type of the size property is `shared`. This will allow us to show the currently selected size in the
