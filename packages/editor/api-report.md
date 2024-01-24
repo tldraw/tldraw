@@ -969,9 +969,7 @@ export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyo
 export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
 // @internal (undocumented)
-export const featureFlags: {
-    canMoveArrowLabel: DebugFlag<boolean>;
-};
+export const featureFlags: Record<string, DebugFlag<boolean>>;
 
 // @public (undocumented)
 export type GapsSnapLine = {
@@ -1661,8 +1659,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDropShapesOver?: TLOnDragHandler<Shape>;
     onEditEnd?: TLOnEditEndHandler<Shape>;
     onHandleDrag?: TLOnHandleDragHandler<Shape>;
-    onHandleDragEnd?: TLOnHandleDragStartHandler<Shape>;
-    onHandleDragStart?: TLOnHandleDragStartHandler<Shape>;
+    onLabelDrag?: TLOnLabelDragHandler<Shape>;
+    onLabelDragEnd?: TLOnLabelDragStartHandler<Shape>;
+    onLabelDragStart?: TLOnLabelDragStartHandler<Shape>;
     onResize?: TLOnResizeHandler<Shape>;
     onResizeEnd?: TLOnResizeEndHandler<Shape>;
     onResizeStart?: TLOnResizeStartHandler<Shape>;
@@ -2383,7 +2382,13 @@ export type TLOnHandleDragHandler<T extends TLShape> = (shape: T, info: {
 }) => TLShapePartial<T> | void;
 
 // @public (undocumented)
-export type TLOnHandleDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
+export type TLOnLabelDragEndHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
+
+// @public (undocumented)
+export type TLOnLabelDragHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
+
+// @public (undocumented)
+export type TLOnLabelDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;

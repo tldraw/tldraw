@@ -1,5 +1,6 @@
 import {
 	Editor,
+	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
 	TLClickEventInfo,
@@ -90,6 +91,21 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
+				const targetGeometry = this.editor.getShapeGeometry(info.shape)
+				const labelShapes =
+					targetGeometry instanceof Group2d
+						? targetGeometry.children.filter((child) => child.isLabel)
+						: []
+				const pointInShapeSpace = this.editor.getPointInShapeSpace(
+					info.shape,
+					this.editor.inputs.currentPagePoint
+				)
+				if (labelShapes.length && pointInPolygon(pointInShapeSpace, labelShapes[0].vertices)) {
+					// We're moving the label on a shape.
+					this.parent.transition('pointing_label', info)
+					break
+				}
+
 				if (this.editor.isShapeOrAncestorLocked(info.shape)) {
 					this.parent.transition('pointing_canvas', info)
 					break

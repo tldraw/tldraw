@@ -11,7 +11,6 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	TLShapePartial,
-	TLUnknownShape,
 	Vec,
 	deepCopy,
 	snapAngle,
@@ -110,15 +109,6 @@ export class DraggingHandle extends StateNode {
 		}
 		// -->
 
-		const util = this.editor.getShapeUtil(shape)
-		const changes = util.onHandleDragStart?.(shape)
-
-		const next: TLShapePartial<any> = { ...shape, ...changes }
-
-		if (changes) {
-			this.editor.updateShapes([next], { squashing: true })
-		}
-
 		this.update()
 
 		this.editor.select(this.shapeId)
@@ -179,18 +169,6 @@ export class DraggingHandle extends StateNode {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clear()
-
-		const { editor, shapeId } = this
-		const shape = editor.getShape(shapeId) as TLArrowShape | (TLUnknownShape & TLArrowShape)
-
-		if (shape) {
-			const util = this.editor.getShapeUtil(shape)
-			const changes = util.onHandleDragEnd?.(shape)
-			const next: TLShapePartial<any> = { ...shape, ...changes }
-			if (changes) {
-				this.editor.updateShapes([next], { squashing: true })
-			}
-		}
 
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
