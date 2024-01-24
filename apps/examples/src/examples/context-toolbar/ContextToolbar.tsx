@@ -8,8 +8,14 @@ import {
 	useEditor,
 	Vec,
 } from '@tldraw/tldraw'
-import { STYLES } from '@tldraw/tldraw/src/lib/ui/components/StylePanel/styles'
 import '@tldraw/tldraw/tldraw.css'
+
+const SIZES = [
+	{ value: 's', icon: 'size-small' },
+	{ value: 'm', icon: 'size-medium' },
+	{ value: 'l', icon: 'size-large' },
+	{ value: 'xl', icon: 'size-extra-large' },
+]
 
 // There's a guide at the bottom of this file!
 
@@ -62,7 +68,7 @@ const ContextToolbarComponent = track(() => {
 						alignItems: 'center',
 					}}
 				>
-					{STYLES.size.map((v) => {
+					{SIZES.map((v) => {
 						const { value } = v
 						const isActive = value === currentSize
 						return (
