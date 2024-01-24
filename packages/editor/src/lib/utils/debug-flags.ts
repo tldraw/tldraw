@@ -38,6 +38,9 @@ export const debugFlags = {
 	debugSvg: createDebugValue('debugSvg', {
 		defaults: { all: false },
 	}),
+	showFps: createDebugValue('showFps', {
+		defaults: { all: false },
+	}),
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),

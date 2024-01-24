@@ -421,6 +421,7 @@ export const debugFlags: {
     pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
     elementRemovalLogging: DebugFlag<boolean>;
     debugSvg: DebugFlag<boolean>;
+    showFps: DebugFlag<boolean>;
     throwToBlob: DebugFlag<boolean>;
     logMessages: DebugFlag<any[]>;
     resetConnectionEveryPing: DebugFlag<boolean>;
