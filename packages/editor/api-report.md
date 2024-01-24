@@ -2051,6 +2051,13 @@ export type TLCommandHandler<Data> = {
 };
 
 // @public (undocumented)
+export type TLCommandHistoryOptions = Partial<{
+    squashing: boolean;
+    ephemeral: boolean;
+    preservesRedoStack: boolean;
+}>;
+
+// @public (undocumented)
 export type TLCompleteEvent = (info: TLCompleteEventInfo) => void;
 
 // @public (undocumented)

@@ -14713,7 +14713,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -15491,7 +15491,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -16422,7 +16422,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -16909,7 +16909,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -16974,7 +16974,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -17053,7 +17053,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -17131,7 +17131,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -17230,7 +17230,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -18154,7 +18154,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -18304,7 +18304,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -18383,7 +18383,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -18466,7 +18466,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -18562,7 +18562,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCommandHistoryOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCommandHistoryOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -36306,6 +36306,37 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLCommandHistoryOptions:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLCommandHistoryOptions = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    squashing: boolean;\n    ephemeral: boolean;\n    preservesRedoStack: boolean;\n}>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/types/history-types.ts",
+          "releaseTag": "Public",
+          "name": "TLCommandHistoryOptions",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
           }
         },
         {
