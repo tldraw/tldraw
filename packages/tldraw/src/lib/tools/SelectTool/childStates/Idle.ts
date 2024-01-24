@@ -3,6 +3,7 @@ import {
 	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
+	TLArrowShape,
 	TLClickEventInfo,
 	TLEventHandlers,
 	TLGroupShape,
@@ -100,7 +101,13 @@ export class Idle extends StateNode {
 					info.shape,
 					this.editor.inputs.currentPagePoint
 				)
-				if (labelShapes.length && pointInPolygon(pointInShapeSpace, labelShapes[0].vertices)) {
+				// N.B. We only do this for arrows currently.
+				if (
+					labelShapes.length &&
+					info.shape.type === 'arrow' &&
+					(info.shape as TLArrowShape).props.text.trim() &&
+					pointInPolygon(pointInShapeSpace, labelShapes[0].vertices)
+				) {
 					// We're moving the label on a shape.
 					this.parent.transition('pointing_label', info)
 					break
