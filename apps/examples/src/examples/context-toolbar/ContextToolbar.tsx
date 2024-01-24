@@ -68,8 +68,7 @@ const ContextToolbarComponent = track(() => {
 						alignItems: 'center',
 					}}
 				>
-					{SIZES.map((v) => {
-						const { value } = v
+					{SIZES.map(({ value, icon }) => {
 						const isActive = value === currentSize
 						return (
 							<div
@@ -86,7 +85,7 @@ const ContextToolbarComponent = track(() => {
 									editor.setStyleForSelectedShapes(DefaultSizeStyle, value, { squashing: false })
 								}
 							>
-								<Icon icon={v.icon} />
+								<Icon icon={icon} />
 							</div>
 						)
 					})}
