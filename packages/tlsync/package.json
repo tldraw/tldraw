@@ -32,6 +32,7 @@
 	"files": [],
 	"scripts": {
 		"test": "lazy inherit",
+		"test-dev": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
