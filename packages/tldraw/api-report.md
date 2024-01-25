@@ -1364,7 +1364,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
 export type TLUiActionsContextType = Record<string, TLUiActionItem>;
 
 // @public (undocumented)
-export type TLUiActionsMenuSchemaContextType = TLUiMenuItem[];
+export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema;
 
 // @public (undocumented)
 export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
@@ -1843,7 +1843,7 @@ export function UiEventsProvider({ onEvent, children }: EventsProviderProps): JS
 export function useActions(): TLUiActionsContextType;
 
 // @public (undocumented)
-export function useActionsMenuSchema(): TLUiMenuItem[];
+export function useActionsMenuSchema(): TLUiMenuSchema;
 
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
