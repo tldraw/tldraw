@@ -3,7 +3,7 @@ export function ExternalLinkIcon() {
 		<svg
 			width="15"
 			height="15"
-			style={{ marginLeft: 4 }}
+			style={{ marginLeft: 4, top: 4 }}
 			viewBox="0 0 30 30"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"

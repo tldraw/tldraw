@@ -1,4 +1,3 @@
-import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
 import { ListLink } from './components/ListLink'
 import { examples } from './examples'
 
@@ -7,7 +6,9 @@ export function HomePage() {
 		<div className="examples">
 			<div className="examples__header">
 				<div className="examples__title">
-					<ExamplesTldrawLogo /> examples
+					<a href="/">
+						<img className="tldraw-examples-logo__large" src="tldraw_dev_light.png" />
+					</a>
 				</div>
 				<p>
 					See docs at <a href="https://tldraw.dev">tldraw.dev</a>

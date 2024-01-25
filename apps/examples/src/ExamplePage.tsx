@@ -1,7 +1,6 @@
 import { assert, assertExists } from '@tldraw/tldraw'
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
 import { ListLink } from './components/ListLink'
 import { Example, examples } from './examples'
 
@@ -43,7 +42,9 @@ export function ExamplePage({
 		<div className="example">
 			<div className="example__info">
 				<Link className="example__logo" to="/">
-					<ExamplesTldrawLogo /> examples
+					<a href="/">
+						<img className="tldraw-examples-logo" src="tldraw_dev_light.png" />
+					</a>
 				</Link>
 				<ul className="example__info__list scroll-light" ref={scrollElRef}>
 					{examples

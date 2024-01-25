@@ -47,20 +47,13 @@ html,
 	padding-bottom: 2rem;
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
+	flex-direction: row;
+	font-size: 14px;
+	font-weight: 500;
+	flex-wrap: wrap;
 }
-@media screen and (max-width: 500px) {
-	.examples__header {
-		flex-direction: column;
-		align-items: flex-start;
-		padding-bottom: 1rem;
-	}
-}
-.examples__title {
-	display: flex;
-	align-items: center;
-	margin-right: auto;
-	font-size: 1.45rem;
-}
+
 .examples__lockup {
 	height: 1.875rem;
 	width: auto;
@@ -207,16 +200,7 @@ html,
 		display: none;
 	}
 }
-.example__logo {
-	all: unset;
-	cursor: pointer;
-	flex: none;
-	font-size: 1.15rem;
-	display: flex;
-	align-items: center;
-	justify-content: start;
-	padding: calc(1rem - 0.5px) 1rem;
-}
+
 .example__logo .examples__lockup {
 	height: 1.5rem;
 }
@@ -290,6 +274,12 @@ html,
 }
 
 .tldraw-examples-logo {
-	height: 24px;
+	height: 22px;
+	width: auto;
+	margin: 12px 8px;
+}
+
+.tldraw-examples-logo__large {
+	height: 32px;
 	width: auto;
 }
