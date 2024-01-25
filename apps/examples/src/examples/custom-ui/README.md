@@ -2,7 +2,7 @@
 title: Custom UI
 component: ./CustomUiExample.tsx
 category: ui
-order: 1
+priority: 1
 ---
 
 Replace tldraw's UI with your own.

@@ -2,7 +2,7 @@
 title: Editor API
 component: ./APIExample.tsx
 category: editor
-order: 1
+priority: 1
 ---
 
 Manipulate the contents of the canvas using the editor API.

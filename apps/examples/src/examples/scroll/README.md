@@ -2,7 +2,7 @@
 title: Scrolling container
 component: ./ScrollExample.tsx
 category: basic
-order: 2
+priority: 1
 ---
 
 Use the editor inside a scrollable container.
