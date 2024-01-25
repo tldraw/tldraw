@@ -94,7 +94,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	return (
 		<Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<Popover.Trigger dir="ltr" asChild>
-				<ShareButton />
+				<ShareButton title={'share-menu.title'} label={'share-menu.title'} />
 			</Popover.Trigger>
 			<Popover.Portal container={container}>
 				<Popover.Content
