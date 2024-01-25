@@ -7,7 +7,7 @@ export type Example = {
 	path: string
 	codeUrl: string
 	hide: boolean
-	category: 'basic' | 'editor' | 'ui' | 'collaboration' | 'data/assets' | 'shapes/tools' | null
+	category: Category
 	order: number | null
 	componentFile: string
 	loadComponent: () => Promise<ComponentType>
