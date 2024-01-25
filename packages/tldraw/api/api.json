@@ -15536,8 +15536,12 @@
             },
             {
               "kind": "Reference",
-              "text": "TLUiMenuSchema",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchema:type"
+              "text": "TLUiMenuItem",
+              "canonicalReference": "@tldraw/tldraw!TLUiMenuItem:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
             },
             {
               "kind": "Content",
@@ -15549,7 +15553,7 @@
           "name": "TLUiActionsMenuSchemaContextType",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 3
           }
         },
         {
@@ -20715,8 +20719,12 @@
             },
             {
               "kind": "Reference",
-              "text": "TLUiMenuSchema",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchema:type"
+              "text": "TLUiMenuItem",
+              "canonicalReference": "@tldraw/tldraw!TLUiMenuItem:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
             },
             {
               "kind": "Content",
@@ -20726,7 +20734,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useActionsMenuSchema.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 3
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
