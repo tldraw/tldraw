@@ -5133,7 +5133,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		for (const id of ids) {
 			const shape = this.getShape(id)!
-			const localDelta = Vec.Cast(offset)
+			const localDelta = Vec.From(offset)
 			const parentTransform = this.getShapeParentTransform(shape)
 			if (parentTransform) localDelta.rot(-parentTransform.rotation())
 
