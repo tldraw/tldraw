@@ -1,5 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
+:root {
+	--gray-light: #f5f5f5;
+	--gray-dark: #e8e8e8;
+	--black-transparent-light: rgba(0, 0, 0, 0.3);
+	--black-transparent-dark: rgba(0, 0, 0, 0.5);
+}
+
 html,
 body {
 	padding: 0;
@@ -39,7 +46,7 @@ html,
 
 .examples hr {
 	border: none;
-	border-top: 1px solid #e8e8e8;
+	border-top: 1px solid var(--gray-dark);
 	margin: 0;
 }
 
@@ -86,7 +93,7 @@ html,
 	}
 }
 
-.accordion__trigger{
+.accordion__trigger {
 	border: none;
 	background: none;
 	cursor: pointer;
@@ -95,43 +102,35 @@ html,
 	font-size: 10px;
 }
 
-.accordion__trigger__chevron{
-	color:rgba(0, 0, 0, 0.3);
+.accordion__trigger__chevron {
+	color:var(--black-transparent-light);
 	transition: transform 300ms;
-	-webkit-transition: transform 300ms;
-	-moz-transition: transform 300ms;
-	-ms-transition: transform 300ms;
-	-o-transition: transform 300ms;
 }
 
-.accordion__trigger[data-state='closed'] > div > .accordion__trigger__chevron{
+.accordion__trigger[data-state='closed'] > div > .accordion__trigger__chevron {
 	transform: rotate(-90deg);
-	-webkit-transform: rotate(-90deg);
-	-moz-transform: rotate(-90deg);
-	-ms-transform: rotate(-90deg);
-	-o-transform: rotate(-90deg);
 }
 
 
-.accordion__trigger__heading{
+.accordion__trigger__heading {
 	font-size: 14px;
 	font-weight: 500;
-	color:rgba(0, 0, 0, 0.5);
+	color: var(--black-transparent-dark);
 	margin-top: 0.25rem;
 	margin-bottom: 0.25rem;
 }
 
-.accordion__content{
+.accordion__content {
 	display: flex;
 	flex-direction: row;
 }
-.accordion__content__separator{
-	border-right: 1px solid #e8e8e8;
+.accordion__content__separator {
+	border-right: 1px solid var(--gray-dark);
 	opacity: 0.5;
 	padding-right: 1.5rem;
 }
 
-.accordion__content__examples{
+.accordion__content__examples {
 	width: 100%;
 }
 
@@ -165,7 +164,7 @@ html,
 	position: absolute;
 	inset: 0.5rem;
 	border-radius: 6px;
-	background: #f5f5f5;
+	background: var(--gray-light);
 	z-index: -1;
 	opacity: 0;
 	transition: opacity 0.12s ease-in-out;
@@ -246,7 +245,7 @@ html,
 	max-width: 300px;
 	position: relative;
 	z-index: 1;
-	border-right: 1px solid #e8e8e8;
+	border-right: 1px solid var(--gray-dark);
 	display: flex;
 	flex-direction: column;
 	height: 100%;
@@ -329,19 +328,19 @@ html,
 	background-color: rgba(0, 0, 0, 0.25);
 }
 .scroll-light::-webkit-scrollbar-thumb:hover {
-	background-color: rgba(0, 0, 0, 0.3);
+	background-color: var(--black-transparent-light);
 }
 
 .example__info__list hr {
 	border: none;
-	border-top: 1px solid #e8e8e8;
+	border-top: 1px solid var(--gray-dark);
 	margin: 0;
 }
 
-.accordion__trigger__container{
+.accordion__trigger__container {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
-	color:rgba(0, 0, 0, 0.5);
+	color: var(--black-transparent-dark);
 }

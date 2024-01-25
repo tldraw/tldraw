@@ -15,7 +15,7 @@ export function HomePage() {
 			</div>
 			<ul className="examples__list">
 				{examples.map((e) =>
-					e.array.map((e) => <SpanLink key={e.path} example={e} showDescriptionWhenInactive />)
+					e.value.map((e) => <SpanLink key={e.path} example={e} showDescriptionWhenInactive />)
 				)}
 			</ul>
 			<hr />
