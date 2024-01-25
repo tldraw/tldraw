@@ -119,6 +119,8 @@ export const MIN_ARROW_LENGTH = 10
 /** @internal */
 export const BOUND_ARROW_OFFSET = 10
 /** @internal */
+export const LABEL_TO_ARROW_PADDING = 20
+/** @internal */
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10
 
 /** @public */

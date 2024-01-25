@@ -6,7 +6,7 @@ import {
 	ShapeUtil,
 	TLHandle,
 	TLLineShape,
-	TLOnHandleChangeHandler,
+	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
 	WeakMapCache,
@@ -129,7 +129,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
-	override onHandleChange: TLOnHandleChangeHandler<TLLineShape> = (shape, { handle }) => {
+	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
 		const next = deepCopy(shape)
 
 		switch (handle.id) {

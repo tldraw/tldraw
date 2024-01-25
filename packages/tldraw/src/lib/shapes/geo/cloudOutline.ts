@@ -92,12 +92,7 @@ export function getPillPoints(width: number, height: number, numPoints: number) 
 			points.push(Vec.Add(section.start, Vec.Mul(section.delta, sectionOffset)))
 		} else {
 			points.push(
-				getPointOnCircle(
-					section.center.x,
-					section.center.y,
-					radius,
-					section.startAngle + sectionOffset / radius
-				)
+				getPointOnCircle(section.center, radius, section.startAngle + sectionOffset / radius)
 			)
 		}
 		sectionOffset += spacing
@@ -377,7 +372,7 @@ export function pointsOnArc(
 	for (let i = 0; i < numPoints; i++) {
 		const t = i / (numPoints - 1)
 		const angle = startAngle + l * t
-		const point = getPointOnCircle(center.x, center.y, radius, angle)
+		const point = getPointOnCircle(center, radius, angle)
 		results.push(point)
 	}
 

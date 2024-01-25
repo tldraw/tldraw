@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { ForwardedRef, forwardRef, useEffect, useId, useLayoutEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Example } from '../examples'
-import { useMergedRefs } from '../hooks/useMegedRefs'
+import { useMergedRefs } from '../hooks/useMergedRefs'
 import { StandaloneIcon } from './Icons'
 import { Markdown } from './Markdown'
 
