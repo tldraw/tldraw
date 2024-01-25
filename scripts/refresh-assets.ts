@@ -215,9 +215,12 @@ async function copyTranslations() {
 	// languages.ts
 
 	const languagesSource = await readJsonIfExists(join(sourceFolderPath, 'languages.json'))!
+	type Language = { label: string; locale: string }
 	const languagesFile = `
 		/** @public */
-		export const LANGUAGES = ${JSON.stringify(languagesSource)} as const
+		export const LANGUAGES = ${JSON.stringify(
+			languagesSource.sort((a: Language, b: Language) => a.label.localeCompare(b.label))
+		)} as const
 	`
 	const schemaPath = join(REPO_ROOT, 'packages', 'tlschema', 'src', 'translations')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
