@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
 import classnames from 'classnames'
-import React from 'react'
+import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'

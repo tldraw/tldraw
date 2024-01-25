@@ -271,7 +271,7 @@ export function BreakPointProvider({ forceMobile, children, }: {
 export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;
 
 // @public (undocumented)
-export const Button: React_2.ForwardRefExoticComponent<TLUiButtonProps & React_2.RefAttributes<HTMLButtonElement>>;
+export const Button: React_3.ForwardRefExoticComponent<TLUiButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
 function CheckboxItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX_2.Element;
@@ -1370,7 +1370,7 @@ export type TLUiActionsMenuSchemaContextType = TLUiMenuItem[];
 export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 
 // @public (undocumented)
-export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElement> {
+export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
