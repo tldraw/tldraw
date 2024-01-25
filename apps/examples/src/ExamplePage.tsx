@@ -3,6 +3,7 @@ import { assert, assertExists } from '@tldraw/tldraw'
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
+import { Chevron } from './components/Icons'
 import { SpanLink } from './components/SpanLink'
 import { Example, examples } from './examples'
 
@@ -83,26 +84,5 @@ export function ExamplePage({
 			</div>
 			<div className="example__content">{children}</div>
 		</div>
-	)
-}
-
-const Chevron = () => {
-	return (
-		<svg
-			width="16"
-			height="16"
-			viewBox="0 0 16 16"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			className="accordion__trigger__chevron"
-		>
-			<path
-				d="M4 6L8 10L12 6"
-				stroke="currentColor"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-		</svg>
 	)
 }
