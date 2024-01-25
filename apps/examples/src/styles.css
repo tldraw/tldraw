@@ -92,7 +92,8 @@ html,
 	overflow: hidden;
 	position: relative;
 	padding: 1.5rem;
-	display: block;
+	display: grid;
+	gap: 0.25rem;
 }
 .examples__list__item__link {
 	position: absolute;
@@ -117,7 +118,6 @@ html,
 	background: #f5f5f5;
 	z-index: -1;
 	opacity: 0;
-	transition: opacity 0.12s ease-in-out;
 }
 .examples__list__item__active::before {
 	opacity: 1;
@@ -132,17 +132,17 @@ html,
 	all: unset;
 	font-weight: 700;
 	font-size: 1rem;
-	margin-top: 0.25rem;
+	margin: 0;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
+
 .examples__list__item__details {
 	position: absolute;
 	left: 1rem;
 	right: 1rem;
 	opacity: 0;
-	transition: opacity 0.12s ease-in-out;
 	margin-top: 0.5rem;
 	display: flex;
 	flex-direction: column;
@@ -151,7 +151,6 @@ html,
 .examples__list__item__active .examples__list__item__details {
 	position: static;
 	opacity: 1;
-	transition-delay: 0.1s;
 }
 .examples__list__item__standalone {
 	color: inherit;
@@ -181,7 +180,9 @@ html,
 	justify-content: center;
 	color: inherit;
 	text-decoration: none;
-	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.04);
+	box-shadow:
+		0px 1px 2px rgba(0, 0, 0, 0.12),
+		0px 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .example {
@@ -286,4 +287,9 @@ html,
 	border: none;
 	border-top: 1px solid #e8e8e8;
 	margin: 0;
+}
+
+.tldraw-examples-logo {
+	height: 24px;
+	width: auto;
 }
