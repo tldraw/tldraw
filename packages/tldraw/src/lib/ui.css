@@ -33,7 +33,6 @@
 	font-size: 12px;
 	gap: 0px;
 	color: var(--color-text-1);
-	text-shadow: 1px 1px var(--color-text-shadow);
 }
 
 .tlui-button:disabled {
@@ -526,6 +525,10 @@
 	margin: 0px;
 	padding: 2px;
 	border-radius: 2px;
+}
+
+.tlui-kbd > span:last-child {
+	padding-right: 0;
 }
 
 .tlui-kbd:not(:last-child) {
