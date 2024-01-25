@@ -1,7 +1,7 @@
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
-import { memo, useRef } from 'react'
-import { TLUiMenuItem } from '../hooks/menuHelpers'
+import { memo } from 'react'
+import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
 import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -13,6 +13,38 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	const msg = useTranslation()
 	const container = useContainer()
 	const menuSchema = useActionsMenuSchema()
+	const isReadonly = useReadonly()
+
+	function getActionMenuItem(item: TLUiMenuChild) {
+		if (!item) return null
+		if (isReadonly && !item.readonlyOk) return null
+
+		switch (item.type) {
+			case 'item': {
+				const { id, icon, label, kbd, onSelect } = item.actionItem
+
+				return (
+					<Button
+						key={id}
+						data-testid={`menu-item.${item.id}`}
+						icon={icon}
+						type="icon"
+						title={
+							label
+								? kbd
+									? `${msg(label)} ${kbdStr(kbd)}`
+									: `${msg(label)}`
+								: kbd
+									? `${kbdStr(kbd)}`
+									: ''
+						}
+						onClick={() => onSelect('actions-menu')}
+						disabled={item.disabled}
+					/>
+				)
+			}
+		}
+	}
 
 	return (
 		<Popover id="actions-menu">
@@ -34,42 +66,10 @@ export const ActionsMenu = memo(function ActionsMenu() {
 					sideOffset={6}
 				>
 					<div className="tlui-actions-menu tlui-buttons__grid">
-						{menuSchema.map((item) => {
-							return <ActionsMenuItem item={item} />
-						})}
+						{menuSchema.map(getActionMenuItem)}
 					</div>
 				</PopoverPrimitive.Content>
 			</PopoverPrimitive.Portal>
 		</Popover>
 	)
 })
-
-function ActionsMenuItem({ item }: { item: TLUiMenuItem }) {
-	const msg = useTranslation()
-	const isReadonly = useReadonly()
-	const ref = useRef<HTMLButtonElement>(null)
-	if (isReadonly && !item.readonlyOk) return null
-
-	const { id, icon, label, kbd, onSelect } = item.actionItem
-
-	return (
-		<Button
-			key={id}
-			data-testid={`menu-item.${item.id}`}
-			icon={icon}
-			type="icon"
-			title={
-				label
-					? kbd
-						? `${msg(label)} ${kbdStr(kbd)}`
-						: `${msg(label)}`
-					: kbd
-						? `${kbdStr(kbd)}`
-						: ''
-			}
-			onClick={() => onSelect('actions-menu')}
-			disabled={item.disabled}
-			ref={ref}
-		/>
-	)
-}

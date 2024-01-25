@@ -1,7 +1,7 @@
 import { Editor, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import {
-	TLUiMenuItem,
+	TLUiMenuSchema,
 	menuItem,
 	useAllowGroup,
 	useAllowUngroup,
@@ -12,7 +12,7 @@ import { useBreakpoint } from './useBreakpoint'
 import { useHasLinkShapeSelected } from './useHasLinkShapeSelected'
 
 /** @public */
-export type TLUiActionsMenuSchemaContextType = TLUiMenuItem[]
+export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema
 
 /** @internal */
 export const ActionsMenuSchemaContext = React.createContext({} as TLUiActionsMenuSchemaContextType)
@@ -54,7 +54,7 @@ export const ActionsMenuSchemaProvider = ({
 	const breakpoint = useBreakpoint()
 	const isZoomedTo100 = useValue('zoom is 1', () => editor.getZoomLevel() === 1, [editor])
 
-	const actionTLUiMenuSchema = useMemo<TLUiMenuItem[]>(() => {
+	const actionTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
 		const results = [
 			menuItem(actions['align-left'], { disabled: !twoSelected }),
 			menuItem(actions['align-center-horizontal'], { disabled: !twoSelected }),
@@ -112,7 +112,7 @@ export const ActionsMenuSchemaProvider = ({
 }
 
 /** @public */
-export function useActionsMenuSchema(): TLUiMenuItem[] {
+export function useActionsMenuSchema(): TLUiMenuSchema {
 	const ctx = React.useContext(ActionsMenuSchemaContext)
 
 	if (!ctx) {
