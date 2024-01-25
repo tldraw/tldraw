@@ -1,118 +1,119 @@
-// async function getContentForPath(path: string) {
-// 	const db = await getDb()
+import { ArticleDocsPage } from '@/components/ArticleDocsPage'
+import { CategoryDocsPage } from '@/components/CategoryDocsPage'
+import { SectionDocsPage } from '@/components/SectionDocsPage'
+import { getDb } from '@/utils/ContentDatabase'
+import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 
-// 	const section = await db.db.get(`SELECT * FROM sections WHERE sections.path = ?`, path)
-// 	if (section) return { type: 'section', section } as const
+async function getContentForPath(path: string) {
+	const db = await getDb()
 
-// 	const category = await db.db.get(`SELECT * FROM categories WHERE categories.path = ?`, path)
-// 	if (category) return { type: 'category', category } as const
+	const section = await db.db.get(`SELECT * FROM sections WHERE sections.path = ?`, path)
+	if (section) return { type: 'section', section } as const
 
-// 	const article = await db.db.get(`SELECT * FROM articles WHERE articles.path = ?`, path)
-// 	if (article) return { type: 'article', article } as const
+	const category = await db.db.get(`SELECT * FROM categories WHERE categories.path = ?`, path)
+	if (category) return { type: 'category', category } as const
 
-// 	throw Error(`No content found for ${path}`)
-// }
+	const article = await db.db.get(`SELECT * FROM articles WHERE articles.path = ?`, path)
+	if (article) return { type: 'article', article } as const
 
-// export async function generateMetadata({ params }: { params: { id: string | string[] } }) {
-// 	const path = typeof params.id === 'string' ? [params.id] : params.id
-// 	const pathString = '/' + path.join('/')
-// 	const content = await getContentForPath(pathString)
+	throw Error(`No content found for ${path}`)
+}
 
-// 	if (!content) return {}
+export async function generateMetadata({ params }: { params: { id: string | string[] } }) {
+	const path = typeof params.id === 'string' ? [params.id] : params.id
+	const pathString = '/' + path.join('/')
+	const content = await getContentForPath(pathString)
 
-// 	let title: string | undefined
-// 	let description: string | undefined
-// 	let hero: string | undefined
+	if (!content) return {}
 
-// 	switch (content.type) {
-// 		case 'section': {
-// 			const { section } = content
-// 			title = section.title
-// 			description = section.description ?? undefined
-// 			hero = section.hero ?? undefined
-// 			break
-// 		}
-// 		case 'category': {
-// 			const { category } = content
-// 			title = category.title
-// 			description = category.description ?? undefined
-// 			hero = category.hero ?? undefined
-// 			break
-// 		}
-// 		case 'article': {
-// 			const { article } = content
-// 			title = article.title
-// 			description = article.description ?? undefined
-// 			hero = article.hero ?? undefined
-// 			break
-// 		}
-// 	}
+	let title: string | undefined
+	let description: string | undefined
+	let hero: string | undefined
 
-// 	const metadata: Metadata = {
-// 		title,
-// 		description: description,
-// 		openGraph: {
-// 			title: title,
-// 			description: description,
-// 			images: hero,
-// 		},
-// 		twitter: {
-// 			description: description,
-// 			images: hero,
-// 		},
-// 	}
+	switch (content.type) {
+		case 'section': {
+			const { section } = content
+			title = section.title
+			description = section.description ?? undefined
+			hero = section.hero ?? undefined
+			break
+		}
+		case 'category': {
+			const { category } = content
+			title = category.title
+			description = category.description ?? undefined
+			hero = category.hero ?? undefined
+			break
+		}
+		case 'article': {
+			const { article } = content
+			title = article.title
+			description = article.description ?? undefined
+			hero = article.hero ?? undefined
+			break
+		}
+	}
 
-// 	return metadata
-// }
+	const metadata: Metadata = {
+		title,
+		description: description,
+		openGraph: {
+			title: title,
+			description: description,
+			images: hero,
+		},
+		twitter: {
+			description: description,
+			images: hero,
+		},
+	}
 
-// export async function generateStaticParams() {
-// 	const db = await getDb()
+	return metadata
+}
 
-// 	const sections = await db.db.all(`SELECT * FROM sections`)
-// 	const categories = await db.db.all(`SELECT * FROM categories`)
-// 	const articles = await db.db.all(`SELECT * FROM articles`)
+export async function generateStaticParams() {
+	const db = await getDb()
 
-// 	const paths = [] as string[]
+	const sections = await db.db.all(`SELECT * FROM sections`)
+	const categories = await db.db.all(`SELECT * FROM categories`)
+	const articles = await db.db.all(`SELECT * FROM articles`)
 
-// 	for (const section of sections) {
-// 		paths.push(section.path)
-// 	}
+	const paths = [] as string[]
 
-// 	for (const category of categories) {
-// 		paths.push(category.path)
-// 	}
+	for (const section of sections) {
+		paths.push(section.path)
+	}
 
-// 	for (const article of articles) {
-// 		paths.push(article.path)
-// 	}
+	for (const category of categories) {
+		paths.push(category.path)
+	}
 
-// 	return paths.map((path) => ({ params: { id: path.split('/').filter((p) => p) } }))
-// }
+	for (const article of articles) {
+		paths.push(article.path)
+	}
+
+	return paths.map((path) => ({ params: { id: path.split('/').filter((p) => p) } }))
+}
 
 export default async function ContentPage({ params }: { params: { id: string | string[] } }) {
 	const path = typeof params.id === 'string' ? [params.id] : params.id
 	const pathString = '/' + path.join('/')
-	// const content = await getContentForPath(pathString)
-	// if (!content) throw notFound()
+	const content = await getContentForPath(pathString)
+	if (!content) throw notFound()
 
-	return (
-		<div>
-			<pre>{JSON.stringify(pathString, null, 2)}</pre>
-		</div>
-	)
-
-	// switch (content.type) {
-	// 	case 'section': {
-	// 		return <SectionDocsPage section={content.section} />
-	// 	}
-	// 	case 'category': {
-	// 		return <CategoryDocsPage category={content.category} />
-	// 	}
-	// 	case 'article': {
-	// 		return <ArticleDocsPage article={content.article} />
-	// 	}
-	// 	default: {
-	// 		throw notFound()
-	// 	}
-	// }
+	switch (content.type) {
+		case 'section': {
+			return <SectionDocsPage section={content.section} />
+		}
+		case 'category': {
+			return <CategoryDocsPage category={content.category} />
+		}
+		case 'article': {
+			return <ArticleDocsPage article={content.article} />
+		}
+		default: {
+			throw notFound()
+		}
+	}
 }

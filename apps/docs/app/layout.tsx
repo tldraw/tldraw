@@ -74,8 +74,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 							<div className="layout">{children}</div>
 							<Footer />
 						</div>
+						<Analytics />
 					</Providers>
-					<Analytics />
 				</body>
 			</html>
 		</AutoRefresh>
