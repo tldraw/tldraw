@@ -10,6 +10,7 @@ import {
 	uniqueId,
 	useEditor,
 	useValue,
+	Vec,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { useDialogs } from '../hooks/useDialogsProvider'
@@ -87,10 +88,14 @@ const CurrentState = track(function CurrentState() {
 	const shape = path === 'select.idle' || !path.includes('select.') ? hoverShape : selectedShape
 	const shapeInfo =
 		shape && path.includes('select.')
-			? ` / ${shape.type || ''}${'geo' in shape.props ? ' / ' + shape.props.geo : ''} / [${editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint)}]`
+			? ` / ${shape.type || ''}${'geo' in shape.props ? ' / ' + shape.props.geo : ''} / [${Vec.ToFixed(editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint), 0)}]`
+			: ''
+	const ruler =
+		path.startsWith('select.') && !path.includes('.idle')
+			? ` / [${Vec.ToFixed(editor.inputs.originPagePoint, 0)}] → [${Vec.ToFixed(editor.inputs.currentPagePoint, 0)}] = ${Vec.Dist(editor.inputs.originPagePoint, editor.inputs.currentPagePoint).toFixed(0)}`
 			: ''
 
-	return <div className="tlui-debug-panel__current-state">{`${path}${shapeInfo}`}</div>
+	return <div className="tlui-debug-panel__current-state">{`${path}${shapeInfo}${ruler}`}</div>
 })
 
 const ShapeCount = function ShapeCount() {
