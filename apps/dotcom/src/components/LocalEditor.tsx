@@ -12,6 +12,7 @@ import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
+import { TldrawLink } from './TldrawLink'
 
 export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
@@ -47,6 +48,7 @@ export function LocalEditor() {
 				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
+				<TldrawLink />
 			</Tldraw>
 		</div>
 	)

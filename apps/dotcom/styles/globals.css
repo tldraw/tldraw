@@ -12,3 +12,12 @@
 	height: 100%;
 	overflow: hidden;
 }
+
+.tldraw-link {
+	position: absolute;
+	bottom: 10px;
+	right: 44px;
+	height: 22px;
+	color: var(--color-text);
+	z-index: 9999999999;
+}
