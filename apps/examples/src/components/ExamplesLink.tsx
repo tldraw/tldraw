@@ -6,7 +6,7 @@ import { useMergedRefs } from '../hooks/useMergedRefs'
 import { StandaloneIcon } from './Icons'
 import { Markdown } from './Markdown'
 
-export const SpanLink = forwardRef(function ListLink(
+export const ExamplesLink = forwardRef(function ListLink(
 	{
 		example,
 		isActive,

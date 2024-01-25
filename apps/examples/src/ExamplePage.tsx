@@ -2,9 +2,9 @@ import * as Accordion from '@radix-ui/react-accordion'
 import { assert, assertExists } from '@tldraw/tldraw'
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { ExamplesLink } from './components/ExamplesLink'
 import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
 import { Chevron } from './components/Icons'
-import { SpanLink } from './components/SpanLink'
 import { Example, examples } from './examples'
 
 export function ExamplePage({
@@ -69,7 +69,7 @@ export function ExamplePage({
 									{examples
 										.find((category) => category.id === currentCategory)
 										?.value.map((sidebarExample) => (
-											<SpanLink
+											<ExamplesLink
 												key={sidebarExample.path}
 												example={sidebarExample}
 												isActive={sidebarExample.path === example.path}
