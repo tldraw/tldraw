@@ -36,6 +36,7 @@
 	position: relative;
 	pointer-events: all;
 	position: relative;
+	cursor: pointer;
 }
 
 .tlui-share-zone__button {
