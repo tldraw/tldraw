@@ -96,10 +96,10 @@ const collaborationExamples = (
 	})
 
 export const examples = [
-	{ id: 'Getting Started', array: basicExamples },
-	{ id: 'UI/Theming', array: uiExamples },
-	{ id: 'Shapes & Tools', array: shapeExamples },
-	{ id: 'Data & Assets', array: dataExamples },
-	{ id: 'Editor API', array: editorExamples },
-	{ id: 'Collaboration', array: collaborationExamples },
+	{ id: 'Getting Started', value: basicExamples },
+	{ id: 'UI/Theming', value: uiExamples },
+	{ id: 'Shapes & Tools', value: shapeExamples },
+	{ id: 'Data & Assets', value: dataExamples },
+	{ id: 'Editor API', value: editorExamples },
+	{ id: 'Collaboration', value: collaborationExamples },
 ]

@@ -55,11 +55,11 @@ export function ExamplePage({
 					className="example__info__list scroll-light"
 					ref={scrollElRef}
 				>
-					{categories.map((c) => (
-						<Accordion.Item key={c} value={c}>
+					{categories.map((currentCategory) => (
+						<Accordion.Item key={currentCategory} value={currentCategory}>
 							<Accordion.Trigger className="accordion__trigger">
 								<div className="examples__list__item accordion__trigger__container">
-									<h3 className="accordion__trigger__heading">{c}</h3>
+									<h3 className="accordion__trigger__heading">{currentCategory}</h3>
 									<Chevron />
 								</div>
 							</Accordion.Trigger>
@@ -67,13 +67,13 @@ export function ExamplePage({
 								<span className="accordion__content__separator"></span>
 								<div className="accordion__content__examples">
 									{examples
-										.find((e) => e.id === c)
-										?.array.map((e) => (
+										.find((category) => category.id === currentCategory)
+										?.value.map((sidebarExample) => (
 											<SpanLink
-												key={e.path}
-												example={e}
-												isActive={e.path === example.path}
-												ref={e.path === example.path ? activeElRef : undefined}
+												key={sidebarExample.path}
+												example={sidebarExample}
+												isActive={sidebarExample.path === example.path}
+												ref={sidebarExample.path === example.path ? activeElRef : undefined}
 											/>
 										))}
 								</div>
