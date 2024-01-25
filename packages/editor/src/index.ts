@@ -17,6 +17,7 @@ export {
 	type Atom,
 	type Signal,
 } from '@tldraw/state'
+export type { TLCommandHistoryOptions } from './lib/editor/types/history-types'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -173,7 +174,8 @@ export {
 	type TLOnDoubleClickHandler,
 	type TLOnDragHandler,
 	type TLOnEditEndHandler,
-	type TLOnHandleChangeHandler,
+	type TLOnHandleDragHandler,
+	type TLOnHandleDragStartHandler,
 	type TLOnResizeEndHandler,
 	type TLOnResizeHandler,
 	type TLOnResizeStartHandler,
@@ -307,6 +309,7 @@ export {
 	PI,
 	PI2,
 	SIN,
+	angleDistance,
 	approximately,
 	areAnglesCompatible,
 	average,
@@ -314,6 +317,7 @@ export {
 	clamp,
 	clampRadians,
 	clockwiseAngleDist,
+	counterClockwiseAngleDist,
 	degreesToRadians,
 	getPointOnCircle,
 	getPolygonVertices,

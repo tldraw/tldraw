@@ -67,6 +67,7 @@ export const arrowShapeProps: {
     }, never>;
     bend: T.Validator<number>;
     text: T.Validator<string>;
+    labelPosition: T.Validator<number>;
 };
 
 // @public
@@ -959,11 +960,15 @@ export interface TLHandle {
     canBind?: boolean;
     // (undocumented)
     canSnap?: boolean;
+    // (undocumented)
+    h?: number;
     id: string;
     // (undocumented)
     index: string;
     // (undocumented)
     type: TLHandleType;
+    // (undocumented)
+    w?: number;
     // (undocumented)
     x: number;
     // (undocumented)
