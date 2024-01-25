@@ -241,8 +241,7 @@ html,
 	align-items: stretch;
 }
 .example__info {
-	width: 25vw;
-	max-width: 300px;
+	width: 300px;
 	position: relative;
 	z-index: 1;
 	border-right: 1px solid var(--gray-dark);
