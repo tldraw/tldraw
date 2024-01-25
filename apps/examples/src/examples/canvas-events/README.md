@@ -2,7 +2,7 @@
 title: Canvas events
 component: ./CanvasEventsExample.tsx
 category: editor
-order: 3
+priority: 2
 ---
 
 Listen to events from tldraw's canvas.

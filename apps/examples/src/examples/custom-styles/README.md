@@ -2,7 +2,7 @@
 title: Custom styles
 component: ./CustomStylesExample.tsx
 category: shapes/tools
-order: 2
+order: 1
 ---
 
 Styles are special properties that can be set on many shapes at once.

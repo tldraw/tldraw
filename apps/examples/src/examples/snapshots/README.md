@@ -2,7 +2,7 @@
 title: Snapshots
 component: ./SnapshotExample.tsx
 category: editor
-order: 2
+priority: 1
 ---
 
 Load a snapshot of the editor's contents.

@@ -2,7 +2,7 @@
 title: Sublibraries
 component: ./ExplodedExample.tsx
 category: editor
-order: 7
+priority: 3
 ---
 
 Tldraw is built from several sublibraries - like the editor, default shapes & tools, and UI.

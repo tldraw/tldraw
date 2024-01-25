@@ -8,7 +8,7 @@ export type Example = {
 	codeUrl: string
 	hide: boolean
 	category: Category
-	order: number | null
+	priority: number | null
 	componentFile: string
 	loadComponent: () => Promise<ComponentType>
 }
@@ -19,12 +19,12 @@ const getExamplesForCategory = (category: Category) =>
 	(Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[])
 		.filter((e) => e.category === category)
 		.sort((a, b) => {
-			if (a.order === null) {
+			if (a.priority === null) {
 				return 1
-			} else if (b.order === null) {
+			} else if (b.priority === null) {
 				return -1
 			} else {
-				return a.order - b.order
+				return a.priority - b.priority
 			}
 		})
 

@@ -2,7 +2,7 @@
 title: UI events
 component: ./UiEventsExample.tsx
 category: editor
-order: 5
+priority: 2
 ---
 
 Listen to events from tldraw's UI.
