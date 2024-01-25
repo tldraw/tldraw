@@ -7019,7 +7019,7 @@ __metadata:
     "@types/node": "npm:^18.7.3"
     "@types/sqlite3": "npm:^3.1.9"
     "@types/ws": "npm:^8.5.9"
-    "@vercel/analytics": "npm:^1.1.2"
+    "@vercel/analytics": "npm:^1.1.1"
     broken-link-checker: "npm:^0.7.8"
     concurrently: "npm:^8.2.2"
     dotenv: "npm:^16.3.1"
@@ -8404,12 +8404,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vercel/analytics@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@vercel/analytics@npm:1.1.2"
+"@vercel/analytics@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@vercel/analytics@npm:1.1.1"
   dependencies:
     server-only: "npm:^0.0.1"
-  checksum: 1b8b98eaed3601d40cd265f8332525bbdb606e4e3545a37a0f1d05b28b84a95e7611ae2c52bf7c23ec6d763c2672ef5f3abf453770326a64e9f313ce2089e266
+  checksum: fece944678360085a5deaea3afdade16cab67097dca6585e02a1c4c67ac3ba91b8e0bb848b7ec686b87757aad763df5bae41ce103bdc16c6e586b9390d0b4c11
   languageName: node
   linkType: hard
 
@@ -11446,7 +11446,7 @@ __metadata:
     "@types/qrcode": "npm:^1.5.0"
     "@types/react": "npm:^18.2.47"
     "@typescript-eslint/utils": "npm:^5.59.0"
-    "@vercel/analytics": "npm:^1.1.2"
+    "@vercel/analytics": "npm:^1.1.1"
     "@vitejs/plugin-react-swc": "npm:^3.5.0"
     browser-fs-access: "npm:^0.33.0"
     dotenv: "npm:^16.3.1"
@@ -13013,7 +13013,7 @@ __metadata:
     "@playwright/test": "npm:^1.38.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
-    "@vercel/analytics": "npm:^1.1.2"
+    "@vercel/analytics": "npm:^1.1.1"
     "@vitejs/plugin-react": "npm:^4.2.0"
     classnames: "npm:^2.3.2"
     dotenv: "npm:^16.3.1"
