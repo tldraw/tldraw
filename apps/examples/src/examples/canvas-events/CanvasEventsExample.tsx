@@ -5,28 +5,12 @@ import { useCallback, useState } from 'react'
 // There's a guide at the bottom of this file!
 
 export default function CanvasEventsExample() {
-	// [1]
 	const [events, setEvents] = useState<string[]>([])
-	// [2]
+
 	const handleEvent = useCallback((data: TLEventInfo) => {
-		setEvents((currentEvents) => {
-			const parsedEvents = currentEvents.map((e) => JSON.parse(e))
-			const sameEventIndex = parsedEvents.findIndex(
-				(e) => e.type === data.type && e.name === data.name
-			)
-			if (sameEventIndex !== -1) {
-				return [
-					JSON.stringify(data, null, 2),
-					...currentEvents.slice(0, sameEventIndex),
-					...currentEvents.slice(sameEventIndex + 1),
-				]
-			} else {
-				return [JSON.stringify(data, null, 2), ...currentEvents.slice(0, 100)]
-			}
-		})
+		setEvents((events) => [JSON.stringify(data, null, 2), ...events.slice(0, 100)])
 	}, [])
 
-	// [3]
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '50%', height: '100vh' }}>
@@ -63,16 +47,6 @@ export default function CanvasEventsExample() {
 /* 
 This example shows how to listen to canvas events. This includes things like pointer and 
 keyboard events, but not things such as undo/redo, create/delete shapes, etc. Those are store events.
-
-[1]
-This is where we store the events that we receive from the editor using a useState hook.
-
-[2]
-This is the callback that we pass to the editor's onMount prop. We have some logic in here to
-
-
-[3]
-
 
 To listen to changes to the store, check out the store events example.
 */
