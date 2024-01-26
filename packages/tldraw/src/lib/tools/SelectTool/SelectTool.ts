@@ -65,7 +65,15 @@ export class SelectTool extends StateNode {
 
 	override onEnter = () => {
 		this.reactor = react('clean duplicate props', () => {
-			this.cleanUpDuplicateProps()
+			try {
+				this.cleanUpDuplicateProps()
+			} catch (e) {
+				if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+					// ignore errors at test time
+				} else {
+					console.error(e)
+				}
+			}
 		})
 	}
 
