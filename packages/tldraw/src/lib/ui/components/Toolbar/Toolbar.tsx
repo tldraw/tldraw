@@ -1,7 +1,9 @@
 import { GeoShapeGeoStyle, preventDefault, track, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import React, { memo } from 'react'
+import hotkeys from 'hotkeys-js'
+import React, { memo, useEffect, useMemo } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
 import { TLUiToolItem } from '../../hooks/useTools'
@@ -27,7 +29,6 @@ export const Toolbar = memo(function Toolbar() {
 
 	const isReadonly = useReadonly()
 	const toolbarItems = useToolbarSchema()
-	const laserTool = toolbarItems.find((item) => item.toolItem.id === 'laser')
 
 	const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
 
@@ -37,8 +38,6 @@ export const Toolbar = memo(function Toolbar() {
 		[editor]
 	)
 
-	const showEditingTools = !isReadonly
-
 	const getTitle = (item: TLUiToolItem) =>
 		item.label ? `${msg(item.label)} ${item.kbd ? kbdStr(item.kbd) : ''}` : ''
 
@@ -46,33 +45,11 @@ export const Toolbar = memo(function Toolbar() {
 		return isActiveTLUiToolItem(item.toolItem, activeToolId, geoState)
 	})
 
-	const { itemsInPanel, itemsInDropdown, dropdownFirstItem } = React.useMemo(() => {
-		const itemsInPanel: TLUiToolbarItem[] = []
-		const itemsInDropdown: TLUiToolbarItem[] = []
-		let dropdownFirstItem: TLUiToolbarItem | undefined
+	const { itemsInPanel, itemsInDropdown } = useToolbarItems()
+	const dropdownFirstItem = useMemo(() => {
+		let dropdownFirstItem = itemsInDropdown.find((item) => item === activeTLUiToolbarItem)
 
-		const overflowIndex = Math.min(8, 5 + breakpoint)
-
-		for (let i = 4; i < toolbarItems.length; i++) {
-			const item = toolbarItems[i]
-			if (i < overflowIndex) {
-				// Items below the overflow index will always be in the panel
-				itemsInPanel.push(item)
-			} else {
-				// Items above will be in the dropdown menu unless the item
-				// is active (or was the most recently selected active item)
-				if (item === activeTLUiToolbarItem) {
-					// If the dropdown item is active, make it the dropdownFirstItem
-					dropdownFirstItem = item
-				}
-				// Otherwise, add it to the items in dropdown menu
-				itemsInDropdown.push(item)
-			}
-		}
-
-		if (dropdownFirstItem) {
-			// noop
-		} else {
+		if (!dropdownFirstItem) {
 			// If we don't have a currently active dropdown item, use the most
 			// recently active dropdown item as the current dropdown first item.
 
@@ -98,13 +75,23 @@ export const Toolbar = memo(function Toolbar() {
 		// set of dropdown items was most recently active
 		rMostRecentlyActiveDropdownItem.current = dropdownFirstItem
 
-		if (itemsInDropdown.length <= 2) {
-			itemsInPanel.push(...itemsInDropdown)
-			itemsInDropdown.length = 0
-		}
+		return dropdownFirstItem
+	}, [activeTLUiToolbarItem, itemsInDropdown])
 
-		return { itemsInPanel, itemsInDropdown, dropdownFirstItem }
-	}, [toolbarItems, activeTLUiToolbarItem, breakpoint])
+	useEffect(() => {
+		const itemsWithShortcuts = [...itemsInPanel, dropdownFirstItem]
+		for (let i = 0; i < Math.min(10, itemsWithShortcuts.length); i++) {
+			const indexKbd = `${i + 1}`.slice(-1)
+			hotkeys(indexKbd, (event) => {
+				if (areShortcutsDisabled(editor)) return
+				preventDefault(event)
+				itemsWithShortcuts[i].toolItem.onSelect('kbd')
+			})
+		}
+		return () => {
+			hotkeys.unbind('1,2,3,4,5,6,7,8,9,0')
+		}
+	}, [dropdownFirstItem, editor, itemsInPanel])
 
 	return (
 		<div className="tlui-toolbar">
@@ -129,8 +116,8 @@ export const Toolbar = memo(function Toolbar() {
 							'tlui-toolbar__tools__mobile': breakpoint < 5,
 						})}
 					>
-						{/* Select / Hand */}
-						{toolbarItems.slice(0, 2).map(({ toolItem }) => {
+						{/* Main panel items */}
+						{itemsInPanel.map(({ toolItem }) => {
 							return (
 								<ToolbarButton
 									key={toolItem.id}
@@ -140,67 +127,37 @@ export const Toolbar = memo(function Toolbar() {
 								/>
 							)
 						})}
-						{isReadonly && laserTool && (
-							<ToolbarButton
-								key={laserTool.toolItem.id}
-								item={laserTool.toolItem}
-								title={getTitle(laserTool.toolItem)}
-								isSelected={isActiveTLUiToolItem(laserTool.toolItem, activeToolId, geoState)}
-							/>
-						)}
-						{showEditingTools && (
+						{/* Overflowing Shapes */}
+						{itemsInDropdown.length ? (
 							<>
-								{/* Draw / Eraser */}
-								{toolbarItems.slice(2, 4).map(({ toolItem }) => (
-									<ToolbarButton
-										key={toolItem.id}
-										item={toolItem}
-										title={getTitle(toolItem)}
-										isSelected={isActiveTLUiToolItem(toolItem, activeToolId, geoState)}
-									/>
-								))}
-								{/* Everything Else */}
-								{itemsInPanel.map(({ toolItem }) => (
-									<ToolbarButton
-										key={toolItem.id}
-										item={toolItem}
-										title={getTitle(toolItem)}
-										isSelected={isActiveTLUiToolItem(toolItem, activeToolId, geoState)}
-									/>
-								))}
-								{/* Overflowing Shapes */}
-								{itemsInDropdown.length ? (
-									<>
-										{/* Last selected (or first) item from the overflow */}
-										<ToolbarButton
-											key={dropdownFirstItem.toolItem.id}
-											item={dropdownFirstItem.toolItem}
-											title={getTitle(dropdownFirstItem.toolItem)}
-											isSelected={isActiveTLUiToolItem(
-												dropdownFirstItem.toolItem,
-												activeToolId,
-												geoState
-											)}
+								{/* Last selected (or first) item from the overflow */}
+								<ToolbarButton
+									key={dropdownFirstItem.toolItem.id}
+									item={dropdownFirstItem.toolItem}
+									title={getTitle(dropdownFirstItem.toolItem)}
+									isSelected={isActiveTLUiToolItem(
+										dropdownFirstItem.toolItem,
+										activeToolId,
+										geoState
+									)}
+								/>
+								{/* The dropdown to select everything else */}
+								<M.Root id="toolbar overflow" modal={false}>
+									<M.Trigger>
+										<Button
+											className="tlui-toolbar__overflow"
+											icon="chevron-up"
+											type="tool"
+											data-testid="tools.more"
+											title={msg('tool-panel.more')}
 										/>
-										{/* The dropdown to select everything else */}
-										<M.Root id="toolbar overflow" modal={false}>
-											<M.Trigger>
-												<Button
-													className="tlui-toolbar__overflow"
-													icon="chevron-up"
-													type="tool"
-													data-testid="tools.more"
-													title={msg('tool-panel.more')}
-												/>
-											</M.Trigger>
-											<M.Content side="top" align="center">
-												<OverflowToolsContent toolbarItems={itemsInDropdown} />
-											</M.Content>
-										</M.Root>
-									</>
-								) : null}
+									</M.Trigger>
+									<M.Content side="top" align="center">
+										<OverflowToolsContent toolbarItems={itemsInDropdown} />
+									</M.Content>
+								</M.Root>
 							</>
-						)}
+						) : null}
 					</div>
 				</div>
 				{breakpoint < 5 && !isReadonly && (
@@ -278,4 +235,26 @@ const isActiveTLUiToolItem = (
 	return item.meta?.geo
 		? activeToolId === 'geo' && geoState === item.meta?.geo
 		: activeToolId === item.id
+}
+
+export function useToolbarItems() {
+	const breakpoint = useBreakpoint()
+	const allToolbarItems = useToolbarSchema()
+	const isReadonly = useReadonly()
+	return useMemo(() => {
+		const visibleItems = allToolbarItems.filter((item) => !isReadonly || item.readonlyOk)
+		const overflowIndex = Math.min(8, 5 + breakpoint)
+
+		const itemsInPanel = visibleItems.slice(0, overflowIndex)
+		const itemsInDropdown = visibleItems.slice(overflowIndex)
+
+		if (itemsInDropdown.length <= 2) {
+			return {
+				itemsInPanel: visibleItems,
+				itemsInDropdown: [],
+			}
+		}
+
+		return { itemsInPanel, itemsInDropdown }
+	}, [allToolbarItems, breakpoint, isReadonly])
 }
