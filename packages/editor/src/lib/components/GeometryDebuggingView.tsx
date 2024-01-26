@@ -2,6 +2,8 @@ import { track } from '@tldraw/state'
 import { modulate } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
 import { useEditor } from '../hooks/useEditor'
+import { Geometry2d } from '../primitives/geometry/Geometry2d'
+import { Group2d } from '../primitives/geometry/Group2d'
 
 function useTick(isEnabled = true) {
 	const [_, setTick] = useState(0)
@@ -69,15 +71,7 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 						strokeLinecap="round"
 						strokeLinejoin="round"
 					>
-						{showStroke && (
-							<path
-								stroke="red"
-								strokeWidth="2"
-								fill="none"
-								opacity="1"
-								d={geometry.toSimpleSvgPath()}
-							/>
-						)}
+						{showStroke && <GeometryStroke geometry={geometry} />}
 						{showVertices &&
 							vertices.map((v, i) => (
 								<circle
@@ -107,3 +101,25 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 		</svg>
 	)
 })
+
+function GeometryStroke({ geometry }: { geometry: Geometry2d }) {
+	if (geometry instanceof Group2d) {
+		return (
+			<>
+				{[...geometry.children, ...geometry.ignoredChildren].map((child, i) => (
+					<GeometryStroke geometry={child} key={i} />
+				))}
+			</>
+		)
+	}
+
+	return (
+		<path
+			stroke={geometry.debugColor ?? 'red'}
+			strokeWidth="2"
+			fill="none"
+			opacity="1"
+			d={geometry.toSimpleSvgPath()}
+		/>
+	)
+}

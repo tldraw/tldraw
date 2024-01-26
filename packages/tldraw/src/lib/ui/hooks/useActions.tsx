@@ -99,8 +99,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return false
 		}
 
-		function hasSelectedShapes() {
-			return editor.getSelectedShapeIds().length > 0
+		function canApplySelectionAction() {
+			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
 		}
 
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
@@ -110,7 +110,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'link',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('edit-link', { source })
@@ -232,7 +232,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.toggle-auto-size',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('toggle-auto-size', { source })
@@ -300,7 +300,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.convert-to-bookmark',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					editor.batch(() => {
@@ -344,7 +344,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.convert-to-embed',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('convert-to-embed', { source })
@@ -402,7 +402,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'duplicate',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('duplicate-shapes', { source })
@@ -448,7 +448,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'ungroup',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('ungroup-shapes', { source })
@@ -463,7 +463,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'group',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('group-shapes', { source })
@@ -483,7 +483,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$!f',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 
 					trackEvent('remove-frame', { source })
 					const selectedShapes = editor.getSelectedShapes()
@@ -504,7 +504,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.fit-frame-to-content',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 
 					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
@@ -521,7 +521,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-left',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('align-shapes', { operation: 'left', source })
@@ -537,7 +537,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-center-horizontal',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('align-shapes', { operation: 'center-horizontal', source })
@@ -552,7 +552,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-right',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('align-shapes', { operation: 'right', source })
@@ -568,7 +568,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-center-vertical',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('align-shapes', { operation: 'center-vertical', source })
@@ -583,7 +583,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?W',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('align-shapes', { operation: 'top', source })
@@ -598,7 +598,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?S',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('align-shapes', { operation: 'bottom', source })
@@ -614,7 +614,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?!h',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
@@ -630,7 +630,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?!V',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('distribute-shapes', { operation: 'vertical', source })
@@ -645,7 +645,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'stretch-horizontal',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('stretch-shapes', { operation: 'horizontal', source })
@@ -660,7 +660,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'stretch-vertical',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('stretch-shapes', { operation: 'vertical', source })
@@ -675,7 +675,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!h',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
@@ -690,7 +690,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!v',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('flip-shapes', { operation: 'vertical', source })
@@ -704,7 +704,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'pack',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('pack-shapes', { source })
@@ -719,7 +719,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'stack-vertical',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('stack-shapes', { operation: 'vertical', source })
@@ -734,7 +734,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'stack-horizontal',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('stack-shapes', { operation: 'horizontal', source })
@@ -749,7 +749,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'bring-to-front',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('reorder-shapes', { operation: 'toFront', source })
@@ -764,7 +764,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?]',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('reorder-shapes', { operation: 'forward', source })
@@ -779,7 +779,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?[',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('reorder-shapes', { operation: 'backward', source })
@@ -794,7 +794,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '[',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('reorder-shapes', { operation: 'toBack', source })
@@ -808,7 +808,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$x',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					editor.mark('cut')
@@ -821,7 +821,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$c',
 				readonlyOk: true,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					copy(source)
@@ -863,7 +863,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.select-none',
 				readonlyOk: true,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('select-none-shapes', { source })
@@ -878,7 +878,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'trash',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('delete-shapes', { source })
@@ -892,7 +892,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-cw',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('rotate-cw', { source })
@@ -911,7 +911,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-ccw',
 				readonlyOk: false,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('rotate-ccw', { source })
@@ -971,7 +971,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!2',
 				readonlyOk: true,
 				onSelect(source) {
-					if (!hasSelectedShapes()) return
+					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('zoom-to-selection', { source })

@@ -1771,6 +1771,32 @@ describe('add isPrecise to arrow handles', () => {
 	})
 })
 
+describe('add AddLabelPosition to arrow handles', () => {
+	const { up, down } = arrowShapeMigrations.migrators[ArrowMigrationVersions.AddLabelPosition]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: { labelPosition: 0.5 },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					labelPosition: 0.5,
+				},
+			})
+		).toEqual({
+			props: {},
+		})
+	})
+})
+
 const invalidUrl = 'invalid-url'
 const validUrl = ''
 

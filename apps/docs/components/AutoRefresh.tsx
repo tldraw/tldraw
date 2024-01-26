@@ -22,6 +22,7 @@ if (process.env.NODE_ENV === 'development') {
 				ws.close()
 			}
 		}, [router])
+
 		return children
 	}
 }
