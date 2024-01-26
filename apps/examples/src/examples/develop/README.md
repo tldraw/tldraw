@@ -1,5 +1,5 @@
 ---
-title: Basic (development)
+title: Basic
 component: ./BasicExample.tsx
 order: 1
 ---

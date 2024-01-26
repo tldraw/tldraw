@@ -1,6 +1,6 @@
 import { Vec } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
-import { PI, PI2, shortAngleDist } from '../utils'
+import { PI, PI2, getPointOnCircle, shortAngleDist } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
@@ -83,7 +83,7 @@ export class Arc2d extends Geometry2d {
 		for (let i = 0, n = getVerticesCountForLength(Math.abs(length)); i < n + 1; i++) {
 			const t = (i / n) * measure
 			const angle = angleStart + t
-			vertices.push(_center.clone().add(new Vec(Math.cos(angle), Math.sin(angle)).mul(radius)))
+			vertices.push(getPointOnCircle(_center, radius, angle))
 		}
 
 		return vertices
@@ -93,10 +93,10 @@ export class Arc2d extends Geometry2d {
 /**
  * Returns the t value of the point on the arc.
  *
- * @param mAB The measure of the arc from A to B, negative if counter-clockwise
- * @param A The angle from center to arc's start point (A) on the circle
- * @param B The angle from center to arc's end point (B) on the circle
- * @param P The point on the circle (P) to find the t value for
+ * @param mAB - The measure of the arc from A to B, negative if counter-clockwise
+ * @param A - The angle from center to arc's start point (A) on the circle
+ * @param B - The angle from center to arc's end point (B) on the circle
+ * @param P - The angle on the circle (P) to find the t value for
  *
  * @returns The t value of the point on the arc, with 0 being the start and 1 being the end
  *
