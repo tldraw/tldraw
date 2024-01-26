@@ -11,18 +11,10 @@ body:
   - type: textarea
     id: description
     attributes:
-      label: What's example?
-      description: Describe the example.
+      label: What's the example?
+      description: Please describe the example. What would you like to see?
     validations:
       required: true
-  - type: input
-    id: contact
-    attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
-    validations:
-      required: false
   - type: checkboxes
     id: terms
     attributes:
