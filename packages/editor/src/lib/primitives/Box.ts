@@ -354,6 +354,10 @@ export class Box {
 		return new Box(box.x, box.y, box.w, box.h)
 	}
 
+	static FromCenter(center: VecLike, size: VecLike) {
+		return new Box(center.x - size.x / 2, center.y - size.y / 2, size.x, size.y)
+	}
+
 	static FromPoints(points: VecLike[]) {
 		if (points.length === 0) return new Box()
 		let minX = Infinity

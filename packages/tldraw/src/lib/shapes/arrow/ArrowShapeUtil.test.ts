@@ -314,7 +314,7 @@ describe('Other cases when arrow are moved', () => {
 	})
 })
 
-describe('When a shape it rotated', () => {
+describe('When a shape is rotated', () => {
 	it('binds correctly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(375, 375)
 
@@ -349,6 +349,36 @@ describe('When a shape it rotated', () => {
 		).normalizedAnchor
 		expect(anchor.x).toBeCloseTo(0.5)
 		expect(anchor.y).toBeCloseTo(0.75)
+	})
+})
+
+describe('Arrow labels', () => {
+	beforeEach(() => {
+		// Create an arrow with a label
+		editor.setCurrentTool('arrow').pointerDown(10, 10).pointerMove(100, 100).pointerUp()
+		const arrowId = editor.getOnlySelectedShape()!.id
+		editor.updateShapes([{ id: arrowId, type: 'arrow', props: { text: 'Test Label' } }])
+	})
+
+	it('should create an arrow with a label', () => {
+		const arrowId = editor.getOnlySelectedShape()!.id
+		const arrow = editor.getShape(arrowId)
+		expect(arrow).toMatchObject({
+			props: {
+				text: 'Test Label',
+			},
+		})
+	})
+
+	it('should update the label of an arrow', () => {
+		const arrowId = editor.getOnlySelectedShape()!.id
+		editor.updateShapes([{ id: arrowId, type: 'arrow', props: { text: 'New Label' } }])
+		const arrow = editor.getShape(arrowId)
+		expect(arrow).toMatchObject({
+			props: {
+				text: 'New Label',
+			},
+		})
 	})
 })
 

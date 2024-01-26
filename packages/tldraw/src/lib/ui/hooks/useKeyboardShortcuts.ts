@@ -1,4 +1,4 @@
-import { Editor, preventDefault, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useToolbarItems } from '../components/Toolbar/Toolbar'
@@ -36,6 +36,14 @@ export function useKeyboardShortcuts() {
 			hotkeys(keys, { element: container, scope: editor.store.id }, callback)
 		}
 
+		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
+			hotkeys(
+				keys,
+				{ element: container, keyup: true, keydown: false, scope: editor.store.id },
+				callback
+			)
+		}
+
 		// Add hotkeys for actions and tools.
 		// Except those that in SKIP_KBDS!
 		for (const action of Object.values(actions)) {
@@ -63,6 +71,58 @@ export function useKeyboardShortcuts() {
 				tool.onSelect('kbd')
 			})
 		}
+
+		hot(',', (e) => {
+			// Skip if shortcuts are disabled
+			if (areShortcutsDisabled(editor)) return
+
+			// Don't press again if already pressed
+			if (editor.inputs.keys.has('Comma')) return
+
+			preventDefault(e) // prevent whatever would normally happen
+			container.focus() // Focus if not already focused
+
+			editor.inputs.keys.add('Comma')
+
+			const { x, y, z } = editor.inputs.currentScreenPoint
+			const info: TLPointerEventInfo = {
+				type: 'pointer',
+				name: 'pointer_down',
+				point: { x, y, z },
+				shiftKey: e.shiftKey,
+				altKey: e.altKey,
+				ctrlKey: e.metaKey || e.ctrlKey,
+				pointerId: 0,
+				button: 0,
+				isPen: editor.getInstanceState().isPenMode,
+				target: 'canvas',
+			}
+
+			editor.dispatch(info)
+		})
+
+		hotUp(',', (e) => {
+			if (areShortcutsDisabled(editor)) return
+			if (!editor.inputs.keys.has('Comma')) return
+
+			editor.inputs.keys.delete('Comma')
+
+			const { x, y, z } = editor.inputs.currentScreenPoint
+			const info: TLPointerEventInfo = {
+				type: 'pointer',
+				name: 'pointer_up',
+				point: { x, y, z },
+				shiftKey: e.shiftKey,
+				altKey: e.altKey,
+				ctrlKey: e.metaKey || e.ctrlKey,
+				pointerId: 0,
+				button: 0,
+				isPen: editor.getInstanceState().isPenMode,
+				target: 'canvas',
+			}
+
+			editor.dispatch(info)
+		})
 
 		return () => {
 			hotkeys.deleteScope(editor.store.id)
