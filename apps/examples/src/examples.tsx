@@ -8,7 +8,7 @@ export type Example = {
 	codeUrl: string
 	hide: boolean
 	category: Category
-	priority: number | null
+	priority: number
 	componentFile: string
 	loadComponent: () => Promise<ComponentType>
 }
@@ -19,13 +19,8 @@ const getExamplesForCategory = (category: Category) =>
 	(Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[])
 		.filter((e) => e.category === category)
 		.sort((a, b) => {
-			if (a.priority === null) {
-				return 1
-			} else if (b.priority === null) {
-				return -1
-			} else {
-				return a.priority - b.priority
-			}
+			if (a.priority === b.priority) return a.title.localeCompare(b.title)
+			return a.priority - b.priority
 		})
 
 const categories: Record<Category, string> = {
