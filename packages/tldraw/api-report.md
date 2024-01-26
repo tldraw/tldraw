@@ -1079,7 +1079,6 @@ function Root({ id, children, modal, debugOpen, }: {
 
 // @public (undocumented)
 export class SelectTool extends StateNode {
-    constructor(editor: Editor, parent?: StateNode);
     // (undocumented)
     static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
     // (undocumented)
