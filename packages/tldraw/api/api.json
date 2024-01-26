@@ -12748,36 +12748,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!SelectTool#cleanUpDuplicateProps:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "cleanUpDuplicateProps: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "() => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "cleanUpDuplicateProps",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!SelectTool.id:member",
               "docComment": "",
               "excerptTokens": [

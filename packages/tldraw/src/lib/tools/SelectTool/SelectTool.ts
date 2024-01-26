@@ -26,23 +26,6 @@ export class SelectTool extends StateNode {
 		super(editor, parent)
 	}
 
-	// We want to clean up the duplicate props when the selection changes
-	cleanUpDuplicateProps = () => {
-		const selectedShapeIds = this.editor.getSelectedShapeIds()
-		const instance = this.editor.getInstanceState()
-		if (!instance.duplicateProps) return
-		const duplicatedShapes = new Set(instance.duplicateProps.shapeIds)
-		if (
-			selectedShapeIds.length === duplicatedShapes.size &&
-			selectedShapeIds.every((shapeId) => duplicatedShapes.has(shapeId))
-		) {
-			return
-		}
-		this.editor.updateInstanceState({
-			duplicateProps: null,
-		})
-	}
-
 	static override children = () => [
 		Crop,
 		Cropping,
@@ -62,6 +45,23 @@ export class SelectTool extends StateNode {
 		PointingHandle,
 		DraggingHandle,
 	]
+
+	// We want to clean up the duplicate props when the selection changes
+	private cleanUpDuplicateProps = () => {
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		const instance = this.editor.getInstanceState()
+		if (!instance.duplicateProps) return
+		const duplicatedShapes = new Set(instance.duplicateProps.shapeIds)
+		if (
+			selectedShapeIds.length === duplicatedShapes.size &&
+			selectedShapeIds.every((shapeId) => duplicatedShapes.has(shapeId))
+		) {
+			return
+		}
+		this.editor.updateInstanceState({
+			duplicateProps: null,
+		})
+	}
 
 	override onEnter = () => {
 		this.reactor = react('clean duplicate props', () => {

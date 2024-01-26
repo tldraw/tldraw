@@ -1079,8 +1079,6 @@ export class SelectTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
     // (undocumented)
-    cleanUpDuplicateProps: () => void;
-    // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
