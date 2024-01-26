@@ -76,7 +76,7 @@ export function ExamplePage({
 							<p>Can't find what you're looking for?</p>
 							<Link
 								className="link__button link__button--grey"
-								to="https://github.com/tldraw/tldraw/issues/new/choose"
+								to="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
 							>
 								Request an example
 							</Link>
