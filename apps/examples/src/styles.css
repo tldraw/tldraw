@@ -215,6 +215,15 @@ html,
 		display: none;
 	}
 }
+
+.example__sidebar-header {
+	display: flex;
+	height: 44px;
+	margin-bottom: 8px;
+	padding-right: 8px;
+	align-items: center;
+}
+
 .example__logo {
 	all: unset;
 	cursor: pointer;
@@ -306,4 +315,28 @@ html,
 	font-weight: 400;
 	padding: 1rem;
 	border-top: 1px solid #e8e8e8;
+}
+
+.example__info__list__socials {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	flex-grow: 2;
+}
+
+.example__info__list__socials__button {
+	color: black;
+	height: 32px;
+	width: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.icon {
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+	color: black;
+	background-color: black;
 }
