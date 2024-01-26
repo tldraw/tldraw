@@ -1086,7 +1086,11 @@ export class SelectTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    onEnter: () => void;
+    // (undocumented)
     onExit: () => void;
+    // (undocumented)
+    reactor: (() => void) | undefined;
 }
 
 // @public (undocumented)
