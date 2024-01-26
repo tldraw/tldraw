@@ -4,7 +4,7 @@ Thank you for your interest in contributing to [tldraw](https://github.com/tldra
 
 ## Create an Issue!
 
-Before submitting a pull request, it is **strongly recommended** to create [create an issue](https://github.com/tldraw/tldraw/issues/new/choose) first to discuss your proposed changes. This will help us to make sure that your changes are aligned with the project goals and that you are not duplicating work that is already in progress.
+Before submitting a pull request, it is **strongly recommended** to [create an issue](https://github.com/tldraw/tldraw/issues/new/choose) first to discuss your proposed changes. This will help us to make sure that your changes are aligned with the project goals and that you are not duplicating work that is already in progress.
 
 If you are not sure whether your changes are needed, feel free to create an issue anyway and we can discuss it there. Once we have agreed on the changes, you can start working on them.
 

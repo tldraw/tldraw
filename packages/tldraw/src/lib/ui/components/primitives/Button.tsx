@@ -1,3 +1,4 @@
+import { useEditor } from '@tldraw/editor'
 import classnames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -35,18 +36,28 @@ export const Button = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(funct
 		type,
 		children,
 		spinner,
+		disabled,
 		...props
 	},
 	ref
 ) {
 	const msg = useTranslation()
 	const labelStr = label ? msg(label) : ''
+	const editor = useEditor()
+
+	// If the button is getting disabled while it's focused, move focus to the editor
+	// so that the user can continue using keyboard shortcuts
+	const current = (ref as React.MutableRefObject<HTMLButtonElement | null>)?.current
+	if (disabled && current === document.activeElement) {
+		editor.getContainer().focus()
+	}
 
 	return (
 		<button
 			ref={ref}
 			draggable={false}
 			type="button"
+			disabled={disabled}
 			{...props}
 			title={props.title ?? labelStr}
 			className={classnames('tlui-button', `tlui-button__${type}`, props.className)}
