@@ -25,8 +25,7 @@ The files are also provided in this repo.
 
 You can build the markdown and API content using the following scripts:
 
-- `yarn refresh-all` to reset the database, generate the markdown from the API docs, and populate the database with articles from both the regular content and the generated API content
-- `yarn refresh-api-content` to refresh just the API content
+- `yarn refresh-everything` to reset the database, generate the markdown from the API docs, and populate the database with articles from both the regular content and the generated API content
 - `yarn refresh-content` to generate just the regular content
 
 # Content
