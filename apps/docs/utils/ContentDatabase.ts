@@ -141,7 +141,9 @@ export class ContentDatabase {
 		return { prev: prev ?? null, next: next ?? null }
 	}
 
+	// TODO(mime): make this more generic, not per docs area
 	private _sidebarContentLinks: SidebarContentLink[] | undefined
+	private _sidebarReferenceContentLinks: SidebarContentLink[] | undefined
 
 	async getSidebarContentList({
 		sectionId,
@@ -154,9 +156,10 @@ export class ContentDatabase {
 	}): Promise<SidebarContentList> {
 		let links: SidebarContentLink[]
 
-		if (this._sidebarContentLinks && process.env.NODE_ENV !== 'development') {
+		const cachedLinks = sectionId === 'reference' ? this._sidebarReferenceContentLinks : this._sidebarContentLinks
+		if (cachedLinks && process.env.NODE_ENV !== 'development') {
 			// Use the previously cached sidebar links
-			links = this._sidebarContentLinks
+			links = cachedLinks
 		} else {
 			// Generate sidebar links and cache them
 			links = []
@@ -168,12 +171,21 @@ export class ContentDatabase {
 
 				const children: SidebarContentLink[] = []
 
+				if (section.sidebar_behavior === 'hidden') {
+					continue
+				}
+
+				if ((sectionId === 'reference' && section.id !== 'reference') || ( sectionId !== 'reference' && section.id === 'reference')) {
+					continue
+				}
+			
 				if (section.sidebar_behavior === 'show-title') {
 					links.push({
 						type: 'article',
 						title: section.title,
 						url: section.path,
 						articleId: section.id,
+						groupId: null,
 					})
 					continue
 				}
@@ -204,6 +216,7 @@ export class ContentDatabase {
 								articleId: article.id,
 								title: article.title,
 								url: article.path,
+								groupId: article.groupId,
 							}
 
 							ucg.push(sidebarArticleLink)
@@ -228,6 +241,7 @@ export class ContentDatabase {
 							const sidebarArticleLink: SidebarContentArticleLink = {
 								type: 'article' as const,
 								articleId: article.id,
+								groupId: article.groupId,
 								title: article.title,
 								url: article.path,
 							}
@@ -244,7 +258,11 @@ export class ContentDatabase {
 				links.push({ type: 'section', title: section.title, url: section.path, children })
 
 				// Cache the links structure for next time
-				this._sidebarContentLinks = links
+				if (sectionId === 'reference') {
+					this._sidebarReferenceContentLinks = links
+				} else {
+					this._sidebarContentLinks = links
+				}
 			}
 		}
 

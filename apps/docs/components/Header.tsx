@@ -4,13 +4,13 @@ import { Search } from './Search'
 import { ThemeSwitcher } from './ThemeSwitcher'
 
 export function Header({
-	activeId,
 	searchQuery,
 	searchType,
+	sectionId,
 }: {
-	activeId: string | null
 	searchQuery?: string
 	searchType?: string
+	sectionId?: string
 }) {
 	return (
 		<div className="layout__header">
@@ -23,14 +23,40 @@ export function Header({
 					}}
 				/>
 			</Link>
-			<Search activeId={activeId} prevQuery={searchQuery} prevType={searchType} />
-			<div className="layout__header__socials">
+			<Search prevQuery={searchQuery} prevType={searchType} />
+			<div className="layout__header__sections_and_socials">
 				<a
-					href="https://twitter.com/tldraw"
-					className="sidebar__button icon-button"
-					title="twitter"
+					href="/quick-start"
+					title="Learn"
+					data-active={sectionId === 'getting-started'}
+					className="layout_header__section"
 				>
-					<Icon icon="twitter" />
+					Learn
+				</a>
+				<a
+					href="/reference"
+					title="Reference"
+					data-active={sectionId === 'reference'}
+					className="layout_header__section"
+				>
+					Reference
+				</a>
+				<a
+					href="/examples"
+					title="Examples"
+					data-active={sectionId === 'examples'}
+					className="layout_header__section"
+				>
+					Examples
+				</a>
+
+				<ThemeSwitcher />
+				<a
+					href="https://discord.com/invite/SBBEVCA4PG"
+					className="sidebar__button icon-button"
+					title="discord"
+				>
+					<Icon icon="discord" />
 				</a>
 				<a
 					href="https://github.com/tldraw/tldraw"
@@ -39,14 +65,6 @@ export function Header({
 				>
 					<Icon icon="github" />
 				</a>
-				<a
-					href="https://discord.com/invite/SBBEVCA4PG"
-					className="sidebar__button icon-button"
-					title="discord"
-				>
-					<Icon icon="discord" />
-				</a>
-				<ThemeSwitcher />
 			</div>
 		</div>
 	)

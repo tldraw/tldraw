@@ -45,8 +45,8 @@ export default async function SearchResultsPage({
 
 	return (
 		<>
-			<Header activeId={null} searchQuery={query} searchType={type} />
-			<Sidebar {...sidebar} />
+			<Header searchQuery={query} searchType={type} />
+			<Sidebar {...sidebar} searchQuery={query} searchType={type} />
 			<main className="article list">
 				<div className="page-header">
 					<h2>{`Found ${

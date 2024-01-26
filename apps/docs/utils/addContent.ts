@@ -46,7 +46,7 @@ export async function addContentToDb(
 		try {
 			await sectionInsert.run(
 				section.id,
-				section.id === 'gen' ? 99999 : i,
+				section.id === 'reference' ? 99999 : i,
 				section.title,
 				section.description,
 				section.path,

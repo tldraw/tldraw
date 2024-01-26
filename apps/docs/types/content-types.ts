@@ -10,7 +10,7 @@ export type InputSection = {
 	title: string
 	description: string
 	categories: InputCategory[]
-	sidebar_behavior: 'show-links' | 'show-title'
+	sidebar_behavior: 'show-links' | 'show-title' | 'hidden' | 'reference'
 }
 
 export type InputGroup = {
@@ -55,7 +55,7 @@ export interface Section extends ContentPage {
 	/** An array of this section's categories. */
 	categories: Category[]
 	/** How the section should appear in the sidebar. */
-	sidebar_behavior: 'show-links' | 'show-title'
+	sidebar_behavior: 'show-links' | 'show-title' | 'hidden' | 'reference'
 }
 
 export interface Category extends ContentPage {
@@ -155,7 +155,8 @@ export interface SidebarContentCategoryLink extends BaseSidebarLink {
 
 export interface SidebarContentArticleLink extends BaseSidebarLink {
 	type: 'article'
-	articleId: string
+	articleId: string | null
+	groupId: string | null
 }
 
 export type SidebarContentLink =
@@ -164,10 +165,14 @@ export type SidebarContentLink =
 	| SidebarContentArticleLink
 
 export type SidebarContentList = {
+	headings?: ArticleHeadings
 	sectionId: string | null
 	categoryId: string | null
 	articleId: string | null
 	links: SidebarContentLink[]
+	activeId?: string | null
+	searchQuery?: string
+	searchType?: string
 }
 
 /* ---------- Finished / generated content ---------- */

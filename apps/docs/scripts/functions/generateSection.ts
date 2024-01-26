@@ -24,7 +24,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 	const dir = path.join(CONTENT_DIR, section.id)
 	const files = fs.readdirSync(dir, { withFileTypes: false })
 
-	const isGenerated = section.id === 'gen'
+	const isGenerated = section.id === 'reference'
 
 	for (const file of files) {
 		const filename = file.toString()

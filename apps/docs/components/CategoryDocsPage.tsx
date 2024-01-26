@@ -13,7 +13,7 @@ export async function CategoryDocsPage({ category }: { category: Category }) {
 
 	return (
 		<>
-			<Header activeId={category.id} />
+			<Header sectionId={section.id} />
 			<Sidebar {...sidebar} />
 			<main className={'article'}>
 				<div className="page-header">
@@ -23,9 +23,9 @@ export async function CategoryDocsPage({ category }: { category: Category }) {
 				{articles.length > 0 && (
 					<ul>
 						{articles.map((article) => (
-							<Link key={article.id} href={`/${section.id}/${category.id}/${article.id}`}>
-								<li>{article.title}</li>
-							</Link>
+							<li><Link key={article.id} href={`/${section.id}/${category.id}/${article.id}`}>
+								{article.title}
+							</Link></li>
 						))}
 					</ul>
 				)}
