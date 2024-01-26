@@ -8,15 +8,8 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 	const rIsOpen = useRef(false)
 	const trackEvent = useUiEvents()
 
-	const rLastChange = useRef(0)
-
 	const onOpenChange = useCallback(
 		(isOpen: boolean) => {
-			// prevent multiple calls in quick succession
-			const now = Date.now()
-			if (now - rLastChange.current < 50) return
-			rLastChange.current = now
-
 			rIsOpen.current = isOpen
 
 			editor.batch(() => {

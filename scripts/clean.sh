@@ -35,7 +35,5 @@ rm -rf {packages,apps}/vscode/extension/temp
 rm -rf {packages,apps}/vscode/extension/editor
 rm -rf apps/docs/content.json
 
-# need to run yarn directly
-# because yarn messes with the PATH, aliasing itself to some tmp dir 
-# which is apparently deleted by our clean script
-node "$(dirname -- "$0")/../.yarn/releases/yarn-3.5.0.cjs"
+corepack enable
+yarn

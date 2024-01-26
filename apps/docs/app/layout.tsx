@@ -46,14 +46,13 @@ export const metadata: Metadata = {
 		telephone: false,
 	},
 	icons: [
-		{ rel: 'mask-icon', url: 'safari-pinned-tab.svg', color: THEME_COLOR },
 		{ rel: 'shortcut icon', url: '/favicon.svg' },
-		{ rel: 'icon', url: 'favicon-32x32.png', sizes: '32x32' },
-		{ rel: 'icon', url: 'favicon-16x16.png', sizes: '16x16' },
+		{ rel: 'icon', url: 'favicon-32x32.svg', sizes: '32x32' },
+		{ rel: 'icon', url: 'favicon-16x16.svg', sizes: '16x16' },
 		{ rel: 'apple-touch-icon', url: 'touch-icon-iphone.png' },
-		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-152x152.png', sizes: '152x152' },
-		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-180x180.png', sizes: '180x180' },
-		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-167x167.png', sizes: '167x167' },
+		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-152x152.svg', sizes: '152x152' },
+		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-180x180.svg', sizes: '180x180' },
+		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-167x167.svg', sizes: '167x167' },
 	],
 }
 
