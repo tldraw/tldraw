@@ -1,4 +1,5 @@
 import { track, useEditor } from '@tldraw/editor'
+import { useRef } from 'react'
 import { useActions } from '../hooks/useActions'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
@@ -9,6 +10,7 @@ export const DuplicateButton = track(function DuplicateButton() {
 	const actions = useActions()
 	const msg = useTranslation()
 	const action = actions['duplicate']
+	const ref = useRef<HTMLButtonElement>(null)
 
 	return (
 		<Button
@@ -18,6 +20,7 @@ export const DuplicateButton = track(function DuplicateButton() {
 			disabled={!(editor.isIn('select') && editor.getSelectedShapeIds().length > 0)}
 			title={`${msg(action.label!)} ${kbdStr(action.kbd!)}`}
 			smallIcon
+			ref={ref}
 		/>
 	)
 })

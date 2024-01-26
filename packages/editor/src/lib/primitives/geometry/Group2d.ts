@@ -4,7 +4,8 @@ import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Group2d extends Geometry2d {
-	children: Geometry2d[]
+	children: Geometry2d[] = []
+	ignoredChildren: Geometry2d[] = []
 
 	constructor(
 		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
@@ -12,11 +13,16 @@ export class Group2d extends Geometry2d {
 		}
 	) {
 		super({ ...config, isClosed: true, isFilled: false })
-		const { children } = config
 
-		if (children.length === 0) throw Error('Group2d must have at least one child')
+		for (const child of config.children) {
+			if (child.ignore) {
+				this.ignoredChildren.push(child)
+			} else {
+				this.children.push(child)
+			}
+		}
 
-		this.children = children
+		if (this.children.length === 0) throw Error('Group2d must have at least one child')
 	}
 
 	override getVertices(): Vec[] {
