@@ -1,7 +1,7 @@
-import { assert, assertExists } from '@tldraw/tldraw'
-import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ListLink } from './components/ListLink'
+import { ExternalLinkIcon } from './components/ExternalIcon'
+import { Markdown } from './components/Markdown'
+import { StandaloneIcon } from './components/StandaloneIcon'
 import { Example, examples } from './examples'
 
 export function ExamplePage({
@@ -11,52 +11,28 @@ export function ExamplePage({
 	example: Example
 	children: React.ReactNode
 }) {
-	const scrollElRef = useRef<HTMLUListElement>(null)
-	const activeElRef = useRef<HTMLLIElement>(null)
-	const isFirstScroll = useRef(true)
-
-	useEffect(() => {
-		const frame = requestAnimationFrame(() => {
-			if (activeElRef.current) {
-				const scrollEl = assertExists(scrollElRef.current)
-				const activeEl = activeElRef.current
-				assert(activeEl.offsetParent === scrollEl)
-
-				const isScrolledIntoView =
-					activeEl.offsetTop >= scrollEl.scrollTop &&
-					activeEl.offsetTop + activeEl.offsetHeight <= scrollEl.scrollTop + scrollEl.offsetHeight
-
-				if (!isScrolledIntoView) {
-					activeEl.scrollIntoView({
-						behavior: isFirstScroll.current ? 'auto' : 'smooth',
-						block: isFirstScroll.current ? 'start' : 'center',
-					})
-				}
-				isFirstScroll.current = false
-			}
-		})
-		return () => cancelAnimationFrame(frame)
-	}, [example])
-
 	return (
 		<div className="example">
-			<div className="example__info">
-				<Link className="example__logo" to="/">
-					<a href="/">
-						<img className="tldraw-examples-logo" src="tldraw_dev_light.png" />
-					</a>
+			<div className="example__header">
+				<Link to="/" className="example__header__logo">
+					<img src="/tldraw_dev_dark.png" alt="tldraw logo" />
 				</Link>
-				<ul className="example__info__list scroll-light" ref={scrollElRef}>
+			</div>
+			<div className="example__sidebar">
+				<ul className="example__sidebar__list scroll-light">
 					{examples
 						.filter((e) => !e.hide)
 						.filter((e) => e.order !== null)
 						.map((e) => (
-							<ListLink
-								key={e.path}
-								ref={e.path === example.path ? activeElRef : undefined}
-								example={e}
-								isActive={e.path === example.path}
-							/>
+							<li
+								key={e.codeUrl}
+								className="example__sidebar__list__item hoverable"
+								data-active={e.path === example.path}
+							>
+								<Link to={e.path} title={e.title}>
+									{e.title}
+								</Link>
+							</li>
 						))}
 					<li>
 						<hr />
@@ -65,16 +41,42 @@ export function ExamplePage({
 						.filter((e) => !e.hide)
 						.filter((e) => e.order === null)
 						.map((e) => (
-							<ListLink
-								key={e.path}
-								ref={e.path === example.path ? activeElRef : undefined}
-								example={e}
-								isActive={e.path === example.path}
-							/>
+							<li
+								key={e.codeUrl}
+								className="example__sidebar__list__item hoverable"
+								data-active={e.path === example.path}
+							>
+								<Link to={e.path} title={e.title}>
+									{e.title}
+								</Link>
+							</li>
 						))}
 				</ul>
 			</div>
-			<div className="example__content">{children}</div>
+			<div className="example__main">
+				<div className="example__editor">{children}</div>
+				<div className="example__content">
+					<div className="example__content__header">
+						<h1 className="example__content__title">{example.title}</h1>
+						<div className="example__content__links">
+							<h1 className="example__content__title" aria-role="baseline-setter">
+								&nbsp;
+							</h1>
+							<div className="example__content-source-link hoverable">
+								<Link to={example.codeUrl} target="_blank" rel="noreferrer">
+									View source <ExternalLinkIcon />
+								</Link>
+							</div>
+							<div className="example__content-source-link hoverable">
+								<Link to={`${example.path}/full`}>
+									Full screen <StandaloneIcon />
+								</Link>
+							</div>
+						</div>
+					</div>
+					<Markdown className="example__content-details" sanitizedHtml={example.details} />
+				</div>
+			</div>
 		</div>
 	)
 }

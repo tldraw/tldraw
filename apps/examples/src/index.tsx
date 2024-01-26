@@ -55,6 +55,16 @@ const router = createBrowserRouter([
 	]),
 ])
 
+// function ExamplePageWithSidebarMaybe({ example, children }: { example: Example; children: any }) {
+// 	const { isOpen } = useSidebar()
+
+// 	if (isOpen) {
+// 		return <ExamplePage example={example}>{children}</ExamplePage>
+// 	}
+
+// 	return
+// }
+
 document.addEventListener('DOMContentLoaded', () => {
 	const rootElement = document.getElementById('root')!
 	const root = createRoot(rootElement!)
