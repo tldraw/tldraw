@@ -13,8 +13,10 @@ yarn.lock
 **/*.d.ts.map
 **/*.js.map
 **/*.css.map
-apps/example/www/index.css
 **/dist/*
 *.cjs
 
 packages/tldraw/tldraw.css
+*.api.json
+*.mdx
+index.json

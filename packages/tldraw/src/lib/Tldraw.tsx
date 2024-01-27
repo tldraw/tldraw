@@ -1,8 +1,6 @@
 import {
 	Canvas,
 	Editor,
-	ErrorScreen,
-	LoadingScreen,
 	StoreSnapshot,
 	TLOnMountHandler,
 	TLRecord,
@@ -32,7 +30,6 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
-import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
@@ -90,17 +87,7 @@ export function Tldraw(props: TldrawProps) {
 		tools: useMemo(() => [...defaultTools, ...defaultShapeTools, ...tools], [tools]),
 	}
 
-	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
-	}
-
-	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
-	}
+	useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 
 	return (
 		<TldrawEditor {...withDefaults}>
