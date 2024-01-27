@@ -212,54 +212,58 @@ function HandlesWrapper() {
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
 	])
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
+
+	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
 		editor,
 	])
+
 	const isChangingStyle = useValue(
 		'isChangingStyle',
 		() => editor.getInstanceState().isChangingStyle,
 		[editor]
 	)
-	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
+
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
 		editor,
 	])
-	const handles = useValue(
-		'handles',
-		() => {
-			const onlySelectedShape = editor.getOnlySelectedShape()
-			if (onlySelectedShape) {
-				const handles = editor.getShapeHandles(onlySelectedShape)
-				if (handles) {
-					const minDist = MIN_HANDLE_DISTANCE / zoomLevel
-					return handles
-						.sort((a) => (a.type === 'vertex' ? 1 : -1))
-						.filter((handle, i) => {
-							const prev = handles[i - 1]
-							const next = handles[i + 1]
-							return !(
-								(prev && Vec.Dist(handle, prev) < minDist) ||
-								(next && Vec.Dist(handle, next) < minDist)
-							) // we use a "not or" here to skip that second check if the first fails, an "and" would need to check both
-						})
-				}
-			}
-			return null
-		},
-		[editor]
-	)
+
 	const transform = useValue(
 		'transform',
 		() => {
-			const onlySelectedShape = editor.getOnlySelectedShape()
-			if (onlySelectedShape) {
-				return editor.getShapePageTransform(onlySelectedShape)
-			}
-			return undefined
+			if (!onlySelectedShape) return null
+
+			return editor.getShapePageTransform(onlySelectedShape)
 		},
-		[editor]
+		[editor, onlySelectedShape]
+	)
+
+	const handles = useValue(
+		'handles',
+		() => {
+			if (!onlySelectedShape) return null
+
+			const handles = editor.getShapeHandles(onlySelectedShape)
+			if (!handles) return null
+
+			const minDist = MIN_HANDLE_DISTANCE / editor.getZoomLevel()
+
+			return handles
+				.sort((a) => (a.type === 'vertex' ? 1 : -1))
+				.filter((handle, i) => {
+					if (handle.type !== 'virtual') return true
+					const prev = handles[i - 1]
+					const next = handles[i + 1]
+					return (
+						(!prev || Vec.Dist(handle, prev) >= minDist) &&
+						(!next || Vec.Dist(handle, next) >= minDist)
+					)
+				})
+		},
+		[editor, onlySelectedShape]
 	)
 
 	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
