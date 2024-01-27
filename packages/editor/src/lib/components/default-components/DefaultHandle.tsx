@@ -16,8 +16,8 @@ export type TLHandleComponent = ComponentType<{
 export const DefaultHandle: TLHandleComponent = ({ handle, isCoarse, className, zoom }) => {
 	if (handle.type === 'text-adjust') {
 		return (
-			<g className={classNames('tl-handle', className)}>
-				<rect fill="transparent" width={handle.w} height={handle.h} />
+			<g className={classNames('tl-handle', 'tl-handle__text-adjust', className)}>
+				<rect rx={4} ry={4} width={handle.w} height={handle.h} />
 			</g>
 		)
 	}

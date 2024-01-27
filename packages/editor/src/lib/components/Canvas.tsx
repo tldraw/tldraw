@@ -248,23 +248,29 @@ function HandlesWrapper() {
 			const handles = editor.getShapeHandles(onlySelectedShape)
 			if (!handles) return null
 
-			// ( •-)-----(-⦾-)----(-• ) ok
-			// ( •-)(-⦾-)----(-• ) ok
-			// ( •()⦾-)----(-• )  not ok, hide the virtual handle
 			const minDistBetweenVirtualHandlesAndRegularHandles =
 				((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
 
-			return handles
-				.sort((a) => (a.type === 'vertex' ? 1 : -1))
-				.filter((handle, i) => {
-					if (handle.type !== 'virtual') return true
-					const prev = handles[i - 1]
-					const next = handles[i + 1]
-					return (
-						(!prev || Vec.Dist(handle, prev) >= minDistBetweenVirtualHandlesAndRegularHandles) &&
-						(!next || Vec.Dist(handle, next) >= minDistBetweenVirtualHandlesAndRegularHandles)
+			return (
+				handles
+					.filter(
+						(handle) =>
+							// if the handle isn't a virtual handle, we'll display it
+							handle.type !== 'virtual' ||
+							// but for virtual handles, we'll only display them if they're far enough away from vertex handles
+							!handles.some(
+								(h) =>
+									// skip the handle we're checking against
+									h !== handle &&
+									// only check against vertex handles
+									h.type === 'vertex' &&
+									// and check that their distance isn't below the minimum distance
+									Vec.Dist(handle, h) < minDistBetweenVirtualHandlesAndRegularHandles
+							)
 					)
-				})
+					// We want vertex handles in front of all other handles
+					.sort((a) => (a.type === 'vertex' ? 1 : -1))
+			)
 		},
 		[editor, onlySelectedShape, zoomLevel, isCoarse]
 	)
