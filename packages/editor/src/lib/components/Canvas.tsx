@@ -13,6 +13,7 @@ import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
 import { useScreenBounds } from '../hooks/useScreenBounds'
 import { Mat } from '../primitives/Mat'
+import { Vec } from '../primitives/Vec'
 import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
 import { GeometryDebuggingView } from './GeometryDebuggingView'
@@ -230,9 +231,22 @@ function HandlesWrapper() {
 		() => {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (onlySelectedShape) {
-				return editor.getShapeHandles(onlySelectedShape)
+				const handles = editor.getShapeHandles(onlySelectedShape)
+				if (handles) {
+					const minDist = MIN_HANDLE_DISTANCE / zoomLevel
+					return handles
+						.sort((a) => (a.type === 'vertex' ? 1 : -1))
+						.filter((handle, i) => {
+							const prev = handles[i - 1]
+							const next = handles[i + 1]
+							return !(
+								(prev && Vec.Dist(handle, prev) < minDist) ||
+								(next && Vec.Dist(handle, next) < minDist)
+							) // we use a "not or" here to skip that second check if the first fails, an "and" would need to check both
+						})
+				}
 			}
-			return undefined
+			return null
 		},
 		[editor]
 	)
@@ -248,33 +262,14 @@ function HandlesWrapper() {
 		[editor]
 	)
 
-	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly) return null
-	if (!handles) return null
-	if (!transform) return null
-
-	// Don't display a temporary handle if the distance between it and its neighbors is too small.
-	const handlesToDisplay: TLHandle[] = []
-
-	for (let i = 0, handle = handles[i]; i < handles.length; i++, handle = handles[i]) {
-		if (handle.type !== 'vertex') {
-			const prev = handles[i - 1]
-			const next = handles[i + 1]
-			if (prev && next) {
-				if (Math.hypot(prev.y - next.y, prev.x - next.x) < MIN_HANDLE_DISTANCE / zoomLevel) {
-					continue
-				}
-			}
-		}
-
-		handlesToDisplay.push(handle)
+	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
+		return null
 	}
-
-	handlesToDisplay.sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
 		<Handles>
 			<g transform={Mat.toCssString(transform)}>
-				{handlesToDisplay.map((handle) => {
+				{handles.map((handle) => {
 					return (
 						<HandleWrapper
 							key={handle.id}
