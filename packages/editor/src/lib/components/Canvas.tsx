@@ -258,7 +258,7 @@ function HandlesWrapper() {
 							// if the handle isn't a virtual handle, we'll display it
 							handle.type !== 'virtual' ||
 							// but for virtual handles, we'll only display them if they're far enough away from vertex handles
-							handles.some(
+							!handles.some(
 								(h) =>
 									// skip the handle we're checking against
 									h !== handle &&
@@ -274,8 +274,6 @@ function HandlesWrapper() {
 		},
 		[editor, onlySelectedShape, zoomLevel, isCoarse]
 	)
-
-	console.log(handles)
 
 	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
 		return null
