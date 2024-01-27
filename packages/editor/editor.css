@@ -529,6 +529,10 @@ input,
 	cursor: var(--tl-cursor-grab);
 }
 
+.tl-handle__text-adjust:hover {
+	stroke-width: calc(2px * var(--tl-scale));
+}
+
 .tl-handle__create {
 	opacity: 0;
 }
