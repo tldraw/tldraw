@@ -3,6 +3,7 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import React from 'react'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../constants'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../hooks/useDocumentEvents'
@@ -205,8 +206,6 @@ function SnapLinesWrapper() {
 	)
 }
 
-const MIN_HANDLE_DISTANCE = 48
-
 function HandlesWrapper() {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
@@ -249,7 +248,11 @@ function HandlesWrapper() {
 			const handles = editor.getShapeHandles(onlySelectedShape)
 			if (!handles) return null
 
-			const minDist = MIN_HANDLE_DISTANCE / zoomLevel
+			// ( •-)-----(-⦾-)----(-• ) ok
+			// ( •-)(-⦾-)----(-• ) ok
+			// ( •()⦾-)----(-• )  not ok, hide the virtual handle
+			const minDistBetweenVirtualHandlesAndRegularHandles =
+				((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
 
 			return handles
 				.sort((a) => (a.type === 'vertex' ? 1 : -1))
@@ -258,12 +261,12 @@ function HandlesWrapper() {
 					const prev = handles[i - 1]
 					const next = handles[i + 1]
 					return (
-						(!prev || Vec.Dist(handle, prev) >= minDist) &&
-						(!next || Vec.Dist(handle, next) >= minDist)
+						(!prev || Vec.Dist(handle, prev) >= minDistBetweenVirtualHandlesAndRegularHandles) &&
+						(!next || Vec.Dist(handle, next) >= minDistBetweenVirtualHandlesAndRegularHandles)
 					)
 				})
 		},
-		[editor, onlySelectedShape, zoomLevel]
+		[editor, onlySelectedShape, zoomLevel, isCoarse]
 	)
 
 	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
