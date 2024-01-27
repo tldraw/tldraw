@@ -527,10 +527,12 @@ input,
 
 .tl-handle__text-adjust {
 	cursor: var(--tl-cursor-grab);
+	fill: transparent;
 }
 
 .tl-handle__text-adjust:hover {
 	stroke-width: calc(2px * var(--tl-scale));
+	stroke: var(--color-selection-stroke);
 }
 
 .tl-handle__create {

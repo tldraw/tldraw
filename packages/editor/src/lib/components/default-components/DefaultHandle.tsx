@@ -17,7 +17,7 @@ export const DefaultHandle: TLHandleComponent = ({ handle, isCoarse, className, 
 	if (handle.type === 'text-adjust') {
 		return (
 			<g className={classNames('tl-handle', 'tl-handle__text-adjust', className)}>
-				<rect fill="transparent" width={handle.w} height={handle.h} />
+				<rect rx={4} ry={4} width={handle.w} height={handle.h} />
 			</g>
 		)
 	}
