@@ -249,7 +249,7 @@ function HandlesWrapper() {
 			const handles = editor.getShapeHandles(onlySelectedShape)
 			if (!handles) return null
 
-			const minDist = MIN_HANDLE_DISTANCE / editor.getZoomLevel()
+			const minDist = MIN_HANDLE_DISTANCE / zoomLevel
 
 			return handles
 				.sort((a) => (a.type === 'vertex' ? 1 : -1))
@@ -263,7 +263,7 @@ function HandlesWrapper() {
 					)
 				})
 		},
-		[editor, onlySelectedShape]
+		[editor, onlySelectedShape, zoomLevel]
 	)
 
 	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
