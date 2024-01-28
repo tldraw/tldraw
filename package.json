@@ -64,7 +64,7 @@
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
-			"prettier --write --cache"
+			"biome format . --write"
 		]
 	},
 	"devDependencies": {

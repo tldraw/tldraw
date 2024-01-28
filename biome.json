@@ -4,15 +4,7 @@
 		"enabled": true
 	},
 	"files": {
-		"include": [
-			"apps",
-			"packages",
-			"scripts",
-			"**/*/*.ts",
-			"**/*/*.tsx",
-			"**/*/*.json",
-			"**/*/*.js"
-		],
+		"include": ["packages/**/*.ts", "packages/**/*.tsx"],
 		"ignore": [
 			"dist",
 			"node_modules",
@@ -27,6 +19,20 @@
 			"api.json",
 			"extension/editor/*"
 		]
+	},
+	"formatter": {
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineEnding": "lf",
+		"lineWidth": 100
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single",
+			"semicolons": "asNeeded",
+			"trailingComma": "es5"
+		}
 	},
 	"linter": {
 		"enabled": true,
