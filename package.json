@@ -63,9 +63,7 @@
 	},
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
-		"*": [
-			"yarn format"
-		]
+		"*": ["yarn format"]
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.35.4",
