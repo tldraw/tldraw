@@ -252,8 +252,8 @@ export const LANGUAGES = ${JSON.stringify(
 	const translationKeysFilePath = join(uiPath, 'TLUiTranslationKey.ts')
 	const translationKeysFile = `
 /** @public */
-export type TLUiTranslationKey = ${translationKeys.join(' | ')}
-	`
+export type TLUiTranslationKey = 
+\t| ${translationKeys.join('\n\t| ')}`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
