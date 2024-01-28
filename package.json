@@ -109,6 +109,7 @@
 		"@auto-it/core@10.46.0": "patch:@auto-it/core@npm%3A10.46.0#./.yarn/patches/@auto-it-core-npm-10.46.0-4ce8f196af.patch"
 	},
 	"dependencies": {
+		"@biomejs/biome": "^1.5.3",
 		"@sentry/cli": "^2.25.0",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",

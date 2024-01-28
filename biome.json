@@ -1,0 +1,38 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+	"organizeImports": {
+		"enabled": true
+	},
+	"files": {
+		"include": [
+			"apps",
+			"packages",
+			"scripts",
+			"**/*/*.ts",
+			"**/*/*.tsx",
+			"**/*/*.json",
+			"**/*/*.js"
+		],
+		"ignore": [
+			"dist",
+			"node_modules",
+			"*.d.ts",
+			".next",
+			".vercel",
+			".vscode",
+			".lazy",
+			".husky",
+			"index.json",
+			"*.api.json",
+			"api.json",
+			"extension/editor/*"
+		]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"style": {}
+		}
+	}
+}
