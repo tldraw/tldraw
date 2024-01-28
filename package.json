@@ -15,8 +15,24 @@
 	"bugs": {
 		"url": "https://github.com/tldraw/tldraw/issues"
 	},
-	"keywords": ["tldraw", "drawing", "app", "development", "whiteboard", "canvas", "infinite"],
-	"workspaces": ["docs", "apps/*", "packages/*", "apps/vscode/*", "e2e", "config", "scripts"],
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"workspaces": [
+		"docs",
+		"apps/*",
+		"packages/*",
+		"apps/vscode/*",
+		"e2e",
+		"config",
+		"scripts"
+	],
 	"scripts": {
 		"clean": "scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
@@ -76,8 +92,6 @@
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lint-staged": ">=10",
-		"prettier": "^3.0.3",
-		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
 		"tsx": "^4.0.0",
 		"typescript": "^5.2.2",

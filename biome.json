@@ -22,7 +22,27 @@
 			"index.json",
 			"*.api.json",
 			"api.json",
-			"extension/editor/*"
+			"**/out/*",
+			"**/dist/*",
+			"**/dist-cjs/*",
+			"**/dist-esm/*",
+			"**/.next/*",
+			"**/packages/**/api/*",
+			"**/.tsbuild*",
+			"*.mdx",
+			"**/_archive/*",
+			"apps/docs/api-content.json",
+			"apps/docs/content.json",
+			"apps/vscode/extension/editor/*",
+			"apps/examples/www",
+			"content.json",
+			"apps/docs/utils/vector-db/index.json",
+			"**/gen/**/*.md",
+			"**/.vercel/*",
+			"**/.wrangler/*",
+			"**/.out/*",
+			"**/.temp/*",
+			"apps/dotcom/public/**/*.*"
 		]
 	},
 	"formatter": {
@@ -43,6 +63,11 @@
 			"arrowParentheses": "always",
 			"bracketSameLine": false,
 			"bracketSpacing": true
+		}
+	},
+	"json": {
+		"formatter": {
+			"lineWidth": 80
 		}
 	},
 	"linter": {
