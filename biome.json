@@ -3,7 +3,13 @@
 	"organizeImports": {
 		"enabled": true
 	},
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
 	"files": {
+		"ignoreUnknown": true,
 		"ignore": [
 			"dist",
 			"node_modules",
@@ -20,7 +26,8 @@
 		]
 	},
 	"formatter": {
-		"formatWithErrors": false,
+		"enabled": true,
+		"formatWithErrors": true,
 		"indentStyle": "tab",
 		"indentWidth": 2,
 		"lineEnding": "lf",
@@ -28,16 +35,17 @@
 	},
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "single",
 			"semicolons": "asNeeded",
-			"trailingComma": "es5"
+			"trailingComma": "es5",
+			"quoteStyle": "single",
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"arrowParentheses": "always",
+			"bracketSameLine": false,
+			"bracketSpacing": true
 		}
 	},
 	"linter": {
-		"enabled": false,
-		"rules": {
-			"recommended": true,
-			"style": {}
-		}
+		"enabled": false
 	}
 }
