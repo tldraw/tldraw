@@ -235,10 +235,9 @@ export const LANGUAGES = ${JSON.stringify(
 
 	const defaultTranslation = await readJsonIfExists(join(sourceFolderPath, 'main.json'))!
 	const defaultTranslationFilePath = join(uiPath, 'defaultTranslation.ts')
-	const defaultTranslationFile = `
-	/** @internal */
-	export const DEFAULT_TRANSLATION = ${JSON.stringify(defaultTranslation)}
-	`
+	const defaultTranslationFile = `/** @internal */
+export const DEFAULT_TRANSLATION = ${JSON.stringify(defaultTranslation, null, '\t')}`
+
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
