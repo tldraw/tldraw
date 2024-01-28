@@ -45,15 +45,15 @@ export async function writeCodeFile(
 
 ${code}
 `
-	await writeStringFile(filePath, formattedCode)
+	await writeStringFile(filePath, formattedCode, false) // it gets fixed later
 }
 
-export async function writeStringFile(filePath: string, contents: string) {
-	await writeFile(filePath, Buffer.from(contents, 'utf-8'))
+export async function writeStringFile(filePath: string, contents: string, check = true) {
+	await writeFile(filePath, Buffer.from(contents, 'utf-8'), check)
 }
 
-export async function writeFile(filePath: string, contents: Buffer) {
-	if (process.env.CI) {
+export async function writeFile(filePath: string, contents: Buffer, check = true) {
+	if (process.env.CI && check) {
 		let existingContents: Buffer | null = null
 		try {
 			existingContents = await readFile(filePath)
