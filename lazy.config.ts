@@ -28,6 +28,20 @@ const config = {
 						inputs: ['api/**/*', 'src/**/*'],
 					},
 				},
+				'apps/docs': {
+					cache: {
+						inputs: [
+							'app/**/*',
+							'api/**/*',
+							'components/**/*',
+							'public/**/*',
+							'scrips/**/*',
+							'styles/**/*',
+							'types/**/*',
+							'utils/**/*',
+						],
+					},
+				},
 			},
 		},
 		dev: {
