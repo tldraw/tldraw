@@ -12,6 +12,7 @@ const config = {
 		exclude: [
 			'<allWorkspaceDirs>/coverage/**/*',
 			'<allWorkspaceDirs>/dist*/**/*',
+			'<allWorkspaceDirs>/.next*/**/*',
 			'**/*.tsbuildinfo',
 			'<rootDir>/docs/gen/**/*',
 		],
