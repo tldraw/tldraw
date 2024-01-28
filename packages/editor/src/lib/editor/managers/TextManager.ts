@@ -40,17 +40,22 @@ const spaceCharacterRegex = /\s/
 export class TextManager {
 	constructor(public editor: Editor) {}
 
+	private elm: HTMLElement | null = null
+
 	private getTextElement() {
-		const oldElm = document.querySelector('.tl-text-measure')
-		oldElm?.remove()
+		// Remove any previous element
+		this.elm?.remove()
 
+		// Create a new element and add it to the container
+		// (so that it receives the editor styles)
 		const elm = document.createElement('div')
-		this.editor.getContainer().appendChild(elm)
-
 		elm.id = `__textMeasure_${uniqueId()}`
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.tabIndex = -1
+		this.editor.getContainer().appendChild(elm)
+
+		this.elm = elm
 
 		return elm
 	}
