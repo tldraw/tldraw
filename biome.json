@@ -4,7 +4,6 @@
 		"enabled": true
 	},
 	"files": {
-		"include": ["packages/**/*.ts", "packages/**/*.tsx"],
 		"ignore": [
 			"dist",
 			"node_modules",
@@ -35,7 +34,7 @@
 		}
 	},
 	"linter": {
-		"enabled": true,
+		"enabled": false,
 		"rules": {
 			"recommended": true,
 			"style": {}

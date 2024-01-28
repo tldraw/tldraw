@@ -15,24 +15,8 @@
 	"bugs": {
 		"url": "https://github.com/tldraw/tldraw/issues"
 	},
-	"keywords": [
-		"tldraw",
-		"drawing",
-		"app",
-		"development",
-		"whiteboard",
-		"canvas",
-		"infinite"
-	],
-	"workspaces": [
-		"docs",
-		"apps/*",
-		"packages/*",
-		"apps/vscode/*",
-		"e2e",
-		"config",
-		"scripts"
-	],
+	"keywords": ["tldraw", "drawing", "app", "development", "whiteboard", "canvas", "infinite"],
+	"workspaces": ["docs", "apps/*", "packages/*", "apps/vscode/*", "e2e", "config", "scripts"],
 	"scripts": {
 		"clean": "scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
@@ -63,9 +47,7 @@
 	},
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,json}": [
-			"biome format . --write"
-		]
+		"*.{js,jsx,ts,tsx,json}": ["biome format . --write"]
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.35.4",

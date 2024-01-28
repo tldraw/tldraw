@@ -73,8 +73,8 @@ export function generateSection(section: InputSection, articles: Articles, index
 				section.id === 'getting-started'
 					? `/${articleId}`
 					: isUncategorized
-						? `/${section.id}/${articleId}`
-						: `/${section.id}/${categoryId}/${articleId}`,
+					  ? `/${section.id}/${articleId}`
+					  : `/${section.id}/${categoryId}/${articleId}`,
 		}
 
 		if (isIndex) {
@@ -174,6 +174,6 @@ const sortArticles = (articleA: Article, articleB: Article) => {
 			? 1
 			: -1
 		: categoryIndexA < categoryIndexB
-			? -1
-			: 1
+		  ? -1
+		  : 1
 }
