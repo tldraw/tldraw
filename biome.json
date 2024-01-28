@@ -13,7 +13,7 @@
 		"ignore": [
 			"dist",
 			"node_modules",
-			"*.d.ts",
+			"**/*.d.ts",
 			".next",
 			".vercel",
 			".vscode",
