@@ -40,12 +40,7 @@ const spaceCharacterRegex = /\s/
 export class TextManager {
 	constructor(public editor: Editor) {}
 
-	private elm: HTMLElement | null = null
-
 	private getTextElement() {
-		// Remove any previous element
-		this.elm?.remove()
-
 		// Create a new element and add it to the container
 		// (so that it receives the editor styles)
 		const elm = document.createElement('div')
@@ -53,10 +48,6 @@ export class TextManager {
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.tabIndex = -1
-		this.editor.getContainer().appendChild(elm)
-
-		this.elm = elm
-
 		return elm
 	}
 
@@ -79,6 +70,7 @@ export class TextManager {
 		}
 	): BoxModel => {
 		const elm = this.getTextElement()
+		this.editor.getContainer().appendChild(elm)
 
 		elm.setAttribute('dir', 'ltr')
 		elm.style.setProperty('font-family', opts.fontFamily)
@@ -92,6 +84,7 @@ export class TextManager {
 
 		elm.textContent = normalizeTextForDom(textToMeasure)
 		const rect = elm.getBoundingClientRect()
+		elm.remove()
 
 		return {
 			x: 0,
@@ -207,41 +200,43 @@ export class TextManager {
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
 
 		// Create a measurement element:
-		const element = this.getTextElement()
+		const elm = this.getTextElement()
+		this.editor.getContainer().appendChild(elm)
+
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
-		element.style.setProperty('width', `${elementWidth}px`)
-		element.style.setProperty('height', 'min-content')
-		element.style.setProperty('dir', 'ltr')
-		element.style.setProperty('font-size', `${opts.fontSize}px`)
-		element.style.setProperty('font-family', opts.fontFamily)
-		element.style.setProperty('font-weight', opts.fontWeight)
-		element.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
-		element.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
+		elm.style.setProperty('width', `${elementWidth}px`)
+		elm.style.setProperty('height', 'min-content')
+		elm.style.setProperty('dir', 'ltr')
+		elm.style.setProperty('font-size', `${opts.fontSize}px`)
+		elm.style.setProperty('font-family', opts.fontFamily)
+		elm.style.setProperty('font-weight', opts.fontWeight)
+		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
+		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
 
 		if (shouldTruncateToFirstLine) {
-			element.style.setProperty('overflow-wrap', 'anywhere')
-			element.style.setProperty('word-break', 'break-all')
+			elm.style.setProperty('overflow-wrap', 'anywhere')
+			elm.style.setProperty('word-break', 'break-all')
 		}
 
 		textToMeasure = normalizeTextForDom(textToMeasure)
 
 		// Render the text into the measurement element:
-		element.textContent = textToMeasure
+		elm.textContent = textToMeasure
 
 		// actually measure the text:
-		const { spans, didTruncate } = this.measureElementTextNodeSpans(element, {
+		const { spans, didTruncate } = this.measureElementTextNodeSpans(elm, {
 			shouldTruncateToFirstLine,
 		})
 
 		if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
 			// we need to measure the ellipsis to know how much space it takes up
-			element.textContent = '…'
-			const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(element).spans[0].box.w)
+			elm.textContent = '…'
+			const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
 
 			// then, we need to subtract that space from the width we have and measure again:
-			element.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
-			element.textContent = textToMeasure
-			const truncatedSpans = this.measureElementTextNodeSpans(element, {
+			elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
+			elm.textContent = textToMeasure
+			const truncatedSpans = this.measureElementTextNodeSpans(elm, {
 				shouldTruncateToFirstLine: true,
 			}).spans
 
@@ -262,7 +257,7 @@ export class TextManager {
 			return truncatedSpans
 		}
 
-		element.remove()
+		elm.remove()
 
 		return spans
 	}
