@@ -1,5 +1,4 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
-import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
 
 const fixNewLines = /\r?\n|\r/g
@@ -38,16 +37,23 @@ type TLMeasureTextSpanOpts = {
 const spaceCharacterRegex = /\s/
 
 export class TextManager {
-	constructor(public editor: Editor) {}
+	baseElm: HTMLDivElement
 
-	private getTextElement() {
-		// Create a new element and add it to the container
-		// (so that it receives the editor styles)
+	constructor(public editor: Editor) {
 		const elm = document.createElement('div')
-		elm.id = `__textMeasure_${uniqueId()}`
+		elm.id = `tldraw_text_measure`
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.tabIndex = -1
+		this.editor.getContainer().appendChild(elm)
+		this.baseElm = elm
+	}
+
+	private getTextElement() {
+		// Duplicate our base element; we don't need to clone deep
+		const elm = this.baseElm?.cloneNode() as HTMLDivElement
+		// Add the clone after the base element
+		this.baseElm.insertAdjacentElement('afterend', elm)
 		return elm
 	}
 
@@ -70,7 +76,6 @@ export class TextManager {
 		}
 	): BoxModel => {
 		const elm = this.getTextElement()
-		this.editor.getContainer().appendChild(elm)
 
 		elm.setAttribute('dir', 'ltr')
 		elm.style.setProperty('font-family', opts.fontFamily)
@@ -201,7 +206,6 @@ export class TextManager {
 
 		// Create a measurement element:
 		const elm = this.getTextElement()
-		this.editor.getContainer().appendChild(elm)
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		elm.style.setProperty('width', `${elementWidth}px`)

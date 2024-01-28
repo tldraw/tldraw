@@ -787,9 +787,9 @@ input,
 
 .tl-text-measure {
 	position: absolute;
-	z-index: 999999;
-	top: -9999px;
-	right: -9999px;
+	z-index: -999999;
+	top: 0px;
+	left: 0px;
 	opacity: 0;
 	width: max-content;
 	box-sizing: border-box;
