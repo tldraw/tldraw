@@ -35,7 +35,7 @@
 	],
 	"scripts": {
 		"clean": "scripts/clean.sh",
-		"postinstall": "husky install && yarn refresh-assets",
+		"postinstall": "husky install",
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
@@ -63,9 +63,7 @@
 	},
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
-		"*": [
-			"yarn format"
-		]
+		"*": ["yarn format"]
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.35.4",
