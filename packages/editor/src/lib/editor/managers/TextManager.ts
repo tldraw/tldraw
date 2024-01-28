@@ -49,14 +49,6 @@ export class TextManager {
 		this.baseElm = elm
 	}
 
-	private getTextElement() {
-		// Duplicate our base element; we don't need to clone deep
-		const elm = this.baseElm?.cloneNode() as HTMLDivElement
-		// Add the clone after the base element
-		this.baseElm.insertAdjacentElement('afterend', elm)
-		return elm
-	}
-
 	measureText = (
 		textToMeasure: string,
 		opts: {
@@ -75,7 +67,9 @@ export class TextManager {
 			padding: string
 		}
 	): BoxModel => {
-		const elm = this.getTextElement()
+		// Duplicate our base element; we don't need to clone deep
+		const elm = this.baseElm?.cloneNode() as HTMLDivElement
+		this.baseElm.insertAdjacentElement('afterend', elm)
 
 		elm.setAttribute('dir', 'ltr')
 		elm.style.setProperty('font-family', opts.fontFamily)
@@ -201,11 +195,8 @@ export class TextManager {
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
-		const shouldTruncateToFirstLine =
-			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
-
-		// Create a measurement element:
-		const elm = this.getTextElement()
+		const elm = this.baseElm?.cloneNode() as HTMLDivElement
+		this.baseElm.insertAdjacentElement('afterend', elm)
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		elm.style.setProperty('width', `${elementWidth}px`)
@@ -217,15 +208,18 @@ export class TextManager {
 		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
 		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
 
+		const shouldTruncateToFirstLine =
+			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
+
 		if (shouldTruncateToFirstLine) {
 			elm.style.setProperty('overflow-wrap', 'anywhere')
 			elm.style.setProperty('word-break', 'break-all')
 		}
 
-		textToMeasure = normalizeTextForDom(textToMeasure)
+		const normalizedText = normalizeTextForDom(textToMeasure)
 
 		// Render the text into the measurement element:
-		elm.textContent = textToMeasure
+		elm.textContent = normalizedText
 
 		// actually measure the text:
 		const { spans, didTruncate } = this.measureElementTextNodeSpans(elm, {
@@ -239,7 +233,7 @@ export class TextManager {
 
 			// then, we need to subtract that space from the width we have and measure again:
 			elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
-			elm.textContent = textToMeasure
+			elm.textContent = normalizedText
 			const truncatedSpans = this.measureElementTextNodeSpans(elm, {
 				shouldTruncateToFirstLine: true,
 			}).spans
