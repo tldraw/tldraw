@@ -38,7 +38,7 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.0.0",
 		"typescript": "^5.2.2",
-		"wrangler": "3.16.0"
+		"wrangler": "^3.25.0"
 	},
 	"jest": {
 		"preset": "config/jest/node",
