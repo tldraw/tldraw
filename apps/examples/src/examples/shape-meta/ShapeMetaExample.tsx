@@ -43,7 +43,7 @@ export const ShapeLabelUiWithHelper = track(function ShapeLabelUiWithHelper() {
 		<div style={{ position: 'absolute', zIndex: 300, top: 64, left: 12 }}>
 			<pre style={{ margin: '0 0 16px 0' }}>
 				{onlySelectedShape
-					? JSON.stringify(onlySelectedShape.meta, null, 2)
+					? JSON.stringify(onlySelectedShape.meta, null, 1)
 					: 'Select one shape to see / edit its meta data.'}
 			</pre>
 			{onlySelectedShape && <input value={onlySelectedShape.meta.label} onChange={onChange} />}

@@ -80,14 +80,14 @@ async function copyIcons() {
 
 	// Get the names of all of the svg icons and create a TypeScript file of valid icon names
 	const iconTypeFile = `
-		/** @public */
-		export type TLUiIconType = 
-			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(' | ')}
+	/** @public */
+	export type TLUiIconType = 
+		${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(' | ')}
 
-		/** @public */
-		export const iconTypes = [
-			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(', ')}
-		] as const`
+	/** @public */
+	export const iconTypes = [
+		${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(', ')}
+	] as const`
 
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
@@ -217,10 +217,10 @@ async function copyTranslations() {
 	const languagesSource = await readJsonIfExists(join(sourceFolderPath, 'languages.json'))!
 	type Language = { label: string; locale: string }
 	const languagesFile = `
-		/** @public */
-		export const LANGUAGES = ${JSON.stringify(
-			languagesSource.sort((a: Language, b: Language) => a.label.localeCompare(b.label))
-		)} as const
+	/** @public */
+	export const LANGUAGES = ${JSON.stringify(
+		languagesSource.sort((a: Language, b: Language) => a.label.localeCompare(b.label))
+	)} as const
 	`
 	const schemaPath = join(REPO_ROOT, 'packages', 'tlschema', 'src', 'translations')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
@@ -236,8 +236,8 @@ async function copyTranslations() {
 	const defaultTranslation = await readJsonIfExists(join(sourceFolderPath, 'main.json'))!
 	const defaultTranslationFilePath = join(uiPath, 'defaultTranslation.ts')
 	const defaultTranslationFile = `
-		/** @internal */
-		export const DEFAULT_TRANSLATION = ${JSON.stringify(defaultTranslation)}
+	/** @internal */
+	export const DEFAULT_TRANSLATION = ${JSON.stringify(defaultTranslation)}
 	`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
@@ -251,8 +251,8 @@ async function copyTranslations() {
 	const translationKeys = Object.keys(defaultTranslation).map((key) => `'${key}'`)
 	const translationKeysFilePath = join(uiPath, 'TLUiTranslationKey.ts')
 	const translationKeysFile = `
-		/** @public */
-		export type TLUiTranslationKey = ${translationKeys.join(' | ')}
+	/** @public */
+	export type TLUiTranslationKey = ${translationKeys.join(' | ')}
 	`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
@@ -272,30 +272,30 @@ async function copyTranslations() {
 async function writeUrlBasedAssetDeclarationFile() {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'urls.js')
 	const codeFile = `
-		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-		/// <reference path="./modules.d.ts" />
-		import { formatAssetUrl } from './utils.js'
+	// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+	/// <reference path="./modules.d.ts" />
+	import { formatAssetUrl } from './utils.js'
 
-		/**
-		 * @param {AssetUrlOptions} [opts]
-		 * @public
-		 */
-		export function getAssetUrlsByMetaUrl(opts) {
-			return {
-				${Object.entries(collectedAssetUrls)
-					.flatMap(([type, assets]) => [
-						`${type}: {`,
-						...Object.entries(assets).map(
-							([name, href]) =>
-								`${JSON.stringify(name)}: formatAssetUrl(new URL(${JSON.stringify(
-									'./' + href
-								)}, import.meta.url).href, opts),`
-						),
-						'},',
-					])
-					.join('\n')}
-			}
+	/**
+	 * @param {AssetUrlOptions} [opts]
+	 * @public
+	 */
+	export function getAssetUrlsByMetaUrl(opts) {
+		return {
+			${Object.entries(collectedAssetUrls)
+				.flatMap(([type, assets]) => [
+					`${type}: {`,
+					...Object.entries(assets).map(
+						([name, href]) =>
+							`${JSON.stringify(name)}: formatAssetUrl(new URL(${JSON.stringify(
+								'./' + href
+							)}, import.meta.url).href, opts),`
+					),
+					'},',
+				])
+				.join('\n')}
 		}
+	}
 	`
 
 	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
@@ -306,19 +306,19 @@ async function writeImportBasedAssetDeclarationFile(
 	fileName: string
 ): Promise<void> {
 	let imports = `
-		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-		/// <reference path="./modules.d.ts" />
-		import { formatAssetUrl } from './utils.js'
+	// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+	/// <reference path="./modules.d.ts" />
+	import { formatAssetUrl } from './utils.js'
 
 	`
 
 	let declarations = `
-		/**
-		 * @param {AssetUrlOptions} [opts]
-		 * @public
-		 */
-		export function getAssetUrlsByImport(opts) {
-			return {
+	/**
+	 * @param {AssetUrlOptions} [opts]
+	 * @public
+	 */
+	export function getAssetUrlsByImport(opts) {
+		return {
 	`
 
 	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
@@ -351,28 +351,28 @@ async function writeImportBasedAssetDeclarationFile(
 async function writeSelfHostedAssetDeclarationFile(): Promise<void> {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'selfHosted.js')
 	const codeFile = `
-		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-		/// <reference path="./modules.d.ts" />
-		import { formatAssetUrl } from './utils.js'
+	// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+	/// <reference path="./modules.d.ts" />
+	import { formatAssetUrl } from './utils.js'
 
-		/**
-		 * @param {AssetUrlOptions} [opts]
-		 * @public
-		 */
-		export function getAssetUrls(opts) {
-			return {
-				${Object.entries(collectedAssetUrls)
-					.flatMap(([type, assets]) => [
-						`${type}: {`,
-						...Object.entries(assets).map(
-							([name, href]) =>
-								`${JSON.stringify(name)}: formatAssetUrl(${JSON.stringify('./' + href)}, opts),`
-						),
-						'},',
-					])
-					.join('\n')}
-			}
+	/**
+	 * @param {AssetUrlOptions} [opts]
+	 * @public
+	 */
+	export function getAssetUrls(opts) {
+		return {
+			${Object.entries(collectedAssetUrls)
+				.flatMap(([type, assets]) => [
+					`${type}: {`,
+					...Object.entries(assets).map(
+						([name, href]) =>
+							`${JSON.stringify(name)}: formatAssetUrl(${JSON.stringify('./' + href)}, opts),`
+					),
+					'},',
+				])
+				.join('\n')}
 		}
+	}
 	`
 
 	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
@@ -380,9 +380,9 @@ async function writeSelfHostedAssetDeclarationFile(): Promise<void> {
 
 async function writeAssetDeclarationDTSFile() {
 	let dts = `
-		export type AssetUrl = string | { src: string }
-		export type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
-		export type AssetUrls = {
+	export type AssetUrl = string | { src: string }
+	export type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
+	export type AssetUrls = {
 	`
 
 	for (const [type, assets] of Object.entries(collectedAssetUrls)) {

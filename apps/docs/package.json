@@ -16,7 +16,15 @@
 	"bugs": {
 		"url": "https://github.com/tldraw/tldraw/issues"
 	},
-	"keywords": ["tldraw", "drawing", "app", "development", "whiteboard", "canvas", "infinite"],
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
 	"scripts": {
 		"dev": "concurrently \"NODE_ENV=development next dev --port=3001\" \"tsx ./watcher.ts\" --kill-others",
 		"next-dev": "next dev",

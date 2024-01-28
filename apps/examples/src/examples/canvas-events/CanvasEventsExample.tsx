@@ -8,7 +8,7 @@ export default function CanvasEventsExample() {
 	const [events, setEvents] = useState<string[]>([])
 
 	const handleEvent = useCallback((data: TLEventInfo) => {
-		setEvents((events) => [JSON.stringify(data, null, 2), ...events.slice(0, 100)])
+		setEvents((events) => [JSON.stringify(data, null, 1), ...events.slice(0, 100)])
 	}, [])
 
 	return (

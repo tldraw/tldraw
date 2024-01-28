@@ -63,7 +63,7 @@
 	},
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,json}": ["biome format . --write"]
+		"*": ["yarn format"]
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.35.4",
