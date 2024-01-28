@@ -79,7 +79,7 @@ const config = {
 		},
 		'refresh-assets': {
 			execution: 'top-level',
-			baseCommand: `tsx <rootDir>/scripts/refresh-assets.ts`,
+			baseCommand: `tsx <rootDir>/scripts/refresh-assets.ts && biome format . --write`,
 			cache: {
 				inputs: ['package.json', `<rootDir>/scripts/refresh-assets.ts`, `<rootDir>/assets/**/*`],
 			},
