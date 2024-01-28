@@ -2464,10 +2464,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^4.20230821.0":
-  version: 4.20231218.0
-  resolution: "@cloudflare/workers-types@npm:4.20231218.0"
-  checksum: f6b84026ec22b4011661287be2fddb3f07157fb8566423081919b7ada73d46a726ca761e5609a68b5ac708113b25888f78d54700e6bd920f8045d98ae284eabd
+"@cloudflare/workers-types@npm:^4.20240117.0":
+  version: 4.20240117.0
+  resolution: "@cloudflare/workers-types@npm:4.20240117.0"
+  checksum: ab4bbb499e4416c22792e3302508efa87e6620303f97c8a41db154188f35e1e8d8d71ed20df3cd8a02e9aa485c31d6e25f7c2b6a3a0fe08d8a8634f4f5c16e4a
   languageName: node
   linkType: hard
 
@@ -7147,7 +7147,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-worker@workspace:apps/dotcom-worker"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20230821.0"
+    "@cloudflare/workers-types": "npm:^4.20240117.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.2"
     "@supabase/supabase-js": "npm:^2.33.2"
     "@tldraw/store": "workspace:*"
@@ -11495,7 +11495,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dotcom-asset-upload@workspace:apps/dotcom-asset-upload"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20230821.0"
+    "@cloudflare/workers-types": "npm:^4.20240117.0"
     "@types/ws": "npm:^8.5.9"
     itty-cors: "npm:^0.3.4"
     itty-router: "npm:^4.0.13"

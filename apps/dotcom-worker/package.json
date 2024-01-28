@@ -33,7 +33,7 @@
 		"toucan-js": "^2.7.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20230821.0",
+		"@cloudflare/workers-types": "^4.20240117.0",
 		"concurrently": "^8.2.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.0.0",
