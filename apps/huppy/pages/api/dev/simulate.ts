@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			name: delivery.event,
 			payload: delivery.request.payload,
 		} as NamedEvent)
-		return res.json({ message: JSON.stringify(messages, null, 1) })
+		return res.json({ message: JSON.stringify(messages, null, '\t') })
 	} catch (err: any) {
 		console.log(err.stack)
 		return res.json({ message: err.message })

@@ -115,7 +115,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 	}
 
 	private async writeToResource(targetResource: vscode.Uri) {
-		const fileContents = Buffer.from(JSON.stringify(this.documentData, null, 1), 'utf8')
+		const fileContents = Buffer.from(JSON.stringify(this.documentData, null, '\t'), 'utf8')
 		await vscode.workspace.fs.writeFile(targetResource, fileContents)
 	}
 

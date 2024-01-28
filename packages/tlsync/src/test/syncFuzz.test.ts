@@ -239,7 +239,7 @@ function runTest(seed: number) {
 
 		const [first, ...rest] = peers.map((peer) => peer.editor?.store.serialize('document'))
 
-		// writeFileSync(`./test-results.${seed}.json`, JSON.stringify(ops, null, 1))
+		// writeFileSync(`./test-results.${seed}.json`, JSON.stringify(ops, null, '\t'))
 
 		expect(first).toEqual(rest[0])
 		// all snapshots should be the same
@@ -256,7 +256,7 @@ function runTest(seed: number) {
 				2
 			)
 		)
-		console.error('ops', JSON.stringify(ops, null, 1))
+		console.error('ops', JSON.stringify(ops, null, '\t'))
 		throw e
 	}
 }
