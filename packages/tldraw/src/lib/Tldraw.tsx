@@ -30,6 +30,7 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
+import { useLoadAssets } from './ui/hooks/useLoadAssets'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
@@ -87,7 +88,8 @@ export function Tldraw(props: TldrawProps) {
 		tools: useMemo(() => [...defaultTools, ...defaultShapeTools, ...tools], [tools]),
 	}
 
-	useDefaultEditorAssetsWithOverrides(rest.assetUrls)
+	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
+	useLoadAssets(assets)
 
 	return (
 		<TldrawEditor {...withDefaults}>
