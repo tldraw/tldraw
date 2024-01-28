@@ -50,7 +50,7 @@
 		"build-package": "lazy build-package",
 		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
-		"format": "prettier --write --cache \"**/*.{ts,tsx,js,jsx,json}\"",
+		"format": "biome format . --write",
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api-check": "lazy api-check",
