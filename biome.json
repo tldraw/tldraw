@@ -42,12 +42,7 @@
 			"**/.wrangler/*",
 			"**/.out/*",
 			"**/.temp/*",
-			"apps/dotcom/public/**/*.*",
-			"packages/assets/*.js",
-			"packages/tldraw/src/lib/ui/hooks/useTranslation/defaultTranslation.ts",
-			"packages/tldraw/src/lib/ui/hooks/useTranslation/TLUiTranslationKey.ts",
-			"packages/tldraw/src/lib/ui/icon-types.ts",
-			"packages/tlschema/src/translations/languages.ts"
+			"apps/dotcom/public/**/*.*"
 		]
 	},
 	"formatter": {
