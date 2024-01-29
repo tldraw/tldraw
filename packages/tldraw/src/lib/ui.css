@@ -494,7 +494,9 @@
 
 .tlui-slider__thumb:active {
 	cursor: grabbing;
-	box-shadow: inset 0px 0px 0px 2px var(--color-text-1), var(--shadow-1);
+	box-shadow:
+		inset 0px 0px 0px 2px var(--color-text-1),
+		var(--shadow-1);
 }
 
 .tlui-slider__thumb:focus-visible {
