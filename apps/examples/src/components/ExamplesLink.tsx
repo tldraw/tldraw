@@ -39,7 +39,7 @@ export const ExamplesLink = forwardRef(function ListLink(
 	const extraDetails = (
 		<div className="examples__list__item__details" aria-hidden={!isActive}>
 			{!showDescriptionWhenInactive && <Markdown sanitizedHtml={example.description} />}
-			<Markdown sanitizedHtml={example.details} />
+			{example.details && <Markdown sanitizedHtml={example.details} />}
 			<div className="examples__list__item__code">
 				<a className="link__button" href={example.codeUrl} target="_blank" rel="noreferrer">
 					View code
