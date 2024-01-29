@@ -1,5 +1,10 @@
 /* @tldraw/ui */
 
+.tl-wrapper {
+	height: 600px;
+	width: 800px;
+}
+
 .tl-container {
 	--layer-panels: 300;
 	--layer-menus: 400;

@@ -14539,7 +14539,7 @@
             },
             {
               "kind": "Content",
-              "text": " & ({\n    store: "
+              "text": " & {\n    style?: any;\n} & ({\n    store: "
             },
             {
               "kind": "Reference",

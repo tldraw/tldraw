@@ -36,6 +36,8 @@ html,
 	overflow: hidden;
 	overscroll-behavior: none;
 	touch-action: none;
+	width: 100%;
+	height: 100%;
 }
 
 .examples {
@@ -103,14 +105,13 @@ html,
 }
 
 .accordion__trigger__chevron {
-	color:var(--black-transparent-light);
+	color: var(--black-transparent-light);
 	transition: transform 300ms;
 }
 
 .accordion__trigger[data-state='closed'] > div > .accordion__trigger__chevron {
 	transform: rotate(-90deg);
 }
-
 
 .accordion__trigger__heading {
 	font-size: 14px;
@@ -134,7 +135,6 @@ html,
 	width: 100%;
 }
 
-
 .examples__list__item {
 	overflow: hidden;
 	position: relative;
@@ -142,7 +142,6 @@ html,
 	display: block;
 	width: 100%;
 }
-
 
 .examples__list__item__link {
 	position: absolute;

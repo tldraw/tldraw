@@ -36,8 +36,7 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
-export type TldrawProps = TldrawEditorBaseProps &
-	(
+export type TldrawProps = TldrawEditorBaseProps & { style?: any } & (
 		| {
 				store: TLStore | TLStoreWithStatus
 		  }
@@ -64,6 +63,8 @@ export function Tldraw(props: TldrawProps) {
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 		onMount,
+		className,
+		style,
 		...rest
 	} = props
 
@@ -94,30 +95,30 @@ export function Tldraw(props: TldrawProps) {
 
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
-	}
-
-	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
-	}
-
 	return (
-		<TldrawEditor {...withDefaults}>
-			<TldrawUi {...withDefaults}>
-				<ContextMenu>
-					<Canvas />
-				</ContextMenu>
-				<InsideOfEditorContext
-					maxImageDimension={maxImageDimension}
-					maxAssetSize={maxAssetSize}
-					acceptedImageMimeTypes={acceptedImageMimeTypes}
-					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
-					onMount={onMount}
-				/>
-				{children}
-			</TldrawUi>
-		</TldrawEditor>
+		<div style={style} className={`${className} tl-wrapper`}>
+			{preloadingError ? (
+				<ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
+			) : !preloadingComplete ? (
+				<LoadingScreen>Loading assets...</LoadingScreen>
+			) : (
+				<TldrawEditor {...withDefaults}>
+					<TldrawUi {...withDefaults}>
+						<ContextMenu>
+							<Canvas />
+						</ContextMenu>
+						<InsideOfEditorContext
+							maxImageDimension={maxImageDimension}
+							maxAssetSize={maxAssetSize}
+							acceptedImageMimeTypes={acceptedImageMimeTypes}
+							acceptedVideoMimeTypes={acceptedVideoMimeTypes}
+							onMount={onMount}
+						/>
+						{children}
+					</TldrawUi>
+				</TldrawEditor>
+			)}
+		</div>
 	)
 }
 
