@@ -95,6 +95,7 @@ async function main() {
 
 	await discordStep('[3/7] cloudflare deploy dry run', async () => {
 		await deployAssetUploadWorker({ dryRun: true })
+		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
 	})
 
