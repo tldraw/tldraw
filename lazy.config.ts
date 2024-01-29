@@ -12,6 +12,7 @@ const config = {
 		exclude: [
 			'<allWorkspaceDirs>/coverage/**/*',
 			'<allWorkspaceDirs>/dist*/**/*',
+			'<allWorkspaceDirs>/.next*/**/*',
 			'**/*.tsbuildinfo',
 			'<rootDir>/docs/gen/**/*',
 		],
@@ -26,6 +27,20 @@ const config = {
 					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
 					cache: {
 						inputs: ['api/**/*', 'src/**/*'],
+					},
+				},
+				'apps/docs': {
+					cache: {
+						inputs: [
+							'app/**/*',
+							'api/**/*',
+							'components/**/*',
+							'public/**/*',
+							'scrips/**/*',
+							'styles/**/*',
+							'types/**/*',
+							'utils/**/*',
+						],
 					},
 				},
 			},
