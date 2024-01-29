@@ -1,6 +1,8 @@
 ---
 title: Things on the canvas
 component: ./OnTheCanvas.tsx
+category: ui
+priority: 2
 ---
 
 Add custom components to the editor

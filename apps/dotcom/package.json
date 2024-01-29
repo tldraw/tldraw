@@ -15,7 +15,8 @@
 		"build": "yarn run -T tsx scripts/build.ts",
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
-		"test": "lazy inherit"
+		"test": "lazy inherit",
+		"test-dev": "yarn run -T jest --watch"
 	},
 	"dependencies": {
 		"@radix-ui/react-popover": "^1.0.7",
