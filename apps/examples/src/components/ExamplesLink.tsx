@@ -1,8 +1,7 @@
 import classNames from 'classnames'
-import { ForwardedRef, forwardRef, useEffect, useId, useLayoutEffect, useRef } from 'react'
+import { ForwardedRef, forwardRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Example } from '../examples'
-import { useMergedRefs } from '../hooks/useMergedRefs'
 import { StandaloneIcon } from './Icons'
 import { Markdown } from './Markdown'
 
@@ -14,33 +13,9 @@ export const ExamplesLink = forwardRef(function ListLink(
 	}: { example: Example; isActive?: boolean; showDescriptionWhenInactive?: boolean },
 	ref: ForwardedRef<HTMLLIElement>
 ) {
-	const id = useId()
-	const containerRef = useRef<HTMLLIElement | null>(null)
-	const wasActiveRef = useRef(isActive)
-	useEffect(() => {
-		wasActiveRef.current = isActive
-	}, [isActive])
-
-	const heightBefore =
-		wasActiveRef.current !== isActive ? containerRef.current?.offsetHeight : undefined
-
-	useLayoutEffect(() => {
-		if (heightBefore !== undefined && containerRef.current) {
-			containerRef.current.animate(
-				[{ height: heightBefore + 'px' }, { height: containerRef.current.offsetHeight + 'px' }],
-				{
-					duration: 120,
-					easing: 'ease-out',
-					fill: 'backwards',
-					delay: 100,
-				}
-			)
-		}
-	}, [heightBefore])
-
 	const mainDetails = (
 		<>
-			<h3 className="examples__list__item__heading" id={id}>
+			<h3 className="examples__list__item__heading">
 				{example.title}
 				{isActive && (
 					<Link
@@ -82,12 +57,10 @@ export const ExamplesLink = forwardRef(function ListLink(
 
 	return (
 		<span
-			ref={useMergedRefs(ref, containerRef)}
+			ref={ref}
 			className={classNames('examples__list__item', isActive && 'examples__list__item__active')}
 		>
-			{!isActive && (
-				<Link to={example.path} aria-labelledby={id} className="examples__list__item__link" />
-			)}
+			{!isActive && <Link to={example.path} className="examples__list__item__link" />}
 			{mainDetails}
 			{extraDetails}
 		</span>

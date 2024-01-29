@@ -100,22 +100,16 @@ html,
 	width: 100%;
 	text-align: left;
 	font-size: 10px;
-}
-
-.accordion__trigger__chevron {
-	color:var(--black-transparent-light);
-	transition: transform 300ms;
+	padding: 0px;
 }
 
 .accordion__trigger[data-state='closed'] > div > .accordion__trigger__chevron {
 	transform: rotate(-90deg);
 }
 
-
 .accordion__trigger__heading {
 	font-size: 14px;
 	font-weight: 500;
-	color: var(--black-transparent-dark);
 	margin-top: 0.25rem;
 	margin-bottom: 0.25rem;
 }
@@ -134,15 +128,12 @@ html,
 	width: 100%;
 }
 
-
 .examples__list__item {
 	overflow: hidden;
 	position: relative;
-	padding: 1.5rem;
 	display: block;
 	width: 100%;
 }
-
 
 .examples__list__item__link {
 	position: absolute;
@@ -167,12 +158,9 @@ html,
 	background: var(--gray-light);
 	z-index: -1;
 	opacity: 0;
-	transition: opacity 0.12s ease-in-out;
-}
-.examples__list__item__active::before {
-	opacity: 1;
 }
 @media screen and (pointer: fine) {
+	.examples__list__item__active::before,
 	.examples__list__item:hover::before {
 		opacity: 1;
 	}
@@ -180,19 +168,20 @@ html,
 
 .examples__list__item__heading {
 	all: unset;
-	font-weight: 700;
 	font-size: 14px;
 	margin-top: 0.25rem;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
+.examples__list__item__active .examples__list__item__heading {
+	font-weight: bold;
+}
 .examples__list__item__details {
 	position: absolute;
 	left: 1rem;
 	right: 1rem;
 	opacity: 0;
-	transition: opacity 0.12s ease-in-out;
 	margin-top: 0.5rem;
 	display: flex;
 	flex-direction: column;
@@ -201,7 +190,6 @@ html,
 .examples__list__item__active .examples__list__item__details {
 	position: static;
 	opacity: 1;
-	transition-delay: 0.1s;
 }
 .examples__list__item__standalone {
 	color: inherit;
@@ -359,14 +347,12 @@ html,
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
-	color: var(--black-transparent-dark);
 }
 
 .example__info__list__link {
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
-	margin-top: 1rem;
 	font-size: 13px;
 	font-weight: 400;
 	padding: 1rem;
