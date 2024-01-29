@@ -1,5 +1,5 @@
+import { ExamplesLink } from './components/ExamplesLink'
 import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
-import { ListLink } from './components/ListLink'
 import { examples } from './examples'
 
 export function HomePage() {
@@ -14,22 +14,11 @@ export function HomePage() {
 				</p>
 			</div>
 			<ul className="examples__list">
-				{examples
-					.filter((example) => !example.hide)
-					.filter((example) => example.order !== null)
-					.map((example) => (
-						<ListLink key={example.path} example={example} showDescriptionWhenInactive />
-					))}
+				{examples.map((e) =>
+					e.value.map((e) => <ExamplesLink key={e.path} example={e} showDescriptionWhenInactive />)
+				)}
 			</ul>
 			<hr />
-			<ul className="examples__list">
-				{examples
-					.filter((example) => !example.hide)
-					.filter((example) => example.order === null)
-					.map((example) => (
-						<ListLink key={example.path} example={example} showDescriptionWhenInactive />
-					))}
-			</ul>
 		</div>
 	)
 }
