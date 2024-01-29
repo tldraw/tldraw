@@ -8,7 +8,6 @@ import {
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { ExamplePage } from './ExamplePage'
-import { HomePage } from './HomePage'
 import { examples } from './examples'
 import EndToEnd from './testing/end-to-end'
 
@@ -19,11 +18,24 @@ import EndToEnd from './testing/end-to-end'
 const assetUrls = getAssetUrlsByMetaUrl()
 setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
+const gettingStartedExamples = examples.find((e) => e.id === 'Getting Started')
+if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
+const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Basic')
+if (!basicExample) throw new Error('Could not find basic example')
 
 const router = createBrowserRouter([
 	{
 		path: '/',
-		element: <HomePage />,
+		lazy: async () => {
+			const Component = await basicExample.loadComponent()
+			return {
+				element: (
+					<ExamplePage example={basicExample}>
+						<Component />
+					</ExamplePage>
+				),
+			}
+		},
 	},
 	{
 		path: 'end-to-end',
