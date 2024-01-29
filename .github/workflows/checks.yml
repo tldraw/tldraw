@@ -32,6 +32,11 @@ jobs:
       - name: Check for duplicate dependencies
         run: yarn dedupe --check
 
+      # Not the most sophisticated way to check for warnings, but I don't think
+      # Yarn can be convinced to exit with a non-zero exit code on warnings
+      - name: Check for installation warnings
+        run: 'yarn | ! grep -q "with warnings"'
+
       - name: Typecheck
         run: yarn build-types
 
