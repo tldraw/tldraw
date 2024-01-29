@@ -11324,6 +11324,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"discord-api-types@npm:^0.37.67":
+  version: 0.37.67
+  resolution: "discord-api-types@npm:0.37.67"
+  checksum: 5b474544a82148179e3d50f3092b9aa90b4142b470df397d3e6e211bd9c0b1f99724c618d7136fccdbe9cd931d8f48b1bdcd10599c7a08a92b76408c05829692
+  languageName: node
+  linkType: hard
+
 "doctrine@npm:^2.1.0":
   version: 2.1.0
   resolution: "doctrine@npm:2.1.0"
@@ -14566,6 +14573,19 @@ __metadata:
   checksum: d09b2243da4e23f53336e8de3093e5c43d2c39f8d0d18817abfa32ce3e9355391b2edb4bb5edc376aea5d4b0b59d6a0482aab4c52bc02ef95751e4b818e847f1
   languageName: node
   linkType: hard
+
+"health-worker@workspace:apps/health-worker":
+  version: 0.0.0-use.local
+  resolution: "health-worker@workspace:apps/health-worker"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20230821.0"
+    "@tldraw/utils": "workspace:*"
+    "@types/node": "npm:^18.7.3"
+    discord-api-types: "npm:^0.37.67"
+    typescript: "npm:^5.2.2"
+    wrangler: "npm:3.16.0"
+  languageName: unknown
+  linkType: soft
 
 "highlight.js@npm:~11.9.0":
   version: 11.9.0
