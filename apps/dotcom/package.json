@@ -42,7 +42,7 @@
 		"@typescript-eslint/utils": "^5.59.0",
 		"@vitejs/plugin-react-swc": "^3.5.0",
 		"dotenv": "^16.3.1",
-		"eslint": "^8",
+		"eslint": "^8.37.0",
 		"fast-glob": "^3.3.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"vite": "^5.0.0",

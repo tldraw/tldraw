@@ -6942,7 +6942,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
     ts-node-dev: "npm:^1.1.8"
-    typescript: "npm:^5"
+    typescript: "npm:^5.2.2"
   languageName: unknown
   linkType: soft
 
@@ -7130,7 +7130,7 @@ __metadata:
     ast-types: "npm:^0.14.2"
     cross-fetch: "npm:^3.1.5"
     esbuild: "npm:^0.18.4"
-    eslint: "npm:^8"
+    eslint: "npm:^8.37.0"
     glob: "npm:^8.0.3"
     gray-matter: "npm:^4.0.3"
     ignore: "npm:^5.2.4"
@@ -10787,7 +10787,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "config@workspace:config"
   dependencies:
-    eslint: "npm:^8"
+    eslint: "npm:^8.37.0"
     eslint-config-prettier: "npm:^8.8.0"
     eslint-plugin-react: "npm:^7.32.2"
     lazyrepo: "npm:0.0.0-alpha.27"
@@ -11635,7 +11635,7 @@ __metadata:
     "@vitejs/plugin-react-swc": "npm:^3.5.0"
     browser-fs-access: "npm:^0.33.0"
     dotenv: "npm:^16.3.1"
-    eslint: "npm:^8"
+    eslint: "npm:^8.37.0"
     fast-glob: "npm:^3.3.1"
     idb: "npm:^7.1.1"
     lazyrepo: "npm:0.0.0-alpha.27"
@@ -12958,7 +12958,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8, eslint@npm:^8.37.0":
+"eslint@npm:^8.37.0":
   version: 8.56.0
   resolution: "eslint@npm:8.56.0"
   dependencies:
@@ -14991,7 +14991,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/jsonwebtoken": "npm:^9.0.1"
-    eslint: "npm:^8"
+    eslint: "npm:^8.37.0"
     eslint-config-next: "npm:13.2.4"
     json5: "npm:^2.2.3"
     jsonwebtoken: "npm:^9.0.0"
@@ -23693,7 +23693,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5, typescript@npm:^5.2.2":
+"typescript@npm:^5.2.2":
   version: 5.3.3
   resolution: "typescript@npm:5.3.3"
   bin:
@@ -23723,7 +23723,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>":
   version: 5.3.3
   resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
   bin:

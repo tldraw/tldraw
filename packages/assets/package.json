@@ -51,7 +51,7 @@
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
 		"ts-node-dev": "^1.1.8",
-		"typescript": "^5"
+		"typescript": "^5.2.2"
 	},
 	"jest": {
 		"preset": "config/jest/node",
