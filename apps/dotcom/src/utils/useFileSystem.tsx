@@ -19,7 +19,7 @@ import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'
 
-const SAVE_FILE_COPY_ACTION = 'save-file-copy'
+export const SAVE_FILE_COPY_ACTION = 'save-file-copy'
 const OPEN_FILE_ACTION = 'open-file'
 const NEW_PROJECT_ACTION = 'new-file'
 
@@ -128,7 +128,10 @@ export function getSaveFileCopyAction(
 		kbd: '$s',
 		async onSelect(source) {
 			handleUiEvent('save-project-to-file', { source })
-			const defaultName = saveFileNames.get(editor.store) || `Untitled${TLDRAW_FILE_EXTENSION}`
+			const documentName =
+				editor.getDocumentSettings().name === '' ? 'Untitled' : editor.getDocumentSettings().name
+			const defaultName =
+				saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
 
 			const blobToSave = serializeTldrawJsonBlob(editor.store)
 			let handle

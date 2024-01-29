@@ -9,7 +9,6 @@ import {
 	useEditor,
 	useTranslation,
 } from '@tldraw/tldraw'
-import classNames from 'classnames'
 import {
 	ChangeEvent,
 	KeyboardEvent,
@@ -21,7 +20,9 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { FORK_PROJECT_ACTION, SHARE_PROJECT_ACTION } from '../../utils/sharing'
+import { FORK_PROJECT_ACTION } from '../../utils/sharing'
+import { SAVE_FILE_COPY_ACTION } from '../../utils/useFileSystem'
+import { getShareUrl } from '../ShareMenu'
 
 type NameState = {
 	readonly name: string | null
@@ -50,7 +51,8 @@ function DocumentNameInner() {
 	const [state, setState] = useState<NameState>({ name: null, isEditing: false, saving: null })
 	const actions = useActions()
 	const fork = actions[FORK_PROJECT_ACTION]
-	const share = actions[SHARE_PROJECT_ACTION]
+	const saveFile = actions[SAVE_FILE_COPY_ACTION]
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	return (
@@ -61,7 +63,7 @@ function DocumentNameInner() {
 					<Button
 						type="icon"
 						icon="chevron-down"
-						className={classNames('tlui-document-name__menu tlui-menu__trigger flex-none')}
+						className="tlui-document-name__menu tlui-menu__trigger flex-none"
 						data-testid="document-name-menu"
 						data-state={state.saving ?? 'ready'}
 					/>
@@ -71,10 +73,22 @@ function DocumentNameInner() {
 						<DropdownMenu.Item
 							type="menu"
 							onClick={() => {
-								share.onSelect('document-name')
+								saveFile.onSelect('document-name')
 							}}
 						>
-							<span className={'tlui-button__label' as any}>{msg(share.label!)}</span>
+							<span className={'tlui-button__label' as any}>{msg(saveFile.label!)}</span>
+						</DropdownMenu.Item>
+						<DropdownMenu.Item
+							type="menu"
+							onClick={() => {
+								const shareLink = getShareUrl(
+									window.location.href,
+									editor.getInstanceState().isReadonly
+								)
+								navigator.clipboard.writeText(shareLink)
+							}}
+						>
+							<span className={'tlui-button__label' as any}>Copy link</span>
 						</DropdownMenu.Item>
 						<DropdownMenu.Item type="menu" onClick={() => fork.onSelect('document-name')}>
 							<span className={'tlui-button__label' as any}>
