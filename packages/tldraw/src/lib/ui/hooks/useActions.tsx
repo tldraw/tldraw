@@ -71,6 +71,17 @@ function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
 }
 
+function getExportName(editor: Editor) {
+	const selectedShapes = editor.getSelectedShapes()
+	// When we don't have any shapes selected, we want to use the document name
+	if (selectedShapes.length === 0) {
+		const documentName = editor.getDocumentSettings().name
+		if (documentName === '') return 'Untitled'
+		return documentName
+	}
+	return undefined
+}
+
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
@@ -168,13 +179,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'svg', source })
-					const selectedShapes = editor.getSelectedShapes()
-					let name: string | undefined = undefined
-					if (selectedShapes.length === 0) {
-						name = editor.getDocumentSettings().name ?? 'Untitled'
-					}
-
-					exportAs(editor.getSelectedShapeIds(), name, 'svg')
+					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor))
 				},
 			},
 			{
@@ -185,12 +190,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'png', source })
-					const selectedShapes = editor.getSelectedShapes()
-					let name: string | undefined = undefined
-					if (selectedShapes.length === 0) {
-						name = editor.getDocumentSettings().name ?? 'Untitled'
-					}
-					exportAs(editor.getSelectedShapeIds(), name, 'png')
+					exportAs(editor.getSelectedShapeIds(), 'png', getExportName(editor))
 				},
 			},
 			{
@@ -201,12 +201,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'json', source })
-					const selectedShapes = editor.getSelectedShapes()
-					let name: string | undefined = undefined
-					if (selectedShapes.length === 0) {
-						name = editor.getDocumentSettings().name ?? 'Untitled'
-					}
-					exportAs(editor.getSelectedShapeIds(), name, 'json')
+					exportAs(editor.getSelectedShapeIds(), 'json', getExportName(editor))
 				},
 			},
 			{

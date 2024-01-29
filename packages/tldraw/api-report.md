@@ -484,7 +484,7 @@ export type EventsProviderProps = {
 };
 
 // @public
-export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, name?: string | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
+export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public (undocumented)
 export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<string>;
@@ -1884,7 +1884,7 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useExportAs(): (ids: TLShapeId[], name: string | undefined, format?: TLExportType) => void;
+export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public (undocumented)
 export function useHelpMenuSchema(): TLUiMenuSchema;

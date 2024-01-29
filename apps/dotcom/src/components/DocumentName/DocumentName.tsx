@@ -167,15 +167,11 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 }
 
 function getName(state: NameState, document: TLDocument) {
-	let name = state.name
-	if (!name) {
-		if (document.name === '') {
-			name = 'Untitled'
-		} else {
-			name = document.name
-		}
+	if (state.name) return state.name
+	if (document.name === '') {
+		return 'Untitled'
 	}
-	return name
+	return document.name
 }
 
 function DocumentNameEditor({

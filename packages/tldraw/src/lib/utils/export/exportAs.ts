@@ -10,6 +10,7 @@ export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
  * @param editor - The editor instance.
  * @param ids - The ids of the shapes to export.
  * @param format - The format to export as.
+ * @param name - Name of the exported file. If undefined a predefined name, based on the selections, will be used.
  * @param opts - Options for the export.
  *
  * @public
@@ -18,16 +19,19 @@ export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLExportType = 'png',
-	name: string | undefined = undefined,
+	name: string | undefined,
 	opts = {} as Partial<TLSvgOptions>
 ) {
-	name = name ?? `shapes at ${getTimestamp()}`
-	if (ids.length === 1) {
-		const first = editor.getShape(ids[0])!
-		if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
-			name = first.props.name ?? 'frame'
-		} else {
-			name = `${first.id.replace(/:/, '_')} at ${getTimestamp()}`
+	// If we don't get name then use a predefined one
+	if (!name) {
+		name = `shapes at ${getTimestamp()}`
+		if (ids.length === 1) {
+			const first = editor.getShape(ids[0])!
+			if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
+				name = first.props.name ?? 'frame'
+			} else {
+				name = `${first.id.replace(/:/, '_')} at ${getTimestamp()}`
+			}
 		}
 	}
 	name += `.${format}`

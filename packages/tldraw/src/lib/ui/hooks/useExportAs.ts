@@ -11,7 +11,7 @@ export function useExportAs() {
 	const msg = useTranslation()
 
 	return useCallback(
-		(ids: TLShapeId[], name: string | undefined, format: TLExportType = 'png') => {
+		(ids: TLShapeId[], format: TLExportType = 'png', name: string | undefined) => {
 			exportAs(editor, ids, format, name, {
 				scale: 1,
 				background: editor.getInstanceState().exportBackground,
