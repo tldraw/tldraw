@@ -110,8 +110,7 @@ html,
 .accordion__trigger__heading {
 	font-size: 14px;
 	font-weight: 500;
-	margin-top: 0.25rem;
-	margin-bottom: 0.25rem;
+	margin: 0px;
 }
 
 .accordion__content {
@@ -169,7 +168,6 @@ html,
 .examples__list__item__heading {
 	all: unset;
 	font-size: 14px;
-	margin-top: 0.25rem;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
