@@ -34,7 +34,7 @@ export function Header({
 					Learn
 				</a>
 				<a
-					href="/reference"
+					href="/reference/editor/Editor"
 					title="Reference"
 					data-active={sectionId === 'reference'}
 					className="layout_header__section"
@@ -42,12 +42,20 @@ export function Header({
 					Reference
 				</a>
 				<a
-					href="/examples"
+					href="/examples/basic/develop"
 					title="Examples"
 					data-active={sectionId === 'examples'}
 					className="layout_header__section"
 				>
 					Examples
+				</a>
+				<a
+					href="/community"
+					title="Community"
+					data-active={sectionId === 'community'}
+					className="layout_header__section"
+				>
+					Community
 				</a>
 
 				<ThemeSwitcher />

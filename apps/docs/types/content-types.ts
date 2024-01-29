@@ -104,6 +104,10 @@ export interface Article extends ContentPage {
 	keywords: string[]
 	/** The URL where the article's source can be found. */
 	sourceUrl: string | null
+	/** The article's code example (optional). */
+	componentCode: string | null
+	/** The article's code example files, JSON stringified (optional). */
+	componentCodeFiles: string | null
 }
 
 export enum ArticleStatus {

@@ -233,7 +233,7 @@ body {
 	justify-self: center;
 	width: 100%;
 	min-height: calc(100vh - 64px);
-	padding: 24px 0px 96px 0px;
+	padding: 0px 0px 96px 0px;
 	font-weight: 400;
 	overflow-x: hidden;
 	overflow-y: visible;
@@ -468,6 +468,10 @@ body {
 	overflow-x: auto;
 }
 
+.article.article__example pre {
+	margin: 0px;
+}
+
 .article__api-docs pre {
 	margin: 24px 0px;
 }
@@ -513,6 +517,10 @@ body {
 	width: calc(100% - 8px);
 	background-color: var(--color-tint-2);
 	border: none;
+}
+
+.article.article__example hr {
+	margin: 0;
 }
 
 .article table {
@@ -758,7 +766,7 @@ body {
 	align-self: start;
 	top: 72px;
 	margin-left: -12px;
-	padding: 24px 12px 120px 28px;
+	padding: 0px 12px 120px 28px;
 	width: calc(100% + 24px);
 	max-height: calc(100vh);
 	z-index: 800;
@@ -856,6 +864,23 @@ body {
 	text-transform: uppercase;
 	--bg: transparent;
 	white-space: nowrap;
+}
+
+.sidebar__section__group__title {
+	font-size: 14px;
+	font-weight: normal;
+	margin-bottom: 4px;
+	position: relative;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	color: var(--color-text-secondary);
+	white-space: nowrap;
+	background: transparent;
+	border: 0;
+	width: 100%;
+	cursor: pointer;
 }
 
 .sidebar__sections__list > *:nth-last-of-type(n + 2) > .sidebar__list {

@@ -144,6 +144,7 @@ export class ContentDatabase {
 	// TODO(mime): make this more generic, not per docs area
 	private _sidebarContentLinks: SidebarContentLink[] | undefined
 	private _sidebarReferenceContentLinks: SidebarContentLink[] | undefined
+	private _sidebarExamplesContentLinks: SidebarContentLink[] | undefined
 
 	async getSidebarContentList({
 		sectionId,
@@ -156,7 +157,12 @@ export class ContentDatabase {
 	}): Promise<SidebarContentList> {
 		let links: SidebarContentLink[]
 
-		const cachedLinks = sectionId === 'reference' ? this._sidebarReferenceContentLinks : this._sidebarContentLinks
+		const cachedLinks =
+			sectionId === 'examples'
+				? this._sidebarExamplesContentLinks
+				: sectionId === 'reference'
+					? this._sidebarReferenceContentLinks
+					: this._sidebarContentLinks
 		if (cachedLinks && process.env.NODE_ENV !== 'development') {
 			// Use the previously cached sidebar links
 			links = cachedLinks
@@ -175,10 +181,20 @@ export class ContentDatabase {
 					continue
 				}
 
-				if ((sectionId === 'reference' && section.id !== 'reference') || ( sectionId !== 'reference' && section.id === 'reference')) {
+				if (
+					(sectionId === 'reference' && section.id !== 'reference') ||
+					(sectionId !== 'reference' && section.id === 'reference')
+				) {
 					continue
 				}
-			
+
+				if (
+					(sectionId === 'examples' && section.id !== 'examples') ||
+					(sectionId !== 'examples' && section.id === 'examples')
+				) {
+					continue
+				}
+
 				if (section.sidebar_behavior === 'show-title') {
 					links.push({
 						type: 'article',
@@ -258,6 +274,9 @@ export class ContentDatabase {
 				links.push({ type: 'section', title: section.title, url: section.path, children })
 
 				// Cache the links structure for next time
+				if (sectionId === 'examples') {
+					this._sidebarExamplesContentLinks = links
+				}
 				if (sectionId === 'reference') {
 					this._sidebarReferenceContentLinks = links
 				} else {
