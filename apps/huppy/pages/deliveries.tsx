@@ -97,7 +97,7 @@ export default function Deliveries({ deliveries, cursor }: Props) {
 				{selectedDelivery && selectedDelivery.data ? (
 					<div className="relative flex-auto overflow-hidden text-sm">
 						<pre className="absolute inset-0 overflow-auto whitespace-pre-wrap p-4">
-							{JSON.stringify(selectedDelivery.data, null, 2)}
+							{JSON.stringify(selectedDelivery.data, null, '\t')}
 						</pre>
 						<div className="absolute right-8 top-4 flex gap-3">
 							<button

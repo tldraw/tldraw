@@ -116,16 +116,11 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			if (delta.x === 0 && delta.y === 0) return
 
-			const container = editor.getContainer().getBoundingClientRect()
-
 			const info: TLWheelEventInfo = {
 				type: 'wheel',
 				name: 'wheel',
 				delta,
-				point: new Vec(event.clientX, event.clientY).sub({
-					x: container.left,
-					y: container.top,
-				}),
+				point: new Vec(event.clientX, event.clientY),
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
 				ctrlKey: event.metaKey || event.ctrlKey,

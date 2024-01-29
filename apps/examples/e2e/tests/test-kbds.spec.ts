@@ -13,7 +13,7 @@ test.describe('Keyboard Shortcuts', () => {
 		await setupPage(page)
 	})
 
-	test('tools', async () => {
+	test('tools', async ({ isMobile }) => {
 		const geoToolKds = [
 			['r', 'rectangle'],
 			['o', 'ellipse'],
@@ -56,6 +56,35 @@ test.describe('Keyboard Shortcuts', () => {
 		]
 
 		for (const [key, tool] of shapeToolKbds) {
+			await page.keyboard.press('v') // set back to select
+			await page.keyboard.press(key)
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+				name: 'select-tool',
+				data: { id: tool, source: 'kbd' },
+			})
+		}
+
+		// make sure that the first dropdown item is rectangle
+		await page.keyboard.press('r')
+
+		const positionalToolKbds = [
+			['1', 'select'],
+			['2', 'hand'],
+			['3', 'draw'],
+			['4', 'eraser'],
+			['5', 'arrow'],
+			['6', 'text'],
+		]
+
+		if (isMobile) {
+			// on mobile, the last item (first from the dropdown) is 7
+			positionalToolKbds.push(['7', 'geo-rectangle'])
+		} else {
+			// on desktop, the last item (first from the dropdown) is 9. 8 is the image tool which
+			// we skip here because it opens a browser dialog
+			positionalToolKbds.push(['9', 'geo-rectangle'])
+		}
+		for (const [key, tool] of positionalToolKbds) {
 			await page.keyboard.press('v') // set back to select
 			await page.keyboard.press(key)
 			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({

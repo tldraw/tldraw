@@ -1,5 +1,5 @@
 ---
-title: Basic (development)
+title: Basic
 component: ./BasicExample.tsx
 category: basic
 priority: 1

@@ -14,6 +14,8 @@ Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). t
 
 ## Local development
 
+The local development server will run our examples app. The basic example will show any changes you've made to the codebase.
+
 To run the local development server, first clone this repo.
 
 Install dependencies:
