@@ -18,9 +18,10 @@ export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLExportType = 'png',
+	name: string | undefined = undefined,
 	opts = {} as Partial<TLSvgOptions>
 ) {
-	let name = `shapes at ${getTimestamp()}`
+	name = name ?? `shapes at ${getTimestamp()}`
 	if (ids.length === 1) {
 		const first = editor.getShape(ids[0])!
 		if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {

@@ -2,6 +2,7 @@ import {
 	Button,
 	DropdownMenu,
 	OfflineIndicator,
+	TLDocument,
 	track,
 	useActions,
 	useBreakpoint,
@@ -165,6 +166,18 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 	)
 }
 
+function getName(state: NameState, document: TLDocument) {
+	let name = state.name
+	if (!name) {
+		if (document.name === '') {
+			name = 'Untitled'
+		} else {
+			name = document.name
+		}
+	}
+	return name
+}
+
 function DocumentNameEditor({
 	state,
 	setState,
@@ -254,6 +267,8 @@ function DocumentNameEditor({
 		setState((prev) => ({ ...prev, isEditing: false }))
 	}, [setState])
 
+	const name = getName(state, document)
+
 	return (
 		<div className="tlui-document-name__input__wrapper">
 			{state.isEditing && (
@@ -275,7 +290,7 @@ function DocumentNameEditor({
 					inert=""
 					aria-hidden
 				>
-					{addRealSpaceForWhitespace(state.name ?? document.name) || ' '}
+					{addRealSpaceForWhitespace(name) || ' '}
 					{/* {raw(addRealSpaceForWhitespace(state.name ?? document.name) || ' ')} */}
 				</div>
 			) : (
@@ -285,7 +300,7 @@ function DocumentNameEditor({
 					data-testid="document-name-text"
 				>
 					{/* {raw(addRealSpaceForWhitespace(state.name ?? document.name) || ' ')} */}
-					{addRealSpaceForWhitespace(state.name ?? document.name) || ' '}
+					{addRealSpaceForWhitespace(name) || ' '}
 				</div>
 			)}
 		</div>

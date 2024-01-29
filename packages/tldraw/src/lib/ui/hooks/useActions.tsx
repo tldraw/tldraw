@@ -168,7 +168,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'svg', source })
-					exportAs(editor.getSelectedShapeIds(), 'svg')
+					const selectedShapes = editor.getSelectedShapes()
+					let name: string | undefined = undefined
+					if (selectedShapes.length === 0) {
+						name = editor.getDocumentSettings().name ?? 'Untitled'
+					}
+
+					exportAs(editor.getSelectedShapeIds(), name, 'svg')
 				},
 			},
 			{
@@ -179,7 +185,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(editor.getSelectedShapeIds(), 'png')
+					const selectedShapes = editor.getSelectedShapes()
+					let name: string | undefined = undefined
+					if (selectedShapes.length === 0) {
+						name = editor.getDocumentSettings().name ?? 'Untitled'
+					}
+					exportAs(editor.getSelectedShapeIds(), name, 'png')
 				},
 			},
 			{
@@ -190,7 +201,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(editor.getSelectedShapeIds(), 'json')
+					const selectedShapes = editor.getSelectedShapes()
+					let name: string | undefined = undefined
+					if (selectedShapes.length === 0) {
+						name = editor.getDocumentSettings().name ?? 'Untitled'
+					}
+					exportAs(editor.getSelectedShapeIds(), name, 'json')
 				},
 			},
 			{
