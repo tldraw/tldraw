@@ -29,7 +29,7 @@ export class RecordType<
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 	// eslint-disable-next-line deprecation/deprecation
-	readonly migrations: Migrations
+	readonly migrations?: Migrations
 	readonly validator: StoreValidator<R> | { validate: (r: unknown) => R }
 
 	readonly scope: RecordScope
@@ -45,13 +45,17 @@ export class RecordType<
 		config: {
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 			// eslint-disable-next-line deprecation/deprecation
-			readonly migrations: Migrations
+			readonly migrations?: Migrations
 			readonly validator?: StoreValidator<R> | { validate: (r: unknown) => R }
 			readonly scope?: RecordScope
 		}
 	) {
 		this.createDefaultProperties = config.createDefaultProperties
 		this.migrations = config.migrations
+		if (config.migrations) {
+			// TODO: add docs about record/store migrations
+			console.warn('[tldraw] RecordType migrations are deprecated. Pass migrations directly to the schema constructor instead. See https://tldraw.dev/migrations')
+		}
 		this.validator = config.validator ?? { validate: (r: unknown) => r as R }
 		this.scope = config.scope ?? 'document'
 	}

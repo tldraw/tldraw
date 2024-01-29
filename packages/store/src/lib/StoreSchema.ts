@@ -1,43 +1,61 @@
 /* eslint-disable deprecation/deprecation */
-import { getOwnProperty, objectMapValues } from '@tldraw/utils'
-import { IdOf, UnknownRecord } from './BaseRecord'
+import {
+	Result,
+	getOwnProperty,
+	objectMapEntries,
+	objectMapFromEntries,
+	objectMapValues,
+} from '@tldraw/utils'
+import { UnknownRecord } from './BaseRecord'
+import { LegacyMigrator } from './LegacyMigrator'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
-import {
-	MigrationFailureReason,
-	MigrationResult,
-	Migrations,
-	migrate,
-	migrateRecord,
-} from './legacy_migrate'
+import { MigrationFailureReason, MigrationResult, Migrations } from './legacy_migrate'
+import { Migration, MigrationId, MigrationSequence } from './migrate'
 
-/** @public */
-export interface SerializedSchema {
-	/** Schema version is the version for this type you're looking at right now */
-	schemaVersion: number
-	/**
-	 * Store version is the version for the structure of the store. e.g. higher level structure like
-	 * removing or renaming a record type.
-	 */
-	storeVersion: number
-	/** Record versions are the versions for each record type. e.g. adding a new field to a record */
-	recordVersions: Record<
-		string,
-		| {
-				version: number
-		  }
-		| {
-				// subtypes are used for migrating shape and asset props
-				version: number
-				subTypeVersions: Record<string, number>
-				subTypeKey: string
-		  }
-	>
-}
+const LEGACY_SCHEMA_VERSION = 1
+const CURRENT_SCHEMA_VERSION = 2
+
+export type SerializedSchema =
+	| {
+			/** Schema version is the version for this type you're looking at right now */
+			schemaVersion: typeof CURRENT_SCHEMA_VERSION
+			versionHistory: MigrationId[]
+	  }
+	// Deprecated previous schema version
+	| {
+			/**
+			 * Schema version is the version for this type you're looking at right now
+			 */
+			schemaVersion: typeof LEGACY_SCHEMA_VERSION
+			/**
+			 * Store version is the version for the structure of the store. e.g. higher level structure like
+			 * removing or renaming a record type.
+			 */
+			storeVersion: number
+			/** Record versions are the versions for each record type. e.g. adding a new field to a record */
+			recordVersions: Record<
+				string,
+				| {
+						version: number
+				  }
+				| {
+						// subtypes are used for migrating shape and asset props
+						version: number
+						subTypeVersions: Record<string, number>
+						subTypeKey: string
+				  }
+			>
+	  }
 
 /** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-	/** @deprecated - use the new stuff */
+	/**
+	 * @public
+	 * Any migrations for the store's data.
+	 */
+	migrations?: MigrationOptions
+	/** @deprecated - Use `migrations` instead. */
 	snapshotMigrations?: Migrations
 	/** @public */
 	onValidationFailure?: (data: {
@@ -63,12 +81,154 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return new StoreSchema<R, P>(types as any, options ?? {})
 	}
 
+	private readonly __legacyMigrator: LegacyMigrator | null
+
+	private readonly sortedMigrationIds: MigrationId[]
+	private readonly migrations: ReadonlyMap<string, Migration>
+
 	private constructor(
 		public readonly types: {
 			[Record in R as Record['typeName']]: RecordType<R, any>
 		},
 		private readonly options: StoreSchemaOptions<R, P>
-	) {}
+	) {
+		// TODO: test that everything is fine with empty migrations
+		const { order, sequences } = options.migrations ?? { order: [], sequences: [] }
+		if (options.snapshotMigrations) {
+			const typesWithLegacyMigrations = objectMapEntries(types).filter(([_, t]) => t.migrations)
+			this.__legacyMigrator = new LegacyMigrator(
+				objectMapFromEntries(
+					typesWithLegacyMigrations.map(
+						([typeName, recordType]) => [typeName, recordType.migrations!] as const
+					)
+				),
+				options.snapshotMigrations
+			)
+		} else {
+			this.__legacyMigrator = null
+		}
+
+		this.sortedMigrationIds = [...order]
+
+		const migrations = new Map<string, Migration>()
+		this.migrations = migrations
+
+		const allUnusedMigrationIds = new Set<string>()
+
+		// check that sequences are valid and included in linear order
+		for (const { sequence, versionAtInstallation } of sequences) {
+			const unusedIdx = sequence.migrations.findIndex((m) => m.id === versionAtInstallation)
+			if (unusedIdx === -1) {
+				throw new Error(`Missing versionAtInstallation id ${JSON.stringify(versionAtInstallation)}`)
+			}
+			const unusedMigrationIds = sequence.migrations.slice(0, unusedIdx).map((m) => m.id)
+
+			// if any unused are present in `order` it's an error
+			for (const unusedMigrationId of unusedMigrationIds) {
+				if (!unusedMigrationId.startsWith(sequence.id) + '/') {
+					throw new Error(
+						`Migration id ${JSON.stringify(unusedMigrationId)} must start with ${JSON.stringify(
+							sequence.id
+						)}`
+					)
+				}
+				if (allUnusedMigrationIds.has(unusedMigrationId)) {
+					throw new Error(`Duplicate migration id ${JSON.stringify(unusedMigrationId)}`)
+				}
+				if (order.includes(unusedMigrationId)) {
+					throw new Error(
+						`Unused migration id ${JSON.stringify(
+							unusedMigrationId
+						)} is present in your migration order. Did you specify 'versionAtInstallation' correctly?`
+					)
+				}
+				allUnusedMigrationIds.add(unusedMigrationId)
+			}
+
+			// now check that the migrations which are supposed to be in `order` are all present
+			// and in the right... order
+			const usedMigrations = sequence.migrations.slice(unusedIdx)
+			const missingMigrations = []
+			let lastIdx = -1
+			for (const migration of usedMigrations) {
+				if (!migration.id.startsWith(sequence.id) + '/') {
+					throw new Error(
+						`Migration id ${JSON.stringify(migration.id)} must start with ${JSON.stringify(
+							sequence.id
+						)}`
+					)
+				}
+				if (migrations.has(migration.id)) {
+					throw new Error(`Duplicate migration id ${migration.id}`)
+				}
+				migrations.set(migration.id, migration)
+				const orderIdx = order.indexOf(migration.id)
+				if (orderIdx === -1) {
+					missingMigrations.push(migration.id)
+				} else if (orderIdx <= lastIdx) {
+					throw new Error(
+						`Migration id ${JSON.stringify(
+							migration.id
+						)} is out of order. It should come after ${JSON.stringify(order[lastIdx])}`
+					)
+				} else {
+					lastIdx = orderIdx
+				}
+			}
+
+			if (missingMigrations.length) {
+				// TODO: add link to migration docs
+				throw new Error(
+					`Missing migrations from your migration order. Did you just update a tldraw dependency?
+Paste these in at the end of your existing migration ordering.
+${JSON.stringify(missingMigrations)}
+`
+				)
+			}
+		}
+
+		// check that all ids are present and any inter-sequence dependencies are satisfied
+		for (let i = 0; i < this.sortedMigrationIds.length; i++) {
+			const id = this.sortedMigrationIds[i]
+			const migration = migrations.get(id)
+			if (!migration) {
+				// TODO: Link to migration docs
+				throw new Error(
+					`Missing migration details for ${JSON.stringify(
+						id
+					)}. Did you forget to add a migration sequence?`
+				)
+			}
+			if (migration.dependsOn?.length) {
+				for (const dependentId of migration.dependsOn) {
+					if (allUnusedMigrationIds.has(dependentId)) {
+						// if a migration was unused this dependency has implicitly been satisfied
+						continue
+					}
+					const depIdx = this.sortedMigrationIds.indexOf(dependentId)
+					if (depIdx === -1) {
+						throw new Error(
+							`Migration id ${JSON.stringify(id)} depends on missing migration ${JSON.stringify(
+								dependentId
+							)}`
+						)
+					}
+					if (depIdx === i) {
+						throw new Error(
+							`Migration id ${JSON.stringify(id)} depends on itself. This is not allowed.`
+						)
+					}
+					if (depIdx > i) {
+						throw new Error(
+							`Migration id ${JSON.stringify(id)} depends on migration ${JSON.stringify(
+								dependentId
+							)} which comes after it. This is not allowed.`
+						)
+					}
+				}
+			}
+		}
+	}
 
 	// eslint-disable-next-line no-restricted-syntax
 	get currentStoreVersion(): number {
@@ -102,138 +262,115 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 	}
 
+	private getMigrationsSince(schema: SerializedSchema): Result<Migration[], string> {
+		if (schema.schemaVersion === LEGACY_SCHEMA_VERSION) {
+			if (!this.__legacyMigrator) {
+				return Result.err(
+					`Cannot migrate legacy schema because no legacy migrations were provided.`
+				)
+			}
+			return Result.ok<Migration[]>([
+				{
+					scope: 'store',
+					id: 'com.tldraw/__legacy__',
+					up: (store) => {
+						const res = this.__legacyMigrator!.migrateStoreSnapshot({
+							schema: schema as any,
+							store,
+						})
+						if (res.type === 'error') {
+							throw new Error(res.reason)
+						}
+						return res.value
+					},
+				},
+				...this.sortedMigrationIds.map((id) => this.migrations.get(id)!),
+			])
+		}
+
+		// TODO: support bi-directional fixup to relax the following restriction (need to do record vs snapshot)
+		// first make sure that all applied migrations exist in our list of migrations
+		// in exactly the same order
+		for (let i = 0; i < schema.versionHistory.length; i++) {
+			const theirs = schema.versionHistory[i]
+			const ours = this.sortedMigrationIds[i]
+			if (theirs !== ours) {
+				return Result.err(
+					`Schema migration histories are divergent. 
+
+Theirs: ${JSON.stringify(schema.versionHistory)}
+Ours:   ${JSON.stringify(this.currentStoreVersion)}
+`
+				)
+			}
+		}
+
+		return Result.ok(
+			this.sortedMigrationIds
+				.slice(schema.versionHistory.length)
+				.map((id) => this.migrations.get(id)!)
+		)
+	}
+
 	migratePersistedRecord(
 		record: R,
 		persistedSchema: SerializedSchema,
 		direction: 'up' | 'down' = 'up'
 	): MigrationResult<R> {
-		const ourType = getOwnProperty(this.types, record.typeName)
-		const persistedType = persistedSchema.recordVersions[record.typeName]
-		if (!persistedType || !ourType) {
-			return { type: 'error', reason: MigrationFailureReason.UnknownType }
+		const migrationsToApply = this.getMigrationsSince(persistedSchema)
+		if (!migrationsToApply.ok) {
+			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 		}
-		const ourVersion = ourType.migrations.currentVersion
-		const persistedVersion = persistedType.version
-		if (ourVersion !== persistedVersion) {
-			const result =
-				direction === 'up'
-					? migrateRecord<R>({
-							record,
-							migrations: ourType.migrations,
-							fromVersion: persistedVersion,
-							toVersion: ourVersion,
-						})
-					: migrateRecord<R>({
-							record,
-							migrations: ourType.migrations,
-							fromVersion: ourVersion,
-							toVersion: persistedVersion,
-						})
-			if (result.type === 'error') {
-				return result
-			}
-			record = result.value
-		}
-
-		if (!ourType.migrations.subTypeKey) {
+		if (migrationsToApply.value.length === 0) {
 			return { type: 'success', value: record }
 		}
-
-		// we've handled the main version migration, now we need to handle subtypes
-		// subtypes are used by shape and asset types to migrate the props shape, which is configurable
-		// by library consumers.
-
-		const ourSubTypeMigrations =
-			ourType.migrations.subTypeMigrations?.[
-				record[ourType.migrations.subTypeKey as keyof R] as string
-			]
-
-		const persistedSubTypeVersion =
-			'subTypeVersions' in persistedType
-				? persistedType.subTypeVersions[record[ourType.migrations.subTypeKey as keyof R] as string]
-				: undefined
-
-		// if ourSubTypeMigrations is undefined then we don't have access to the migrations for this subtype
-		// that is almost certainly because we are running on the server and this type was supplied by a 3rd party.
-		// It could also be that we are running in a client that is outdated. Either way, we can't migrate this record
-		// and we need to let the consumer know so they can handle it.
-		if (ourSubTypeMigrations === undefined) {
-			return { type: 'error', reason: MigrationFailureReason.UnrecognizedSubtype }
+		const migrations = [...migrationsToApply.value]
+		if (!migrations.every((m) => m[direction] && m.scope === 'record')) {
+			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
+		}
+		if (direction === 'down') {
+			migrations.reverse()
 		}
 
-		// if the persistedSubTypeVersion is undefined then the record was either created after the schema
-		// was persisted, or it was created in a different place to where the schema was persisted.
-		// either way we don't know what to do with it safely, so let's return failure.
-		if (persistedSubTypeVersion === undefined) {
-			return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
+		try {
+			for (const migration of migrations) {
+				record = migration[direction]!(record as any) as any
+			}
+		} catch (e) {
+			console.error('Failed to apply migration', e)
+			return { type: 'error', reason: MigrationFailureReason.MigrationError }
 		}
 
-		const result =
-			direction === 'up'
-				? migrateRecord<R>({
-						record,
-						migrations: ourSubTypeMigrations,
-						fromVersion: persistedSubTypeVersion,
-						toVersion: ourSubTypeMigrations.currentVersion,
-					})
-				: migrateRecord<R>({
-						record,
-						migrations: ourSubTypeMigrations,
-						fromVersion: ourSubTypeMigrations.currentVersion,
-						toVersion: persistedSubTypeVersion,
-					})
-
-		if (result.type === 'error') {
-			return result
-		}
-
-		return { type: 'success', value: result.value }
+		return { type: 'success', value: record }
 	}
 
 	migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>> {
-		let { store } = snapshot
-
-		const migrations = this.options.snapshotMigrations
-		if (!migrations) {
-			return { type: 'success', value: store }
-		}
-		// apply store migrations first
-		const ourStoreVersion = migrations.currentVersion
-		const persistedStoreVersion = snapshot.schema.storeVersion ?? 0
-
-		if (ourStoreVersion < persistedStoreVersion) {
+		const migrationsToApply = this.getMigrationsSince(snapshot.schema)
+		if (!migrationsToApply.ok) {
 			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 		}
-
-		if (ourStoreVersion > persistedStoreVersion) {
-			const result = migrate<SerializedStore<R>>({
-				value: store,
-				migrations,
-				fromVersion: persistedStoreVersion,
-				toVersion: ourStoreVersion,
-			})
-
-			if (result.type === 'error') {
-				return result
-			}
-			store = result.value
+		if (migrationsToApply.value.length === 0) {
+			return { type: 'success', value: snapshot.store }
 		}
 
-		const updated: R[] = []
-		for (const r of objectMapValues(store)) {
-			const result = this.migratePersistedRecord(r, snapshot.schema)
-			if (result.type === 'error') {
-				return result
-			} else if (result.value && result.value !== r) {
-				updated.push(result.value)
+		let store = snapshot.store
+		try {
+			for (const migration of migrationsToApply.value) {
+				if (migration.scope === 'store') {
+					store = migration.up(store) as any
+				} else {
+					const nextStore = { ...store }
+					for (const record of objectMapValues(store)) {
+						nextStore[record.id as keyof typeof nextStore] = migration.up(record) as any
+					}
+					store = nextStore
+				}
 			}
+		} catch (e) {
+			console.error('Failed to apply migration', e)
+			return { type: 'error', reason: MigrationFailureReason.MigrationError }
 		}
-		if (updated.length) {
-			store = { ...store }
-			for (const r of updated) {
-				store[r.id as IdOf<R>] = r
-			}
-		}
+
 		return { type: 'success', value: store }
 	}
 
@@ -244,57 +381,23 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	serialize(): SerializedSchema {
 		return {
-			schemaVersion: 1,
-			storeVersion: this.options.snapshotMigrations?.currentVersion ?? 0,
-			recordVersions: Object.fromEntries(
-				objectMapValues(this.types).map((type) => [
-					type.typeName,
-					type.migrations.subTypeKey && type.migrations.subTypeMigrations
-						? {
-								version: type.migrations.currentVersion,
-								subTypeKey: type.migrations.subTypeKey,
-								subTypeVersions: type.migrations.subTypeMigrations
-									? Object.fromEntries(
-											Object.entries(type.migrations.subTypeMigrations).map(([k, v]) => [
-												k,
-												v.currentVersion,
-											])
-										)
-									: undefined,
-							}
-						: {
-								version: type.migrations.currentVersion,
-							},
-				])
-			),
+			schemaVersion: 2,
+			versionHistory: [...this.sortedMigrationIds],
 		}
 	}
 
 	serializeEarliestVersion(): SerializedSchema {
 		return {
-			schemaVersion: 1,
-			storeVersion: this.options.snapshotMigrations?.firstVersion ?? 0,
-			recordVersions: Object.fromEntries(
-				objectMapValues(this.types).map((type) => [
-					type.typeName,
-					type.migrations.subTypeKey && type.migrations.subTypeMigrations
-						? {
-								version: type.migrations.firstVersion,
-								subTypeKey: type.migrations.subTypeKey,
-								subTypeVersions: type.migrations.subTypeMigrations
-									? Object.fromEntries(
-											Object.entries(type.migrations.subTypeMigrations).map(([k, v]) => [
-												k,
-												v.firstVersion,
-											])
-										)
-									: undefined,
-							}
-						: {
-								version: type.migrations.firstVersion,
-							},
-				])
-			),
+			schemaVersion: 2,
+			versionHistory: [],
 		}
 	}
+}
+
+type MigrationOptions = {
+	sequences: Array<{
+		sequence: MigrationSequence
+		versionAtInstallation: MigrationId
+	}>
+	order: MigrationId[]
 }
