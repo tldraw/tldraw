@@ -67,6 +67,7 @@ export const arrowShapeProps: {
     }, never>;
     bend: T.Validator<number>;
     text: T.Validator<string>;
+    labelPosition: T.Validator<number>;
 };
 
 // @public
@@ -554,9 +555,6 @@ export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
-    readonly locale: "ar";
-    readonly label: "عربي";
-}, {
     readonly locale: "ca";
     readonly label: "Català";
 }, {
@@ -575,44 +573,17 @@ export const LANGUAGES: readonly [{
     readonly locale: "es";
     readonly label: "Español";
 }, {
-    readonly locale: "fa";
-    readonly label: "فارسی";
-}, {
-    readonly locale: "fi";
-    readonly label: "Suomi";
-}, {
     readonly locale: "fr";
     readonly label: "Français";
 }, {
     readonly locale: "gl";
     readonly label: "Galego";
 }, {
-    readonly locale: "he";
-    readonly label: "עברית";
-}, {
     readonly locale: "it";
     readonly label: "Italiano";
 }, {
-    readonly locale: "ja";
-    readonly label: "日本語";
-}, {
-    readonly locale: "ko-kr";
-    readonly label: "한국어";
-}, {
-    readonly locale: "ku";
-    readonly label: "کوردی";
-}, {
-    readonly locale: "hi-in";
-    readonly label: "हिन्दी";
-}, {
     readonly locale: "hu";
     readonly label: "Magyar";
-}, {
-    readonly locale: "my";
-    readonly label: "မြန်မာစာ";
-}, {
-    readonly locale: "ne";
-    readonly label: "नेपाली";
 }, {
     readonly locale: "no";
     readonly label: "Norwegian";
@@ -632,14 +603,14 @@ export const LANGUAGES: readonly [{
     readonly locale: "ru";
     readonly label: "Russian";
 }, {
+    readonly locale: "fi";
+    readonly label: "Suomi";
+}, {
     readonly locale: "sv";
     readonly label: "Svenska";
 }, {
-    readonly locale: "te";
-    readonly label: "తెలుగు";
-}, {
-    readonly locale: "th";
-    readonly label: "ภาษาไทย";
+    readonly locale: "vi";
+    readonly label: "Tiếng Việt";
 }, {
     readonly locale: "tr";
     readonly label: "Türkçe";
@@ -647,8 +618,38 @@ export const LANGUAGES: readonly [{
     readonly locale: "uk";
     readonly label: "Ukrainian";
 }, {
-    readonly locale: "vi";
-    readonly label: "Tiếng Việt";
+    readonly locale: "he";
+    readonly label: "עברית";
+}, {
+    readonly locale: "ar";
+    readonly label: "عربي";
+}, {
+    readonly locale: "fa";
+    readonly label: "فارسی";
+}, {
+    readonly locale: "ku";
+    readonly label: "کوردی";
+}, {
+    readonly locale: "ne";
+    readonly label: "नेपाली";
+}, {
+    readonly locale: "hi-in";
+    readonly label: "हिन्दी";
+}, {
+    readonly locale: "te";
+    readonly label: "తెలుగు";
+}, {
+    readonly locale: "th";
+    readonly label: "ภาษาไทย";
+}, {
+    readonly locale: "my";
+    readonly label: "မြန်မာစာ";
+}, {
+    readonly locale: "ko-kr";
+    readonly label: "한국어";
+}, {
+    readonly locale: "ja";
+    readonly label: "日本語";
 }, {
     readonly locale: "zh-cn";
     readonly label: "简体中文";
@@ -959,11 +960,15 @@ export interface TLHandle {
     canBind?: boolean;
     // (undocumented)
     canSnap?: boolean;
+    // (undocumented)
+    h?: number;
     id: string;
     // (undocumented)
     index: string;
     // (undocumented)
     type: TLHandleType;
+    // (undocumented)
+    w?: number;
     // (undocumented)
     x: number;
     // (undocumented)
@@ -1009,6 +1014,14 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     cursor: TLCursor;
     // (undocumented)
     devicePixelRatio: number;
+    // (undocumented)
+    duplicateProps: {
+        shapeIds: TLShapeId[];
+        offset: {
+            x: number;
+            y: number;
+        };
+    } | null;
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)

@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { ForwardedRef, forwardRef, useEffect, useId, useLayoutEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Example } from '../examples'
-import { useMergedRefs } from '../hooks/useMegedRefs'
+import { useMergedRefs } from '../hooks/useMergedRefs'
 import { StandaloneIcon } from './Icons'
 import { Markdown } from './Markdown'
 
@@ -66,7 +66,7 @@ export const ListLink = forwardRef(function ListLink(
 			{!showDescriptionWhenInactive && <Markdown sanitizedHtml={example.description} />}
 			<Markdown sanitizedHtml={example.details} />
 			<div className="examples__list__item__code">
-				<a href={example.codeUrl} target="_blank" rel="noreferrer">
+				<a className="link__button" href={example.codeUrl} target="_blank" rel="noreferrer">
 					View code
 				</a>
 				{/* <a

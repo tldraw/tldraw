@@ -205,15 +205,15 @@ export function radiansToDegrees(r: number): number {
 /**
  * Get a point on the perimeter of a circle.
  *
- * @param cx - The center x of the circle.
- * @param cy - The center y of the circle.
+ * @param center - The center of the circle.
  * @param r - The radius of the circle.
- * @param a - The normalized point on the circle.
+ * @param a - The angle in radians.
  * @public
  */
-export function getPointOnCircle(cx: number, cy: number, r: number, a: number) {
-	return new Vec(cx + r * Math.cos(a), cy + r * Math.sin(a))
+export function getPointOnCircle(center: VecLike, r: number, a: number) {
+	return new Vec(center.x, center.y).add(Vec.FromAngle(a, r))
 }
+
 /** @public */
 export function getPolygonVertices(width: number, height: number, sides: number) {
 	const cx = width / 2
@@ -355,4 +355,20 @@ export function toFixed(v: number) {
  */
 export const isSafeFloat = (n: number) => {
 	return Math.abs(n) < Number.MAX_SAFE_INTEGER
+}
+
+/**
+ * Get the angle of a point on an arc.
+ * @param fromAngle - The angle from center to arc's start point (A) on the circle
+ * @param toAngle - The angle from center to arc's end point (B) on the circle
+ * @param direction - The direction of the arc (1 = counter-clockwise, -1 = clockwise)
+ * @returns The distance in radians between the two angles according to the direction
+ * @public
+ */
+export function angleDistance(fromAngle: number, toAngle: number, direction: number) {
+	const dist =
+		direction < 0
+			? clockwiseAngleDist(fromAngle, toAngle)
+			: counterClockwiseAngleDist(fromAngle, toAngle)
+	return dist
 }

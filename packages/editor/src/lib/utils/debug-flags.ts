@@ -7,10 +7,9 @@ import { Atom, atom, react } from '@tldraw/state'
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags: Record<string, DebugFlag<boolean>> = {
-	// todo: remove this. it's not used, but we only have one feature flag and i
-	// wanted an example :(
-}
+export const featureFlags = {
+	canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
+} satisfies Record<string, DebugFlag<boolean>>
 
 /** @internal */
 export const debugFlags = {
@@ -37,6 +36,9 @@ export const debugFlags = {
 		defaults: { all: false },
 	}),
 	debugSvg: createDebugValue('debugSvg', {
+		defaults: { all: false },
+	}),
+	showFps: createDebugValue('showFps', {
 		defaults: { all: false },
 	}),
 	throwToBlob: createDebugValue('throwToBlob', {
@@ -109,16 +111,16 @@ function createDebugValue<T>(
 	})
 }
 
-// function createFeatureFlag(
-// 	name: string,
-// 	defaults: Defaults<boolean> = { all: true, production: false }
-// ) {
-// 	return createDebugValueBase({
-// 		name,
-// 		defaults,
-// 		shouldStoreForSession: true,
-// 	})
-// }
+function createFeatureFlag(
+	name: string,
+	defaults: Defaults<boolean> = { all: true, production: false }
+) {
+	return createDebugValueBase({
+		name,
+		defaults,
+		shouldStoreForSession: true,
+	})
+}
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)

@@ -553,7 +553,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								})
 
 								const handles = editor.getShapeHandles(v2ShapeFresh)!
-								const change = util.onHandleChange!(v2ShapeFresh, {
+								const change = util.onHandleDrag!(v2ShapeFresh, {
 									handle: {
 										...handles.find((h) => h.id === handleId)!,
 										x: point.x,

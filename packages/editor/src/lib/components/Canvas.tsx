@@ -3,6 +3,7 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import React from 'react'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../constants'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../hooks/useDocumentEvents'
@@ -13,6 +14,7 @@ import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
 import { useScreenBounds } from '../hooks/useScreenBounds'
 import { Mat } from '../primitives/Mat'
+import { Vec } from '../primitives/Vec'
 import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
 import { GeometryDebuggingView } from './GeometryDebuggingView'
@@ -204,77 +206,83 @@ function SnapLinesWrapper() {
 	)
 }
 
-const MIN_HANDLE_DISTANCE = 48
-
 function HandlesWrapper() {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
 	])
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
+
+	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
 		editor,
 	])
+
 	const isChangingStyle = useValue(
 		'isChangingStyle',
 		() => editor.getInstanceState().isChangingStyle,
 		[editor]
 	)
-	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
+
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
 		editor,
 	])
-	const handles = useValue(
-		'handles',
-		() => {
-			const onlySelectedShape = editor.getOnlySelectedShape()
-			if (onlySelectedShape) {
-				return editor.getShapeHandles(onlySelectedShape)
-			}
-			return undefined
-		},
-		[editor]
-	)
+
 	const transform = useValue(
 		'transform',
 		() => {
-			const onlySelectedShape = editor.getOnlySelectedShape()
-			if (onlySelectedShape) {
-				return editor.getShapePageTransform(onlySelectedShape)
-			}
-			return undefined
+			if (!onlySelectedShape) return null
+
+			return editor.getShapePageTransform(onlySelectedShape)
 		},
-		[editor]
+		[editor, onlySelectedShape]
 	)
 
-	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly) return null
-	if (!handles) return null
-	if (!transform) return null
+	const handles = useValue(
+		'handles',
+		() => {
+			if (!onlySelectedShape) return null
 
-	// Don't display a temporary handle if the distance between it and its neighbors is too small.
-	const handlesToDisplay: TLHandle[] = []
+			const handles = editor.getShapeHandles(onlySelectedShape)
+			if (!handles) return null
 
-	for (let i = 0, handle = handles[i]; i < handles.length; i++, handle = handles[i]) {
-		if (handle.type !== 'vertex') {
-			const prev = handles[i - 1]
-			const next = handles[i + 1]
-			if (prev && next) {
-				if (Math.hypot(prev.y - next.y, prev.x - next.x) < MIN_HANDLE_DISTANCE / zoomLevel) {
-					continue
-				}
-			}
-		}
+			const minDistBetweenVirtualHandlesAndRegularHandles =
+				((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
 
-		handlesToDisplay.push(handle)
+			return (
+				handles
+					.filter(
+						(handle) =>
+							// if the handle isn't a virtual handle, we'll display it
+							handle.type !== 'virtual' ||
+							// but for virtual handles, we'll only display them if they're far enough away from vertex handles
+							!handles.some(
+								(h) =>
+									// skip the handle we're checking against
+									h !== handle &&
+									// only check against vertex handles
+									h.type === 'vertex' &&
+									// and check that their distance isn't below the minimum distance
+									Vec.Dist(handle, h) < minDistBetweenVirtualHandlesAndRegularHandles
+							)
+					)
+					// We want vertex handles in front of all other handles
+					.sort((a) => (a.type === 'vertex' ? 1 : -1))
+			)
+		},
+		[editor, onlySelectedShape, zoomLevel, isCoarse]
+	)
+
+	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
+		return null
 	}
-
-	handlesToDisplay.sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
 		<Handles>
 			<g transform={Mat.toCssString(transform)}>
-				{handlesToDisplay.map((handle) => {
+				{handles.map((handle) => {
 					return (
 						<HandleWrapper
 							key={handle.id}
