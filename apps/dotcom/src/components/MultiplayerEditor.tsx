@@ -1,4 +1,4 @@
-import { Editor, OfflineIndicator, Tldraw, lns } from '@tldraw/tldraw'
+import { Editor, Tldraw, lns } from '@tldraw/tldraw'
 import { useCallback, useEffect } from 'react'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
@@ -13,6 +13,7 @@ import { useCursorChat } from '../utils/useCursorChat'
 import { useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { CursorChatBubble } from './CursorChatBubble'
+import { DocumentTopZone } from './DocumentName/DocumentName'
 import { EmbeddedInIFrameWarning } from './EmbeddedInIFrameWarning'
 import { PeopleMenu } from './PeopleMenu/PeopleMenu'
 import { ShareMenu } from './ShareMenu'
@@ -79,7 +80,7 @@ export function MultiplayerEditor({
 						throw error
 					},
 				}}
-				topZone={isOffline && <OfflineIndicator />}
+				topZone={<DocumentTopZone isOffline={isOffline} />}
 				shareZone={
 					<div className="tlui-share-zone" draggable={false}>
 						<PeopleMenu />

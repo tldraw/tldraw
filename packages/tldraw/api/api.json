@@ -18094,7 +18094,7 @@
             },
             {
               "kind": "Content",
-              "text": "'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'toolbar' | 'unknown' | 'zoom-menu'"
+              "text": "'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'document-name' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'toolbar' | 'unknown' | 'zoom-menu'"
             },
             {
               "kind": "Content",

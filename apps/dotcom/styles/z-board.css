@@ -1,4 +1,4 @@
-/* ------------------ Da Share Zone ----------------- */
+/* ------------------ Da Share Zone -------------d--- */
 
 .tlui-share-zone {
 	padding: 0px 0px 0px 0px;
@@ -46,7 +46,7 @@
 	background-color: var(--color-background);
 	border-top-left-radius: var(--radius-3);
 	border-bottom-right-radius: var(--radius-3);
-	border-bottom-left-radius: var(--radius-3);
+	border-dottom-left-radius: var(--radius-3);
 	z-index: -1;
 }
 
@@ -301,4 +301,79 @@
 
 .tlui-layout[data-breakpoint='0'] .tlui-offline-indicator {
 	margin-top: 4px;
+}
+
+/* document Name */
+
+.tlui-document-name__inner {
+	border-radius: calc(var(--radius-2) + var(--space-2));
+	background-color: var(--color-background);
+	padding: 0px 0px 0px 0px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 40px;
+	max-width: 100%;
+	color: var(--color-text);
+	text-shadow: 1px 1px 0px var(--color-background);
+	pointer-events: all;
+}
+
+/* relative max-w-[calc(100%-44px)] flex-auto */
+.tlui-document-name__input__wrapper {
+	position: relative;
+	max-width: calc(100% - 40px);
+	display: flex;
+	flex: auto;
+	min-width: 44px;
+}
+
+.tlui-document-name__input,
+.tlui-document-name__text {
+	margin-left: var(--space-2);
+	padding: var(--space-2);
+	padding-left: var(--space-3);
+	white-space: pre;
+	height: 24px;
+	line-height: 24px;
+}
+
+.tlui-document-name__input {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	border-radius: var(--radius-2);
+	color: var(--color-text);
+	background: transparent;
+}
+.tlui-document-name__input:focus {
+	box-shadow: inset 0px 0px 0px 1px var(--color-selected);
+}
+
+.tlui-document-name__text {
+	height: 100%;
+	width: 100%;
+	color: var(--color-text);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-document-name__text__hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.tlui-document-name__menu {
+	width: 40px;
+	height: 40px;
+}
+.tlui-document-name__menu::after {
+	border-radius: var(--radius-2);
+}
+.tlui-document-name__input__wrapper:focus-within + .tlui-document-name__menu::after {
+	/* when the input is focused, its outline is flush against the menu button which doesn't look
+	good. This shifts the left-hand edge of the menu button over by 2px to give it a little
+	breathing room when the input is focused. */
+	width: calc(100% - 10px);
 }
