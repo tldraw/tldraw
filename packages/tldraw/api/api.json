@@ -5657,6 +5657,14 @@
             },
             {
               "kind": "Content",
+              "text": ", name?: "
+            },
+            {
+              "kind": "Content",
+              "text": "string | undefined"
+            },
+            {
+              "kind": "Content",
               "text": ", opts?: "
             },
             {
@@ -5697,8 +5705,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/utils/export/exportAs.ts",
           "returnTypeTokenRange": {
-            "startIndex": 13,
-            "endIndex": 15
+            "startIndex": 15,
+            "endIndex": 17
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -5728,10 +5736,18 @@
               "isOptional": true
             },
             {
-              "parameterName": "opts",
+              "parameterName": "name",
               "parameterTypeTokenRange": {
                 "startIndex": 8,
-                "endIndex": 12
+                "endIndex": 9
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 10,
+                "endIndex": 14
               },
               "isOptional": true
             }
@@ -21023,7 +21039,7 @@
             },
             {
               "kind": "Content",
-              "text": "[], format?: "
+              "text": "[], name: string | undefined, format?: "
             },
             {
               "kind": "Reference",

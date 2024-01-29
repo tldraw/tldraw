@@ -46,7 +46,7 @@
 	background-color: var(--color-background);
 	border-top-left-radius: var(--radius-3);
 	border-bottom-right-radius: var(--radius-3);
-	border-dottom-left-radius: var(--radius-3);
+	border-bottom-left-radius: var(--radius-3);
 	z-index: -1;
 }
 
