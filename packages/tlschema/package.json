@@ -61,5 +61,8 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"nanoid": "4.0.2"
+	},
+	"peerDependencies": {
+		"react": "^18"
 	}
 }

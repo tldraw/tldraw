@@ -37,6 +37,7 @@
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.1.5",
 		"esbuild": "^0.18.4",
+		"eslint": "^8",
 		"glob": "^8.0.3",
 		"gray-matter": "^4.0.3",
 		"is-ci": "^3.0.1",
