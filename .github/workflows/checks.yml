@@ -30,7 +30,7 @@ jobs:
         run: yarn constraints
 
       - name: Check for duplicate dependencies
-        run: yarn dedup --check
+        run: yarn dedupe --check
 
       - name: Typecheck
         run: yarn build-types
