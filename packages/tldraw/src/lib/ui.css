@@ -1,8 +1,8 @@
 /* @tldraw/ui */
 
 :where(.tl-wrapper) {
-	height: 480px;
-	width: 720px;
+	height: 100%;
+	width: 100%;
 }
 
 .tl-container {

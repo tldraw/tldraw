@@ -1,7 +1,7 @@
 ---
 title: Force mobile breakpoint
 component: ./ForceBreakpointExample
-category: ui
+category: basic
 priority: 3
 ---
 

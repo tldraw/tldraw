@@ -4,7 +4,7 @@ import '@tldraw/tldraw/tldraw.css'
 export default function ReadOnlyExample() {
 	return (
 		<Tldraw
-			style={{ width: '100%', height: '100%' }}
+			persistenceKey="tldraw__editor"
 			onMount={(editor) => {
 				editor.updateInstanceState({ isReadonly: true })
 			}}
