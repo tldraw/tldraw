@@ -96,7 +96,7 @@ export function Tldraw(props: TldrawProps) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
 	return (
-		<div style={style} className={`${className} tl-wrapper`}>
+		<div style={style} className={`tl-wrapper ${className}`}>
 			{preloadingError ? (
 				<ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 			) : !preloadingComplete ? (

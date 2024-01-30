@@ -27,7 +27,7 @@ const router = createBrowserRouter([
 	},
 	{
 		path: 'end-to-end',
-		element: <EndToEnd />,
+		lazy: async () => ({ element: <EndToEnd /> }),
 	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [

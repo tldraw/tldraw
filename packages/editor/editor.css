@@ -1,8 +1,6 @@
 /* @tldraw/editor */
 
 .tl-container {
-	width: 100%;
-	height: 100%;
 	font-size: 12px;
 	/* Spacing */
 	--space-1: 2px;
