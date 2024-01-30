@@ -6897,7 +6897,7 @@ __metadata:
     "@microsoft/api-extractor-model": "npm:^7.26.4"
     "@microsoft/tsdoc": "npm:^0.14.2"
     "@types/broken-link-checker": "npm:^0.7.1"
-    "@types/node": "npm:^18.7.3"
+    "@types/node": "npm:~20.11"
     "@types/sqlite3": "npm:^3.1.9"
     "@types/ws": "npm:^8.5.9"
     "@vercel/analytics": "npm:^1.1.1"
@@ -7013,7 +7013,7 @@ __metadata:
     "@swc/jest": "npm:^0.2.26"
     "@types/glob": "npm:^8.1.0"
     "@types/jest": "npm:^28.1.2"
-    "@types/node": "npm:^18.7.3"
+    "@types/node": "npm:~20.11"
     "@types/react": "npm:^18.2.47"
     "@types/react-dom": "npm:^18.2.18"
     "@typescript-eslint/eslint-plugin": "npm:^5.57.0"
@@ -7055,7 +7055,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.440.0"
     "@aws-sdk/lib-storage": "npm:^3.440.0"
     "@types/is-ci": "npm:^3.0.0"
-    "@types/node": "npm:^18.7.3"
+    "@types/node": "npm:~20.11"
     "@types/tar": "npm:^6.1.7"
     "@typescript-eslint/utils": "npm:^5.59.0"
     ast-types: "npm:^0.14.2"
@@ -7205,7 +7205,7 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
     "@types/fs-extra": "npm:^11.0.1"
-    "@types/node": "npm:^18.7.3"
+    "@types/node": "npm:~20.11"
     "@types/react": "npm:^18.2.47"
     "@types/react-dom": "npm:^18.2.18"
     "@types/react-router-dom": "npm:^5.1.8"
@@ -7790,12 +7790,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 20.11.0
-  resolution: "@types/node@npm:20.11.0"
+"@types/node@npm:*, @types/node@npm:~20.11":
+  version: 20.11.11
+  resolution: "@types/node@npm:20.11.11"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 8da60a8ccb65181c3d6f7686ddc5f1b1616cafa14d9e520a866adff82c17cc99336a78dd7ce7bee8f54e2332946f678b0e3aa377fbaaf751d3c05b64600872c6
+  checksum: b5603c6576af14d90b03d21d9c5b7dac372770681bcd336bab30092b42d9e41c06c613dbd016f99b9bce586a5f1540f4aa7d83acb6e79da1a38e2c0914e817cf
   languageName: node
   linkType: hard
 
@@ -7806,7 +7806,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.11.18, @types/node@npm:^18.7.3":
+"@types/node@npm:^18.11.18":
   version: 18.19.6
   resolution: "@types/node@npm:18.19.6"
   dependencies:
@@ -14712,7 +14712,7 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20230821.0"
     "@tldraw/utils": "workspace:*"
-    "@types/node": "npm:^18.7.3"
+    "@types/node": "npm:~20.11"
     discord-api-types: "npm:^0.37.67"
     typescript: "npm:^5.2.2"
     wrangler: "npm:3.16.0"

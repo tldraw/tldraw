@@ -45,7 +45,7 @@
 		"@microsoft/api-extractor-model": "^7.26.4",
 		"@microsoft/tsdoc": "^0.14.2",
 		"@types/broken-link-checker": "^0.7.1",
-		"@types/node": "^18.7.3",
+		"@types/node": "~20.11",
 		"@types/sqlite3": "^3.1.9",
 		"@types/ws": "^8.5.9",
 		"@vercel/analytics": "^1.1.1",
