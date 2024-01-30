@@ -1144,7 +1144,7 @@ input,
 }
 
 .tl-arrow-label__inner p {
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 }
 
 .tl-arrow-label p,

@@ -272,20 +272,24 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	const hasEndArrowhead = info.end.arrowhead !== 'none'
 	if (info.isStraight) {
 		const range = getStraightArrowLabelRange(editor, shape, info)
-		const clampedPosition = clamp(
+		let clampedPosition = clamp(
 			shape.props.labelPosition,
 			hasStartArrowhead ? range.start : 0,
 			hasEndArrowhead ? range.end : 1
 		)
+		// This makes the position snap in the middle.
+		clampedPosition = clampedPosition >= 0.48 && clampedPosition <= 0.52 ? 0.5 : clampedPosition
 		labelCenter = Vec.Lrp(info.start.point, info.end.point, clampedPosition)
 	} else {
 		const range = getCurvedArrowLabelRange(editor, shape, info)
 		if (range.dbg) debugGeom.push(...range.dbg)
-		const clampedPosition = clamp(
+		let clampedPosition = clamp(
 			shape.props.labelPosition,
 			hasStartArrowhead ? range.start : 0,
 			hasEndArrowhead ? range.end : 1
 		)
+		// This makes the position snap in the middle.
+		clampedPosition = clampedPosition >= 0.48 && clampedPosition <= 0.52 ? 0.5 : clampedPosition
 		const labelAngle = interpolateArcAngles(
 			Vec.Angle(info.bodyArc.center, info.start.point),
 			Vec.Angle(info.bodyArc.center, info.end.point),

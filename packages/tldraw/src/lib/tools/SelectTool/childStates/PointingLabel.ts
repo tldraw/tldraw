@@ -12,6 +12,8 @@ export class PointingLabel extends StateNode {
 	static override id = 'pointing_label'
 
 	shapeId = '' as TLShapeId
+	markId = ''
+
 	private info = {} as TLPointerEventInfo & {
 		shape: TLArrowShape
 		onInteractionEnd?: string
@@ -40,6 +42,9 @@ export class PointingLabel extends StateNode {
 		this.shapeId = shape.id
 		this.updateCursor()
 
+		this.markId = 'label-drag start'
+		this.editor.mark(this.markId)
+
 		const util = this.editor.getShapeUtil(shape)
 		const changes = util.onLabelDragStart?.(shape)
 
@@ -48,6 +53,8 @@ export class PointingLabel extends StateNode {
 		if (changes) {
 			this.editor.updateShapes([next], { squashing: true })
 		}
+
+		this.editor.setSelectedShapes([this.shapeId])
 	}
 
 	override onExit = () => {
@@ -114,6 +121,8 @@ export class PointingLabel extends StateNode {
 	}
 
 	private cancel() {
+		this.editor.bailToMark(this.markId)
+
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
