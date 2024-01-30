@@ -21,21 +21,29 @@ export function generateSection(section: InputSection, articles: Articles, index
 	)
 
 	// The file directory for this section
-	const dir = path.join(CONTENT_DIR, section.id)
+	const isExamples = section.id === 'examples'
+	const dir = isExamples
+		? path.join(process.cwd(), '..', 'examples', 'src', 'examples')
+		: path.join(CONTENT_DIR, section.id)
 	const files = fs.readdirSync(dir, { withFileTypes: false })
 
-	const isGenerated = section.id === 'gen'
+	const isGenerated = section.id === 'reference'
 
 	for (const file of files) {
 		const filename = file.toString()
-		const fileContent = fs.readFileSync(path.join(dir, filename)).toString()
+		const pathname = isExamples ? path.join(dir, filename, 'README.md') : path.join(dir, filename)
+		const fileContent = fs.readFileSync(pathname).toString()
 		const extension = path.extname(filename)
 		const articleId = filename.replace(extension, '')
 
 		const parsed = matter({ content: fileContent }, {})
 
 		// If we're in prod and the article isn't published, skip it
-		if (process.env.NODE_ENV !== 'development' && parsed.data.status !== 'published') {
+		if (
+			process.env.NODE_ENV !== 'development' &&
+			!isExamples &&
+			parsed.data.status !== 'published'
+		) {
 			continue
 		}
 
@@ -48,6 +56,38 @@ export function generateSection(section: InputSection, articles: Articles, index
 
 		const isUncategorized = categoryId === section.id + '_ucg'
 		const isIndex = articleId === section.id
+		const componentCode = parsed.data.component
+			? fs
+					.readFileSync(
+						path.join(
+							dir,
+							filename,
+							`${parsed.data.component}${parsed.data.component.endsWith('.tsx') ? '' : '.tsx'}`
+						)
+					)
+					.toString()
+			: null
+		const componentCodeFiles: { [key: string]: string } = {}
+		if (parsed.data.component) {
+			const exampleParentDirectory = path.join(dir, filename)
+			const codeFilenames = fs.readdirSync(exampleParentDirectory, {
+				withFileTypes: true,
+				recursive: true,
+			})
+			codeFilenames
+				.filter(
+					(file) =>
+						!file.isDirectory() &&
+						file.name !== 'README.md' &&
+						file.name.replace('.tsx', '') !==
+							parsed.data.component.replace('./', '').replace('.tsx', '')
+				)
+				.forEach((file) => {
+					componentCodeFiles[file.name] = fs
+						.readFileSync(path.join(file.path, file.name))
+						.toString()
+				})
+		}
 
 		const article: Article = {
 			id: articleId,
@@ -55,7 +95,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 			sectionIndex: 0,
 			groupIndex: -1,
 			groupId: parsed.data.group ?? null,
-			categoryIndex: parsed.data.order ?? -1,
+			categoryIndex: parsed.data.order ?? parsed.data.priority ?? -1,
 			sectionId: section.id,
 			author,
 			categoryId,
@@ -68,6 +108,8 @@ export function generateSection(section: InputSection, articles: Articles, index
 			sourceUrl: isGenerated // if it's a generated API doc, then we don't have a link
 				? parsed.data.sourceUrl ?? null
 				: `${section.id}/${articleId}${extension}`,
+			componentCode,
+			componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
 			content: parsed.content,
 			path:
 				section.id === 'getting-started'
@@ -166,14 +208,10 @@ export function generateSection(section: InputSection, articles: Articles, index
 }
 
 const sortArticles = (articleA: Article, articleB: Article) => {
-	const { categoryIndex: categoryIndexA, date: dateA = '01/01/1970' } = articleA
-	const { categoryIndex: categoryIndexB, date: dateB = '01/01/1970' } = articleB
+	const { categoryIndex: categoryIndexA, title: titleA } = articleA
+	const { categoryIndex: categoryIndexB, title: titleB } = articleB
 
 	return categoryIndexA === categoryIndexB
-		? new Date(dateB!).getTime() > new Date(dateA!).getTime()
-			? 1
-			: -1
-		: categoryIndexA < categoryIndexB
-			? -1
-			: 1
+		? titleA.localeCompare(titleB)
+		: categoryIndexA - categoryIndexB
 }

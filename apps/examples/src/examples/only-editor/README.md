@@ -1,7 +1,7 @@
 ---
 title: Minimal
 component: ./OnlyEditor.tsx
-category: editor
+category: editor-api
 priority: 3
 ---
 

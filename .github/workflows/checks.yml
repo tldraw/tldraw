@@ -26,6 +26,18 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Check version constraints
+        run: yarn constraints
+
+      - name: Check for duplicate dependencies
+        run: yarn dedupe --check
+
+      # Not the most sophisticated way to check for warnings, but I don't think
+      # Yarn can be convinced to exit with a non-zero exit code on warnings
+      # see also https://unix.stackexchange.com/a/433713 for the explanation of the parameters
+      - name: Check for installation warnings
+        run: 'yarn | grep -vzq "with warnings"'
+
       - name: Typecheck
         run: yarn build-types
 
@@ -37,9 +49,6 @@ jobs:
 
       - name: Check API declarations and docs work as intended
         run: yarn api-check
-
-      - name: Check version constraints
-        run: yarn constraints
 
       - name: Test
         run: yarn test
