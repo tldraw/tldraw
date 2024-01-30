@@ -13,17 +13,11 @@ import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 export default function () {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw />
-		</div>
-	)
+	return <Tldraw />
 }
 ```
 
-### Wrapper
-
-It's important that the [Tldraw](?) component is wrapped in a parent container that has an explicit size. Its height and width are set to `100%`, so it will fill its parent container.
+The component's height and width are set to `100%`, so it will fill its parent container.
 
 ### CSS
 
