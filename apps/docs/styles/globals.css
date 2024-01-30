@@ -1358,7 +1358,9 @@ html[data-theme='light'] .hero__dark {
 	margin: 0 4px;
 	padding: 8px 12px;
 	height: 44px;
+	line-height: 22px;
 	white-space: nowrap;
+	cursor: pointer;
 }
 
 .NavigationMenuTrigger span {
