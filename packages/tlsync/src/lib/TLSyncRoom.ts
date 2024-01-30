@@ -624,13 +624,11 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			this.rejectSession(session, TLIncompatibilityReason.ServerTooOld)
 			return
 		}
-		// If the client's store is at a different version to ours, it could cause corruption.
+		// If the client's store is incompatible with ours, it could cause corruption.
 		// We should disconnect the client and ask them to refresh.
-		if (message.schema == null || message.schema.storeVersion < this.schema.currentStoreVersion) {
+		const migrations = this.schema.getMigrationsSince(message.schema)
+		if (!migrations.ok || !migrations.value.every((m) => m.down && m.scope === 'record')) {
 			this.rejectSession(session, TLIncompatibilityReason.ClientTooOld)
-			return
-		} else if (message.schema.storeVersion > this.schema.currentStoreVersion) {
-			this.rejectSession(session, TLIncompatibilityReason.ServerTooOld)
 			return
 		}
 

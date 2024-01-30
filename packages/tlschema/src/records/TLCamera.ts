@@ -63,7 +63,6 @@ export const cameraMigrations = defineMigrations({
 /** @public */
 export const CameraRecordType = createRecordType<TLCamera>('camera', {
 	validator: cameraValidator,
-	migrations: cameraMigrations,
 	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TLCamera, 'id' | 'typeName'> => ({

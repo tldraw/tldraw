@@ -1,6 +1,7 @@
 /* eslint-disable deprecation/deprecation */
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
+export { LegacyMigrator } from './lib/LegacyMigrator'
 export { RecordType, assertIdType, createRecordType } from './lib/RecordType'
 export { Store, reverseRecordsDiff, squashRecordDiffs } from './lib/Store'
 export type {

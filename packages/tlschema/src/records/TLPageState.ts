@@ -196,7 +196,6 @@ export const instancePageStateMigrations = defineMigrations({
 export const InstancePageStateRecordType = createRecordType<TLInstancePageState>(
 	'instance_page_state',
 	{
-		migrations: instancePageStateMigrations,
 		validator: instancePageStateValidator,
 		scope: 'session',
 	}

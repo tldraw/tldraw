@@ -186,16 +186,7 @@ export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>
 
 /** @internal */
 export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
-	return createRecordType<TLShape>('shape', {
-		// eslint-disable-next-line deprecation/deprecation
-		migrations: defineMigrations({
-			currentVersion: rootShapeMigrations.currentVersion,
-			firstVersion: rootShapeMigrations.firstVersion,
-			migrators: rootShapeMigrations.migrators,
-			subTypeKey: 'type',
-			// eslint-disable-next-line deprecation/deprecation
-			subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
-		}),
+	const ShapeRecordType = createRecordType<TLShape>('shape', {
 		scope: 'document',
 		validator: T.model(
 			'shape',
@@ -214,4 +205,14 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 		opacity: 1,
 		meta: {},
 	}))
+	const legacyShapeMigrations = defineMigrations({
+		currentVersion: rootShapeMigrations.currentVersion,
+		firstVersion: rootShapeMigrations.firstVersion,
+		migrators: rootShapeMigrations.migrators,
+		subTypeKey: 'type',
+		// eslint-disable-next-line deprecation/deprecation
+		subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
+	})
+
+	return { ShapeRecordType, legacyShapeMigrations }
 }

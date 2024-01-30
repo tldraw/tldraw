@@ -10,6 +10,9 @@ import {
 	migrateRecord,
 } from './legacy_migrate'
 
+/**
+ * @internal
+ */
 export class LegacyMigrator {
 	constructor(
 		// eslint-disable-next-line deprecation/deprecation

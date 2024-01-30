@@ -62,7 +62,6 @@ export const documentMigrations = defineMigrations({
 
 /** @public */
 export const DocumentRecordType = createRecordType<TLDocument>('document', {
-	migrations: documentMigrations,
 	validator: documentValidator,
 	scope: 'document',
 }).withDefaultProperties(

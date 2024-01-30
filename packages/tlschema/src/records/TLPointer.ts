@@ -60,7 +60,6 @@ export const pointerMigrations = defineMigrations({
 /** @public */
 export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 	validator: pointerValidator,
-	migrations: pointerMigrations,
 	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({

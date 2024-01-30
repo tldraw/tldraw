@@ -5,7 +5,7 @@ import { SerializedSchema } from './StoreSchema'
 type EMPTY_SYMBOL = symbol
 
 /** @internal */
-export function unsafe_defineMigrations<
+export function defineMigrations<
 	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
 	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL,
 >(opts: {
@@ -39,15 +39,6 @@ export function unsafe_defineMigrations<
 		subTypeKey,
 		subTypeMigrations,
 	}
-}
-
-/**
- * @deprecated - Use [???] instead
- * @public
- */
-export const defineMigrations: typeof unsafe_defineMigrations = (...args) => {
-	console.warn('defineMigrations is deprecated. Use [???] instead')
-	return unsafe_defineMigrations(...args)
 }
 
 /**

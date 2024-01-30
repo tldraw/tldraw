@@ -121,7 +121,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 	)
 
 	return createRecordType<TLInstance>('instance', {
-		migrations: instanceMigrations,
 		validator: instanceTypeValidator,
 		scope: 'session',
 	}).withDefaultProperties(

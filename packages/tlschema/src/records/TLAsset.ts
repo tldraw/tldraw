@@ -67,7 +67,6 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 
 /** @public */
 export const AssetRecordType = createRecordType<TLAsset>('asset', {
-	migrations: assetMigrations,
 	validator: assetValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({

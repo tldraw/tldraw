@@ -1,20 +1,16 @@
 /* eslint-disable deprecation/deprecation */
-import {
-	Result,
-	getOwnProperty,
-	objectMapEntries,
-	objectMapFromEntries,
-	objectMapValues,
-} from '@tldraw/utils'
+import { Result, getOwnProperty, objectMapValues } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
 import { LegacyMigrator } from './LegacyMigrator'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
-import { MigrationFailureReason, MigrationResult, Migrations } from './legacy_migrate'
+import { MigrationFailureReason, MigrationResult } from './legacy_migrate'
 import { Migration, MigrationId, MigrationSequence } from './migrate'
 
 const LEGACY_SCHEMA_VERSION = 1
 const CURRENT_SCHEMA_VERSION = 2
+
+const str = JSON.stringify
 
 export type SerializedSchema =
 	| {
@@ -55,8 +51,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	 * Any migrations for the store's data.
 	 */
 	migrations?: MigrationOptions
-	/** @deprecated - Use `migrations` instead. */
-	snapshotMigrations?: Migrations
+	__legacyMigrator?: LegacyMigrator
 	/** @public */
 	onValidationFailure?: (data: {
 		error: unknown
@@ -85,6 +80,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	private readonly sortedMigrationIds: MigrationId[]
 	private readonly migrations: ReadonlyMap<string, Migration>
+	private readonly includedSequenceIds: ReadonlySet<string>
 
 	private constructor(
 		public readonly types: {
@@ -94,19 +90,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	) {
 		// TODO: test that everything is fine with empty migrations
 		const { order, sequences } = options.migrations ?? { order: [], sequences: [] }
-		if (options.snapshotMigrations) {
-			const typesWithLegacyMigrations = objectMapEntries(types).filter(([_, t]) => t.migrations)
-			this.__legacyMigrator = new LegacyMigrator(
-				objectMapFromEntries(
-					typesWithLegacyMigrations.map(
-						([typeName, recordType]) => [typeName, recordType.migrations!] as const
-					)
-				),
-				options.snapshotMigrations
-			)
-		} else {
-			this.__legacyMigrator = null
-		}
+		this.__legacyMigrator = options.__legacyMigrator ?? null
+
+		this.includedSequenceIds = new Set<string>(sequences.map((s) => s.sequence.id))
 
 		this.sortedMigrationIds = [...order]
 
@@ -119,7 +105,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		for (const { sequence, versionAtInstallation } of sequences) {
 			const unusedIdx = sequence.migrations.findIndex((m) => m.id === versionAtInstallation)
 			if (unusedIdx === -1) {
-				throw new Error(`Missing versionAtInstallation id ${JSON.stringify(versionAtInstallation)}`)
+				throw new Error(`Missing versionAtInstallation id ${str(versionAtInstallation)}`)
 			}
 			const unusedMigrationIds = sequence.migrations.slice(0, unusedIdx).map((m) => m.id)
 
@@ -127,17 +113,15 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			for (const unusedMigrationId of unusedMigrationIds) {
 				if (!unusedMigrationId.startsWith(sequence.id) + '/') {
 					throw new Error(
-						`Migration id ${JSON.stringify(unusedMigrationId)} must start with ${JSON.stringify(
-							sequence.id
-						)}`
+						`Migration id ${str(unusedMigrationId)} must start with ${str(sequence.id)}`
 					)
 				}
 				if (allUnusedMigrationIds.has(unusedMigrationId)) {
-					throw new Error(`Duplicate migration id ${JSON.stringify(unusedMigrationId)}`)
+					throw new Error(`Duplicate migration id ${str(unusedMigrationId)}`)
 				}
 				if (order.includes(unusedMigrationId)) {
 					throw new Error(
-						`Unused migration id ${JSON.stringify(
+						`Unused migration id ${str(
 							unusedMigrationId
 						)} is present in your migration order. Did you specify 'versionAtInstallation' correctly?`
 					)
@@ -152,11 +136,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			let lastIdx = -1
 			for (const migration of usedMigrations) {
 				if (!migration.id.startsWith(sequence.id) + '/') {
-					throw new Error(
-						`Migration id ${JSON.stringify(migration.id)} must start with ${JSON.stringify(
-							sequence.id
-						)}`
-					)
+					throw new Error(`Migration id ${str(migration.id)} must start with ${str(sequence.id)}`)
 				}
 				if (migrations.has(migration.id)) {
 					throw new Error(`Duplicate migration id ${migration.id}`)
@@ -167,9 +147,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 					missingMigrations.push(migration.id)
 				} else if (orderIdx <= lastIdx) {
 					throw new Error(
-						`Migration id ${JSON.stringify(
-							migration.id
-						)} is out of order. It should come after ${JSON.stringify(order[lastIdx])}`
+						`Migration id ${str(migration.id)} is out of order. It should come after ${str(
+							order[lastIdx]
+						)}`
 					)
 				} else {
 					lastIdx = orderIdx
@@ -181,7 +161,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				throw new Error(
 					`Missing migrations from your migration order. Did you just update a tldraw dependency?
 Paste these in at the end of your existing migration ordering.
-${JSON.stringify(missingMigrations)}
+${str(missingMigrations)}
 `
 				)
 			}
@@ -194,9 +174,7 @@ ${JSON.stringify(missingMigrations)}
 			if (!migration) {
 				// TODO: Link to migration docs
 				throw new Error(
-					`Missing migration details for ${JSON.stringify(
-						id
-					)}. Did you forget to add a migration sequence?`
+					`Missing migration details for ${str(id)}. Did you forget to add a migration sequence?`
 				)
 			}
 			if (migration.dependsOn?.length) {
@@ -208,19 +186,15 @@ ${JSON.stringify(missingMigrations)}
 					const depIdx = this.sortedMigrationIds.indexOf(dependentId)
 					if (depIdx === -1) {
 						throw new Error(
-							`Migration id ${JSON.stringify(id)} depends on missing migration ${JSON.stringify(
-								dependentId
-							)}`
+							`Migration id ${str(id)} depends on missing migration ${str(dependentId)}`
 						)
 					}
 					if (depIdx === i) {
-						throw new Error(
-							`Migration id ${JSON.stringify(id)} depends on itself. This is not allowed.`
-						)
+						throw new Error(`Migration id ${str(id)} depends on itself. This is not allowed.`)
 					}
 					if (depIdx > i) {
 						throw new Error(
-							`Migration id ${JSON.stringify(id)} depends on migration ${JSON.stringify(
+							`Migration id ${str(id)} depends on migration ${str(
 								dependentId
 							)} which comes after it. This is not allowed.`
 						)
@@ -230,9 +204,13 @@ ${JSON.stringify(missingMigrations)}
 		}
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
-	get currentStoreVersion(): number {
-		return this.options.snapshotMigrations?.currentVersion ?? 0
+	ensureMigrationSequenceIncluded(id: string): void {
+		if (!this.includedSequenceIds.has(id)) {
+			throw new Error(
+				// TODO: link to migration docs
+				`Missing migration sequence ${str(id)}. Did you forget to add it to the migrations option?`
+			)
+		}
 	}
 
 	validateRecord(
@@ -262,7 +240,7 @@ ${JSON.stringify(missingMigrations)}
 		}
 	}
 
-	private getMigrationsSince(schema: SerializedSchema): Result<Migration[], string> {
+	public getMigrationsSince(schema: SerializedSchema): Result<Migration[], string> {
 		if (schema.schemaVersion === LEGACY_SCHEMA_VERSION) {
 			if (!this.__legacyMigrator) {
 				return Result.err(
@@ -298,8 +276,8 @@ ${JSON.stringify(missingMigrations)}
 				return Result.err(
 					`Schema migration histories are divergent. 
 
-Theirs: ${JSON.stringify(schema.versionHistory)}
-Ours:   ${JSON.stringify(this.currentStoreVersion)}
+Theirs: ${str(schema.versionHistory)}
+Ours:   ${str(this.sortedMigrationIds)}
 `
 				)
 			}

@@ -29,7 +29,6 @@ export class RecordType<
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 	// eslint-disable-next-line deprecation/deprecation
-	readonly migrations?: Migrations
 	readonly validator: StoreValidator<R> | { validate: (r: unknown) => R }
 
 	readonly scope: RecordScope
@@ -44,6 +43,10 @@ export class RecordType<
 		public readonly typeName: R['typeName'],
 		config: {
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+			// TODO: link to docs for migrations
+			/**
+			 * @deprecated - The way to define migrations has changed see [docs]
+			 */
 			// eslint-disable-next-line deprecation/deprecation
 			readonly migrations?: Migrations
 			readonly validator?: StoreValidator<R> | { validate: (r: unknown) => R }
@@ -51,10 +54,12 @@ export class RecordType<
 		}
 	) {
 		this.createDefaultProperties = config.createDefaultProperties
-		this.migrations = config.migrations
+		// eslint-disable-next-line deprecation/deprecation
 		if (config.migrations) {
-			// TODO: add docs about record/store migrations
-			console.warn('[tldraw] RecordType migrations are deprecated. Pass migrations directly to the schema constructor instead. See https://tldraw.dev/migrations')
+			throw new Error(
+				// TODO: add docs about record/store migrations
+				'[tldraw] Passing migrations to createRecordType is deprecated. Pass migrations directly to the schema constructor instead. See https://tldraw.dev/migrations'
+			)
 		}
 		this.validator = config.validator ?? { validate: (r: unknown) => r as R }
 		this.scope = config.scope ?? 'document'
@@ -194,7 +199,6 @@ export class RecordType<
 	): RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>> {
 		return new RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>(this.typeName, {
 			createDefaultProperties: createDefaultProperties as any,
-			migrations: this.migrations,
 			validator: this.validator,
 			scope: this.scope,
 		})
@@ -225,14 +229,12 @@ export function createRecordType<R extends UnknownRecord>(
 	typeName: R['typeName'],
 	config: {
 		// eslint-disable-next-line deprecation/deprecation
-		migrations?: Migrations
 		validator?: StoreValidator<R>
 		scope: RecordScope
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
 		createDefaultProperties: () => ({}) as any,
-		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
 		validator: config.validator,
 		scope: config.scope,
 	})

@@ -147,7 +147,6 @@ export const instancePresenceMigrations = defineMigrations({
 export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	'instance_presence',
 	{
-		migrations: instancePresenceMigrations,
 		validator: instancePresenceValidator,
 		scope: 'presence',
 	}

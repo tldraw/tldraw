@@ -61,7 +61,6 @@ export const pageMigrations = defineMigrations({
 /** @public */
 export const PageRecordType = createRecordType<TLPage>('page', {
 	validator: pageValidator,
-	migrations: pageMigrations,
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	meta: {},
