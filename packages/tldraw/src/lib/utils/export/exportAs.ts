@@ -10,7 +10,7 @@ export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
  * @param editor - The editor instance.
  * @param ids - The ids of the shapes to export.
  * @param format - The format to export as.
- * @param name - Name of the exported file. If undefined a predefined name, based on the selections, will be used.
+ * @param name - Name of the exported file. If undefined a predefined name, based on the selection, will be used.
  * @param opts - Options for the export.
  *
  * @public

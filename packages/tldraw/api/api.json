@@ -5622,7 +5622,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!exportAs:function(1)",
-          "docComment": "/**\n * Export the given shapes as files.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to export.\n *\n * @param format - The format to export as.\n *\n * @param name - Name of the exported file. If undefined a predefined name, based on the selections, will be used.\n *\n * @param opts - Options for the export.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Export the given shapes as files.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to export.\n *\n * @param format - The format to export as.\n *\n * @param name - Name of the exported file. If undefined a predefined name, based on the selection, will be used.\n *\n * @param opts - Options for the export.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
