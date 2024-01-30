@@ -1,7 +1,7 @@
 ---
 title: Snapshots
 component: ./SnapshotExample.tsx
-category: editor
+category: editor-api
 priority: 1
 ---
 

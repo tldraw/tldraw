@@ -1,14 +1,14 @@
 [
 	{
 		"id": "getting-started",
-		"title": "Getting Started",
+		"title": "Get Started",
 		"description": "Introduction articles for tldraw.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
 	},
 	{
 		"id": "docs",
-		"title": "Documentation",
+		"title": "Learn tldraw",
 		"description": "Developer documentation for tldraw.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
@@ -18,10 +18,10 @@
 		"title": "Community",
 		"description": "Guides for contributing to tldraw's open source project.",
 		"categories": [],
-		"sidebar_behavior": "show-links"
+		"sidebar_behavior": "hidden"
 	},
 	{
-		"id": "gen",
+		"id": "reference",
 		"title": "API Reference",
 		"description": "Reference for the tldraw package's APIs (generated).",
 		"categories": [
@@ -201,6 +201,6 @@
 				]
 			}
 		],
-		"sidebar_behavior": "show-title"
+		"sidebar_behavior": "reference"
 	}
 ]

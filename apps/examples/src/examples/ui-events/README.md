@@ -1,7 +1,7 @@
 ---
 title: UI events
 component: ./UiEventsExample.tsx
-category: editor
+category: editor-api
 priority: 2
 ---
 

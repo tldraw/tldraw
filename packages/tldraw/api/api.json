@@ -9802,6 +9802,54 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/tldraw!ImageShapeUtil#shouldGetDataURI:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shouldGetDataURI(src: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"\" | boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "src",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "shouldGetDataURI"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/tldraw!ImageShapeUtil#toSvg:member(1)",
               "docComment": "",
               "excerptTokens": [
