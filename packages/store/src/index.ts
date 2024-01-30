@@ -27,9 +27,17 @@ export {
 	getRecordVersion,
 	migrate,
 	migrateRecord,
-	type Migration,
+	type LegacyMigration as LegacyMigration,
 	type MigrationResult,
 	type Migrations,
 	type RecordVersion,
 } from './lib/legacy_migrate'
+export type {
+	Migration,
+	MigrationId,
+	MigrationOptions,
+	MigrationSequence,
+	RecordMigration,
+	StoreMigration,
+} from './lib/migrate'
 export type { AllRecords } from './lib/type-utils'

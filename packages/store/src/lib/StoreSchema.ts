@@ -5,7 +5,7 @@ import { LegacyMigrator } from './LegacyMigrator'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
 import { MigrationFailureReason, MigrationResult } from './legacy_migrate'
-import { Migration, MigrationId, MigrationSequence } from './migrate'
+import { Migration, MigrationId, MigrationOptions } from './migrate'
 
 const LEGACY_SCHEMA_VERSION = 1
 const CURRENT_SCHEMA_VERSION = 2
@@ -103,11 +103,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 		// check that sequences are valid and included in linear order
 		for (const { sequence, versionAtInstallation } of sequences) {
-			const unusedIdx = sequence.migrations.findIndex((m) => m.id === versionAtInstallation)
-			if (unusedIdx === -1) {
+			const firstUsedMigrationIdx = sequence.migrations.findIndex((m) => m.id === versionAtInstallation) + 1
+			if (firstUsedMigrationIdx === 0 && versionAtInstallation !== 'root') {
 				throw new Error(`Missing versionAtInstallation id ${str(versionAtInstallation)}`)
 			}
-			const unusedMigrationIds = sequence.migrations.slice(0, unusedIdx).map((m) => m.id)
+			const unusedMigrationIds = sequence.migrations.slice(0, firstUsedMigrationIdx).map((m) => m.id)
 
 			// if any unused are present in `order` it's an error
 			for (const unusedMigrationId of unusedMigrationIds) {
@@ -131,7 +131,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 			// now check that the migrations which are supposed to be in `order` are all present
 			// and in the right... order
-			const usedMigrations = sequence.migrations.slice(unusedIdx)
+			const usedMigrations = sequence.migrations.slice(firstUsedMigrationIdx)
 			const missingMigrations = []
 			let lastIdx = -1
 			for (const migration of usedMigrations) {
@@ -370,12 +370,4 @@ Ours:   ${str(this.sortedMigrationIds)}
 			versionHistory: [],
 		}
 	}
-}
-
-type MigrationOptions = {
-	sequences: Array<{
-		sequence: MigrationSequence
-		versionAtInstallation: MigrationId
-	}>
-	order: MigrationId[]
 }

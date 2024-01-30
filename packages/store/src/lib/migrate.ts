@@ -49,11 +49,10 @@ export type MigrationSequence = {
 	migrations: Migration[]
 }
 
-export function defineMigrationSequence(id: string, migrations: Migration[]): MigrationSequence {
-	return { id, migrations }
-}
-
-export type MigrationRecord = {
-	version: 0
-	appliedMigrations: MigrationId[]
+export type MigrationOptions = {
+	sequences: Array<{
+		sequence: MigrationSequence
+		versionAtInstallation: MigrationId | 'root'
+	}>
+	order: MigrationId[]
 }

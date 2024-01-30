@@ -1,7 +1,7 @@
-import { Migrations, StoreSchema } from '@tldraw/store'
-import { LegacyMigrator } from '@tldraw/store'
+import { LegacyMigrator, MigrationOptions, Migrations, StoreSchema } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
+import { tldrawMigrations } from './migrations/tldrawMigrations'
 import { AssetRecordType, assetMigrations } from './records/TLAsset'
 import { CameraRecordType, cameraMigrations } from './records/TLCamera'
 import { DocumentRecordType, documentMigrations } from './records/TLDocument'
@@ -33,7 +33,13 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  * @param opts - Options
  *
  * @public */
-export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeInfo> }): TLSchema {
+export function createTLSchema({
+	shapes,
+	migrations,
+}: {
+	shapes: Record<string, SchemaShapeInfo>
+	migrations?: MigrationOptions
+}): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {
 		for (const style of getShapePropKeysByStyle(shape.props ?? {}).keys()) {
@@ -78,6 +84,14 @@ export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeI
 			onValidationFailure,
 			createIntegrityChecker: createIntegrityChecker,
 			__legacyMigrator,
+			migrations: migrations ?? {
+				sequences: [{ sequence: tldrawMigrations, versionAtInstallation: 'root' }],
+				// DO NOT DO THIS (mapping over migrations to get the id ordering) IN USERLAND CODE
+				// unless you are only including the tldraw migrations.
+				// Doing this when you use 3rd party migrations or your own migrations is not safe.
+				// You should always specify the order manually with an explicit array of migration IDs.
+				order: tldrawMigrations.migrations.map((m) => m.id),
+			},
 		}
 	)
 }

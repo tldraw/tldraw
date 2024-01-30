@@ -14,9 +14,11 @@ export function defineMigrations<
 	migrators?: CurrentVersion extends number
 		? FirstVersion extends number
 			? CurrentVersion extends FirstVersion
-				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
-				: { [version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: Migration }
-			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
+				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: LegacyMigration }
+				: {
+						[version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: LegacyMigration
+					}
+			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: LegacyMigration }
 		: never
 	subTypeKey?: string
 	subTypeMigrations?: Record<string, BaseMigrationsInfo>
@@ -45,7 +47,7 @@ export function defineMigrations<
  * @deprecated - use the new stuff
  * @public
  */
-export type Migration<Before = any, After = any> = {
+export type LegacyMigration<Before = any, After = any> = {
 	up: (oldState: Before) => After
 	down: (newState: After) => Before
 }
@@ -53,7 +55,7 @@ export type Migration<Before = any, After = any> = {
 interface BaseMigrationsInfo {
 	firstVersion: number
 	currentVersion: number
-	migrators: { [version: number]: Migration }
+	migrators: { [version: number]: LegacyMigration }
 }
 
 /**
