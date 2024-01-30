@@ -6,20 +6,18 @@ import { useEffect } from 'react'
 
 export default function EndToEnd() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				onMount={(editor) => {
-					editor.on('event', (info) => {
-						;(window as any).__tldraw_editor_events.push(info)
-					})
-				}}
-				onUiEvent={(name, data) => {
-					;(window as any).__tldraw_ui_event = { name, data }
-				}}
-			>
-				<SneakyExportButton />
-			</Tldraw>
-		</div>
+		<Tldraw
+			onMount={(editor) => {
+				editor.on('event', (info) => {
+					;(window as any).__tldraw_editor_events.push(info)
+				})
+			}}
+			onUiEvent={(name, data) => {
+				;(window as any).__tldraw_ui_event = { name, data }
+			}}
+		>
+			<SneakyExportButton />
+		</Tldraw>
 	)
 }
 
