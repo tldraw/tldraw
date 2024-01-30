@@ -8,7 +8,7 @@ export default async function ClaPage() {
 
 	return (
 		<>
-			<Header activeId={null} />
+			<Header />
 			<Sidebar {...sidebar} />
 			<main className="article">
 				<div className="page-header">

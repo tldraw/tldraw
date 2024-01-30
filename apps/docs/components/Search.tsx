@@ -9,7 +9,6 @@ export function Search({
 	prevType = 'n',
 	prevQuery = '',
 }: {
-	activeId: string | null
 	prevType?: string
 	prevQuery?: string
 }) {

@@ -409,7 +409,7 @@ function addReferences(result: Result, member: ApiItem) {
 			return
 		}
 		const apiItem = apiItemResult.resolvedApiItem!
-		const url = `/gen/${getPath(apiItem)}`
+		const url = `/reference/${getPath(apiItem)}`
 		references.add(`[${token.text}](${url})`)
 	})
 

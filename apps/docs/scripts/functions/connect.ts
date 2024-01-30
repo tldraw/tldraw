@@ -65,6 +65,8 @@ export async function connect(opts = {} as { reset?: boolean }) {
 			status TEXT NOT NULL,
 			date TEXT,
 			sourceUrl TEXT,
+			componentCode TEXT,
+			componentCodeFiles TEXT,
 			keywords TEXT,
 			content TEXT NOT NULL,
 			path TEXT,

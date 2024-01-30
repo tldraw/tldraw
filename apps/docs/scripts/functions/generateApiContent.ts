@@ -11,8 +11,8 @@ export async function generateApiContent(): Promise<GeneratedContent> {
 	const sections = require(path.join(CONTENT_DIRECTORY, 'sections.json')) as InputSection[]
 
 	try {
-		const inputApiSection = sections.find((s) => s.id === 'gen')
-		if (!inputApiSection) throw new Error(`Could not find section with id 'gen'`)
+		const inputApiSection = sections.find((s) => s.id === 'reference')
+		if (!inputApiSection) throw new Error(`Could not find section with id 'reference'`)
 		const outputApiSection = generateSection(inputApiSection, articles, 999999) // always at the end!
 		const contentComplete = { sections: [outputApiSection], articles }
 

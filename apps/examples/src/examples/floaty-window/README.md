@@ -2,6 +2,6 @@
 title: Floaty window
 hide: true
 component: ./FloatyExample.tsx
-category: UI
+category: ui
 priority: 3
 ---
