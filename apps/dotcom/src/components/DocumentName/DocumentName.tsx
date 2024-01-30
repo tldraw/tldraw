@@ -29,7 +29,6 @@ import { getShareUrl } from '../ShareMenu'
 type NameState = {
 	readonly name: string | null
 	readonly isEditing: boolean
-	readonly saving: 'saving' | 'saved' | null
 }
 
 const MAX_TITLE_WIDTH_PX = 420
@@ -50,7 +49,7 @@ export const DocumentTopZone = track(function DocumentTopZone({
 })
 
 function DocumentNameInner() {
-	const [state, setState] = useState<NameState>({ name: null, isEditing: false, saving: null })
+	const [state, setState] = useState<NameState>({ name: null, isEditing: false })
 	const actions = useActions()
 	const forkAction = actions[FORK_PROJECT_ACTION]
 	const saveFileAction = actions[SAVE_FILE_COPY_ACTION]
@@ -67,7 +66,6 @@ function DocumentNameInner() {
 						icon="chevron-down"
 						className="tlui-document-name__menu tlui-menu__trigger flex-none"
 						data-testid="document-name-menu"
-						data-state={state.saving ?? 'ready'}
 					/>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end" alignOffset={0} sideOffset={6}>
@@ -128,21 +126,10 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const totalWidth = layoutTop.offsetWidth
 		const leftWidth = leftPanel.offsetWidth
 		const rightWidth = rightPanel.offsetWidth
-		// ignore the width of the button:
-		const selfWidth = element.offsetWidth - 44
+		console.log('totalWidth', totalWidth, leftWidth, rightWidth)
 
-		let xCoordIfCentered = (totalWidth - selfWidth) / 2
-
-		// Prevent subpixel bullsh
-		if (totalWidth % 2 !== 0) {
-			xCoordIfCentered -= 0.5
-		}
-
-		const xCoordIfLeftAligned = leftWidth + 12
-		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned)
 		const maxWidth = Math.min(totalWidth - rightWidth - leftWidth - 16, MAX_TITLE_WIDTH_PX)
 
-		// element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
 		element.style.setProperty('max-width', maxWidth + 'px')
 	}, [])
 
@@ -215,26 +202,13 @@ function DocumentNameEditor({
 				return
 			}
 
-			setState((prev) => ({ ...prev, saving: 'saving' }))
-
 			editor.updateDocumentSettings({ name: trimmed })
-			setState((prev) => ({ ...prev, saving: 'saved', name: null }))
 		}
 
 		if (state.isEditing === false) {
 			save()
-		} else {
-			setState((prev) => ({ ...prev, saving: prev.saving === 'saving' ? null : prev.saving }))
 		}
 	}, [documentSettings.name, editor, state.isEditing, state.name, setState])
-
-	useEffect(() => {
-		if (state.saving !== 'saved') return
-		const timeout = setTimeout(() => {
-			setState((prev) => ({ ...prev, saving: null }))
-		}, 3000)
-		return () => clearTimeout(timeout)
-	}, [state.saving, setState])
 
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
