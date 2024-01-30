@@ -12,6 +12,7 @@ import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
 const worker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dotcom-worker'))
+const healthWorker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/health-worker'))
 const assetUpload = path.relative(
 	process.cwd(),
 	path.resolve(__dirname, '../apps/dotcom-asset-upload')
@@ -26,6 +27,8 @@ const env = makeEnv([
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
+	'DISCORD_HEALTH_WEBHOOK_URL',
+	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
 	'GC_MAPS_API_KEY',
 	'RELEASE_COMMIT_HASH',
 	'SENTRY_AUTH_TOKEN',
@@ -73,7 +76,7 @@ async function main() {
 
 	await discordMessage(`--- **${env.TLDRAW_ENV} deploy pre-flight** ---`)
 
-	await discordStep('[1/6] setting up deploy', async () => {
+	await discordStep('[1/7] setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
 		await exec('yarn', ['lazy', 'prebuild'])
 
@@ -83,15 +86,16 @@ async function main() {
 
 	// deploy pre-flight steps:
 	// 1. get the dotcom app ready to go (env vars and pre-build)
-	await discordStep('[2/6] building dotcom app', async () => {
+	await discordStep('[2/7] building dotcom app', async () => {
 		await createSentryRelease()
 		await prepareDotcomApp()
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
 
-	await discordStep('[3/6] cloudflare deploy dry run', async () => {
+	await discordStep('[3/7] cloudflare deploy dry run', async () => {
 		await deployAssetUploadWorker({ dryRun: true })
+		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
 	})
 
@@ -100,16 +104,19 @@ async function main() {
 	await discordMessage(`--- **pre-flight complete, starting real deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	await discordStep('[4/6] deploying asset uploader to cloudflare', async () => {
+	await discordStep('[4/7] deploying asset uploader to cloudflare', async () => {
 		await deployAssetUploadWorker({ dryRun: false })
 	})
-	await discordStep('[5/6] deploying multiplayer worker to cloudflare', async () => {
+	await discordStep('[5/7] deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
+	})
+	await discordStep('[6/7] deploying health worker to cloudflare', async () => {
+		await deployHealthWorker({ dryRun: false })
 	})
 
 	// 3. deploy the pre-build dotcom app:
 	const { deploymentUrl, inspectUrl } = await discordStep(
-		'[6/6] deploying dotcom app to vercel',
+		'[7/7] deploying dotcom app to vercel',
 		async () => {
 			return await deploySpa()
 		}
@@ -119,7 +126,7 @@ async function main() {
 
 	if (previewId) {
 		const aliasDomain = `${previewId}-preview-deploy.tldraw.com`
-		await discordStep('[7/6] aliasing preview deployment', async () => {
+		await discordStep('[8/7] aliasing preview deployment', async () => {
 			await vercelCli('alias', ['set', deploymentUrl, aliasDomain])
 		})
 
@@ -208,6 +215,41 @@ name = "${previewId}-tldraw-multiplayer"`
 		],
 		{
 			pwd: worker,
+			env: {
+				NODE_ENV: 'production',
+				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
+				CI: '1',
+			},
+		}
+	)
+}
+
+let didUpdateHealthWorker = false
+async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
+	if (previewId && !didUpdateHealthWorker) {
+		appendFileSync(
+			join(healthWorker, 'wrangler.toml'),
+			`
+[env.preview]
+name = "${previewId}-tldraw-health"`
+		)
+		didUpdateHealthWorker = true
+	}
+	await exec(
+		'yarn',
+		[
+			'wrangler',
+			'deploy',
+			dryRun ? '--dry-run' : null,
+			'--env',
+			env.TLDRAW_ENV,
+			'--var',
+			`DISCORD_HEALTH_WEBHOOK_URL:${env.DISCORD_HEALTH_WEBHOOK_URL}`,
+			'--var',
+			`HEALTH_WORKER_UPDOWN_WEBHOOK_PATH:${env.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH}`,
+		],
+		{
+			pwd: healthWorker,
 			env: {
 				NODE_ENV: 'production',
 				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts

@@ -12811,6 +12811,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!SelectTool#onEnter:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onEnter: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onEnter",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!SelectTool#onExit:member",
               "docComment": "",
               "excerptTokens": [
@@ -12831,6 +12861,36 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "onExit",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!SelectTool#reactor:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "reactor: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(() => void) | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "reactor",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

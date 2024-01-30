@@ -84,12 +84,12 @@ function parseFrontMatter(data: unknown, fileName: string) {
 	}
 
 	const priority = 'priority' in data ? data.priority : null
-	if (priority !== null && typeof priority !== 'number') {
+	if (typeof priority !== 'number') {
 		throw new Error(`Frontmatter key 'priority' must be number in ${fileName}`)
 	}
 
 	const category = 'category' in data ? data.category : null
-	if (category !== null && typeof category !== 'string') {
+	if (typeof category !== 'string') {
 		throw new Error(`Frontmatter key 'category' must be string in ${fileName}`)
 	}
 

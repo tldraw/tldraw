@@ -31,6 +31,7 @@
 	"files": [],
 	"scripts": {
 		"test": "lazy inherit",
+		"test-dev": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit",
 		"index": "node ./scripts/build-index.js && yarn format",
 		"format": "yarn run -T prettier --write --cache \"src/**/*.{ts,tsx,js,jsx,json,md}\"",

@@ -9,21 +9,7 @@ export default function CanvasEventsExample() {
 	const [events, setEvents] = useState<string[]>([])
 	// [2]
 	const handleEvent = useCallback((data: TLEventInfo) => {
-		setEvents((currentEvents) => {
-			const parsedEvents = currentEvents.map((e) => JSON.parse(e))
-			const sameEventIndex = parsedEvents.findIndex(
-				(e) => e.type === data.type && e.name === data.name
-			)
-			if (sameEventIndex !== -1) {
-				return [
-					JSON.stringify(data, null, 2),
-					...currentEvents.slice(0, sameEventIndex),
-					...currentEvents.slice(sameEventIndex + 1),
-				]
-			} else {
-				return [JSON.stringify(data, null, 2), ...currentEvents.slice(0, 100)]
-			}
-		})
+		setEvents((events) => [JSON.stringify(data, null, '\t'), ...events.slice(0, 100)])
 	}, [])
 
 	// [3]

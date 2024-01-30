@@ -1015,6 +1015,14 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     devicePixelRatio: number;
     // (undocumented)
+    duplicateProps: {
+        shapeIds: TLShapeId[];
+        offset: {
+            x: number;
+            y: number;
+        };
+    } | null;
+    // (undocumented)
     exportBackground: boolean;
     // (undocumented)
     followingUserId: null | string;

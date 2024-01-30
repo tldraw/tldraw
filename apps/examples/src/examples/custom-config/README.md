@@ -2,7 +2,7 @@
 title: Custom shapes / tools
 component: ./CustomConfigExample.tsx
 category: shapes/tools
-order: 1
+priority: 1
 ---
 
 Create custom shapes / tools

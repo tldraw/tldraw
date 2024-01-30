@@ -1834,6 +1834,16 @@ describe('Make urls valid for all the assets', () => {
 	}
 })
 
+describe('Add duplicate props to instance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddDuplicateProps]
+	it('up works as expected', () => {
+		expect(up({})).toEqual({ duplicateProps: null })
+	})
+	it('down works as expected', () => {
+		expect(down({ duplicateProps: null })).toEqual({})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

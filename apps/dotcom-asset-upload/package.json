@@ -11,6 +11,7 @@
 	"scripts": {
 		"dev": "cross-env NODE_ENV=development wrangler dev --log-level info --persist-to tmp-assets",
 		"test": "lazy inherit --passWithNoTests",
+		"test-dev": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit --passWithNoTests",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
