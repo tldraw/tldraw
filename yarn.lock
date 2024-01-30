@@ -7260,7 +7260,7 @@ __metadata:
     "@types/ws": "npm:^8.5.9"
     "@vercel/analytics": "npm:^1.1.1"
     broken-link-checker: "npm:^0.7.8"
-    classnames: "npm:^2.5.1"
+    classnames: "npm:^2.3.2"
     concurrently: "npm:^8.2.2"
     dotenv: "npm:^16.3.1"
     eslint: "npm:^8.37.0"
@@ -10507,7 +10507,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:*, classnames@npm:^2.3.2, classnames@npm:^2.5.1":
+"classnames@npm:*, classnames@npm:^2.3.2":
   version: 2.5.1
   resolution: "classnames@npm:2.5.1"
   checksum: 58eb394e8817021b153bb6e7d782cfb667e4ab390cb2e9dac2fc7c6b979d1cc2b2a733093955fc5c94aa79ef5c8c89f11ab77780894509be6afbb91dddd79d15

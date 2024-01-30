@@ -54,7 +54,7 @@
 		"@types/ws": "^8.5.9",
 		"@vercel/analytics": "^1.1.1",
 		"broken-link-checker": "^0.7.8",
-		"classnames": "^2.5.1",
+		"classnames": "^2.3.2",
 		"concurrently": "^8.2.2",
 		"dotenv": "^16.3.1",
 		"eslint": "^8.37.0",
