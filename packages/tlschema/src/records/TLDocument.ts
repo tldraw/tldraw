@@ -2,6 +2,9 @@ import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldra
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 
+/** @public */
+export const DEFAULT_DOCUMENT_NAME = 'Untitled'
+
 /**
  * TLDocument
  *
@@ -67,7 +70,7 @@ export const DocumentRecordType = createRecordType<TLDocument>('document', {
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({
 		gridSize: 10,
-		name: 'Untitled',
+		name: DEFAULT_DOCUMENT_NAME,
 		meta: {},
 	})
 )

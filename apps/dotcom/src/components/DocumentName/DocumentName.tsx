@@ -1,5 +1,6 @@
 import {
 	Button,
+	DEFAULT_DOCUMENT_NAME,
 	DropdownMenu,
 	Kbd,
 	OfflineIndicator,
@@ -51,8 +52,8 @@ export const DocumentTopZone = track(function DocumentTopZone({
 function DocumentNameInner() {
 	const [state, setState] = useState<NameState>({ name: null, isEditing: false, saving: null })
 	const actions = useActions()
-	const fork = actions[FORK_PROJECT_ACTION]
-	const saveFile = actions[SAVE_FILE_COPY_ACTION]
+	const forkAction = actions[FORK_PROJECT_ACTION]
+	const saveFileAction = actions[SAVE_FILE_COPY_ACTION]
 	const editor = useEditor()
 	const msg = useTranslation()
 
@@ -94,15 +95,17 @@ function DocumentNameInner() {
 						<DropdownMenu.Item
 							type="menu"
 							id="save-file-copy"
-							onClick={() => {
-								saveFile.onSelect('document-name')
-							}}
+							onClick={() => saveFileAction.onSelect('document-name')}
 						>
-							<span className={'tlui-button__label' as any}>{msg(saveFile.label!)}</span>
-							{saveFile.kbd && <Kbd>{saveFile.kbd}</Kbd>}
+							<span className={'tlui-button__label' as any}>{msg(saveFileAction.label!)}</span>
+							{saveFileAction.kbd && <Kbd>{saveFileAction.kbd}</Kbd>}
 						</DropdownMenu.Item>
-						<DropdownMenu.Item type="menu" id="fork" onClick={() => fork.onSelect('document-name')}>
-							<span className={'tlui-button__label' as any}>{msg(fork.label!)}</span>
+						<DropdownMenu.Item
+							type="menu"
+							id="fork"
+							onClick={() => forkAction.onSelect('document-name')}
+						>
+							<span className={'tlui-button__label' as any}>{msg(forkAction.label!)}</span>
 						</DropdownMenu.Item>
 					</DropdownMenu.Group>
 				</DropdownMenu.Content>
@@ -181,7 +184,7 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 function getName(state: NameState, document: TLDocument) {
 	if (state.name) return state.name
 	if (document.name === '') {
-		return 'Untitled'
+		return DEFAULT_DOCUMENT_NAME
 	}
 	return document.name
 }
@@ -193,10 +196,9 @@ function DocumentNameEditor({
 	state: NameState
 	setState: (update: SetStateAction<NameState>) => void
 }) {
-	// const { raw } = useClientTranslation()
 	const inputRef = useRef<HTMLInputElement>(null)
 	const editor = useEditor()
-	const document = editor.getDocumentSettings()
+	const documentSettings = editor.getDocumentSettings()
 
 	useEffect(() => {
 		if (state.isEditing && inputRef.current) {
@@ -204,16 +206,11 @@ function DocumentNameEditor({
 		}
 	}, [state.isEditing])
 
-	// const { mutate } = useRpcMutation('updateDocument')
-
 	useEffect(() => {
-		let isCancelled = false
-		let timeout: NodeJS.Timeout | null = null
-
 		const save = () => {
 			if (state.name === null) return
 			const trimmed = state.name.trim()
-			if (!trimmed || trimmed === document.name.trim()) {
+			if (!trimmed || trimmed === documentSettings.name.trim()) {
 				if (!state.isEditing) setState((prev) => ({ ...prev, name: null }))
 				return
 			}
@@ -221,7 +218,6 @@ function DocumentNameEditor({
 			setState((prev) => ({ ...prev, saving: 'saving' }))
 
 			editor.updateDocumentSettings({ name: trimmed })
-			console.log('updating to', trimmed)
 			setState((prev) => ({ ...prev, saving: 'saved', name: null }))
 		}
 
@@ -229,14 +225,8 @@ function DocumentNameEditor({
 			save()
 		} else {
 			setState((prev) => ({ ...prev, saving: prev.saving === 'saving' ? null : prev.saving }))
-			timeout = setTimeout(save, 1000)
 		}
-
-		return () => {
-			if (timeout !== null) clearTimeout(timeout)
-			isCancelled = true
-		}
-	}, [document.name, editor, state.isEditing, state.name, setState])
+	}, [documentSettings.name, editor, state.isEditing, state.name, setState])
 
 	useEffect(() => {
 		if (state.saving !== 'saved') return
@@ -275,7 +265,7 @@ function DocumentNameEditor({
 		setState((prev) => ({ ...prev, isEditing: false }))
 	}, [setState])
 
-	const name = getName(state, document)
+	const name = getName(state, documentSettings)
 
 	return (
 		<div className="tlui-document-name__input__wrapper">
@@ -284,7 +274,7 @@ function DocumentNameEditor({
 					ref={inputRef}
 					data-testid="document-name-input"
 					className="tlui-document-name__input"
-					value={state.name ?? document.name}
+					value={state.name ?? documentSettings.name}
 					onChange={handleChange}
 					onBlur={handleBlur}
 					onKeyDownCapture={handleKeydownCapture}
@@ -299,7 +289,6 @@ function DocumentNameEditor({
 					aria-hidden
 				>
 					{addRealSpaceForWhitespace(name) || ' '}
-					{/* {raw(addRealSpaceForWhitespace(state.name ?? document.name) || ' ')} */}
 				</div>
 			) : (
 				<div
@@ -307,7 +296,6 @@ function DocumentNameEditor({
 					onDoubleClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
 					data-testid="document-name-text"
 				>
-					{/* {raw(addRealSpaceForWhitespace(state.name ?? document.name) || ' ')} */}
 					{addRealSpaceForWhitespace(name) || ' '}
 				</div>
 			)}

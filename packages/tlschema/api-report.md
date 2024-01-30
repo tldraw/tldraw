@@ -146,6 +146,9 @@ export function createTLSchema({ shapes }: {
 }): TLSchema;
 
 // @public (undocumented)
+export const DEFAULT_DOCUMENT_NAME = "Untitled";
+
+// @public (undocumented)
 export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
 
 // @public (undocumented)

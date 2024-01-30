@@ -1,4 +1,5 @@
 import {
+	DEFAULT_DOCUMENT_NAME,
 	Editor,
 	TLDRAW_FILE_EXTENSION,
 	TLStore,
@@ -129,7 +130,9 @@ export function getSaveFileCopyAction(
 		async onSelect(source) {
 			handleUiEvent('save-project-to-file', { source })
 			const documentName =
-				editor.getDocumentSettings().name === '' ? 'Untitled' : editor.getDocumentSettings().name
+				editor.getDocumentSettings().name === ''
+					? DEFAULT_DOCUMENT_NAME
+					: editor.getDocumentSettings().name
 			const defaultName =
 				saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
 
