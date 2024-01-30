@@ -12,7 +12,7 @@ export async function createApiMarkdown() {
 		title: 'API Reference',
 		description: "Reference for the tldraw package's APIs (generated).",
 		categories: [],
-		sidebar_behavior: 'hidden',
+		sidebar_behavior: 'reference',
 	}
 
 	const addedCategories = new Set<string>()
