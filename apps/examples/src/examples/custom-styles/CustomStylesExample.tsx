@@ -13,16 +13,14 @@ const customTools = [CardShapeTool]
 // [2]
 export default function CustomStylesExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="custom-styles-example"
-				shapeUtils={customShapeUtils}
-				tools={customTools}
-				overrides={uiOverrides}
-			>
-				<FilterStyleUi />
-			</Tldraw>
-		</div>
+		<Tldraw
+			persistenceKey="custom-styles-example"
+			shapeUtils={customShapeUtils}
+			tools={customTools}
+			overrides={uiOverrides}
+		>
+			<FilterStyleUi />
+		</Tldraw>
 	)
 }
 /*

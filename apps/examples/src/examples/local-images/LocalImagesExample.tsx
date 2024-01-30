@@ -42,12 +42,10 @@ export default function LocalImagesExample() {
 	}, [])
 
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				// persistenceKey="tldraw_local_images_example"
-				onMount={handleMount}
-			/>
-		</div>
+		<Tldraw
+			// persistenceKey="tldraw_local_images_example"
+			onMount={handleMount}
+		/>
 	)
 }
 

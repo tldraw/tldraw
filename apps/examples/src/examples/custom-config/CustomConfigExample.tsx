@@ -13,16 +13,14 @@ const customTools = [CardShapeTool]
 // [2]
 export default function CustomConfigExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				// Pass in the array of custom shape classes
-				shapeUtils={customShapeUtils}
-				// Pass in the array of custom tool classes
-				tools={customTools}
-				// Pass in any overrides to the user interface
-				overrides={uiOverrides}
-			/>
-		</div>
+		<Tldraw
+			// Pass in the array of custom shape classes
+			shapeUtils={customShapeUtils}
+			// Pass in the array of custom tool classes
+			tools={customTools}
+			// Pass in any overrides to the user interface
+			overrides={uiOverrides}
+		/>
 	)
 }
 

@@ -8,11 +8,9 @@ import './custom-ui.css'
 // [1]
 export default function CustomUiExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw hideUi>
-				<CustomUi />
-			</Tldraw>
-		</div>
+		<Tldraw hideUi>
+			<CustomUi />
+		</Tldraw>
 	)
 }
 

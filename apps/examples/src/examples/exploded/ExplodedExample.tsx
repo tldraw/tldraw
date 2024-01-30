@@ -29,21 +29,19 @@ const defaultComponents = {
 //[2]
 export default function ExplodedExample() {
 	return (
-		<div className="tldraw__editor">
-			<TldrawEditor
-				initialState="select"
-				shapeUtils={defaultShapeUtils}
-				tools={[...defaultTools, ...defaultShapeTools]}
-				components={defaultComponents}
-				persistenceKey="exploded-example"
-			>
-				<TldrawUi>
-					<ContextMenu>
-						<Canvas />
-					</ContextMenu>
-				</TldrawUi>
-			</TldrawEditor>
-		</div>
+		<TldrawEditor
+			initialState="select"
+			shapeUtils={defaultShapeUtils}
+			tools={[...defaultTools, ...defaultShapeTools]}
+			components={defaultComponents}
+			persistenceKey="exploded-example"
+		>
+			<TldrawUi>
+				<ContextMenu>
+					<Canvas />
+				</ContextMenu>
+			</TldrawUi>
+		</TldrawEditor>
 	)
 }
 

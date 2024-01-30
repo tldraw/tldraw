@@ -65,11 +65,9 @@ export default function APIExample() {
 	}
 
 	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="api-example" onMount={handleMount}>
-				<InsideOfEditorContext />
-			</Tldraw>
-		</div>
+		<Tldraw persistenceKey="api-example" onMount={handleMount}>
+			<InsideOfEditorContext />
+		</Tldraw>
 	)
 }
 

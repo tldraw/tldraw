@@ -5,11 +5,7 @@ import '@tldraw/tldraw/tldraw.css'
 
 // [1]
 export default function Example() {
-	return (
-		<div className="tldraw__editor">
-			<Tldraw topZone={<CustomTopZone />} shareZone={<CustomShareZone />} />
-		</div>
-	)
+	return <Tldraw topZone={<CustomTopZone />} shareZone={<CustomShareZone />} />
 }
 
 // [2]

@@ -65,8 +65,9 @@ function EditorA() {
 	return (
 		<div style={{ padding: 32 }}>
 			<h2>A</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('A')} style={{ height: 600 }}>
+			<div tabIndex={-1} onFocus={() => setFocusedEditor('A')}>
 				<Tldraw
+					style={{ height: 600 }}
 					persistenceKey="steve"
 					className="A"
 					autoFocus={isFocused}
@@ -87,8 +88,9 @@ function EditorB() {
 	return (
 		<div>
 			<h2>B</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('B')} style={{ height: 600 }}>
+			<div tabIndex={-1} onFocus={() => setFocusedEditor('B')}>
 				<Tldraw
+					style={{ height: 600 }}
 					persistenceKey="david"
 					className="B"
 					autoFocus={isFocused}
@@ -108,8 +110,9 @@ function EditorC() {
 	return (
 		<div>
 			<h2>C</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('C')} style={{ height: 600 }}>
+			<div tabIndex={-1} onFocus={() => setFocusedEditor('C')}>
 				<Tldraw
+					style={{ height: 600 }}
 					persistenceKey="david"
 					className="C"
 					autoFocus={isFocused}

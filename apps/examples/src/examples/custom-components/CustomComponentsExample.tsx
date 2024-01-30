@@ -34,11 +34,7 @@ const components: TLEditorComponents = {
 }
 
 export default function CustomComponentsExample() {
-	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="custom-components-example" components={components} />
-		</div>
-	)
+	return <Tldraw persistenceKey="custom-components-example" components={components} />
 }
 
 /* 

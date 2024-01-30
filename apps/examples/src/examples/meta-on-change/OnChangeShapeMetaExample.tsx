@@ -5,33 +5,31 @@ import '@tldraw/tldraw/tldraw.css'
 
 export default function OnChangeShapeMetaExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="tldraw_change_meta_example"
-				onMount={(editor) => {
-					// [1]
-					editor.getInitialMetaForShape = (_shape) => {
-						return {
+		<Tldraw
+			persistenceKey="tldraw_change_meta_example"
+			onMount={(editor) => {
+				// [1]
+				editor.getInitialMetaForShape = (_shape) => {
+					return {
+						updatedBy: editor.user.getId(),
+						updatedAt: Date.now(),
+					}
+				}
+				// [2]
+				editor.sideEffects.registerBeforeChangeHandler('shape', (_prev, next, source) => {
+					if (source !== 'user') return next
+					return {
+						...next,
+						meta: {
 							updatedBy: editor.user.getId(),
 							updatedAt: Date.now(),
-						}
+						},
 					}
-					// [2]
-					editor.sideEffects.registerBeforeChangeHandler('shape', (_prev, next, source) => {
-						if (source !== 'user') return next
-						return {
-							...next,
-							meta: {
-								updatedBy: editor.user.getId(),
-								updatedAt: Date.now(),
-							},
-						}
-					})
-				}}
-			>
-				<MetaUiHelper />
-			</Tldraw>
-		</div>
+				})
+			}}
+		>
+			<MetaUiHelper />
+		</Tldraw>
 	)
 }
 

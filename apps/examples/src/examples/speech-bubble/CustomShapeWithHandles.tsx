@@ -14,15 +14,13 @@ const tools = [SpeechBubbleTool]
 // [2]
 export default function CustomShapeWithHandles() {
 	return (
-		<div style={{ position: 'absolute', inset: 0 }}>
-			<Tldraw
-				shapeUtils={shapeUtils}
-				tools={tools}
-				overrides={uiOverrides}
-				assetUrls={customAssetUrls}
-				persistenceKey="whatever"
-			/>
-		</div>
+		<Tldraw
+			shapeUtils={shapeUtils}
+			tools={tools}
+			overrides={uiOverrides}
+			assetUrls={customAssetUrls}
+			persistenceKey="whatever"
+		/>
 	)
 }
 

@@ -38,9 +38,7 @@ const overrides: TLUiOverrides = {
 // [2]
 export default function KeyboardShortcuts() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="tldraw_kbd_shortcuts" overrides={overrides} snapshot={jsonSnapshot} />
-		</div>
+		<Tldraw persistenceKey="tldraw_kbd_shortcuts" overrides={overrides} snapshot={jsonSnapshot} />
 	)
 }
 

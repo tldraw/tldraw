@@ -98,11 +98,7 @@ const components: TLEditorComponents = {
 
 // [4]
 export default function OnTheCanvasExample() {
-	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="things-on-the-canvas-example" components={components} />
-		</div>
-	)
+	return <Tldraw persistenceKey="things-on-the-canvas-example" components={components} />
 }
 
 /* 

@@ -13,9 +13,7 @@ export default function UiEventsExample() {
 
 	return (
 		<div style={{ display: 'flex' }}>
-			<div style={{ width: '60%', height: '100vh' }}>
-				<Tldraw onUiEvent={handleUiEvent} />
-			</div>
+			<Tldraw style={{ width: '60%', height: '100vh' }} onUiEvent={handleUiEvent} />
 			<div
 				style={{
 					width: '40%',

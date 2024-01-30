@@ -68,11 +68,7 @@ export default function HostedImagesExample() {
 		})
 	}, [])
 
-	return (
-		<div className="tldraw__editor">
-			<Tldraw onMount={handleMount} />
-		</div>
-	)
+	return <Tldraw onMount={handleMount} />
 }
 /* 
 Introduction:

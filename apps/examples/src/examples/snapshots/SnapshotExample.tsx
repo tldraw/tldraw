@@ -9,21 +9,15 @@ const LOAD_SNAPSHOT_WITH_INITIAL_DATA = true
 //[1]
 export default function SnapshotExample() {
 	if (LOAD_SNAPSHOT_WITH_INITIAL_DATA) {
-		return (
-			<div className="tldraw__editor">
-				<Tldraw snapshot={jsonSnapshot} />
-			</div>
-		)
+		return <Tldraw snapshot={jsonSnapshot} />
 	}
 	//[2]
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				onMount={(editor) => {
-					editor.store.loadSnapshot(jsonSnapshot)
-				}}
-			/>
-		</div>
+		<Tldraw
+			onMount={(editor) => {
+				editor.store.loadSnapshot(jsonSnapshot)
+			}}
+		/>
 	)
 }
 /*

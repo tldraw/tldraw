@@ -50,7 +50,7 @@ export default function PersistenceExample() {
 	// [4]
 	if (loadingState.status === 'loading') {
 		return (
-			<div className="tldraw__editor">
+			<div style={{ padding: 32 }}>
 				<h2>Loading...</h2>
 			</div>
 		)
@@ -58,18 +58,14 @@ export default function PersistenceExample() {
 
 	if (loadingState.status === 'error') {
 		return (
-			<div className="tldraw__editor">
+			<div style={{ padding: 32 }}>
 				<h2>Error!</h2>
 				<p>{loadingState.error}</p>
 			</div>
 		)
 	}
 
-	return (
-		<div className="tldraw__editor">
-			<Tldraw store={store} />
-		</div>
-	)
+	return <Tldraw store={store} />
 }
 
 /*

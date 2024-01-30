@@ -105,15 +105,13 @@ const customComponents: TLEditorComponents = {
 // [5]
 export default function ScreenshotToolExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="tldraw_screenshot_example"
-				tools={customTools}
-				overrides={customUiOverrides}
-				assetUrls={customAssetUrls}
-				components={customComponents}
-			/>
-		</div>
+		<Tldraw
+			persistenceKey="tldraw_screenshot_example"
+			tools={customTools}
+			overrides={customUiOverrides}
+			assetUrls={customAssetUrls}
+			components={customComponents}
+		/>
 	)
 }
 

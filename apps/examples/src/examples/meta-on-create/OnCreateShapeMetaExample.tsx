@@ -5,22 +5,20 @@ import '@tldraw/tldraw/tldraw.css'
 
 export default function OnCreateShapeMetaExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="tldraw_example"
-				onMount={(editor) => {
-					//[1]
-					editor.getInitialMetaForShape = (_shape) => {
-						return {
-							createdBy: editor.user.getId(),
-							createdAt: Date.now(),
-						}
+		<Tldraw
+			persistenceKey="tldraw_example"
+			onMount={(editor) => {
+				//[1]
+				editor.getInitialMetaForShape = (_shape) => {
+					return {
+						createdBy: editor.user.getId(),
+						createdAt: Date.now(),
 					}
-				}}
-			>
-				<MetaUiHelper />
-			</Tldraw>
-		</div>
+				}
+			}}
+		>
+			<MetaUiHelper />
+		</Tldraw>
 	)
 }
 

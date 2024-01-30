@@ -13,13 +13,12 @@ export default function CanvasEventsExample() {
 
 	return (
 		<div style={{ display: 'flex' }}>
-			<div style={{ width: '50%', height: '100vh' }}>
-				<Tldraw
-					onMount={(editor) => {
-						editor.on('event', (event) => handleEvent(event))
-					}}
-				/>
-			</div>
+			<Tldraw
+				style={{ width: '50%', height: '100vh' }}
+				onMount={(editor) => {
+					editor.on('event', (event) => handleEvent(event))
+				}}
+			/>
 			<div
 				style={{
 					width: '50%',

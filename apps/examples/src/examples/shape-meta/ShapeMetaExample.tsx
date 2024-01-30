@@ -6,18 +6,16 @@ import '@tldraw/tldraw/tldraw.css'
 // [1]
 export default function ShapeMetaExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="shape_meta_example"
-				onMount={(editor) => {
-					editor.getInitialMetaForShape = (shape) => {
-						return { label: `My ${shape.type} shape` }
-					}
-				}}
-			>
-				<ShapeLabelUiWithHelper />
-			</Tldraw>
-		</div>
+		<Tldraw
+			persistenceKey="shape_meta_example"
+			onMount={(editor) => {
+				editor.getInitialMetaForShape = (shape) => {
+					return { label: `My ${shape.type} shape` }
+				}
+			}}
+		>
+			<ShapeLabelUiWithHelper />
+		</Tldraw>
 	)
 }
 

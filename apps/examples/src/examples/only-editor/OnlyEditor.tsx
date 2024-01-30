@@ -13,29 +13,27 @@ const myShapeUtils = [MiniBoxShapeUtil]
 // [2]
 export default function OnlyEditorExample() {
 	return (
-		<div className="tldraw__editor">
-			<TldrawEditor
-				tools={myTools}
-				shapeUtils={myShapeUtils}
-				initialState="select"
-				onMount={(editor: Editor) => {
-					editor
-						.selectAll()
-						.deleteShapes(editor.getSelectedShapeIds())
-						.createShapes([
-							{
-								id: createShapeId(),
-								type: 'box',
-								x: 100,
-								y: 100,
-							},
-						])
-				}}
-				components={{
-					Background: BackgroundComponent,
-				}}
-			/>
-		</div>
+		<TldrawEditor
+			tools={myTools}
+			shapeUtils={myShapeUtils}
+			initialState="select"
+			onMount={(editor: Editor) => {
+				editor
+					.selectAll()
+					.deleteShapes(editor.getSelectedShapeIds())
+					.createShapes([
+						{
+							id: createShapeId(),
+							type: 'box',
+							x: 100,
+							y: 100,
+						},
+					])
+			}}
+			components={{
+				Background: BackgroundComponent,
+			}}
+		/>
 	)
 }
 

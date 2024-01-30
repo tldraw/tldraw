@@ -15,80 +15,75 @@ const CURSOR_CHAT_MESSAGE = 'Hey, I think this is just great.'
 export default function UserPresenceExample() {
 	const rRaf = useRef<any>(-1)
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="user-presence-example"
-				onMount={(editor) => {
-					// [a]
-					const peerPresence = InstancePresenceRecordType.create({
-						id: InstancePresenceRecordType.createId(editor.store.id),
-						currentPageId: editor.getCurrentPageId(),
-						userId: 'peer-1',
-						userName: USER_NAME,
-						cursor: { x: 0, y: 0, type: 'default', rotation: 0 },
-						chatMessage: CURSOR_CHAT_MESSAGE,
-					})
+		<Tldraw
+			persistenceKey="user-presence-example"
+			onMount={(editor) => {
+				// [a]
+				const peerPresence = InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId(editor.store.id),
+					currentPageId: editor.getCurrentPageId(),
+					userId: 'peer-1',
+					userName: USER_NAME,
+					cursor: { x: 0, y: 0, type: 'default', rotation: 0 },
+					chatMessage: CURSOR_CHAT_MESSAGE,
+				})
 
-					editor.store.put([peerPresence])
+				editor.store.put([peerPresence])
 
-					// [b]
-					const raf = rRaf.current
-					cancelAnimationFrame(raf)
+				// [b]
+				const raf = rRaf.current
+				cancelAnimationFrame(raf)
 
-					if (MOVING_CURSOR_SPEED > 0 || CURSOR_CHAT_MESSAGE) {
-						function loop() {
-							let cursor = peerPresence.cursor
-							let chatMessage = peerPresence.chatMessage
+				if (MOVING_CURSOR_SPEED > 0 || CURSOR_CHAT_MESSAGE) {
+					function loop() {
+						let cursor = peerPresence.cursor
+						let chatMessage = peerPresence.chatMessage
 
-							const now = Date.now()
+						const now = Date.now()
 
-							if (MOVING_CURSOR_SPEED > 0) {
-								const k = 1000 / MOVING_CURSOR_SPEED
-								const t = (now % k) / k
+						if (MOVING_CURSOR_SPEED > 0) {
+							const k = 1000 / MOVING_CURSOR_SPEED
+							const t = (now % k) / k
 
-								cursor = {
-									...peerPresence.cursor,
-									x: 150 + Math.cos(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
-									y: 150 + Math.sin(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
-								}
+							cursor = {
+								...peerPresence.cursor,
+								x: 150 + Math.cos(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
+								y: 150 + Math.sin(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
 							}
-
-							if (CURSOR_CHAT_MESSAGE) {
-								const k = 1000
-								const t = (now % (k * 3)) / k
-								chatMessage =
-									t < 1
-										? ''
-										: t > 2
-											? CURSOR_CHAT_MESSAGE
-											: CURSOR_CHAT_MESSAGE.slice(
-													0,
-													Math.ceil((t - 1) * CURSOR_CHAT_MESSAGE.length)
-												)
-							}
-
-							editor.store.put([
-								{
-									...peerPresence,
-									cursor,
-									chatMessage,
-									lastActivityTimestamp: now,
-								},
-							])
-
-							rRaf.current = requestAnimationFrame(loop)
 						}
 
+						if (CURSOR_CHAT_MESSAGE) {
+							const k = 1000
+							const t = (now % (k * 3)) / k
+							chatMessage =
+								t < 1
+									? ''
+									: t > 2
+										? CURSOR_CHAT_MESSAGE
+										: CURSOR_CHAT_MESSAGE.slice(0, Math.ceil((t - 1) * CURSOR_CHAT_MESSAGE.length))
+						}
+
+						editor.store.put([
+							{
+								...peerPresence,
+								cursor,
+								chatMessage,
+								lastActivityTimestamp: now,
+							},
+						])
+
 						rRaf.current = requestAnimationFrame(loop)
-					} else {
-						editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
-						rRaf.current = setInterval(() => {
-							editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
-						}, 1000)
 					}
-				}}
-			/>
-		</div>
+
+					rRaf.current = requestAnimationFrame(loop)
+				} else {
+					editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
+					rRaf.current = setInterval(() => {
+						editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
+					}, 1000)
+				}
+			}}
+		/>
 	)
 }
 
