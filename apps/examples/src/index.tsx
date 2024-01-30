@@ -11,6 +11,7 @@ import { ExamplePage } from './ExamplePage'
 import { HomePage } from './HomePage'
 import { examples } from './examples'
 import EndToEnd from './testing/end-to-end'
+import HelloWorld from './testing/hello-world'
 
 // This example is only used for end to end tests
 
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
 	{
 		path: 'end-to-end',
 		lazy: async () => ({ element: <EndToEnd /> }),
+	},
+	{
+		path: 'hello-world',
+		lazy: async () => ({ element: <HelloWorld /> }),
 	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [
