@@ -851,6 +851,12 @@ function Item({ noClose, ...props }: DropdownMenuItemProps): JSX_2.Element;
 export function Kbd({ children }: KbdProps): JSX_2.Element;
 
 // @public (undocumented)
+export interface KbdProps {
+    // (undocumented)
+    children: string;
+}
+
+// @public (undocumented)
 export class LaserTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_9 | typeof Lasering)[];

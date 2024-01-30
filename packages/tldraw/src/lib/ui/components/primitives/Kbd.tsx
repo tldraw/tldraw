@@ -1,6 +1,6 @@
 import { kbd } from './shared'
 
-/** @internal */
+/** @public */
 export interface KbdProps {
 	children: string
 }

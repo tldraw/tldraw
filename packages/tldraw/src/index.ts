@@ -172,4 +172,4 @@ export {
 export { Dialog, DropdownMenu }
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
-export { Kbd } from './lib/ui/components/primitives/Kbd'
+export { Kbd, type KbdProps } from './lib/ui/components/primitives/Kbd'
