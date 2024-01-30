@@ -1,6 +1,7 @@
 import {
 	ANIMATION_MEDIUM_MS,
 	Box,
+	DEFAULT_DOCUMENT_NAME,
 	Editor,
 	HALF_PI,
 	TLBookmarkShape,
@@ -76,7 +77,7 @@ function getExportName(editor: Editor) {
 	// When we don't have any shapes selected, we want to use the document name
 	if (selectedShapes.length === 0) {
 		const documentName = editor.getDocumentSettings().name
-		if (documentName === '') return 'Untitled'
+		if (documentName === '') return DEFAULT_DOCUMENT_NAME
 		return documentName
 	}
 	return undefined

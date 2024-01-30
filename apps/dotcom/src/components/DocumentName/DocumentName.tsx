@@ -126,7 +126,6 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const totalWidth = layoutTop.offsetWidth
 		const leftWidth = leftPanel.offsetWidth
 		const rightWidth = rightPanel.offsetWidth
-		console.log('totalWidth', totalWidth, leftWidth, rightWidth)
 
 		const maxWidth = Math.min(totalWidth - rightWidth - leftWidth - 16, MAX_TITLE_WIDTH_PX)
 
