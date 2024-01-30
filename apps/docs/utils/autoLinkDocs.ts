@@ -4,7 +4,7 @@ import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 
 export async function autoLinkDocs(db: Database<sqlite3.Database, sqlite3.Statement>) {
-	// replace [TLEditor](?) with [TLEditor](/gen/editor/TLEditor)?
+	// replace [TLEditor](?) with [TLEditor](/reference/editor/TLEditor)?
 	// not sure how we would get there but finding an article with the same title
 	const articles = await db.all(
 		'SELECT id, content FROM articles WHERE sectionId != ?',

@@ -47,14 +47,14 @@ const nextConfig = {
 				// For reverse compatibility with old links
 				// (This is a page that we referred people to quite often)
 				source: '/gen/editor/Editor-class',
-				destination: '/gen/editor/Editor',
+				destination: '/reference/editor/Editor',
 				permanent: true,
 			},
 			{
 				// For reverse compatibility with old links
 				// (This is a page that we referred people to quite often)
 				source: '/gen/editor/ShapeUtil-class',
-				destination: '/gen/editor/ShapeUtil',
+				destination: '/reference/editor/ShapeUtil',
 				permanent: true,
 			},
 		]
