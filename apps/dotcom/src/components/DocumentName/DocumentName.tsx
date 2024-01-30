@@ -57,7 +57,7 @@ function DocumentNameInner() {
 	const msg = useTranslation()
 
 	return (
-		<div className="tlui-document-name__inner" data-testid="document-name">
+		<div className="tlui-document-name__inner">
 			<DocumentNameEditor state={state} setState={setState} />
 			<DropdownMenu.Root id="document name">
 				<DropdownMenu.Trigger>
@@ -65,7 +65,6 @@ function DocumentNameInner() {
 						type="icon"
 						icon="chevron-down"
 						className="tlui-document-name__menu tlui-menu__trigger flex-none"
-						data-testid="document-name-menu"
 					/>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end" alignOffset={0} sideOffset={6}>
@@ -245,7 +244,6 @@ function DocumentNameEditor({
 			{state.isEditing && (
 				<input
 					ref={inputRef}
-					data-testid="document-name-input"
 					className="tlui-document-name__input"
 					value={state.name ?? documentSettings.name}
 					onChange={handleChange}
@@ -267,7 +265,6 @@ function DocumentNameEditor({
 				<div
 					className="tlui-document-name__text"
 					onDoubleClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
-					data-testid="document-name-text"
 				>
 					{addRealSpaceForWhitespace(name) || ' '}
 				</div>

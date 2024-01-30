@@ -319,7 +319,6 @@
 	pointer-events: all;
 }
 
-/* relative max-w-[calc(100%-44px)] flex-auto */
 .tlui-document-name__input__wrapper {
 	position: relative;
 	max-width: calc(100% - 40px);
@@ -368,9 +367,7 @@
 	width: 40px;
 	height: 40px;
 }
-.tlui-document-name__menu::after {
-	border-radius: var(--radius-2);
-}
+
 .tlui-document-name__input__wrapper:focus-within + .tlui-document-name__menu::after {
 	/* when the input is focused, its outline is flush against the menu button which doesn't look
 	good. This shifts the left-hand edge of the menu button over by 2px to give it a little
