@@ -48,7 +48,7 @@ export const DocumentTopZone = track(function DocumentTopZone({
 	)
 })
 
-function DocumentNameInner() {
+export const DocumentNameInner = track(function DocumentNameInner() {
 	const [state, setState] = useState<NameState>({ name: null, isEditing: false })
 	const actions = useActions()
 	const forkAction = actions[FORK_PROJECT_ACTION]
@@ -109,7 +109,7 @@ function DocumentNameInner() {
 			</DropdownMenu.Root>
 		</div>
 	)
-}
+})
 
 function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 	const ref = useRef<HTMLDivElement>(null)
@@ -174,7 +174,7 @@ function getName(state: NameState, document: TLDocument) {
 	return document.name
 }
 
-function DocumentNameEditor({
+const DocumentNameEditor = track(function DocumentNameEditor({
 	state,
 	setState,
 }: {
@@ -271,7 +271,7 @@ function DocumentNameEditor({
 			)}
 		</div>
 	)
-}
+})
 
 function addRealSpaceForWhitespace(string: string) {
 	if (string === '') string = ' '
