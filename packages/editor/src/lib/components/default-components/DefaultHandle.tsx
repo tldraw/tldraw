@@ -25,14 +25,6 @@ export const DefaultHandle: TLHandleComponent = ({ handle, isCoarse, className, 
 	const bgRadius = (isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoom
 	const fgRadius = (handle.type === 'create' && isCoarse ? 3 : 4) / zoom
 
-	if (handle.type === 'text-adjust') {
-		return (
-			<g className={classNames('tl-handle', className)}>
-				<rect fill="transparent" width={handle.w} height={handle.h} />
-			</g>
-		)
-	}
-
 	return (
 		<g
 			className={classNames(
