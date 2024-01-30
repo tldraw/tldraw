@@ -67,7 +67,7 @@ function DocumentNameInner() {
 						className="tlui-document-name__menu tlui-menu__trigger flex-none"
 					/>
 				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end" alignOffset={0} sideOffset={6}>
+				<DropdownMenu.Content align="end" alignOffset={4} sideOffset={6}>
 					<DropdownMenu.Group>
 						<DropdownMenu.Item
 							type="menu"
