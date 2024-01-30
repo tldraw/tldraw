@@ -19,6 +19,7 @@ export default function ExampleCodeBlock({
 	const SERVER =
 		process.env.NODE_ENV === 'development' ? 'http://localhost:5420' : 'https://examples.tldraw.com'
 
+	// This is to avoid hydration mismatch between the server and the client because of the useTheme.
 	if (!isClientSide) {
 		return null
 	}
