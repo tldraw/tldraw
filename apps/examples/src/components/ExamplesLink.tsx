@@ -2,11 +2,11 @@ import classNames from 'classnames'
 import { ForwardedRef, forwardRef, useEffect, useId, useLayoutEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Example } from '../examples'
-import { useMergedRefs } from '../hooks/useMegedRefs'
+import { useMergedRefs } from '../hooks/useMergedRefs'
 import { StandaloneIcon } from './Icons'
 import { Markdown } from './Markdown'
 
-export const ListLink = forwardRef(function ListLink(
+export const ExamplesLink = forwardRef(function ListLink(
 	{
 		example,
 		isActive,
@@ -40,7 +40,7 @@ export const ListLink = forwardRef(function ListLink(
 
 	const mainDetails = (
 		<>
-			<h3 id={id}>
+			<h3 className="examples__list__item__heading" id={id}>
 				{example.title}
 				{isActive && (
 					<Link
@@ -66,7 +66,7 @@ export const ListLink = forwardRef(function ListLink(
 			{!showDescriptionWhenInactive && <Markdown sanitizedHtml={example.description} />}
 			<Markdown sanitizedHtml={example.details} />
 			<div className="examples__list__item__code">
-				<a href={example.codeUrl} target="_blank" rel="noreferrer">
+				<a className="link__button" href={example.codeUrl} target="_blank" rel="noreferrer">
 					View code
 				</a>
 				{/* <a
@@ -81,7 +81,7 @@ export const ListLink = forwardRef(function ListLink(
 	)
 
 	return (
-		<li
+		<span
 			ref={useMergedRefs(ref, containerRef)}
 			className={classNames('examples__list__item', isActive && 'examples__list__item__active')}
 		>
@@ -90,6 +90,6 @@ export const ListLink = forwardRef(function ListLink(
 			)}
 			{mainDetails}
 			{extraDetails}
-		</li>
+		</span>
 	)
 })

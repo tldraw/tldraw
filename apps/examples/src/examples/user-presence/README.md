@@ -1,6 +1,8 @@
 ---
 title: User Presence
 component: ./UserPresenceExample.tsx
+category: collaboration
+priority: 2
 ---
 
 Show other users editing the same document.

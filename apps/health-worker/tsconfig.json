@@ -1,0 +1,11 @@
+{
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", ".tsbuild*"],
+	"compilerOptions": {
+		"noEmit": true,
+		"emitDeclarationOnly": false,
+		"types": ["@cloudflare/workers-types", "@types/node"]
+	},
+	"references": []
+}

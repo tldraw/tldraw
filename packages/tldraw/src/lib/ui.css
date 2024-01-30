@@ -33,7 +33,6 @@
 	font-size: 12px;
 	gap: 0px;
 	color: var(--color-text-1);
-	text-shadow: 1px 1px var(--color-text-shadow);
 }
 
 .tlui-button:disabled {
@@ -495,7 +494,9 @@
 
 .tlui-slider__thumb:active {
 	cursor: grabbing;
-	box-shadow: inset 0px 0px 0px 2px var(--color-text-1), var(--shadow-1);
+	box-shadow:
+		inset 0px 0px 0px 2px var(--color-text-1),
+		var(--shadow-1);
 }
 
 .tlui-slider__thumb:focus-visible {
@@ -526,6 +527,10 @@
 	margin: 0px;
 	padding: 2px;
 	border-radius: 2px;
+}
+
+.tlui-kbd > span:last-child {
+	padding-right: 0;
 }
 
 .tlui-kbd:not(:last-child) {
@@ -575,7 +580,7 @@
 	width: 100%;
 	display: grid;
 	align-items: center;
-	grid-template-columns: 1fr auto auto;
+	grid-template-columns: 1fr auto auto auto;
 	justify-content: space-between;
 	padding-left: var(--space-4);
 	border-top: 1px solid var(--color-background);
@@ -587,6 +592,15 @@
 
 .tlui-debug-panel__current-state {
 	white-space: nowrap;
+}
+
+.tlui-debug-panel__fps {
+	margin-right: 8px;
+}
+
+.tlui-debug-panel__fps__slow {
+	font-weight: bold;
+	color: var(--color-warn);
 }
 
 /* -------------------- Menu Zone ------------------- */

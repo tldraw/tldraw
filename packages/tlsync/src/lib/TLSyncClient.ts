@@ -582,6 +582,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
 		} catch (e) {
 			console.error(e)
+			this.store.ensureStoreIsUsable()
 			this.resetConnection()
 		}
 	}

@@ -516,7 +516,6 @@ input,
 	fill: transparent;
 	stroke: transparent;
 	pointer-events: all;
-	cursor: var(--tl-cursor-grabbing);
 }
 
 .tl-handle__fg {
@@ -524,6 +523,16 @@ input,
 	stroke: var(--color-selection-stroke);
 	stroke-width: calc(1.5px * var(--tl-scale));
 	pointer-events: none;
+}
+
+.tl-handle__text-adjust {
+	cursor: var(--tl-cursor-grab);
+	fill: transparent;
+}
+
+.tl-handle__text-adjust:hover {
+	stroke-width: calc(2px * var(--tl-scale));
+	stroke: var(--color-selection-stroke);
 }
 
 .tl-handle__create {
@@ -778,9 +787,9 @@ input,
 
 .tl-text-measure {
 	position: absolute;
-	z-index: 999999;
-	top: -9999px;
-	right: -9999px;
+	z-index: -999999;
+	top: 0px;
+	left: 0px;
 	opacity: 0;
 	width: max-content;
 	box-sizing: border-box;

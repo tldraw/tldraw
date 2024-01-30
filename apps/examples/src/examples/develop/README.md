@@ -1,7 +1,8 @@
 ---
 title: Basic
 component: ./BasicExample.tsx
-order: 1
+category: basic
+priority: 1
 ---
 
 The easiest way to get started with tldraw.

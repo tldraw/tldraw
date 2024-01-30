@@ -101,3 +101,9 @@ export const EDGE_SCROLL_DISTANCE = 8
 
 /** @internal */
 export const COARSE_POINTER_WIDTH = 12
+
+/** @internal */
+export const COARSE_HANDLE_RADIUS = 20
+
+/** @internal */
+export const HANDLE_RADIUS = 12
