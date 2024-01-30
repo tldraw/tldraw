@@ -1,6 +1,8 @@
 ---
 title: Shape meta
 component: ./ShapeMetaExample.tsx
+category: data/assets
+priority: 3
 ---
 
 Add a label to shapes with the meta property.

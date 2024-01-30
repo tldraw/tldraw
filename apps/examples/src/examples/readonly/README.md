@@ -1,6 +1,8 @@
 ---
 title: Readonly
 component: ./ReadOnlyExample
+category: basic
+priority: 2
 ---
 
 Use the editor in readonly mode.
