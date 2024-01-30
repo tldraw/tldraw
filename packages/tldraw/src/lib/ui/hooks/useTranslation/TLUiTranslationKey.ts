@@ -59,6 +59,7 @@ export type TLUiTranslationKey =
 	| 'action.print'
 	| 'action.redo'
 	| 'action.remove-frame'
+	| 'action.rename'
 	| 'action.rotate-ccw'
 	| 'action.rotate-cw'
 	| 'action.save-copy'

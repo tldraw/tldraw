@@ -59,6 +59,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.print': 'Print',
 	'action.redo': 'Redo',
 	'action.remove-frame': 'Remove frame',
+	'action.rename': 'Rename',
 	'action.rotate-ccw': 'Rotate counterclockwise',
 	'action.rotate-cw': 'Rotate clockwise',
 	'action.save-copy': 'Save a copy',

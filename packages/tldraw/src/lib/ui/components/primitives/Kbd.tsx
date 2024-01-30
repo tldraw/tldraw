@@ -5,7 +5,7 @@ export interface KbdProps {
 	children: string
 }
 
-/** @internal */
+/** @public */
 export function Kbd({ children }: KbdProps) {
 	return (
 		<kbd className="tlui-kbd">

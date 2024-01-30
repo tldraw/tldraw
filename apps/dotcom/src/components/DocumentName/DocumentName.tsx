@@ -1,6 +1,7 @@
 import {
 	Button,
 	DropdownMenu,
+	Kbd,
 	OfflineIndicator,
 	TLDocument,
 	track,
@@ -72,14 +73,14 @@ function DocumentNameInner() {
 					<DropdownMenu.Group>
 						<DropdownMenu.Item
 							type="menu"
-							onClick={() => {
-								saveFile.onSelect('document-name')
-							}}
+							id="rename"
+							onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
 						>
-							<span className={'tlui-button__label' as any}>{msg(saveFile.label!)}</span>
+							<span className={'tlui-button__label' as any}>{msg('action.rename')}</span>
 						</DropdownMenu.Item>
 						<DropdownMenu.Item
 							type="menu"
+							id="copy-link"
 							onClick={() => {
 								const shareLink = getShareUrl(
 									window.location.href,
@@ -90,21 +91,18 @@ function DocumentNameInner() {
 						>
 							<span className={'tlui-button__label' as any}>Copy link</span>
 						</DropdownMenu.Item>
-						<DropdownMenu.Item type="menu" onClick={() => fork.onSelect('document-name')}>
-							<span className={'tlui-button__label' as any}>
-								{msg(fork.label!)}
-								{/* Rename */}
-								{/* {msg('document.rename')} */}
-							</span>
-						</DropdownMenu.Item>
 						<DropdownMenu.Item
 							type="menu"
-							onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
+							id="save-file-copy"
+							onClick={() => {
+								saveFile.onSelect('document-name')
+							}}
 						>
-							<span className={'tlui-button__label' as any}>
-								Rename
-								{/* {msg('document.rename')} */}
-							</span>
+							<span className={'tlui-button__label' as any}>{msg(saveFile.label!)}</span>
+							{saveFile.kbd && <Kbd>{saveFile.kbd}</Kbd>}
+						</DropdownMenu.Item>
+						<DropdownMenu.Item type="menu" id="fork" onClick={() => fork.onSelect('document-name')}>
+							<span className={'tlui-button__label' as any}>{msg(fork.label!)}</span>
 						</DropdownMenu.Item>
 					</DropdownMenu.Group>
 				</DropdownMenu.Content>
