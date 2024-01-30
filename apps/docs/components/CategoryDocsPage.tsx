@@ -23,9 +23,11 @@ export async function CategoryDocsPage({ category }: { category: Category }) {
 				{articles.length > 0 && (
 					<ul>
 						{articles.map((article) => (
-							<li><Link key={article.id} href={`/${section.id}/${category.id}/${article.id}`}>
-								{article.title}
-							</Link></li>
+							<li>
+								<Link key={article.id} href={`/${section.id}/${category.id}/${article.id}`}>
+									{article.title}
+								</Link>
+							</li>
 						))}
 					</ul>
 				)}

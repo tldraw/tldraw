@@ -774,10 +774,10 @@ body {
 	font-size: 14px;
 }
 
-.sidebar a {
+.sidebar a,
+.sidebar .sidebar__link {
 	font-weight: bold;
 	text-decoration: none;
-	cursor: pointer;
 }
 
 .sidebar hr {
@@ -787,6 +787,10 @@ body {
 	width: calc(100% - 8px);
 	background-color: var(--color-tint-2);
 	border: none;
+}
+
+.sidebar__section__links {
+	display: none;
 }
 
 .sidebar__list {
@@ -890,13 +894,14 @@ body {
 }
 
 @media (hover: hover) {
-	.sidebar__link:hover {
+	a.sidebar__link:hover {
+		cursor: pointer;
 		color: var(--color-text);
 		transition: background-color 0.12s ease-in-out;
 		transition-delay: 0.1s;
 	}
 
-	.sidebar__link:not([data-active='true']):hover {
+	a.sidebar__link:not([data-active='true']):hover {
 		--bg: var(--color-tint-1);
 	}
 }
@@ -1128,6 +1133,23 @@ body {
 		grid-gap: 40px;
 	}
 
+	.layout__header .layout__header__sections_and_socials .layout_header__section,
+	.layout__header .layout__header__sections_and_socials .NavigationMenuRoot {
+		display: none;
+	}
+
+	.sidebar__section__links {
+		display: flex;
+		justify-content: space-around;
+		padding: 16px 0;
+		border-top: 1px solid var(--color-accent);
+		border-bottom: 1px solid var(--color-accent);
+	}
+
+	.NavigationMenuTrigger {
+		font-weight: bold;
+	}
+
 	.menu__button {
 		display: flex;
 		pointer-events: all;
@@ -1311,4 +1333,92 @@ html[data-theme='light'] .hero__dark {
 	.article__image {
 		margin: 0px -16px;
 	}
+}
+
+/* ------------------- Menus ------------------ */
+
+.NavigationMenuRoot {
+	position: relative;
+}
+
+.NavigationMenuList {
+	list-style: none;
+	margin: 0;
+}
+
+.NavigationMenuTrigger {
+	outline: none;
+	user-select: none;
+	border: 0;
+	background: none;
+	background-color: transparent;
+	transition: background-color 0.12s ease-in-out;
+	transition-delay: 0.1s;
+	border-radius: 4px;
+	margin: 0 4px;
+	padding: 8px 12px;
+	height: 44px;
+	white-space: nowrap;
+}
+
+.NavigationMenuTrigger span {
+	text-decoration: none;
+	font-size: 14px;
+	color: var(--color-text);
+}
+
+@media (hover: hover) {
+	.NavigationMenuTrigger:hover {
+		background-color: var(--color-tint-1);
+	}
+}
+
+.NavigationMenuContent {
+	position: absolute;
+  width: 100%;
+  top: calc(100% + 4px);
+  left: 4px;
+	overflow: hidden;
+	border-radius: 4px;
+	background-color: var(--color-background);
+	box-shadow: var(--shadow-small);
+}
+
+.NavigationMenuContent li {
+	list-style: none;
+}
+
+.NavigationMenuContent li a {
+	display: block;
+	text-decoration: none;
+	color: var(--color-text);
+	font-size: 14px;
+	padding: 8px 12px;
+	background-color: transparent;
+}
+
+@media (hover: hover) {
+	.NavigationMenuContent li a:hover {
+		background-color: var(--color-tint-1);
+	}
+}
+
+.NavigationMenuViewport {
+  position: relative;
+  width: 100%;
+  height: var(--radix-navigation-menu-viewport-height);
+}
+@media only screen and (min-width: 600px) {
+  .NavigationMenuViewport {
+    width: var(--radix-navigation-menu-viewport-width);
+  }
+}
+
+.CaretDown {
+	position: relative;
+	top: 3px;
+	transition: transform 250ms ease;
+}
+[data-state='open'] > .CaretDown {
+	transform: rotate(-180deg);
 }

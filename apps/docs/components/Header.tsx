@@ -1,5 +1,9 @@
+'use client'
+
+import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import Link from 'next/link'
 import { Icon } from './Icon'
+import { Chevron } from './Icons'
 import { Search } from './Search'
 import { ThemeSwitcher } from './ThemeSwitcher'
 
@@ -14,7 +18,7 @@ export function Header({
 }) {
 	return (
 		<div className="layout__header">
-			<Link href="/">
+			<Link href="/quick-start">
 				<div
 					className="lockup"
 					style={{
@@ -25,39 +29,7 @@ export function Header({
 			</Link>
 			<Search prevQuery={searchQuery} prevType={searchType} />
 			<div className="layout__header__sections_and_socials">
-				<a
-					href="/quick-start"
-					title="Learn"
-					data-active={sectionId === 'getting-started'}
-					className="layout_header__section"
-				>
-					Learn
-				</a>
-				<a
-					href="/reference/editor/Editor"
-					title="Reference"
-					data-active={sectionId === 'reference'}
-					className="layout_header__section"
-				>
-					Reference
-				</a>
-				<a
-					href="/examples/basic/develop"
-					title="Examples"
-					data-active={sectionId === 'examples'}
-					className="layout_header__section"
-				>
-					Examples
-				</a>
-				<a
-					href="/community"
-					title="Community"
-					data-active={sectionId === 'community'}
-					className="layout_header__section"
-				>
-					Community
-				</a>
-
+				<SectionLinks sectionId={sectionId} />
 				<ThemeSwitcher />
 				<a
 					href="https://discord.com/invite/SBBEVCA4PG"
@@ -75,5 +47,82 @@ export function Header({
 				</a>
 			</div>
 		</div>
+	)
+}
+
+export function SectionLinks({ sectionId }: { sectionId?: string | null }) {
+	return (
+		<>
+			<a
+				href="/quick-start"
+				title="Learn"
+				data-active={!['reference', 'examples'].includes(sectionId || '')}
+				className="layout_header__section"
+			>
+				Learn
+			</a>
+			<a
+				href="/reference/editor/Editor"
+				title="Reference"
+				data-active={sectionId === 'reference'}
+				className="layout_header__section"
+			>
+				Reference
+			</a>
+			<a
+				href="/examples/basic/develop"
+				title="Examples"
+				data-active={sectionId === 'examples'}
+				className="layout_header__section"
+			>
+				Examples
+			</a>
+
+			<NavigationMenu.Root className="NavigationMenuRoot">
+				<NavigationMenu.List className="NavigationMenuList">
+					<NavigationMenu.Item>
+						<NavigationMenu.Trigger
+							className="NavigationMenuTrigger"
+							onPointerMove={(event) => event.preventDefault()}
+							onPointerLeave={(event) => event.preventDefault()}
+						>
+							<span>
+								Community <Chevron className="CaretDown" aria-hidden />
+							</span>
+						</NavigationMenu.Trigger>
+						<NavigationMenu.Content
+							className="NavigationMenuContent"
+							onPointerMove={(event) => event.preventDefault()}
+							onPointerLeave={(event) => event.preventDefault()}
+						>
+							<ul>
+								<li>
+									<NavigationMenu.Link asChild>
+										<a href="/community/contributing">Contributing</a>
+									</NavigationMenu.Link>
+								</li>
+								<li>
+									<NavigationMenu.Link asChild>
+										<a href="/community/translations">Translations</a>
+									</NavigationMenu.Link>
+								</li>
+								<li>
+									<NavigationMenu.Link asChild>
+										<a href="/community/license">License</a>
+									</NavigationMenu.Link>
+								</li>
+								<li>
+									<NavigationMenu.Link asChild>
+										<a href="https://discord.com/invite/SBBEVCA4PG" target="_blank">
+											Discord
+										</a>
+									</NavigationMenu.Link>
+								</li>
+							</ul>
+						</NavigationMenu.Content>
+					</NavigationMenu.Item>
+				</NavigationMenu.List>
+			</NavigationMenu.Root>
+		</>
 	)
 }

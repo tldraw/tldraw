@@ -2,6 +2,7 @@
 
 import { SandpackCodeEditor, SandpackFiles, SandpackProvider } from '@codesandbox/sandpack-react'
 import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 
 export default function ExampleCodeBlock({
 	articleId,
@@ -12,12 +13,20 @@ export default function ExampleCodeBlock({
 	activeFile: string
 	files: SandpackFiles
 }) {
+	const [isClientSide, setIsClientSide] = useState(false)
 	const { theme } = useTheme()
+	useEffect(() => setIsClientSide(true), [])
+	const SERVER =
+		process.env.NODE_ENV === 'development' ? 'http://localhost:5420' : 'https://examples.tldraw.com'
+
+	if (!isClientSide) {
+		return null
+	}
 
 	return (
-		<div>
+		<>
 			<iframe
-				src={`http://localhost:5420/${articleId}/full`}
+				src={`${SERVER}/${articleId}/full`}
 				style={{ border: 0, height: '50vh', width: '100%' }}
 			/>
 			<SandpackProvider
@@ -33,11 +42,10 @@ export default function ExampleCodeBlock({
 				files={{
 					...files,
 				}}
-				// theme={theme === 'dark' ? 'dark' : 'light'}  // TODO fix
-				theme="dark"
+				theme={theme === 'dark' ? 'dark' : 'light'}
 			>
 				<SandpackCodeEditor readOnly />
 			</SandpackProvider>
-		</div>
+		</>
 	)
 }
