@@ -46,6 +46,9 @@
 		"lodash.isequal": "^4.5.0",
 		"nanoid": "4.0.2"
 	},
+	"peerDependencies": {
+		"react": "^18"
+	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
 		"@types/lodash.isequal": "^4.5.6",
