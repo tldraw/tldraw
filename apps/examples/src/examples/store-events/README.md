@@ -1,7 +1,7 @@
 ---
 title: Store events
 component: ./StoreEventsExample.tsx
-category: editor
+category: editor-api
 priority: 2
 ---
 

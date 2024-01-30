@@ -8,17 +8,17 @@ import { getApiMarkdown } from './getApiMarkdown'
 
 export async function createApiMarkdown() {
 	const apiInputSection: InputSection = {
-		id: 'gen' as string,
+		id: 'reference' as string,
 		title: 'API Reference',
 		description: "Reference for the tldraw package's APIs (generated).",
 		categories: [],
-		sidebar_behavior: 'show-title',
+		sidebar_behavior: 'reference',
 	}
 
 	const addedCategories = new Set<string>()
 
 	const INPUT_DIR = path.join(process.cwd(), 'api')
-	const OUTPUT_DIR = path.join(CONTENT_DIR, 'gen')
+	const OUTPUT_DIR = path.join(CONTENT_DIR, 'reference')
 
 	if (fs.existsSync(OUTPUT_DIR)) {
 		fs.rmSync(OUTPUT_DIR, { recursive: true })
@@ -85,7 +85,7 @@ export async function createApiMarkdown() {
 	const sectionsJsonPath = path.join(CONTENT_DIR, 'sections.json')
 	const sectionsJson = JSON.parse(fs.readFileSync(sectionsJsonPath, 'utf8')) as InputSection[]
 	sectionsJson.splice(
-		sectionsJson.findIndex((s) => s.id === 'gen'),
+		sectionsJson.findIndex((s) => s.id === 'reference'),
 		1
 	)
 	sectionsJson.push(apiInputSection)

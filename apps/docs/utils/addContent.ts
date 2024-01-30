@@ -35,10 +35,12 @@ export async function addContentToDb(
       status,
       date,
       sourceUrl,
+			componentCode,
+			componentCodeFiles,
       keywords,
       content,
 			path
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 
 	for (let i = 0; i < content.sections.length; i++) {
@@ -46,7 +48,7 @@ export async function addContentToDb(
 		try {
 			await sectionInsert.run(
 				section.id,
-				section.id === 'gen' ? 99999 : i,
+				section.id === 'reference' ? 99999 : i,
 				section.title,
 				section.description,
 				section.path,
@@ -92,6 +94,8 @@ export async function addContentToDb(
 			article.status,
 			article.date,
 			article.sourceUrl,
+			article.componentCode,
+			article.componentCodeFiles,
 			article.keywords.join(', '),
 			article.content,
 			article.path

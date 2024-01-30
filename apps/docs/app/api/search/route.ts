@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
 
 		await searchForArticle.all(query).then(async (queryResults) => {
 			for (const article of queryResults) {
-				const isApiDoc = article.sectionId === 'gen'
+				const isApiDoc = article.sectionId === 'reference'
 				const section = await db.getSection(article.sectionId)
 				const category = await db.getCategory(article.categoryId)
 				const isUncategorized = category.id === section.id + '_ucg'
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
 				if (BANNED_HEADINGS.some((h) => heading.slug.endsWith(h))) continue
 				const article = await db.getArticle(heading.articleId)
 
-				const isApiDoc = article.sectionId === 'gen'
+				const isApiDoc = article.sectionId === 'reference'
 				const section = await db.getSection(article.sectionId)
 				const category = await db.getCategory(article.categoryId)
 				const isUncategorized = category.id === section.id + '_ucg'
@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
 					type: 'heading',
 					subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
 					title:
-						section.id === 'gen'
+						section.id === 'reference'
 							? article.title + '.' + heading.title
 							: article.title + ': ' + heading.title,
 					url: isUncategorized
