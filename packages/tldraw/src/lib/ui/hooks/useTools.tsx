@@ -211,7 +211,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		toolsArray.push({
 			id: 'highlight',
 			label: 'tool.highlight',
-			readonlyOk: true,
+			readonlyOk: false,
 			icon: 'tool-highlight',
 			// TODO: pick a better shortcut
 			kbd: '!d',

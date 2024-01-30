@@ -1,7 +1,8 @@
 ---
 title: Persistence
 component: ./PersistenceExample.tsx
-order: 5
+category: collaboration
+priority: 1
 ---
 
 Save the contents of the editor

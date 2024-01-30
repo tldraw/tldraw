@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { createQRCodeImageDataString } from '../utils/qrcode'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
+import { ShareButton } from './ShareButton'
 
 type ShareState = {
 	state: 'offline' | 'shared' | 'readonly'
@@ -93,12 +94,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	return (
 		<Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<Popover.Trigger dir="ltr" asChild>
-				<Button
-					type="normal"
-					className="tlui-share-zone__button"
-					title={msg('share-menu.title')}
-					label={'share-menu.title'}
-				/>
+				<ShareButton title={'share-menu.title'} label={'share-menu.title'} />
 			</Popover.Trigger>
 			<Popover.Portal container={container}>
 				<Popover.Content
@@ -107,6 +103,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 					align="end"
 					side="bottom"
 					sideOffset={2}
+					alignOffset={4}
 				>
 					{shareState.state === 'shared' || shareState.state === 'readonly' ? (
 						<>
