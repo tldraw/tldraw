@@ -26,6 +26,12 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Check version constraints
+        run: yarn constraints
+
+      - name: Check for duplicate dependencies
+        run: yarn dedupe --check
+
       - name: Typecheck
         run: yarn build-types
 
@@ -37,9 +43,6 @@ jobs:
 
       - name: Check API declarations and docs work as intended
         run: yarn api-check
-
-      - name: Check version constraints
-        run: yarn constraints
 
       - name: Test
         run: yarn test

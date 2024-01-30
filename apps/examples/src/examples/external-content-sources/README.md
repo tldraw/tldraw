@@ -1,6 +1,8 @@
 ---
 title: External content sources
 component: ./ExternalContentSourcesExample.tsx
+category: data/assets
+priority: 2
 ---
 
 Control what happens when the user pastes content into the editor.
