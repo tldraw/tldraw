@@ -3,7 +3,7 @@ import { JsonChunkAssembler, chunk } from '../lib/chunk'
 describe('chunk', () => {
 	it('chunks a string', () => {
 		expect(chunk('hello there my good world', 5)).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "8_h",
 		  "7_ell",
 		  "6_o t",
@@ -17,7 +17,7 @@ describe('chunk', () => {
 	`)
 
 		expect(chunk('hello there my good world', 10)).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "3_h",
 		  "2_ello the",
 		  "1_re my go",
@@ -29,7 +29,7 @@ describe('chunk', () => {
 	it('does not chunk the string if it is small enough', () => {
 		const chunks = chunk('hello', 100)
 		expect(chunks).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "hello",
 		]
 	`)
@@ -38,7 +38,7 @@ describe('chunk', () => {
 	it('makes sure the chunk length does not exceed the given message size', () => {
 		const chunks = chunk('dark and stormy tonight', 4)
 		expect(chunks).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "12_d",
 		  "11_a",
 		  "10_r",
@@ -59,7 +59,7 @@ describe('chunk', () => {
 	it('does its best if the chunk size is too small', () => {
 		const chunks = chunk('once upon a time', 1)
 		expect(chunks).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "15_o",
 		  "14_n",
 		  "13_c",
@@ -109,9 +109,12 @@ describe('json unchunker', () => {
 			const result = unchunker.handleMessage(chunk)
 			expect(result).toBeNull()
 		}
-		expect(
-			unchunker.handleMessage(chunks[chunks.length - 1])?.error?.message
-		).toMatchInlineSnapshot(`"Unexpected token w in JSON at position 10"`)
+
+		const node18Error = `Unexpected token w in JSON at position 10`
+		const node20Error = `Unexpected token 'w', "\\{"hello": world"}" is not valid JSON`
+		expect(unchunker.handleMessage(chunks[chunks.length - 1])?.error?.message).toMatch(
+			new RegExp(`${node18Error}|${node20Error}`)
+		)
 
 		// and the next one should be fine
 		expect(unchunker.handleMessage('{"ok": true}')).toEqual({ data: { ok: true } })
@@ -152,7 +155,7 @@ describe('json unchunker', () => {
 		// it only likes json objects
 		const unchunker = new JsonChunkAssembler()
 		expect(unchunker.handleMessage('["yo"]')?.error?.message).toMatchInlineSnapshot(
-			`"Invalid chunk: \\"[\\\\\\"yo\\\\\\"]...\\""`
+			`"Invalid chunk: "[\\"yo\\"]...""`
 		)
 
 		// and the next one should be fine
