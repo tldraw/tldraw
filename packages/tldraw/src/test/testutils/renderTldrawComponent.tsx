@@ -17,6 +17,6 @@ export async function renderTldrawComponent(
 	{ waitForPatterns = true } = {}
 ) {
 	const result = render(element)
-	if (waitForPatterns) await result.findByTestId('hash_pattern_zoom_1_light')
+	if (waitForPatterns) await result.findByTestId('ready-pattern-fill-defs')
 	return result
 }
