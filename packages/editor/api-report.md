@@ -1039,6 +1039,9 @@ export abstract class Geometry2d {
     _vertices: undefined | Vec[];
 }
 
+// @public
+export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
+
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
     start: Vec;
@@ -1089,6 +1092,9 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
     button: number;
     isPen: boolean;
 };
+
+// @public
+export function getPointInArcT(mAB: number, A: number, B: number, P: number): number;
 
 // @public
 export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;

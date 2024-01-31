@@ -413,10 +413,10 @@ export function getPointInArcT(mAB: number, A: number, B: number, P: number): nu
 /**
  * Get the measure of an arc.
  *
- * @param A The angle from center to arc's start point (A) on the circle
- * @param B The angle from center to arc's end point (B) on the circle
- * @param sweepFlag 1 if the arc is clockwise, 0 if counter-clockwise
- * @param largeArcFlag 1 if the arc is greater than 180 degrees, 0 if less than 180 degrees
+ * @param A - The angle from center to arc's start point (A) on the circle
+ * @param B - The angle from center to arc's end point (B) on the circle
+ * @param sweepFlag - 1 if the arc is clockwise, 0 if counter-clockwise
+ * @param largeArcFlag - 1 if the arc is greater than 180 degrees, 0 if less than 180 degrees
  *
  * @returns The measure of the arc, negative if counter-clockwise
  *

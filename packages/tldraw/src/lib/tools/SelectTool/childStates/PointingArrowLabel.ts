@@ -8,8 +8,8 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
+	getPointInArcT,
 } from '@tldraw/editor'
-import { getPointInArcT } from '@tldraw/editor/src/lib/primitives/utils'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'

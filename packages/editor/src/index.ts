@@ -318,6 +318,8 @@ export {
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
 	degreesToRadians,
+	getArcMeasure,
+	getPointInArcT,
 	getPointOnCircle,
 	getPolygonVertices,
 	isSafeFloat,
