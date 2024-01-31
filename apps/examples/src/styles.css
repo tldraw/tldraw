@@ -30,6 +30,10 @@ html,
 	box-sizing: border-box;
 }
 
+#root {
+	height: 100%;
+}
+
 .tl-wrapper {
 	overscroll-behavior: none;
 	touch-action: none;

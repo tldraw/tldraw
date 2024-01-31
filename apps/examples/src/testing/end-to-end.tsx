@@ -7,7 +7,7 @@ import { useEffect } from 'react'
 export default function EndToEnd() {
 	return (
 		<Tldraw
-			style={{ width: '100vw', height: '100vh' }}
+			style={{ width: '100%', height: '100%' }}
 			onMount={(editor) => {
 				editor.on('event', (info) => {
 					;(window as any).__tldraw_editor_events.push(info)
