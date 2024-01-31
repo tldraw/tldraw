@@ -103,15 +103,18 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 		// check that sequences are valid and included in linear order
 		for (const { sequence, versionAtInstallation } of sequences) {
-			const firstUsedMigrationIdx = sequence.migrations.findIndex((m) => m.id === versionAtInstallation) + 1
+			const firstUsedMigrationIdx =
+				sequence.migrations.findIndex((m) => m.id === versionAtInstallation) + 1
 			if (firstUsedMigrationIdx === 0 && versionAtInstallation !== 'root') {
 				throw new Error(`Missing versionAtInstallation id ${str(versionAtInstallation)}`)
 			}
-			const unusedMigrationIds = sequence.migrations.slice(0, firstUsedMigrationIdx).map((m) => m.id)
+			const unusedMigrationIds = sequence.migrations
+				.slice(0, firstUsedMigrationIdx)
+				.map((m) => m.id)
 
 			// if any unused are present in `order` it's an error
 			for (const unusedMigrationId of unusedMigrationIds) {
-				if (!unusedMigrationId.startsWith(sequence.id) + '/') {
+				if (!unusedMigrationId.startsWith(sequence.id + '/')) {
 					throw new Error(
 						`Migration id ${str(unusedMigrationId)} must start with ${str(sequence.id)}`
 					)
@@ -135,7 +138,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			const missingMigrations = []
 			let lastIdx = -1
 			for (const migration of usedMigrations) {
-				if (!migration.id.startsWith(sequence.id) + '/') {
+				if (!migration.id.startsWith(sequence.id + '/')) {
 					throw new Error(`Migration id ${str(migration.id)} must start with ${str(sequence.id)}`)
 				}
 				if (migrations.has(migration.id)) {
