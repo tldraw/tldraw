@@ -7,6 +7,7 @@ const ids = {
 	box1: createShapeId('box1'),
 	line1: createShapeId('line1'),
 	embed1: createShapeId('embed1'),
+	arrow1: createShapeId('arrow1'),
 }
 
 jest.useFakeTimers()
@@ -162,6 +163,56 @@ describe('DraggingHandle', () => {
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.dragging_handle')
 		editor.cancel()
+		editor.expectToBeIn('select.idle')
+	})
+})
+
+describe('PointingLabel', () => {
+	it('Enters from pointing_arrow_label and exits to idle', () => {
+		editor.createShapes([
+			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		])
+		const shape = editor.getShape(ids.arrow1)
+		editor.pointerDown(150, 150, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Bails on escape', () => {
+		editor.createShapes([
+			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		])
+		const shape = editor.getShape(ids.arrow1)
+
+		editor.pointerDown(150, 150, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
+		editor.createShapes([
+			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		])
+		const shape = editor.getShape(ids.arrow1)
+		editor.pointerDown(0, 150, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.translating')
+
+		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
 	})
 })
