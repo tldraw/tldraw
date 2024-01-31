@@ -8,11 +8,11 @@ import {
 	TldrawSelectionBackground,
 	TldrawSelectionForeground,
 	TldrawUi,
+	TldrawWrapper,
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
 } from '@tldraw/tldraw'
-import { TldrawWrapper } from '@tldraw/tldraw/src/lib/TldrawWrapper'
 import '@tldraw/tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!

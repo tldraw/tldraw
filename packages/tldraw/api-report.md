@@ -24,6 +24,7 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
 import { Mat } from '@tldraw/editor';
 import { MatModel } from '@tldraw/editor';
+import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -1341,6 +1342,16 @@ export interface TldrawUiContextProviderProps {
 
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
+
+// @public (undocumented)
+export const TldrawWrapper: MemoExoticComponent<({ style, className, children }: TldrawWrapperProps) => JSX_2.Element>;
+
+// @public (undocumented)
+export type TldrawWrapperProps = {
+    style?: React.CSSProperties;
+    className?: string;
+    children?: React.ReactNode;
+};
 
 // @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {

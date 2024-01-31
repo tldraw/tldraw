@@ -15214,6 +15214,100 @@
           }
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!TldrawWrapper:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TldrawWrapper: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "MemoExoticComponent",
+              "canonicalReference": "@types/react!React.MemoExoticComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<({ style, className, children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TldrawWrapperProps",
+              "canonicalReference": "@tldraw/tldraw!TldrawWrapperProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/TldrawWrapper.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TldrawWrapper",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 8
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TldrawWrapperProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TldrawWrapperProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    style?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.CSSProperties",
+              "canonicalReference": "@types/react!React.CSSProperties:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    className?: string;\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/TldrawWrapper.d.ts",
+          "releaseTag": "Public",
+          "name": "TldrawWrapperProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
+          }
+        },
+        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/tldraw!TLUiActionItem:interface",
           "docComment": "/**\n * @public\n */\n",
