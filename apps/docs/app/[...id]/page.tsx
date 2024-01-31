@@ -17,7 +17,7 @@ async function getContentForPath(path: string) {
 	const article = await db.db.get(`SELECT * FROM articles WHERE articles.path = ?`, path)
 	if (article) return { type: 'article', article } as const
 
-	throw Error(`No content found for ${path}`)
+	throw notFound()
 }
 
 export async function generateMetadata({ params }: { params: { id: string | string[] } }) {
