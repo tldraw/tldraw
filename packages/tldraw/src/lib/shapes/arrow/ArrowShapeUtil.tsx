@@ -18,8 +18,6 @@ import {
 	TLHandle,
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
-	TLOnLabelDragHandler,
-	TLOnLabelDragStartHandler,
 	TLOnResizeHandler,
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
@@ -29,8 +27,6 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	clockwiseAngleDist,
-	counterClockwiseAngleDist,
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
@@ -177,19 +173,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		].filter(Boolean) as TLHandle[]
 	}
 
-	private _labelDragOffset = new Vec(0, 0)
-	override onLabelDragStart: TLOnLabelDragStartHandler<TLArrowShape> = (shape) => {
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const labelGeometry = geometry.children[1] as Rectangle2d
-		if (labelGeometry) {
-			const pointInShapeSpace = this.editor.getPointInShapeSpace(
-				shape,
-				this.editor.inputs.currentPagePoint
-			)
-			this._labelDragOffset = Vec.Sub(labelGeometry.center, pointInShapeSpace)
-		}
-	}
-
 	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
 		const handleId = handle.id as ARROW_HANDLES
 
@@ -319,41 +302,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				}
 			}
 		}
-
-		return next
-	}
-
-	override onLabelDrag: TLOnLabelDragHandler<TLArrowShape> = (shape) => {
-		const next = deepCopy(shape) as TLArrowShape
-		const info = this.editor.getArrowInfo(shape)!
-
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const lineGeometry = geometry.children[0] as Geometry2d
-		const pointInShapeSpace = this.editor.getPointInShapeSpace(
-			shape,
-			this.editor.inputs.currentPagePoint
-		)
-		const nearestPoint = lineGeometry.nearestPoint(
-			Vec.Add(pointInShapeSpace, this._labelDragOffset)
-		)
-
-		let nextLabelPosition
-		if (info.isStraight) {
-			const lineLength = Vec.Dist(info.start.point, info.end.point)
-			const segmentLength = Vec.Dist(info.end.point, nearestPoint)
-			nextLabelPosition = 1 - segmentLength / lineLength
-		} else {
-			const isClockwise = shape.props.bend < 0
-			const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
-
-			const angleCenterNearestPoint = Vec.Angle(info.handleArc.center, nearestPoint)
-			const angleCenterStart = Vec.Angle(info.handleArc.center, info.start.point)
-			const angleCenterEnd = Vec.Angle(info.handleArc.center, info.end.point)
-			const arcLength = distFn(angleCenterStart, angleCenterEnd)
-			const segmentLength = distFn(angleCenterNearestPoint, angleCenterEnd)
-			nextLabelPosition = 1 - segmentLength / arcLength
-		}
-		next.props.labelPosition = nextLabelPosition
 
 		return next
 	}

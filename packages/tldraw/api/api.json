@@ -1129,94 +1129,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onLabelDrag:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onLabelDrag: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnLabelDragHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnLabelDragHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLArrowShape",
-                  "canonicalReference": "@tldraw/tlschema!TLArrowShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onLabelDrag",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onLabelDragStart:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onLabelDragStart: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnLabelDragStartHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnLabelDragStartHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLArrowShape",
-                  "canonicalReference": "@tldraw/tlschema!TLArrowShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onLabelDragStart",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onResize:member",
               "docComment": "",
               "excerptTokens": [
@@ -12727,6 +12639,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "PointingArrowLabel",
+                  "canonicalReference": "@tldraw/tldraw!~PointingArrowLabel:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
                   "text": "PointingCanvas",
                   "canonicalReference": "@tldraw/tldraw!~PointingCanvas:class"
                 },
@@ -12747,15 +12668,6 @@
                   "kind": "Reference",
                   "text": "PointingHandle",
                   "canonicalReference": "@tldraw/tldraw!~PointingHandle:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | typeof "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "PointingLabel",
-                  "canonicalReference": "@tldraw/tldraw!~PointingLabel:class"
                 },
                 {
                   "kind": "Content",

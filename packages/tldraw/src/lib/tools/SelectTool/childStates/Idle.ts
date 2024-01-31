@@ -92,28 +92,25 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				const targetGeometry = this.editor.getShapeGeometry(info.shape)
-				const labelShapes =
-					targetGeometry instanceof Group2d
-						? targetGeometry.children.filter((child) => child.isLabel)
-						: []
+				const { shape } = info
 				const pointInShapeSpace = this.editor.getPointInShapeSpace(
-					info.shape,
+					shape,
 					this.editor.inputs.currentPagePoint
 				)
-				// N.B. We only do this for arrows currently.
-				if (
-					labelShapes.length &&
-					info.shape.type === 'arrow' &&
-					(info.shape as TLArrowShape).props.text.trim() &&
-					pointInPolygon(pointInShapeSpace, labelShapes[0].vertices)
-				) {
-					// We're moving the label on a shape.
-					this.parent.transition('pointing_label', info)
-					break
+				// todo: Extract into general hit test for arrows
+				if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+					// How should we handle multiple labels? Do shapes ever have multiple labels?
+					const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
+					// Knowing what we know about arrows... if the shape has no text in its label,
+					// then the label geometry should not be there.
+					if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
+						// We're moving the label on a shape.
+						this.parent.transition('pointing_arrow_label', info)
+						break
+					}
 				}
 
-				if (this.editor.isShapeOrAncestorLocked(info.shape)) {
+				if (this.editor.isShapeOrAncestorLocked(shape)) {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}

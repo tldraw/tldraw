@@ -422,33 +422,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onHandleDrag?: TLOnHandleDragHandler<Shape>
 
 	/**
-	 * A callback called when a label on a shape starts being dragged.
-	 *
-	 * @param shape - The shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onLabelDragStart?: TLOnLabelDragStartHandler<Shape>
-
-	/**
-	 * A callback called when a shape's label changes.
-	 *
-	 * @param shape - The current shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onLabelDrag?: TLOnLabelDragHandler<Shape>
-
-	/**
-	 * A callback called when a label on a shape starts being dragged.
-	 *
-	 * @param shape - The shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onLabelDragEnd?: TLOnLabelDragStartHandler<Shape>
-
-	/**
 	 * A callback called when a shape starts being rotated.
 	 *
 	 * @param shape - The shape.
@@ -622,15 +595,6 @@ export type TLOnHandleDragHandler<T extends TLShape> = (
 		initial?: T | undefined
 	}
 ) => TLShapePartial<T> | void
-
-/** @public */
-export type TLOnLabelDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-
-/** @public */
-export type TLOnLabelDragHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-
-/** @public */
-export type TLOnLabelDragEndHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 
 /** @public */
 export type TLOnClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void

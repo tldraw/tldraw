@@ -168,7 +168,7 @@ describe('DraggingHandle', () => {
 })
 
 describe('PointingLabel', () => {
-	it('Enters from pointing_label and exits to idle', () => {
+	it('Enters from pointing_arrow_label and exits to idle', () => {
 		editor.createShapes([
 			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
 		])
@@ -178,7 +178,7 @@ describe('PointingLabel', () => {
 			shape,
 		})
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.pointing_label')
+		editor.expectToBeIn('select.pointing_arrow_label')
 
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
@@ -195,12 +195,12 @@ describe('PointingLabel', () => {
 			shape,
 		})
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.pointing_label')
+		editor.expectToBeIn('select.pointing_arrow_label')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})
 
-	it('Doesnt go into pointing_label mode if not selecting the arrow shape', () => {
+	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
 		editor.createShapes([
 			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
 		])
