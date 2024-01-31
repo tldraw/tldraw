@@ -1,5 +1,6 @@
 /* @tldraw/ui */
 
+/* We use `:where` so that library users can override these values */
 :where(.tl-wrapper) {
 	height: 480px;
 	width: 720px;
