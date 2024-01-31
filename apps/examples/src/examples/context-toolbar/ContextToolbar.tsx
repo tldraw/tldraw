@@ -100,11 +100,7 @@ const components: TLEditorComponents = {
 }
 
 export default function ContextToolbar() {
-	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="things-on-the-canvas-example" components={components} />
-		</div>
-	)
+	return <Tldraw persistenceKey="things-on-the-canvas-example" components={components} />
 }
 
 /*
