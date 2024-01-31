@@ -41,7 +41,7 @@ export default function LocalImagesExample() {
 		})
 	}, [])
 
-	return <Tldraw persistenceKey="tldraw_local_images_example" onMount={handleMount} />
+	return <Tldraw onMount={handleMount} />
 }
 
 /* 
