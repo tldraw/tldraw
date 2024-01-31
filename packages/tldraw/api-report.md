@@ -1293,7 +1293,7 @@ export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
 export type TldrawProps = TldrawEditorBaseProps & {
-    style?: any;
+    style?: React.CSSProperties;
 } & ({
     store: TLStore | TLStoreWithStatus;
 } | {

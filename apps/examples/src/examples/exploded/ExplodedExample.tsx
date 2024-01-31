@@ -12,6 +12,7 @@ import {
 	defaultShapeUtils,
 	defaultTools,
 } from '@tldraw/tldraw'
+import { TldrawWrapper } from '@tldraw/tldraw/src/lib/TldrawWrapper'
 import '@tldraw/tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -29,19 +30,21 @@ const defaultComponents = {
 //[2]
 export default function ExplodedExample() {
 	return (
-		<TldrawEditor
-			initialState="select"
-			shapeUtils={defaultShapeUtils}
-			tools={[...defaultTools, ...defaultShapeTools]}
-			components={defaultComponents}
-			persistenceKey="exploded-example"
-		>
-			<TldrawUi>
-				<ContextMenu>
-					<Canvas />
-				</ContextMenu>
-			</TldrawUi>
-		</TldrawEditor>
+		<TldrawWrapper style={{ width: '100%', height: '100%' }}>
+			<TldrawEditor
+				initialState="select"
+				shapeUtils={defaultShapeUtils}
+				tools={[...defaultTools, ...defaultShapeTools]}
+				components={defaultComponents}
+				persistenceKey="exploded-example"
+			>
+				<TldrawUi>
+					<ContextMenu>
+						<Canvas />
+					</ContextMenu>
+				</TldrawUi>
+			</TldrawEditor>
+		</TldrawWrapper>
 	)
 }
 

@@ -17,6 +17,7 @@ import {
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
 import { useCallback, useDebugValue, useLayoutEffect, useMemo, useRef } from 'react'
+import { TldrawWrapper } from './TldrawWrapper'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
 import { TldrawScribble } from './canvas/TldrawScribble'
@@ -36,7 +37,7 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
-export type TldrawProps = TldrawEditorBaseProps & { style?: any } & (
+export type TldrawProps = TldrawEditorBaseProps & { style?: React.CSSProperties } & (
 		| {
 				store: TLStore | TLStoreWithStatus
 		  }
@@ -96,7 +97,7 @@ export function Tldraw(props: TldrawProps) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
 	return (
-		<div style={style} className={`tl-wrapper ${className ?? ''}`}>
+		<TldrawWrapper style={style} className={className}>
 			{preloadingError ? (
 				<ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 			) : !preloadingComplete ? (
@@ -118,7 +119,7 @@ export function Tldraw(props: TldrawProps) {
 					</TldrawUi>
 				</TldrawEditor>
 			)}
-		</div>
+		</TldrawWrapper>
 	)
 }
 

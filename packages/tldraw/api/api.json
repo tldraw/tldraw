@@ -14587,7 +14587,16 @@
             },
             {
               "kind": "Content",
-              "text": " & {\n    style?: any;\n} & ({\n    store: "
+              "text": " & {\n    style?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.CSSProperties",
+              "canonicalReference": "@types/react!React.CSSProperties:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} & ({\n    store: "
             },
             {
               "kind": "Reference",
@@ -14662,7 +14671,7 @@
           "name": "TldrawProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 17
+            "endIndex": 19
           }
         },
         {
