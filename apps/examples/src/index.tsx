@@ -25,6 +25,10 @@ if (!basicExample) throw new Error('Could not find basic example')
 
 const router = createBrowserRouter([
 	{
+		path: '*',
+		element: <div>404</div>,
+	},
+	{
 		path: '/',
 		lazy: async () => {
 			const Component = await basicExample.loadComponent()
