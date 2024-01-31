@@ -53,13 +53,7 @@ describe('Store', () => {
 					author: Author,
 					visit: Visit,
 				},
-				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
+				{}
 			),
 		})
 	})
@@ -767,13 +761,7 @@ describe('snapshots', () => {
 					book: Book,
 					author: Author,
 				},
-				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
+				{}
 			),
 		})
 
@@ -813,13 +801,7 @@ describe('snapshots', () => {
 					book: Book,
 					author: Author,
 				},
-				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
+				{}
 			),
 		})
 
@@ -844,13 +826,7 @@ describe('snapshots', () => {
 					book: Book,
 					// no author
 				},
-				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
+				{}
 			),
 		})
 

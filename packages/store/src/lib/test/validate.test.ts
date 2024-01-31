@@ -50,13 +50,7 @@ const schema = StoreSchema.create<Book | Author>(
 		book: Book,
 		author: Author,
 	},
-	{
-		snapshotMigrations: {
-			currentVersion: 0,
-			firstVersion: 0,
-			migrators: {},
-		},
-	}
+	{}
 )
 
 describe('Store with validation', () => {

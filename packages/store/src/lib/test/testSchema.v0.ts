@@ -3,17 +3,13 @@ import assert from 'assert'
 import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { StoreSchema } from '../StoreSchema'
-import { defineMigrations } from '../legacy_migrate'
 
 /** A user of tldraw */
 interface User extends BaseRecord<'user', RecordId<User>> {
 	name: string
 }
 
-const userMigrations = defineMigrations({})
-
 const User = createRecordType<User>('user', {
-	migrations: userMigrations,
 	validator: {
 		validate: (record) => {
 			assert(
@@ -35,7 +31,7 @@ interface Shape<Props> extends BaseRecord<'shape', RecordId<Shape<object>>> {
 interface RectangleProps {
 	width: number
 	height: number
-	opactiy: number
+	opacity: number
 }
 
 interface OvalProps {
@@ -43,15 +39,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const shapeTypeMigrations = defineMigrations({
-	subTypeKey: 'type',
-	subTypeMigrations: {
-		rectangle: defineMigrations({}),
-	},
-})
-
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
-	migrations: shapeTypeMigrations,
 	validator: {
 		validate: (record) => {
 			assert(
@@ -78,7 +66,6 @@ interface Org extends BaseRecord<'org', RecordId<Org>> {
 }
 
 const Org = createRecordType<Org>('org', {
-	migrations: defineMigrations({}),
 	validator: {
 		validate: (record) => {
 			assert(
@@ -96,7 +83,5 @@ export const testSchemaV0 = StoreSchema.create(
 		shape: Shape,
 		org: Org,
 	},
-	{
-		snapshotMigrations: defineMigrations({}),
-	}
+	{}
 )

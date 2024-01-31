@@ -4,12 +4,7 @@ import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { SerializedStore } from '../Store'
 import { StoreSchema } from '../StoreSchema'
-import { defineMigrations } from '../legacy_migrate'
-
-const UserVersion = {
-	AddLocale: 1,
-	AddPhoneNumber: 2,
-} as const
+import { MigrationSequence, MigrationsConfigBuilder } from '../migrate'
 
 /** A user of tldraw */
 interface User extends BaseRecord<'user', RecordId<User>> {
@@ -18,36 +13,7 @@ interface User extends BaseRecord<'user', RecordId<User>> {
 	phoneNumber: string | null
 }
 
-const userMigrations = defineMigrations({
-	currentVersion: UserVersion.AddPhoneNumber,
-	migrators: {
-		[UserVersion.AddLocale]: {
-			up: (record) => ({
-				...record,
-				locale: 'en',
-			}),
-			down: (record) => {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { locale, ...rest } = record
-				return rest
-			},
-		},
-		[UserVersion.AddPhoneNumber]: {
-			up: (record) => ({
-				...record,
-				phoneNumber: null,
-			}),
-			down: (record) => {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { phoneNumber, ...rest } = record
-				return rest
-			},
-		},
-	},
-})
-
 const User = createRecordType<User>('user', {
-	migrations: userMigrations,
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')
@@ -67,19 +33,6 @@ const User = createRecordType<User>('user', {
 	name: 'New User',
 }))
 
-const ShapeVersion = {
-	AddRotation: 1,
-	AddParent: 2,
-} as const
-
-const RectangleVersion = {
-	AddOpacity: 1,
-} as const
-
-const OvalVersion = {
-	AddBorderStyle: 1,
-} as const
-
 type ShapeId = RecordId<Shape<object>>
 
 interface Shape<Props> extends BaseRecord<'shape', ShapeId> {
@@ -94,7 +47,7 @@ interface Shape<Props> extends BaseRecord<'shape', ShapeId> {
 interface RectangleProps {
 	width: number
 	height: number
-	opactiy: number
+	opacity: number
 }
 
 interface OvalProps {
@@ -102,81 +55,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const shapeTypeMigrations = defineMigrations({
-	currentVersion: ShapeVersion.AddParent,
-	migrators: {
-		[ShapeVersion.AddRotation]: {
-			up: (record) => ({
-				...record,
-				rotation: 0,
-			}),
-			down: (record) => {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { rotation, ...rest } = record
-				return rest
-			},
-		},
-		[ShapeVersion.AddParent]: {
-			up: (record) => ({
-				...record,
-				parentId: null,
-			}),
-			down: (record) => {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { parentId, ...rest } = record
-				return rest
-			},
-		},
-	},
-	subTypeKey: 'type',
-	subTypeMigrations: {
-		rectangle: defineMigrations({
-			currentVersion: RectangleVersion.AddOpacity,
-			migrators: {
-				[RectangleVersion.AddOpacity]: {
-					up: (record) => ({
-						...record,
-						props: {
-							...record.props,
-							opacity: 1,
-						},
-					}),
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					down: ({ props: { opacity, ...others }, ...record }) => ({
-						...record,
-						props: {
-							...others,
-						},
-					}),
-				},
-			},
-		}),
-		oval: defineMigrations({
-			currentVersion: OvalVersion.AddBorderStyle,
-			migrators: {
-				[OvalVersion.AddBorderStyle]: {
-					up: (record) => ({
-						...record,
-						props: {
-							...record.props,
-							borderStyle: 'solid',
-						},
-					}),
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					down: ({ props: { borderStyle, ...others }, ...record }) => ({
-						...record,
-						props: {
-							...others,
-						},
-					}),
-				},
-			},
-		}),
-	},
-})
-
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
-	migrations: shapeTypeMigrations,
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')
@@ -196,14 +75,12 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 	parentId: null,
 }))
 
-const StoreVersions = {
-	RemoveOrg: 1,
-}
-
-const snapshotMigrations = defineMigrations({
-	currentVersion: StoreVersions.RemoveOrg,
-	migrators: {
-		[StoreVersions.RemoveOrg]: {
+const migrationSequence = {
+	id: 'test',
+	migrations: [
+		{
+			id: 'test/001_remove_org',
+			scope: 'store',
 			up: (store: SerializedStore<any>) => {
 				return Object.fromEntries(Object.entries(store).filter(([_, r]) => r.typeName !== 'org'))
 			},
@@ -212,8 +89,133 @@ const snapshotMigrations = defineMigrations({
 				return store
 			},
 		},
-	},
-})
+		{
+			id: 'test/002_add_user_locale',
+			scope: 'record',
+			up: (record) => {
+				if (record.typeName !== 'user') return record
+				return {
+					...record,
+					locale: 'en',
+				}
+			},
+			down: (record) => {
+				if (record.typeName !== 'user') return record
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { locale, ...rest } = record as any
+				return rest
+			},
+		},
+		{
+			id: 'test/003_add_user_phone_number',
+			scope: 'record',
+			up: (record) => {
+				if (record.typeName !== 'user') return record
+				return {
+					...record,
+					phoneNumber: null,
+				}
+			},
+			down: (record) => {
+				if (record.typeName !== 'user') return record
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { phoneNumber, ...rest } = record as any
+				return rest
+			},
+		},
+		{
+			id: 'test/004_add_shape_rotation',
+			scope: 'record',
+			up: (record) => {
+				if (record.typeName !== 'shape') return record
+				return {
+					...record,
+					rotation: 0,
+				}
+			},
+			down: (record) => {
+				if (record.typeName !== 'shape') return record
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { rotation, ...rest } = record as any
+				return rest
+			},
+		},
+		{
+			id: 'test/005_add_shape_parent',
+			scope: 'record',
+			up: (record) => {
+				if (record.typeName !== 'shape') return record
+				return {
+					...record,
+					parentId: null,
+				}
+			},
+			down: (record) => {
+				if (record.typeName !== 'shape') return record
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { parentId, ...rest } = record as any
+				return rest
+			},
+		},
+		{
+			id: 'test/006_add_rectangle_opacity',
+			scope: 'record',
+			up: (record: Shape<any>) => {
+				if (record.typeName !== 'shape' && record.type !== 'rectangle') return record
+				return {
+					...record,
+					props: {
+						...record.props,
+						opacity: 1,
+					},
+				}
+			},
+			down: (record: Shape<any>) => {
+				if (record.typeName !== 'shape' && record.type !== 'rectangle') return record
+				const {
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					props: { opacity, ...others },
+					...rest
+				} = record
+				if (record.typeName !== 'shape' && record.type !== 'rectangle') return record
+				return {
+					...rest,
+					props: {
+						...others,
+					},
+				}
+			},
+		},
+		{
+			id: 'test/007_add_oval_border_style',
+			scope: 'record',
+			up: (record: Shape<any>) => {
+				if (record.typeName !== 'shape' && record.type !== 'oval') return record
+				return {
+					...record,
+					props: {
+						...record.props,
+						borderStyle: 'solid',
+					},
+				}
+			},
+			down: (record: Shape<any>) => {
+				if (record.typeName !== 'shape' && record.type !== 'oval') return record
+				const {
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					props: { borderStyle, ...others },
+					...rest
+				} = record
+				return {
+					...rest,
+					props: {
+						...others,
+					},
+				}
+			},
+		},
+	],
+} as const satisfies MigrationSequence
 
 export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
 	{
@@ -221,6 +223,16 @@ export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
 		shape: Shape,
 	},
 	{
-		snapshotMigrations,
+		migrations: new MigrationsConfigBuilder()
+			.addSequence(migrationSequence)
+			.setOrder([
+				'test/001_remove_org',
+				'test/002_add_user_locale',
+				'test/003_add_user_phone_number',
+				'test/004_add_shape_rotation',
+				'test/005_add_shape_parent',
+				'test/006_add_rectangle_opacity',
+				'test/007_add_oval_border_style',
+			]),
 	}
 )
