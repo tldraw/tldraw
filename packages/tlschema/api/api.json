@@ -1306,33 +1306,6 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!DEFAULT_DOCUMENT_NAME:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "DEFAULT_DOCUMENT_NAME = "
-            },
-            {
-              "kind": "Content",
-              "text": "\"Untitled\""
-            }
-          ],
-          "fileUrlPath": "packages/tlschema/src/records/TLDocument.ts",
-          "initializerTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "DEFAULT_DOCUMENT_NAME",
-          "variableTypeTokenRange": {
-            "startIndex": 0,
-            "endIndex": 0
-          }
-        },
-        {
-          "kind": "Variable",
           "canonicalReference": "@tldraw/tlschema!DefaultColorStyle:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [

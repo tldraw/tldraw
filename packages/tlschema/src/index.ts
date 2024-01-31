@@ -37,12 +37,7 @@ export {
 	type TLAssetShape,
 } from './records/TLAsset'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
-export {
-	DEFAULT_DOCUMENT_NAME,
-	DocumentRecordType,
-	TLDOCUMENT_ID,
-	type TLDocument,
-} from './records/TLDocument'
+export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
 export { TLINSTANCE_ID, type TLInstance, type TLInstanceId } from './records/TLInstance'
 export {
 	PageRecordType,

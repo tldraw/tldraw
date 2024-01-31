@@ -1,7 +1,6 @@
 import {
 	ANIMATION_MEDIUM_MS,
 	Box,
-	DEFAULT_DOCUMENT_NAME,
 	Editor,
 	HALF_PI,
 	TLBookmarkShape,
@@ -33,6 +32,7 @@ import { useInsertMedia } from './useInsertMedia'
 import { usePrint } from './usePrint'
 import { useToasts } from './useToastsProvider'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
+import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiActionItem<
@@ -72,13 +72,13 @@ function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
 }
 
-function getExportName(editor: Editor) {
+function getExportName(editor: Editor, defaultName: string) {
 	const selectedShapes = editor.getSelectedShapes()
 	// When we don't have any shapes selected, we want to use the document name
 	if (selectedShapes.length === 0) {
 		const documentName = editor.getDocumentSettings().name
-		if (documentName === '') return DEFAULT_DOCUMENT_NAME
-		return documentName
+		if (documentName === '') return defaultName
+		documentName
 	}
 	return undefined
 }
@@ -95,6 +95,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
+
+	const msg = useTranslation()
+	const defaultDocumentName = msg('document.default-name')
 
 	const trackEvent = useUiEvents()
 
@@ -180,7 +183,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'svg', source })
-					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor))
+					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -191,7 +194,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(editor.getSelectedShapeIds(), 'png', getExportName(editor))
+					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -202,7 +205,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(editor.getSelectedShapeIds(), 'json', getExportName(editor))
+					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{

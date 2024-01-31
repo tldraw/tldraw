@@ -118,6 +118,7 @@ export const DEFAULT_TRANSLATION = {
 	'color-style.violet': 'Violet',
 	'color-style.yellow': 'Yellow',
 	'fill-style.none': 'None',
+	'document.default-name': 'Untitled',
 	'fill-style.semi': 'Semi',
 	'fill-style.solid': 'Solid',
 	'fill-style.pattern': 'Pattern',

@@ -1,5 +1,4 @@
 import {
-	DEFAULT_DOCUMENT_NAME,
 	Editor,
 	TLDRAW_FILE_EXTENSION,
 	TLStore,
@@ -32,7 +31,11 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 	return useMemo((): TLUiOverrides => {
 		return {
 			actions(editor, actions, { addToast, msg, addDialog }) {
-				actions[SAVE_FILE_COPY_ACTION] = getSaveFileCopyAction(editor, handleUiEvent)
+				actions[SAVE_FILE_COPY_ACTION] = getSaveFileCopyAction(
+					editor,
+					handleUiEvent,
+					msg('document.default-name')
+				)
 				actions[OPEN_FILE_ACTION] = {
 					id: OPEN_FILE_ACTION,
 					label: 'action.open-file',
@@ -120,7 +123,8 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 
 export function getSaveFileCopyAction(
 	editor: Editor,
-	handleUiEvent: TLUiEventHandler
+	handleUiEvent: TLUiEventHandler,
+	defaultDocumentName: string
 ): TLUiActionItem {
 	return {
 		id: SAVE_FILE_COPY_ACTION,
@@ -131,7 +135,7 @@ export function getSaveFileCopyAction(
 			handleUiEvent('save-project-to-file', { source })
 			const documentName =
 				editor.getDocumentSettings().name === ''
-					? DEFAULT_DOCUMENT_NAME
+					? defaultDocumentName
 					: editor.getDocumentSettings().name
 			const defaultName =
 				saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`

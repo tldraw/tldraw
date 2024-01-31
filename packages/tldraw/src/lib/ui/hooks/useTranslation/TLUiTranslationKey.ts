@@ -118,6 +118,7 @@ export type TLUiTranslationKey =
 	| 'color-style.violet'
 	| 'color-style.yellow'
 	| 'fill-style.none'
+	| 'document.default-name'
 	| 'fill-style.semi'
 	| 'fill-style.solid'
 	| 'fill-style.pattern'

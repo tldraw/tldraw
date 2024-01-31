@@ -1,6 +1,5 @@
 import {
 	Button,
-	DEFAULT_DOCUMENT_NAME,
 	DropdownMenu,
 	Kbd,
 	OfflineIndicator,
@@ -166,10 +165,10 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 	)
 }
 
-function getName(state: NameState, document: TLDocument) {
+function getName(state: NameState, document: TLDocument, defaultName: string) {
 	if (state.name) return state.name
 	if (document.name === '') {
-		return DEFAULT_DOCUMENT_NAME
+		return defaultName
 	}
 	return document.name
 }
@@ -184,6 +183,8 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const inputRef = useRef<HTMLInputElement>(null)
 	const editor = useEditor()
 	const documentSettings = editor.getDocumentSettings()
+	const msg = useTranslation()
+	const defaultDocumentName = msg('document.default-name')
 
 	useEffect(() => {
 		if (state.isEditing && inputRef.current) {
@@ -237,7 +238,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 		setState((prev) => ({ ...prev, isEditing: false }))
 	}, [setState])
 
-	const name = getName(state, documentSettings)
+	const name = getName(state, documentSettings, defaultDocumentName)
 
 	return (
 		<div className="tlui-document-name__input__wrapper">
