@@ -55,3 +55,15 @@ window.fetch = async (input, init) => {
 
 	throw new Error(`Unhandled request: ${input}`)
 }
+
+window.DOMRect = class DOMRect {
+	static fromRect(rect) {
+		return new DOMRect(rect.x, rect.y, rect.width, rect.height)
+	}
+	constructor(x, y, width, height) {
+		this.x = x
+		this.y = y
+		this.width = width
+		this.height = height
+	}
+}

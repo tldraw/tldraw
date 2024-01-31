@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react'
+import { Editor, promiseWithResolve } from '@tldraw/editor'
 import { ReactElement } from 'react'
 
 /**
@@ -19,4 +20,17 @@ export async function renderTldrawComponent(
 	const result = render(element)
 	if (waitForPatterns) await result.findByTestId('ready-pattern-fill-defs')
 	return result
+}
+
+export async function renderTldrawComponentWithEditor(
+	cb: (onMount: (editor: Editor) => void) => ReactElement,
+	opts?: { waitForPatterns?: boolean }
+) {
+	const editorPromise = promiseWithResolve<Editor>()
+	const element = cb((editor) => {
+		editorPromise.resolve(editor)
+	})
+	const rendered = await renderTldrawComponent(element, opts)
+	const editor = await editorPromise
+	return { editor, rendered }
 }
