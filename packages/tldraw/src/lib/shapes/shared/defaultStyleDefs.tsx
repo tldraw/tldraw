@@ -229,6 +229,7 @@ function usePattern() {
 				return (
 					<pattern
 						key={key}
+						data-testid={HASH_PATTERN_ZOOM_NAMES[key]}
 						id={HASH_PATTERN_ZOOM_NAMES[key]}
 						width={TILE_PATTERN_SIZE}
 						height={TILE_PATTERN_SIZE}
