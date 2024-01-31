@@ -97,16 +97,8 @@ export class PointingArrowLabel extends StateNode {
 			const segmentLength = Vec.Dist(info.end.point, nearestPoint)
 			nextLabelPosition = 1 - segmentLength / lineLength
 		} else {
-			// fix me
 			const { _center, measure, angleEnd, angleStart } = groupGeometry.children[0] as Arc2d
-			const t = getPointInArcT(measure, angleStart, angleEnd, _center.angle(nearestPoint))
-			console.log(nearestPoint)
-			// const angleCenterNearestPoint = Vec.Angle(info.handleArc.center, nearestPoint)
-			// const angleCenterStart = Vec.Angle(info.handleArc.center, info.start.point)
-			// const angleCenterEnd = Vec.Angle(info.handleArc.center, info.end.point)
-			// const arcLength = distFn(angleCenterStart, angleCenterEnd)
-			// const segmentLength = distFn(angleCenterNearestPoint, angleCenterEnd)
-			nextLabelPosition = t
+			nextLabelPosition = getPointInArcT(measure, angleStart, angleEnd, _center.angle(nearestPoint))
 		}
 
 		this.editor.updateShape<TLArrowShape>(
