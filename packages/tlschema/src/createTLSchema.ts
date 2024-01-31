@@ -18,8 +18,13 @@ import { StyleProp } from './styles/StyleProp'
 /** @public */
 export type SchemaShapeInfo = {
 	// eslint-disable-next-line deprecation/deprecation
-	migrations?: Migrations
-	suppressMigrationDeprecationWarning?: boolean
+	__legacyMigrations_no_not_update?: Migrations
+	// TODO: add link to docs
+	/**
+	 * The way to specify migrations has changed. Please refer to [docs]
+	 * @deprecated - The way to specify migrations has changed. Please refer to [docs]
+	 */
+	migrations?: never
 	props?: Record<string, { validate: (prop: any) => any }>
 	meta?: Record<string, { validate: (prop: any) => any }>
 }

@@ -55,7 +55,9 @@ function currentPageShapesToShapeMap(shapeUtils: TLShapeUtilConstructor<TLUnknow
 			s.type,
 			{
 				props: s.props,
+				// eslint-disable-next-line deprecation/deprecation
 				migrations: s.migrations,
+				__legacyMigrations_no_not_update: s.__legacyMigrations_no_not_update,
 			},
 		])
 	)

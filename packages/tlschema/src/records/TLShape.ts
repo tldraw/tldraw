@@ -211,7 +211,16 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 		migrators: rootShapeMigrations.migrators,
 		subTypeKey: 'type',
 		// eslint-disable-next-line deprecation/deprecation
-		subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
+		subTypeMigrations: mapObjectMapValues(shapes, (typeName, v) => {
+			// eslint-disable-next-line deprecation/deprecation
+			if (v.migrations) {
+				// TODO: add link to docs
+				throw new Error(
+					`[tldraw] Specifying migrations for the '${typeName}' shape type on the util class is no longer supported. See [docs] for how to resolve.`
+				)
+			}
+			return v.__legacyMigrations_no_not_update ?? defineMigrations({})
+		}),
 	})
 
 	return { ShapeRecordType, legacyShapeMigrations }

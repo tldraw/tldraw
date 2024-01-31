@@ -17,7 +17,20 @@ export interface TLShapeUtilConstructor<
 	new (editor: Editor): U
 	type: T['type']
 	props?: ShapeProps<T>
-	migrations?: Migrations
+	// TODO: Link to docs
+	/**
+	 * @deprecated - if you have previously deployed your app with this property, rename it to __legacyMigrations_no_not_update
+	 */
+	migrations?: any
+	// TODO: Link to docs
+	/**
+	 * Do not use this property unless you have previously deployed 
+	 * your app with the deprecated `migrations` property. Certainly
+	 * do not add any new migrations to this property.
+	 * 
+	 * See [docs] for more info.
+	 */
+	__legacyMigrations_no_not_update: Migrations
 }
 
 /** @public */
@@ -33,7 +46,12 @@ export interface TLShapeUtilCanvasSvgDef {
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
 	static props?: ShapeProps<TLUnknownShape>
-	static migrations?: Migrations
+	// TODO: Link to docs
+	/**
+	 * 
+	 * @deprecated 
+	 */
+	static migrations?: any
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
