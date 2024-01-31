@@ -1,4 +1,5 @@
 import {
+	Arc2d,
 	Geometry2d,
 	Group2d,
 	StateNode,
@@ -7,9 +8,8 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
-	clockwiseAngleDist,
-	counterClockwiseAngleDist,
 } from '@tldraw/editor'
+import { getPointInArcT } from '@tldraw/editor/src/lib/primitives/utils'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
@@ -80,13 +80,13 @@ export class PointingArrowLabel extends StateNode {
 
 		const info = this.editor.getArrowInfo(shape)!
 
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const lineGeometry = geometry.children[0] as Geometry2d
+		const groupGeometry = this.editor.getShapeGeometry<Group2d>(shape)
+		const bodyGeometry = groupGeometry.children[0] as Geometry2d
 		const pointInShapeSpace = this.editor.getPointInShapeSpace(
 			shape,
 			this.editor.inputs.currentPagePoint
 		)
-		const nearestPoint = lineGeometry.nearestPoint(
+		const nearestPoint = bodyGeometry.nearestPoint(
 			Vec.Add(pointInShapeSpace, this._labelDragOffset)
 		)
 
@@ -97,17 +97,16 @@ export class PointingArrowLabel extends StateNode {
 			const segmentLength = Vec.Dist(info.end.point, nearestPoint)
 			nextLabelPosition = 1 - segmentLength / lineLength
 		} else {
-			// curved arrows
-			const isClockwise = shape.props.bend < 0
-			const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
-
 			// fix me
-			const angleCenterNearestPoint = Vec.Angle(info.handleArc.center, nearestPoint)
-			const angleCenterStart = Vec.Angle(info.handleArc.center, info.start.point)
-			const angleCenterEnd = Vec.Angle(info.handleArc.center, info.end.point)
-			const arcLength = distFn(angleCenterStart, angleCenterEnd)
-			const segmentLength = distFn(angleCenterNearestPoint, angleCenterEnd)
-			nextLabelPosition = 1 - segmentLength / arcLength
+			const { _center, measure, angleEnd, angleStart } = groupGeometry.children[0] as Arc2d
+			const t = getPointInArcT(measure, angleStart, angleEnd, _center.angle(nearestPoint))
+			console.log(nearestPoint)
+			// const angleCenterNearestPoint = Vec.Angle(info.handleArc.center, nearestPoint)
+			// const angleCenterStart = Vec.Angle(info.handleArc.center, info.start.point)
+			// const angleCenterEnd = Vec.Angle(info.handleArc.center, info.end.point)
+			// const arcLength = distFn(angleCenterStart, angleCenterEnd)
+			// const segmentLength = distFn(angleCenterNearestPoint, angleCenterEnd)
+			nextLabelPosition = t
 		}
 
 		this.editor.updateShape<TLArrowShape>(

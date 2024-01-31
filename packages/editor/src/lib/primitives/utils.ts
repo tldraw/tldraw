@@ -372,3 +372,58 @@ export function angleDistance(fromAngle: number, toAngle: number, direction: num
 			: counterClockwiseAngleDist(fromAngle, toAngle)
 	return dist
 }
+
+/**
+ * Returns the t value of the point on the arc.
+ *
+ * @param mAB - The measure of the arc from A to B, negative if counter-clockwise
+ * @param A - The angle from center to arc's start point (A) on the circle
+ * @param B - The angle from center to arc's end point (B) on the circle
+ * @param P - The angle on the circle (P) to find the t value for
+ *
+ * @returns The t value of the point on the arc, with 0 being the start and 1 being the end
+ *
+ * @public
+ */
+export function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
+	let mAP: number
+	if (Math.abs(mAB) > PI) {
+		mAP = shortAngleDist(A, P)
+		const mPB = shortAngleDist(P, B)
+		if (Math.abs(mAP) < Math.abs(mPB)) {
+			return mAP / mAB
+		} else {
+			return (mAB - mPB) / mAB
+		}
+	} else {
+		mAP = shortAngleDist(A, P)
+		const t = mAP / mAB
+
+		// If the arc is something like -2.8 to 2.2, then we'll get a weird bug
+		// where the measurement to the center is negative but measure to points
+		// near the end are positive
+		if (Math.sign(mAP) !== Math.sign(mAB)) {
+			return Math.abs(t) > 0.5 ? 1 : 0
+		}
+
+		return t
+	}
+}
+
+/**
+ * Get the measure of an arc.
+ *
+ * @param A The angle from center to arc's start point (A) on the circle
+ * @param B The angle from center to arc's end point (B) on the circle
+ * @param sweepFlag 1 if the arc is clockwise, 0 if counter-clockwise
+ * @param largeArcFlag 1 if the arc is greater than 180 degrees, 0 if less than 180 degrees
+ *
+ * @returns The measure of the arc, negative if counter-clockwise
+ *
+ * @public
+ */
+export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number) {
+	const m = ((2 * ((B - A) % PI2)) % PI2) - ((B - A) % PI2)
+	if (!largeArcFlag) return m
+	return (PI2 - Math.abs(m)) * (sweepFlag ? 1 : -1)
+}
