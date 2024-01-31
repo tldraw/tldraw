@@ -21,17 +21,17 @@ setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting Started')
 if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
-const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Basic')
-if (!basicExample) throw new Error('Could not find basic example')
+const fullscreenExample = gettingStartedExamples.value.find((e) => e.title === 'Fullscreen')
+if (!fullscreenExample) throw new Error('Could not find fullscreen example')
 
 const router = createBrowserRouter([
 	{
 		path: '/',
 		lazy: async () => {
-			const Component = await basicExample.loadComponent()
+			const Component = await fullscreenExample.loadComponent()
 			return {
 				element: (
-					<ExamplePage example={basicExample}>
+					<ExamplePage example={fullscreenExample}>
 						<Component />
 					</ExamplePage>
 				),
