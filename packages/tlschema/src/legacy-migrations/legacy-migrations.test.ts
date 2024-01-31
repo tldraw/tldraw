@@ -1,28 +1,41 @@
 import { Migrations, Store, createRecordType } from '@tldraw/store'
 import fs from 'fs'
-import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
-import { imageAssetMigrations } from './assets/TLImageAsset'
-import { videoAssetMigrations } from './assets/TLVideoAsset'
-import { assetMigrations, assetVersions } from './records/TLAsset'
-import { cameraMigrations, cameraVersions } from './records/TLCamera'
-import { documentMigrations, documentVersions } from './records/TLDocument'
-import { instanceMigrations, instanceVersions } from './records/TLInstance'
-import { pageMigrations, pageVersions } from './records/TLPage'
-import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
-import { pointerMigrations, pointerVersions } from './records/TLPointer'
-import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
-import { TLShape, rootShapeMigrations, rootShapeVersions } from './records/TLShape'
-import { ArrowMigrationVersions, arrowShapeMigrations } from './shapes/TLArrowShape'
-import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
-import { drawShapeMigrations } from './shapes/TLDrawShape'
-import { embedShapeMigrations } from './shapes/TLEmbedShape'
-import { GeoShapeVersions, geoShapeMigrations } from './shapes/TLGeoShape'
-import { imageShapeMigrations } from './shapes/TLImageShape'
-import { lineShapeMigrations, lineShapeVersions } from './shapes/TLLineShape'
-import { noteShapeMigrations } from './shapes/TLNoteShape'
-import { textShapeMigrations } from './shapes/TLTextShape'
-import { videoShapeMigrations } from './shapes/TLVideoShape'
-import { storeMigrations, storeVersions } from './store-migrations'
+import { bookmarkAssetMigrations } from '../assets/TLBookmarkAsset'
+import { imageAssetMigrations } from '../assets/TLImageAsset'
+import { videoAssetMigrations } from '../assets/TLVideoAsset'
+import {
+	assetMigrations,
+	assetVersions,
+	cameraMigrations,
+	cameraVersions,
+	documentMigrations,
+	documentVersions,
+	instanceMigrations,
+	instancePageStateMigrations,
+	instancePageStateVersions,
+	instancePresenceMigrations,
+	instancePresenceVersions,
+	instanceVersions,
+	pageMigrations,
+	pageVersions,
+	pointerMigrations,
+	pointerVersions,
+	rootShapeMigrations,
+	rootShapeVersions,
+	storeMigrations,
+	storeVersions,
+} from './legacy-migrations'
+import { TLShape } from '../records/TLShape'
+import { ArrowMigrationVersions, arrowShapeMigrations } from '../shapes/TLArrowShape'
+import { bookmarkShapeMigrations } from '../shapes/TLBookmarkShape'
+import { drawShapeMigrations } from '../shapes/TLDrawShape'
+import { embedShapeMigrations } from '../shapes/TLEmbedShape'
+import { GeoShapeVersions, geoShapeMigrations } from '../shapes/TLGeoShape'
+import { imageShapeMigrations } from '../shapes/TLImageShape'
+import { lineShapeMigrations, lineShapeVersions } from '../shapes/TLLineShape'
+import { noteShapeMigrations } from '../shapes/TLNoteShape'
+import { textShapeMigrations } from '../shapes/TLTextShape'
+import { videoShapeMigrations } from '../shapes/TLVideoShape'
 
 const assetModules = fs
 	.readdirSync('src/assets')

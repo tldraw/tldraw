@@ -1,18 +1,28 @@
 import { LegacyMigrator, MigrationOptions, Migrations, StoreSchema } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
+import {
+	assetMigrations,
+	cameraMigrations,
+	documentMigrations,
+	instanceMigrations,
+	instancePageStateMigrations,
+	instancePresenceMigrations,
+	pageMigrations,
+	pointerMigrations,
+	storeMigrations,
+} from './legacy-migrations/legacy-migrations'
 import { tldrawMigrations } from './migrations/tldrawMigrations'
-import { AssetRecordType, assetMigrations } from './records/TLAsset'
-import { CameraRecordType, cameraMigrations } from './records/TLCamera'
-import { DocumentRecordType, documentMigrations } from './records/TLDocument'
-import { createInstanceRecordType, instanceMigrations } from './records/TLInstance'
-import { PageRecordType, pageMigrations } from './records/TLPage'
-import { InstancePageStateRecordType, instancePageStateMigrations } from './records/TLPageState'
-import { PointerRecordType, pointerMigrations } from './records/TLPointer'
-import { InstancePresenceRecordType, instancePresenceMigrations } from './records/TLPresence'
+import { AssetRecordType } from './records/TLAsset'
+import { CameraRecordType } from './records/TLCamera'
+import { DocumentRecordType } from './records/TLDocument'
+import { createInstanceRecordType } from './records/TLInstance'
+import { PageRecordType } from './records/TLPage'
+import { InstancePageStateRecordType } from './records/TLPageState'
+import { PointerRecordType } from './records/TLPointer'
+import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
 import { createShapeRecordType, getShapePropKeysByStyle } from './records/TLShape'
-import { storeMigrations } from './store-migrations'
 import { StyleProp } from './styles/StyleProp'
 
 /** @public */

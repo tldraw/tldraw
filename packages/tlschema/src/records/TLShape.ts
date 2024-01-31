@@ -3,6 +3,7 @@ import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
 import { SchemaShapeInfo } from '../createTLSchema'
+import { rootShapeMigrations } from '../legacy-migrations/legacy-migrations'
 import { TLArrowShape } from '../shapes/TLArrowShape'
 import { createShapeValidator, TLBaseShape } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
@@ -81,75 +82,6 @@ export type TLShapeProp = keyof TLShapeProps
 
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
-
-/** @internal */
-export const rootShapeVersions = {
-	AddIsLocked: 1,
-	HoistOpacity: 2,
-	AddMeta: 3,
-} as const
-
-/** @internal */
-// eslint-disable-next-line deprecation/deprecation
-export const rootShapeMigrations = defineMigrations({
-	currentVersion: rootShapeVersions.AddMeta,
-	migrators: {
-		[rootShapeVersions.AddIsLocked]: {
-			up: (record) => {
-				return {
-					...record,
-					isLocked: false,
-				}
-			},
-			down: (record) => {
-				const { isLocked: _, ...rest } = record
-				return {
-					...rest,
-				}
-			},
-		},
-		[rootShapeVersions.HoistOpacity]: {
-			up: ({ props: { opacity, ...props }, ...record }) => {
-				return {
-					...record,
-					opacity: Number(opacity ?? '1'),
-					props,
-				}
-			},
-			down: ({ opacity, ...record }) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						opacity:
-							opacity < 0.175
-								? '0.1'
-								: opacity < 0.375
-									? '0.25'
-									: opacity < 0.625
-										? '0.5'
-										: opacity < 0.875
-											? '0.75'
-											: '1',
-					},
-				}
-			},
-		},
-		[rootShapeVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
-			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
-			},
-		},
-	},
-})
 
 /** @public */
 export function isShape(record?: UnknownRecord): record is TLShape {
