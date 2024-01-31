@@ -19,18 +19,18 @@ export interface TLShapeUtilConstructor<
 	props?: ShapeProps<T>
 	// TODO: Link to docs
 	/**
-	 * @deprecated - if you have previously deployed your app with this property, rename it to __legacyMigrations_no_not_update
+	 * @deprecated - if you have previously deployed your app with this property, rename it to __legacyMigrations_do_not_update
 	 */
 	migrations?: any
 	// TODO: Link to docs
 	/**
-	 * Do not use this property unless you have previously deployed 
+	 * Do not use this property unless you have previously deployed
 	 * your app with the deprecated `migrations` property. Certainly
 	 * do not add any new migrations to this property.
-	 * 
+	 *
 	 * See [docs] for more info.
 	 */
-	__legacyMigrations_no_not_update: Migrations
+	__legacyMigrations_do_not_update: Migrations
 }
 
 /** @public */
@@ -48,10 +48,18 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	static props?: ShapeProps<TLUnknownShape>
 	// TODO: Link to docs
 	/**
-	 * 
-	 * @deprecated 
+	 * @deprecated - if you have previously deployed your app with this property, rename it to __legacyMigrations_do_not_update
 	 */
 	static migrations?: any
+	// TODO: Link to docs
+	/**
+	 * Do not use this property unless you have previously deployed
+	 * your app with the deprecated `migrations` property. Certainly
+	 * do not add any new migrations to this property.
+	 *
+	 * See [docs] for more info.
+	 */
+	static __legacyMigrations_do_not_update: Migrations
 
 	/**
 	 * The type of the shape util, which should match the shape's type.

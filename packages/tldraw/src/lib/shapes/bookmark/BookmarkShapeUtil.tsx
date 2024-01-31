@@ -24,7 +24,7 @@ import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override type = 'bookmark' as const
 	static override props = bookmarkShapeProps
-	static override migrations = bookmarkShapeMigrations
+	static override __legacyMigrations_do_not_update = bookmarkShapeMigrations
 
 	override canResize = () => false
 

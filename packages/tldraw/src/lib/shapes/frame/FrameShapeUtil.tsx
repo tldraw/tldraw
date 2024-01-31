@@ -35,7 +35,7 @@ export function defaultEmptyAs(str: string, dflt: string) {
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override type = 'frame' as const
 	static override props = frameShapeProps
-	static override migrations = frameShapeMigrations
+	static override __legacyMigrations_do_not_update = frameShapeMigrations
 
 	override canBind = () => true
 

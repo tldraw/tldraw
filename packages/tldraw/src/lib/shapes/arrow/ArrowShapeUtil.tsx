@@ -67,7 +67,7 @@ enum ARROW_HANDLES {
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow' as const
 	static override props = arrowShapeProps
-	static override migrations = arrowShapeMigrations
+	static override __legacyMigrations_do_not_update = arrowShapeMigrations
 
 	override canEdit = () => true
 	override canBind = () => false

@@ -30,7 +30,7 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
 	static override props = embedShapeProps
-	static override migrations = embedShapeMigrations
+	static override __legacyMigrations_do_not_update = embedShapeMigrations
 
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override canEdit: TLShapeUtilFlag<TLEmbedShape> = () => true

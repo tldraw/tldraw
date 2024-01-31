@@ -4,7 +4,11 @@ import { SerializedSchema } from './StoreSchema'
 
 type EMPTY_SYMBOL = symbol
 
-/** @internal */
+// TODO: link to migration docs
+/**
+ * @public
+ * @deprecated - use the new stuff
+ */
 export function defineMigrations<
 	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
 	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL,

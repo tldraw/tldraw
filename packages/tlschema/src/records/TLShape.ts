@@ -219,7 +219,7 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 					`[tldraw] Specifying migrations for the '${typeName}' shape type on the util class is no longer supported. See [docs] for how to resolve.`
 				)
 			}
-			return v.__legacyMigrations_no_not_update ?? defineMigrations({})
+			return v.__legacyMigrations_do_not_update ?? defineMigrations({})
 		}),
 	})
 

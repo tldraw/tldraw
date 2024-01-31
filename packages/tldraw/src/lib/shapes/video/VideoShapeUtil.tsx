@@ -16,7 +16,7 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
 	static override props = videoShapeProps
-	static override migrations = videoShapeMigrations
+	static override __legacyMigrations_do_not_update = videoShapeMigrations
 
 	override canEdit = () => true
 	override isAspectRatioLocked = () => true

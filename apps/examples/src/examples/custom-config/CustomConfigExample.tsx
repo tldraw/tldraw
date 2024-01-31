@@ -17,6 +17,7 @@ export default function CustomConfigExample() {
 			<Tldraw
 				// Pass in the array of custom shape classes
 				shapeUtils={customShapeUtils}
+				// TODO: pass in migrations
 				// Pass in the array of custom tool classes
 				tools={customTools}
 				// Pass in any overrides to the user interface

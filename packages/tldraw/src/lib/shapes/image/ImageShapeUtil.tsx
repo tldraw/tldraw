@@ -56,7 +56,7 @@ async function getDataURIFromURL(url: string): Promise<string> {
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
 	static override props = imageShapeProps
-	static override migrations = imageShapeMigrations
+	static override __legacyMigrations_do_not_update = imageShapeMigrations
 
 	override isAspectRatioLocked = () => true
 	override canCrop = () => true
