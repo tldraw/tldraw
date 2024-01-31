@@ -23,31 +23,30 @@ export function LocalEditor() {
 	}, [])
 
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				assetUrls={assetUrls}
-				persistenceKey={SCRATCH_PERSISTENCE_KEY}
-				onMount={handleMount}
-				autoFocus
-				overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides]}
-				onUiEvent={handleUiEvent}
-				components={{
-					ErrorFallback: ({ error }) => {
-						throw error
-					},
-				}}
-				shareZone={
-					<div className="tlui-share-zone" draggable={false}>
-						<ShareMenu />
-					</div>
-				}
-				renderDebugMenuItems={() => <DebugMenuItems />}
-				inferDarkMode
-			>
-				<LocalMigration />
-				<SneakyOnDropOverride isMultiplayer={false} />
-				<ThemeUpdater />
-			</Tldraw>
-		</div>
+		<Tldraw
+			className="tldraw__editor"
+			assetUrls={assetUrls}
+			persistenceKey={SCRATCH_PERSISTENCE_KEY}
+			onMount={handleMount}
+			autoFocus
+			overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides]}
+			onUiEvent={handleUiEvent}
+			components={{
+				ErrorFallback: ({ error }) => {
+					throw error
+				},
+			}}
+			shareZone={
+				<div className="tlui-share-zone" draggable={false}>
+					<ShareMenu />
+				</div>
+			}
+			renderDebugMenuItems={() => <DebugMenuItems />}
+			inferDarkMode
+		>
+			<LocalMigration />
+			<SneakyOnDropOverride isMultiplayer={false} />
+			<ThemeUpdater />
+		</Tldraw>
 	)
 }

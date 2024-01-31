@@ -62,39 +62,33 @@ export function MultiplayerEditor({
 		storeWithStatus.status === 'synced-remote' && storeWithStatus.connectionStatus === 'offline'
 
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				store={storeWithStatus}
-				assetUrls={assetUrls}
-				onMount={handleMount}
-				overrides={[
-					sharingUiOverrides,
-					fileSystemUiOverrides,
-					linksUiOverrides,
-					cursorChatOverrides,
-				]}
-				onUiEvent={handleUiEvent}
-				components={{
-					ErrorFallback: ({ error }) => {
-						throw error
-					},
-				}}
-				topZone={isOffline && <OfflineIndicator />}
-				shareZone={
-					<div className="tlui-share-zone" draggable={false}>
-						<PeopleMenu />
-						<ShareMenu />
-					</div>
-				}
-				autoFocus
-				inferDarkMode
-			>
-				<UrlStateSync />
-				<CursorChatBubble />
-				<SneakyOnDropOverride isMultiplayer />
-				<ThemeUpdater />
-			</Tldraw>
-		</div>
+		<Tldraw
+			className="tldraw__editor"
+			store={storeWithStatus}
+			assetUrls={assetUrls}
+			onMount={handleMount}
+			overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides, cursorChatOverrides]}
+			onUiEvent={handleUiEvent}
+			components={{
+				ErrorFallback: ({ error }) => {
+					throw error
+				},
+			}}
+			topZone={isOffline && <OfflineIndicator />}
+			shareZone={
+				<div className="tlui-share-zone" draggable={false}>
+					<PeopleMenu />
+					<ShareMenu />
+				</div>
+			}
+			autoFocus
+			inferDarkMode
+		>
+			<UrlStateSync />
+			<CursorChatBubble />
+			<SneakyOnDropOverride isMultiplayer />
+			<ThemeUpdater />
+		</Tldraw>
 	)
 }
 

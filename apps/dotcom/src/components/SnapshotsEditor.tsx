@@ -23,31 +23,30 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 	if (!storeResult?.ok) return <StoreErrorScreen error={new Error(storeResult?.error)} />
 
 	return (
-		<div className="tldraw__editor">
-			<Tldraw
-				assetUrls={assetUrls}
-				store={storeResult.value}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides]}
-				onUiEvent={handleUiEvent}
-				onMount={(editor) => {
-					editor.updateInstanceState({ isReadonly: true })
-				}}
-				components={{
-					ErrorFallback: ({ error }) => {
-						throw error
-					},
-				}}
-				shareZone={
-					<div className="tlui-share-zone" draggable={false}>
-						<ExportMenu />
-					</div>
-				}
-				renderDebugMenuItems={() => <DebugMenuItems />}
-				autoFocus
-				inferDarkMode
-			>
-				<UrlStateSync />
-			</Tldraw>
-		</div>
+		<Tldraw
+			className="tldraw__editor"
+			assetUrls={assetUrls}
+			store={storeResult.value}
+			overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides]}
+			onUiEvent={handleUiEvent}
+			onMount={(editor) => {
+				editor.updateInstanceState({ isReadonly: true })
+			}}
+			components={{
+				ErrorFallback: ({ error }) => {
+					throw error
+				},
+			}}
+			shareZone={
+				<div className="tlui-share-zone" draggable={false}>
+					<ExportMenu />
+				</div>
+			}
+			renderDebugMenuItems={() => <DebugMenuItems />}
+			autoFocus
+			inferDarkMode
+		>
+			<UrlStateSync />
+		</Tldraw>
 	)
 }

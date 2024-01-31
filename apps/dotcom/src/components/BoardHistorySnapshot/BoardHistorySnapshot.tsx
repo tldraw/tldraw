@@ -54,21 +54,20 @@ export function BoardHistorySnapshot({
 
 	return (
 		<>
-			<div className="tldraw__editor">
-				<Tldraw
-					store={store}
-					assetUrls={assetUrls}
-					onMount={(editor) => {
-						editor.updateInstanceState({ isReadonly: true })
-						setTimeout(() => {
-							editor.setCurrentTool('hand')
-						})
-					}}
-					overrides={[fileSystemUiOverrides]}
-					inferDarkMode
-					autoFocus
-				/>
-			</div>
+			<Tldraw
+				className="tldraw__editor"
+				store={store}
+				assetUrls={assetUrls}
+				onMount={(editor) => {
+					editor.updateInstanceState({ isReadonly: true })
+					setTimeout(() => {
+						editor.setCurrentTool('hand')
+					})
+				}}
+				overrides={[fileSystemUiOverrides]}
+				inferDarkMode
+				autoFocus
+			/>
 			<div className="board-history__restore">
 				<button onClick={restoreVersion}>{'Restore this version'}</button>
 			</div>
