@@ -7,8 +7,12 @@ import { SerializedStore } from './Store'
  * e.g. `com.tldraw/023_add_arrow_label_position`
  * By convention we use an incrementing integer and a semantic description of the migration as the unique name part, but
  * this is not enforced.
+ * @public
  */
 export type MigrationId = `${string}/${string}`
+/**
+ * @public
+ */
 export type Migration = StoreMigration | RecordMigration
 
 interface BaseMigration {
@@ -22,6 +26,7 @@ interface BaseMigration {
  * It does not support 'down' migrations because that would be prohibitively expensive
  * (and probably not even very useful) for the main use case i.e. allowing sync
  * server backwards compatibility
+ * @public
  */
 export interface StoreMigration extends BaseMigration {
 	scope: 'store'
@@ -34,6 +39,7 @@ export interface StoreMigration extends BaseMigration {
  * They cannot create or delete records.
  * They are not scoped to a particular type or subtype, but are rather run for every record in the store.
  * It's up to them to check the record type/subtype and decide whether to do anything.
+ * @public
  */
 export interface RecordMigration extends BaseMigration {
 	scope: 'record'
@@ -41,7 +47,9 @@ export interface RecordMigration extends BaseMigration {
 	down?(record: UnknownRecord): UnknownRecord
 }
 
-// tldraw extensions that need to do migrations would provide a 'MigrationSequences' object
+/**
+ * @public
+ */
 export type MigrationSequence = {
 	// the sequence ID uniquely identifies a sequence of migrations. it should
 	// be human readable and ideally namespaced e.g. `com.tldraw/TLArrowShape`
@@ -49,6 +57,9 @@ export type MigrationSequence = {
 	migrations: readonly Migration[]
 }
 
+/**
+ * @public
+ */
 export type MigrationsConfig = {
 	sequences: Array<{
 		sequence: MigrationSequence
@@ -57,9 +68,12 @@ export type MigrationsConfig = {
 	order: MigrationId[]
 }
 
-export type ExtractValidMigrationIds<Sequence extends MigrationSequence> =
+type ExtractValidMigrationIds<Sequence extends MigrationSequence> =
 	Sequence['migrations'][number]['id']
 
+/**
+ * @public
+ */
 export class MigrationsConfigBuilder<ValidMigrationIds extends MigrationId = never> {
 	sequences: MigrationsConfig['sequences'] = []
 	addSequence<S extends MigrationSequence>(
