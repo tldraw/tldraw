@@ -36,8 +36,8 @@ test.describe('Routes', () => {
 		await page.waitForSelector('.tl-canvas')
 	})
 
-	test('scroll', async ({ page }) => {
-		await page.goto('http://localhost:5420/scroll')
+	test('fullscreen', async ({ page }) => {
+		await page.goto('http://localhost:5420/fullscreen')
 		await page.waitForSelector('.tl-canvas')
 	})
 
