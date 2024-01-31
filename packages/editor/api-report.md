@@ -969,9 +969,7 @@ export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyo
 export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
 // @internal (undocumented)
-export const featureFlags: {
-    canMoveArrowLabel: DebugFlag<boolean>;
-};
+export const featureFlags: Record<string, DebugFlag<boolean>>;
 
 // @public (undocumented)
 export type GapsSnapLine = {
@@ -1041,6 +1039,9 @@ export abstract class Geometry2d {
     _vertices: undefined | Vec[];
 }
 
+// @public
+export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
+
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
     start: Vec;
@@ -1091,6 +1092,9 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
     button: number;
     isPen: boolean;
 };
+
+// @public
+export function getPointInArcT(mAB: number, A: number, B: number, P: number): number;
 
 // @public
 export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
@@ -1661,8 +1665,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDropShapesOver?: TLOnDragHandler<Shape>;
     onEditEnd?: TLOnEditEndHandler<Shape>;
     onHandleDrag?: TLOnHandleDragHandler<Shape>;
-    onHandleDragEnd?: TLOnHandleDragStartHandler<Shape>;
-    onHandleDragStart?: TLOnHandleDragStartHandler<Shape>;
     onResize?: TLOnResizeHandler<Shape>;
     onResizeEnd?: TLOnResizeEndHandler<Shape>;
     onResizeStart?: TLOnResizeStartHandler<Shape>;
@@ -2381,9 +2383,6 @@ export type TLOnHandleDragHandler<T extends TLShape> = (shape: T, info: {
     isPrecise: boolean;
     initial?: T | undefined;
 }) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnHandleDragStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;

@@ -5,7 +5,7 @@ import { SetValue } from '../util-types'
  * The handle types used by tldraw's default shapes.
  *
  * @public */
-export const TL_HANDLE_TYPES = new Set(['vertex', 'virtual', 'create', 'text-adjust'] as const)
+export const TL_HANDLE_TYPES = new Set(['vertex', 'virtual', 'create'] as const)
 
 /**
  * A type for the handle types used by tldraw's default shapes.
@@ -27,8 +27,6 @@ export interface TLHandle {
 	index: string
 	x: number
 	y: number
-	w?: number
-	h?: number
 }
 
 /** @internal */
@@ -40,6 +38,4 @@ export const handleValidator: T.Validator<TLHandle> = T.object({
 	index: T.string,
 	x: T.number,
 	y: T.number,
-	w: T.optional(T.number),
-	h: T.optional(T.number),
 })
