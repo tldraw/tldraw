@@ -154,11 +154,7 @@ We pass an array of our shape utils into the [Tldraw](?) component's `shapeUtils
 const MyCustomShapes = [MyCardShape]
 
 export default function () {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw shapeUtils={MyCustomShapes} />
-		</div>
-	)
+	return <Tldraw shapeUtils={MyCustomShapes} />
 }
 ```
 
@@ -167,14 +163,12 @@ We can create one of our custom card shapes using the [Editor](?) API. We'll do 
 ```tsx
 export default function () {
 	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw
-				shapeUtils={MyCustomShapes}
-				onMount={(editor) => {
-					editor.createShapes([{ type: 'card' }])
-				}}
-			/>
-		</div>
+		<Tldraw
+			shapeUtils={MyCustomShapes}
+			onMount={(editor) => {
+				editor.createShapes([{ type: 'card' }])
+			}}
+		/>
 	)
 }
 ```
