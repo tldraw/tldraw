@@ -26,6 +26,10 @@ if (!fullscreenExample) throw new Error('Could not find fullscreen example')
 
 const router = createBrowserRouter([
 	{
+		path: '*',
+		element: <div>404</div>,
+	},
+	{
 		path: '/',
 		lazy: async () => {
 			const Component = await fullscreenExample.loadComponent()

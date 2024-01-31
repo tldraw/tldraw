@@ -41,7 +41,7 @@ The source for these examples are available in the [tldraw repository](https://g
 
 ## Overrides
 
-The content of tldraw's menus can be controlled via the `overrides` prop. This prop accepts a [TLUiOverrides](/gen/tldraw/TLUiOverrides) object, which has methods for each part of the user interface, such as the `toolbar` or `keyboardShortcutsMenu`.
+The content of tldraw's menus can be controlled via the `overrides` prop. This prop accepts a [TLUiOverrides](/reference/tldraw/TLUiOverrides) object, which has methods for each part of the user interface, such as the `toolbar` or `keyboardShortcutsMenu`.
 
 ### Actions
 
@@ -72,7 +72,7 @@ const myOverrides: TLUiOverrides = {
 }
 ```
 
-The `actions` object is a map of [TLUiActionItem](/gen/tldraw/TLUiActionItem)s, with each item keyed under its `id`.
+The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionItem)s, with each item keyed under its `id`.
 
 ### Tools
 
@@ -98,7 +98,7 @@ const myOverrides: TLUiOverrides = {
 }
 ```
 
-The `tools` object is a map of [TLUiToolItem](/gen/tldraw/TLUiToolItem)s, with each item keyed under its `id`.
+The `tools` object is a map of [TLUiToolItem](/reference/tldraw/TLUiToolItem)s, with each item keyed under its `id`.
 
 ### Toolbar and Menus
 
@@ -139,7 +139,7 @@ const myOverrides: TLUiOverrides = {
 }
 ```
 
-A menu schema is an array of either [submenus](/gen/tldraw/TLUiSubMenu), [groups](/gen/tldraw/TLUiMenuGroup), [items](/gen/tldraw/TLUiMenuItem), or [custom items](/gen/tldraw/TLUiCustomMenuItem). Each group or submenu may include any of the other types as its children.
+A menu schema is an array of either [submenus](/reference/tldraw/TLUiSubMenu), [groups](/reference/tldraw/TLUiMenuGroup), [items](/reference/tldraw/TLUiMenuItem), or [custom items](/reference/tldraw/TLUiCustomMenuItem). Each group or submenu may include any of the other types as its children.
 
 The menu schema is stateful. Referencing atomic properties (such as computed values in the editor) will cause the menu to update when those values change. If you wish for a menu item to disappear from the menu, you can return `null` from the menu method. You can also provide additional options for each item, `disabled` or `checked`.
 

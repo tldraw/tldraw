@@ -1,7 +1,9 @@
 import {
 	Editor,
+	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
+	TLArrowShape,
 	TLClickEventInfo,
 	TLEventHandlers,
 	TLGroupShape,
@@ -90,7 +92,25 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				if (this.editor.isShapeOrAncestorLocked(info.shape)) {
+				const { shape } = info
+				const pointInShapeSpace = this.editor.getPointInShapeSpace(
+					shape,
+					this.editor.inputs.currentPagePoint
+				)
+				// todo: Extract into general hit test for arrows
+				if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+					// How should we handle multiple labels? Do shapes ever have multiple labels?
+					const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
+					// Knowing what we know about arrows... if the shape has no text in its label,
+					// then the label geometry should not be there.
+					if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
+						// We're moving the label on a shape.
+						this.parent.transition('pointing_arrow_label', info)
+						break
+					}
+				}
+
+				if (this.editor.isShapeOrAncestorLocked(shape)) {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}

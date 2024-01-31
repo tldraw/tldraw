@@ -523,16 +523,6 @@ input,
 	pointer-events: none;
 }
 
-.tl-handle__text-adjust {
-	cursor: var(--tl-cursor-grab);
-	fill: transparent;
-}
-
-.tl-handle__text-adjust:hover {
-	stroke-width: calc(2px * var(--tl-scale));
-	stroke: var(--color-selection-stroke);
-}
-
 .tl-handle__create {
 	opacity: 0;
 }
@@ -1149,6 +1139,10 @@ input,
 	display: flex;
 	justify-content: center;
 	align-items: center;
+}
+
+.tl-arrow-label__inner p {
+	cursor: var(--tl-cursor-grab);
 }
 
 .tl-arrow-label p,
