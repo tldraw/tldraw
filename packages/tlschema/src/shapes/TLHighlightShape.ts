@@ -1,4 +1,3 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
@@ -19,7 +18,3 @@ export type TLHighlightShapeProps = ShapePropsType<typeof highlightShapeProps>
 
 /** @public */
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
-
-/** @internal */
-// eslint-disable-next-line deprecation/deprecation
-export const highlightShapeMigrations = defineMigrations({})

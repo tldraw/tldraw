@@ -3,19 +3,31 @@ import fs from 'fs'
 import { bookmarkAssetMigrations } from '../assets/TLBookmarkAsset'
 import { imageAssetMigrations } from '../assets/TLImageAsset'
 import { videoAssetMigrations } from '../assets/TLVideoAsset'
+import { TLShape } from '../records/TLShape'
 import {
+	ArrowMigrationVersions,
+	GeoShapeVersions,
+	arrowShapeMigrations,
 	assetMigrations,
 	assetVersions,
+	bookmarkShapeMigrations,
 	cameraMigrations,
 	cameraVersions,
 	documentMigrations,
 	documentVersions,
+	drawShapeMigrations,
+	embedShapeMigrations,
+	geoShapeMigrations,
+	imageShapeMigrations,
 	instanceMigrations,
 	instancePageStateMigrations,
 	instancePageStateVersions,
 	instancePresenceMigrations,
 	instancePresenceVersions,
 	instanceVersions,
+	lineShapeMigrations,
+	lineShapeVersions,
+	noteShapeMigrations,
 	pageMigrations,
 	pageVersions,
 	pointerMigrations,
@@ -24,18 +36,9 @@ import {
 	rootShapeVersions,
 	storeMigrations,
 	storeVersions,
+	textShapeMigrations,
+	videoShapeMigrations,
 } from './legacy-migrations'
-import { TLShape } from '../records/TLShape'
-import { ArrowMigrationVersions, arrowShapeMigrations } from '../shapes/TLArrowShape'
-import { bookmarkShapeMigrations } from '../shapes/TLBookmarkShape'
-import { drawShapeMigrations } from '../shapes/TLDrawShape'
-import { embedShapeMigrations } from '../shapes/TLEmbedShape'
-import { GeoShapeVersions, geoShapeMigrations } from '../shapes/TLGeoShape'
-import { imageShapeMigrations } from '../shapes/TLImageShape'
-import { lineShapeMigrations, lineShapeVersions } from '../shapes/TLLineShape'
-import { noteShapeMigrations } from '../shapes/TLNoteShape'
-import { textShapeMigrations } from '../shapes/TLTextShape'
-import { videoShapeMigrations } from '../shapes/TLVideoShape'
 
 const assetModules = fs
 	.readdirSync('src/assets')

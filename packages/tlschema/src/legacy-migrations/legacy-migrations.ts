@@ -1,4 +1,6 @@
 import { defineMigrations, SerializedStore } from '@tldraw/store'
+import { deepCopy } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
 import { bookmarkAssetMigrations } from '../assets/TLBookmarkAsset'
 import { imageAssetMigrations } from '../assets/TLImageAsset'
 import { videoAssetMigrations } from '../assets/TLVideoAsset'
@@ -6,6 +8,10 @@ import { CameraRecordType } from '../records/TLCamera'
 import { TLDocument } from '../records/TLDocument'
 import { TLInstance, TLINSTANCE_ID } from '../records/TLInstance'
 import { TLRecord } from '../records/TLRecord'
+import { TLArrowShapeTerminal } from '../shapes/TLArrowShape'
+import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
+import { EMBED_DEFINITIONS, EmbedDefinition } from '../shapes/TLEmbedShape'
+import { TLDefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
 
 /** @internal */
 export const storeVersions = {
@@ -881,6 +887,774 @@ export const rootShapeMigrations = defineMigrations({
 					...record,
 				}
 			},
+		},
+	},
+})
+
+/** @internal */
+const imageShapeVersions = {
+	AddUrlProp: 1,
+	AddCropProp: 2,
+	MakeUrlsValid: 3,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const imageShapeMigrations = defineMigrations({
+	currentVersion: imageShapeVersions.MakeUrlsValid,
+	migrators: {
+		[imageShapeVersions.AddUrlProp]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, url: '' } }
+			},
+			down: (shape) => {
+				const { url: _, ...props } = shape.props
+				return { ...shape, props }
+			},
+		},
+		[imageShapeVersions.AddCropProp]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, crop: null } }
+			},
+			down: (shape) => {
+				const { crop: _, ...props } = shape.props
+				return { ...shape, props }
+			},
+		},
+		[imageShapeVersions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
+		},
+	},
+})
+
+/** @internal */
+export const ArrowMigrationVersions = {
+	AddLabelColor: 1,
+	AddIsPrecise: 2,
+	AddLabelPosition: 3,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const arrowShapeMigrations = defineMigrations({
+	currentVersion: ArrowMigrationVersions.AddLabelPosition,
+	migrators: {
+		[ArrowMigrationVersions.AddLabelColor]: {
+			up: (record) => {
+				return {
+					...record,
+					props: {
+						...record.props,
+						labelColor: 'black',
+					},
+				}
+			},
+			down: (record) => {
+				const { labelColor: _, ...props } = record.props
+				return {
+					...record,
+					props,
+				}
+			},
+		},
+
+		[ArrowMigrationVersions.AddIsPrecise]: {
+			up: (record) => {
+				const { start, end } = record.props
+				return {
+					...record,
+					props: {
+						...record.props,
+						start:
+							(start as TLArrowShapeTerminal).type === 'binding'
+								? {
+										...start,
+										isPrecise: !(
+											start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5
+										),
+									}
+								: start,
+						end:
+							(end as TLArrowShapeTerminal).type === 'binding'
+								? {
+										...end,
+										isPrecise: !(end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5),
+									}
+								: end,
+					},
+				}
+			},
+			down: (record: any) => {
+				const { start, end } = record.props
+				const nStart = { ...start }
+				const nEnd = { ...end }
+				if (nStart.type === 'binding') {
+					if (!nStart.isPrecise) {
+						nStart.normalizedAnchor = { x: 0.5, y: 0.5 }
+					}
+					delete nStart.isPrecise
+				}
+				if (nEnd.type === 'binding') {
+					if (!nEnd.isPrecise) {
+						nEnd.normalizedAnchor = { x: 0.5, y: 0.5 }
+					}
+					delete nEnd.isPrecise
+				}
+				return {
+					...record,
+					props: {
+						...record.props,
+						start: nStart,
+						end: nEnd,
+					},
+				}
+			},
+		},
+
+		[ArrowMigrationVersions.AddLabelPosition]: {
+			up: (record) => {
+				return {
+					...record,
+					props: {
+						...record.props,
+						labelPosition: 0.5,
+					},
+				}
+			},
+			down: (record) => {
+				const { labelPosition: _, ...props } = record.props
+				return {
+					...record,
+					props,
+				}
+			},
+		},
+	},
+})
+
+/** @internal */
+export const bookmarkShapeVersions = {
+	NullAssetId: 1,
+	MakeUrlsValid: 2,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const bookmarkShapeMigrations = defineMigrations({
+	currentVersion: bookmarkShapeVersions.MakeUrlsValid,
+	migrators: {
+		[bookmarkShapeVersions.NullAssetId]: {
+			up: (shape: TLBookmarkShape) => {
+				if (shape.props.assetId === undefined) {
+					return { ...shape, props: { ...shape.props, assetId: null } } as typeof shape
+				}
+				return shape
+			},
+			down: (shape: TLBookmarkShape) => {
+				if (shape.props.assetId === null) {
+					const { assetId: _, ...props } = shape.props
+					return { ...shape, props } as typeof shape
+				}
+				return shape
+			},
+		},
+		[bookmarkShapeVersions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
+		},
+	},
+})
+
+/** @internal */
+export const drawShapeVersions = {
+	AddInPen: 1,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const drawShapeMigrations = defineMigrations({
+	currentVersion: drawShapeVersions.AddInPen,
+	migrators: {
+		[drawShapeVersions.AddInPen]: {
+			up: (shape) => {
+				// Rather than checking to see whether the shape is a pen at runtime,
+				// from now on we're going to use the type of device reported to us
+				// as well as the pressure data received; but for existing shapes we
+				// need to check the pressure data to see if it's a pen or not.
+				const { points } = shape.props.segments[0]
+
+				if (points.length === 0) {
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							isPen: false,
+						},
+					}
+				}
+
+				let isPen = !(points[0].z === 0 || points[0].z === 0.5)
+
+				if (points[1]) {
+					// Double check if we have a second point (we probably should)
+					isPen = isPen && !(points[1].z === 0 || points[1].z === 0.5)
+				}
+
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						isPen,
+					},
+				}
+			},
+			down: (shape) => {
+				const { isPen: _isPen, ...propsWithOutIsPen } = shape.props
+				return {
+					...shape,
+					props: {
+						...propsWithOutIsPen,
+					},
+				}
+			},
+		},
+	},
+})
+
+/** @internal */
+export const embedShapeVersions = {
+	GenOriginalUrlInEmbed: 1,
+	RemoveDoesResize: 2,
+	RemoveTmpOldUrl: 3,
+	RemovePermissionOverrides: 4,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const embedShapeMigrations = defineMigrations({
+	currentVersion: embedShapeVersions.RemovePermissionOverrides,
+	migrators: {
+		[embedShapeVersions.GenOriginalUrlInEmbed]: {
+			// add tmpOldUrl property
+			up: (shape) => {
+				const url = shape.props.url
+				const host = new URL(url).host.replace('www.', '')
+				let originalUrl
+				for (const localEmbedDef of EMBED_DEFINITIONS) {
+					if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
+						try {
+							originalUrl = localEmbedDef.fromEmbedUrl(url)
+						} catch (err) {
+							console.warn(err)
+						}
+					}
+				}
+
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						tmpOldUrl: shape.props.url,
+						url: originalUrl ?? '',
+					},
+				}
+			},
+			// remove tmpOldUrl property
+			down: (shape) => {
+				let newUrl = shape.props.tmpOldUrl
+				if (!newUrl || newUrl === '') {
+					const url = shape.props.url
+					const host = new URL(url).host.replace('www.', '')
+
+					for (const localEmbedDef of EMBED_DEFINITIONS) {
+						if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
+							try {
+								newUrl = localEmbedDef.toEmbedUrl(url)
+							} catch (err) {
+								console.warn(err)
+							}
+						}
+					}
+				}
+
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { tmpOldUrl, ...props } = shape.props
+				return {
+					...shape,
+					props: {
+						...props,
+						url: newUrl ?? '',
+					},
+				}
+			},
+		},
+		[embedShapeVersions.RemoveDoesResize]: {
+			up: (shape) => {
+				const { doesResize: _, ...props } = shape.props
+				return {
+					...shape,
+					props: {
+						...props,
+					},
+				}
+			},
+			down: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						doesResize: true,
+					},
+				}
+			},
+		},
+		[embedShapeVersions.RemoveTmpOldUrl]: {
+			up: (shape) => {
+				const { tmpOldUrl: _, ...props } = shape.props
+				return {
+					...shape,
+					props: {
+						...props,
+					},
+				}
+			},
+			down: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+					},
+				}
+			},
+		},
+		[embedShapeVersions.RemovePermissionOverrides]: {
+			up: (shape) => {
+				const { overridePermissions: _, ...props } = shape.props
+				return {
+					...shape,
+					props: {
+						...props,
+					},
+				}
+			},
+			down: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+					},
+				}
+			},
+		},
+	},
+})
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const frameShapeMigrations = defineMigrations({})
+
+/** @internal */
+export const geoShapeVersions = {
+	AddUrlProp: 1,
+	AddLabelColor: 2,
+	RemoveJustify: 3,
+	AddCheckBox: 4,
+	AddVerticalAlign: 5,
+	MigrateLegacyAlign: 6,
+	AddCloud: 7,
+	MakeUrlsValid: 8,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const geoShapeMigrations = defineMigrations({
+	currentVersion: geoShapeVersions.MakeUrlsValid,
+	migrators: {
+		[geoShapeVersions.AddUrlProp]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, url: '' } }
+			},
+			down: (shape) => {
+				const { url: _, ...props } = shape.props
+				return { ...shape, props }
+			},
+		},
+		[geoShapeVersions.AddLabelColor]: {
+			up: (record) => {
+				return {
+					...record,
+					props: {
+						...record.props,
+						labelColor: 'black',
+					},
+				}
+			},
+			down: (record) => {
+				const { labelColor: _, ...props } = record.props
+				return {
+					...record,
+					props,
+				}
+			},
+		},
+		[geoShapeVersions.RemoveJustify]: {
+			up: (shape) => {
+				let newAlign = shape.props.align
+				if (newAlign === 'justify') {
+					newAlign = 'start'
+				}
+
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: newAlign,
+					},
+				}
+			},
+			down: (shape) => {
+				return { ...shape }
+			},
+		},
+		[geoShapeVersions.AddCheckBox]: {
+			up: (shape) => {
+				return { ...shape }
+			},
+			down: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						geo: shape.props.geo === 'check-box' ? 'rectangle' : shape.props.geo,
+					},
+				}
+			},
+		},
+		[geoShapeVersions.AddVerticalAlign]: {
+			up: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						verticalAlign: 'middle',
+					},
+				}
+			},
+			down: (shape) => {
+				const { verticalAlign: _, ...props } = shape.props
+				return {
+					...shape,
+					props,
+				}
+			},
+		},
+		[geoShapeVersions.MigrateLegacyAlign]: {
+			up: (shape) => {
+				let newAlign: TLDefaultHorizontalAlignStyle
+				switch (shape.props.align) {
+					case 'start':
+						newAlign = 'start-legacy'
+						break
+					case 'end':
+						newAlign = 'end-legacy'
+						break
+					default:
+						newAlign = 'middle-legacy'
+						break
+				}
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: newAlign,
+					},
+				}
+			},
+			down: (shape) => {
+				let oldAlign: TLDefaultHorizontalAlignStyle
+				switch (shape.props.align) {
+					case 'start-legacy':
+						oldAlign = 'start'
+						break
+					case 'end-legacy':
+						oldAlign = 'end'
+						break
+					case 'middle-legacy':
+						oldAlign = 'middle'
+						break
+					default:
+						oldAlign = shape.props.align
+				}
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: oldAlign,
+					},
+				}
+			},
+		},
+		[geoShapeVersions.AddCloud]: {
+			up: (shape) => {
+				return shape
+			},
+			down: (shape) => {
+				if (shape.props.geo === 'cloud') {
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							geo: 'rectangle',
+						},
+					}
+				}
+			},
+		},
+		[geoShapeVersions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
+		},
+	},
+})
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const groupShapeMigrations = defineMigrations({})
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const highlightShapeMigrations = defineMigrations({})
+
+/** @internal */
+export const lineShapeVersions = {
+	AddSnapHandles: 1,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const lineShapeMigrations = defineMigrations({
+	currentVersion: lineShapeVersions.AddSnapHandles,
+	migrators: {
+		[lineShapeVersions.AddSnapHandles]: {
+			up: (record: any) => {
+				const handles = deepCopy(record.props.handles as Record<string, any>)
+				for (const id in handles) {
+					handles[id].canSnap = true
+				}
+				return { ...record, props: { ...record.props, handles } }
+			},
+			down: (record: any) => {
+				const handles = deepCopy(record.props.handles as Record<string, any>)
+				for (const id in handles) {
+					delete handles[id].canSnap
+				}
+				return { ...record, props: { ...record.props, handles } }
+			},
+		},
+	},
+})
+
+/** @internal */
+export const noteShapeVersions = {
+	AddUrlProp: 1,
+	RemoveJustify: 2,
+	MigrateLegacyAlign: 3,
+	AddVerticalAlign: 4,
+	MakeUrlsValid: 5,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const noteShapeMigrations = defineMigrations({
+	currentVersion: noteShapeVersions.MakeUrlsValid,
+	migrators: {
+		[noteShapeVersions.AddUrlProp]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, url: '' } }
+			},
+			down: (shape) => {
+				const { url: _, ...props } = shape.props
+				return { ...shape, props }
+			},
+		},
+		[noteShapeVersions.RemoveJustify]: {
+			up: (shape) => {
+				let newAlign = shape.props.align
+				if (newAlign === 'justify') {
+					newAlign = 'start'
+				}
+
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: newAlign,
+					},
+				}
+			},
+			down: (shape) => {
+				return { ...shape }
+			},
+		},
+
+		[noteShapeVersions.MigrateLegacyAlign]: {
+			up: (shape) => {
+				let newAlign: TLDefaultHorizontalAlignStyle
+				switch (shape.props.align) {
+					case 'start':
+						newAlign = 'start-legacy'
+						break
+					case 'end':
+						newAlign = 'end-legacy'
+						break
+					default:
+						newAlign = 'middle-legacy'
+						break
+				}
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: newAlign,
+					},
+				}
+			},
+			down: (shape) => {
+				let oldAlign: TLDefaultHorizontalAlignStyle
+				switch (shape.props.align) {
+					case 'start-legacy':
+						oldAlign = 'start'
+						break
+					case 'end-legacy':
+						oldAlign = 'end'
+						break
+					case 'middle-legacy':
+						oldAlign = 'middle'
+						break
+					default:
+						oldAlign = shape.props.align
+				}
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: oldAlign,
+					},
+				}
+			},
+		},
+		[noteShapeVersions.AddVerticalAlign]: {
+			up: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						verticalAlign: 'middle',
+					},
+				}
+			},
+			down: (shape) => {
+				const { verticalAlign: _, ...props } = shape.props
+
+				return {
+					...shape,
+					props,
+				}
+			},
+		},
+		[noteShapeVersions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
+		},
+	},
+})
+
+/** @internal */
+export const textShapeVersions = {
+	RemoveJustify: 1,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const textShapeMigrations = defineMigrations({
+	currentVersion: textShapeVersions.RemoveJustify,
+	migrators: {
+		[textShapeVersions.RemoveJustify]: {
+			up: (shape) => {
+				let newAlign = shape.props.align
+				if (newAlign === 'justify') {
+					newAlign = 'start'
+				}
+
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: newAlign,
+					},
+				}
+			},
+			down: (shape) => {
+				return { ...shape }
+			},
+		},
+	},
+})
+
+/** @internal */
+export const videoShapeVersions = {
+	AddUrlProp: 1,
+	MakeUrlsValid: 2,
+} as const
+
+/** @internal */
+// eslint-disable-next-line deprecation/deprecation
+export const videoShapeMigrations = defineMigrations({
+	currentVersion: videoShapeVersions.MakeUrlsValid,
+	migrators: {
+		[videoShapeVersions.AddUrlProp]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, url: '' } }
+			},
+			down: (shape) => {
+				const { url: _, ...props } = shape.props
+				return { ...shape, props }
+			},
+		},
+		[videoShapeVersions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
 		},
 	},
 })
