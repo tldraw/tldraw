@@ -6,5 +6,5 @@ export default function FullscreenExample() {
 }
 
 /*	
-This example shows how you can use the Tldraw component inside a scrollable container.	
+This example shows how you can make the Tldraw component fill its parent container.
 */
