@@ -28,7 +28,7 @@ export default function ExampleCodeBlock({
 		<>
 			<iframe
 				src={`${SERVER}/${articleId}/full`}
-				style={{ border: 0, height: '50vh', width: '100%' }}
+				style={{ border: 0, height: 480, width: '100%' }}
 			/>
 			<SandpackProvider
 				key={`sandpack-${theme}-${activeFile}`}

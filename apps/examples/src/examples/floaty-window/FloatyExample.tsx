@@ -4,11 +4,9 @@ import { useEffect } from 'react'
 
 export default function FloatyExample() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="tldraw_floaty_example">
-				<SneakyFloatyHook />
-			</Tldraw>
-		</div>
+		<Tldraw persistenceKey="tldraw_floaty_example" style={{ width: '100%', height: '100%' }}>
+			<SneakyFloatyHook />
+		</Tldraw>
 	)
 }
 
