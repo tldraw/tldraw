@@ -1,4 +1,4 @@
-import { HistoryEntry, SerializedStore, Store, StoreSchema } from '@tldraw/store'
+import { HistoryEntry, MigrationOptions, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
 	SchemaShapeInfo,
 	TLRecord,
@@ -15,7 +15,7 @@ export type TLStoreOptions = {
 	initialData?: SerializedStore<TLRecord>
 	defaultName?: string
 } & (
-	| { shapeUtils?: readonly TLAnyShapeUtilConstructor[] }
+	| { shapeUtils?: readonly TLAnyShapeUtilConstructor[]; migrations?: MigrationOptions }
 	| { schema?: StoreSchema<TLRecord, TLStoreProps> }
 )
 
@@ -34,7 +34,8 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 			? // we have a schema
 				rest.schema
 			: // we need a schema
-				createTLSchema({
+			  createTLSchema({
+					migrations: 'migrations' in rest ? rest.migrations : undefined,
 					shapes: currentPageShapesToShapeMap(
 						checkShapesAndAddCore('shapeUtils' in rest && rest.shapeUtils ? rest.shapeUtils : [])
 					),

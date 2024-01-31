@@ -2,7 +2,7 @@ import { MigrationSequence } from '@tldraw/tldraw'
 
 // Migrations for the custom card shape (optional but very helpful)
 // As an example we will show a migration that deletes a property from the shape
-export const cardShapeMigrations: MigrationSequence = {
+export const cardShapeMigrations = {
 	// The sequence ID uniquely identifies a sequence of migrations. It should
 	// be globally-unique and we suggest using java-style reverse domain names.
 	id: 'com.tldraw.card-shape-example',
@@ -36,6 +36,6 @@ export const cardShapeMigrations: MigrationSequence = {
 			},
 		},
 	],
-}
+} as const satisfies MigrationSequence
 
 const isCardShape = (shape: any) => shape.typeName === 'shape' && shape.type === 'card'

@@ -11,6 +11,7 @@ export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema, type SchemaShapeInfo, type TLSchema } from './createTLSchema'
+export { tldrawMigrations } from './migrations/tldrawMigrations'
 export {
 	TL_CANVAS_UI_COLOR_TYPES,
 	canvasUiColorTypeValidator,

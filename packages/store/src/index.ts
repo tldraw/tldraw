@@ -32,10 +32,11 @@ export {
 	type Migrations,
 	type RecordVersion,
 } from './lib/legacy_migrate'
+export { MigrationsConfigBuilder } from './lib/migrate'
 export type {
 	Migration,
 	MigrationId,
-	MigrationOptions,
+	MigrationsConfig as MigrationOptions,
 	MigrationSequence,
 	RecordMigration,
 	StoreMigration,

@@ -1,7 +1,8 @@
-import { Tldraw } from '@tldraw/tldraw'
+import { MigrationsConfigBuilder, Tldraw, tldrawMigrations } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { CardShapeTool } from './CardShape/CardShapeTool'
 import { CardShapeUtil } from './CardShape/CardShapeUtil'
+import { cardShapeMigrations } from './CardShape/card-shape-migrations'
 import { uiOverrides } from './ui-overrides'
 
 // There's a guide at the bottom of this file!
@@ -10,6 +11,24 @@ import { uiOverrides } from './ui-overrides'
 const customShapeUtils = [CardShapeUtil]
 const customTools = [CardShapeTool]
 
+// TODO: add link to migration docs
+// TODO: maybe even move migrations to a separate example
+const migrations = new MigrationsConfigBuilder()
+	// tldraw's migration sequence should always be passed in
+	.addSequence(tldrawMigrations)
+	// then pass in your own migration sequence
+	.addSequence(cardShapeMigrations)
+	.setOrder([
+		// You will need to hard-code all of the tldraw migration ids in order here.
+		'com.tldraw/000_InitialMigration',
+		// And finally add your own migration ids.
+		'com.tldraw.card-shape-example/001_add_some_property',
+		// This array must only ever be appended to, and the ids may never change.
+		// So it's helpful to hard-code the strings like this.
+		// If you upgrade tldraw and the new version has extra migrations you will be
+		// asked to add them at the end here.
+	])
+
 // [2]
 export default function CustomConfigExample() {
 	return (
@@ -17,7 +36,7 @@ export default function CustomConfigExample() {
 			<Tldraw
 				// Pass in the array of custom shape classes
 				shapeUtils={customShapeUtils}
-				// TODO: pass in migrations
+				migrations={migrations}
 				// Pass in the array of custom tool classes
 				tools={customTools}
 				// Pass in any overrides to the user interface

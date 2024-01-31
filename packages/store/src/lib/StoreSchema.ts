@@ -5,7 +5,7 @@ import { LegacyMigrator } from './LegacyMigrator'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
 import { MigrationFailureReason, MigrationResult } from './legacy_migrate'
-import { Migration, MigrationId, MigrationOptions } from './migrate'
+import { Migration, MigrationId, MigrationsConfig } from './migrate'
 
 const LEGACY_SCHEMA_VERSION = 1
 const CURRENT_SCHEMA_VERSION = 2
@@ -50,7 +50,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	 * @public
 	 * Any migrations for the store's data.
 	 */
-	migrations?: MigrationOptions
+	migrations?: MigrationsConfig
 	__legacyMigrator?: LegacyMigrator
 	/** @public */
 	onValidationFailure?: (data: {
@@ -92,6 +92,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		const { order, sequences } = options.migrations ?? { order: [], sequences: [] }
 		this.__legacyMigrator = options.__legacyMigrator ?? null
 
+		// TODO: export the migration setup logic as a validator that people can run in their tests
 		this.includedSequenceIds = new Set<string>(sequences.map((s) => s.sequence.id))
 
 		this.sortedMigrationIds = [...order]

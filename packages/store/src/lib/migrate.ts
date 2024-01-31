@@ -46,13 +46,36 @@ export type MigrationSequence = {
 	// the sequence ID uniquely identifies a sequence of migrations. it should
 	// be human readable and ideally namespaced e.g. `com.tldraw/TLArrowShape`
 	id: string
-	migrations: Migration[]
+	migrations: readonly Migration[]
 }
 
-export type MigrationOptions = {
+export type MigrationsConfig = {
 	sequences: Array<{
 		sequence: MigrationSequence
 		versionAtInstallation: MigrationId | 'root'
 	}>
 	order: MigrationId[]
+}
+
+export type ExtractValidMigrationIds<Sequence extends MigrationSequence> =
+	Sequence['migrations'][number]['id']
+
+export class MigrationsConfigBuilder<ValidMigrationIds extends MigrationId = never> {
+	sequences: MigrationsConfig['sequences'] = []
+	addSequence<S extends MigrationSequence>(
+		sequence: S,
+		versionAtInstallation?: ExtractValidMigrationIds<S>
+	): MigrationsConfigBuilder<ValidMigrationIds | ExtractValidMigrationIds<S>> {
+		this.sequences.push({
+			sequence,
+			versionAtInstallation: versionAtInstallation ?? 'root',
+		})
+		return this
+	}
+	setOrder(order: ValidMigrationIds[]): MigrationsConfig {
+		return {
+			sequences: this.sequences,
+			order,
+		}
+	}
 }

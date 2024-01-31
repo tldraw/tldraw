@@ -92,8 +92,7 @@ export function createTLSchema({
 			migrations: migrations ?? {
 				sequences: [{ sequence: tldrawMigrations, versionAtInstallation: 'root' }],
 				// DO NOT DO THIS (mapping over migrations to get the id ordering) IN USERLAND CODE
-				// unless you are only including the tldraw migrations.
-				// Doing this when you use 3rd party migrations or your own migrations is not safe.
+				// Doing this when you use your own migrations or 3rd party migrations is not safe.
 				// You should always specify the order manually with an explicit array of migration IDs.
 				order: tldrawMigrations.migrations.map((m) => m.id),
 			},

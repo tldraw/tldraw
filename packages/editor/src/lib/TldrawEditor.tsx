@@ -1,4 +1,4 @@
-import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
+import { MigrationOptions, SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
@@ -72,6 +72,12 @@ export interface TldrawEditorBaseProps {
 	 * An array of shape utils to use in the editor.
 	 */
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+
+	// TODO: Link to migrations docs
+	/**
+	 * Configuration for data migrations.
+	 */
+	migrations?: MigrationOptions
 
 	/**
 	 * An array of tools to add to the editor's state chart.
@@ -197,10 +203,20 @@ export const TldrawEditor = memo(function TldrawEditor({
 function TldrawEditorWithOwnStore(
 	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapeUtils' | 'tools'>
 ) {
-	const { defaultName, snapshot, initialData, shapeUtils, persistenceKey, sessionId, user } = props
+	const {
+		defaultName,
+		snapshot,
+		initialData,
+		shapeUtils,
+		migrations,
+		persistenceKey,
+		sessionId,
+		user,
+	} = props
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
+		migrations,
 		initialData,
 		persistenceKey,
 		sessionId,
