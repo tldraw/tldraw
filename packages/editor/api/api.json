@@ -23063,6 +23063,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!GroupShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/store\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!GroupShapeUtil#canBind:member",
               "docComment": "",
               "excerptTokens": [
@@ -23318,41 +23353,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!GroupShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/store\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -30231,6 +30231,37 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "/**\n * Do not use this property unless you have previously deployed your app with the deprecated `migrations` property. Certainly do not add any new migrations to this property.\n *\n * See [docs] for more info.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Constructor",
               "canonicalReference": "@tldraw/editor!ShapeUtil:constructor(1)",
               "docComment": "/**\n * Constructs a new instance of the `ShapeUtil` class\n */\n",
@@ -31203,16 +31234,15 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil.migrations:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * - if you have previously deployed your app with this property, rename it to __legacyMigrations_do_not_update\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
                   "text": "static migrations?: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "kind": "Content",
+                  "text": "any"
                 },
                 {
                   "kind": "Content",
@@ -36258,7 +36288,7 @@
                 {
                   "kind": "Reference",
                   "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                  "canonicalReference": "@tldraw/store!SerializedSchema:type"
                 },
                 {
                   "kind": "Content",
@@ -36559,6 +36589,34 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "initialState",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps#migrations:member",
+              "docComment": "/**\n * Configuration for data migrations.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "migrations?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "MigrationOptions",
+                  "canonicalReference": "@tldraw/store!MigrationsConfig:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "migrations",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -41083,6 +41141,34 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLShapeUtilConstructor#__legacyMigrations_do_not_update:member",
+              "docComment": "/**\n * Do not use this property unless you have previously deployed your app with the deprecated `migrations` property. Certainly do not add any new migrations to this property.\n *\n * See [docs] for more info.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "__legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
               "kind": "ConstructSignature",
               "canonicalReference": "@tldraw/editor!TLShapeUtilConstructor:new(1)",
               "docComment": "",
@@ -41129,16 +41215,15 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLShapeUtilConstructor#migrations:member",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * - if you have previously deployed your app with this property, rename it to __legacyMigrations_do_not_update\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
                   "text": "migrations?: "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "kind": "Content",
+                  "text": "any"
                 },
                 {
                   "kind": "Content",
@@ -41601,7 +41686,16 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n})"
+              "text": "[];\n    migrations?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationOptions",
+              "canonicalReference": "@tldraw/store!MigrationsConfig:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n})"
             },
             {
               "kind": "Content",
@@ -41613,7 +41707,7 @@
           "name": "TLStoreOptions",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 14
+            "endIndex": 16
           }
         },
         {

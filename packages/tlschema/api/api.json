@@ -1247,7 +1247,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function createTLSchema({ shapes }: "
+              "text": "export declare function createTLSchema({ shapes, migrations, }: "
             },
             {
               "kind": "Content",
@@ -1269,7 +1269,16 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n}"
+              "text": ">;\n    migrations?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationOptions",
+              "canonicalReference": "@tldraw/store!MigrationsConfig:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -1287,17 +1296,17 @@
           ],
           "fileUrlPath": "packages/tlschema/src/createTLSchema.ts",
           "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 8
+            "startIndex": 9,
+            "endIndex": 10
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ shapes }",
+              "parameterName": "{ shapes, migrations, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 8
               },
               "isOptional": false
             }
@@ -3043,7 +3052,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    migrations?: "
+              "text": "{\n    __legacyMigrations_do_not_update?: "
             },
             {
               "kind": "Reference",
@@ -3052,7 +3061,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    props?: "
+              "text": ";\n    migrations?: never;\n    props?: "
             },
             {
               "kind": "Reference",
@@ -5682,6 +5691,65 @@
               "endIndex": 7
             }
           ]
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tlschema!tldrawMigrations:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "tldrawMigrations: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    readonly id: \"com.tldraw\";\n    readonly migrations: readonly [{\n        readonly id: \"com.tldraw/000_InitialMigration\";\n        readonly scope: \"store\";\n        readonly up: (data: import(\"@tldraw/store\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "SerializedStore",
+              "canonicalReference": "@tldraw/store!SerializedStore:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"@tldraw/store\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => import(\"@tldraw/store\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "SerializedStore",
+              "canonicalReference": "@tldraw/store!SerializedStore:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"@tldraw/store\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n    }];\n}"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/migrations/tldrawMigrations.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "tldrawMigrations",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 10
+          }
         },
         {
           "kind": "TypeAlias",

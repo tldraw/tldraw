@@ -21,8 +21,9 @@ export type SerializedSchemaV2 = {
 	versionHistory: MigrationId[]
 }
 
+// TODO: link to docs
 /**
- * @deprecated
+ * @deprecated Don't use this unless you know what you're doing!
  * @public
  */
 export type SerializedSchemaV1 = {
@@ -90,7 +91,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return new StoreSchema<R, P>(types as any, options ?? {})
 	}
 
-	private readonly __legacyMigrator: LegacyMigrator | null
+	/** @internal */
+	readonly __legacyMigrator: LegacyMigrator | null
 
 	private readonly sortedMigrationIds: MigrationId[]
 	private readonly migrations: ReadonlyMap<string, Migration>

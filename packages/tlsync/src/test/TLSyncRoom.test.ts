@@ -1,4 +1,4 @@
-import { SerializedSchema } from '@tldraw/store'
+import { SerializedSchemaV1 } from '@tldraw/store'
 import {
 	CameraRecordType,
 	DocumentRecordType,
@@ -97,8 +97,9 @@ describe('TLSyncRoom', () => {
 	})
 
 	it('migrates the snapshot if it is dealing with old data', () => {
-		const serializedSchema = schema.serialize()
-		const oldSerializedSchema: SerializedSchema = {
+		const serializedSchema = schema.__legacyMigrator!.serialize()
+		// eslint-disable-next-line deprecation/deprecation
+		const oldSerializedSchema: SerializedSchemaV1 = {
 			...serializedSchema,
 			recordVersions: {
 				...serializedSchema.recordVersions,

@@ -1,7 +1,7 @@
-import { getOwnProperty, objectMapValues } from '@tldraw/utils'
+import { getOwnProperty, objectMapEntries, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { SerializedStore, StoreSnapshot } from './Store'
-import { SerializedSchema } from './StoreSchema'
+import { SerializedSchema, SerializedSchemaV1 } from './StoreSchema'
 import {
 	MigrationFailureReason,
 	MigrationResult,
@@ -173,5 +173,34 @@ export class LegacyMigrator {
 			}
 		}
 		return { type: 'success', value: store }
+	}
+
+	// eslint-disable-next-line deprecation/deprecation
+	serialize(): SerializedSchemaV1 {
+		return {
+			schemaVersion: 1,
+			storeVersion: this.snapshotMigrations?.currentVersion ?? 0,
+			recordVersions: Object.fromEntries(
+				objectMapEntries(this.types).map(([typeName, migrations]) => [
+					typeName,
+					migrations.subTypeKey && migrations.subTypeMigrations
+						? {
+								version: migrations.currentVersion,
+								subTypeKey: migrations.subTypeKey,
+								subTypeVersions: migrations.subTypeMigrations
+									? Object.fromEntries(
+											Object.entries(migrations.subTypeMigrations).map(([k, v]) => [
+												k,
+												v.currentVersion,
+											])
+										)
+									: undefined,
+							}
+						: {
+								version: migrations.currentVersion,
+							},
+				])
+			),
+		}
 	}
 }

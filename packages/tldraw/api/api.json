@@ -382,6 +382,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#canBind:member",
               "docComment": "",
               "excerptTokens": [
@@ -937,41 +972,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -1622,6 +1622,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!BookmarkShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!BookmarkShapeUtil#canResize:member",
               "docComment": "",
               "excerptTokens": [
@@ -1823,41 +1858,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!BookmarkShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -3267,6 +3267,41 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!DrawShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/tldraw!DrawShapeUtil#component:member(1)",
               "docComment": "",
@@ -3670,41 +3705,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!DrawShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -4801,6 +4801,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!EmbedShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!EmbedShapeUtil#canEdit:member",
               "docComment": "",
               "excerptTokens": [
@@ -5185,41 +5220,6 @@
                 "endIndex": 5
               },
               "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!EmbedShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
               "isProtected": false,
               "isAbstract": false
             },
@@ -6068,6 +6068,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!FrameShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!FrameShapeUtil#canBind:member",
               "docComment": "",
               "excerptTokens": [
@@ -6415,41 +6450,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!FrameShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -7029,6 +7029,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!GeoShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!GeoShapeUtil#canEdit:member",
               "docComment": "",
               "excerptTokens": [
@@ -7286,41 +7321,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!GeoShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -8523,6 +8523,41 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!HighlightShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/tldraw!HighlightShapeUtil#backgroundComponent:member(1)",
               "docComment": "",
@@ -8898,41 +8933,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!HighlightShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!HighlightShapeUtil#onResize:member",
               "docComment": "",
               "excerptTokens": [
@@ -9277,6 +9277,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!ImageShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!ImageShapeUtil#canCrop:member",
               "docComment": "",
               "excerptTokens": [
@@ -9480,41 +9515,6 @@
                 "endIndex": 2
               },
               "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!ImageShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
               "isProtected": false,
               "isAbstract": false
             },
@@ -10345,6 +10345,41 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!LineShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/tldraw!LineShapeUtil#component:member(1)",
               "docComment": "",
@@ -10778,41 +10813,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!LineShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -11611,6 +11611,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!NoteShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!NoteShapeUtil#canEdit:member",
               "docComment": "",
               "excerptTokens": [
@@ -11941,41 +11976,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!NoteShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -13286,6 +13286,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!TextShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!TextShapeUtil#canEdit:member",
               "docComment": "",
               "excerptTokens": [
@@ -13602,41 +13637,6 @@
                 "endIndex": 5
               },
               "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!TextShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
               "isProtected": false,
               "isAbstract": false
             },
@@ -14442,7 +14442,7 @@
                 {
                   "kind": "Reference",
                   "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                  "canonicalReference": "@tldraw/store!SerializedSchema:type"
                 },
                 {
                   "kind": "Content",
@@ -14579,16 +14579,7 @@
             },
             {
               "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLRecord",
-              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n}) & "
+              "text": "<any>;\n}) & "
             },
             {
               "kind": "Reference",
@@ -14627,7 +14618,7 @@
           "name": "TldrawProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 17
+            "endIndex": 15
           }
         },
         {
@@ -21729,6 +21720,41 @@
           "members": [
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!VideoShapeUtil.__legacyMigrations_do_not_update:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static __legacyMigrations_do_not_update: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migrations",
+                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "__legacyMigrations_do_not_update",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!VideoShapeUtil#canEdit:member",
               "docComment": "",
               "excerptTokens": [
@@ -21928,41 +21954,6 @@
                 "endIndex": 2
               },
               "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!VideoShapeUtil.migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static migrations: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": true,
               "isProtected": false,
               "isAbstract": false
             },

@@ -7,6 +7,7 @@
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
+import { MigrationOptions } from '@tldraw/store';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
@@ -73,9 +74,6 @@ export const arrowShapeProps: {
 // @public
 export const assetIdValidator: T.Validator<TLAssetId>;
 
-// @internal (undocumented)
-export const assetMigrations: Migrations;
-
 // @public (undocumented)
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
@@ -141,8 +139,9 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<TLBaseShape<Type, Props>>;
 
 // @public
-export function createTLSchema({ shapes }: {
+export function createTLSchema({ shapes, migrations, }: {
     shapes: Record<string, SchemaShapeInfo>;
+    migrations?: MigrationOptions;
 }): TLSchema;
 
 // @public (undocumented)
@@ -703,12 +702,10 @@ export const parentIdValidator: T.Validator<TLParentId>;
 // @public (undocumented)
 export const PointerRecordType: RecordType<TLPointer, never>;
 
-// @internal (undocumented)
-export const rootShapeMigrations: Migrations;
-
 // @public (undocumented)
 export type SchemaShapeInfo = {
-    migrations?: Migrations;
+    __legacyMigrations_do_not_update?: Migrations;
+    migrations?: never;
     props?: Record<string, {
         validate: (prop: any) => any;
     }>;
@@ -930,6 +927,16 @@ export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>>
 
 // @public (undocumented)
 export const TLDOCUMENT_ID: RecordId<TLDocument>;
+
+// @public (undocumented)
+export const tldrawMigrations: {
+    readonly id: "com.tldraw";
+    readonly migrations: readonly [{
+        readonly id: "com.tldraw/000_InitialMigration";
+        readonly scope: "store";
+        readonly up: (data: SerializedStore<UnknownRecord>) => SerializedStore<UnknownRecord>;
+    }];
+};
 
 // @public (undocumented)
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;

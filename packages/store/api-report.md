@@ -6,6 +6,7 @@
 
 import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
+import { Result } from '@tldraw/utils';
 
 // @public
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
@@ -40,13 +41,24 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
 
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
-    migrations?: Migrations;
     validator?: StoreValidator<R>;
     scope: RecordScope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
 // @public @deprecated (undocumented)
-export const defineMigrations: typeof unsafe_defineMigrations;
+export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EMPTY_SYMBOL, CurrentVersion extends EMPTY_SYMBOL | Exclude<number, 0> = EMPTY_SYMBOL>(opts: {
+    firstVersion?: CurrentVersion extends number ? FirstVersion : never;
+    currentVersion?: CurrentVersion;
+    migrators?: CurrentVersion extends number ? FirstVersion extends number ? CurrentVersion extends FirstVersion ? {
+        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: LegacyMigration;
+    } : {
+        [version in Exclude<Range_2<FirstVersion, CurrentVersion>, FirstVersion>]: LegacyMigration;
+    } : {
+        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: LegacyMigration;
+    } : never;
+    subTypeKey?: string;
+    subTypeMigrations?: Record<string, BaseMigrationsInfo>;
+}): Migrations;
 
 // @public
 export function devFreeze<T>(object: T): T;
@@ -79,6 +91,31 @@ export class IncrementalSetConstructor<T> {
 }
 
 // @public @deprecated (undocumented)
+export type LegacyMigration<Before = any, After = any> = {
+    up: (oldState: Before) => After;
+    down: (newState: After) => Before;
+};
+
+// @internal (undocumented)
+export class LegacyMigrator {
+    constructor(types: Record<string, Migrations>, snapshotMigrations: Migrations);
+    // (undocumented)
+    get currentStoreVersion(): number;
+    // (undocumented)
+    migratePersistedRecord(record: UnknownRecord, persistedSchema: Extract<SerializedSchema, {
+        schemaVersion: 1;
+    }>, direction?: 'down' | 'up'): MigrationResult<UnknownRecord>;
+    // (undocumented)
+    migrateStoreSnapshot(snapshot: StoreSnapshot<UnknownRecord>): MigrationResult<SerializedStore<UnknownRecord>>;
+    // (undocumented)
+    serialize(): SerializedSchemaV1;
+    // (undocumented)
+    readonly snapshotMigrations: Migrations;
+    // (undocumented)
+    readonly types: Record<string, Migrations>;
+}
+
+// @public @deprecated (undocumented)
 export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
     value: unknown;
     migrations: Migrations;
@@ -94,11 +131,8 @@ export function migrateRecord<R extends UnknownRecord>({ record, migrations, fro
     toVersion: number;
 }): MigrationResult<R>;
 
-// @public @deprecated (undocumented)
-export type Migration<Before = any, After = any> = {
-    up: (oldState: Before) => After;
-    down: (newState: After) => Before;
-};
+// @public (undocumented)
+export type Migration = RecordMigration | StoreMigration;
 
 // @public (undocumented)
 export enum MigrationFailureReason {
@@ -116,7 +150,19 @@ export enum MigrationFailureReason {
     UnrecognizedSubtype = "unrecognized-subtype"
 }
 
-// @public @deprecated (undocumented)
+// @public
+export type MigrationId = `${string}/${string}`;
+
+// @public (undocumented)
+export type MigrationOptions = {
+    sequences: Array<{
+        sequence: MigrationSequence;
+        versionAtInstallation: 'root' | MigrationId;
+    }>;
+    order: MigrationId[];
+};
+
+// @public (undocumented)
 export type MigrationResult<T> = {
     type: 'error';
     reason: MigrationFailureReason;
@@ -134,9 +180,35 @@ export interface Migrations extends BaseMigrationsInfo {
 }
 
 // @public (undocumented)
+export class MigrationsConfigBuilder<ValidMigrationIds extends MigrationId = never> {
+    // (undocumented)
+    addSequence<S extends MigrationSequence>(sequence: S, versionAtInstallation?: ExtractValidMigrationIds<S>): MigrationsConfigBuilder<ExtractValidMigrationIds<S> | ValidMigrationIds>;
+    // (undocumented)
+    sequences: MigrationOptions['sequences'];
+    // (undocumented)
+    setOrder(order: ValidMigrationIds[]): MigrationOptions;
+}
+
+// @public (undocumented)
+export type MigrationSequence = {
+    id: string;
+    migrations: readonly Migration[];
+};
+
+// @public (undocumented)
 export type RecordId<R extends UnknownRecord> = string & {
     __type__: R;
 };
+
+// @public
+export interface RecordMigration extends BaseMigration {
+    // (undocumented)
+    down?(record: UnknownRecord): UnknownRecord;
+    // (undocumented)
+    scope: 'record';
+    // (undocumented)
+    up(record: UnknownRecord): UnknownRecord;
+}
 
 // @public
 export type RecordsDiff<R extends UnknownRecord> = {
@@ -150,7 +222,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     constructor(
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
-        readonly migrations: Migrations;
+        readonly migrations?: Migrations;
         readonly validator?: {
             validate: (r: unknown) => R;
         } | StoreValidator<R>;
@@ -165,8 +237,6 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     createId(customUniquePart?: string): IdOf<R>;
     isId(id?: string): id is IdOf<R>;
     isInstance: (record?: UnknownRecord) => record is R;
-    // (undocumented)
-    readonly migrations: Migrations;
     parseId(id: IdOf<R>): string;
     // (undocumented)
     readonly scope: RecordScope;
@@ -189,7 +259,12 @@ export type RecordVersion = {
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
 
 // @public (undocumented)
-export interface SerializedSchema {
+export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
+
+// @public @deprecated (undocumented)
+export type SerializedSchemaV1 = {
+    schemaVersion: typeof LEGACY_SCHEMA_VERSION;
+    storeVersion: number;
     recordVersions: Record<string, {
         version: number;
         subTypeVersions: Record<string, number>;
@@ -197,9 +272,13 @@ export interface SerializedSchema {
     } | {
         version: number;
     }>;
-    schemaVersion: number;
-    storeVersion: number;
-}
+};
+
+// @public (undocumented)
+export type SerializedSchemaV2 = {
+    schemaVersion: typeof CURRENT_SCHEMA_VERSION;
+    versionHistory: MigrationId[];
+};
 
 // @public
 export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>;
@@ -282,8 +361,20 @@ export type StoreError = {
 // @public
 export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) => void;
 
+// @public
+export interface StoreMigration extends BaseMigration {
+    // (undocumented)
+    down?(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord>;
+    // (undocumented)
+    scope: 'store';
+    // (undocumented)
+    up(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord>;
+}
+
 // @public (undocumented)
 export class StoreSchema<R extends UnknownRecord, P = unknown> {
+    // @internal (undocumented)
+    readonly __legacyMigrator: LegacyMigrator | null;
     // (undocumented)
     static create<R extends UnknownRecord, P = unknown>(types: {
         [TypeName in R['typeName']]: {
@@ -293,15 +384,17 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // @internal (undocumented)
     createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
     // (undocumented)
-    get currentStoreVersion(): number;
+    ensureMigrationSequenceIncluded(id: string): void;
+    // (undocumented)
+    getMigrationsSince(schema: SerializedSchema): Result<Migration[], string>;
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>>;
     // (undocumented)
-    serialize(): SerializedSchema;
+    serialize(): SerializedSchemaV2;
     // (undocumented)
-    serializeEarliestVersion(): SerializedSchema;
+    serializeEarliestVersion(): SerializedSchemaV2;
     // (undocumented)
     readonly types: {
         [Record in R as Record['typeName']]: RecordType<R, any>;
@@ -312,7 +405,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 // @public (undocumented)
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-    snapshotMigrations?: Migrations;
+    migrations?: MigrationOptions;
+    __legacyMigrator?: LegacyMigrator;
     onValidationFailure?: (data: {
         error: unknown;
         store: Store<R>;
@@ -343,6 +437,10 @@ export type StoreValidators<R extends UnknownRecord> = {
 
 // @public (undocumented)
 export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;
+
+// Warnings were encountered during analysis:
+//
+// src/lib/StoreSchema.ts:69:2 - (ae-incompatible-release-tags) The symbol "__legacyMigrator" is marked as @public, but its signature references "LegacyMigrator" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 

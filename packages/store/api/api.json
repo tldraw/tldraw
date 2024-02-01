@@ -606,7 +606,7 @@
             {
               "kind": "Reference",
               "text": "SerializedSchema",
-              "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+              "canonicalReference": "@tldraw/store!SerializedSchema:type"
             },
             {
               "kind": "Content",
@@ -615,7 +615,7 @@
             {
               "kind": "Reference",
               "text": "SerializedSchema",
-              "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+              "canonicalReference": "@tldraw/store!SerializedSchema:type"
             },
             {
               "kind": "Content",
@@ -727,16 +727,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    migrations?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Migrations",
-              "canonicalReference": "@tldraw/store!Migrations:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    validator?: "
+              "text": "{\n    validator?: "
             },
             {
               "kind": "Reference",
@@ -785,8 +776,8 @@
           ],
           "fileUrlPath": "packages/store/src/lib/RecordType.ts",
           "returnTypeTokenRange": {
-            "startIndex": 13,
-            "endIndex": 17
+            "startIndex": 11,
+            "endIndex": 15
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -803,7 +794,7 @@
               "parameterName": "config",
               "parameterTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 12
+                "endIndex": 10
               },
               "isOptional": false
             }
@@ -824,32 +815,226 @@
           "name": "createRecordType"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/store!defineMigrations:var",
-          "docComment": "/**\n * @deprecated\n *\n * - Use [???] instead\n *\n * @public\n */\n",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/store!defineMigrations:function(1)",
+          "docComment": "/**\n * @deprecated\n *\n * - use the new stuff\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "defineMigrations: "
-            },
-            {
-              "kind": "Content",
-              "text": "typeof "
+              "text": "export declare function defineMigrations<FirstVersion extends "
             },
             {
               "kind": "Reference",
-              "text": "unsafe_defineMigrations",
-              "canonicalReference": "@tldraw/store!~unsafe_defineMigrations:function"
+              "text": "EMPTY_SYMBOL",
+              "canonicalReference": "@tldraw/store!~EMPTY_SYMBOL:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | number"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Reference",
+              "text": "EMPTY_SYMBOL",
+              "canonicalReference": "@tldraw/store!~EMPTY_SYMBOL:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", CurrentVersion extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "EMPTY_SYMBOL",
+              "canonicalReference": "@tldraw/store!~EMPTY_SYMBOL:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Exclude",
+              "canonicalReference": "!Exclude:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<number, 0>"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Reference",
+              "text": "EMPTY_SYMBOL",
+              "canonicalReference": "@tldraw/store!~EMPTY_SYMBOL:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">(opts: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    firstVersion?: CurrentVersion extends number ? FirstVersion : never;\n    currentVersion?: CurrentVersion;\n    migrators?: CurrentVersion extends number ? FirstVersion extends number ? CurrentVersion extends FirstVersion ? {\n        [version in "
+            },
+            {
+              "kind": "Reference",
+              "text": "Exclude",
+              "canonicalReference": "!Exclude:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Range",
+              "canonicalReference": "@tldraw/store!~Range_2:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<1, CurrentVersion>, 0>]: "
+            },
+            {
+              "kind": "Reference",
+              "text": "LegacyMigration",
+              "canonicalReference": "@tldraw/store!LegacyMigration:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    } : {\n        [version in "
+            },
+            {
+              "kind": "Reference",
+              "text": "Exclude",
+              "canonicalReference": "!Exclude:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Range",
+              "canonicalReference": "@tldraw/store!~Range_2:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<FirstVersion, CurrentVersion>, FirstVersion>]: "
+            },
+            {
+              "kind": "Reference",
+              "text": "LegacyMigration",
+              "canonicalReference": "@tldraw/store!LegacyMigration:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    } : {\n        [version in "
+            },
+            {
+              "kind": "Reference",
+              "text": "Exclude",
+              "canonicalReference": "!Exclude:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Range",
+              "canonicalReference": "@tldraw/store!~Range_2:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<1, CurrentVersion>, 0>]: "
+            },
+            {
+              "kind": "Reference",
+              "text": "LegacyMigration",
+              "canonicalReference": "@tldraw/store!LegacyMigration:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    } : never;\n    subTypeKey?: string;\n    subTypeMigrations?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseMigrationsInfo",
+              "canonicalReference": "@tldraw/store!~BaseMigrationsInfo:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Migrations",
+              "canonicalReference": "@tldraw/store!Migrations:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 37,
+            "endIndex": 38
+          },
           "releaseTag": "Public",
-          "name": "defineMigrations",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 13,
+                "endIndex": 36
+              },
+              "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "FirstVersion",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 5
+              }
+            },
+            {
+              "typeParameterName": "CurrentVersion",
+              "constraintTokenRange": {
+                "startIndex": 6,
+                "endIndex": 10
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 11,
+                "endIndex": 12
+              }
+            }
+          ],
+          "name": "defineMigrations"
         },
         {
           "kind": "Function",
@@ -930,7 +1115,7 @@
             {
               "kind": "Reference",
               "text": "SerializedSchema",
-              "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+              "canonicalReference": "@tldraw/store!SerializedSchema:type"
             },
             {
               "kind": "Content",
@@ -1097,6 +1282,72 @@
           }
         },
         {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!LegacyMigration:type",
+          "docComment": "/**\n * @deprecated\n *\n * - use the new stuff\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type LegacyMigration<Before = "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": ", After = "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    up: (oldState: Before) => After;\n    down: (newState: After) => Before;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "releaseTag": "Public",
+          "name": "LegacyMigration",
+          "typeParameters": [
+            {
+              "typeParameterName": "Before",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "typeParameterName": "After",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 6
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/store!migrate:function(1)",
           "docComment": "/**\n * @deprecated\n *\n * - use the new stuff\n *\n * @public\n */\n",
@@ -1252,67 +1503,37 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/store!Migration:type",
-          "docComment": "/**\n * @deprecated\n *\n * - use the new stuff\n *\n * @public\n */\n",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type Migration<Before = "
+              "text": "export type Migration = "
+            },
+            {
+              "kind": "Reference",
+              "text": "RecordMigration",
+              "canonicalReference": "@tldraw/store!RecordMigration:interface"
             },
             {
               "kind": "Content",
-              "text": "any"
+              "text": " | "
             },
             {
-              "kind": "Content",
-              "text": ", After = "
-            },
-            {
-              "kind": "Content",
-              "text": "any"
-            },
-            {
-              "kind": "Content",
-              "text": "> = "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    up: (oldState: Before) => After;\n    down: (newState: After) => Before;\n}"
+              "kind": "Reference",
+              "text": "StoreMigration",
+              "canonicalReference": "@tldraw/store!StoreMigration:interface"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/migrate.ts",
           "releaseTag": "Public",
           "name": "Migration",
-          "typeParameters": [
-            {
-              "typeParameterName": "Before",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "typeParameterName": "After",
-              "constraintTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              }
-            }
-          ],
           "typeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 6
+            "startIndex": 1,
+            "endIndex": 4
           }
         },
         {
@@ -1460,8 +1681,96 @@
         },
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!MigrationId:type",
+          "docComment": "/**\n * A migration ID is a string that uniquely identifies a migration. It should include a namespace followed by a slash and then a unique identifier within than namespace. e.g. `com.tldraw/023_add_arrow_label_position` By convention we use an incrementing integer and a semantic description of the migration as the unique name part, but this is not enforced.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type MigrationId = "
+            },
+            {
+              "kind": "Content",
+              "text": "`${string}/${string}`"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/migrate.ts",
+          "releaseTag": "Public",
+          "name": "MigrationId",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!MigrationOptions:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type MigrationsConfig = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    sequences: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        sequence: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        versionAtInstallation: 'root' | "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    }>;\n    order: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/migrate.ts",
+          "releaseTag": "Public",
+          "name": "MigrationOptions",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 10
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/store!MigrationResult:type",
-          "docComment": "/**\n * @deprecated\n *\n * - use the new stuff\n *\n * @public\n */\n",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1607,6 +1916,279 @@
           ]
         },
         {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/store!MigrationsConfigBuilder:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class MigrationsConfigBuilder<ValidMigrationIds extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "never"
+            },
+            {
+              "kind": "Content",
+              "text": "> "
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/migrate.ts",
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "ValidMigrationIds",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            }
+          ],
+          "isAbstract": false,
+          "name": "MigrationsConfigBuilder",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!MigrationsConfigBuilder#addSequence:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "addSequence<S extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "MigrationSequence",
+                  "canonicalReference": "@tldraw/store!MigrationSequence:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(sequence: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "S"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", versionAtInstallation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ExtractValidMigrationIds",
+                  "canonicalReference": "@tldraw/store!~ExtractValidMigrationIds:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<S>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "MigrationsConfigBuilder",
+                  "canonicalReference": "@tldraw/store!MigrationsConfigBuilder:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ExtractValidMigrationIds",
+                  "canonicalReference": "@tldraw/store!~ExtractValidMigrationIds:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<S> | ValidMigrationIds>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "S",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 12
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "sequence",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "versionAtInstallation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "addSequence"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/store!MigrationsConfigBuilder#sequences:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "sequences: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "MigrationsConfig",
+                  "canonicalReference": "@tldraw/store!MigrationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "['sequences']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "sequences",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!MigrationsConfigBuilder#setOrder:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setOrder(order: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "ValidMigrationIds[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "MigrationsConfig",
+                  "canonicalReference": "@tldraw/store!MigrationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "order",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "setOrder"
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!MigrationSequence:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type MigrationSequence = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    id: string;\n    migrations: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "Migration",
+              "canonicalReference": "@tldraw/store!Migration:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/migrate.ts",
+          "releaseTag": "Public",
+          "name": "MigrationSequence",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/store!RecordId:type",
           "docComment": "/**\n * @public\n */\n",
@@ -1653,6 +2235,159 @@
             "startIndex": 3,
             "endIndex": 4
           }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/store!RecordMigration:interface",
+          "docComment": "/**\n * Record migrations operate on a single record at a time They cannot create or delete records. They are not scoped to a particular type or subtype, but are rather run for every record in the store. It's up to them to check the record type/subtype and decide whether to do anything.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface RecordMigration extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseMigration",
+              "canonicalReference": "@tldraw/store!~BaseMigration:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/migrate.ts",
+          "releaseTag": "Public",
+          "name": "RecordMigration",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/store!RecordMigration#down:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "down?(record: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "record",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "down"
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/store!RecordMigration#scope:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scope: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'record'"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "scope",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/store!RecordMigration#up:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "up(record: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "record",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "up"
+            }
+          ],
+          "extendsTokenRanges": [
+            {
+              "startIndex": 1,
+              "endIndex": 2
+            }
+          ]
         },
         {
           "kind": "TypeAlias",
@@ -1859,7 +2594,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<R>, RequiredProperties>;\n        readonly migrations: "
+                  "text": "<R>, RequiredProperties>;\n        readonly migrations?: "
                 },
                 {
                   "kind": "Reference",
@@ -2299,37 +3034,6 @@
               "isAbstract": false
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/store!RecordType#migrations:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "readonly migrations: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
               "kind": "Method",
               "canonicalReference": "@tldraw/store!RecordType#parseId:member(1)",
               "docComment": "/**\n * Takes an id like `user:123` and returns the part after the colon `123`\n *\n * @param id - The id\n *\n * @returns \n */\n",
@@ -2712,117 +3416,137 @@
           "name": "reverseRecordsDiff"
         },
         {
-          "kind": "Interface",
-          "canonicalReference": "@tldraw/store!SerializedSchema:interface",
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!SerializedSchema:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface SerializedSchema "
+              "text": "export type SerializedSchema = "
+            },
+            {
+              "kind": "Reference",
+              "text": "SerializedSchemaV1",
+              "canonicalReference": "@tldraw/store!SerializedSchemaV1:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "SerializedSchemaV2",
+              "canonicalReference": "@tldraw/store!SerializedSchemaV2:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/store/src/lib/StoreSchema.ts",
           "releaseTag": "Public",
           "name": "SerializedSchema",
-          "preserveMemberOrder": false,
-          "members": [
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!SerializedSchemaV1:type",
+          "docComment": "/**\n * @deprecated\n *\n * Don't use this unless you know what you're doing!\n *\n * @public\n */\n",
+          "excerptTokens": [
             {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/store!SerializedSchema#recordVersions:member",
-              "docComment": "/**\n * Record versions are the versions for each record type. e.g. adding a new field to a record\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "recordVersions: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Record",
-                  "canonicalReference": "!Record:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string, {\n        version: number;\n        subTypeVersions: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Record",
-                  "canonicalReference": "!Record:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string, number>;\n        subTypeKey: string;\n    } | {\n        version: number;\n    }>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "recordVersions",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              }
+              "kind": "Content",
+              "text": "export type SerializedSchemaV1 = "
             },
             {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/store!SerializedSchema#schemaVersion:member",
-              "docComment": "/**\n * Schema version is the version for this type you're looking at right now\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "schemaVersion: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "schemaVersion",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
+              "kind": "Content",
+              "text": "{\n    schemaVersion: typeof "
             },
             {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/store!SerializedSchema#storeVersion:member",
-              "docComment": "/**\n * Store version is the version for the structure of the store. e.g. higher level structure like removing or renaming a record type.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "storeVersion: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "storeVersion",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
+              "kind": "Reference",
+              "text": "LEGACY_SCHEMA_VERSION",
+              "canonicalReference": "@tldraw/store!~LEGACY_SCHEMA_VERSION:var"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    storeVersion: number;\n    recordVersions: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, {\n        version: number;\n        subTypeVersions: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, number>;\n        subTypeKey: string;\n    } | {\n        version: number;\n    }>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
-          "extendsTokenRanges": []
+          "fileUrlPath": "packages/store/src/lib/StoreSchema.ts",
+          "releaseTag": "Public",
+          "name": "SerializedSchemaV1",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 8
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/store!SerializedSchemaV2:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type SerializedSchemaV2 = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    schemaVersion: typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "CURRENT_SCHEMA_VERSION",
+              "canonicalReference": "@tldraw/store!~CURRENT_SCHEMA_VERSION:var"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    versionHistory: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/StoreSchema.ts",
+          "releaseTag": "Public",
+          "name": "SerializedSchemaV2",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
+          }
         },
         {
           "kind": "TypeAlias",
@@ -4608,6 +5332,211 @@
           }
         },
         {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/store!StoreMigration:interface",
+          "docComment": "/**\n * Store migrations operate on the entire store at once. It does not support 'down' migrations because that would be prohibitively expensive (and probably not even very useful) for the main use case i.e. allowing sync server backwards compatibility\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface StoreMigration extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseMigration",
+              "canonicalReference": "@tldraw/store!~BaseMigration:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/store/src/lib/migrate.ts",
+          "releaseTag": "Public",
+          "name": "StoreMigration",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/store!StoreMigration#down:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "down?(store: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedStore",
+                  "canonicalReference": "@tldraw/store!SerializedStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedStore",
+                  "canonicalReference": "@tldraw/store!SerializedStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": true,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 10
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "store",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "down"
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/store!StoreMigration#scope:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scope: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'store'"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "scope",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/store!StoreMigration#up:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "up(store: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedStore",
+                  "canonicalReference": "@tldraw/store!SerializedStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedStore",
+                  "canonicalReference": "@tldraw/store!SerializedStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 10
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "store",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "up"
+            }
+          ],
+          "extendsTokenRanges": [
+            {
+              "startIndex": 1,
+              "endIndex": 2
+            }
+          ]
+        },
+        {
           "kind": "Class",
           "canonicalReference": "@tldraw/store!StoreSchema:class",
           "docComment": "/**\n * @public\n */\n",
@@ -4780,34 +5709,115 @@
               "name": "create"
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/store!StoreSchema#currentStoreVersion:member",
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!StoreSchema#ensureMigrationSequenceIncluded:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "get currentStoreVersion(): "
+                  "text": "ensureMigrationSequenceIncluded(id: "
                 },
                 {
                   "kind": "Content",
-                  "text": "number"
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "currentStoreVersion",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
               "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
               "isProtected": false,
-              "isAbstract": false
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "id",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "ensureMigrationSequenceIncluded"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!StoreSchema#getMigrationsSince:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getMigrationsSince(schema: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedSchema",
+                  "canonicalReference": "@tldraw/store!SerializedSchema:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Result",
+                  "canonicalReference": "@tldraw/utils!Result:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Migration",
+                  "canonicalReference": "@tldraw/store!Migration:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[], string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "schema",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getMigrationsSince"
             },
             {
               "kind": "Method",
@@ -4829,7 +5839,7 @@
                 {
                   "kind": "Reference",
                   "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                  "canonicalReference": "@tldraw/store!SerializedSchema:type"
                 },
                 {
                   "kind": "Content",
@@ -4973,8 +5983,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                  "text": "SerializedSchemaV2",
+                  "canonicalReference": "@tldraw/store!SerializedSchemaV2:type"
                 },
                 {
                   "kind": "Content",
@@ -5005,8 +6015,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                  "text": "SerializedSchemaV2",
+                  "canonicalReference": "@tldraw/store!SerializedSchemaV2:type"
                 },
                 {
                   "kind": "Content",
@@ -5189,12 +6199,21 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    snapshotMigrations?: "
+              "text": "{\n    migrations?: "
             },
             {
               "kind": "Reference",
-              "text": "Migrations",
-              "canonicalReference": "@tldraw/store!Migrations:interface"
+              "text": "MigrationsConfig",
+              "canonicalReference": "@tldraw/store!MigrationOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    __legacyMigrator?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "LegacyMigrator",
+              "canonicalReference": "@tldraw/store!LegacyMigrator:class"
             },
             {
               "kind": "Content",
@@ -5252,7 +6271,7 @@
           ],
           "typeTokenRange": {
             "startIndex": 3,
-            "endIndex": 10
+            "endIndex": 12
           }
         },
         {
@@ -5289,7 +6308,7 @@
             {
               "kind": "Reference",
               "text": "SerializedSchema",
-              "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+              "canonicalReference": "@tldraw/store!SerializedSchema:type"
             },
             {
               "kind": "Content",
