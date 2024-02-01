@@ -116,6 +116,16 @@ export enum ArticleStatus {
 	Unlisted = 'unlisted',
 }
 
+export enum APIGroup {
+	Class = 'Class',
+	Function = 'Function',
+	Variable = 'Variable',
+	Enum = 'Enum',
+	Interface = 'Interface',
+	TypeAlias = 'TypeAlias',
+	Namespace = 'Namespace',
+}
+
 /* ---------------- Article Headings ---------------- */
 
 export interface ArticleHeading {

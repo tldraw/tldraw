@@ -111,7 +111,7 @@ export async function getApiMarkdown(categoryName: string, item: ApiItem, j: num
 	await addFrontmatter(result, item, categoryName, j)
 
 	if (toc.markdown.length) {
-		result.markdown += `<details class="article__table-of-contents">\n\t<summary>Table of contents</summary>\n`
+		result.markdown += `<details className="article__table-of-contents">\n\t<summary>Table of contents</summary>\n`
 		addMarkdown(result, toc.markdown)
 		result.markdown += `</details>\n\n`
 	}
