@@ -2441,9 +2441,9 @@ __metadata:
   linkType: hard
 
 "@cloudflare/workers-types@npm:^4.20240117.0":
-  version: 4.20240117.0
-  resolution: "@cloudflare/workers-types@npm:4.20240117.0"
-  checksum: ab4bbb499e4416c22792e3302508efa87e6620303f97c8a41db154188f35e1e8d8d71ed20df3cd8a02e9aa485c31d6e25f7c2b6a3a0fe08d8a8634f4f5c16e4a
+  version: 4.20240129.0
+  resolution: "@cloudflare/workers-types@npm:4.20240129.0"
+  checksum: c83b02ce85a7751aeb475f1b8c9cf58f1b4e2b9cd7dd56e7dd9f7e0c0155b301db0bff6daa35587dcb5de0cb9a41e8ac0eeec1f6ed6ebbad849d21d4ff907a8f
   languageName: node
   linkType: hard
 
@@ -2618,7 +2618,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cspotcode/source-map-support@npm:^0.8.0":
+"@cspotcode/source-map-support@npm:0.8.1, @cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
   dependencies:
@@ -9087,13 +9087,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@yarnpkg/lockfile@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@yarnpkg/lockfile@npm:1.1.0"
-  checksum: cd19e1114aaf10a05126aeea8833ef4ca8af8a46e88e12884f8359d19333fd19711036dbc2698dbe937f81f037070cf9a8da45c2e8c6ca19cafd7d15659094ed
-  languageName: node
-  linkType: hard
-
 "@yarnpkg/types@npm:^4.0.0":
   version: 4.0.0
   resolution: "@yarnpkg/types@npm:4.0.0"
@@ -10727,7 +10720,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ci-info@npm:^3.1.0, ci-info@npm:^3.2.0, ci-info@npm:^3.7.0, ci-info@npm:^3.8.0":
+"ci-info@npm:^3.1.0, ci-info@npm:^3.2.0, ci-info@npm:^3.8.0":
   version: 3.9.0
   resolution: "ci-info@npm:3.9.0"
   checksum: 75bc67902b4d1c7b435497adeb91598f6d52a3389398e44294f6601b20cfef32cf2176f7be0eb961d9e085bb333a8a5cae121cb22f81cf238ae7f58eb80e9397
@@ -15165,12 +15158,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "health-worker@workspace:apps/health-worker"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20230821.0"
+    "@cloudflare/workers-types": "npm:^4.20240117.0"
     "@tldraw/utils": "workspace:*"
     "@types/node": "npm:~20.11"
     discord-api-types: "npm:^0.37.67"
     typescript: "npm:^5.2.2"
-    wrangler: "npm:3.16.0"
+    wrangler: "npm:^3.25.0"
   languageName: unknown
   linkType: soft
 
@@ -22575,7 +22568,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map-support@npm:0.5.21, source-map-support@npm:^0.5.12, source-map-support@npm:^0.5.17, source-map-support@npm:^0.5.21, source-map-support@npm:~0.5.20":
+"source-map-support@npm:^0.5.12, source-map-support@npm:^0.5.17, source-map-support@npm:^0.5.21, source-map-support@npm:~0.5.20":
   version: 0.5.21
   resolution: "source-map-support@npm:0.5.21"
   dependencies:
