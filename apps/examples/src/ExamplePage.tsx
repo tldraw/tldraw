@@ -81,14 +81,9 @@ function ExampleSidebarListItem({
 			</h3>
 			{isActive && (
 				<div className="examples__list__item__buttons">
-					<Link
-						to={`${example.path}/full`}
-						className="examples__list__item__button hoverable"
-						aria-label="Standalone"
-						title="View standalone example"
-					>
+					<div className="examples__list__item__button hoverable">
 						<InfoIcon />
-					</Link>
+					</div>
 					<Link
 						to={`${example.path}/full`}
 						className="examples__list__item__button hoverable"
@@ -152,6 +147,8 @@ function InfoIcon() {
 				fill="currentColor"
 				fillRule="evenodd"
 				clipRule="evenodd"
+				// Remove once we have the dialog
+				opacity={0.25}
 			/>
 		</svg>
 	)
