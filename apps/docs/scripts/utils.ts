@@ -174,7 +174,7 @@ export class MarkdownWriter {
 				this.write(
 					'[',
 					docNode.linkText ?? getDefaultReferenceText(linkedItem),
-					'](/gen/',
+					'](/reference/',
 					path,
 					')'
 				)

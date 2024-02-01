@@ -1,7 +1,8 @@
 ---
 title: Local images
 component: ./LocalImagesExample.tsx
-hide: false
+category: data/assets
+priority: 2
 ---
 
 How to use local images in the built-in `ImageShape` shape.

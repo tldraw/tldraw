@@ -31,6 +31,7 @@
 	"files": [],
 	"scripts": {
 		"test": "lazy inherit",
+		"test-dev": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit",
 		"index": "node ./scripts/build-index.js && yarn format",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
@@ -59,5 +60,8 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"nanoid": "4.0.2"
+	},
+	"peerDependencies": {
+		"react": "^18"
 	}
 }

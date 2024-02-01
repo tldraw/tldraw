@@ -1546,7 +1546,7 @@ describe('snap lines', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "0,0 0,100 0,200 0,300",
         "0,0 100,0 200,0 300,0",
         "0,100 100,100 200,100 300,100",

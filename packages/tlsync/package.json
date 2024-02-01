@@ -32,6 +32,7 @@
 	"files": [],
 	"scripts": {
 		"test": "lazy inherit",
+		"test-dev": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
@@ -63,5 +64,9 @@
 		"nanoevents": "^7.0.1",
 		"nanoid": "4.0.2",
 		"ws": "^8.16.0"
+	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
 	}
 }

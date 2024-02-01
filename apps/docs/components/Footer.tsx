@@ -15,7 +15,7 @@ export function Footer() {
 						WebkitMask: `url(/tldraw-icon.svg) center 100% / 100% no-repeat`,
 					}}
 				/>
-				<p>tldraw © 2024</p>
+				<p>tldraw © {new Date().getFullYear()}</p>
 			</a>
 			<div className="footer__socials">
 				<a

@@ -114,7 +114,7 @@ test("useValue doesn't throw when used in a zombie-child component", async () =>
 	})
 
 	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "1",
 		  "2",
 		  "3",
@@ -127,7 +127,7 @@ test("useValue doesn't throw when used in a zombie-child component", async () =>
 	})
 
 	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "1",
 		  "3",
 		]

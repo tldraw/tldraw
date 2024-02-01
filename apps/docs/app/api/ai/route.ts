@@ -80,12 +80,12 @@ export async function GET(req: NextRequest) {
 			const { category, section, article, heading, score } = result
 			const isUncategorized = category.id === section.id + '_ucg'
 			if (BANNED_HEADINGS.some((h) => heading.slug.endsWith(h))) continue
-			results[section.id === 'gen' ? 'apiDocs' : 'articles'].push({
+			results[section.id === 'reference' ? 'apiDocs' : 'articles'].push({
 				id: result.id,
 				type: 'heading',
 				subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
 				title:
-					section.id === 'gen'
+					section.id === 'reference'
 						? article.title + '.' + heading.title
 						: article.title + ': ' + heading.title,
 				url: isUncategorized
@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
 				article.sectionId
 			)
 			const isUncategorized = category.id === section.id + '_ucg'
-			results[section.id === 'gen' ? 'apiDocs' : 'articles'].push({
+			results[section.id === 'reference' ? 'apiDocs' : 'articles'].push({
 				id: article.id,
 				type: 'article',
 				subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,

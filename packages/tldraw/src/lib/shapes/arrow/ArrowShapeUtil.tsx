@@ -18,7 +18,6 @@ import {
 	TLHandle,
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
-	TLOnHandleDragStartHandler,
 	TLOnResizeHandler,
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
@@ -28,10 +27,7 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	clockwiseAngleDist,
-	counterClockwiseAngleDist,
 	deepCopy,
-	featureFlags,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
 	mapObjectMapValues,
@@ -64,7 +60,6 @@ let globalRenderIndex = 0
 enum ARROW_HANDLES {
 	START = 'start',
 	MIDDLE = 'middle',
-	LABEL = 'middle-text',
 	END = 'end',
 }
 
@@ -150,11 +145,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getHandles(shape: TLArrowShape): TLHandle[] {
 		const info = this.editor.getArrowInfo(shape)!
 
-		const hasText = shape.props.text.trim()
-		const labelGeometry = hasText
-			? (this.editor.getShapeGeometry<Group2d>(shape).children[1] as Rectangle2d)
-			: null
-
 		return [
 			{
 				id: ARROW_HANDLES.START,
@@ -172,17 +162,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				y: info.middle.y,
 				canBind: false,
 			},
-			featureFlags.canMoveArrowLabel.get() &&
-				labelGeometry && {
-					id: ARROW_HANDLES.LABEL,
-					type: 'text-adjust',
-					index: 'a4',
-					x: labelGeometry.x,
-					y: labelGeometry.y,
-					w: labelGeometry.w,
-					h: labelGeometry.h,
-					canBind: false,
-				},
 			{
 				id: ARROW_HANDLES.END,
 				type: 'vertex',
@@ -192,19 +171,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				canBind: true,
 			},
 		].filter(Boolean) as TLHandle[]
-	}
-
-	private _labelDragOffset = new Vec(0, 0)
-	override onHandleDragStart: TLOnHandleDragStartHandler<TLArrowShape> = (shape) => {
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const labelGeometry = geometry.children[1] as Rectangle2d
-		if (labelGeometry) {
-			const pointInShapeSpace = this.editor.getPointInShapeSpace(
-				shape,
-				this.editor.inputs.currentPagePoint
-			)
-			this._labelDragOffset = Vec.Sub(labelGeometry.center, pointInShapeSpace)
-		}
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
@@ -225,42 +191,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			let bend = Vec.Dist(point, med)
 			if (Vec.Clockwise(point, end, med)) bend *= -1
 			return { id: shape.id, type: shape.type, props: { bend } }
-		}
-
-		// This is for moving the text label to a different position on the arrow.
-		if (handleId === ARROW_HANDLES.LABEL) {
-			const next = deepCopy(shape) as TLArrowShape
-			const info = this.editor.getArrowInfo(shape)!
-
-			const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-			const lineGeometry = geometry.children[0] as Geometry2d
-			const pointInShapeSpace = this.editor.getPointInShapeSpace(
-				shape,
-				this.editor.inputs.currentPagePoint
-			)
-			const nearestPoint = lineGeometry.nearestPoint(
-				Vec.Add(pointInShapeSpace, this._labelDragOffset)
-			)
-
-			let nextLabelPosition
-			if (info.isStraight) {
-				const lineLength = Vec.Dist(info.start.point, info.end.point)
-				const segmentLength = Vec.Dist(info.end.point, nearestPoint)
-				nextLabelPosition = 1 - segmentLength / lineLength
-			} else {
-				const isClockwise = shape.props.bend < 0
-				const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
-
-				const angleCenterNearestPoint = Vec.Angle(info.handleArc.center, nearestPoint)
-				const angleCenterStart = Vec.Angle(info.handleArc.center, info.start.point)
-				const angleCenterEnd = Vec.Angle(info.handleArc.center, info.end.point)
-				const arcLength = distFn(angleCenterStart, angleCenterEnd)
-				const segmentLength = distFn(angleCenterNearestPoint, angleCenterEnd)
-				nextLabelPosition = 1 - segmentLength / arcLength
-			}
-			next.props.labelPosition = nextLabelPosition
-
-			return next
 		}
 
 		// Start or end, pointing the arrow...

@@ -16,6 +16,7 @@
 		"dev-wrangler": "yarn run -T tsx ./scripts/dev-wrap.ts",
 		"report-size": "node scripts/report-size.js",
 		"test": "lazy inherit",
+		"test-dev": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
@@ -29,6 +30,8 @@
 		"esbuild": "^0.18.4",
 		"itty-router": "^4.0.13",
 		"nanoid": "4.0.2",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
 		"strip-ansi": "^7.1.0",
 		"toucan-js": "^2.7.0"
 	},

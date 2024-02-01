@@ -1,4 +1,4 @@
-import { InputSection } from '@/types/content-types'
+import { APIGroup, InputSection } from '@/types/content-types'
 import { nicelog } from '@/utils/nicelog'
 import { ApiModel } from '@microsoft/api-extractor-model'
 import fs from 'fs'
@@ -8,17 +8,17 @@ import { getApiMarkdown } from './getApiMarkdown'
 
 export async function createApiMarkdown() {
 	const apiInputSection: InputSection = {
-		id: 'gen' as string,
+		id: 'reference' as string,
 		title: 'API Reference',
 		description: "Reference for the tldraw package's APIs (generated).",
 		categories: [],
-		sidebar_behavior: 'show-title',
+		sidebar_behavior: 'reference',
 	}
 
 	const addedCategories = new Set<string>()
 
 	const INPUT_DIR = path.join(process.cwd(), 'api')
-	const OUTPUT_DIR = path.join(CONTENT_DIR, 'gen')
+	const OUTPUT_DIR = path.join(CONTENT_DIR, 'reference')
 
 	if (fs.existsSync(OUTPUT_DIR)) {
 		fs.rmSync(OUTPUT_DIR, { recursive: true })
@@ -51,15 +51,7 @@ export async function createApiMarkdown() {
 					id: categoryName,
 					title: packageModel.name,
 					description: '',
-					groups: [
-						'Namespace',
-						'Class',
-						'Function',
-						'Variable',
-						'Enum',
-						'Interface',
-						'TypeAlias',
-					].map((title) => ({
+					groups: Object.values(APIGroup).map((title) => ({
 						id: title,
 						path: null,
 					})),
@@ -85,7 +77,7 @@ export async function createApiMarkdown() {
 	const sectionsJsonPath = path.join(CONTENT_DIR, 'sections.json')
 	const sectionsJson = JSON.parse(fs.readFileSync(sectionsJsonPath, 'utf8')) as InputSection[]
 	sectionsJson.splice(
-		sectionsJson.findIndex((s) => s.id === 'gen'),
+		sectionsJson.findIndex((s) => s.id === 'reference'),
 		1
 	)
 	sectionsJson.push(apiInputSection)

@@ -138,6 +138,7 @@
 		"@typescript-eslint/parser": "^5.57.0",
 		"assert": "^2.0.0",
 		"esbuild": "^0.18.4",
+		"eslint": "^8.37.0",
 		"fs-extra": "^11.1.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
@@ -146,10 +147,16 @@
 		"ts-loader": "^9.2.5",
 		"tslib": "^2.6.2",
 		"tsx": "^4.0.0",
-		"vsce": "^2.15.0"
+		"typescript": "^5.2.2",
+		"vsce": "^2.15.0",
+		"webpack": "^5.0.0"
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
 	"dependencies": {
 		"node-fetch": "^2.0.0"
+	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
 	}
 }

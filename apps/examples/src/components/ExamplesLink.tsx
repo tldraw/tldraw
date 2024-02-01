@@ -6,7 +6,7 @@ import { useMergedRefs } from '../hooks/useMergedRefs'
 import { StandaloneIcon } from './Icons'
 import { Markdown } from './Markdown'
 
-export const ListLink = forwardRef(function ListLink(
+export const ExamplesLink = forwardRef(function ListLink(
 	{
 		example,
 		isActive,
@@ -40,7 +40,7 @@ export const ListLink = forwardRef(function ListLink(
 
 	const mainDetails = (
 		<>
-			<h3 id={id}>
+			<h3 className="examples__list__item__heading" id={id}>
 				{example.title}
 				{isActive && (
 					<Link
@@ -81,7 +81,7 @@ export const ListLink = forwardRef(function ListLink(
 	)
 
 	return (
-		<li
+		<span
 			ref={useMergedRefs(ref, containerRef)}
 			className={classNames('examples__list__item', isActive && 'examples__list__item__active')}
 		>
@@ -90,6 +90,6 @@ export const ListLink = forwardRef(function ListLink(
 			)}
 			{mainDetails}
 			{extraDetails}
-		</li>
+		</span>
 	)
 })

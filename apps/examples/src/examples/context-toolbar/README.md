@@ -1,6 +1,8 @@
 ---
 title: Context Toolbar
 component: ./ContextToolbar.tsx
+category: ui
+priority: 2
 ---
 
 Show a contextual toolbar above the shapes when they are selected.
