@@ -1,4 +1,4 @@
-import { InputSection } from '@/types/content-types'
+import { APIGroup, InputSection } from '@/types/content-types'
 import { nicelog } from '@/utils/nicelog'
 import { ApiModel } from '@microsoft/api-extractor-model'
 import fs from 'fs'
@@ -51,15 +51,7 @@ export async function createApiMarkdown() {
 					id: categoryName,
 					title: packageModel.name,
 					description: '',
-					groups: [
-						'Namespace',
-						'Class',
-						'Function',
-						'Variable',
-						'Enum',
-						'Interface',
-						'TypeAlias',
-					].map((title) => ({
+					groups: Object.values(APIGroup).map((title) => ({
 						id: title,
 						path: null,
 					})),

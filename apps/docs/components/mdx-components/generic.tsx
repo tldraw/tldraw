@@ -62,7 +62,21 @@ export const Paragraph = (props: any) => {
 }
 
 export const A = (props: any) => {
-	return <a {...props} />
+	const isLocalUrl = props.href.startsWith('/') || props.href.startsWith('#')
+	let maybeParsedUrl
+	try {
+		maybeParsedUrl = isLocalUrl ? null : new URL(props.href)
+	} catch (e) {
+		console.error(`Invalid URL: ${props.href}`)
+	}
+	const derivedTarget =
+		isLocalUrl ||
+		maybeParsedUrl?.host.includes('tldraw.com') ||
+		maybeParsedUrl?.host.includes('localhost')
+			? undefined
+			: '_blank'
+	const target = props.target ?? derivedTarget
+	return <a {...props} target={target} />
 }
 
 export const Divider = (props: any) => {
