@@ -140,7 +140,7 @@ export function StandaloneIcon(props: React.SVGProps<SVGSVGElement>) {
 export function SocialIcon({ icon }: { icon: string }) {
 	return (
 		<img
-			className="icon"
+			className="example__sidebar__icon"
 			src={`/icons/${icon}.svg`}
 			style={{
 				mask: `url(/icons/${icon}.svg) center 100% / 100% no-repeat`,

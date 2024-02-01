@@ -325,8 +325,8 @@ li.examples__sidebar__item[data-active='true'] {
 
 .example__sidebar__icon {
 	flex-shrink: 0;
-	width: 20px;
-	height: 20px;
+	width: 16px;
+	height: 16px;
 	color: black;
 	background-color: black;
 }
