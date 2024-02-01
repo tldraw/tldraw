@@ -102,7 +102,7 @@ html,
 	padding: 0px;
 }
 .examples__tldraw__logo {
-	height: 20px;
+	height: 18px;
 	width: auto;
 }
 
@@ -251,17 +251,29 @@ li.examples__sidebar__item[data-active='true'] {
 	position: static;
 	opacity: 1;
 }
-.examples__list__item__standalone {
-	color: inherit;
-	opacity: 0.8;
-	padding: 0.5rem;
-	margin: -0.5rem;
-	display: block;
-	width: 16px;
-	height: 16px;
-	box-sizing: content-box;
-	z-index: 10;
+.examples__list__item__buttons {
+	display: flex;
+	flex-direction: row;
+	height: 32px;
+	margin-right: -0.5rem;
+}
+.examples__list__item__button {
 	position: relative;
+	display: block;
+	opacity: 0.8;
+	height: 100%;
+	width: 32px;
+	z-index: 10;
+	color: inherit;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.examples__list__item__button:hover {
+	z-index: 20;
+}
+.examples__list__item__button:nth-of-type(n + 2) {
+	margin-left: -4px;
 }
 .examples__list__item__code {
 	margin-top: 0.5rem;
