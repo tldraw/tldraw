@@ -14,7 +14,7 @@ embed-of-the-repo
 
 You can follow the steps below, or clone the repo link-to-the-repo. 
 
-## 1. Installation
+## Installation
 
 - Set up a React project however you normally do
 - Install the tldraw library using this command:
@@ -22,10 +22,10 @@ You can follow the steps below, or clone the repo link-to-the-repo.
 npm install @tldraw/tldraw@beta
 ```
 
-## 2. Import Styles
+## Import Styles
 To import fonts and CSS for tldraw:
 
-- Create a css file called tldrawstyles.css 
+- Create or edit a css file called index.css 
 - Copy and paste this into the file:
 ```CSS
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap");
@@ -36,16 +36,16 @@ body {
 }
 ```
 
-## 3. Render Tldraw Component
+## Render Tldraw Component
 
 To render the Tldraw component
 
 - Import the ```<Tldraw />``` component from “@tldraw/tldraw”
-- Import tldrawstyles.css
+- Import index.css
 - To render a full screen canvas, wrap the Tldraw component in a div with the style attribute set to: ```{position: 'fixed', inset: 0}```
 ```javascript
 import { Tldraw } from "@tldraw/tldraw";
-import "./tldrawstyles.css";
+import "./index.css";
 
 export default function App() {
   return (
