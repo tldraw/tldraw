@@ -1,10 +1,7 @@
-import * as Accordion from '@radix-ui/react-accordion'
 import { assert, assertExists } from '@tldraw/tldraw'
-import { useEffect, useRef } from 'react'
+import { ForwardedRef, forwardRef, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ExamplesLink } from './components/ExamplesLink'
 import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
-import { Chevron } from './components/Icons'
 import { Example, examples } from './examples'
 
 export function ExamplePage({
@@ -14,7 +11,7 @@ export function ExamplePage({
 	example: Example
 	children: React.ReactNode
 }) {
-	const scrollElRef = useRef<HTMLDivElement>(null)
+	const scrollElRef = useRef<HTMLUListElement>(null)
 	const activeElRef = useRef<HTMLLIElement>(null)
 	const isFirstScroll = useRef(true)
 
@@ -45,68 +42,43 @@ export function ExamplePage({
 
 	return (
 		<div className="example">
-			<div className="example__info">
-				<div className="example__sidebar-header">
-					<Link className="example__logo" to="/">
+			<div className="example__sidebar scroll-light">
+				<div className="example__sidebar__header">
+					<Link className="example__sidebar__header__logo" to="/">
 						<ExamplesTldrawLogo />
 					</Link>
-					<div className="example__info__list__socials">
-						<a
-							href="https://twitter.com/tldraw"
-							className="example__info__list__socials__button"
-							title="twitter"
-						>
+					<div className="example__sidebar__header__socials">
+						<a href="https://twitter.com/tldraw" title="twitter" className="hoverable">
 							<SocialIcon icon="twitter" />
 						</a>
-						<a
-							href="https://github.com/tldraw/tldraw"
-							className="example__info__list__socials__button"
-							title="github"
-						>
+						<a href="https://github.com/tldraw/tldraw" title="github" className="hoverable">
 							<SocialIcon icon="github" />
 						</a>
-						<a
-							href="https://discord.com/invite/SBBEVCA4PG"
-							className="example__info__list__socials__button"
-							title="discord"
-						>
+						<a href="https://discord.com/invite/SBBEVCA4PG" title="discord" className="hoverable">
 							<SocialIcon icon="discord" />
 						</a>
 					</div>
 				</div>
-				<Accordion.Root
-					type="multiple"
-					defaultValue={categories}
-					className="example__info__list scroll-light"
-					ref={scrollElRef}
-				>
+				<ul className="example__sidebar__categories scroll-light" ref={scrollElRef}>
 					{categories.map((currentCategory) => (
-						<Accordion.Item key={currentCategory} value={currentCategory}>
-							<Accordion.Trigger className="accordion__trigger">
-								<div className="examples__list__item accordion__trigger__container">
-									<h3 className="accordion__trigger__heading">{currentCategory}</h3>
-									<Chevron />
-								</div>
-							</Accordion.Trigger>
-							<Accordion.Content className="accordion__content">
-								<span className="accordion__content__separator"></span>
-								<div className="accordion__content__examples">
-									{examples
-										.find((category) => category.id === currentCategory)
-										?.value.map((sidebarExample) => (
-											<ExamplesLink
-												key={sidebarExample.path}
-												example={sidebarExample}
-												isActive={sidebarExample.path === example.path}
-												ref={sidebarExample.path === example.path ? activeElRef : undefined}
-											/>
-										))}
-								</div>
-							</Accordion.Content>
-						</Accordion.Item>
+						<li className="example__sidebar__category">
+							<h3 className="example__sidebar__category__header">{currentCategory}</h3>
+							<ul className="example__sidebar__category__items">
+								{examples
+									.find((category) => category.id === currentCategory)
+									?.value.map((sidebarExample) => (
+										<ExampleSidebarListItem
+											key={sidebarExample.path}
+											example={sidebarExample}
+											isActive={sidebarExample.path === example.path}
+											ref={sidebarExample.path === example.path ? activeElRef : undefined}
+										/>
+									))}
+							</ul>
+						</li>
 					))}
-				</Accordion.Root>
-				<div className="example__info__list__link">
+				</ul>
+				<div className="example__sidebar__footer-links">
 					<a
 						className="link__button link__button--grey"
 						target="_blank"
@@ -121,6 +93,47 @@ export function ExamplePage({
 			</div>
 			<div className="example__content">{children}</div>
 		</div>
+	)
+}
+
+export const ExampleSidebarListItem = forwardRef(function ExampleSidebarListItem(
+	{
+		example,
+		isActive,
+	}: { example: Example; isActive?: boolean; showDescriptionWhenInactive?: boolean },
+	ref: ForwardedRef<HTMLLIElement>
+) {
+	return (
+		<li ref={ref} className="examples__sidebar__item" data-active={isActive}>
+			<Link to={example.path} className="examples__sidebar__item__link hoverable" />
+			<h3 className="examples__sidebar__item__title">
+				<span>{example.title}</span>
+			</h3>
+			{isActive && (
+				<Link
+					to={`${example.path}/full`}
+					className="examples__list__item__standalone hoverable"
+					aria-label="Standalone"
+					title="View standalone example"
+				>
+					<StandaloneIcon />
+				</Link>
+			)}
+		</li>
+	)
+})
+
+export function StandaloneIcon(props: React.SVGProps<SVGSVGElement>) {
+	return (
+		<svg width="16" height="16" viewBox="0 0 30 30" fill="none" {...props}>
+			<path
+				d="M13 5H7C5.89543 5 5 5.89543 5 7V23C5 24.1046 5.89543 25 7 25H23C24.1046 25 25 24.1046 25 23V17M19 5H25M25 5V11M25 5L13 17"
+				stroke="currentColor"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		</svg>
 	)
 }
 
