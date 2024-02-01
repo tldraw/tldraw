@@ -42,6 +42,9 @@
 	--hl-6: rgb(179, 108, 50);
 	--hl-7: rgb(73, 131, 216);
 	--hl-8: rgb(180, 133, 64);
+
+	/* Shape */
+	--border-radius-menu: 4px;
 }
 
 [data-theme='dark'] {
@@ -162,7 +165,7 @@ body {
 	background-color: transparent;
 	transition: background-color 0.12s ease-in-out;
 	transition-delay: 0.1s;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 }
 
 .layout_header__section[data-active='true'] {
@@ -196,7 +199,7 @@ body {
 	content: '';
 	inset: 0;
 	background-color: var(--bg);
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	transition: background-color 0.1s ease-in-out;
 	transition-delay: 0s;
 }
@@ -291,7 +294,7 @@ body {
 	gap: 8px;
 	border: 1px solid var(--color-accent);
 	padding: 10px 16px;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -463,7 +466,7 @@ body {
 	margin: 32px 0px;
 	padding: 16px;
 	background-color: var(--color-tint-0);
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	font-size: 13px;
 	overflow-x: auto;
 }
@@ -487,7 +490,7 @@ body {
 	font-weight: 500;
 	padding: 2px 5px;
 	margin: 0px -2px;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 }
 
 .article pre > code {
@@ -525,7 +528,7 @@ body {
 
 .article table {
 	margin: 20px 0px;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	overflow: hidden;
 	width: 100%;
 	text-align: left;
@@ -568,7 +571,7 @@ body {
 	width: 100%;
 	max-width: 100%;
 	height: auto;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	border: 1px solid var(--color-tint-2);
 }
 
@@ -586,7 +589,7 @@ body {
 	width: 100%;
 	height: 100%;
 	max-width: 100%;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	border: 1px solid var(--color-tint-2);
 }
 
@@ -682,7 +685,7 @@ body {
 	height: 28px;
 	margin: 2px;
 	position: relative;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	background-color: var(--hl-1);
 }
 
@@ -771,6 +774,7 @@ body {
 	max-height: calc(100vh);
 	z-index: 800;
 	overflow-y: auto;
+	overflow-x: hidden;
 	font-size: 14px;
 }
 
@@ -802,14 +806,34 @@ body {
 .sidebar__list li .sidebar__article,
 .sidebar__list li .sidebar__article li {
 	margin-top: -6px;
-	margin-bottom: -6px;
 	width: 100%;
+}
+
+.sidebar__list li .sidebar__article:not(:last-of-type),
+.sidebar__list li .sidebar__article lie:not(:last-of-type) {
+	margin-bottom: -6px;
 }
 
 .sidebar__list li .sidebar__category li a,
 .sidebar__list li .sidebar__article li a {
 	padding-left: 8px;
 	font-size: 13px;
+}
+
+.sidebar__list li .sidebar__category li[data-heading-level="3"] a,
+.sidebar__list li .sidebar__article li[data-heading-level="3"] a {
+	padding-left: 16px;
+}
+
+.sidebar__list li .sidebar__category .sidebar__group li[data-heading-level="2"] a,
+.sidebar__list li .sidebar__article .sidebar__group li[data-heading-level="2"] a {
+	padding-left: 16px;
+	color: var(--color-text-secondary);
+}
+
+.sidebar__list li .sidebar__category .sidebar__group li[data-heading-level="3"] a,
+.sidebar__list li .sidebar__article .sidebar__group li[data-heading-level="3"] a {
+	padding-left: 24px;
 }
 
 .sidebar__link {
@@ -850,7 +874,7 @@ body {
 	left: -8px;
 	right: -8px;
 	background-color: var(--bg);
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	transition: background-color 0.12s ease-in-out;
 	transition-delay: 0s;
 }
@@ -973,7 +997,7 @@ body {
 	padding-left: 20px;
 	height: 100%;
 	width: 100%;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	border: none;
 	background-color: var(--color-background);
 	font-family: var(--font-body);
@@ -1354,7 +1378,7 @@ html[data-theme='light'] .hero__dark {
 	background-color: transparent;
 	transition: background-color 0.12s ease-in-out;
 	transition-delay: 0.1s;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	margin: 0 4px;
 	padding: 8px 12px;
 	height: 44px;
@@ -1381,7 +1405,7 @@ html[data-theme='light'] .hero__dark {
   top: calc(100% + 4px);
   left: 4px;
 	overflow: hidden;
-	border-radius: 4px;
+	border-radius: var(--border-radius-menu);
 	background-color: var(--color-background);
 	box-shadow: var(--shadow-small);
 }

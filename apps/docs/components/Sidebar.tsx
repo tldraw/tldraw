@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	APIGroup,
 	ArticleHeadings,
 	SidebarContentArticleLink,
 	SidebarContentCategoryLink,
@@ -43,7 +44,7 @@ export function Sidebar({
 	useEffect(() => {
 		document.body.classList.remove('sidebar-open')
 
-		document.querySelector('.sidebar [data-active=true]')?.scrollIntoView({ block: 'center' })
+		document.querySelector('.sidebar__nav [data-active=true]')?.scrollIntoView({ block: 'center' })
 
 		// XXX(mime): scrolling the sidebar into position also scrolls the page to the wrong
 		// spot. this compensates for that but, ugh.
@@ -94,7 +95,7 @@ function SidebarLink({ headings, ...props }: SidebarContentLink & { headings?: A
 			return <SidebarArticle headings={headings} {...props} />
 		}
 		case 'category': {
-			return <SidebarCategory {...props} />
+			return <SidebarCategory headings={headings} {...props} />
 		}
 	}
 }
@@ -118,7 +119,11 @@ function SidebarSection({
 	)
 }
 
-function SidebarCategory({ title, children }: SidebarContentCategoryLink) {
+function SidebarCategory({
+	title,
+	children,
+	headings,
+}: SidebarContentCategoryLink & { headings?: ArticleHeadings }) {
 	const linkCtx = useContext(linkContext)
 	if (children.length === 0) return null
 	const hasGroups = children.some((child) => !!(child as SidebarContentArticleLink).groupId)
@@ -126,7 +131,7 @@ function SidebarCategory({ title, children }: SidebarContentCategoryLink) {
 		(child) => (child as SidebarContentArticleLink).articleId === linkCtx?.articleId
 	)
 	const activeGroup = activeArticle && (activeArticle as SidebarContentArticleLink).groupId
-	const groups = ['Class', 'Function', 'Variable', 'Interface', 'Enum', 'TypeAlias', 'Namespace']
+	const groups = Object.values(APIGroup)
 
 	return (
 		<li className="sidebar__category">
@@ -156,9 +161,9 @@ function SidebarCategory({ title, children }: SidebarContentCategoryLink) {
 										<Chevron />
 									</Accordion.Trigger>
 									<Accordion.Content>
-										<ul className="sidebar__list" style={{ paddingLeft: '8px' }}>
+										<ul className="sidebar__list sidebar__group" style={{ paddingLeft: '8px' }}>
 											{articles.map((link) => (
-												<SidebarLink key={link.url} {...link} />
+												<SidebarLink key={link.url} headings={headings} {...link} />
 											))}
 										</ul>
 									</Accordion.Content>
@@ -190,7 +195,8 @@ function SidebarArticle({
 	articleId,
 	headings,
 }: SidebarContentArticleLink & { headings?: ArticleHeadings }) {
-	const isActive = useContext(linkContext)?.activeId === articleId
+	const activeLink = useContext(linkContext)
+	const isActive = activeLink?.activeId === articleId
 
 	return (
 		<li className="sidebar__article">
@@ -201,9 +207,12 @@ function SidebarArticle({
 			{isActive && (
 				<ul className="sidebar__list">
 					{headings
-						?.filter((heading) => heading.level < 3)
+						?.filter((heading) => heading.level < 4)
 						.map((heading) => (
-							<li key={heading.slug}>
+							<li
+								key={heading.slug}
+								data-heading-level={heading.title === 'Constructor' ? 2 : heading.level}
+							>
 								<Link href={`#${heading.slug}`} className="sidebar__link">
 									{heading.isCode ? (
 										<code>{heading.title.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')}</code>
