@@ -161,7 +161,7 @@ const migrationSequence = {
 			id: 'test/006_add_rectangle_opacity',
 			scope: 'record',
 			up: (record: Shape<any>) => {
-				if (record.typeName !== 'shape' && record.type !== 'rectangle') return record
+				if (record.typeName !== 'shape' || record.type !== 'rectangle') return record
 				return {
 					...record,
 					props: {
@@ -171,13 +171,13 @@ const migrationSequence = {
 				}
 			},
 			down: (record: Shape<any>) => {
-				if (record.typeName !== 'shape' && record.type !== 'rectangle') return record
+				if (record.typeName !== 'shape' || record.type !== 'rectangle') return record
 				const {
 					// eslint-disable-next-line @typescript-eslint/no-unused-vars
 					props: { opacity, ...others },
 					...rest
 				} = record
-				if (record.typeName !== 'shape' && record.type !== 'rectangle') return record
+				if (record.typeName !== 'shape' || record.type !== 'rectangle') return record
 				return {
 					...rest,
 					props: {
@@ -190,7 +190,7 @@ const migrationSequence = {
 			id: 'test/007_add_oval_border_style',
 			scope: 'record',
 			up: (record: Shape<any>) => {
-				if (record.typeName !== 'shape' && record.type !== 'oval') return record
+				if (record.typeName !== 'shape' || record.type !== 'oval') return record
 				return {
 					...record,
 					props: {
@@ -200,7 +200,7 @@ const migrationSequence = {
 				}
 			},
 			down: (record: Shape<any>) => {
-				if (record.typeName !== 'shape' && record.type !== 'oval') return record
+				if (record.typeName !== 'shape' || record.type !== 'oval') return record
 				const {
 					// eslint-disable-next-line @typescript-eslint/no-unused-vars
 					props: { borderStyle, ...others },

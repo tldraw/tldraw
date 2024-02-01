@@ -1658,3 +1658,5 @@ export const videoShapeMigrations = defineMigrations({
 		},
 	},
 })
+
+// TODO: prevent people from adding things in here

@@ -8,7 +8,7 @@ import {
 	Migrations,
 	migrate,
 	migrateRecord,
-} from './legacy_migrate'
+} from './legacy-migrate'
 
 /**
  * @internal

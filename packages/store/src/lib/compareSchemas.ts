@@ -1,4 +1,4 @@
-import { SerializedSchema } from './StoreSchema'
+import { CURRENT_SCHEMA_VERSION, SerializedSchema } from './StoreSchema'
 
 type Legacy = Extract<SerializedSchema, { schemaVersion: 1 }>
 
@@ -59,19 +59,24 @@ const legacyCompareSchemas = (a: Legacy, b: Legacy): 0 | 1 | -1 => {
 export const compareSchemas = (a: SerializedSchema, b: SerializedSchema): 0 | 1 | -1 => {
 	if (a.schemaVersion === 1 && b.schemaVersion === 1) {
 		return legacyCompareSchemas(a, b)
-	} else if (a.schemaVersion === 1 && b.schemaVersion === 2) {
+	} else if (a.schemaVersion < b.schemaVersion) {
 		return -1
-	} else if (a.schemaVersion === 2 && b.schemaVersion === 1) {
+	} else if (a.schemaVersion > b.schemaVersion) {
 		return 1
 	}
 
-	// both schemas are the new kind
-	if (a.schemaVersion !== 2 || b.schemaVersion !== 2)
+	// both schemas are now equal and should be the latest version
+	if (a.schemaVersion !== CURRENT_SCHEMA_VERSION || b.schemaVersion !== CURRENT_SCHEMA_VERSION)
 		throw new Error(`Invalid schema versions ${a.schemaVersion} and ${b.schemaVersion}`)
-	if (a.versionHistory[0] !== b.versionHistory[0]) throw new Error('Incompatible schema comparison')
-	// we should really validate the rest of the shorter version history against the longer one
-  // but that will happen when doing any migrations anyway.
-	// so for now i guess we just compare the length of the id array.
+
+	// check that the shorter schema is a prefix of the longer schema
+	const commonLen = Math.min(a.versionHistory.length, b.versionHistory.length)
+	for (let i = 0; i < commonLen; i++) {
+		if (a.versionHistory[i] !== b.versionHistory[i]) {
+			throw new Error('Incompatible schema comparison')
+		}
+	}
+
 	if (a.versionHistory.length < b.versionHistory.length) {
 		return -1
 	} else if (a.versionHistory.length > b.versionHistory.length) {

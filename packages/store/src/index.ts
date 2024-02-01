@@ -36,7 +36,7 @@ export {
 	type MigrationResult,
 	type Migrations,
 	type RecordVersion,
-} from './lib/legacy_migrate'
+} from './lib/legacy-migrate'
 export { MigrationsConfigBuilder } from './lib/migrate'
 export type {
 	Migration,

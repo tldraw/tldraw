@@ -1,5 +1,5 @@
 /* eslint-disable deprecation/deprecation */
-import { defineMigrations } from '../legacy_migrate'
+import { defineMigrations } from '../legacy-migrate'
 
 const Versions = {
 	Initial: 0,

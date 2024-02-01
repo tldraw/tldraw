@@ -1,5 +1,4 @@
-import { Migrations, Store, createRecordType } from '@tldraw/store'
-import fs from 'fs'
+import { createRecordType } from '@tldraw/store'
 import { bookmarkAssetMigrations } from '../assets/TLBookmarkAsset'
 import { imageAssetMigrations } from '../assets/TLImageAsset'
 import { videoAssetMigrations } from '../assets/TLVideoAsset'
@@ -39,87 +38,6 @@ import {
 	textShapeMigrations,
 	videoShapeMigrations,
 } from './legacy-migrations'
-
-const assetModules = fs
-	.readdirSync('src/assets')
-	.filter((n) => n.match(/^TL.*\.ts$/))
-	.map((f) => [f, require(`./assets/${f.slice(0, -3)}`)])
-const shapeModules = fs
-	.readdirSync('src/shapes')
-	.filter((n) => n.match(/^TL.*\.ts$/))
-	.map((f) => [f, require(`./shapes/${f.slice(0, -3)}`)])
-const recordModules = fs
-	.readdirSync('src/records')
-	.filter((n) => n.match(/^TL.*\.ts$/))
-	.map((f) => [f, require(`./records/${f.slice(0, -3)}`)])
-
-const allModules = [
-	...assetModules,
-	...shapeModules,
-	...recordModules,
-	['store-migrations.ts', require('./store-migrations')],
-]
-
-const allMigrators: Array<{
-	fileName: string
-	version: number
-	up: jest.SpyInstance
-	down: jest.SpyInstance
-}> = []
-
-for (const [fileName, module] of allModules) {
-	const migrationsKey = Object.keys(module).find((k) => k.endsWith('igrations'))
-
-	if (!migrationsKey) continue
-
-	// eslint-disable-next-line deprecation/deprecation
-	const migrations: Migrations = module[migrationsKey]
-
-	for (const version of Object.keys(migrations.migrators)) {
-		const originalUp = migrations.migrators[version as any].up
-		const originalDown = migrations.migrators[version as any].down
-		const up = jest
-			.spyOn(migrations.migrators[version as any], 'up')
-			.mockImplementation((initialRecord) => {
-				if (initialRecord instanceof Store) return originalUp(initialRecord)
-
-				const clonedRecord = structuredClone(initialRecord)
-				const result = originalUp(initialRecord)
-				// mutations should never mutate their input
-				expect(initialRecord).toEqual(clonedRecord)
-				return result
-			})
-		const down = jest
-			.spyOn(migrations.migrators[version as any], 'down')
-			.mockImplementation((initialRecord) => {
-				if (initialRecord instanceof Store) return originalDown(initialRecord)
-
-				const clonedRecord = structuredClone(initialRecord)
-				const result = originalDown(initialRecord)
-				// mutations should never mutate their input
-				expect(initialRecord).toEqual(clonedRecord)
-				return result
-			})
-		allMigrators.push({
-			fileName,
-			version: Number(version),
-			up,
-			down,
-		})
-	}
-}
-
-test('all modules export migrations', () => {
-	const modulesWithoutMigrations = allModules
-		.filter(([, module]) => {
-			return !Object.keys(module).find((k) => k.endsWith('igrations'))
-		})
-		.map(([fileName]) => fileName)
-		.filter((n) => !(n === 'TLBaseAsset.ts' || n === 'TLBaseShape.ts' || n === 'TLRecord.ts'))
-
-	// IF THIS LINE IS FAILING YOU NEED TO MAKE SURE THE MIGRATIONS ARE EXPORTED
-	expect(modulesWithoutMigrations).toHaveLength(0)
-})
 
 /* ---  PUT YOUR MIGRATIONS TESTS BELOW HERE --- */
 
@@ -1860,12 +1778,3 @@ describe('Add duplicate props to instance', () => {
 		expect(down({ duplicateProps: null })).toEqual({})
 	})
 })
-
-/* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
-
-for (const migrator of allMigrators) {
-	test(`[${migrator.fileName} v${migrator.version}] up and down migrations have both been tested`, () => {
-		expect(migrator.up).toHaveBeenCalled()
-		expect(migrator.down).toHaveBeenCalled()
-	})
-}

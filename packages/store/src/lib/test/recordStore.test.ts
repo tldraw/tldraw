@@ -39,7 +39,7 @@ const migrations2 = new MigrationsConfigBuilder()
 				scope: 'record',
 				up(record: Book) {
 					if (record.typeName !== 'book') return record
-					
+
 					return {
 						...record,
 						title: 'Migrated',
@@ -858,7 +858,7 @@ describe('snapshots', () => {
 		expect(() => {
 			// @ts-expect-error
 			store2.loadSnapshot(snapshot1)
-		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: unknown-type"`)
+		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
 	})
 
 	it('throws errors when loading a snapshot from a newer version', () => {
@@ -883,7 +883,6 @@ describe('snapshots', () => {
 	})
 
 	it('migrates the snapshot', () => {
-
 		const snapshot1 = store.getSnapshot()
 
 		const store2 = new Store({
@@ -894,19 +893,17 @@ describe('snapshots', () => {
 					author: Author,
 				},
 				{
-					migrations: migrations2
+					migrations: migrations2,
 				}
 			),
 		})
-
 
 		expect(() => {
 			store2.loadSnapshot(snapshot1)
 		}).not.toThrowError()
 
-
 		const books = store2.query.records('book').get()
 		expect(books).toHaveLength(2)
-		expect(books.every(b => b.title === 'Migrated')).toBe(true)
+		expect(books.every((b) => b.title === 'Migrated')).toBe(true)
 	})
 })

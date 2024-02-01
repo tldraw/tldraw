@@ -4,11 +4,11 @@ import { UnknownRecord } from './BaseRecord'
 import { LegacyMigrator } from './LegacyMigrator'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
-import { MigrationFailureReason, MigrationResult } from './legacy_migrate'
+import { MigrationFailureReason, MigrationResult } from './legacy-migrate'
 import { Migration, MigrationId, MigrationsConfig } from './migrate'
 
+export const CURRENT_SCHEMA_VERSION = 2
 const LEGACY_SCHEMA_VERSION = 1
-const CURRENT_SCHEMA_VERSION = 2
 
 const str = JSON.stringify
 
@@ -17,7 +17,7 @@ const str = JSON.stringify
  */
 export type SerializedSchemaV2 = {
 	/** Schema version is the version for this type you're looking at right now */
-	schemaVersion: typeof CURRENT_SCHEMA_VERSION
+	schemaVersion: 2
 	versionHistory: MigrationId[]
 }
 
@@ -30,7 +30,7 @@ export type SerializedSchemaV1 = {
 	/**
 	 * Schema version is the version for this type you're looking at right now
 	 */
-	schemaVersion: typeof LEGACY_SCHEMA_VERSION
+	schemaVersion: 1
 	/**
 	 * Store version is the version for the structure of the store. e.g. higher level structure like
 	 * removing or renaming a record type.
