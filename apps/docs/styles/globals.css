@@ -21,7 +21,7 @@
 
 	/* Light theme */
 	--color-text: #1d1d1d;
-	--color-text-secondary: #999;
+	--color-text-secondary: #666;
 	--color-background: #ffffff;
 	--color-contrast: #ffffff;
 	--color-accent: #2f80ed;
@@ -820,19 +820,19 @@ body {
 	font-size: 13px;
 }
 
-.sidebar__list li .sidebar__category li[data-heading-level="3"] a,
-.sidebar__list li .sidebar__article li[data-heading-level="3"] a {
+.sidebar__list li .sidebar__category li[data-heading-level='3'] a,
+.sidebar__list li .sidebar__article li[data-heading-level='3'] a {
 	padding-left: 16px;
 }
 
-.sidebar__list li .sidebar__category .sidebar__group li[data-heading-level="2"] a,
-.sidebar__list li .sidebar__article .sidebar__group li[data-heading-level="2"] a {
+.sidebar__list li .sidebar__category .sidebar__group li[data-heading-level='2'] a,
+.sidebar__list li .sidebar__article .sidebar__group li[data-heading-level='2'] a {
 	padding-left: 16px;
 	color: var(--color-text-secondary);
 }
 
-.sidebar__list li .sidebar__category .sidebar__group li[data-heading-level="3"] a,
-.sidebar__list li .sidebar__article .sidebar__group li[data-heading-level="3"] a {
+.sidebar__list li .sidebar__category .sidebar__group li[data-heading-level='3'] a,
+.sidebar__list li .sidebar__article .sidebar__group li[data-heading-level='3'] a {
 	padding-left: 24px;
 }
 
@@ -880,10 +880,11 @@ body {
 }
 
 .sidebar__section__title {
-	font-size: 14px;
-	font-weight: normal;
+	font-size: 12px;
+	font-weight: 500;
 	margin-bottom: 4px;
 	position: relative;
+	letter-spacing: 0.5px;
 	height: 40px;
 	display: flex;
 	align-items: center;
@@ -1401,9 +1402,9 @@ html[data-theme='light'] .hero__dark {
 
 .NavigationMenuContent {
 	position: absolute;
-  width: 100%;
-  top: calc(100% + 4px);
-  left: 4px;
+	width: 100%;
+	top: calc(100% + 4px);
+	left: 4px;
 	overflow: hidden;
 	border-radius: var(--border-radius-menu);
 	background-color: var(--color-background);
@@ -1430,14 +1431,14 @@ html[data-theme='light'] .hero__dark {
 }
 
 .NavigationMenuViewport {
-  position: relative;
-  width: 100%;
-  height: var(--radix-navigation-menu-viewport-height);
+	position: relative;
+	width: 100%;
+	height: var(--radix-navigation-menu-viewport-height);
 }
 @media only screen and (min-width: 600px) {
-  .NavigationMenuViewport {
-    width: var(--radix-navigation-menu-viewport-width);
-  }
+	.NavigationMenuViewport {
+		width: var(--radix-navigation-menu-viewport-width);
+	}
 }
 
 .CaretDown {

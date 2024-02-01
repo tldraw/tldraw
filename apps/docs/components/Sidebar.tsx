@@ -200,7 +200,7 @@ function SidebarArticle({
 
 	return (
 		<li className="sidebar__article">
-			<Link href={url} className="sidebar__link" data-active={isActive}>
+			<Link href={url} title={title} className="sidebar__link" data-active={isActive}>
 				{title}
 			</Link>
 
@@ -213,7 +213,7 @@ function SidebarArticle({
 								key={heading.slug}
 								data-heading-level={heading.title === 'Constructor' ? 2 : heading.level}
 							>
-								<Link href={`#${heading.slug}`} className="sidebar__link">
+								<Link href={`#${heading.slug}`} title={heading.title} className="sidebar__link">
 									{heading.isCode ? (
 										<code>{heading.title.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')}</code>
 									) : (
