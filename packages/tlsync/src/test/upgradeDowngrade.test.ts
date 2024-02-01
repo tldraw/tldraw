@@ -1,13 +1,14 @@
 import { computed } from '@tldraw/state'
 import {
 	BaseRecord,
+	Migration,
+	MigrationsConfigBuilder,
 	RecordId,
 	SerializedStore,
 	Store,
 	StoreSchema,
 	UnknownRecord,
 	createRecordType,
-	defineMigrations,
 } from '@tldraw/store'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
@@ -44,10 +45,6 @@ afterEach(() => {
 	disposables.length = 0
 })
 
-const UserVersions = {
-	ReplaceAgeWithBirthdate: 1,
-} as const
-
 interface UserV1 extends BaseRecord<'user', RecordId<UserV1>> {
 	name: string
 	age: number
@@ -64,7 +61,6 @@ const PresenceV1 = createRecordType<PresenceV1>('presence', {
 
 const UserV1 = createRecordType<UserV1>('user', {
 	scope: 'document',
-	migrations: defineMigrations({}),
 	validator: { validate: (value) => value as UserV1 },
 })
 
@@ -73,74 +69,74 @@ interface UserV2 extends BaseRecord<'user', RecordId<UserV2>> {
 	birthdate: string | null
 }
 
+const v2Migration = {
+	id: 'test/001_replace_user_age_with_birthdate',
+	scope: 'record',
+	up(record) {
+		if (record.typeName !== 'user') return record
+		const { age: _, ...rest } = record as any
+		return {
+			...rest,
+			birthdate: null,
+		}
+	},
+	down(record) {
+		if (record.typeName !== 'user') return record
+		const { birthdate: _birthdate, ...user } = record as any
+		return {
+			...user,
+			age: 0,
+		}
+	},
+} as const satisfies Migration
+
 const UserV2 = createRecordType<UserV2>('user', {
 	scope: 'document',
-	migrations: defineMigrations({
-		currentVersion: UserVersions.ReplaceAgeWithBirthdate,
-		migrators: {
-			[UserVersions.ReplaceAgeWithBirthdate]: {
-				up({ age: _age, ...user }) {
-					return {
-						...user,
-						birthdate: null,
-					}
-				},
-				down({ birthdate: _birthdate, ...user }) {
-					return {
-						...user,
-						age: 0,
-					}
-				},
-			},
-		},
-	}),
 	validator: { validate: (value) => value as UserV2 },
 })
 
 type RV1 = UserV1 | PresenceV1
 type RV2 = UserV2 | PresenceV1
 
-const schemaV1 = StoreSchema.create<RV1>(
-	{ user: UserV1, presence: PresenceV1 },
-	{
-		snapshotMigrations: defineMigrations({}),
-	}
-)
+const schemaV1 = StoreSchema.create<RV1>({ user: UserV1, presence: PresenceV1 })
 
 const schemaV2 = StoreSchema.create<RV2>(
 	{ user: UserV2, presence: PresenceV1 },
 	{
-		snapshotMigrations: defineMigrations({}),
+		migrations: new MigrationsConfigBuilder()
+			.addSequence({ id: 'test', migrations: [v2Migration] })
+			.setOrder(['test/001_replace_user_age_with_birthdate']),
 	}
 )
+
+const v3Migration = {
+	id: 'test/002_remove_joe_and_add_steve',
+	scope: 'store',
+	up(store: SerializedStore<UserV2>) {
+		// remove any users called joe
+		const result = Object.fromEntries(
+			Object.entries(store).filter(([_, r]) => r.typeName !== 'user' || r.name !== 'joe')
+		)
+		// add a user called steve
+		const id = UserV2.createId('steve')
+		result[id] = UserV2.create({
+			id,
+			name: 'steve',
+			birthdate: '2022-02-02',
+		})
+		return result
+	},
+	down(store: SerializedStore<UserV2>) {
+		return store
+	},
+} as const satisfies Migration
 
 const schemaV3 = StoreSchema.create<RV2>(
 	{ user: UserV2, presence: PresenceV1 },
 	{
-		snapshotMigrations: defineMigrations({
-			currentVersion: 1,
-			migrators: {
-				1: {
-					up(store: SerializedStore<UserV2>) {
-						// remove any users called joe
-						const result = Object.fromEntries(
-							Object.entries(store).filter(([_, r]) => r.typeName !== 'user' || r.name !== 'joe')
-						)
-						// add a user called steve
-						const id = UserV2.createId('steve')
-						result[id] = UserV2.create({
-							id,
-							name: 'steve',
-							birthdate: '2022-02-02',
-						})
-						return result
-					},
-					down(store: SerializedStore<UserV2>) {
-						return store
-					},
-				},
-			},
-		}),
+		migrations: new MigrationsConfigBuilder()
+			.addSequence({ id: 'test', migrations: [v2Migration, v3Migration] })
+			.setOrder(['test/001_replace_user_age_with_birthdate', 'test/002_remove_joe_and_add_steve']),
 	}
 )
 

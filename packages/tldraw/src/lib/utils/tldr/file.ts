@@ -3,6 +3,7 @@ import {
 	Editor,
 	FileHelpers,
 	MigrationFailureReason,
+	MigrationId,
 	MigrationResult,
 	RecordId,
 	Result,
@@ -41,19 +42,30 @@ export interface TldrawFile {
 	records: UnknownRecord[]
 }
 
+const migrationIdValidator: T.Validator<MigrationId> = T.string.refine(s => {
+	if (s.indexOf('/') === -1) throw new Error('Invalid migration id')
+	return s as MigrationId
+})
+
 const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	tldrawFileFormatVersion: T.nonZeroInteger,
-	schema: T.object({
-		schemaVersion: T.positiveInteger,
-		storeVersion: T.positiveInteger,
-		recordVersions: T.dict(
-			T.string,
-			T.object({
-				version: T.positiveInteger,
-				subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
-				subTypeKey: T.string.optional(),
-			})
-		),
+	schema: T.union('schemaVersion', {
+		1: T.object({
+			schemaVersion: T.literal(1),
+			storeVersion: T.positiveInteger,
+			recordVersions: T.dict(
+				T.string,
+				T.object({
+					version: T.positiveInteger,
+					subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
+					subTypeKey: T.string.optional(),
+				})
+			),
+		}),
+		2: T.object({
+			schemaVersion: T.literal(2),
+			versionHistory: T.arrayOf(migrationIdValidator)
+		})
 	}),
 	records: T.arrayOf(
 		T.object({

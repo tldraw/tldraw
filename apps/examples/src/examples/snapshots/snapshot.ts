@@ -1,4 +1,4 @@
-{
+export default {
 	"store": {
 		"document:document": {
 			"gridSize": 10,
@@ -38226,4 +38226,4 @@
 			}
 		}
 	}
-}
+} as const

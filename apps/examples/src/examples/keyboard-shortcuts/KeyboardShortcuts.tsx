@@ -7,7 +7,7 @@ import {
 	menuItem,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import jsonSnapshot from './snapshot.json'
+import jsonSnapshot from './snapshot'
 
 // There's a guide at the bottom of this file!
 

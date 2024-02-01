@@ -32,55 +32,55 @@ export const schema = createTLSchema({
 	shapes: {
 		group: {
 			props: groupShapeProps,
-			migrations: groupShapeMigrations,
+			__legacyMigrations_do_not_update: groupShapeMigrations,
 		},
 		text: {
 			props: textShapeProps,
-			migrations: textShapeMigrations,
+			__legacyMigrations_do_not_update: textShapeMigrations,
 		},
 		bookmark: {
 			props: bookmarkShapeProps,
-			migrations: bookmarkShapeMigrations,
+			__legacyMigrations_do_not_update: bookmarkShapeMigrations,
 		},
 		draw: {
 			props: drawShapeProps,
-			migrations: drawShapeMigrations,
+			__legacyMigrations_do_not_update: drawShapeMigrations,
 		},
 		geo: {
 			props: geoShapeProps,
-			migrations: geoShapeMigrations,
+			__legacyMigrations_do_not_update: geoShapeMigrations,
 		},
 		note: {
 			props: noteShapeProps,
-			migrations: noteShapeMigrations,
+			__legacyMigrations_do_not_update: noteShapeMigrations,
 		},
 		line: {
 			props: lineShapeProps,
-			migrations: lineShapeMigrations,
+			__legacyMigrations_do_not_update: lineShapeMigrations,
 		},
 		frame: {
 			props: frameShapeProps,
-			migrations: frameShapeMigrations,
+			__legacyMigrations_do_not_update: frameShapeMigrations,
 		},
 		arrow: {
 			props: arrowShapeProps,
-			migrations: arrowShapeMigrations,
+			__legacyMigrations_do_not_update: arrowShapeMigrations,
 		},
 		highlight: {
 			props: highlightShapeProps,
-			migrations: highlightShapeMigrations,
+			__legacyMigrations_do_not_update: highlightShapeMigrations,
 		},
 		embed: {
 			props: embedShapeProps,
-			migrations: embedShapeMigrations,
+			__legacyMigrations_do_not_update: embedShapeMigrations,
 		},
 		image: {
 			props: imageShapeProps,
-			migrations: imageShapeMigrations,
+			__legacyMigrations_do_not_update: imageShapeMigrations,
 		},
 		video: {
 			props: videoShapeProps,
-			migrations: videoShapeMigrations,
+			__legacyMigrations_do_not_update: videoShapeMigrations,
 		},
 	},
 })

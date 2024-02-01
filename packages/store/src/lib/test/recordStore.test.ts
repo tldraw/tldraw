@@ -1,5 +1,6 @@
 import { Computed, react, RESET_VALUE, transact } from '@tldraw/state'
 import { BaseRecord, RecordId } from '../BaseRecord'
+import { MigrationsConfigBuilder } from '../migrate'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, RecordsDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
@@ -27,6 +28,28 @@ const Author = createRecordType<Author>('author', {
 	isPseudonym: false,
 }))
 
+const migrations = new MigrationsConfigBuilder().setOrder([])
+
+const migrations2 = new MigrationsConfigBuilder()
+	.addSequence({
+		id: 'test',
+		migrations: [
+			{
+				id: 'test/001',
+				scope: 'record',
+				up(record: Book) {
+					if (record.typeName !== 'book') return record
+					
+					return {
+						...record,
+						title: 'Migrated',
+					}
+				},
+			},
+		],
+	})
+	.setOrder(['test/001'])
+
 interface Visit extends BaseRecord<'visit', RecordId<Visit>> {
 	visitorName: string
 	booksInBasket: RecordId<Book>[]
@@ -53,7 +76,7 @@ describe('Store', () => {
 					author: Author,
 					visit: Visit,
 				},
-				{}
+				{ migrations }
 			),
 		})
 	})
@@ -761,7 +784,9 @@ describe('snapshots', () => {
 					book: Book,
 					author: Author,
 				},
-				{}
+				{
+					migrations,
+				}
 			),
 		})
 
@@ -801,7 +826,7 @@ describe('snapshots', () => {
 					book: Book,
 					author: Author,
 				},
-				{}
+				{ migrations }
 			),
 		})
 
@@ -826,7 +851,7 @@ describe('snapshots', () => {
 					book: Book,
 					// no author
 				},
-				{}
+				{ migrations }
 			),
 		})
 
@@ -836,9 +861,7 @@ describe('snapshots', () => {
 		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: unknown-type"`)
 	})
 
-	it('throws errors when loading a snapshot with a different schema', () => {
-		const snapshot1 = store.getSnapshot()
-
+	it('throws errors when loading a snapshot from a newer version', () => {
 		const store2 = new Store({
 			props: {},
 			schema: StoreSchema.create<Book | Author>(
@@ -847,21 +870,20 @@ describe('snapshots', () => {
 					author: Author,
 				},
 				{
-					snapshotMigrations: {
-						currentVersion: -1,
-						firstVersion: 0,
-						migrators: {},
-					},
+					migrations: migrations2,
 				}
 			),
 		})
 
+		const snapshot = store2.getSnapshot()
+
 		expect(() => {
-			store2.loadSnapshot(snapshot1)
+			store.loadSnapshot(snapshot)
 		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: target-version-too-old"`)
 	})
 
 	it('migrates the snapshot', () => {
+
 		const snapshot1 = store.getSnapshot()
 
 		const store2 = new Store({
@@ -872,22 +894,19 @@ describe('snapshots', () => {
 					author: Author,
 				},
 				{
-					snapshotMigrations: {
-						currentVersion: 1,
-						firstVersion: 0,
-						migrators: {
-							1: {
-								up: (r) => r,
-								down: (r) => r,
-							},
-						},
-					},
+					migrations: migrations2
 				}
 			),
 		})
 
+
 		expect(() => {
 			store2.loadSnapshot(snapshot1)
-		}).not.toThrow()
+		}).not.toThrowError()
+
+
+		const books = store2.query.records('book').get()
+		expect(books).toHaveLength(2)
+		expect(books.every(b => b.title === 'Migrated')).toBe(true)
 	})
 })

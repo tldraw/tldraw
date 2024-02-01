@@ -281,12 +281,12 @@ test('subtype versions in the future fail', () => {
 	expect(
 		testSchemaV0.migratePersistedRecord(
 			{
-				id: 'whatevere',
+				id: 'whatever',
 				typeName: 'shape',
 				type: 'rectangle',
 			} as any,
 			{
-				schemaVersion: 0,
+				schemaVersion: 1,
 				storeVersion: 0,
 				recordVersions: {
 					shape: {

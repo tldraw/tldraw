@@ -12,37 +12,51 @@ const CURRENT_SCHEMA_VERSION = 2
 
 const str = JSON.stringify
 
+/**
+ * @public
+ */
+export type SerializedSchemaV2 = {
+	/** Schema version is the version for this type you're looking at right now */
+	schemaVersion: typeof CURRENT_SCHEMA_VERSION
+	versionHistory: MigrationId[]
+}
+
+/**
+ * @deprecated
+ * @public
+ */
+export type SerializedSchemaV1 = {
+	/**
+	 * Schema version is the version for this type you're looking at right now
+	 */
+	schemaVersion: typeof LEGACY_SCHEMA_VERSION
+	/**
+	 * Store version is the version for the structure of the store. e.g. higher level structure like
+	 * removing or renaming a record type.
+	 */
+	storeVersion: number
+	/** Record versions are the versions for each record type. e.g. adding a new field to a record */
+	recordVersions: Record<
+		string,
+		| {
+				version: number
+		  }
+		| {
+				// subtypes are used for migrating shape and asset props
+				version: number
+				subTypeVersions: Record<string, number>
+				subTypeKey: string
+		  }
+	>
+}
+
+/**
+ * @public
+ */
 export type SerializedSchema =
-	| {
-			/** Schema version is the version for this type you're looking at right now */
-			schemaVersion: typeof CURRENT_SCHEMA_VERSION
-			versionHistory: MigrationId[]
-	  }
+	| SerializedSchemaV1
 	// Deprecated previous schema version
-	| {
-			/**
-			 * Schema version is the version for this type you're looking at right now
-			 */
-			schemaVersion: typeof LEGACY_SCHEMA_VERSION
-			/**
-			 * Store version is the version for the structure of the store. e.g. higher level structure like
-			 * removing or renaming a record type.
-			 */
-			storeVersion: number
-			/** Record versions are the versions for each record type. e.g. adding a new field to a record */
-			recordVersions: Record<
-				string,
-				| {
-						version: number
-				  }
-				| {
-						// subtypes are used for migrating shape and asset props
-						version: number
-						subTypeVersions: Record<string, number>
-						subTypeKey: string
-				  }
-			>
-	  }
+	| SerializedSchemaV2
 
 /** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
@@ -361,14 +375,14 @@ Ours:   ${str(this.sortedMigrationIds)}
 		return this.options.createIntegrityChecker?.(store) ?? undefined
 	}
 
-	serialize(): SerializedSchema {
+	serialize(): SerializedSchemaV2 {
 		return {
 			schemaVersion: 2,
 			versionHistory: [...this.sortedMigrationIds],
 		}
 	}
 
-	serializeEarliestVersion(): SerializedSchema {
+	serializeEarliestVersion(): SerializedSchemaV2 {
 		return {
 			schemaVersion: 2,
 			versionHistory: [],

@@ -5,7 +5,6 @@ import {
 	LoadingScreen,
 	StoreSnapshot,
 	TLOnMountHandler,
-	TLRecord,
 	TLStore,
 	TLStoreWithStatus,
 	TldrawEditor,
@@ -49,7 +48,7 @@ export type TldrawProps = TldrawEditorBaseProps &
 				/**
 				 * A snapshot to load for the store's initial data / schema.
 				 */
-				snapshot?: StoreSnapshot<TLRecord>
+				snapshot?: StoreSnapshot<any>
 		  }
 	) &
 	TldrawUiProps &

@@ -6,7 +6,6 @@ import { videoAssetMigrations } from '../assets/TLVideoAsset'
 import { TLShape } from '../records/TLShape'
 import {
 	ArrowMigrationVersions,
-	GeoShapeVersions,
 	arrowShapeMigrations,
 	assetMigrations,
 	assetVersions,
@@ -18,6 +17,7 @@ import {
 	drawShapeMigrations,
 	embedShapeMigrations,
 	geoShapeMigrations,
+	geoShapeVersions,
 	imageShapeMigrations,
 	instanceMigrations,
 	instancePageStateMigrations,
@@ -847,7 +847,7 @@ describe('Migrate GeoShape legacy horizontal alignment', () => {
 })
 
 describe('adding cloud shape', () => {
-	const { up, down } = geoShapeMigrations.migrators[GeoShapeVersions.AddCloud]
+	const { up, down } = geoShapeMigrations.migrators[geoShapeVersions.AddCloud]
 
 	test('up does nothing', () => {
 		expect(up({ props: { geo: 'rectangle' } })).toEqual({
