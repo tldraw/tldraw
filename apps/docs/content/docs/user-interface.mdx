@@ -122,6 +122,7 @@ const myOverrides: TLUiOverrides = {
 		return actions
 	},
 	contextMenu(editor, contextMenu, { actions }) {
+		const newMenuItem = menuItem(actions['my-new-action'])
 		const newMenuGroup = menuGroup('my-items', newMenuItem)
 		contextMenu.unshift(newMenuItem)
 		return contextMenu
