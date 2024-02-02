@@ -20,7 +20,7 @@ test.describe('mobile ui', () => {
 	})
 })
 
-test.describe('when creating a shape', () => {
+test.describe('when selecting a tool from the toolbar', () => {
 	test.beforeEach(setup)
 	test('selecting a tool changes the button color', async ({ page }) => {
 		const selectTool = page.getByTestId('tools.select')
