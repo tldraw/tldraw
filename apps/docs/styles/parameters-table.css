@@ -1,6 +1,6 @@
 .article__api-heading {
 	text-transform: uppercase;
-	color: var(--color-tint-5);
+	color: var(--color-text-secondary);
 	letter-spacing: 0.07em;
 	font-size: 12px;
 	font-weight: 400;

@@ -153,15 +153,12 @@ function SidebarCategory({
 									key={group}
 									value={`${linkCtx?.categoryId}-${group}-${linkCtx?.articleId}`}
 								>
-									<Accordion.Trigger
-										className="sidebar__section__group__title"
-										style={{ marginLeft: '8px', paddingRight: '8px' }}
-									>
+									<Accordion.Trigger className="sidebar__section__group__title">
 										{group}
 										<Chevron />
 									</Accordion.Trigger>
 									<Accordion.Content>
-										<ul className="sidebar__list sidebar__group" style={{ paddingLeft: '8px' }}>
+										<ul className="sidebar__list sidebar__group">
 											{articles.map((link) => (
 												<SidebarLink key={link.url} headings={headings} {...link} />
 											))}

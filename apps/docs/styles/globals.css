@@ -16,8 +16,6 @@
 	--color-tint-2: rgba(144, 144, 144, 0.15);
 	--color-tint-3: rgba(144, 144, 144, 0.3);
 	--color-tint-4: rgba(144, 144, 144, 0.5);
-	--color-tint-5: rgb(144, 144, 144);
-	--color-tint-6: rgb(81, 81, 81);
 
 	/* Light theme */
 	--color-text: #1d1d1d;
@@ -65,8 +63,6 @@
 	--color-tint-2: rgba(144, 144, 144, 0.17);
 	--color-tint-3: rgba(144, 144, 144, 0.4);
 	--color-tint-4: rgba(144, 144, 144, 0.6);
-	--color-tint-5: rgb(144, 144, 144);
-	--color-tint-6: rgb(186, 186, 186);
 
 	/* Code colors */
 	--hl: #c8c5f1;
@@ -266,7 +262,7 @@ body {
 
 .article__details__timestamp {
 	font-size: 14px;
-	color: var(--color-tint-5);
+	color: var(--color-text-secondary);
 	text-align: right;
 }
 
@@ -431,7 +427,7 @@ body {
 
 .article p.article__small small {
 	font-size: 14px;
-	color: var(--color-tint-6);
+	color: var(--color-text-secondary);
 }
 
 .article p.article__small small::first-letter {
@@ -537,12 +533,13 @@ body {
 
 .article table th {
 	padding: 8px 16px;
+	border-bottom: 1px solid var(--color-tint-2);
+	/* Secondary title */
 	font-weight: 400;
 	font-size: 12px;
 	text-transform: uppercase;
-	color: var(--color-tint-5);
+	color: var(--color-text-secondary);
 	letter-spacing: 0.07em;
-	border-bottom: 1px solid var(--color-tint-2);
 }
 
 .article td:nth-of-type(1) {
@@ -825,6 +822,11 @@ body {
 	padding-left: 16px;
 }
 
+.sidebar__list li .sidebar__category .sidebar__group > .sidebar__article > .sidebar__link,
+.sidebar__list li .sidebar__article .sidebar__group > .sidebar__article > .sidebar__link {
+	padding-left: 8px;
+}
+
 .sidebar__list li .sidebar__category .sidebar__group li[data-heading-level='2'] a,
 .sidebar__list li .sidebar__article .sidebar__group li[data-heading-level='2'] a {
 	padding-left: 16px;
@@ -833,7 +835,7 @@ body {
 
 .sidebar__list li .sidebar__category .sidebar__group li[data-heading-level='3'] a,
 .sidebar__list li .sidebar__article .sidebar__group li[data-heading-level='3'] a {
-	padding-left: 24px;
+	padding-left: 16px;
 }
 
 .sidebar__link {
@@ -880,25 +882,26 @@ body {
 }
 
 .sidebar__section__title {
-	font-size: 12px;
-	font-weight: 500;
 	margin-bottom: 4px;
 	position: relative;
-	letter-spacing: 0.5px;
 	height: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
-	color: var(--color-text-secondary);
-	text-transform: uppercase;
 	--bg: transparent;
 	white-space: nowrap;
+	/* Secondary title */
+	font-size: 12px;
+	font-weight: 400;
+	text-transform: uppercase;
+	color: var(--color-text-secondary);
+	letter-spacing: 0.07em;
 }
 
 .sidebar__section__group__title {
 	font-size: 14px;
 	font-weight: normal;
-	margin-bottom: 4px;
+	padding-left: 8px;
 	position: relative;
 	height: 40px;
 	display: flex;
@@ -910,6 +913,29 @@ body {
 	border: 0;
 	width: 100%;
 	cursor: pointer;
+}
+
+.sidebar__section__group__title {
+	position: relative;
+}
+
+.sidebar__section__group__title::after {
+	position: absolute;
+	display: block;
+	content: '';
+	top: 4px;
+	bottom: 4px;
+	left: -8px;
+	right: -8px;
+	background-color: var(--bg);
+	z-index: -1;
+	border-radius: var(--border-radius-menu);
+	transition: background-color 0.1s ease-in-out;
+	transition-delay: 0s;
+}
+
+.sidebar__section__group__title:hover {
+	--bg: var(--color-tint-1);
 }
 
 .sidebar__sections__list > *:nth-last-of-type(n + 2) > .sidebar__list {
@@ -982,7 +1008,7 @@ body {
 	position: absolute;
 	top: 50%;
 	transform: translateY(-50%);
-	color: var(--color-tint-5);
+	color: var(--color-text-secondary);
 	left: 0px;
 	z-index: 2;
 	pointer-events: none;
@@ -1009,11 +1035,11 @@ body {
 
 .search__input:disabled {
 	/* background-color: var(--color-tint-1); */
-	color: var(--color-tint-5);
+	color: var(--color-text-secondary);
 }
 
 .search__input::placeholder {
-	color: var(--color-tint-5);
+	color: var(--color-text-secondary);
 }
 
 .search__input:focus {
@@ -1097,7 +1123,7 @@ body {
 	border-left: 1px solid var(--color-tint-4);
 	line-height: 1;
 	height: min-content;
-	color: var(--color-tint-5);
+	color: var(--color-text-secondary);
 	margin-left: 8px;
 	text-decoration: none;
 }
@@ -1159,7 +1185,7 @@ body {
 	}
 
 	.layout__header .layout__header__sections_and_socials .layout_header__section,
-	.layout__header .layout__header__sections_and_socials .NavigationMenuRoot {
+	.layout__header .layout__header__sections_and_socials .navigation-menu__root {
 		display: none;
 	}
 
@@ -1171,7 +1197,7 @@ body {
 		border-bottom: 1px solid var(--color-accent);
 	}
 
-	.NavigationMenuTrigger {
+	.navigation-menu__trigger {
 		font-weight: bold;
 	}
 
@@ -1362,16 +1388,16 @@ html[data-theme='light'] .hero__dark {
 
 /* ------------------- Menus ------------------ */
 
-.NavigationMenuRoot {
+.navigation-menu__root {
 	position: relative;
 }
 
-.NavigationMenuList {
+.navigation-menu__list {
 	list-style: none;
 	margin: 0;
 }
 
-.NavigationMenuTrigger {
+.navigation-menu__trigger {
 	outline: none;
 	user-select: none;
 	border: 0;
@@ -1388,19 +1414,19 @@ html[data-theme='light'] .hero__dark {
 	cursor: pointer;
 }
 
-.NavigationMenuTrigger span {
+.navigation-menu__trigger span {
 	text-decoration: none;
 	font-size: 14px;
 	color: var(--color-text);
 }
 
 @media (hover: hover) {
-	.NavigationMenuTrigger:hover {
+	.navigation-menu__trigger:hover {
 		background-color: var(--color-tint-1);
 	}
 }
 
-.NavigationMenuContent {
+.navigation-menu__content {
 	position: absolute;
 	width: 100%;
 	top: calc(100% + 4px);
@@ -1411,11 +1437,11 @@ html[data-theme='light'] .hero__dark {
 	box-shadow: var(--shadow-small);
 }
 
-.NavigationMenuContent li {
+.navigation-menu__content li {
 	list-style: none;
 }
 
-.NavigationMenuContent li a {
+.navigation-menu__content li a {
 	display: block;
 	text-decoration: none;
 	color: var(--color-text);
@@ -1425,27 +1451,32 @@ html[data-theme='light'] .hero__dark {
 }
 
 @media (hover: hover) {
-	.NavigationMenuContent li a:hover {
+	.navigation-menu__content li a:hover {
 		background-color: var(--color-tint-1);
 	}
 }
 
-.NavigationMenuViewport {
+.navigation-menu__viewport {
 	position: relative;
 	width: 100%;
 	height: var(--radix-navigation-menu-viewport-height);
 }
 @media only screen and (min-width: 600px) {
-	.NavigationMenuViewport {
+	.navigation-menu__viewport {
 		width: var(--radix-navigation-menu-viewport-width);
 	}
 }
 
-.CaretDown {
+.chevron {
+	transform: rotate(-90deg);
+	transform-origin: center center;
+}
+[data-state='open'] > .chevron {
+	transform: rotate(0deg);
+}
+
+.navigation-menu__chevron {
 	position: relative;
 	top: 3px;
-	transition: transform 250ms ease;
-}
-[data-state='open'] > .CaretDown {
-	transform: rotate(-180deg);
+	transform: rotate(0deg);
 }

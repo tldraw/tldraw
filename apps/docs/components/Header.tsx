@@ -78,20 +78,20 @@ export function SectionLinks({ sectionId }: { sectionId?: string | null }) {
 				Examples
 			</a>
 
-			<NavigationMenu.Root className="NavigationMenuRoot">
-				<NavigationMenu.List className="NavigationMenuList">
+			<NavigationMenu.Root className="navigation-menu__root">
+				<NavigationMenu.List className="navigation-menu__list">
 					<NavigationMenu.Item>
 						<NavigationMenu.Trigger
-							className="NavigationMenuTrigger"
+							className="navigation-menu__trigger"
 							onPointerMove={(event) => event.preventDefault()}
 							onPointerLeave={(event) => event.preventDefault()}
 						>
 							<span>
-								Community <Chevron className="CaretDown" aria-hidden />
+								Community <Chevron className="navigation-menu__chevron" aria-hidden />
 							</span>
 						</NavigationMenu.Trigger>
 						<NavigationMenu.Content
-							className="NavigationMenuContent"
+							className="navigation-menu__content"
 							onPointerMove={(event) => event.preventDefault()}
 							onPointerLeave={(event) => event.preventDefault()}
 						>
