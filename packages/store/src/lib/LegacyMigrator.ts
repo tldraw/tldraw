@@ -203,4 +203,32 @@ export class LegacyMigrator {
 			),
 		}
 	}
+
+	serializeEarliestVersion(): SerializedSchema {
+		return {
+			schemaVersion: 1,
+			storeVersion: this.snapshotMigrations?.firstVersion ?? 0,
+			recordVersions: Object.fromEntries(
+				objectMapEntries(this.types).map(([typeName, migrations]) => [
+					typeName,
+					migrations.subTypeKey && migrations.subTypeMigrations
+						? {
+								version: migrations.firstVersion,
+								subTypeKey: migrations.subTypeKey,
+								subTypeVersions: migrations.subTypeMigrations
+									? Object.fromEntries(
+											Object.entries(migrations.subTypeMigrations).map(([k, v]) => [
+												k,
+												v.firstVersion,
+											])
+										)
+									: undefined,
+							}
+						: {
+								version: migrations.firstVersion,
+							},
+				])
+			),
+		}
+	}
 }

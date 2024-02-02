@@ -110,6 +110,8 @@ export class LegacyMigrator {
     // (undocumented)
     serialize(): SerializedSchemaV1;
     // (undocumented)
+    serializeEarliestVersion(): SerializedSchema;
+    // (undocumented)
     readonly snapshotMigrations: Migrations;
     // (undocumented)
     readonly types: Record<string, Migrations>;
@@ -394,7 +396,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     serialize(): SerializedSchemaV2;
     // (undocumented)
-    serializeEarliestVersion(): SerializedSchemaV2;
+    serializeEarliestVersion(): SerializedSchema;
     // (undocumented)
     readonly types: {
         [Record in R as Record['typeName']]: RecordType<R, any>;

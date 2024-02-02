@@ -384,7 +384,10 @@ Ours:   ${str(this.sortedMigrationIds)}
 		}
 	}
 
-	serializeEarliestVersion(): SerializedSchemaV2 {
+	serializeEarliestVersion(): SerializedSchema {
+		if (this.__legacyMigrator) {
+			return this.__legacyMigrator.serializeEarliestVersion()
+		}
 		return {
 			schemaVersion: 2,
 			versionHistory: [],

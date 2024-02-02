@@ -5997,8 +5997,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SerializedSchemaV2",
-                  "canonicalReference": "@tldraw/store!SerializedSchemaV2:type"
+                  "text": "SerializedSchema",
+                  "canonicalReference": "@tldraw/store!SerializedSchema:type"
                 },
                 {
                   "kind": "Content",
