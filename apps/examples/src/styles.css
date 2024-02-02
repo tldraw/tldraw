@@ -342,7 +342,7 @@ li.examples__sidebar__item {
 	left: 50%;
 	transform: translate(-50%, -50%);
 	z-index: 9999999999;
-	width: 720px;
+	width: 600px;
 	max-width: calc(100% - 40px);
 	max-height: calc(100vh - 40px);
 	overflow: auto;
@@ -355,7 +355,7 @@ li.examples__sidebar__item {
 }
 
 .example__dialog__markdown {
-	min-height: 72px;
+	min-height: 40px;
 }
 
 .example__dialog__content h1 {
@@ -365,6 +365,14 @@ li.examples__sidebar__item {
 
 .example__dialog__content p {
 	margin: 12px 0px;
+}
+
+.example__dialog__content a {
+	color: royalblue;
+	text-decoration: none;
+}
+.example__dialog__content a:hover {
+	text-decoration: underline;
 }
 
 .example__dialog__actions {

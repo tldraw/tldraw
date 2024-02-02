@@ -1,10 +1,10 @@
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-export default function BasicExample() {
+export default function PersistenceKeyExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw />
+			<Tldraw persistenceKey="example" />
 		</div>
 	)
 }
