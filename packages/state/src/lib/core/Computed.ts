@@ -181,7 +181,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 		this.isEqual = options?.isEqual ?? equals
 	}
 
-	__unsafe__getWithoutCapture(): Value {
+	__unsafe__getWithoutCapture(ignoreErrors?: boolean): Value {
 		const isNew = this.lastChangedEpoch === GLOBAL_START_EPOCH
 
 		if (!isNew && (this.lastCheckedEpoch === getGlobalEpoch() || !haveParentsChanged(this))) {
@@ -209,6 +209,17 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 			}
 			this.lastCheckedEpoch = getGlobalEpoch()
 
+			return this.state
+		} catch (e) {
+			if (this.state !== UNINITIALIZED) {
+				this.state = UNINITIALIZED as unknown as Value
+				this.lastChangedEpoch = getGlobalEpoch()
+			}
+			this.lastCheckedEpoch = getGlobalEpoch()
+			if (this.historyBuffer) {
+				this.historyBuffer.clear()
+			}
+			if (!ignoreErrors) throw e
 			return this.state
 		} finally {
 			stopCapturingParents()

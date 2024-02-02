@@ -64,7 +64,7 @@ export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EM
 export function devFreeze<T>(object: T): T;
 
 // @public @deprecated (undocumented)
-export function getRecordVersion(record: UnknownRecord, serializedSchema: SerializedSchema): RecordVersion;
+export function getRecordVersion(record: UnknownRecord, serializedSchema: SerializedSchemaV1): RecordVersion;
 
 // @public
 export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
@@ -263,7 +263,7 @@ export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
 
 // @public @deprecated (undocumented)
 export type SerializedSchemaV1 = {
-    schemaVersion: typeof LEGACY_SCHEMA_VERSION;
+    schemaVersion: 1;
     storeVersion: number;
     recordVersions: Record<string, {
         version: number;
@@ -276,7 +276,7 @@ export type SerializedSchemaV1 = {
 
 // @public (undocumented)
 export type SerializedSchemaV2 = {
-    schemaVersion: typeof CURRENT_SCHEMA_VERSION;
+    schemaVersion: 2;
     versionHistory: MigrationId[];
 };
 

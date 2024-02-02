@@ -563,7 +563,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 6
@@ -993,7 +993,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "returnTypeTokenRange": {
             "startIndex": 37,
             "endIndex": 38
@@ -1114,8 +1114,8 @@
             },
             {
               "kind": "Reference",
-              "text": "SerializedSchema",
-              "canonicalReference": "@tldraw/store!SerializedSchema:type"
+              "text": "SerializedSchemaV1",
+              "canonicalReference": "@tldraw/store!SerializedSchemaV1:type"
             },
             {
               "kind": "Content",
@@ -1131,7 +1131,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 6
@@ -1315,7 +1315,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "releaseTag": "Public",
           "name": "LegacyMigration",
           "typeParameters": [
@@ -1387,7 +1387,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 7
@@ -1468,7 +1468,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "returnTypeTokenRange": {
             "startIndex": 7,
             "endIndex": 9
@@ -1546,7 +1546,7 @@
               "text": "export declare enum MigrationFailureReason "
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "releaseTag": "Public",
           "name": "MigrationFailureReason",
           "preserveMemberOrder": false,
@@ -1794,7 +1794,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "releaseTag": "Public",
           "name": "MigrationResult",
           "typeParameters": [
@@ -1834,7 +1834,7 @@
               "text": " "
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "releaseTag": "Public",
           "name": "Migrations",
           "preserveMemberOrder": false,
@@ -3352,7 +3352,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/legacy_migrate.ts",
+          "fileUrlPath": "packages/store/src/lib/legacy-migrate.ts",
           "releaseTag": "Public",
           "name": "RecordVersion",
           "typeTokenRange": {
@@ -3462,16 +3462,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    schemaVersion: typeof "
-            },
-            {
-              "kind": "Reference",
-              "text": "LEGACY_SCHEMA_VERSION",
-              "canonicalReference": "@tldraw/store!~LEGACY_SCHEMA_VERSION:var"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    storeVersion: number;\n    recordVersions: "
+              "text": "{\n    schemaVersion: 1;\n    storeVersion: number;\n    recordVersions: "
             },
             {
               "kind": "Reference",
@@ -3501,7 +3492,7 @@
           "name": "SerializedSchemaV1",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 8
+            "endIndex": 6
           }
         },
         {
@@ -3515,16 +3506,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    schemaVersion: typeof "
-            },
-            {
-              "kind": "Reference",
-              "text": "CURRENT_SCHEMA_VERSION",
-              "canonicalReference": "@tldraw/store!~CURRENT_SCHEMA_VERSION:var"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    versionHistory: "
+              "text": "{\n    schemaVersion: 2;\n    versionHistory: "
             },
             {
               "kind": "Reference",
@@ -3545,7 +3527,7 @@
           "name": "SerializedSchemaV2",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 6
+            "endIndex": 4
           }
         },
         {
