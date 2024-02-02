@@ -18,6 +18,13 @@ test.describe('mobile ui', () => {
 		await page.getByTestId('tools.select').click()
 		expect(await page.isVisible('.tlui-style-panel')).toBe(false)
 	})
+	test('mobile style menu button is disabled for the eraser tool', async ({ isMobile, page }) => {
+		test.skip(!isMobile, 'only run on mobile')
+		const eraserTool = page.getByTestId('tools.eraser')
+		await eraserTool.click()
+		const mobileStylesButton = page.getByTestId('mobile-styles.button')
+		expect(await mobileStylesButton.isDisabled()).toBe(true)
+	})
 })
 
 test.describe('when selecting a tool from the toolbar', () => {
@@ -64,14 +71,7 @@ test.describe('when selecting a tool from the toolbar', () => {
 				testId: 'tools.select',
 				styles: ['style.color', 'style.opacity', 'style.fill', 'style.dash', 'style.size'],
 			},
-			{
-				testId: 'tools.eraser',
-				styles: [],
-			},
-			{
-				testId: 'tools.more.frame',
-				styles: ['style.opacity'],
-			},
+			{ testId: 'tools.more.frame', styles: ['style.opacity'] },
 			{
 				testId: 'tools.text',
 				styles: ['style.size', 'style.color', 'style.opacity', 'style.font', 'style.align'],
@@ -98,11 +98,6 @@ test.describe('when selecting a tool from the toolbar', () => {
 			}
 			// We need to open the style menu on mobile to check if the style is visible
 			if (isMobile) {
-				// The button should be disabled for the eraser tool
-				if (tool.testId === 'tools.eraser') {
-					expect(await page.getByTestId('mobile-styles.button').isEnabled()).toBe(false)
-					continue
-				}
 				await page.getByTestId('mobile-styles.button').click()
 			}
 			for (const style of stylesArr) {
