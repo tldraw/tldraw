@@ -8,6 +8,7 @@ import {
 	TLTextShape,
 	VecLike,
 	isNonNull,
+	isShape,
 	uniq,
 	useEditor,
 	useValue,
@@ -517,8 +518,11 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 		return
 	} else {
 		// Extract the text from the clipboard
-		const textItems = content.shapes
+		const textItems = Object.values(content.snapshot.store)
 			.map((shape) => {
+				if (!isShape(shape)) {
+					return null
+				}
 				if (
 					editor.isShapeOfType<TLTextShape>(shape, 'text') ||
 					editor.isShapeOfType<TLGeoShape>(shape, 'geo') ||

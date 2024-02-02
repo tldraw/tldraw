@@ -1,6 +1,6 @@
 /* eslint-disable deprecation/deprecation */
 import { UnknownRecord, isRecord } from './BaseRecord'
-import { SerializedSchema } from './StoreSchema'
+import { SerializedSchemaV1 } from './StoreSchema'
 
 type EMPTY_SYMBOL = symbol
 
@@ -99,7 +99,7 @@ export type RecordVersion = { rootVersion: number; subTypeVersion?: number }
  */
 export function getRecordVersion(
 	record: UnknownRecord,
-	serializedSchema: SerializedSchema
+	serializedSchema: SerializedSchemaV1
 ): RecordVersion {
 	if (serializedSchema.schemaVersion !== 1) throw new Error('Invalid schema version')
 	const persistedType = serializedSchema.recordVersions[record.typeName]

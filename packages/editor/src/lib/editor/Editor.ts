@@ -1,6 +1,7 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
+	AssetRecordType,
 	CameraRecordType,
 	InstancePageStateRecordType,
 	PageRecordType,
@@ -77,7 +78,7 @@ import {
 	ZOOMS,
 } from '../constants'
 import { Box } from '../primitives/Box'
-import { Mat, MatLike, MatModel } from '../primitives/Mat'
+import { Mat, MatLike } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
@@ -119,7 +120,7 @@ import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
-import { TLContent } from './types/clipboard-types'
+import { TLContent, TLContentV1, migrateContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import {
 	TLEventInfo,
@@ -5122,9 +5123,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const changes: TLShapePartial[] = []
 
 		for (const id of ids) {
-			const shape = this.getShape(id)!
+			const shape = this.getShape(id)
 			if (!shape) continue
-			const localDelta = Vec.Cast(offset)
+			const localDelta = Vec.From(offset)
 			const parentTransform = this.getShapeParentTransform(shape)
 			if (parentTransform) localDelta.rot(-parentTransform.rotation())
 
@@ -5364,9 +5365,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Just to be sure
 		if (!content) return this
 
+		const numShapes = Object.values(content?.snapshot.store).filter(isShape).length
+
 		// If there is no space on pageId, or if the selected shapes
 		// would take the new page above the limit, don't move the shapes
-		if (this.getPageShapeIds(pageId).size + content.shapes.length > MAX_SHAPES_PER_PAGE) {
+		if (this.getPageShapeIds(pageId).size + numShapes > MAX_SHAPES_PER_PAGE) {
 			alertMaxShapes(this, pageId)
 			return this
 		}
@@ -6545,7 +6548,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							parentId = focusedGroupId
 						}
 
-						// If the parentid has changed...
+						// If the parentId has changed...
 						if (parentId !== prevParentId) {
 							partial = { ...partial }
 
@@ -7547,7 +7550,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getContentFromCurrentPage(shapes: TLShapeId[] | TLShape[]): TLContent | undefined {
+	getContentFromCurrentPage(shapes: TLShapeId[] | TLShape[]): TLContentV1 | undefined {
 		// todo: make this work with any page, not just the current page
 		const ids =
 			typeof shapes[0] === 'string'
@@ -7557,26 +7560,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!ids) return
 		if (ids.length === 0) return
 
-		const pageTransforms: Record<string, MatModel> = {}
+		const allShapes: Map<string, TLShape> = new Map()
 
-		let shapesForContent = dedupe(
-			ids
-				.map((id) => this.getShape(id)!)
-				.sort(sortByIndex)
-				.flatMap((shape) => {
-					const allShapes = [shape]
-					this.visitDescendants(shape.id, (descendant) => {
-						allShapes.push(this.getShape(descendant)!)
-					})
-					return allShapes
-				})
-		)
+		for (const id of ids) {
+			const shape = this.getShape(id)
+			if (!shape) continue
+			if (allShapes.has(id)) continue
+			allShapes.set(shape.id, structuredClone(shape))
+			this.visitDescendants(shape.id, (descendant) => {
+				const shape = this.getShape(descendant)
+				if (shape) {
+					allShapes.set(shape.id, structuredClone(shape))
+				}
+			})
+		}
 
-		shapesForContent = shapesForContent.map((shape) => {
-			pageTransforms[shape.id] = this.getShapePageTransform(shape.id)!
+		const rootShapeIds: TLShapeId[] = []
 
-			shape = structuredClone(shape) as typeof shape
+		const assetsSet = new Set<TLAssetId>()
+		const pagesSet = new Set<TLPageId>()
 
+		for (const shape of allShapes.values()) {
 			if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
 				const startBindingId =
 					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
@@ -7586,8 +7590,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				const info = this.getArrowInfo(shape)
 
-				if (shape.props.start.type === 'binding') {
-					if (!shapesForContent.some((s) => s.id === startBindingId)) {
+				if (startBindingId) {
+					if (!allShapes.has(startBindingId)) {
 						// Uh oh, the arrow's bound-to shape isn't among the shapes
 						// that we're getting the content for. We should try to adjust
 						// the arrow so that it appears in the place it would be
@@ -7609,8 +7613,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
-				if (shape.props.end.type === 'binding') {
-					if (!shapesForContent.some((s) => s.id === endBindingId)) {
+				if (endBindingId) {
+					if (!allShapes.has(endBindingId)) {
 						if (info?.isValid) {
 							const { x, y } = info.end.point
 							shape.props.end = {
@@ -7643,17 +7647,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						shape.props.bend -= distB - distA
 					}
 				}
-
-				return shape
 			}
 
-			return shape
-		})
-
-		const rootShapeIds: TLShapeId[] = []
-
-		shapesForContent.forEach((shape) => {
-			if (shapesForContent.find((s) => s.id === shape.parentId) === undefined) {
+			if (!allShapes.has(shape.parentId)) {
 				// Need to get page point and rotation of the shape because shapes in
 				// groups use local position/rotation
 
@@ -7667,24 +7663,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				rootShapeIds.push(shape.id)
 			}
-		})
 
-		const assetsSet = new Set<TLAssetId>()
+			if (isPageId(shape.parentId)) {
+				pagesSet.add(shape.parentId)
+			}
 
-		shapesForContent.forEach((shape) => {
 			if ('assetId' in shape.props) {
 				if (shape.props.assetId !== null) {
 					assetsSet.add(shape.props.assetId)
 				}
 			}
-		})
-
-		return {
-			shapes: shapesForContent,
-			rootShapeIds,
-			schema: this.store.schema.serialize(),
-			assets: compact(Array.from(assetsSet).map((id) => this.getAsset(id))),
 		}
+
+		// to make the content migrateable we need to export a legit StoreSnapshot
+		const snapshot = this.store.getSnapshot('document')
+
+		// and now we delete any unused content and replace the shapes with the modified ones
+		for (const id of Object.keys(snapshot.store)) {
+			if (PageRecordType.isId(id) && !pagesSet.has(id)) {
+				delete snapshot.store[id]
+			} else if (isShapeId(id)) {
+				const modifiedShape = allShapes.get(id)
+				if (!modifiedShape) {
+					delete snapshot.store[id]
+				} else {
+					snapshot.store[id] = modifiedShape
+				}
+			} else if (AssetRecordType.isId(id) && !assetsSet.has(id)) {
+				delete snapshot.store[id]
+			}
+		}
+
+		return { snapshot, rootShapeIds, version: 1 }
 	}
 
 	/**
@@ -7696,7 +7706,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	putContentOntoCurrentPage(
-		content: TLContent,
+		_content: TLContent,
 		options: {
 			point?: VecLike
 			select?: boolean
@@ -7708,9 +7718,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// todo: make this able to support putting content onto any page, not just the current page
 
-		if (!content.schema) {
+		const content = migrateContent(_content)
+
+		if (!content.snapshot.schema) {
 			throw Error('Could not put content:\ncontent is missing a schema.')
 		}
+
+		// migrate content
+		const migrationResult = this.store.schema.migrateStoreSnapshot(content.snapshot)
+		if (migrationResult.type === 'error') {
+			throw new Error('Could not migrate content:\n' + migrationResult.reason)
+		}
+		const store = migrationResult.value
 
 		const { select = false, preserveIds = false, preservePosition = false } = options
 		let { point = undefined } = options
@@ -7718,7 +7737,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
 		const currentPageId = this.getCurrentPageId()
-		const { assets, shapes, rootShapeIds } = content
+		const { rootShapeIds } = content
+		const shapes = Object.values(store).filter(isShape)
+		const assets = Object.values(store).filter(AssetRecordType.isInstance)
 
 		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
 
@@ -7862,18 +7883,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let assetsToCreate: TLAsset[] = []
 
 		if (assets) {
-			for (let i = 0; i < assets.length; i++) {
-				const asset = assets[i]
-				const result = this.store.schema.migratePersistedRecord(asset, content.schema)
-				if (result.type === 'success') {
-					assets[i] = result.value as TLAsset
-				} else {
-					throw Error(
-						`Could not put content:\ncould not migrate content for asset:\n${asset.id}\n${asset.type}\nreason:${result.reason}`
-					)
-				}
-			}
-
 			const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
 
 			assetsToCreate = assets
@@ -7918,18 +7927,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					)
 				)
 			})
-		}
-
-		for (let i = 0; i < newShapes.length; i++) {
-			const shape = newShapes[i]
-			const result = this.store.schema.migratePersistedRecord(shape, content.schema)
-			if (result.type === 'success') {
-				newShapes[i] = result.value as TLShape
-			} else {
-				throw Error(
-					`Could not put content:\ncould not migrate content for shape:\n${shape.id}, ${shape.type}\nreason:${result.reason}`
-				)
-			}
 		}
 
 		this.batch(() => {

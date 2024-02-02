@@ -388,7 +388,7 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 })
 
 describe('when the client is too new', () => {
-	function setup() {
+	test('it straight up rejects the client', () => {
 		const steve = UserV1.create({ id: UserV1.createId('steve'), name: 'steve', age: 23 })
 		const jeff = UserV1.create({ id: UserV1.createId('jeff'), name: 'jeff', age: 23 })
 		const annie = UserV1.create({ id: UserV1.createId('annie'), name: 'annie', age: 23 })
@@ -437,13 +437,8 @@ describe('when the client is too new', () => {
 		})
 
 		expect(v2_socket.sendMessage).toHaveBeenCalledWith({
-			type: 'connect',
-			connectRequestId: 'test',
-			hydrationType: 'wipe_presence',
-			diff: {},
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
-			schema: schemaV1.serialize(),
-			serverClock: 10,
+			reason: TLIncompatibilityReason.ServerTooOld,
+			type: 'incompatibility_error',
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(v1_socket.sendMessage).toHaveBeenCalledWith({
@@ -455,120 +450,6 @@ describe('when the client is too new', () => {
 			schema: schemaV1.serialize(),
 			serverClock: 10,
 		} satisfies TLSocketServerSentEvent<RV1>)
-		;(v2_socket.sendMessage as jest.Mock).mockClear()
-		;(v1_socket.sendMessage as jest.Mock).mockClear()
-
-		return {
-			v1Server,
-			v1_id,
-			v2_id,
-			v2SendMessage: v2_socket.sendMessage as jest.Mock,
-			v1SendMessage: v1_socket.sendMessage as jest.Mock,
-			steve,
-			jeff,
-			annie,
-		}
-	}
-
-	let data: ReturnType<typeof setup>
-
-	beforeEach(() => {
-		data = setup()
-	})
-
-	it('allows deletions from v2 client', () => {
-		const { v1Server, v2_id, v2SendMessage, steve } = data
-		v1Server.room.handleMessage(v2_id as any, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[steve.id]: [RecordOpType.Remove],
-			},
-		})
-
-		expect(v2SendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
-		} satisfies TLSocketServerSentEvent<RV2>)
-	})
-
-	it('applies changes atomically', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.jeff.id]: [RecordOpType.Remove],
-				[data.steve.id]: [RecordOpType.Remove],
-				[data.annie.id]: [RecordOpType.Put, { ...data.annie, birthdate: '1999-02-21' } as any],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
-		expect(data.v1Server.room.state.get().documents[data.jeff.id]).toBeDefined()
-		expect(data.v1Server.room.state.get().documents[data.steve.id]).toBeDefined()
-	})
-
-	it('cannot send patches to v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v1_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Patch, { age: [ValueOpType.Put, 24] }],
-			},
-		})
-
-		expect(data.v1SendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-	})
-
-	it('cannot apply patches from v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Patch, { birthdate: [ValueOpType.Put, 'tomorrow'] }],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
-	})
-
-	it('cannot apply puts from v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Put, { ...data.steve, birthdate: 'today' } as any],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
 	})
 })
 
