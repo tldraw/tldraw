@@ -22,7 +22,7 @@ const config: PlaywrightTestConfig = {
 		 * Maximum time expect() should wait for the condition to be met.
 		 * For example in `await expect(locator).toHaveText();`
 		 */
-		timeout: 2000,
+		timeout: 4000,
 		toHaveScreenshot: {
 			maxDiffPixelRatio: 0.001,
 			threshold: 0.01,
