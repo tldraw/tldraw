@@ -148,7 +148,7 @@ test.describe('Focus', () => {
 	})
 
 	test('kbds after clicking on ui elements', async ({ page }) => {
-		await page.goto('http://localhost:5420/end-to-end/full')
+		await page.goto('http://localhost:5420/end-to-end')
 		await page.waitForSelector('.tl-canvas')
 
 		const EditorA = (await page.$(`.tl-container`))!

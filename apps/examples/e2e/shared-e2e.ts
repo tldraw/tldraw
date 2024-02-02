@@ -21,7 +21,7 @@ export async function cleanup({ page }: PlaywrightTestArgs) {
 }
 
 export async function setupPage(page: PlaywrightTestArgs['page']) {
-	await page.goto('http://localhost:5420/end-to-end/full')
+	await page.goto('http://localhost:5420/end-to-end')
 	await page.waitForSelector('.tl-canvas')
 	await page.evaluate(() => {
 		editor.user.updateUserPreferences({ animationSpeed: 0 })
