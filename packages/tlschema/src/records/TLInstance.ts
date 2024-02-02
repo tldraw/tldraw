@@ -72,14 +72,14 @@ export type TLInstanceId = RecordId<TLInstance>
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
 export function createInstanceRecordType(stylesById: Map<string, Map<string, StyleProp<unknown>>>) {
-	const stylesForNextShapeValidators = {} as Record<string, T.Validatable<unknown>>
-	for (const [styleId, styleById] of stylesById) {
-		const validators = {} as Record<string, T.Validator<unknown>>
-		for (const [id, style] of styleById) {
-			validators[id] = T.optional(style)
-		}
-		stylesForNextShapeValidators[styleId] = T.object(validators)
-	}
+	// for (const [styleId, styleById] of stylesById) {
+	// const stylesForNextShapeValidators = {} as Record<string, Record<string, T.Validatable<unknown>>>
+	// 	const validators = {} as Record<string, T.Validatable<unknown>>
+	// 	for (const [shapeType, style] of styleById) {
+	// 		validators[shapeType] = T.optional(style)
+	// 	}
+	// 	stylesForNextShapeValidators[styleId] = T.optional(T.object(validators))
+	// }
 
 	const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		'instance',
@@ -90,6 +90,7 @@ export function createInstanceRecordType(stylesById: Map<string, Map<string, Sty
 			followingUserId: T.string.nullable(),
 			brush: boxModelValidator.nullable(),
 			opacityForNextShape: opacityValidator,
+			// TODO: fix validation
 			stylesForNextShape: T.any,
 			cursor: cursorValidator,
 			scribbles: T.arrayOf(scribbleValidator),

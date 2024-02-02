@@ -31,7 +31,6 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  *
  * @public */
 export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeInfo> }): TLSchema {
-	// const stylesById = new Map<string, StyleProp<unknown>>()
 	const stylesById = new Map<string, Map<string, StyleProp<unknown>>>()
 	for (const shapeType of objectMapKeys(shapes)) {
 		const shape = shapes[shapeType]
