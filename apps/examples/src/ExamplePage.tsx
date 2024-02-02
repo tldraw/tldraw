@@ -111,12 +111,14 @@ function ExampleSidebarListItem({
 			</div>
 			{isActive && (
 				<div className="example__sidebar__item__buttons">
-					<button
-						className="example__sidebar__item__button hoverable"
-						onClick={() => setExampleDialog(example)}
-					>
-						<InfoIcon />
-					</button>
+					{example.details && (
+						<button
+							className="example__sidebar__item__button hoverable"
+							onClick={() => setExampleDialog(example)}
+						>
+							<InfoIcon />
+						</button>
+					)}
 					<Link
 						to={`${example.path}/full`}
 						className="example__sidebar__item__button hoverable"
@@ -155,6 +157,8 @@ function Dialogs() {
 			setExampleDialog(null)
 		}
 	}
+
+	console.log(example.description)
 
 	return (
 		<Dialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
