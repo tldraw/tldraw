@@ -73,17 +73,17 @@ test.describe('Shape Tools', () => {
 		for (const { tool } of otherTools) {
 			// Find and click the button
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
-				if (!(await page.getByTestId(`tools.more`).isVisible())) {
+				if (!(await page.getByTestId('tools.more.button').isVisible())) {
 					throw Error(`Tool more is not visible`)
 				}
-				await page.getByTestId('tools.more').click()
+				await page.getByTestId('tools.more.button').click()
 
 				if (!(await page.getByTestId(`tools.more.${tool}`).isVisible())) {
 					throw Error(`Tool in more panel is not visible`)
 				}
 				await page.getByTestId(`tools.more.${tool}`).click()
 
-				await page.getByTestId(`tools.more`).click()
+				await page.getByTestId('tools.more.button').click()
 			}
 
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
@@ -111,9 +111,9 @@ test.describe('Shape Tools', () => {
 		for (const { tool, shape } of clickableShapeCreators) {
 			// Find and click the button
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
-				await page.getByTestId('tools.more').click()
+				await page.getByTestId('tools.more.button').click()
 				await page.getByTestId(`tools.more.${tool}`).click()
-				await page.getByTestId('tools.more').click()
+				await page.getByTestId('tools.more.button').click()
 			}
 			await page.getByTestId(`tools.${tool}`).click()
 
@@ -149,9 +149,9 @@ test.describe('Shape Tools', () => {
 		for (const { tool, shape } of draggableShapeCreators) {
 			// Find and click the button
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
-				await page.getByTestId('tools.more').click()
+				await page.getByTestId('tools.more.button').click()
 				await page.getByTestId(`tools.more.${tool}`).click()
-				await page.getByTestId('tools.more').click()
+				await page.getByTestId('tools.more.button').click()
 			}
 
 			await page.getByTestId(`tools.${tool}`).click()
