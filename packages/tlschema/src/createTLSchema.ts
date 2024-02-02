@@ -1,5 +1,5 @@
 import { Migrations, StoreSchema } from '@tldraw/store'
-import { objectMapValues } from '@tldraw/utils'
+import { objectMapKeys } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { AssetRecordType } from './records/TLAsset'
 import { CameraRecordType } from './records/TLCamera'
@@ -31,13 +31,21 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  *
  * @public */
 export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeInfo> }): TLSchema {
-	const stylesById = new Map<string, StyleProp<unknown>>()
-	for (const shape of objectMapValues(shapes)) {
+	// const stylesById = new Map<string, StyleProp<unknown>>()
+	const stylesById = new Map<string, Map<string, StyleProp<unknown>>>()
+	for (const shapeType of objectMapKeys(shapes)) {
+		const shape = shapes[shapeType]
 		for (const style of getShapePropKeysByStyle(shape.props ?? {}).keys()) {
-			if (stylesById.has(style.id) && stylesById.get(style.id) !== style) {
+			let styleById = stylesById.get(style.id)
+			if (!styleById) {
+				styleById = new Map<string, StyleProp<unknown>>()
+				stylesById.set(style.id, styleById)
+			}
+
+			if (styleById.has(style.id) && styleById.get(style.id) !== style) {
 				throw new Error(`Multiple StyleProp instances with the same id: ${style.id}`)
 			}
-			stylesById.set(style.id, style)
+			styleById.set(shapeType, style)
 		}
 	}
 

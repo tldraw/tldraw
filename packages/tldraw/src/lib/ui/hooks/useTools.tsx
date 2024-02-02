@@ -105,16 +105,16 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: ('geo-' + id) as TLUiIconType,
 				onSelect(source: TLUiEventSource) {
 					editor.batch(() => {
+						editor.setCurrentTool('geo')
 						editor.updateInstanceState(
 							{
 								stylesForNextShape: {
 									...editor.getInstanceState().stylesForNextShape,
-									[GeoShapeGeoStyle.id]: id,
+									[GeoShapeGeoStyle.id]: { geo: id },
 								},
 							},
 							{ ephemeral: true }
 						)
-						editor.setCurrentTool('geo')
 						trackEvent('select-tool', { source, id: `geo-${id}` })
 					})
 				},

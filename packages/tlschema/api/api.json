@@ -7227,7 +7227,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, unknown>"
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, unknown>>"
                 },
                 {
                   "kind": "Content",
@@ -7240,7 +7249,7 @@
               "name": "stylesForNextShape",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 3
+                "endIndex": 5
               }
             },
             {

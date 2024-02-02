@@ -1057,7 +1057,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
-    stylesForNextShape: Record<string, unknown>;
+    stylesForNextShape: Record<string, Record<string, unknown>>;
     // (undocumented)
     zoomBrush: BoxModel | null;
 }

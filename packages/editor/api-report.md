@@ -761,7 +761,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     // @internal (undocumented)
-    getStyleForNextShape<T>(style: StyleProp<T>): T;
+    getStyleForNextShape<T>(style: StyleProp<T>, shapeType: string): T;
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
     getViewportPageBounds(): Box;
     getViewportPageCenter(): Vec;

@@ -36,7 +36,7 @@ export class Pointing extends StateNode {
 						props: {
 							w: 1,
 							h: 1,
-							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle, 'geo'),
 						},
 					},
 				])
@@ -80,7 +80,7 @@ export class Pointing extends StateNode {
 				x: originPagePoint.x,
 				y: originPagePoint.y,
 				props: {
-					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle, 'geo'),
 					w: 1,
 					h: 1,
 				},
@@ -109,7 +109,7 @@ export class Pointing extends StateNode {
 				x: shape.x - delta.x,
 				y: shape.y - delta.y,
 				props: {
-					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle, 'geo'),
 					w: bounds.width,
 					h: bounds.height,
 				},

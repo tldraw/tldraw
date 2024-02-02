@@ -24,11 +24,13 @@ export function useRelevantStyles(): {
 			const hasShape =
 				editor.getSelectedShapeIds().length > 0 || !!editor.root.getCurrent()?.shapeType
 
-			if (styles.size === 0 && editor.isIn('select') && editor.getSelectedShapeIds().length === 0) {
-				for (const style of selectToolStyles) {
-					styles.applyValue(style, editor.getStyleForNextShape(style))
-				}
-			}
+			// TODO: Do we still need this? It's applying styles when in select tool and no shapes are selected
+			// I guess we need to decide on the UX for this case
+			// if (styles.size === 0 && editor.isIn('select') && editor.getSelectedShapeIds().length === 0) {
+			// 	for (const style of selectToolStyles) {
+			// 		styles.applyValue(style, editor.getStyleForNextShape(style))
+			// 	}
+			// }
 
 			if (styles.size === 0 && !hasShape) return null
 			return { styles, opacity: editor.getSharedOpacity() }

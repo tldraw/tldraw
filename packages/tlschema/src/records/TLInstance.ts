@@ -20,7 +20,7 @@ import { TLShapeId } from './TLShape'
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
 	opacityForNextShape: TLOpacityType
-	stylesForNextShape: Record<string, unknown>
+	stylesForNextShape: Record<string, Record<string, unknown>>
 	// ephemeral
 	followingUserId: string | null
 	highlightedUserIds: string[]
@@ -71,10 +71,14 @@ export type TLInstanceId = RecordId<TLInstance>
 /** @internal */
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
-export function createInstanceRecordType(stylesById: Map<string, StyleProp<unknown>>) {
-	const stylesForNextShapeValidators = {} as Record<string, T.Validator<unknown>>
-	for (const [id, style] of stylesById) {
-		stylesForNextShapeValidators[id] = T.optional(style)
+export function createInstanceRecordType(stylesById: Map<string, Map<string, StyleProp<unknown>>>) {
+	const stylesForNextShapeValidators = {} as Record<string, T.Validatable<unknown>>
+	for (const [styleId, styleById] of stylesById) {
+		const validators = {} as Record<string, T.Validator<unknown>>
+		for (const [id, style] of styleById) {
+			validators[id] = T.optional(style)
+		}
+		stylesForNextShapeValidators[styleId] = T.object(validators)
 	}
 
 	const instanceTypeValidator: T.Validator<TLInstance> = T.model(
@@ -86,7 +90,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			followingUserId: T.string.nullable(),
 			brush: boxModelValidator.nullable(),
 			opacityForNextShape: opacityValidator,
-			stylesForNextShape: T.object(stylesForNextShapeValidators),
+			stylesForNextShape: T.any,
 			cursor: cursorValidator,
 			scribbles: T.arrayOf(scribbleValidator),
 			isFocusMode: T.boolean,
