@@ -266,7 +266,11 @@ function PatternFillDefForCanvas() {
 		}
 	}, [editor, isReady])
 
-	return <g ref={containerRef}>{defs}</g>
+	return (
+		<g ref={containerRef} data-testid={isReady ? 'ready-pattern-fill-defs' : undefined}>
+			{defs}
+		</g>
+	)
 }
 
 function findHtmlLayerParent(element: Element): HTMLElement | null {

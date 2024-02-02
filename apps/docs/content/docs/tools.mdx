@@ -23,9 +23,9 @@ For more detailed information about the state chart, and how it works, go to the
 
 ## Types of tool
 
-The tldraw editor comes with some in-built **core tools**: the [select tool](/gen/tldraw/SelectTool), the [zoom tool](/gen/tldraw/ZoomTool), and the [text tool](/gen/tldraw/TextShapeTool). These are always added to the state chart.
+The tldraw editor comes with some in-built **core tools**: the [select tool](/reference/tldraw/SelectTool), the [zoom tool](/reference/tldraw/ZoomTool), and the [text tool](/reference/tldraw/TextShapeTool). These are always added to the state chart.
 
-There are also some **default tools** available, like the [draw tool](/gen/tldraw/DrawShapeTool), the [hand tool](/gen/tldraw/HandTool), the [arrow tool](/gen/tldraw/ArrowShapeTool), and more. The `<Tldraw>` component automatically adds these tools to the state chart.
+There are also some **default tools** available, like the [draw tool](/reference/tldraw/DrawShapeTool), the [hand tool](/reference/tldraw/HandTool), the [arrow tool](/reference/tldraw/ArrowShapeTool), and more. The `<Tldraw>` component automatically adds these tools to the state chart.
 
 You can also create your own **custom tools**. You can add them to the state chart by passing an array of them to the [Tldraw](?) component's `tools` prop.
 
@@ -33,7 +33,7 @@ Note: You might also want to add a tool to the user interface in various ways, s
 
 ## Transitioning
 
-You can change the current active tool using [editor.setCurrentTool](/gen/editor/Editor#setCurrentTool).
+You can change the current active tool using [editor.setCurrentTool](/reference/editor/Editor#setCurrentTool).
 
 ```ts
 editor.setCurrentTool('select')
@@ -55,7 +55,7 @@ class MyTool extends StateNode {
 }
 ```
 
-Tools can contain **children**. For example, the [hand tool](/gen/tldraw/HandTool) has three children, `Idle`, `Pointing` and `Dragging`. If a state has children, it must also have an `initial` state, so that it knows which state to start in.
+Tools can contain **children**. For example, the [hand tool](/reference/tldraw/HandTool) has three children, `Idle`, `Pointing` and `Dragging`. If a state has children, it must also have an `initial` state, so that it knows which state to start in.
 
 ```ts
 class MyIdleState extends StateNode {
@@ -75,7 +75,7 @@ class MyTool extends StateNode {
 
 ### Handling events
 
-When the editor receives an [event](/gen/editor/TLEventHandlers) via its [Editor#dispatch](?) method, the event is first processed in order to update its inputs, then passed to the editor's state chart.
+When the editor receives an [event](/reference/editor/TLEventHandlers) via its [Editor#dispatch](?) method, the event is first processed in order to update its inputs, then passed to the editor's state chart.
 
 Beginning at the root, each node will first handle the event and then pass the event to its current active child state. This continues until either: the event is handled on a state without any children; or the event is handled in a way that produces a transition.
 

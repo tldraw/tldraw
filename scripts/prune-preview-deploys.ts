@@ -16,11 +16,21 @@ async function isPrClosedForAWhile(prNumber: number) {
 	if (_isPrClosedCache.has(prNumber)) {
 		return _isPrClosedCache.get(prNumber)!
 	}
-	const prResult = await github.getOctokit(env.GH_TOKEN).rest.pulls.get({
-		owner: 'tldraw',
-		repo: 'tldraw',
-		pull_number: prNumber,
-	})
+
+	let prResult
+	try {
+		prResult = await github.getOctokit(env.GH_TOKEN).rest.pulls.get({
+			owner: 'tldraw',
+			repo: 'tldraw',
+			pull_number: prNumber,
+		})
+	} catch (err: any) {
+		if (err.status === 404) {
+			_isPrClosedCache.set(prNumber, true)
+			return true
+		}
+		throw err
+	}
 	const twoDays = 1000 * 60 * 60 * 24 * 2
 	const result =
 		prResult.data.state === 'closed' &&
@@ -62,7 +72,7 @@ async function deletePreviewWorkerDeployment(id: string) {
 	)
 
 	if (!res.ok) {
-		throw new Error('Failed to delete worker ' + JSON.stringify(res))
+		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
 	}
 }
 
@@ -77,6 +87,8 @@ async function main() {
 			nicelog(`Skipping ${deployment} because PR is still open`)
 		}
 	}
+
+	nicelog('Done')
 }
 
 main()

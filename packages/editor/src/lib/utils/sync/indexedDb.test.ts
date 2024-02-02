@@ -25,7 +25,7 @@ describe('storeSnapshotInIndexedDb', () => {
 		})
 
 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`
-		      Array [
+		      [
 		        "TLDRAW_DOCUMENT_v2test-0",
 		      ]
 	    `)
@@ -37,7 +37,7 @@ describe('storeSnapshotInIndexedDb', () => {
 		})
 
 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`
-		      Array [
+		      [
 		        "TLDRAW_DOCUMENT_v2test-0",
 		        "TLDRAW_DOCUMENT_v2test-1",
 		      ]
@@ -50,7 +50,7 @@ describe('storeSnapshotInIndexedDb', () => {
 		})
 
 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`
-		      Array [
+		      [
 		        "TLDRAW_DOCUMENT_v2test-0",
 		        "TLDRAW_DOCUMENT_v2test-1",
 		      ]
@@ -58,7 +58,7 @@ describe('storeSnapshotInIndexedDb', () => {
 	})
 
 	it('allows reading back the snapshot', async () => {
-		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`Array []`)
+		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`[]`)
 		await storeSnapshotInIndexedDb({
 			persistenceKey: 'test-0',
 			schema,
@@ -75,19 +75,19 @@ describe('storeSnapshotInIndexedDb', () => {
 		})
 
 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "TLDRAW_DOCUMENT_v2test-0",
 		]
 	`)
 
 		const records = (await loadDataFromStore({ persistenceKey: 'test-0' }))?.records
 		expect(records).toMatchInlineSnapshot(`
-		Array [
-		  Object {
+		[
+		  {
 		    "id": "page:1",
 		    "name": "steve",
 		  },
-		  Object {
+		  {
 		    "id": "shape:1",
 		    "type": "rectangle",
 		  },
@@ -117,7 +117,7 @@ describe('storeSnapshotInIndexedDb', () => {
 			(await loadDataFromStore({ persistenceKey: 'test-0', sessionId: 'session-0' }))
 				?.sessionStateSnapshot
 		).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "foo": "bar",
 		}
 	`)
@@ -136,7 +136,7 @@ describe('storeSnapshotInIndexedDb', () => {
 			(await loadDataFromStore({ persistenceKey: 'test-0', sessionId: 'session-0' }))
 				?.sessionStateSnapshot
 		).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "foo": "bar",
 		}
 	`)
@@ -145,7 +145,7 @@ describe('storeSnapshotInIndexedDb', () => {
 			(await loadDataFromStore({ persistenceKey: 'test-0', sessionId: 'session-1' }))
 				?.sessionStateSnapshot
 		).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "hello": "world",
 		}
 	`)
@@ -205,16 +205,16 @@ describe(storeChangesInIndexedDb, () => {
 		})
 
 		expect((await loadDataFromStore({ persistenceKey: 'test-0' }))?.records).toMatchInlineSnapshot(`
-		Array [
-		  Object {
+		[
+		  {
 		    "id": "asset:1",
 		    "version": 0,
 		  },
-		  Object {
+		  {
 		    "id": "asset:2",
 		    "version": 0,
 		  },
-		  Object {
+		  {
 		    "id": "page:1",
 		    "version": 1,
 		  },

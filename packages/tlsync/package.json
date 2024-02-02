@@ -64,5 +64,9 @@
 		"nanoevents": "^7.0.1",
 		"nanoid": "4.0.2",
 		"ws": "^8.16.0"
+	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
 	}
 }

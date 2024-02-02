@@ -1117,7 +1117,7 @@ describe('snapping while resizing', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 60, y: 81, props: { w: 80, h: 59 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "60,0 60,40 60,81 60,140 60,180 60,220",
       ]
     `)
@@ -1154,7 +1154,7 @@ describe('snapping while resizing', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 81, y: 60, props: { w: 59, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "0,60 40,60 81,60 140,60 180,60 220,60",
       ]
     `)
@@ -1190,7 +1190,7 @@ describe('snapping while resizing', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 60, y: 60, props: { w: 80, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "0,60 40,60 60,60 140,60 180,60 220,60",
         "60,0 60,40 60,60 60,140 60,180 60,220",
       ]
@@ -1354,7 +1354,7 @@ describe('snapping while resizing from center', () => {
 			props: { w: 60, h: 100 },
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "40,120 60,120 80,120 100,120",
         "40,20 60,20 80,20 100,20",
       ]
@@ -1437,7 +1437,7 @@ describe('snapping while resizing from center', () => {
 			props: { w: 100, h: 60 },
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
         "20,40 20,60 20,80 20,100",
       ]
@@ -1467,7 +1467,7 @@ describe('snapping while resizing from center', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,20 120,60 120,80 120,120",
         "20,120 60,120 80,120 120,120",
         "20,20 20,60 20,80 20,120",
@@ -1507,7 +1507,7 @@ describe('snapping while resizing from center', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
         "20,40 20,60 20,80 20,100",
       ]
@@ -1538,7 +1538,7 @@ describe('snapping while resizing from center', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,20 120,60 120,80 120,120",
         "20,120 60,120 80,120 120,120",
         "20,20 20,60 20,80 20,120",
@@ -1578,7 +1578,7 @@ describe('snapping while resizing from center', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
         "20,40 20,60 20,80 20,100",
       ]
@@ -1609,7 +1609,7 @@ describe('snapping while resizing from center', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,20 120,60 120,80 120,120",
         "20,120 60,120 80,120 120,120",
         "20,20 20,60 20,80 20,120",
@@ -1649,7 +1649,7 @@ describe('snapping while resizing from center', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
         "20,40 20,60 20,80 20,100",
       ]
@@ -1680,7 +1680,7 @@ describe('snapping while resizing from center', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,20 120,60 120,80 120,120",
         "20,120 60,120 80,120 120,120",
         "20,20 20,60 20,80 20,120",
@@ -1744,7 +1744,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 30, y: 20, props: { w: 80, h: 80 } })
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "30,20 60,20 80,20 110,20",
       ]
     `)
@@ -1778,7 +1778,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 30, props: { w: 80, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,30 120,60 120,80 120,110",
       ]
     `)
@@ -1812,7 +1812,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 30, y: 40, props: { w: 80, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "30,120 60,120 80,120 110,120",
       ]
     `)
@@ -1846,7 +1846,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 20, y: 30, props: { w: 80, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "20,30 20,60 20,80 20,110",
       ]
     `)
@@ -1879,7 +1879,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 20, props: { w: 80, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,20 120,60 120,80 120,100",
         "40,20 60,20 80,20 120,20",
       ]
@@ -1913,7 +1913,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 40, props: { w: 80, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,120",
         "40,120 60,120 80,120 120,120",
       ]
@@ -1947,7 +1947,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 20, y: 40, props: { w: 80, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "20,120 60,120 80,120 100,120",
         "20,40 20,60 20,80 20,120",
       ]
@@ -1981,7 +1981,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 20, y: 20, props: { w: 80, h: 80 } })
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "20,20 20,60 20,80 20,100",
         "20,20 60,20 80,20 100,20",
       ]
@@ -2368,7 +2368,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			h: 60,
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
       ]
     `)
@@ -2398,7 +2398,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			h: 60,
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
         "20,40 20,60 20,80 20,100",
       ]
@@ -2435,7 +2435,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(80)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "40,20 60,20 80,20 100,20",
       ]
     `)
@@ -2463,7 +2463,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(80)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "30,20 60,20 80,20 110,20",
       ]
     `)
@@ -2498,7 +2498,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(80)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "20,120 60,120 80,120 100,120",
         "20,40 20,60 20,80 20,120",
       ]
@@ -2529,7 +2529,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(100)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,20 120,60 120,80 120,120",
         "20,120 60,120 80,120 120,120",
         "20,20 20,60 20,80 20,120",
@@ -2567,7 +2567,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(60)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
       ]
     `)
@@ -2596,7 +2596,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(60)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
         "20,40 20,60 20,80 20,100",
       ]
@@ -2664,7 +2664,7 @@ describe('snapping while resizing an inverted shape', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "40,120 60,120 80,120 100,120",
       ]
     `)
@@ -2703,7 +2703,7 @@ describe('snapping while resizing an inverted shape', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "20,40 20,60 20,80 20,100",
       ]
     `)
@@ -2742,7 +2742,7 @@ describe('snapping while resizing an inverted shape', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "40,20 60,20 80,20 100,20",
       ]
     `)
@@ -2780,7 +2780,7 @@ describe('snapping while resizing an inverted shape', () => {
 			h: 60,
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,40 120,60 120,80 120,100",
       ]
     `)
@@ -2818,7 +2818,7 @@ describe('snapping while resizing an inverted shape', () => {
 			h: 20,
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "20,120 40,120 60,120 80,120",
         "20,60 20,80 20,100 20,120",
       ]
@@ -2858,7 +2858,7 @@ describe('snapping while resizing an inverted shape', () => {
 			h: 20,
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "20,20 20,40 20,60 20,80",
         "20,20 40,20 60,20 80,20",
       ]
@@ -2896,7 +2896,7 @@ describe('snapping while resizing an inverted shape', () => {
 			h: 20,
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,20 120,40 120,60 120,80",
         "60,20 80,20 100,20 120,20",
       ]
@@ -2934,7 +2934,7 @@ describe('snapping while resizing an inverted shape', () => {
 			h: 20,
 		})
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "120,60 120,80 120,100 120,120",
         "60,120 80,120 100,120 120,120",
       ]
@@ -2981,7 +2981,7 @@ describe('snapping while the grid is enabled', () => {
 		editor.keyDown('Control')
 		expect(editor.getShapePageBounds(ids.boxA)!.w).toEqual(60)
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "0,0 60,0 80,0",
         "0,20 60,20 80,20",
         "60,0 60,20",

@@ -1,7 +1,7 @@
 ---
 title: Controlling the Editor
 component: ./APIExample.tsx
-category: editor
+category: editor-api
 priority: 1
 ---
 

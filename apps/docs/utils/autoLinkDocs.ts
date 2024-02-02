@@ -4,9 +4,12 @@ import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 
 export async function autoLinkDocs(db: Database<sqlite3.Database, sqlite3.Statement>) {
-	// replace [TLEditor](?) with [TLEditor](/gen/editor/TLEditor)?
+	// replace [TLEditor](?) with [TLEditor](/reference/editor/TLEditor)?
 	// not sure how we would get there but finding an article with the same title
-	const articles = await db.all('SELECT id, content FROM articles WHERE sectionId != ?', 'gen')
+	const articles = await db.all(
+		'SELECT id, content FROM articles WHERE sectionId != ?',
+		'reference'
+	)
 	await Promise.all(articles.map((a) => autoLinkDocsForArticle(db, a)))
 }
 
@@ -30,7 +33,7 @@ export async function autoLinkDocsForArticle(
 		const article = await db.get(
 			'SELECT id, sectionId, categoryId FROM articles WHERE title = ? AND sectionId = ?',
 			title,
-			'gen'
+			'reference'
 		)
 
 		if (!article) throw Error(`Could not find article for ${_title} (${title})`)

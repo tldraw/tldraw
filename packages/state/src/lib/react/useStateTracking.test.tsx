@@ -19,7 +19,7 @@ describe('useStateTracking', () => {
 			view = create(<Component />)
 		})
 		expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "You are ",
 		  "0",
 		  " years old",
@@ -31,7 +31,7 @@ describe('useStateTracking', () => {
 		})
 
 		expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "You are ",
 		  "1",
 		  " years old",
@@ -63,7 +63,7 @@ describe('useStateTracking', () => {
 		})
 
 		expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "You are ",
 		  "0",
 		  " years old and ",
@@ -77,7 +77,7 @@ describe('useStateTracking', () => {
 		})
 
 		expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "You are ",
 		  "1",
 		  " years old and ",
@@ -91,7 +91,7 @@ describe('useStateTracking', () => {
 		})
 
 		expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "You are ",
 		  "1",
 		  " years old and ",
@@ -142,7 +142,7 @@ describe('useStateTracking', () => {
 		})
 
 		expect(view.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "You are ",
 		  "1",
 		  " years old",
@@ -167,7 +167,7 @@ describe('useStateTracking', () => {
 		})
 
 		expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "You are ",
 		  "0",
 		  " years old",
@@ -181,7 +181,7 @@ describe('useStateTracking', () => {
 		})
 
 		expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "You are ",
 		  "1",
 		  " years old",
