@@ -4827,7 +4827,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-alert-dialog@npm:^1.0.0":
+"@radix-ui/react-alert-dialog@npm:^1.0.0, @radix-ui/react-alert-dialog@npm:^1.0.5":
   version: 1.0.5
   resolution: "@radix-ui/react-alert-dialog@npm:1.0.5"
   dependencies:
@@ -13538,6 +13538,7 @@ __metadata:
   dependencies:
     "@playwright/test": "npm:^1.38.1"
     "@radix-ui/react-accordion": "npm:^1.1.2"
+    "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
     "@vercel/analytics": "npm:^1.1.1"
