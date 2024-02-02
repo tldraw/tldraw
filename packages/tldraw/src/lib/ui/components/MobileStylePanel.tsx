@@ -44,7 +44,7 @@ export function MobileStylePanel() {
 			<PopoverTrigger disabled={disableStylePanel}>
 				<Button
 					type="tool"
-					data-testid="mobile.styles"
+					data-testid="mobile-styles.button"
 					style={{
 						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
 					}}
