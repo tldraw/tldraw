@@ -38,13 +38,28 @@ export function ExamplePage({
 							<TldrawLogo />
 						</Link>
 						<div className="example__sidebar__header__socials">
-							<a href="https://twitter.com/tldraw" title="twitter" className="hoverable">
+							<a
+								target="_blank"
+								href="https://twitter.com/tldraw"
+								title="twitter"
+								className="hoverable"
+							>
 								<SocialIcon icon="twitter" />
 							</a>
-							<a href="https://github.com/tldraw/tldraw" title="github" className="hoverable">
+							<a
+								target="_blank"
+								href="https://github.com/tldraw/tldraw"
+								title="github"
+								className="hoverable"
+							>
 								<SocialIcon icon="github" />
 							</a>
-							<a href="https://discord.com/invite/SBBEVCA4PG" title="discord" className="hoverable">
+							<a
+								target="_blank"
+								href="https://discord.com/invite/SBBEVCA4PG"
+								title="discord"
+								className="hoverable"
+							>
 								<SocialIcon icon="discord" />
 							</a>
 						</div>
