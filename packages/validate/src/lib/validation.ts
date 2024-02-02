@@ -607,7 +607,7 @@ export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
 }
 
 /** @public */
-export function literalEnum<const Values extends readonly unknown[]>(
+export function literalEnum<Values extends readonly unknown[]>(
 	...values: Values
 ): Validator<Values[number]> {
 	return setEnum(new Set(values))
