@@ -1,6 +1,7 @@
 import { APIGroup, InputSection } from '@/types/content-types'
 import { nicelog } from '@/utils/nicelog'
 import { ApiModel } from '@microsoft/api-extractor-model'
+import console from 'console'
 import fs from 'fs'
 import path from 'path'
 import { CONTENT_DIR, getSlug } from '../utils'
@@ -81,5 +82,6 @@ export async function createApiMarkdown() {
 		1
 	)
 	sectionsJson.push(apiInputSection)
-	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t'))
+	console.log(JSON.stringify(sectionsJson, null, '\t'))
+	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t').trimEnd())
 }

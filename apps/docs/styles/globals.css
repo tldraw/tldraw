@@ -484,7 +484,7 @@ body {
 }
 
 .article p code,
-.article td code {
+.article td > code {
 	background-color: var(--color-tint-0);
 	font-size: 15px;
 	font-weight: 500;
