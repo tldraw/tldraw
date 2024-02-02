@@ -400,9 +400,9 @@ li.examples__sidebar__item {
 }
 
 .example__dialog__content p > code {
-	font-size: 13px;
+	font-size: 12px;
 	font-family: monospace;
-	padding: 0px 4px;
+	padding: 1px 4px;
 	margin: 0px -2px;
 	background-color: var(--black-transparent-lighter);
 	border-radius: 4px;
