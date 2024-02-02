@@ -7878,7 +7878,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					assets[i] = result.value as TLAsset
 				} else {
 					throw Error(
-						`Could not put content:\ncould not migrate content for asset:\n${asset.id}\n${asset.type}\nreason:${result.reason}`
+						`Could not put content:\ncould not migrate content for asset:\n${asset.type}\nreason:${result.reason}`
 					)
 				}
 			}
@@ -7936,7 +7936,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				newShapes[i] = result.value as TLShape
 			} else {
 				throw Error(
-					`Could not put content:\ncould not migrate content for shape:\n${shape.id}, ${shape.type}\nreason:${result.reason}`
+					`Could not put content:\ncould not migrate content for shape:\n${shape.type}\nreason:${result.reason}`
 				)
 			}
 		}

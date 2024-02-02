@@ -59,7 +59,7 @@ describe('validations', () => {
 				x: 132,
 				y: NaN,
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"At shape(id = abc123).y: Expected a number, got NaN"`)
+		).toThrowErrorMatchingInlineSnapshot(`"At shape().y: Expected a number, got NaN"`)
 
 		expect(() =>
 			T.model(
@@ -70,7 +70,7 @@ describe('validations', () => {
 				})
 			).validate({ id: 'abc13', color: 'rubbish' })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At shape(id = abc13).color: Expected \\"red\\" or \\"green\\" or \\"blue\\", got rubbish"`
+			`"At shape().color: Expected \\"red\\" or \\"green\\" or \\"blue\\", got rubbish"`
 		)
 	})
 
@@ -109,7 +109,7 @@ describe('validations', () => {
 		expect(() =>
 			T.model('animal', animalSchema).validate({ type: 'cat', moo: true, id: 'abc123' })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At animal(id = abc123, type = cat).meow: Expected boolean, got undefined"`
+			`"At animal(type = cat).meow: Expected boolean, got undefined"`
 		)
 	})
 })

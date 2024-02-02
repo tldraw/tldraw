@@ -10,6 +10,7 @@ function formatPath(path: ReadonlyArray<number | string>): string | null {
 	if (!path.length) {
 		return null
 	}
+
 	let formattedPath = ''
 	for (const item of path) {
 		if (typeof item === 'number') {
@@ -24,6 +25,10 @@ function formatPath(path: ReadonlyArray<number | string>): string | null {
 			formattedPath += `.${item}`
 		}
 	}
+
+	// N.B. We don't want id's in the path because they make grouping in Sentry tough.
+	formattedPath = formattedPath.replace(/id = [^,]+, /, '').replace(/id = [^)]+/, '')
+
 	if (formattedPath.startsWith('.')) {
 		return formattedPath.slice(1)
 	}
