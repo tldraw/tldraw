@@ -172,6 +172,10 @@ li.examples__sidebar__item {
 	margin: 8px 0 0 0;
 }
 
+.examples__sidebar__item[data-active='true']:not(:hover) > .examples__sidebar__item__link::after {
+	opacity: 1;
+}
+
 /* -------------------- List Item ------------------- */
 
 .example__sidebar__item__buttons {
@@ -179,6 +183,7 @@ li.examples__sidebar__item {
 	flex-direction: row;
 	height: 32px;
 	margin-right: -8px;
+	color: black;
 }
 .example__sidebar__item__button {
 	all: unset;
@@ -311,7 +316,7 @@ li.examples__sidebar__item {
 	display: block;
 	content: '';
 	position: absolute;
-	inset: 0;
+	inset: 1px;
 	opacity: 0;
 	z-index: -1;
 	background-color: var(--gray-light);

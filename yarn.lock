@@ -13537,7 +13537,6 @@ __metadata:
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
     "@playwright/test": "npm:^1.38.1"
-    "@radix-ui/react-accordion": "npm:^1.1.2"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"

@@ -9,7 +9,8 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { ExamplePage } from './ExamplePage'
 import { examples } from './examples'
-import EndToEnd from './testing/end-to-end'
+import Develop from './misc/develop'
+import EndToEnd from './misc/end-to-end'
 
 // This example is only used for end to end tests
 
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
 				),
 			}
 		},
+	},
+	{
+		path: 'develop',
+		element: <Develop />,
 	},
 	{
 		path: 'end-to-end',

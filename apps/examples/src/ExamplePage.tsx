@@ -66,7 +66,7 @@ export function ExamplePage({
 					</div>
 					<ul className="example__sidebar__categories scroll-light">
 						{categories.map((currentCategory) => (
-							<li className="example__sidebar__category">
+							<li key={currentCategory} className="example__sidebar__category">
 								<h3 className="example__sidebar__category__header">{currentCategory}</h3>
 								<ul className="example__sidebar__category__items">
 									{examples
@@ -172,8 +172,6 @@ function Dialogs() {
 			setExampleDialog(null)
 		}
 	}
-
-	console.log(example.description)
 
 	return (
 		<Dialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
