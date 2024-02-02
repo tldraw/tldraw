@@ -94,6 +94,7 @@
 		"jest": "^29.7.0",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
+		"license-report": "^6.5.0",
 		"lint-staged": ">=10",
 		"prettier": "^3.0.3",
 		"prettier-plugin-organize-imports": "^3.2.3",
