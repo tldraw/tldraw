@@ -1,5 +1,5 @@
 ---
-title: Force mobile breakpoint
+title: Force mobile
 component: ./ForceBreakpointExample
 category: basic
 priority: 4

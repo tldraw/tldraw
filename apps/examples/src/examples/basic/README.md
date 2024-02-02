@@ -1,5 +1,5 @@
 ---
-title: Basic
+title: Tldraw component
 component: ./BasicExample.tsx
 category: basic
 priority: 1

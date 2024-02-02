@@ -1,5 +1,5 @@
 ---
-title: Persistence Key
+title: Persistence key
 component: ./PersistenceKeyExample.tsx
 category: basic
 priority: 2
