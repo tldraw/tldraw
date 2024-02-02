@@ -57,4 +57,57 @@ test.describe('when selecting a tool from the toolbar', () => {
 		// The cloud tool is now visible on the toolbar
 		expect(await page.getByTestId('tools.cloud').isVisible()).toBe(true)
 	})
+	test('the correct styles are exposed for the selected tool', async ({ isMobile, page }) => {
+		// The styles that should be exposed for each tool
+		const toolsStylesArr = [
+			{
+				testId: 'tools.select',
+				styles: ['style.color', 'style.opacity', 'style.fill', 'style.dash', 'style.size'],
+			},
+			{
+				testId: 'tools.eraser',
+				styles: [],
+			},
+			{
+				testId: 'tools.more.frame',
+				styles: ['style.opacity'],
+			},
+			{
+				testId: 'tools.text',
+				styles: ['style.size', 'style.color', 'style.opacity', 'style.font', 'style.align'],
+			},
+		]
+		// All the styles that we should check
+		const stylesArr = [
+			'style.color',
+			'style.opacity',
+			'style.fill',
+			'style.dash',
+			'style.size',
+			'style.font',
+			'style.align',
+		]
+
+		for (const tool of toolsStylesArr) {
+			// the iframe tool is in the popover
+			if (tool.testId === 'tools.more.frame') {
+				await page.getByTestId('tools.more.button').click()
+				await page.getByTestId(tool.testId).click()
+			} else {
+				await page.getByTestId(tool.testId).click()
+			}
+			// We need to open the style menu on mobile to check if the style is visible
+			if (isMobile) {
+				// The button should be disabled for the eraser tool
+				if (tool.testId === 'tools.eraser') {
+					expect(await page.getByTestId('mobile-styles.button').isEnabled()).toBe(false)
+					continue
+				}
+				await page.getByTestId('mobile-styles.button').click()
+			}
+			for (const style of stylesArr) {
+				expect(await page.getByTestId(style).isVisible()).toBe(tool.styles.includes(style))
+			}
+		}
+	})
 })

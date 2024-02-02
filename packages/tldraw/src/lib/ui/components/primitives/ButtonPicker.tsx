@@ -97,7 +97,7 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 	)
 
 	return (
-		<div className={classNames('tlui-buttons__grid')}>
+		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>
 			{items.map((item) => (
 				<Button
 					type="icon"
