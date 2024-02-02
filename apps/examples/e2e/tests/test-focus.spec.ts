@@ -9,7 +9,7 @@ declare const EDITOR_C: Editor
 
 test.describe('Focus', () => {
 	test('focus events', async ({ page }) => {
-		await page.goto('http://localhost:5420/multiple')
+		await page.goto('http://localhost:5420/multiple/full')
 		await page.waitForSelector('.tl-canvas')
 
 		const EditorA = (await page.$(`.A`))!
@@ -83,7 +83,7 @@ test.describe('Focus', () => {
 	})
 
 	test('kbds when not focused', async ({ page }) => {
-		await page.goto('http://localhost:5420/multiple')
+		await page.goto('http://localhost:5420/multiple/full')
 		await page.waitForSelector('.tl-canvas')
 
 		// Should not have any shapes on the page
@@ -107,7 +107,7 @@ test.describe('Focus', () => {
 	})
 
 	test('kbds when focused', async ({ page }) => {
-		await page.goto('http://localhost:5420/multiple')
+		await page.goto('http://localhost:5420/multiple/full')
 		await page.waitForSelector('.tl-canvas')
 
 		const EditorA = (await page.$(`.A`))!
