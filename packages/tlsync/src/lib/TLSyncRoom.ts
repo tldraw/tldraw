@@ -384,7 +384,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 * @param client - The client to send the message to.
 	 * @param message - The message to send.
 	 */
-	private sendMessage(sessionKey: string, message: TLSocketServerSentEvent<R>) {
+	sendMessage(sessionKey: string, message: TLSocketServerSentEvent<R>) {
 		const session = this.sessions.get(sessionKey)
 		if (!session) {
 			console.warn('Tried to send message to unknown session', message.type)
@@ -740,12 +740,12 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		session: RoomSession<R>,
 		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>
 	) {
-		const isPresencePush = 'presence' in message
-		const clientClock = message.clientClock
-
+		// We must be connected to handle push requests
 		if (session.state !== RoomSessionState.CONNECTED) {
 			return
 		}
+
+		// update the last interaction time
 		session.lastInteractionTime = Date.now()
 
 		// increment the clock for this push
@@ -754,23 +754,30 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		transaction((rollback) => {
 			const pushRequest = new PushRequest<R>(this, session, message, rollback)
 
-			if (isPresencePush) {
-				// presence push
+			const { clientClock } = message
+
+			if ('presence' in message) {
+				// The push request was for the presence scope.
 				const id = session.presenceId
 				const [type, val] = message.presence
 				const { typeName } = this.presenceType
-				if (type === RecordOpType.Put) {
-					// Try to put the document. If it fails, stop here.
-					const res = pushRequest.addDocument(id, { ...val, id, typeName })
-					if (!res.ok) return
-				} else {
-					// Try to patch the document. If it fails, stop here.
-					const res = pushRequest.patchDocument(id, {
-						...val,
-						id: [ValueOpType.Put, id],
-						typeName: [ValueOpType.Put, typeName],
-					})
-					if (!res.ok) return
+				switch (type) {
+					case RecordOpType.Put: {
+						// Try to put the document. If it fails, stop here.
+						const res = pushRequest.addDocument(id, { ...val, id, typeName })
+						if (!res.ok) return
+						break
+					}
+					case RecordOpType.Patch: {
+						// Try to patch the document. If it fails, stop here.
+						const res = pushRequest.patchDocument(id, {
+							...val,
+							id: [ValueOpType.Put, id],
+							typeName: [ValueOpType.Put, typeName],
+						})
+						if (!res.ok) return
+						break
+					}
 				}
 				this.sendMessage(session.sessionKey, {
 					type: 'push_result',
@@ -779,11 +786,11 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					serverClock: this.clock,
 				})
 			} else {
-				// The push request was for the document.
-				const { diff } = message
-				for (const [id, op] of Object.entries(diff)) {
+				// The push request was for the document scope.
+				for (const [id, op] of Object.entries(message.diff)) {
 					switch (op[0]) {
 						case RecordOpType.Put: {
+							// Try to add the document.
 							// If we're putting a record with a type that we don't recognize, fail
 							if (!this.documentTypes.has(op[1].typeName)) {
 								return pushRequest.fail(TLIncompatibilityReason.InvalidRecord)
@@ -830,7 +837,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						clientClock,
 						action: 'discard',
 					})
-				} else if (isEqual(pushRequest.mergedChanges, diff)) {
+				} else if (isEqual(pushRequest.mergedChanges, message.diff)) {
 					// COMMIT
 					// Applying the client's changes had the exact same effect on the server as
 					// they had on the client, so the client should keep the diff
@@ -843,7 +850,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				} else {
 					// REBASE
 					// Applying the client's changes had a different non-empty effect on the server,
-					// so the client should rebase with our gold-standard / authoritative diff
+					// so the client should rebase with our gold-standard / authoritative diff.
+					// First we need to migrate the diff to the client's version
 					const migrateResult = this.migrateDiffForSession(
 						session.serializedSchema,
 						pushRequest.mergedChanges
@@ -855,6 +863,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 								: TLIncompatibilityReason.ClientTooOld
 						)
 					}
+					// If the migration worked, send the rebased diff to the client
 					this.sendMessage(session.sessionKey, {
 						type: 'push_result',
 						serverClock: this.clock,
@@ -921,18 +930,24 @@ class PushRequest<R extends UnknownRecord> {
 					: TLIncompatibilityReason.ClientTooOld
 			)
 		}
-		const state = res.value
+		const { value: state } = res
+
+		// Get the existing document, if any
 		const doc = this.room.getDocument(id)
+
 		if (doc) {
-			// if we already have a document with this id, set it to the new value
+			// If there's an existing document, replace it with the new state
 			// but propagate a diff rather than the entire value
 			const diff = doc.replaceState(state, this.room.clock)
 			if (!diff.ok) {
 				return this.fail(TLIncompatibilityReason.InvalidRecord)
 			}
-			if (diff.value) this.propagateOp(id, [RecordOpType.Patch, diff.value])
+			if (diff.value) {
+				this.propagateOp(id, [RecordOpType.Patch, diff.value])
+			}
 		} else {
-			// if we don't already have a document with this id, create it and propagate the put op
+			// Otherwise, if we don't already have a document with this id
+			// create the document and propagate the put op
 			const result = this.room.addDocument(id, state, this.room.clock)
 			if (!result.ok) {
 				return this.fail(TLIncompatibilityReason.InvalidRecord)
@@ -955,19 +970,22 @@ class PushRequest<R extends UnknownRecord> {
 
 		switch (comparison) {
 			case 0: {
-				// versions are ok, otherwise apply the patch
+				// If the versions are compatible, apply the patch and propagate the patch op
 				const diff = doc.mergeDiff(patch, this.room.clock)
 				if (!diff.ok) {
 					return this.fail(TLIncompatibilityReason.InvalidRecord)
 				}
-				// propagate the patch op if needed
 				if (diff.value) {
 					this.propagateOp(id, [RecordOpType.Patch, diff.value])
 				}
 				break
 			}
+			case -1: {
+				// If the client's version of the record is newer than ours, we can't apply the patch
+				return this.fail(TLIncompatibilityReason.ServerTooOld)
+			}
 			case 1: {
-				// if the client's version of the record is older than ours,
+				// If the client's version of the record is older than ours,
 				// we apply the patch to the downgraded version of the record
 				const downgraded = this.room.schema.migratePersistedRecord(
 					doc.state,
@@ -990,20 +1008,15 @@ class PushRequest<R extends UnknownRecord> {
 				if (upgraded.type === 'error') {
 					return this.fail(TLIncompatibilityReason.ClientTooOld)
 				}
-				// replace the state with the upgraded version
+				// replace the state with the upgraded version and propagate the patch op
 				const diff = doc.replaceState(upgraded.value, this.room.clock)
 				if (!diff.ok) {
 					return this.fail(TLIncompatibilityReason.InvalidRecord)
 				}
-				// propagate the patch op if needed
 				if (diff.value) {
 					this.propagateOp(id, [RecordOpType.Patch, diff.value])
 				}
 				break
-			}
-			case -1: {
-				// if the client's version of the record is newer than ours, we can't apply the patch
-				return this.fail(TLIncompatibilityReason.ServerTooOld)
 			}
 		}
 
