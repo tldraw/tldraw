@@ -592,8 +592,6 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				exhaustiveSwitchError(message)
 			}
 		}
-
-		return this
 	}
 
 	/** If the client is out of date or we are out of date, we need to let them know */
