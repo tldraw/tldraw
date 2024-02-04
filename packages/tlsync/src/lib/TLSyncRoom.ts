@@ -333,11 +333,11 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		})
 	}
 
-	getDocument(id: string) {
+	private getDocument(id: string) {
 		return this.state.get().documents[id]
 	}
 
-	addDocument(id: string, state: R, clock: number): Result<void, Error> {
+	private addDocument(id: string, state: R, clock: number): Result<void, Error> {
 		let { documents, tombstones } = this.state.get()
 		if (hasOwnProperty(tombstones, id)) {
 			tombstones = { ...tombstones }
@@ -384,7 +384,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 * @param client - The client to send the message to.
 	 * @param message - The message to send.
 	 */
-	sendMessage(sessionKey: string, message: TLSocketServerSentEvent<R>) {
+	private sendMessage(sessionKey: string, message: TLSocketServerSentEvent<R>) {
 		const session = this.sessions.get(sessionKey)
 		if (!session) {
 			console.warn('Tried to send message to unknown session', message.type)
@@ -595,7 +595,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/** If the client is out of date or we are out of date, we need to let them know */
-	rejectSession(session: RoomSession<R>, reason: TLIncompatibilityReason) {
+	private rejectSession(session: RoomSession<R>, reason: TLIncompatibilityReason) {
 		try {
 			if (session.socket.isOpen) {
 				session.socket.sendMessage({
@@ -750,6 +750,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		this.clock++
 
 		transaction((rollback) => {
+			// collect actual ops that resulted from the push
+			// these will be broadcast to other users
 			let mergedChanges: NetworkDiff<R> | null = null
 
 			const propagateOp = (id: string, op: RecordOp<R>) => {
