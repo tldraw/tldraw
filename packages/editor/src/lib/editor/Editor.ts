@@ -2074,12 +2074,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
 			const { currentScreenPoint } = this.inputs
+			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
 			this.dispatch({
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_move',
-				point: currentScreenPoint,
+				// weird but true: we need to put the screen point back into client space
+				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
 				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
