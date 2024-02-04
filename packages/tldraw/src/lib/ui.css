@@ -591,7 +591,9 @@
 }
 
 .tlui-debug-panel__current-state {
+	overflow: hidden;
 	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 .tlui-debug-panel__fps {
