@@ -26,7 +26,7 @@ import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 import { STYLES } from './styles'
 
-interface StylePanelProps {
+export interface StylePanelProps {
 	isMobile?: boolean
 }
 

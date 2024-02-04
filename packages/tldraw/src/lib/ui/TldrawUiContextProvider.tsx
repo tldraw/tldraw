@@ -14,6 +14,7 @@ import { ToastsProvider } from './hooks/useToastsProvider'
 import { ToolbarSchemaProvider } from './hooks/useToolbarSchema'
 import { ToolsProvider } from './hooks/useTools'
 import { TranslationProvider } from './hooks/useTranslation/useTranslation'
+import { TLUiComponents, UiComponentsProvider } from './hooks/useUiComponents'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from './overrides'
 
 /**
@@ -42,6 +43,8 @@ export interface TldrawUiContextProviderProps {
 	 */
 	forceMobile?: boolean
 
+	uiComponents?: TLUiComponents
+
 	/**
 	 * The component's children.
 	 */
@@ -54,6 +57,7 @@ export function TldrawUiContextProvider({
 	assetUrls,
 	onUiEvent,
 	forceMobile,
+	uiComponents,
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
@@ -63,7 +67,9 @@ export function TldrawUiContextProvider({
 					<ToastsProvider>
 						<DialogsProvider>
 							<BreakPointProvider forceMobile={forceMobile}>
-								<InternalProviders overrides={overrides}>{children}</InternalProviders>
+								<InternalProviders uiComponents={uiComponents} overrides={overrides}>
+									{children}
+								</InternalProviders>
 							</BreakPointProvider>
 						</DialogsProvider>
 					</ToastsProvider>
@@ -74,6 +80,7 @@ export function TldrawUiContextProvider({
 }
 function InternalProviders({
 	overrides,
+	uiComponents,
 	children,
 }: Omit<TldrawUiContextProviderProps, 'assetBaseUrl'>) {
 	const mergedOverrides = useMergedOverrides(overrides)
@@ -86,7 +93,9 @@ function InternalProviders({
 							<TLUiContextMenuSchemaProvider overrides={mergedOverrides.contextMenu}>
 								<HelpMenuSchemaProvider overrides={mergedOverrides.helpMenu}>
 									<TLUiMenuSchemaProvider overrides={mergedOverrides.menu}>
-										{children}
+										<UiComponentsProvider uiComponents={uiComponents}>
+											{children}
+										</UiComponentsProvider>
 									</TLUiMenuSchemaProvider>
 								</HelpMenuSchemaProvider>
 							</TLUiContextMenuSchemaProvider>

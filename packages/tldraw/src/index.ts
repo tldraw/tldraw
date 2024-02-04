@@ -47,6 +47,14 @@ export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/asse
 export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
+export { ToggleToolLockedButton } from './lib/ui/components/Toolbar/ToggleToolLockedButton'
+export {
+	OverflowToolsContent,
+	Toolbar,
+	ToolbarButton,
+	isActiveTLUiToolItem,
+	useToolbarItems,
+} from './lib/ui/components/Toolbar/Toolbar'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
@@ -141,6 +149,12 @@ export {
 	useTranslation as useTranslation,
 	type TLUiTranslationContextType,
 } from './lib/ui/hooks/useTranslation/useTranslation'
+export {
+	UiComponentsProvider,
+	useUiComponents,
+	type BaseUiComponents,
+	type TLUiComponents,
+} from './lib/ui/hooks/useUiComponents'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
 export {

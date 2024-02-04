@@ -4,25 +4,13 @@ import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
 import { TLUiAssetUrlOverrides } from './assetUrls'
-import { BackToContent } from './components/BackToContent'
-import { DebugPanel } from './components/DebugPanel'
-import { Dialogs } from './components/Dialogs'
-import { FollowingIndicator } from './components/FollowingIndicator'
-import { HelpMenu } from './components/HelpMenu'
-import { MenuZone } from './components/MenuZone'
-import { NavigationZone } from './components/NavigationZone/NavigationZone'
-import { ExitPenMode } from './components/PenModeToggle'
-import { StopFollowing } from './components/StopFollowing'
-import { StylePanel } from './components/StylePanel/StylePanel'
-import { ToastViewport, Toasts } from './components/Toasts'
-import { Toolbar } from './components/Toolbar/Toolbar'
-import { Button } from './components/primitives/Button'
 import { useActions } from './hooks/useActions'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
+import { useUiComponents } from './hooks/useUiComponents'
 
 /**
  * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
@@ -136,6 +124,23 @@ const TldrawUiContent = React.memo(function TldrawUI({
 
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
+	const {
+		BackToContent,
+		DebugPanel,
+		Dialogs,
+		FollowingIndicator,
+		HelpMenu,
+		MenuZone,
+		NavigationZone,
+		ExitPenMode,
+		StopFollowing,
+		StylePanel,
+		ToastViewport,
+		Toasts,
+		Toolbar,
+		Button,
+	} = useUiComponents()
+
 	return (
 		<ToastProvider>
 			<div
@@ -146,49 +151,51 @@ const TldrawUiContent = React.memo(function TldrawUI({
 			>
 				{isFocusMode ? (
 					<div className="tlui-layout__top">
-						<Button
-							type="icon"
-							className="tlui-focus-button"
-							title={`${msg('focus-mode.toggle-focus-mode')}`}
-							icon="dot"
-							onClick={() => toggleFocus.onSelect('menu')}
-						/>
+						{Button && (
+							<Button
+								type="icon"
+								className="tlui-focus-button"
+								title={`${msg('focus-mode.toggle-focus-mode')}`}
+								icon="dot"
+								onClick={() => toggleFocus.onSelect('menu')}
+							/>
+						)}
 					</div>
 				) : (
 					<>
 						<div className="tlui-layout__top">
 							<div className="tlui-layout__top__left">
-								<MenuZone />
+								{MenuZone && <MenuZone />}
 								<div className="tlui-helper-buttons">
-									<ExitPenMode />
-									<BackToContent />
-									<StopFollowing />
+									{ExitPenMode && <ExitPenMode />}
+									{BackToContent && <BackToContent />}
+									{StopFollowing && <StopFollowing />}
 								</div>
 							</div>
 							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
 								{shareZone}
 								{breakpoint >= 5 && !isReadonlyMode && (
-									<div className="tlui-style-panel__wrapper">
-										<StylePanel />
-									</div>
+									<div className="tlui-style-panel__wrapper">{StylePanel && <StylePanel />}</div>
 								)}
 							</div>
 						</div>
 						<div className="tlui-layout__bottom">
 							<div className="tlui-layout__bottom__main">
-								<NavigationZone />
-								<Toolbar />
-								{breakpoint >= 4 && <HelpMenu />}
+								{NavigationZone && <NavigationZone />}
+								{Toolbar && <Toolbar />}
+								{breakpoint >= 4 && HelpMenu && <HelpMenu />}
 							</div>
-							{isDebugMode && <DebugPanel renderDebugMenuItems={renderDebugMenuItems ?? null} />}
+							{isDebugMode && DebugPanel && (
+								<DebugPanel renderDebugMenuItems={renderDebugMenuItems ?? null} />
+							)}
 						</div>
 					</>
 				)}
-				<Toasts />
-				<Dialogs />
-				<ToastViewport />
-				<FollowingIndicator />
+				{Toasts && <Toasts />}
+				{Dialogs && <Dialogs />}
+				{ToastViewport && <ToastViewport />}
+				{FollowingIndicator && <FollowingIndicator />}
 			</div>
 		</ToastProvider>
 	)
