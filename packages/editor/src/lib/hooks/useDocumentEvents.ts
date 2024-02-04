@@ -185,6 +185,7 @@ export function useDocumentEvents() {
 				// if the touch area overlaps with the screen edges
 				// it's likely to trigger the navigation. We prevent the
 				// touchstart event in that case.
+				// todo: make this relative to the actual window, not the editor's screen bounds
 				if (
 					touchXPosition - touchXRadius < 10 ||
 					touchXPosition + touchXRadius > editor.getViewportScreenBounds().width - 10

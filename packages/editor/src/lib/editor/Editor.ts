@@ -8312,18 +8312,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: sx, y: sy, z: sz } = info.point
 		const { x: cx, y: cy, z: cz } = this.getCamera()
+
+		const sx = info.point.x - screenBounds.x
+		const sy = info.point.y - screenBounds.y
+		const sz = info.point.z
 
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)
 
+		// The "screen bounds" is relative to the user's actual screen.
+		// The "screen point" is relative to the "screen bounds";
+		// it will be 0,0 when its actual screen position is equal
+		// to screenBounds.point. This is confusing!
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(
-			(sx - screenBounds.x) / cz - cx,
-			(sy - screenBounds.y) / cz - cy,
-			sz ?? 0.5
-		)
+		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
@@ -8583,9 +8586,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (!inputs.isPinching) return
 
 							const {
-								point: { x, y, z = 1 },
 								delta: { x: dx, y: dy },
 							} = info
+
+							const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+							const { x, y, z = 1 } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
 
 							const { x: cx, y: cy, z: cz } = this.getCamera()
 
@@ -8633,7 +8638,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							// If the alt or ctrl keys are pressed,
 							// zoom or pan the camera and then return.
+
+							// Subtract the top left offset from the user's point
+
 							const { x, y } = this.inputs.currentScreenPoint
+
 							const { x: cx, y: cy, z: cz } = this.getCamera()
 
 							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
