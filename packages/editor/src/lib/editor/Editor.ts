@@ -2515,10 +2515,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const animationSpeed = this.user.getAnimationSpeed()
 		const viewportPageBounds = this.getViewportPageBounds()
 
-		// If we have an existing animation, then stop it
+		// If we have an existing animation, then stop it; also stop following any user
 		this.stopCameraAnimation()
-
-		// also stop following any user
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
@@ -2528,7 +2526,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this._setCamera({
 				x: -targetViewportPage.x,
 				y: -targetViewportPage.y,
-				z: viewportPageBounds.width / targetViewportPage.width,
+				z: this.getViewportScreenBounds().width / targetViewportPage.width,
 			})
 		}
 
@@ -2785,11 +2783,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getViewportScreenCenter() {
-		const viewportScreenBounds = this.getViewportScreenBounds()
-		return new Vec(
-			viewportScreenBounds.midX - viewportScreenBounds.minX,
-			viewportScreenBounds.midY - viewportScreenBounds.minY
-		)
+		return this.getViewportScreenBounds().center
 	}
 
 	/**
