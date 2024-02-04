@@ -29,11 +29,11 @@ describe('get order between', () => {
 		expect(generateKeyBetween('zzzzzzzzzzzzzzzzzzzzzzzzzzz', undefined)).toBe(
 			'zzzzzzzzzzzzzzzzzzzzzzzzzzzV'
 		)
-		expect(() => generateKeyBetween(undefined, 'A00000000000000000000000000')).toThrowError()
-		expect(() => generateKeyBetween('a00', undefined)).toThrowError()
-		expect(() => generateKeyBetween('a00', 'a1')).toThrowError()
-		expect(() => generateKeyBetween('0', '1')).toThrowError()
-		expect(() => generateKeyBetween('a1', 'a0')).toThrowError()
+		expect(() => generateKeyBetween(undefined, 'A00000000000000000000000000')).toThrow()
+		expect(() => generateKeyBetween('a00', undefined)).toThrow()
+		expect(() => generateKeyBetween('a00', 'a1')).toThrow()
+		expect(() => generateKeyBetween('0', '1')).toThrow()
+		expect(() => generateKeyBetween('a1', 'a0')).toThrow()
 	})
 })
 

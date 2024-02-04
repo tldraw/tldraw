@@ -112,14 +112,14 @@ describe('Validating initial data', () => {
 	it('Validates initial data', () => {
 		expect(() => {
 			new Store<Book | Author>({ schema, initialData: snapshot, props: {} })
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// @ts-expect-error
 			snapshot[0].name = 4
 
 			new Store<Book | Author>({ schema, initialData: snapshot, props: {} })
-		}).toThrowError()
+		}).toThrow()
 	})
 })
 
