@@ -42,7 +42,7 @@ export function Sidebar({ headings, links, sectionId, categoryId, articleId }: S
 	return (
 		<>
 			<linkContext.Provider value={{ activeId, articleId, categoryId, sectionId }}>
-				<div className="sidebar" onScroll={(e) => e.stopPropagation()}>
+				<div className="sidebar scroll-light" onScroll={(e) => e.stopPropagation()}>
 					<Search />
 					<div className="sidebar__section__links">
 						<SectionLinks sectionId={sectionId} />
@@ -125,7 +125,7 @@ function SidebarCategory({
 		<li className="sidebar__category">
 			{hasGroups ? (
 				<>
-					<span className="sidebar__link">{title}</span>
+					<span className="sidebar__link sidebar__category__title">{title}</span>
 					<Accordion.Root
 						type="multiple"
 						defaultValue={[`${linkCtx?.categoryId}-${activeGroup}-${linkCtx?.articleId}`]}
@@ -162,7 +162,11 @@ function SidebarCategory({
 				</>
 			) : (
 				<>
-					<Link href={children[0].url} title={title} className="sidebar__link">
+					<Link
+						href={children[0].url}
+						title={title}
+						className="sidebar__link sidebar__category__title"
+					>
 						{title}
 					</Link>
 					<ul className="sidebar__list">

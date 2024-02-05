@@ -22,11 +22,19 @@ export function Header({ sectionId }: { sectionId?: string }) {
 			<Search />
 			<div className="layout__header__sections_and_socials">
 				<SectionLinks sectionId={sectionId} />
-				<ThemeSwitcher />
+				<a
+					href="https://x.com/tldraw/"
+					className="sidebar__button icon-button"
+					title="twitter"
+					target="_blank"
+				>
+					<Icon icon="twitter" />
+				</a>
 				<a
 					href="https://discord.com/invite/SBBEVCA4PG"
 					className="sidebar__button icon-button"
 					title="discord"
+					target="_blank"
 				>
 					<Icon icon="discord" />
 				</a>
@@ -34,9 +42,11 @@ export function Header({ sectionId }: { sectionId?: string }) {
 					href="https://github.com/tldraw/tldraw"
 					className="sidebar__button icon-button"
 					title="github"
+					target="_blank"
 				>
 					<Icon icon="github" />
 				</a>
+				<ThemeSwitcher />
 			</div>
 		</div>
 	)
@@ -62,7 +72,7 @@ export function SectionLinks({ sectionId }: { sectionId?: string | null }) {
 				Reference
 			</a>
 			<a
-				href="/examples/basic/develop"
+				href="/examples/basic/basic"
 				title="Examples"
 				data-active={sectionId === 'examples'}
 				className="layout_header__section"
