@@ -42,8 +42,6 @@ export async function GET(req: NextRequest) {
 		const queryResults = await vdb.query(query, 25)
 		queryResults.sort((a, b) => b.score - a.score)
 
-		// console.log(queryResults)
-
 		const headings = (
 			await Promise.all(
 				queryResults.map(async (result) => {
@@ -75,7 +73,7 @@ export async function GET(req: NextRequest) {
 							score: result.score,
 						}
 					} catch (e: any) {
-						console.log(e.message)
+						console.error(e.message)
 						// something went wrong
 						return
 					}
@@ -168,7 +166,6 @@ export async function GET(req: NextRequest) {
 			}
 		)
 	} catch (e: any) {
-		console.log(e.message)
 		return new Response(
 			JSON.stringify({
 				results: structuredClone(SEARCH_RESULTS),
