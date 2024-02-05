@@ -28,15 +28,7 @@ const linkContext = createContext<{
 	sectionId: string | null
 } | null>(null)
 
-export function Sidebar({
-	headings,
-	links,
-	sectionId,
-	categoryId,
-	articleId,
-	searchQuery,
-	searchType,
-}: SidebarProps) {
+export function Sidebar({ headings, links, sectionId, categoryId, articleId }: SidebarProps) {
 	const activeId = articleId ?? categoryId ?? sectionId
 
 	const pathName = usePathname()
@@ -45,17 +37,13 @@ export function Sidebar({
 		document.body.classList.remove('sidebar-open')
 
 		document.querySelector('.sidebar__nav [data-active=true]')?.scrollIntoView({ block: 'center' })
-
-		// XXX(mime): scrolling the sidebar into position also scrolls the page to the wrong
-		// spot. this compensates for that but, ugh.
-		document.documentElement.scrollTop = 0
 	}, [pathName])
 
 	return (
 		<>
 			<linkContext.Provider value={{ activeId, articleId, categoryId, sectionId }}>
-				<div className="sidebar" onScroll={(e) => e.stopPropagation()}>
-					<Search prevQuery={searchQuery} prevType={searchType} />
+				<div className="sidebar scroll-light" onScroll={(e) => e.stopPropagation()}>
+					<Search />
 					<div className="sidebar__section__links">
 						<SectionLinks sectionId={sectionId} />
 					</div>
@@ -137,7 +125,7 @@ function SidebarCategory({
 		<li className="sidebar__category">
 			{hasGroups ? (
 				<>
-					<span className="sidebar__link">{title}</span>
+					<span className="sidebar__link sidebar__category__title">{title}</span>
 					<Accordion.Root
 						type="multiple"
 						defaultValue={[`${linkCtx?.categoryId}-${activeGroup}-${linkCtx?.articleId}`]}
@@ -174,7 +162,11 @@ function SidebarCategory({
 				</>
 			) : (
 				<>
-					<Link href={children[0].url} title={title} className="sidebar__link">
+					<Link
+						href={children[0].url}
+						title={title}
+						className="sidebar__link sidebar__category__title"
+					>
 						{title}
 					</Link>
 					<ul className="sidebar__list">

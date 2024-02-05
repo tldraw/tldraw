@@ -1,11 +1,13 @@
 import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { NextRequest } from 'next/server'
+import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '@/utils/search-api'
 
 type Data = {
 	results: {
 		articles: SearchResult[]
 		apiDocs: SearchResult[]
+		examples: SearchResult[]
 	}
 	status: 'success' | 'error' | 'no-query'
 }
@@ -23,10 +25,7 @@ export async function GET(req: NextRequest) {
 	if (!query) {
 		return new Response(
 			JSON.stringify({
-				results: {
-					articles: [],
-					apiDocs: [],
-				},
+				results: structuredClone(SEARCH_RESULTS),
 				status: 'no-query',
 			}),
 			{
@@ -36,15 +35,9 @@ export async function GET(req: NextRequest) {
 	}
 
 	try {
-		const results: Data['results'] = {
-			articles: [],
-			apiDocs: [],
-		}
-
+		const results: Data['results'] = structuredClone(SEARCH_RESULTS)
 		const db = await getDb()
-
 		const queryWithoutSpaces = query.replace(/\s/g, '')
-
 		const searchForArticle = await db.db.prepare(
 			`
 	SELECT id, title, sectionId, categoryId, content 
@@ -61,16 +54,16 @@ export async function GET(req: NextRequest) {
 
 		await searchForArticle.all(query).then(async (queryResults) => {
 			for (const article of queryResults) {
-				const isApiDoc = article.sectionId === 'reference'
 				const section = await db.getSection(article.sectionId)
 				const category = await db.getCategory(article.categoryId)
 				const isUncategorized = category.id === section.id + '_ucg'
 
-				results[isApiDoc ? 'apiDocs' : 'articles'].push({
+				results[searchBucket(article.sectionId)].push({
 					id: article.id,
 					type: 'article',
 					subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
 					title: article.title,
+					sectionType: sectionTypeBucket(section.id),
 					url: isUncategorized
 						? `${section.id}/${article.id}`
 						: `${section.id}/${category.id}/${article.id}`,
@@ -93,17 +86,17 @@ export async function GET(req: NextRequest) {
 		await searchForArticleHeadings.all(queryWithoutSpaces).then(async (queryResults) => {
 			for (const heading of queryResults) {
 				if (BANNED_HEADINGS.some((h) => heading.slug.endsWith(h))) continue
-				const article = await db.getArticle(heading.articleId)
 
-				const isApiDoc = article.sectionId === 'reference'
+				const article = await db.getArticle(heading.articleId)
 				const section = await db.getSection(article.sectionId)
 				const category = await db.getCategory(article.categoryId)
 				const isUncategorized = category.id === section.id + '_ucg'
 
-				results[isApiDoc ? 'apiDocs' : 'articles'].push({
+				results[searchBucket(article.sectionId)].push({
 					id: article.id + '#' + heading.slug,
 					type: 'heading',
 					subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
+					sectionType: sectionTypeBucket(section.id),
 					title:
 						section.id === 'reference'
 							? article.title + '.' + heading.title
@@ -116,8 +109,8 @@ export async function GET(req: NextRequest) {
 			}
 		})
 
-		results.apiDocs.sort((a, b) => b.score - a.score)
-		results.articles.sort((a, b) => b.score - a.score)
+		Object.keys(results).forEach((section: string) => results[section as keyof Data['results']].sort((a, b) => b.score - a.score))
+
 		results.articles.sort(
 			(a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1)
 		)
@@ -128,10 +121,7 @@ export async function GET(req: NextRequest) {
 	} catch (e: any) {
 		return new Response(
 			JSON.stringify({
-				results: {
-					articles: [],
-					apiDocs: [],
-				},
+				results: structuredClone(SEARCH_RESULTS),
 				status: 'error',
 				error: e.message,
 			}),
