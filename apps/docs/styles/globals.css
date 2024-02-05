@@ -1084,6 +1084,15 @@ body {
 		pointer-events: all;
 	}
 
+	.search__wrapper {
+		display: none;
+	}
+
+	.layout__header {
+		grid-template-columns: auto auto;
+		justify-content: space-between;
+	}
+
 	.sidebar {
 		display: none;
 		width: 100%;
