@@ -6,6 +6,7 @@ type Data = {
 	results: {
 		articles: SearchResult[]
 		apiDocs: SearchResult[]
+		examples: SearchResult[]
 	}
 	status: 'success' | 'error' | 'no-query'
 }
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 				results: {
 					articles: [],
 					apiDocs: [],
+					examples: [],
 				},
 				status: 'no-query',
 			}),
@@ -39,6 +41,7 @@ export async function GET(req: NextRequest) {
 		const results: Data['results'] = {
 			articles: [],
 			apiDocs: [],
+			examples: [],
 		}
 
 		const db = await getDb()
@@ -62,15 +65,17 @@ export async function GET(req: NextRequest) {
 		await searchForArticle.all(query).then(async (queryResults) => {
 			for (const article of queryResults) {
 				const isApiDoc = article.sectionId === 'reference'
+				const isExample = article.sectionId === 'examples'
 				const section = await db.getSection(article.sectionId)
 				const category = await db.getCategory(article.categoryId)
 				const isUncategorized = category.id === section.id + '_ucg'
 
-				results[isApiDoc ? 'apiDocs' : 'articles'].push({
+				results[isExample ? 'examples' : isApiDoc ? 'apiDocs' : 'articles'].push({
 					id: article.id,
 					type: 'article',
 					subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
 					title: article.title,
+					sectionType: ['examples', 'reference'].includes(section.id) ? section.id : 'docs',
 					url: isUncategorized
 						? `${section.id}/${article.id}`
 						: `${section.id}/${category.id}/${article.id}`,
@@ -96,14 +101,16 @@ export async function GET(req: NextRequest) {
 				const article = await db.getArticle(heading.articleId)
 
 				const isApiDoc = article.sectionId === 'reference'
+				const isExample = article.sectionId === 'examples'
 				const section = await db.getSection(article.sectionId)
 				const category = await db.getCategory(article.categoryId)
 				const isUncategorized = category.id === section.id + '_ucg'
 
-				results[isApiDoc ? 'apiDocs' : 'articles'].push({
+				results[isExample ? 'examples' : isApiDoc ? 'apiDocs' : 'articles'].push({
 					id: article.id + '#' + heading.slug,
 					type: 'heading',
 					subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
+					sectionType: ['examples', 'reference'].includes(section.id) ? section.id : 'docs',
 					title:
 						section.id === 'reference'
 							? article.title + '.' + heading.title
@@ -131,6 +138,7 @@ export async function GET(req: NextRequest) {
 				results: {
 					articles: [],
 					apiDocs: [],
+					examples: [],
 				},
 				status: 'error',
 				error: e.message,

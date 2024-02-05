@@ -7,6 +7,7 @@ type Data = {
 	results: {
 		articles: SearchResult[]
 		apiDocs: SearchResult[]
+		examples: SearchResult[]
 	}
 	status: 'success' | 'error' | 'no-query'
 }
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
 				results: {
 					articles: [],
 					apiDocs: [],
+					examples: [],
 				},
 				status: 'error',
 				error: 'No query',
@@ -36,6 +38,7 @@ export async function GET(req: NextRequest) {
 		const results: Data['results'] = {
 			articles: [],
 			apiDocs: [],
+			examples: [],
 		}
 		const db = await getDb()
 
@@ -80,10 +83,11 @@ export async function GET(req: NextRequest) {
 			const { category, section, article, heading, score } = result
 			const isUncategorized = category.id === section.id + '_ucg'
 			if (BANNED_HEADINGS.some((h) => heading.slug.endsWith(h))) continue
-			results[section.id === 'reference' ? 'apiDocs' : 'articles'].push({
+			results[section.id === 'examples' ? 'examples' :section.id === 'reference' ? 'apiDocs' : 'articles'].push({
 				id: result.id,
 				type: 'heading',
 				subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
+				sectionType: ['examples', 'reference'].includes(section.id) ? section.id : 'docs',
 				title:
 					section.id === 'reference'
 						? article.title + '.' + heading.title
@@ -115,10 +119,11 @@ export async function GET(req: NextRequest) {
 				article.sectionId
 			)
 			const isUncategorized = category.id === section.id + '_ucg'
-			results[section.id === 'reference' ? 'apiDocs' : 'articles'].push({
+			results[section.id === 'examples' ? 'examples' :section.id === 'reference' ? 'apiDocs' : 'articles'].push({
 				id: article.id,
 				type: 'article',
 				subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
+				sectionType: ['examples', 'reference'].includes(section.id) ? section.id : 'docs',
 				title: article.title,
 				url: isUncategorized
 					? `${section.id}/${article.id}`
@@ -143,6 +148,14 @@ export async function GET(req: NextRequest) {
 			.filter((a) => a.score > articlesBottom)
 			.sort((a, b) => b.score - a.score)
 			.sort((a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1))
+		const examplesScores = results.examples.map((a) => a.score)
+		const maxScoreExamples = Math.max(...examplesScores)
+		const minScoreExamples = Math.min(...examplesScores)
+		const examplesBottom = minScoreExamples + (maxScoreExamples - minScoreExamples) * 0.5
+		results.examples
+			.filter((a) => a.score > examplesBottom)
+			.sort((a, b) => b.score - a.score)
+			.sort((a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1))
 		return new Response(
 			JSON.stringify({
 				results,
@@ -158,6 +171,7 @@ export async function GET(req: NextRequest) {
 				results: {
 					articles: [],
 					apiDocs: [],
+					examples: [],
 				},
 				status: 'error',
 				error: e.message,

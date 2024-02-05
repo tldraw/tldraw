@@ -175,8 +175,6 @@ export type SidebarContentList = {
 	articleId: string | null
 	links: SidebarContentLink[]
 	activeId?: string | null
-	searchQuery?: string
-	searchType?: string
 }
 
 /* ---------- Finished / generated content ---------- */

@@ -43,6 +43,7 @@
 		"watch-content": "tsx ./watcher.ts"
 	},
 	"dependencies": {
+		"@ariakit/react": "^0.4.1",
 		"@codesandbox/sandpack-react": "^2.11.3",
 		"@microsoft/api-extractor-model": "^7.26.4",
 		"@microsoft/tsdoc": "^0.14.2",
