@@ -119,6 +119,13 @@ export function generateSection(section: InputSection, articles: Articles, index
 						: `/${section.id}/${categoryId}/${articleId}`,
 		}
 
+		if (isExamples) {
+			// split content above the first ---
+			const splitUp = parsed.content.split('---\n')
+			article.description = splitUp[0]
+			article.content = splitUp.slice(1).join('---\n')
+		}
+
 		if (isIndex) {
 			article.categoryIndex = -1
 			article.sectionIndex = -1

@@ -54,7 +54,7 @@ export function Sidebar({
 	return (
 		<>
 			<linkContext.Provider value={{ activeId, articleId, categoryId, sectionId }}>
-				<div className="sidebar" onScroll={(e) => e.stopPropagation()}>
+				<div className="sidebar scroll-light" onScroll={(e) => e.stopPropagation()}>
 					<Search prevQuery={searchQuery} prevType={searchType} />
 					<div className="sidebar__section__links">
 						<SectionLinks sectionId={sectionId} />
