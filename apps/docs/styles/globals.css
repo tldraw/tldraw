@@ -955,6 +955,10 @@ body {
 	box-shadow: var(--shadow-small);
 }
 
+.sidebar__category__title {
+	font-size: 14px;
+}
+
 /* --------------------- Search --------------------- */
 
 .sidebar .search__wrapper {

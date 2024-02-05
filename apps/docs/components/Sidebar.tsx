@@ -137,7 +137,7 @@ function SidebarCategory({
 		<li className="sidebar__category">
 			{hasGroups ? (
 				<>
-					<span className="sidebar__link">{title}</span>
+					<span className="sidebar__link sidebar__category__title">{title}</span>
 					<Accordion.Root
 						type="multiple"
 						defaultValue={[`${linkCtx?.categoryId}-${activeGroup}-${linkCtx?.articleId}`]}
@@ -174,7 +174,11 @@ function SidebarCategory({
 				</>
 			) : (
 				<>
-					<Link href={children[0].url} title={title} className="sidebar__link">
+					<Link
+						href={children[0].url}
+						title={title}
+						className="sidebar__link sidebar__category__title"
+					>
 						{title}
 					</Link>
 					<ul className="sidebar__list">
