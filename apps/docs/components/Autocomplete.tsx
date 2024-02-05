@@ -109,7 +109,7 @@ const Autocomplete = forwardRef(function Autocomplete(
 				{value && <ComboboxCancel className="autocomplete__cancel" />}
 
 				{value && (
-					<ComboboxPopover sameWidth className="autocomplete__popover">
+					<ComboboxPopover className="autocomplete__popover">
 						{customUI}
 						{options.length === 0 && <span>No results found.</span>}
 						{options.length !== 0 && renderedGroups}

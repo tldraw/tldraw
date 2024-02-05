@@ -75,6 +75,7 @@
 .autocomplete__item__icon {
   width: 24px;
   height: 24px;
+	flex: 0 0 24px;
 }
 
 .autocomplete__group {
@@ -156,6 +157,8 @@
 	border-radius: 0.25rem;
 	padding: 0.5rem;
 	outline: none !important;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 .autocomplete__item:hover {
