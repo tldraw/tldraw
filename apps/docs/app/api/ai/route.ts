@@ -2,7 +2,7 @@ import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
 import assert from 'assert'
 import { NextRequest } from 'next/server'
-import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '../search/route'
+import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '@/utils/search-api'
 
 type Data = {
 	results: {

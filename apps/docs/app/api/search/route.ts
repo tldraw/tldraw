@@ -1,6 +1,7 @@
 import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { NextRequest } from 'next/server'
+import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '@/utils/search-api'
 
 type Data = {
 	results: {
@@ -12,14 +13,6 @@ type Data = {
 }
 
 const BANNED_HEADINGS = ['new', 'constructor', 'properties', 'example', 'methods']
-
-export const SEARCH_RESULTS = {
-	articles: [],
-	apiDocs: [],
-	examples: [],
-}
-export const searchBucket = (sectionId: string) => sectionId === 'examples' ? 'examples' : sectionId === 'reference' ? 'apiDocs' : 'articles'
-export const sectionTypeBucket = (sectionId: string) => ['examples', 'reference'].includes(sectionId) ? sectionId : 'docs'
 
 function scoreResultBasedOnLengthSimilarity(title: string, query: string) {
 	return 1 - Math.min(1, Math.max(0, Math.abs(title.length - query.length) / 12))
