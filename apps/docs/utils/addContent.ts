@@ -125,7 +125,10 @@ const MATCH_HEADINGS = /(?:^|\n)(#{1,6})\s+(.+?)(?=\n|$)/g
 function getHeadingLinks(content: string) {
 	let match
 	const headings: ArticleHeadings = []
+	const visited = new Set<string>()
 	while ((match = MATCH_HEADINGS.exec(content)) !== null) {
+		if (visited.has(match[2])) continue
+		visited.add(match[2])
 		slugs.reset()
 		headings.push({
 			level: match[1].length,

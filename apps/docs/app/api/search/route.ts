@@ -1,7 +1,7 @@
 import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
-import { NextRequest } from 'next/server'
 import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '@/utils/search-api'
+import { NextRequest } from 'next/server'
 
 type Data = {
 	results: {
