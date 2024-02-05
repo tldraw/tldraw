@@ -191,16 +191,16 @@ function ZoomBrushWrapper() {
 
 function SnapLinesWrapper() {
 	const editor = useEditor()
-	const lines = useValue('snapLines', () => editor.snaps.getLines(), [editor])
+	const lines = useValue('snapLines', () => editor.snaps.getIndicators(), [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
-	const { SnapLine } = useEditorComponents()
+	const { SnapIndicator } = useEditorComponents()
 
-	if (!(SnapLine && lines.length > 0)) return null
+	if (!(SnapIndicator && lines.length > 0)) return null
 
 	return (
 		<>
 			{lines.map((line) => (
-				<SnapLine key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
+				<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
 			))}
 		</>
 	)

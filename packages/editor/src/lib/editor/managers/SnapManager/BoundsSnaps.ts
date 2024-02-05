@@ -1,58 +1,36 @@
-import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
-import {
-	isShapeId,
-	TLFrameShape,
-	TLGroupShape,
-	TLParentId,
-	TLShape,
-	TLShapeId,
-	VecModel,
-} from '@tldraw/tlschema'
-import { dedupe, deepCopy } from '@tldraw/utils'
+import { computed } from '@tldraw/state'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { assertExists, dedupe } from '@tldraw/utils'
 import {
 	Box,
+	SelectionCorner,
+	SelectionEdge,
 	flipSelectionHandleX,
 	flipSelectionHandleY,
 	isSelectionCorner,
-	SelectionCorner,
-	SelectionEdge,
-} from '../../primitives/Box'
-import { Mat } from '../../primitives/Mat'
-import { rangeIntersection, rangesOverlap } from '../../primitives/utils'
-import { Vec, VecLike } from '../../primitives/Vec'
-import { uniqueId } from '../../utils/uniqueId'
-import type { Editor } from '../Editor'
+} from '../../../primitives/Box'
+import { Mat } from '../../../primitives/Mat'
+import { Vec } from '../../../primitives/Vec'
+import { rangeIntersection, rangesOverlap } from '../../../primitives/utils'
+import { uniqueId } from '../../../utils/uniqueId'
+import { Editor } from '../../Editor'
+import {
+	GapsSnapIndicator,
+	PointsSnapIndicator,
+	SnapData,
+	SnapIndicator,
+	SnapManager,
+} from './SnapManager'
 
 /** @public */
-export type PointsSnapLine = {
-	id: string
-	type: 'points'
-	points: VecLike[]
-}
-
-/** @public */
-export type GapsSnapLine = {
-	id: string
-	type: 'gaps'
-	direction: 'horizontal' | 'vertical'
-	gaps: Array<{
-		startEdge: [VecLike, VecLike]
-		endEdge: [VecLike, VecLike]
-	}>
-}
-
-/** @public */
-export type SnapLine = PointsSnapLine | GapsSnapLine
-
-/** @public */
-export interface SnapPoint {
+export interface BoundsSnapPoint {
 	id: string
 	x: number
 	y: number
 	handle?: SelectionCorner
 }
 
-type SnapPair = { thisPoint: SnapPoint; otherPoint: SnapPoint }
+type SnapPair = { thisPoint: BoundsSnapPoint; otherPoint: BoundsSnapPoint }
 
 type NearestPointsSnap = {
 	// selection snaps to a nearby snap point
@@ -81,7 +59,6 @@ type NearestSnap =
 type GapNode = {
 	id: TLShapeId
 	pageBounds: Box
-	isClosed: boolean
 }
 
 type Gap = {
@@ -110,10 +87,6 @@ type Gap = {
 	endEdge: [Vec, Vec]
 	length: number
 	breadthIntersection: [number, number]
-}
-
-interface SnapData {
-	nudge: Vec
 }
 
 const round = (x: number) => {
@@ -170,7 +143,7 @@ function findAdjacentGaps(
 	return matches
 }
 
-function dedupeGapSnaps(snaps: Array<Extract<SnapLine, { type: 'gaps' }>>) {
+function dedupeGapSnaps(snaps: Array<Extract<SnapIndicator, { type: 'gaps' }>>) {
 	// sort by descending order of number of gaps
 	snaps.sort((a, b) => b.gaps.length - a.gaps.length)
 	// pop off any that are included already
@@ -206,29 +179,15 @@ function dedupeGapSnaps(snaps: Array<Extract<SnapLine, { type: 'gaps' }>>) {
 	}
 }
 
-/** @public */
-export class SnapManager {
-	private _snapLines = atom<SnapLine[] | undefined>('snapLines', undefined)
-
-	getLines() {
-		return this._snapLines.get() ?? (EMPTY_ARRAY as SnapLine[])
+export class BoundsSnaps {
+	readonly editor: Editor
+	constructor(readonly manager: SnapManager) {
+		this.editor = manager.editor
 	}
-
-	clear() {
-		if (this.getLines().length) {
-			this._snapLines.set(undefined)
-		}
-	}
-
-	setLines(lines: SnapLine[]) {
-		this._snapLines.set(lines)
-	}
-
-	constructor(public readonly editor: Editor) {}
 
 	@computed getSnapPointsCache() {
 		const { editor } = this
-		return editor.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
+		return editor.store.createComputedCache<BoundsSnapPoint[], TLShape>('snapPoints', (shape) => {
 			const pageTransfrorm = editor.getShapePageTransform(shape.id)
 			if (!pageTransfrorm) return undefined
 			const snapPoints = this.editor.getShapeGeometry(shape).snapPoints
@@ -239,72 +198,14 @@ export class SnapManager {
 		})
 	}
 
-	@computed getSnapThreshold() {
-		return 8 / this.editor.getZoomLevel()
-	}
-
-	// TODO: make this an incremental derivation
-	@computed getSnappableShapes(): GapNode[] {
-		const { editor } = this
-		const renderingBounds = editor.getRenderingBounds()
-		const selectedShapeIds = editor.getSelectedShapeIds()
-
-		const snappableShapes: GapNode[] = []
-
-		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
-			if (isShapeId(parentId)) {
-				const parent = editor.getShape(parentId)
-				if (parent && editor.isShapeOfType<TLFrameShape>(parent, 'frame')) {
-					snappableShapes.push({
-						id: parentId,
-						pageBounds: editor.getShapePageBounds(parentId)!,
-						isClosed: editor.getShapeGeometry(parent).isClosed,
-					})
-				}
-			}
-			const sortedChildIds = editor.getSortedChildIdsForParent(parentId)
-			for (const childId of sortedChildIds) {
-				// Skip any selected ids
-				if (selectedShapeIds.includes(childId)) continue
-				const childShape = editor.getShape(childId)
-				if (!childShape) continue
-				const util = editor.getShapeUtil(childShape)
-				// Skip any shapes that don't allow snapping
-				if (!util.canSnap(childShape)) continue
-				// Only consider shapes if they're inside of the viewport page bounds
-				const pageBounds = editor.getShapePageBounds(childId)
-				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
-				// Snap to children of groups but not group itself
-				if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
-					collectSnappableShapesFromParent(childId)
-					continue
-				}
-				snappableShapes.push({
-					id: childId,
-					pageBounds,
-					isClosed: editor.getShapeGeometry(childShape).isClosed,
-				})
-			}
-		}
-
-		collectSnappableShapesFromParent(this.getCurrentCommonAncestor() ?? editor.getCurrentPageId())
-
-		return snappableShapes
-	}
-
-	// This needs to be external from any expensive work
-	@computed getCurrentCommonAncestor() {
-		return this.editor.findCommonAncestor(this.editor.getSelectedShapes())
-	}
-
 	// Points which belong to snappable shapes
 	@computed getSnappablePoints() {
 		const snapPointsCache = this.getSnapPointsCache()
-		const snappableShapes = this.getSnappableShapes()
-		const result: SnapPoint[] = []
+		const snappableShapes = this.manager.getSnappableShapes()
+		const result: BoundsSnapPoint[] = []
 
-		snappableShapes.forEach((shape) => {
-			const snapPoints = snapPointsCache.get(shape.id)
+		snappableShapes.forEach((shapeId) => {
+			const snapPoints = snapPointsCache.get(shapeId)
 			if (snapPoints) {
 				result.push(...snapPoints)
 			}
@@ -313,13 +214,20 @@ export class SnapManager {
 		return result
 	}
 
+	@computed getSnappableGapNodes(): Array<GapNode> {
+		return Array.from(this.manager.getSnappableShapes(), (shapeId) => ({
+			id: shapeId,
+			pageBounds: assertExists(this.editor.getShapePageBounds(shapeId)),
+		}))
+	}
+
 	@computed getVisibleGaps(): { horizontal: Gap[]; vertical: Gap[] } {
 		const horizontal: Gap[] = []
 		const vertical: Gap[] = []
 
 		let startNode: GapNode, endNode: GapNode
 
-		const sortedShapesOnCurrentPageHorizontal = this.getSnappableShapes().sort((a, b) => {
+		const sortedShapesOnCurrentPageHorizontal = this.getSnappableGapNodes().sort((a, b) => {
 			return a.pageBounds.minX - b.pageBounds.minX
 		})
 
@@ -417,20 +325,22 @@ export class SnapManager {
 		dragDelta,
 	}: {
 		lockedAxis: 'x' | 'y' | null
-		initialSelectionSnapPoints: SnapPoint[]
+		initialSelectionSnapPoints: BoundsSnapPoint[]
 		initialSelectionPageBounds: Box
 		dragDelta: Vec
 	}): SnapData {
-		const snapThreshold = this.getSnapThreshold()
+		const snapThreshold = this.manager.getSnapThreshold()
 		const visibleSnapPointsNotInSelection = this.getSnappablePoints()
 
 		const selectionPageBounds = initialSelectionPageBounds.clone().translate(dragDelta)
 
-		const selectionSnapPoints: SnapPoint[] = initialSelectionSnapPoints.map(({ x, y }, i) => ({
-			id: 'selection:' + i,
-			x: x + dragDelta.x,
-			y: y + dragDelta.y,
-		}))
+		const selectionSnapPoints: BoundsSnapPoint[] = initialSelectionSnapPoints.map(
+			({ x, y }, i) => ({
+				id: 'selection:' + i,
+				x: x + dragDelta.x,
+				y: y + dragDelta.y,
+			})
+		)
 
 		const otherNodeSnapPoints = visibleSnapPointsNotInSelection
 
@@ -498,67 +408,9 @@ export class SnapManager {
 			nearestSnapsY,
 		})
 
-		this._snapLines.set([...gapSnapLines, ...pointSnapsLines])
+		this.manager.setIndicators([...gapSnapLines, ...pointSnapsLines])
 
 		return { nudge }
-	}
-
-	@computed getOutlinesInPageSpace() {
-		return this.getSnappableShapes().map(({ id, isClosed }) => {
-			const outline = deepCopy(this.editor.getShapeGeometry(id).vertices)
-			if (isClosed) outline.push(outline[0])
-			const pageTransform = this.editor.getShapePageTransform(id)
-			if (!pageTransform) throw Error('No page transform')
-			return Mat.applyToPoints(pageTransform, outline)
-		})
-	}
-
-	getSnappingHandleDelta({
-		handlePoint,
-		additionalSegments,
-	}: {
-		handlePoint: Vec
-		additionalSegments: Vec[][]
-	}): Vec | null {
-		const snapThreshold = this.getSnapThreshold()
-		const outlinesInPageSpace = this.getOutlinesInPageSpace()
-
-		// Find the nearest point that is within the snap threshold
-		let minDistance = snapThreshold
-		let nearestPoint: Vec | null = null
-		let C: VecModel, D: VecModel, nearest: Vec, distance: number
-
-		const allSegments = [...outlinesInPageSpace, ...additionalSegments]
-		for (const outline of allSegments) {
-			for (let i = 0; i < outline.length - 1; i++) {
-				C = outline[i]
-				D = outline[i + 1]
-
-				nearest = Vec.NearestPointOnLineSegment(C, D, handlePoint)
-				distance = Vec.Dist(handlePoint, nearest)
-
-				if (isNaN(distance)) continue
-				if (distance < minDistance) {
-					minDistance = distance
-					nearestPoint = nearest
-				}
-			}
-		}
-
-		// If we found a point, display snap lines, and return the nudge
-		if (nearestPoint) {
-			this._snapLines.set([
-				{
-					id: uniqueId(),
-					type: 'points',
-					points: [nearestPoint],
-				},
-			])
-
-			return Vec.Sub(nearestPoint, handlePoint)
-		}
-
-		return null
 	}
 
 	snapResize({
@@ -577,7 +429,7 @@ export class SnapManager {
 		isAspectRatioLocked: boolean
 		isResizingFromCenter: boolean
 	}): SnapData {
-		const snapThreshold = this.getSnapThreshold()
+		const snapThreshold = this.manager.getSnapThreshold()
 
 		// first figure out the new bounds of the selection
 		const {
@@ -700,7 +552,7 @@ export class SnapManager {
 			nearestSnapsY,
 		})
 
-		this._snapLines.set([...pointSnaps])
+		this.manager.setIndicators([...pointSnaps])
 
 		return { nudge }
 	}
@@ -712,8 +564,8 @@ export class SnapManager {
 		nearestSnapsX,
 		nearestSnapsY,
 	}: {
-		selectionSnapPoints: SnapPoint[]
-		otherNodeSnapPoints: SnapPoint[]
+		selectionSnapPoints: BoundsSnapPoint[]
+		otherNodeSnapPoints: BoundsSnapPoint[]
 		minOffset: Vec
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
@@ -1048,7 +900,7 @@ export class SnapManager {
 	}: {
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
-	}): PointsSnapLine[] {
+	}): PointsSnapIndicator[] {
 		// point snaps may align on multiple parallel lines so we need to split the pairs
 		// into groups based on where they are in their their snap axes
 		const snapGroupsX = {} as { [key: string]: SnapPair[] }
@@ -1102,7 +954,7 @@ export class SnapManager {
 		selectionPageBounds: Box
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
-	}): GapsSnapLine[] {
+	}): GapsSnapIndicator[] {
 		const { vertical, horizontal } = this.getVisibleGaps()
 
 		const selectionSides: Record<SelectionEdge, [Vec, Vec]> = {
@@ -1113,7 +965,7 @@ export class SnapManager {
 			left: [selectionPageBounds.corners[0], selectionPageBounds.corners[3]],
 		}
 
-		const result: GapsSnapLine[] = []
+		const result: GapsSnapIndicator[] = []
 
 		if (nearestSnapsX.length > 0) {
 			for (const snap of nearestSnapsX) {
@@ -1329,9 +1181,9 @@ export class SnapManager {
 function getResizeSnapPointsForHandle(
 	handle: SelectionCorner | SelectionEdge | 'any',
 	selectionPageBounds: Box
-): SnapPoint[] {
+): BoundsSnapPoint[] {
 	const { minX, maxX, minY, maxY } = selectionPageBounds
-	const result: SnapPoint[] = []
+	const result: BoundsSnapPoint[] = []
 
 	// top left corner
 	switch (handle) {
