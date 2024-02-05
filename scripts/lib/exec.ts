@@ -1,4 +1,4 @@
-import { execFile } from 'child_process'
+import { exec as execute } from 'child_process'
 import { nicelog } from './nicelog'
 
 type ExecOpts = {
@@ -27,50 +27,29 @@ export async function exec(
 ): Promise<string> {
 	nicelog(`> $ ${command} ${args.join(' ')} (in ${pwd}))`)
 	return new Promise((resolve, reject) => {
-		const data: string[] = []
-
-		const childProcess = execFile(
-			command,
-			args.filter((arg): arg is string => !!arg),
+		const childProcess = execute(
+			`${command} ${args.filter((arg): arg is string => !!arg).join(' ')}`,
 			{ cwd: pwd, env: { ...process.env, ...env } },
-			(err) => {
-				if (err) reject(err)
-				else resolve(data.join(''))
+			(err, stdout, stderr) => {
+				if (err) {
+					reject(err)
+				} else {
+					const combinedOutput = `${stdout}${stderr}`
+					resolve(combinedOutput.trim())
+				}
 			}
 		)
 
-		let pendingStdoutLine = ''
-		childProcess.stdout!.on('data', (chunk) => {
-			const chunkString: string = chunk.toString('utf-8')
-			data.push(chunkString)
+		if (childProcess.stdout) {
+			childProcess.stdout.on('data', (data) => {
+				processStdoutLine(data)
+			})
+		}
 
-			const lines = chunkString.split('\n')
-			lines[0] = pendingStdoutLine + lines[0]
-			pendingStdoutLine = lines.pop() ?? ''
-
-			for (const line of lines) {
-				processStdoutLine(line)
-			}
-		})
-		childProcess.stdout!.on('close', () => {
-			processStdoutLine(pendingStdoutLine)
-		})
-
-		let pendingStderrLine = ''
-		childProcess.stderr!.on('data', (chunk) => {
-			const chunkString: string = chunk.toString('utf-8')
-			data.push(chunkString)
-
-			const lines = chunkString.split('\n')
-			lines[0] = pendingStderrLine + lines[0]
-			pendingStderrLine = lines.pop() ?? ''
-
-			for (const line of lines) {
-				processStderrLine(line)
-			}
-		})
-		childProcess.stderr!.on('close', () => {
-			processStderrLine(pendingStderrLine)
-		})
+		if (childProcess.stderr) {
+			childProcess.stderr.on('data', (data) => {
+				processStderrLine(data)
+			})
+		}
 	})
 }
