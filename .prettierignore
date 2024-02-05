@@ -5,7 +5,7 @@
 **/dist-esm/*
 **/.next/*
 **/api/*
-!**/pages/api/*
+!**/docs/app/api/*
 **/.tsbuild*
 **/.next/*
 *.mdx
