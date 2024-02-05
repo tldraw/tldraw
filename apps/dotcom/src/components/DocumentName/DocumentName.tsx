@@ -124,9 +124,23 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const totalWidth = layoutTop.offsetWidth
 		const leftWidth = leftPanel.offsetWidth
 		const rightWidth = rightPanel.offsetWidth
+		// ignore the width of the button:
+		const selfWidth = element.offsetWidth - 40
 
+		let xCoordIfCentered = (totalWidth - selfWidth) / 2
+
+		// Prevent subpixel bullsh
+		if (totalWidth % 2 !== 0) {
+			xCoordIfCentered -= 0.5
+		}
+
+		const xCoordIfLeftAligned = leftWidth + 12
+
+		const left = element.offsetLeft
+		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
 		const maxWidth = Math.min(totalWidth - rightWidth - leftWidth - 16, MAX_TITLE_WIDTH_PX)
 
+		element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
 		element.style.setProperty('max-width', maxWidth + 'px')
 	}, [])
 
