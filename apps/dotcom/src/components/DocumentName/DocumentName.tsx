@@ -125,7 +125,7 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const leftWidth = leftPanel.offsetWidth
 		const rightWidth = rightPanel.offsetWidth
 		// ignore the width of the button:
-		const selfWidth = element.offsetWidth - 40
+		const selfWidth = element.offsetWidth - 44
 
 		let xCoordIfCentered = (totalWidth - selfWidth) / 2
 
@@ -264,6 +264,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 					onChange={handleChange}
 					onBlur={handleBlur}
 					onKeyDownCapture={handleKeydownCapture}
+					placeholder={defaultDocumentName}
 					autoFocus
 				/>
 			)}
