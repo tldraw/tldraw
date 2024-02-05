@@ -34,7 +34,13 @@ const nextConfig = {
 			{
 				// For reverse compatibility with old links
 				source: '/docs/usage',
-				destination: '/usage',
+				destination: '/installation',
+				permanent: true,
+			},
+			{
+				// For reverse compatibility with old links
+				source: '/usage',
+				destination: '/installation',
 				permanent: true,
 			},
 			{

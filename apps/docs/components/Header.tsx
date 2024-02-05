@@ -7,15 +7,7 @@ import { Chevron } from './Icons'
 import { Search } from './Search'
 import { ThemeSwitcher } from './ThemeSwitcher'
 
-export function Header({
-	searchQuery,
-	searchType,
-	sectionId,
-}: {
-	searchQuery?: string
-	searchType?: string
-	sectionId?: string
-}) {
+export function Header({ sectionId }: { sectionId?: string }) {
 	return (
 		<div className="layout__header">
 			<Link href="/quick-start">
@@ -27,7 +19,7 @@ export function Header({
 					}}
 				/>
 			</Link>
-			<Search prevQuery={searchQuery} prevType={searchType} />
+			<Search />
 			<div className="layout__header__sections_and_socials">
 				<SectionLinks sectionId={sectionId} />
 				<ThemeSwitcher />
