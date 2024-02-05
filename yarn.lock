@@ -2305,7 +2305,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/biome@npm:^1.5.3":
+"@biomejs/biome@npm:1.5.3":
   version: 1.5.3
   resolution: "@biomejs/biome@npm:1.5.3"
   dependencies:
@@ -7423,7 +7423,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/monorepo@workspace:."
   dependencies:
-    "@biomejs/biome": "npm:^1.5.3"
+    "@biomejs/biome": "npm:1.5.3"
     "@microsoft/api-extractor": "npm:^7.35.4"
     "@next/eslint-plugin-next": "npm:^13.3.0"
     "@sentry/cli": "npm:^2.25.0"
@@ -7453,8 +7453,6 @@ __metadata:
     json5: "npm:^2.2.3"
     lazyrepo: "npm:0.0.0-alpha.27"
     lint-staged: "npm:>=10"
-    prettier: "npm:^3.0.3"
-    prettier-plugin-organize-imports: "npm:^3.2.3"
     purgecss: "npm:^5.0.0"
     rimraf: "npm:^4.4.0"
     svgo: "npm:^3.0.2"
@@ -20588,23 +20586,6 @@ __metadata:
   version: 1.1.2
   resolution: "prelude-ls@npm:1.1.2"
   checksum: 946a9f60d3477ca6b7d4c5e8e452ad1b98dc8aaa992cea939a6b926ac16cc4129d7217c79271dc808b5814b1537ad0af37f29a942e2eafbb92cfc5a1c87c38cb
-  languageName: node
-  linkType: hard
-
-"prettier-plugin-organize-imports@npm:^3.2.3":
-  version: 3.2.4
-  resolution: "prettier-plugin-organize-imports@npm:3.2.4"
-  peerDependencies:
-    "@volar/vue-language-plugin-pug": ^1.0.4
-    "@volar/vue-typescript": ^1.0.4
-    prettier: ">=2.0"
-    typescript: ">=2.9"
-  peerDependenciesMeta:
-    "@volar/vue-language-plugin-pug":
-      optional: true
-    "@volar/vue-typescript":
-      optional: true
-  checksum: 93c98d365af500aa4c72f5330d82c20a20d0e7661a9692e6f26a76a2f4f88b99e0f85dcb8871e98b6d687d6e19ea5f1dcc937f9e29fd0778e888675ecafed233
   languageName: node
   linkType: hard
 
