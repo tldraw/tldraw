@@ -1,7 +1,7 @@
 import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
-import { NextRequest } from 'next/server'
 import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '@/utils/search-api'
+import { NextRequest } from 'next/server'
 
 type Data = {
 	results: {
@@ -109,7 +109,9 @@ export async function GET(req: NextRequest) {
 			}
 		})
 
-		Object.keys(results).forEach((section: string) => results[section as keyof Data['results']].sort((a, b) => b.score - a.score))
+		Object.keys(results).forEach((section: string) =>
+			results[section as keyof Data['results']].sort((a, b) => b.score - a.score)
+		)
 
 		results.articles.sort(
 			(a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1)

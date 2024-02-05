@@ -120,8 +120,11 @@
 }
 
 .autocomplete__popover {
+	margin-top: 4px;
 	position: relative;
 	z-index: 50;
+	min-width: 240px;
+	font-size: 14px;
 	display: flex;
 	max-height: min(var(--popover-available-height, 300px), 300px);
 	flex-direction: column;
@@ -148,6 +151,10 @@
 	box-shadow:
 		0 10px 14px -3px rgb(0 0 0 / 0.25),
 		0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.autocomplete__empty {
+	padding: 0px 8px;
 }
 
 .autocomplete__item {

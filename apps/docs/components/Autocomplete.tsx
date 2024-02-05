@@ -111,7 +111,7 @@ const Autocomplete = forwardRef(function Autocomplete(
 				{value && (
 					<ComboboxPopover className="autocomplete__popover">
 						{customUI}
-						{options.length === 0 && <span>No results found.</span>}
+						{options.length === 0 && <span className="autocomplete__empty">No results found.</span>}
 						{options.length !== 0 && renderedGroups}
 					</ComboboxPopover>
 				)}

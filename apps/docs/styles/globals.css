@@ -1013,6 +1013,7 @@ body {
 	cursor: pointer;
 	margin: 4px 0;
 	background: transparent;
+	padding: 0px 8px 8px 8px;
 }
 
 /* --------------------- Desktop M --------------------- */

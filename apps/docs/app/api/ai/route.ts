@@ -74,7 +74,8 @@ export async function GET(req: NextRequest) {
 							heading,
 							score: result.score,
 						}
-					} catch (e) {
+					} catch (e: any) {
+						console.log(e.message)
 						// something went wrong
 						return
 					}
