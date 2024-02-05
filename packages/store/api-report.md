@@ -442,7 +442,7 @@ export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;
 
 // Warnings were encountered during analysis:
 //
-// src/lib/StoreSchema.ts:69:2 - (ae-incompatible-release-tags) The symbol "__legacyMigrator" is marked as @public, but its signature references "LegacyMigrator" which is marked as @internal
+// src/lib/StoreSchema.ts:70:2 - (ae-incompatible-release-tags) The symbol "__legacyMigrator" is marked as @public, but its signature references "LegacyMigrator" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 
