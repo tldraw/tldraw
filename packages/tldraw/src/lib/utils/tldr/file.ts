@@ -42,7 +42,7 @@ export interface TldrawFile {
 	records: UnknownRecord[]
 }
 
-const migrationIdValidator: T.Validator<MigrationId> = T.string.refine(s => {
+const migrationIdValidator: T.Validator<MigrationId> = T.string.refine((s) => {
 	if (s.indexOf('/') === -1) throw new Error('Invalid migration id')
 	return s as MigrationId
 })
@@ -64,8 +64,8 @@ const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 		}),
 		2: T.object({
 			schemaVersion: T.literal(2),
-			versionHistory: T.arrayOf(migrationIdValidator)
-		})
+			versionHistory: T.arrayOf(migrationIdValidator),
+		}),
 	}),
 	records: T.arrayOf(
 		T.object({
