@@ -7334,6 +7334,7 @@ __metadata:
     next-themes: "npm:^0.2.1"
     octokit: "npm:^3.1.1"
     openai: "npm:^4.11.1"
+    prettier: "npm:^3.0.3"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     react-hotkeys-hook: "npm:^4.4.1"
