@@ -32,6 +32,7 @@ test.describe('when selecting a tool from the toolbar', () => {
 	test('selecting a tool changes the button color', async ({ page }) => {
 		const selectTool = page.getByTestId('tools.select')
 		const drawTool = page.getByTestId('tools.draw')
+		await selectTool.click()
 		// We can't check the style of pseudo elements, as the browser doesn't expose them to the test
 		// So we use text color as a proxy
 		expect(selectTool).toHaveCSS('color', 'rgb(255, 255, 255)')

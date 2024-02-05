@@ -71,12 +71,12 @@ test.describe('smoke tests', () => {
 		expect(await getSelectedShapeColor()).toBe('black')
 
 		// when on a mobile device...
-		const mobileStylesButton = page.getByTestId('mobile.styles')
+		const mobileStylesButton = page.getByTestId('mobile-styles.button')
 		const hasMobileMenu = await mobileStylesButton.isVisible()
 
 		if (hasMobileMenu) {
 			// open the style menu
-			await page.getByTestId('mobile.styles').click()
+			await page.getByTestId('mobile-styles.button').click()
 		}
 
 		// Click the light-blue color
