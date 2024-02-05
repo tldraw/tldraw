@@ -2,6 +2,7 @@ import { writeFileSync } from 'fs'
 import { join, resolve } from 'path'
 import { exec } from './lib/exec'
 import { readFileIfExists } from './lib/file'
+import isWin32 from './lib/isWin32'
 import { nicelog } from './lib/nicelog'
 import { getAllWorkspacePackages } from './lib/workspace'
 
@@ -57,7 +58,7 @@ async function main() {
 	writeFileSync(`${tempDir}/package.json`, JSON.stringify({ dependencies: {} }, null, '\t'), 'utf8')
 
 	await exec('npm', ['install', ...packagesOurTypesCanDependOn], { pwd: tempDir })
-	await exec(resolve('./node_modules/.bin/tsc'), [], { pwd: tempDir })
+	await exec(resolve(`./node_modules/.bin/tsc${isWin32() ? '.cmd' : ''}`), [], { pwd: tempDir })
 
 	await exec('rm', ['-rf', tempDir])
 }

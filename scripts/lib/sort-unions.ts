@@ -1,11 +1,12 @@
 import { namedTypes } from 'ast-types'
 import { readFileSync, writeFileSync } from 'fs'
-import glob from 'glob'
+import { glob } from 'glob'
 import path from 'path'
 import { parse, print, visit } from 'recast'
+import posixPath from './posixPath'
 
 export function sortUnions(tsbuildDir: string) {
-	for (const file of glob.sync(path.join(tsbuildDir, '**/*.d.ts'))) {
+	for (const file of glob.sync(posixPath(path.join(tsbuildDir, '**/*.d.ts')))) {
 		const code = parse(readFileSync(file, 'utf8'), { parser: require('recast/parsers/typescript') })
 
 		visit(code, {
