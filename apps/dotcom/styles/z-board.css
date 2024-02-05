@@ -344,9 +344,7 @@
 
 .tlui-document-name__input,
 .tlui-document-name__text {
-	margin-left: var(--space-2);
-	padding: var(--space-2);
-	padding-left: var(--space-3);
+	padding: var(--space-2) var(--space-3);
 	white-space: pre;
 	height: 24px;
 	line-height: 24px;
