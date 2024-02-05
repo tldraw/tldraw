@@ -2,6 +2,7 @@ import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
 import assert from 'assert'
 import { NextRequest } from 'next/server'
+import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '../search/route'
 
 type Data = {
 	results: {
@@ -17,14 +18,11 @@ const BANNED_HEADINGS = ['new', 'constructor', 'properties', 'example', 'methods
 export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url)
 	const query = searchParams.get('q')?.toLowerCase()
+
 	if (!query) {
 		return new Response(
 			JSON.stringify({
-				results: {
-					articles: [],
-					apiDocs: [],
-					examples: [],
-				},
+				results: structuredClone(SEARCH_RESULTS),
 				status: 'error',
 				error: 'No query',
 			}),
@@ -35,11 +33,7 @@ export async function GET(req: NextRequest) {
 	}
 
 	try {
-		const results: Data['results'] = {
-			articles: [],
-			apiDocs: [],
-			examples: [],
-		}
+		const results: Data['results'] = structuredClone(SEARCH_RESULTS)
 		const db = await getDb()
 
 		const getVectorDb = (await import('@/utils/ContentVectorDatabase')).getVectorDb
@@ -47,9 +41,11 @@ export async function GET(req: NextRequest) {
 		const vdb = await getVectorDb()
 		const queryResults = await vdb.query(query, 25)
 		queryResults.sort((a, b) => b.score - a.score)
+
 		const headings = await Promise.all(
 			queryResults.map(async (result) => {
 				if (result.type !== 'heading') return // bleg
+
 				const article = await db.db.get(
 					`SELECT id, title, description, categoryId, sectionId, keywords FROM articles WHERE id = ?`,
 					result.id
@@ -65,6 +61,7 @@ export async function GET(req: NextRequest) {
 				)
 				const heading = await db.db.get(`SELECT * FROM headings WHERE slug = ?`, result.slug)
 				assert(heading, `No heading found for ${result.id} ${result.slug}`)
+
 				return {
 					id: result.id,
 					article,
@@ -75,19 +72,23 @@ export async function GET(req: NextRequest) {
 				}
 			})
 		)
+
 		const visited = new Set<string>()
 		for (const result of headings) {
 			if (!result) continue
 			if (visited.has(result.id)) continue
+
 			visited.add(result.id)
 			const { category, section, article, heading, score } = result
 			const isUncategorized = category.id === section.id + '_ucg'
+
 			if (BANNED_HEADINGS.some((h) => heading.slug.endsWith(h))) continue
-			results[section.id === 'examples' ? 'examples' :section.id === 'reference' ? 'apiDocs' : 'articles'].push({
+
+			results[searchBucket(section.id)].push({
 				id: result.id,
 				type: 'heading',
 				subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
-				sectionType: ['examples', 'reference'].includes(section.id) ? section.id : 'docs',
+				sectionType: sectionTypeBucket(section.id),
 				title:
 					section.id === 'reference'
 						? article.title + '.' + heading.title
@@ -98,6 +99,7 @@ export async function GET(req: NextRequest) {
 				score,
 			})
 		}
+
 		const articles = await Promise.all(
 			queryResults.map(async (result) => ({
 				score: result.score,
@@ -107,8 +109,10 @@ export async function GET(req: NextRequest) {
 				),
 			}))
 		)
+
 		for (const { score, article } of articles.filter(Boolean)) {
 			if (visited.has(article.id)) continue
+
 			visited.add(article.id)
 			const category = await db.db.get(
 				`SELECT id, title FROM categories WHERE categories.id = ?`,
@@ -119,11 +123,12 @@ export async function GET(req: NextRequest) {
 				article.sectionId
 			)
 			const isUncategorized = category.id === section.id + '_ucg'
-			results[section.id === 'examples' ? 'examples' :section.id === 'reference' ? 'apiDocs' : 'articles'].push({
+
+			results[searchBucket(section.id)].push({
 				id: article.id,
 				type: 'article',
 				subtitle: isUncategorized ? section.title : `${section.title} / ${category.title}`,
-				sectionType: ['examples', 'reference'].includes(section.id) ? section.id : 'docs',
+				sectionType: sectionTypeBucket(section.id),
 				title: article.title,
 				url: isUncategorized
 					? `${section.id}/${article.id}`
@@ -131,31 +136,18 @@ export async function GET(req: NextRequest) {
 				score,
 			})
 		}
-		const apiDocsScores = results.apiDocs.map((a) => a.score)
-		const maxScoreApiDocs = Math.max(...apiDocsScores)
-		const minScoreApiDocs = Math.min(...apiDocsScores)
-		const apiDocsBottom = minScoreApiDocs + (maxScoreApiDocs - minScoreApiDocs) * 0.75
-		results.apiDocs
-			.filter((a) => a.score > apiDocsBottom)
-			.sort((a, b) => b.score - a.score)
-			.sort((a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1))
-			.slice(0, 10)
-		const articleScores = results.articles.map((a) => a.score)
-		const maxScoreArticles = Math.max(...articleScores)
-		const minScoreArticles = Math.min(...articleScores)
-		const articlesBottom = minScoreArticles + (maxScoreArticles - minScoreArticles) * 0.5
-		results.articles
-			.filter((a) => a.score > articlesBottom)
-			.sort((a, b) => b.score - a.score)
-			.sort((a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1))
-		const examplesScores = results.examples.map((a) => a.score)
-		const maxScoreExamples = Math.max(...examplesScores)
-		const minScoreExamples = Math.min(...examplesScores)
-		const examplesBottom = minScoreExamples + (maxScoreExamples - minScoreExamples) * 0.5
-		results.examples
-			.filter((a) => a.score > examplesBottom)
-			.sort((a, b) => b.score - a.score)
-			.sort((a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1))
+
+		Object.keys(results).forEach((section: string) => {
+			const scores = results[section as keyof Data['results']].map((a) => a.score)
+			const maxScore = Math.max(...scores)
+			const minScore = Math.min(...scores)
+			const bottomScore = minScore + (maxScore - minScore) * (section === 'apiDocs' ? 0.75 : 0.5)
+			results[section as keyof Data['results']]
+				.filter((a) => a.score > bottomScore)
+				.sort((a, b) => b.score - a.score)
+				.sort((a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1))
+		})
+
 		return new Response(
 			JSON.stringify({
 				results,
@@ -168,11 +160,7 @@ export async function GET(req: NextRequest) {
 	} catch (e: any) {
 		return new Response(
 			JSON.stringify({
-				results: {
-					articles: [],
-					apiDocs: [],
-					examples: [],
-				},
+				results: structuredClone(SEARCH_RESULTS),
 				status: 'error',
 				error: e.message,
 			}),
