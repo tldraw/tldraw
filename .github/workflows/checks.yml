@@ -38,6 +38,12 @@ jobs:
       - name: Check for installation warnings
         run: 'yarn | grep -vzq "with warnings"'
 
+      - name: Setup Biome CLI
+        uses: biomejs/setup-biome@v2
+
+#      - name: Run Biome
+#        run: biome ci --formatter-enabled=true --linter-enabled=false --organize-imports-enabled=false .
+
       - name: Typecheck
         run: yarn build-types
 
