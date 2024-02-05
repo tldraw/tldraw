@@ -62,7 +62,7 @@ export function SectionLinks({ sectionId }: { sectionId?: string | null }) {
 				Reference
 			</a>
 			<a
-				href="/examples/basic/develop"
+				href="/examples/basic/basic"
 				title="Examples"
 				data-active={sectionId === 'examples'}
 				className="layout_header__section"
