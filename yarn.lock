@@ -51,6 +51,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ariakit/core@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@ariakit/core@npm:0.4.1"
+  checksum: 536697f9608c1c0694c76e797a0c54a107fda14dec779a5ebbf8fe7684f2fb3f315e0cd337d4e8cc97956377b061b7a8b2046d70024cb5db45667852f4c40960
+  languageName: node
+  linkType: hard
+
+"@ariakit/react-core@npm:0.4.1":
+  version: 0.4.1
+  resolution: "@ariakit/react-core@npm:0.4.1"
+  dependencies:
+    "@ariakit/core": "npm:0.4.1"
+    "@floating-ui/dom": "npm:^1.0.0"
+    use-sync-external-store: "npm:^1.2.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  checksum: 83731f8be4301555b00d68825c9b195084961dc944affbead636dd7125c95bb5abec6d40646fb051ef8e20108fe641654207da8f7329059d74019a4b29ed28d5
+  languageName: node
+  linkType: hard
+
+"@ariakit/react@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "@ariakit/react@npm:0.4.1"
+  dependencies:
+    "@ariakit/react-core": "npm:0.4.1"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  checksum: 1414b8aac17efea15793c2bcade85a32bdeb9b8cad8355a9f889a16e45ce97ad00699001bc2edd181b003fac7e18cd5f4e96792a581d1107d87a403386eb11e8
+  languageName: node
+  linkType: hard
+
 "@auto-it/bot-list@npm:10.46.0":
   version: 10.46.0
   resolution: "@auto-it/bot-list@npm:10.46.0"
@@ -3546,22 +3579,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/core@npm:^1.5.3":
-  version: 1.5.3
-  resolution: "@floating-ui/core@npm:1.5.3"
+"@floating-ui/core@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "@floating-ui/core@npm:1.6.0"
   dependencies:
-    "@floating-ui/utils": "npm:^0.2.0"
-  checksum: 7d9feaca2565a2a71bf03d23cd292c03def63097d7fde7d62909cdb8ddb84664781f3922086bcf10443f3310cb92381a0ecf745b2774edb917fa74fe61015c56
+    "@floating-ui/utils": "npm:^0.2.1"
+  checksum: d6a47cacde193cd8ccb4c268b91ccc4ca254dffaec6242b07fd9bcde526044cc976d27933a7917f9a671de0a0e27f8d358f46400677dbd0c8199de293e9746e1
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.5.4":
-  version: 1.5.4
-  resolution: "@floating-ui/dom@npm:1.5.4"
+"@floating-ui/dom@npm:^1.0.0, @floating-ui/dom@npm:^1.5.4":
+  version: 1.6.1
+  resolution: "@floating-ui/dom@npm:1.6.1"
   dependencies:
-    "@floating-ui/core": "npm:^1.5.3"
-    "@floating-ui/utils": "npm:^0.2.0"
-  checksum: 3ba02ba2b4227c1e18df6ccdd029a1c100058db2e76ca1dac60a593ec72b2d4d995fa5c2d1639a5c38adb17e12398fbfe4f6cf5fd45f2ee6170ed0cf64acea06
+    "@floating-ui/core": "npm:^1.6.0"
+    "@floating-ui/utils": "npm:^0.2.1"
+  checksum: c010feb55be37662eb4cc8d0a22e21359c25247bbdcd9557617fd305cf08c8f020435b17e4b4f410201ba9abe3a0dd96b5c42d56e85f7a5e11e7d30b85afc116
   languageName: node
   linkType: hard
 
@@ -3577,7 +3610,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/utils@npm:^0.2.0":
+"@floating-ui/utils@npm:^0.2.1":
   version: 0.2.1
   resolution: "@floating-ui/utils@npm:0.2.1"
   checksum: 33c9ab346e7b05c5a1e6a95bc902aafcfc2c9d513a147e2491468843bd5607531b06d0b9aa56aa491cbf22a6c2495c18ccfc4c0344baec54a689a7bb8e4898d6
@@ -7311,6 +7344,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/docs@workspace:apps/docs"
   dependencies:
+    "@ariakit/react": "npm:^0.4.1"
     "@codesandbox/sandpack-react": "npm:^2.11.3"
     "@microsoft/api-extractor-model": "npm:^7.26.4"
     "@microsoft/tsdoc": "npm:^0.14.2"
@@ -24548,6 +24582,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: ec99e31aefeb880f6dc4d02cb19a01d123364954f857811470ece32872f70d6c3eadbe4d073770706a9b7db6136f2a9fbf1bb803e07fbb21e936a47479281690
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "use-sync-external-store@npm:1.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: a676216affc203876bd47981103f201f28c2731361bb186367e12d287a7566763213a8816910c6eb88265eccd4c230426eb783d64c373c4a180905be8820ed8e
   languageName: node
   linkType: hard
 
