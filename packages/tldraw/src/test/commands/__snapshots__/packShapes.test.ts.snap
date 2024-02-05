@@ -1,15 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`editor.packShapes packs rotated shapes: packed shapes 1`] = `
-Array [
-  Object {
+[
+  {
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
-    "meta": Object {},
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
-    "props": Object {
+    "props": {
       "align": "middle",
       "color": "black",
       "dash": "draw",
@@ -31,14 +31,14 @@ Array [
     "x": 134,
     "y": 250,
   },
-  Object {
+  {
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
-    "meta": Object {},
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
-    "props": Object {
+    "props": {
       "align": "middle",
       "color": "black",
       "dash": "draw",
@@ -60,14 +60,14 @@ Array [
     "x": 150,
     "y": 150,
   },
-  Object {
+  {
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
-    "meta": Object {},
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
-    "props": Object {
+    "props": {
       "align": "middle",
       "color": "black",
       "dash": "draw",
@@ -93,15 +93,15 @@ Array [
 `;
 
 exports[`editor.packShapes packs shapes: packed shapes 1`] = `
-Array [
-  Object {
+[
+  {
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
-    "meta": Object {},
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
-    "props": Object {
+    "props": {
       "align": "middle",
       "color": "black",
       "dash": "draw",
@@ -123,14 +123,14 @@ Array [
     "x": 84,
     "y": 200,
   },
-  Object {
+  {
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
-    "meta": Object {},
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
-    "props": Object {
+    "props": {
       "align": "middle",
       "color": "black",
       "dash": "draw",
@@ -152,14 +152,14 @@ Array [
     "x": 200,
     "y": 200,
   },
-  Object {
+  {
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
-    "meta": Object {},
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
-    "props": Object {
+    "props": {
       "align": "middle",
       "color": "black",
       "dash": "draw",

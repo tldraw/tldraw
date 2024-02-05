@@ -51,7 +51,7 @@ function exampleReadmePlugin(): PluginOption {
 
 			const result = [
 				`export const title = ${JSON.stringify(frontmatter.title)};`,
-				`export const priority = ${JSON.stringify(frontmatter.priority)};`,
+				`export const priority = ${JSON.stringify(frontmatter.priority ?? '100000')};`,
 				`export const category = ${JSON.stringify(frontmatter.category)};`,
 				`export const hide = ${JSON.stringify(frontmatter.hide)};`,
 				`export const description = ${JSON.stringify(description)};`,
@@ -83,7 +83,7 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		throw new Error(`Frontmatter key 'component' must be string in ${fileName}`)
 	}
 
-	const priority = 'priority' in data ? data.priority : null
+	const priority = 'priority' in data ? data.priority : 999999
 	if (typeof priority !== 'number') {
 		throw new Error(`Frontmatter key 'priority' must be number in ${fileName}`)
 	}

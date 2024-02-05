@@ -1,5 +1,6 @@
 import { ArticleDocsPage } from '@/components/ArticleDocsPage'
 import { CategoryDocsPage } from '@/components/CategoryDocsPage'
+import { ExampleDocsPage } from '@/components/ExampleDocsPage'
 import { SectionDocsPage } from '@/components/SectionDocsPage'
 import { getDb } from '@/utils/ContentDatabase'
 import { Metadata } from 'next'
@@ -17,7 +18,7 @@ async function getContentForPath(path: string) {
 	const article = await db.db.get(`SELECT * FROM articles WHERE articles.path = ?`, path)
 	if (article) return { type: 'article', article } as const
 
-	throw Error(`No content found for ${path}`)
+	throw notFound()
 }
 
 export async function generateMetadata({ params }: { params: { id: string | string[] } }) {
@@ -110,6 +111,9 @@ export default async function ContentPage({ params }: { params: { id: string | s
 			return <CategoryDocsPage category={content.category} />
 		}
 		case 'article': {
+			if (content.article.componentCode) {
+				return <ExampleDocsPage article={content.article} />
+			}
 			return <ArticleDocsPage article={content.article} />
 		}
 		default: {

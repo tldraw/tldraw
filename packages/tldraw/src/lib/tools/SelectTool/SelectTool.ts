@@ -5,6 +5,7 @@ import { Cropping } from './childStates/Cropping'
 import { DraggingHandle } from './childStates/DraggingHandle'
 import { EditingShape } from './childStates/EditingShape'
 import { Idle } from './childStates/Idle'
+import { PointingArrowLabel } from './childStates/PointingArrowLabel'
 import { PointingCanvas } from './childStates/PointingCanvas'
 import { PointingCropHandle } from './childStates/PointingCropHandle'
 import { PointingHandle } from './childStates/PointingHandle'
@@ -39,6 +40,7 @@ export class SelectTool extends StateNode {
 		Resizing,
 		Rotating,
 		PointingRotateHandle,
+		PointingArrowLabel,
 		PointingHandle,
 		DraggingHandle,
 	]

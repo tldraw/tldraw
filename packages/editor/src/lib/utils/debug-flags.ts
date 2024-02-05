@@ -7,9 +7,9 @@ import { Atom, atom, react } from '@tldraw/state'
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags = {
-	canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
-} satisfies Record<string, DebugFlag<boolean>>
+export const featureFlags: Record<string, DebugFlag<boolean>> = {
+	// canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
+}
 
 /** @internal */
 export const debugFlags = {
@@ -111,16 +111,16 @@ function createDebugValue<T>(
 	})
 }
 
-function createFeatureFlag(
-	name: string,
-	defaults: Defaults<boolean> = { all: true, production: false }
-) {
-	return createDebugValueBase({
-		name,
-		defaults,
-		shouldStoreForSession: true,
-	})
-}
+// function createFeatureFlag(
+// 	name: string,
+// 	defaults: Defaults<boolean> = { all: true, production: false }
+// ) {
+// 	return createDebugValueBase({
+// 		name,
+// 		defaults,
+// 		shouldStoreForSession: true,
+// 	})
+// }
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
