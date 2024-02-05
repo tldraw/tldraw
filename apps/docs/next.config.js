@@ -63,6 +63,12 @@ const nextConfig = {
 				destination: '/reference/editor/ShapeUtil',
 				permanent: true,
 			},
+			{
+				// For reverse compatibility with old links
+				source: '/gen/:slug*',
+				destination: '/reference/:slug*',
+				permanent: true,
+			},
 		]
 	},
 }

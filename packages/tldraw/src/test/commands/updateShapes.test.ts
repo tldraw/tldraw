@@ -77,7 +77,7 @@ it('Uses typescript generics', () => {
 				type: 'arrow',
 			},
 		])
-	}).toThrowError()
+	}).toThrow()
 })
 
 it('updates shapes', () => {

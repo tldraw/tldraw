@@ -221,6 +221,7 @@ const ContextMenuContent = forwardRef(function ContextMenuContent() {
 		<_ContextMenu.Portal container={container}>
 			<_ContextMenu.Content
 				className="tlui-menu scrollable"
+				data-testid="context-menu"
 				alignOffset={-4}
 				collisionPadding={4}
 				onContextMenu={preventDefault}

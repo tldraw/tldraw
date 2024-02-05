@@ -50,7 +50,7 @@
 		"@radix-ui/react-accordion": "^1.1.2",
 		"@radix-ui/react-navigation-menu": "^1.1.4",
 		"@types/broken-link-checker": "^0.7.1",
-		"@types/node": "^18.7.3",
+		"@types/node": "~20.11",
 		"@types/sqlite3": "^3.1.9",
 		"@types/ws": "^8.5.9",
 		"@vercel/analytics": "^1.1.1",

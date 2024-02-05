@@ -276,8 +276,7 @@ export class ContentDatabase {
 				// Cache the links structure for next time
 				if (sectionId === 'examples') {
 					this._sidebarExamplesContentLinks = links
-				}
-				if (sectionId === 'reference') {
+				} else if (sectionId === 'reference') {
 					this._sidebarReferenceContentLinks = links
 				} else {
 					this._sidebarContentLinks = links
