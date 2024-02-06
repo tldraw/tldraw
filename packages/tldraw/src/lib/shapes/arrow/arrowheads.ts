@@ -33,7 +33,7 @@ function getArrowPoints(
 				  : ints[0]
 	}
 
-	if (isNaN(P0.x) || isNaN(P0.y)) {
+	if (Vec.IsNaN(P0)) {
 		P0 = info.start.point
 	}
 

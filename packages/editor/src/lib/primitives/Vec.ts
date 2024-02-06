@@ -452,6 +452,10 @@ export class Vec {
 		return (A.y - B.y) / (A.x - B.x)
 	}
 
+	static IsNaN(A: VecLike): boolean {
+		return isNaN(A.x) || isNaN(A.y)
+	}
+
 	static Angle(A: VecLike, B: VecLike): number {
 		return Math.atan2(B.y - A.y, B.x - A.x)
 	}
