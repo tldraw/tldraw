@@ -9,7 +9,7 @@ DefaultColorThemePalette.lightMode.black.solid = 'aqua'
 export default function ChangingDefaultColorsExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="tldraw_example" />
+			<Tldraw persistenceKey="example" />
 		</div>
 	)
 }

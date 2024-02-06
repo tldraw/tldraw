@@ -3,7 +3,6 @@ import { getDb } from '@/utils/ContentDatabase'
 import { ArticleDetails } from './ArticleDetails'
 import { ArticleNavLinks } from './ArticleNavLinks'
 import { Breadcrumb } from './Breadcrumb'
-import ExampleCodeBlock from './ExampleCodeBlock'
 import { Header } from './Header'
 import { Mdx } from './Mdx'
 import { Sidebar } from './Sidebar'
@@ -27,25 +26,13 @@ export async function ArticleDocsPage({ article }: { article: Article }) {
 		<>
 			<Header sectionId={section.id} />
 			<Sidebar headings={headings} {...sidebar} />
-			<main
-				className={`article${isGenerated ? ' article__api-docs' : ''}${article.componentCode ? ' article__example' : ''}`}
-			>
+			<main className={`article${isGenerated ? ' article__api-docs' : ''}`}>
 				<div className="page-header">
 					<Breadcrumb section={section} category={category} />
 					<h1>{article.title}</h1>
 				</div>
 				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}
 				{article.content && <Mdx content={article.content} />}
-				{article.componentCode && (
-					<ExampleCodeBlock
-						articleId={article.id}
-						files={{
-							'App.tsx': article.componentCode,
-							...(article.componentCodeFiles ? JSON.parse(article.componentCodeFiles) : null),
-						}}
-						activeFile={'App.tsx'}
-					/>
-				)}
 				{isGenerated ? null : <ArticleDetails article={article} />}
 				{links && <ArticleNavLinks links={links} />}
 			</main>

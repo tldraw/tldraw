@@ -912,6 +912,6 @@ describe('snapshots', () => {
 
 		expect(() => {
 			store2.loadSnapshot(snapshot1)
-		}).not.toThrowError()
+		}).not.toThrow()
 	})
 })

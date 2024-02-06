@@ -9,7 +9,8 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { ExamplePage } from './ExamplePage'
 import { examples } from './examples'
-import EndToEnd from './testing/end-to-end'
+import Develop from './misc/develop'
+import EndToEnd from './misc/end-to-end'
 
 // This example is only used for end to end tests
 
@@ -20,8 +21,8 @@ setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting Started')
 if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
-const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Basic')
-if (!basicExample) throw new Error('Could not find basic example')
+const basicExample = gettingStartedExamples.value.find((e) => e.priority === 1)
+if (!basicExample) throw new Error('Could not find initial example')
 
 const router = createBrowserRouter([
 	{
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
 				),
 			}
 		},
+	},
+	{
+		path: 'develop',
+		element: <Develop />,
 	},
 	{
 		path: 'end-to-end',

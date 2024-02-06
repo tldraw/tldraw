@@ -3,9 +3,11 @@ import { AlarmScheduler } from './AlarmScheduler'
 
 jest.useFakeTimers()
 
-function makeMockAlarmScheduler<Key extends string>(alarms: {
-	[K in Key]: jest.Mock<Promise<void>, []>
-}) {
+function makeMockAlarmScheduler<Key extends string>(
+	alarms: {
+		[K in Key]: jest.Mock<Promise<void>, []>
+	}
+) {
 	const data = new Map<string, number>()
 	let scheduledAlarm: number | null = null
 
@@ -155,26 +157,26 @@ describe('AlarmScheduler', () => {
 
 		// a...
 		await advanceTime(1000)
-		expect(alarms.a).toBeCalledTimes(1)
-		expect(alarms.b).toBeCalledTimes(0)
-		expect(alarms.c).toBeCalledTimes(0)
+		expect(alarms.a).toHaveBeenCalledTimes(1)
+		expect(alarms.b).toHaveBeenCalledTimes(0)
+		expect(alarms.c).toHaveBeenCalledTimes(0)
 		// called for b, then a again to reschedule c:
 		expect(storage.setAlarm).toHaveBeenCalledTimes(3)
 		expect(storage.setAlarm).toHaveBeenLastCalledWith(1_001_500)
 
 		// ...b...
 		await advanceTime(500)
-		expect(alarms.a).toBeCalledTimes(1)
-		expect(alarms.b).toBeCalledTimes(0)
-		expect(alarms.c).toBeCalledTimes(1)
+		expect(alarms.a).toHaveBeenCalledTimes(1)
+		expect(alarms.b).toHaveBeenCalledTimes(0)
+		expect(alarms.c).toHaveBeenCalledTimes(1)
 		expect(storage.setAlarm).toHaveBeenCalledTimes(4)
 		expect(storage.setAlarm).toHaveBeenLastCalledWith(1_002_000)
 
 		// ...c
 		await advanceTime(500)
-		expect(alarms.a).toBeCalledTimes(1)
-		expect(alarms.b).toBeCalledTimes(1)
-		expect(alarms.c).toBeCalledTimes(1)
+		expect(alarms.a).toHaveBeenCalledTimes(1)
+		expect(alarms.b).toHaveBeenCalledTimes(1)
+		expect(alarms.c).toHaveBeenCalledTimes(1)
 		expect(storage.setAlarm).toHaveBeenCalledTimes(4)
 
 		// sequence should be a -> b -> c:
@@ -185,26 +187,26 @@ describe('AlarmScheduler', () => {
 
 		// a...
 		await advanceTime(1000)
-		expect(alarms.a).toBeCalledTimes(2)
-		expect(alarms.b).toBeCalledTimes(1)
-		expect(alarms.c).toBeCalledTimes(1)
+		expect(alarms.a).toHaveBeenCalledTimes(2)
+		expect(alarms.b).toHaveBeenCalledTimes(1)
+		expect(alarms.c).toHaveBeenCalledTimes(1)
 		// called for b, not needed to reschedule c:
 		expect(storage.setAlarm).toHaveBeenCalledTimes(6)
 		expect(storage.setAlarm).toHaveBeenLastCalledWith(1_004_000)
 
 		// ...b...
 		await advanceTime(1000)
-		expect(alarms.a).toBeCalledTimes(2)
-		expect(alarms.b).toBeCalledTimes(2)
-		expect(alarms.c).toBeCalledTimes(1)
+		expect(alarms.a).toHaveBeenCalledTimes(2)
+		expect(alarms.b).toHaveBeenCalledTimes(2)
+		expect(alarms.c).toHaveBeenCalledTimes(1)
 		expect(storage.setAlarm).toHaveBeenCalledTimes(7)
 		expect(storage.setAlarm).toHaveBeenLastCalledWith(1_005_000)
 
 		// ...c
 		await advanceTime(1000)
-		expect(alarms.a).toBeCalledTimes(2)
-		expect(alarms.b).toBeCalledTimes(2)
-		expect(alarms.c).toBeCalledTimes(2)
+		expect(alarms.a).toHaveBeenCalledTimes(2)
+		expect(alarms.b).toHaveBeenCalledTimes(2)
+		expect(alarms.c).toHaveBeenCalledTimes(2)
 		expect(storage.setAlarm).toHaveBeenCalledTimes(7)
 	})
 
@@ -247,7 +249,7 @@ describe('AlarmScheduler', () => {
 		})
 
 		jest.spyOn(console, 'log').mockImplementation(noop)
-		await expect(async () => advanceTime(1000)).rejects.toThrowError(
+		await expect(async () => advanceTime(1000)).rejects.toThrow(
 			'Some alarms failed to fire, scheduling retry'
 		)
 		expect(alarms.error).toHaveBeenCalledTimes(1)

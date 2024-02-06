@@ -28,15 +28,7 @@ const linkContext = createContext<{
 	sectionId: string | null
 } | null>(null)
 
-export function Sidebar({
-	headings,
-	links,
-	sectionId,
-	categoryId,
-	articleId,
-	searchQuery,
-	searchType,
-}: SidebarProps) {
+export function Sidebar({ headings, links, sectionId, categoryId, articleId }: SidebarProps) {
 	const activeId = articleId ?? categoryId ?? sectionId
 
 	const pathName = usePathname()
@@ -45,17 +37,13 @@ export function Sidebar({
 		document.body.classList.remove('sidebar-open')
 
 		document.querySelector('.sidebar__nav [data-active=true]')?.scrollIntoView({ block: 'center' })
-
-		// XXX(mime): scrolling the sidebar into position also scrolls the page to the wrong
-		// spot. this compensates for that but, ugh.
-		document.documentElement.scrollTop = 0
 	}, [pathName])
 
 	return (
 		<>
 			<linkContext.Provider value={{ activeId, articleId, categoryId, sectionId }}>
-				<div className="sidebar" onScroll={(e) => e.stopPropagation()}>
-					<Search prevQuery={searchQuery} prevType={searchType} />
+				<div className="sidebar scroll-light" onScroll={(e) => e.stopPropagation()}>
+					<Search />
 					<div className="sidebar__section__links">
 						<SectionLinks sectionId={sectionId} />
 					</div>
@@ -137,7 +125,7 @@ function SidebarCategory({
 		<li className="sidebar__category">
 			{hasGroups ? (
 				<>
-					<span className="sidebar__link">{title}</span>
+					<span className="sidebar__link sidebar__category__title">{title}</span>
 					<Accordion.Root
 						type="multiple"
 						defaultValue={[`${linkCtx?.categoryId}-${activeGroup}-${linkCtx?.articleId}`]}
@@ -148,20 +136,15 @@ function SidebarCategory({
 							)
 							if (articles.length === 0) return null
 
+							const value = `${linkCtx?.categoryId}-${group}-${linkCtx?.articleId}`
 							return (
-								<Accordion.Item
-									key={group}
-									value={`${linkCtx?.categoryId}-${group}-${linkCtx?.articleId}`}
-								>
-									<Accordion.Trigger
-										className="sidebar__section__group__title"
-										style={{ marginLeft: '8px', paddingRight: '8px' }}
-									>
+								<Accordion.Item key={value} value={value}>
+									<Accordion.Trigger className="sidebar__section__group__title">
 										{group}
 										<Chevron />
 									</Accordion.Trigger>
 									<Accordion.Content>
-										<ul className="sidebar__list sidebar__group" style={{ paddingLeft: '8px' }}>
+										<ul className="sidebar__list sidebar__group">
 											{articles.map((link) => (
 												<SidebarLink key={link.url} headings={headings} {...link} />
 											))}
@@ -174,7 +157,11 @@ function SidebarCategory({
 				</>
 			) : (
 				<>
-					<Link href={children[0].url} title={title} className="sidebar__link">
+					<Link
+						href={children[0].url}
+						title={title}
+						className="sidebar__link sidebar__category__title"
+					>
 						{title}
 					</Link>
 					<ul className="sidebar__list">
@@ -210,7 +197,7 @@ function SidebarArticle({
 						?.filter((heading) => heading.level < 4)
 						.map((heading) => (
 							<li
-								key={heading.slug}
+								key={`${heading.slug}`}
 								data-heading-level={heading.title === 'Constructor' ? 2 : heading.level}
 							>
 								<Link href={`#${heading.slug}`} title={heading.title} className="sidebar__link">
