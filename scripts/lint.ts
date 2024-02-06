@@ -4,7 +4,6 @@ import { exec } from './lib/exec'
 import { REPO_ROOT, readFileIfExists } from './lib/file'
 
 const ESLINT_EXTENSIONS = ['js', 'jsx', 'ts', 'tsx']
-const PRETTIER_EXTENSIONS = ['js', 'jsx', 'ts', 'tsx', 'json']
 
 async function main() {
 	const shouldFix = process.argv.includes('--fix')
@@ -27,18 +26,9 @@ async function main() {
 		files.push(file)
 	}
 
-	let prettierFiles = PRETTIER_EXTENSIONS.flatMap((ext) => filesByExtension.get(ext) ?? [])
 	let eslintFiles = ESLINT_EXTENSIONS.flatMap((ext) => filesByExtension.get(ext) ?? [])
 
 	const relativeCwd = path.relative(REPO_ROOT, process.cwd())
-
-	const prettierIgnoreFile = await readFileIfExists(path.join(REPO_ROOT, '.prettierignore'))
-	if (prettierIgnoreFile) {
-		prettierFiles = prettierFiles
-			.map((f) => path.join(relativeCwd, f))
-			.filter(ignore().add(prettierIgnoreFile).createFilter())
-			.map((f) => path.relative(relativeCwd, f))
-	}
 
 	const eslintIgnoreFile = await readFileIfExists(path.join(REPO_ROOT, '.eslintignore'))
 	if (eslintIgnoreFile) {
@@ -49,14 +39,6 @@ async function main() {
 	}
 
 	try {
-		await exec('yarn', [
-			'run',
-			'-T',
-			'prettier',
-			shouldFix ? '--write' : '--check',
-			'--cache',
-			...prettierFiles,
-		])
 		await exec('yarn', [
 			'run',
 			'-T',
