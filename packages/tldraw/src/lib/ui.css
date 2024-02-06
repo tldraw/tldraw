@@ -333,17 +333,17 @@
 	text-align: center;
 }
 
+.tlui-button__tool__mobile {
+	height: 48px;
+	width: 44px;
+}
+
+.tlui-button__tool__mobile > .tlui-icon {
+	height: 16px;
+	width: 16px;
+}
+
 @media (max-width: 640px) {
-	.tlui-button__tool {
-		height: 48px;
-		width: 44px;
-	}
-
-	.tlui-button__tool > .tlui-icon {
-		height: 16px;
-		width: 16px;
-	}
-
 	.tlui-kbd {
 		visibility: hidden;
 	}
