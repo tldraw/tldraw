@@ -344,10 +344,6 @@
 }
 
 @media (max-width: 640px) {
-	.tlui-kbd {
-		visibility: hidden;
-	}
-
 	.tlui-menu__group .tlui-button__icon-left {
 		display: none;
 	}
