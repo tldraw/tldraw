@@ -343,12 +343,6 @@
 	width: 16px;
 }
 
-@media (max-width: 640px) {
-	.tlui-menu__group .tlui-button__icon-left {
-		display: none;
-	}
-}
-
 /* --------------------- Layout --------------------- */
 
 .tlui-layout {
