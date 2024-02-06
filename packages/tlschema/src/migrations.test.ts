@@ -1055,7 +1055,7 @@ describe('user config refactor', () => {
 		// it cannot be added back so it should add some meaningless id in there
 		// in practice, because we bumped the store version, this down migrator will never be used
 		expect(down(next)).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "id": "instance:123",
 		  "typeName": "instance",
 		  "userId": "user:none",
@@ -1104,11 +1104,11 @@ describe('making instance state independent', () => {
 		expect(up(prev)).toEqual(next)
 		// down should never be called
 		expect(down(next)).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "cameraId": "camera:void",
 		  "id": "instance_page_state:123",
 		  "instanceId": "instance:instance",
-		  "selectedShapeIds": Array [],
+		  "selectedShapeIds": [],
 		  "typeName": "instance_page_state",
 		}
 	`)
@@ -1135,10 +1135,10 @@ describe('making instance state independent', () => {
 
 		// down should never be called
 		expect(down(next)).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "id": "instance_presence:123",
 		  "instanceId": "instance:instance",
-		  "selectedShapeIds": Array [],
+		  "selectedShapeIds": [],
 		  "typeName": "instance_presence",
 		}
 	`)
@@ -1771,6 +1771,32 @@ describe('add isPrecise to arrow handles', () => {
 	})
 })
 
+describe('add AddLabelPosition to arrow handles', () => {
+	const { up, down } = arrowShapeMigrations.migrators[ArrowMigrationVersions.AddLabelPosition]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: { labelPosition: 0.5 },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					labelPosition: 0.5,
+				},
+			})
+		).toEqual({
+			props: {},
+		})
+	})
+})
+
 const invalidUrl = 'invalid-url'
 const validUrl = ''
 
@@ -1806,6 +1832,16 @@ describe('Make urls valid for all the assets', () => {
 			expect(down(asset)).toEqual(asset)
 		})
 	}
+})
+
+describe('Add duplicate props to instance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddDuplicateProps]
+	it('up works as expected', () => {
+		expect(up({})).toEqual({ duplicateProps: null })
+	})
+	it('down works as expected', () => {
+		expect(down({ duplicateProps: null })).toEqual({})
+	})
 })
 
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */

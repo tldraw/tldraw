@@ -1,7 +1,7 @@
 ---
 title: Persistence
 component: ./PersistenceExample.tsx
-order: 5
+category: data/assets
 ---
 
 Save the contents of the editor

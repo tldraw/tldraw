@@ -51,8 +51,15 @@ export const PeopleMenu = track(function PeopleMenu({
 					</div>
 				</button>
 			</Popover.Trigger>
-			<Popover.Portal dir="ltr" container={container}>
-				<Popover.Content dir="ltr" className="tlui-menu" align="end" side="bottom" sideOffset={6}>
+			<Popover.Portal container={container}>
+				<Popover.Content
+					dir="ltr"
+					className="tlui-menu"
+					align="end"
+					side="bottom"
+					sideOffset={2}
+					alignOffset={-5}
+				>
 					<div className="tlui-people-menu__wrapper">
 						<div className="tlui-people-menu__section">
 							<UserPresenceEditor />

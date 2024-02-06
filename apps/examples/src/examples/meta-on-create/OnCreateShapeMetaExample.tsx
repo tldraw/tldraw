@@ -7,7 +7,7 @@ export default function OnCreateShapeMetaExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				persistenceKey="tldraw_example"
+				persistenceKey="example"
 				onMount={(editor) => {
 					//[1]
 					editor.getInitialMetaForShape = (_shape) => {
@@ -35,7 +35,7 @@ export const MetaUiHelper = track(function MetaUiHelper() {
 	return (
 		<pre style={{ position: 'absolute', zIndex: 300, top: 64, left: 12, margin: 0 }}>
 			{onlySelectedShape
-				? JSON.stringify(onlySelectedShape.meta, null, 2)
+				? JSON.stringify(onlySelectedShape.meta, null, '\t')
 				: 'Select one shape to see its meta data.'}
 		</pre>
 	)

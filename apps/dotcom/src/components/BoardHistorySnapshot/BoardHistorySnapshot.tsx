@@ -38,7 +38,7 @@ export function BoardHistorySnapshot({
 				...(token
 					? {
 							Authorization: 'Bearer ' + token,
-						}
+					  }
 					: {}),
 			},
 			body: JSON.stringify({ timestamp }),

@@ -1,26 +1,18 @@
 import * as Popover from '@radix-ui/react-popover'
-import {
-	Button,
-	useActions,
-	useBreakpoint,
-	useContainer,
-	useEditor,
-	useTranslation,
-} from '@tldraw/tldraw'
+import { Button, useActions, useContainer, useEditor, useTranslation } from '@tldraw/tldraw'
 import React, { useState } from 'react'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
 import { getSaveFileCopyAction } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { ShareButton } from './ShareButton'
 
 export const ExportMenu = React.memo(function ExportMenu() {
 	const { [SHARE_PROJECT_ACTION]: shareProject, [SHARE_SNAPSHOT_ACTION]: shareSnapshot } =
 		useActions()
 	const container = useContainer()
 	const msg = useTranslation()
-	const breakpoint = useBreakpoint()
 	const handleUiEvent = useHandleUiEvents()
-	const showIcon = breakpoint < 5
 	const editor = useEditor()
 	const saveFileCopyAction = getSaveFileCopyAction(editor, handleUiEvent)
 	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
@@ -31,15 +23,9 @@ export const ExportMenu = React.memo(function ExportMenu() {
 	return (
 		<Popover.Root open={isOpen} onOpenChange={onOpenChange}>
 			<Popover.Trigger dir="ltr" asChild>
-				<Button
-					type="normal"
-					className="tlui-share-zone__button"
-					title={msg('share-menu.title')}
-					label={showIcon ? undefined : 'share-menu.title'}
-					icon={showIcon ? 'collab' : undefined}
-				/>
+				<ShareButton title={'share-menu.title'} label={'share-menu.title'} />
 			</Popover.Trigger>
-			<Popover.Portal dir="ltr" container={container}>
+			<Popover.Portal container={container}>
 				<Popover.Content
 					dir="ltr"
 					className="tlui-menu tlui-share-zone__popover"

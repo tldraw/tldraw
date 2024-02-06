@@ -109,7 +109,9 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 		}
 	}
 
-	const u = Vec.Sub(b, a).uni()
+	const distance = Vec.Sub(b, a)
+	// Check for divide-by-zero before we call uni()
+	const u = Vec.Len(distance) ? distance.uni() : Vec.From(distance)
 	const didFlip = !Vec.Equals(u, uAB)
 
 	// If the arrow is bound non-exact to a start shape and the

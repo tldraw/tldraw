@@ -101,8 +101,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
 
-			if (e.ctrlKey || e.metaKey) stopEventPropagation(e)
-
 			switch (e.key) {
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {

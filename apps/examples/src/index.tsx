@@ -8,9 +8,9 @@ import {
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { ExamplePage } from './ExamplePage'
-import { HomePage } from './HomePage'
 import { examples } from './examples'
-import EndToEnd from './testing/end-to-end'
+import Develop from './misc/develop'
+import EndToEnd from './misc/end-to-end'
 
 // This example is only used for end to end tests
 
@@ -19,42 +19,64 @@ import EndToEnd from './testing/end-to-end'
 const assetUrls = getAssetUrlsByMetaUrl()
 setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
+const gettingStartedExamples = examples.find((e) => e.id === 'Getting Started')
+if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
+const basicExample = gettingStartedExamples.value.find((e) => e.priority === 1)
+if (!basicExample) throw new Error('Could not find initial example')
 
 const router = createBrowserRouter([
 	{
+		path: '*',
+		element: <div>404</div>,
+	},
+	{
 		path: '/',
-		element: <HomePage />,
+		lazy: async () => {
+			const Component = await basicExample.loadComponent()
+			return {
+				element: (
+					<ExamplePage example={basicExample}>
+						<Component />
+					</ExamplePage>
+				),
+			}
+		},
+	},
+	{
+		path: 'develop',
+		element: <Develop />,
 	},
 	{
 		path: 'end-to-end',
 		element: <EndToEnd />,
 	},
-	...examples.flatMap((example) => [
-		{
-			path: example.path,
-			lazy: async () => {
-				const Component = await example.loadComponent()
-				return {
-					element: (
-						<ExamplePage example={example}>
-							<Component />
-						</ExamplePage>
-					),
-				}
+	...examples.flatMap((exampleArray) =>
+		exampleArray.value.flatMap((example) => [
+			{
+				path: example.path,
+				lazy: async () => {
+					const Component = await example.loadComponent()
+					return {
+						element: (
+							<ExamplePage example={example}>
+								<Component />
+							</ExamplePage>
+						),
+					}
+				},
 			},
-		},
-		{
-			path: `${example.path}/full`,
-			lazy: async () => {
-				const Component = await example.loadComponent()
-				return {
-					element: <Component />,
-				}
+			{
+				path: `${example.path}/full`,
+				lazy: async () => {
+					const Component = await example.loadComponent()
+					return {
+						element: <Component />,
+					}
+				},
 			},
-		},
-	]),
+		])
+	),
 ])
-
 document.addEventListener('DOMContentLoaded', () => {
 	const rootElement = document.getElementById('root')!
 	const root = createRoot(rootElement!)

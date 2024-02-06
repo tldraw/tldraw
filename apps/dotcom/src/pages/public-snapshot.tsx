@@ -10,7 +10,7 @@ const { loader, useData } = defineLoader(async (args) => {
 		? ((await result.json()) as {
 				schema: SerializedSchema
 				records: TLRecord[]
-			})
+		  })
 		: null
 })
 

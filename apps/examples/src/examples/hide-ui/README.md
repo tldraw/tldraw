@@ -1,6 +1,7 @@
 ---
 title: Hide UI
 component: ./HideUiExample.tsx
+category: ui
 ---
 
 Hide tldraw's UI with the `hideUi` prop.

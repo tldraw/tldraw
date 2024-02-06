@@ -8,8 +8,7 @@ import { Atom, atom, react } from '@tldraw/state'
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
 export const featureFlags: Record<string, DebugFlag<boolean>> = {
-	// todo: remove this. it's not used, but we only have one feature flag and i
-	// wanted an example :(
+	// canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
 }
 
 /** @internal */
@@ -37,6 +36,9 @@ export const debugFlags = {
 		defaults: { all: false },
 	}),
 	debugSvg: createDebugValue('debugSvg', {
+		defaults: { all: false },
+	}),
+	showFps: createDebugValue('showFps', {
 		defaults: { all: false },
 	}),
 	throwToBlob: createDebugValue('throwToBlob', {

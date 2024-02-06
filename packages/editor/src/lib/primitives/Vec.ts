@@ -302,6 +302,9 @@ export class Vec {
 		return new Vec(-A.x, -A.y)
 	}
 
+	/**
+	 * Get the perpendicular vector to A.
+	 */
 	static Per(A: VecLike): Vec {
 		return new Vec(A.y, -A.x)
 	}
@@ -318,6 +321,9 @@ export class Vec {
 		return Math.hypot(A.y - B.y, A.x - B.x)
 	}
 
+	/**
+	 * Dot product of two vectors which is used to calculate the angle between them.
+	 */
 	static Dpr(A: VecLike, B: VecLike): number {
 		return A.x * B.x + A.y * B.y
 	}
@@ -330,6 +336,9 @@ export class Vec {
 		)
 	}
 
+	/**
+	 * Cross product of two vectors which is used to calculate the area of a parallelogram.
+	 */
 	static Cpr(A: VecLike, B: VecLike) {
 		return A.x * B.y - B.x * A.y
 	}
@@ -342,10 +351,16 @@ export class Vec {
 		return Math.hypot(A.x, A.y)
 	}
 
+	/**
+	 * Get the projection of A onto B.
+	 */
 	static Pry(A: VecLike, B: VecLike): number {
 		return Vec.Dpr(A, B) / Vec.Len(B)
 	}
 
+	/**
+	 * Get the unit vector of A.
+	 */
 	static Uni(A: VecLike) {
 		return Vec.Div(A, Vec.Len(A))
 	}
@@ -441,6 +456,13 @@ export class Vec {
 		return Math.atan2(B.y - A.y, B.x - A.x)
 	}
 
+	/**
+	 * Linearly interpolate between two points.
+	 * @param A - The first point.
+	 * @param B - The second point.
+	 * @param t - The interpolation value between 0 and 1.
+	 * @returns The interpolated point.
+	 */
 	static Lrp(A: VecLike, B: VecLike, t: number): Vec {
 		return Vec.Sub(B, A).mul(t).add(A)
 	}

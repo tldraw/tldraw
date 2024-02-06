@@ -7,22 +7,32 @@ export type Example = {
 	path: string
 	codeUrl: string
 	hide: boolean
-	order: number | null
+	category: Category
+	priority: number
 	componentFile: string
 	loadComponent: () => Promise<ComponentType>
 }
 
-export const examples = (
-	Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[]
-).sort((a, b) => {
-	// sort by order then title:
-	if (a.order === b.order) {
-		return a.title.localeCompare(b.title)
-	} else if (a.order === null) {
-		return 1
-	} else if (b.order === null) {
-		return -1
-	} else {
-		return a.order - b.order
-	}
-})
+type Category = 'basic' | 'editor-api' | 'ui' | 'collaboration' | 'data/assets' | 'shapes/tools'
+
+const getExamplesForCategory = (category: Category) =>
+	(Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[])
+		.filter((e) => e.category === category)
+		.sort((a, b) => {
+			if (a.priority === b.priority) return a.title.localeCompare(b.title)
+			return a.priority - b.priority
+		})
+
+const categories: Record<Category, string> = {
+	basic: 'Getting Started',
+	ui: 'UI/Theming',
+	'shapes/tools': 'Shapes & Tools',
+	'data/assets': 'Data & Assets',
+	'editor-api': 'Editor API',
+	collaboration: 'Collaboration',
+}
+
+export const examples = Object.entries(categories).map(([category, title]) => ({
+	id: title,
+	value: getExamplesForCategory(category as Category),
+}))

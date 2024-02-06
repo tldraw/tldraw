@@ -10,7 +10,6 @@ export function LocalMigration() {
 
 	useEffect(() => {
 		let didCancel = false
-
 		;(async () => {
 			if (!isEditorEmpty(editor)) return
 

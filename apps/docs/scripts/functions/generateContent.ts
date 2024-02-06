@@ -13,7 +13,7 @@ export async function generateContent() {
 	}
 
 	for (let i = 0; i < sections.length; i++) {
-		if (sections[i].id === 'gen') continue
+		if (sections[i].id === 'reference') continue
 		result.sections.push(generateSection(sections[i], result.articles, i))
 	}
 

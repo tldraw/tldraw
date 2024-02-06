@@ -4,7 +4,6 @@ import { ArticleDetails } from './ArticleDetails'
 import { ArticleNavLinks } from './ArticleNavLinks'
 import { Breadcrumb } from './Breadcrumb'
 import { Header } from './Header'
-import { HeadingLinks } from './HeadingLinks'
 import { Mdx } from './Mdx'
 import { Sidebar } from './Sidebar'
 import { Image } from './mdx-components/generic'
@@ -21,12 +20,12 @@ export async function ArticleDocsPage({ article }: { article: Article }) {
 		articleId: article.id,
 	})
 
-	const isGenerated = article.sectionId === 'gen'
+	const isGenerated = article.sectionId === 'reference'
 
 	return (
 		<>
-			<Header activeId={article.id} />
-			<Sidebar {...sidebar} />
+			<Header sectionId={section.id} />
+			<Sidebar headings={headings} {...sidebar} />
 			<main className={`article${isGenerated ? ' article__api-docs' : ''}`}>
 				<div className="page-header">
 					<Breadcrumb section={section} category={category} />
@@ -37,7 +36,6 @@ export async function ArticleDocsPage({ article }: { article: Article }) {
 				{isGenerated ? null : <ArticleDetails article={article} />}
 				{links && <ArticleNavLinks links={links} />}
 			</main>
-			{headings.length > 0 ? <HeadingLinks article={article} headingLinks={headings} /> : null}
 		</>
 	)
 }

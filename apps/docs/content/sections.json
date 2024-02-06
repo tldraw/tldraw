@@ -1,14 +1,14 @@
 [
 	{
 		"id": "getting-started",
-		"title": "Getting Started",
+		"title": "Get Started",
 		"description": "Introduction articles for tldraw.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
 	},
 	{
 		"id": "docs",
-		"title": "Documentation",
+		"title": "Learn tldraw",
 		"description": "Developer documentation for tldraw.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
@@ -18,10 +18,10 @@
 		"title": "Community",
 		"description": "Guides for contributing to tldraw's open source project.",
 		"categories": [],
-		"sidebar_behavior": "show-links"
+		"sidebar_behavior": "hidden"
 	},
 	{
-		"id": "gen",
+		"id": "reference",
 		"title": "API Reference",
 		"description": "Reference for the tldraw package's APIs (generated).",
 		"categories": [
@@ -30,10 +30,6 @@
 				"title": "@tldraw/editor",
 				"description": "",
 				"groups": [
-					{
-						"id": "Namespace",
-						"path": null
-					},
 					{
 						"id": "Class",
 						"path": null
@@ -56,6 +52,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]
@@ -66,10 +66,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -91,6 +87,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]
@@ -101,10 +101,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -126,6 +122,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]
@@ -136,10 +136,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -161,6 +157,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]
@@ -171,10 +171,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -197,10 +193,14 @@
 					{
 						"id": "TypeAlias",
 						"path": null
+					},
+					{
+						"id": "Namespace",
+						"path": null
 					}
 				]
 			}
 		],
-		"sidebar_behavior": "show-title"
+		"sidebar_behavior": "reference"
 	}
 ]

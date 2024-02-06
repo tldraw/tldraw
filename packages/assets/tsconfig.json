@@ -1,6 +1,13 @@
 {
 	"extends": "../../config/tsconfig.base.json",
-	"include": ["urls.js", "imports.js", "selfHosted.js", "utils.js", "modules.d.ts"],
+	"include": [
+		"urls.js",
+		"imports.js",
+		"imports.vite.js",
+		"selfHosted.js",
+		"utils.js",
+		"modules.d.ts"
+	],
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",

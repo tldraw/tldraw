@@ -76,7 +76,7 @@ export class ContentVectorDatabase {
 		// This is the content that we'll create the embedding for
 		let contentToVectorize: string
 
-		if (article.sectionId === 'gen') {
+		if (article.sectionId === 'reference') {
 			// For API docs, we'll just use the title, description, and members as the content.
 			// We'll also add a note that the content was generated from the API docs, hopefully
 			// so that the embedding better reflects searches for api docs.
@@ -217,8 +217,8 @@ export async function getVectorDb(
 			INCLUDE_API_CONTENT && INCLUDE_CONTENT
 				? await db.all('SELECT * FROM articles')
 				: INCLUDE_API_CONTENT
-					? await db.all('SELECT * FROM articles WHERE articles.sectionId = ?', 'gen')
-					: await db.all('SELECT * FROM articles WHERE articles.sectionId != ?', 'gen')
+				  ? await db.all('SELECT * FROM articles WHERE articles.sectionId = ?', 'reference')
+				  : await db.all('SELECT * FROM articles WHERE articles.sectionId != ?', 'reference')
 
 		nicelog(`Adding articles to index`)
 		const max = Math.min(articles.length, MAX_ARTICLES)

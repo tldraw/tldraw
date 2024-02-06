@@ -2,7 +2,6 @@
 	"name": "@tldraw/tlschema",
 	"description": "A tiny little drawing app (schema).",
 	"version": "2.0.0-beta.2",
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -32,9 +31,9 @@
 	"files": [],
 	"scripts": {
 		"test": "lazy inherit",
+		"test-dev": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit",
 		"index": "node ./scripts/build-index.js && yarn format",
-		"format": "yarn run -T prettier --write --cache \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
@@ -61,5 +60,8 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"nanoid": "4.0.2"
+	},
+	"peerDependencies": {
+		"react": "^18"
 	}
 }

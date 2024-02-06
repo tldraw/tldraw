@@ -3,7 +3,6 @@
 	"description": "A tiny little drawing app (multiplayer sync).",
 	"version": "2.0.0-alpha.11",
 	"private": true,
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -33,12 +32,13 @@
 	"files": [],
 	"scripts": {
 		"test": "lazy inherit",
+		"test-dev": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@tldraw/tldraw": "workspace:*",
-		"typescript": "^5.0.2",
+		"typescript": "^5.2.2",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2"
 	},
@@ -64,5 +64,9 @@
 		"nanoevents": "^7.0.1",
 		"nanoid": "4.0.2",
 		"ws": "^8.16.0"
+	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
 	}
 }

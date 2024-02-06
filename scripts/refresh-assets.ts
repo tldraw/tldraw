@@ -215,9 +215,12 @@ async function copyTranslations() {
 	// languages.ts
 
 	const languagesSource = await readJsonIfExists(join(sourceFolderPath, 'languages.json'))!
+	type Language = { label: string; locale: string }
 	const languagesFile = `
 		/** @public */
-		export const LANGUAGES = ${JSON.stringify(languagesSource)} as const
+		export const LANGUAGES = ${JSON.stringify(
+			languagesSource.sort((a: Language, b: Language) => a.label.localeCompare(b.label))
+		)} as const
 	`
 	const schemaPath = join(REPO_ROOT, 'packages', 'tlschema', 'src', 'translations')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
@@ -298,7 +301,10 @@ async function writeUrlBasedAssetDeclarationFile() {
 	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
 }
 
-async function writeImportBasedAssetDeclarationFile(): Promise<void> {
+async function writeImportBasedAssetDeclarationFile(
+	importSuffix: string,
+	fileName: string
+): Promise<void> {
 	let imports = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
@@ -322,7 +328,7 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 				.replace(/[^a-zA-Z0-9_]/g, '_')
 				.replace(/_+/g, '_')
 				.replace(/_(.)/g, (_, letter) => letter.toUpperCase())
-			imports += `import ${variableName} from ${JSON.stringify('./' + href)};\n`
+			imports += `import ${variableName} from ${JSON.stringify('./' + href + importSuffix)};\n`
 			declarations += `${JSON.stringify(name)}: formatAssetUrl(${variableName}, opts),\n`
 		}
 		declarations += '},\n'
@@ -333,7 +339,7 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 		}
 	`
 
-	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'imports.js')
+	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', fileName)
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'javascript',
@@ -408,7 +414,8 @@ async function main() {
 	nicelog('Writing asset declaration file...')
 	await writeAssetDeclarationDTSFile()
 	await writeUrlBasedAssetDeclarationFile()
-	await writeImportBasedAssetDeclarationFile()
+	await writeImportBasedAssetDeclarationFile('', 'imports.js')
+	await writeImportBasedAssetDeclarationFile('?url', 'imports.vite.js')
 	await writeSelfHostedAssetDeclarationFile()
 	nicelog('Done!')
 }

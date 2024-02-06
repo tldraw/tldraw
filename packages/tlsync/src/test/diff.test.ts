@@ -16,13 +16,13 @@ describe('nested arrays', () => {
 		}
 
 		expect(diffRecord(a, b)).toMatchInlineSnapshot(`
-		Object {
-		  "arr": Array [
+		{
+		  "arr": [
 		    "patch",
-		    Object {
-		      "1": Array [
+		    {
+		      "1": [
 		        "append",
-		        Array [
+		        [
 		          7,
 		          8,
 		        ],
@@ -49,13 +49,13 @@ describe('nested arrays', () => {
 		}
 
 		expect(diffRecord(a, b)).toMatchInlineSnapshot(`
-		Object {
-		  "arr": Array [
+		{
+		  "arr": [
 		    "patch",
-		    Object {
-		      "0": Array [
+		    {
+		      "0": [
 		        "append",
-		        Array [
+		        [
 		          4,
 		          5,
 		          6,
@@ -85,14 +85,14 @@ describe('objects inside arrays', () => {
 		}
 
 		expect(diffRecord(a, b)).toMatchInlineSnapshot(`
-		      Object {
-		        "arr": Array [
+		      {
+		        "arr": [
 		          "patch",
-		          Object {
-		            "1": Array [
+		          {
+		            "1": [
 		              "patch",
-		              Object {
-		                "c": Array [
+		              {
+		                "c": [
 		                  "put",
 		                  7,
 		                ],
@@ -119,16 +119,16 @@ describe('objects inside arrays', () => {
 		}
 
 		expect(diffRecord(a, b)).toMatchInlineSnapshot(`
-		Object {
-		  "arr": Array [
+		{
+		  "arr": [
 		    "put",
-		    Array [
-		      Object {
+		    [
+		      {
 		        "a": 1,
 		        "b": 2,
 		        "c": 5,
 		      },
-		      Object {
+		      {
 		        "a": 4,
 		        "b": 5,
 		        "c": 7,
@@ -153,8 +153,8 @@ test('deleting things from a record', () => {
 
 	const patch = diffRecord(a, b)
 	expect(patch).toMatchInlineSnapshot(`
-		Object {
-		  "c": Array [
+		{
+		  "c": [
 		    "delete",
 		  ],
 		}
@@ -177,8 +177,8 @@ test('adding things things to a record', () => {
 	const patch = diffRecord(a, b)
 
 	expect(patch).toMatchInlineSnapshot(`
-		Object {
-		  "c": Array [
+		{
+		  "c": [
 		    "put",
 		    3,
 		  ],

@@ -40,10 +40,11 @@ async function build() {
 					},
 					// serve static files
 					{
-						handle: 'filesystem',
+						handle: 'miss',
 					},
 					// finally handle SPA routing
 					{
+						check: true,
 						src: '.*',
 						dest: '/index.html',
 					},

@@ -169,6 +169,7 @@ export class DraggingHandle extends StateNode {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clear()
+
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
@@ -266,7 +267,7 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		const changes = util.onHandleChange?.(shape, {
+		const changes = util.onHandleDrag?.(shape, {
 			handle: {
 				...initialHandle,
 				x: point.x,

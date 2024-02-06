@@ -1,7 +1,8 @@
 ---
-title: Editor API
+title: Controlling the Editor
 component: ./APIExample.tsx
-order: 2
+category: editor-api
+priority: 1
 ---
 
 Manipulate the contents of the canvas using the editor API.
