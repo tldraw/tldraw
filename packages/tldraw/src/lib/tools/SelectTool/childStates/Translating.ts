@@ -325,9 +325,7 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	let initialSnapPoints: BoundsSnapPoint[] = []
 	if (editor.getSelectedShapeIds().length === 1) {
-		initialSnapPoints = editor.snaps.shapeBounds
-			.getSnapPointsCache()
-			.get(editor.getSelectedShapeIds()[0])!
+		initialSnapPoints = editor.snaps.shapeBounds.getSnapPoints(editor.getSelectedShapeIds()[0])!
 	} else {
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		if (selectionPageBounds) {

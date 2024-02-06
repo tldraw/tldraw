@@ -185,7 +185,7 @@ export class BoundsSnaps {
 		this.editor = manager.editor
 	}
 
-	@computed getSnapPointsCache() {
+	@computed private getSnapPointsCache() {
 		const { editor } = this
 		return editor.store.createComputedCache<BoundsSnapPoint[], TLShape>('snapPoints', (shape) => {
 			const pageTransfrorm = editor.getShapePageTransform(shape.id)
@@ -198,8 +198,12 @@ export class BoundsSnaps {
 		})
 	}
 
+	getSnapPoints(shapeId: TLShapeId) {
+		return this.getSnapPointsCache().get(shapeId) ?? []
+	}
+
 	// Points which belong to snappable shapes
-	@computed getSnappablePoints() {
+	@computed private getSnappablePoints() {
 		const snapPointsCache = this.getSnapPointsCache()
 		const snappableShapes = this.manager.getSnappableShapes()
 		const result: BoundsSnapPoint[] = []
@@ -214,14 +218,14 @@ export class BoundsSnaps {
 		return result
 	}
 
-	@computed getSnappableGapNodes(): Array<GapNode> {
+	@computed private getSnappableGapNodes(): Array<GapNode> {
 		return Array.from(this.manager.getSnappableShapes(), (shapeId) => ({
 			id: shapeId,
 			pageBounds: assertExists(this.editor.getShapePageBounds(shapeId)),
 		}))
 	}
 
-	@computed getVisibleGaps(): { horizontal: Gap[]; vertical: Gap[] } {
+	@computed private getVisibleGaps(): { horizontal: Gap[]; vertical: Gap[] } {
 		const horizontal: Gap[] = []
 		const vertical: Gap[] = []
 
