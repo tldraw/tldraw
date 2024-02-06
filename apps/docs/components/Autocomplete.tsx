@@ -11,7 +11,7 @@ import {
 import { ComponentType, ForwardedRef, forwardRef, startTransition, useState } from 'react'
 import './Autocomplete.css'
 import { Icon } from './Icon'
-import Spinner from './Spinner'
+import { Spinner } from './Spinner'
 
 export type DropdownOption = {
 	label: string
@@ -59,10 +59,10 @@ const Autocomplete = forwardRef(function Autocomplete(
 		if (filteredOptions.length === 0) return null
 
 		return (
-			<ComboboxGroup>
+			<ComboboxGroup key={group}>
 				{groupsToLabel?.[group] && (
-					<ComboboxGroupLabel className="autocomplete__group">
-						{groupsToLabel?.[group]}
+					<ComboboxGroupLabel key={`${group}-group`} className="autocomplete__group">
+						{groupsToLabel[group]}
 					</ComboboxGroupLabel>
 				)}
 				{filteredOptions.map(({ label, value }) => {
@@ -98,21 +98,14 @@ const Autocomplete = forwardRef(function Autocomplete(
 					<Icon className="autocomplete__icon" icon="search" small />
 				)}
 
-				<Combobox
-					autoSelect
-					placeholder="Search…"
-					ref={ref}
-					className="autocomplete__input"
-					value={value}
-				/>
+				<Combobox placeholder="Search…" ref={ref} className="autocomplete__input" value={value} />
 
 				{value && <ComboboxCancel className="autocomplete__cancel" />}
 
-				{value && (
-					<ComboboxPopover className="autocomplete__popover">
+				{value && options.length !== 0 && (
+					<ComboboxPopover sameWidth className="autocomplete__popover">
 						{customUI}
-						{options.length === 0 && <span>No results found.</span>}
-						{options.length !== 0 && renderedGroups}
+						{renderedGroups}
 					</ComboboxPopover>
 				)}
 			</div>
@@ -120,4 +113,4 @@ const Autocomplete = forwardRef(function Autocomplete(
 	)
 })
 
-export default Autocomplete
+export { Autocomplete }

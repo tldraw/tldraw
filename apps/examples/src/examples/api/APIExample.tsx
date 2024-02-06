@@ -97,7 +97,6 @@ const InsideOfEditorContext = () => {
 	return null
 }
 
-
 /* 
 Introduction: 
 

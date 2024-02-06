@@ -58,9 +58,11 @@ export function deepCopy<T = unknown>(obj: T): T {
  *
  * @internal
  */
-export function objectMapKeys<Key extends string>(object: {
-	readonly [K in Key]: unknown
-}): Array<Key> {
+export function objectMapKeys<Key extends string>(
+	object: {
+		readonly [K in Key]: unknown
+	}
+): Array<Key> {
 	return Object.keys(object) as Key[]
 }
 
@@ -70,9 +72,11 @@ export function objectMapKeys<Key extends string>(object: {
  *
  * @internal
  */
-export function objectMapValues<Key extends string, Value>(object: {
-	[K in Key]: Value
-}): Array<Value> {
+export function objectMapValues<Key extends string, Value>(
+	object: {
+		[K in Key]: Value
+	}
+): Array<Value> {
 	return Object.values(object) as Value[]
 }
 
@@ -82,9 +86,11 @@ export function objectMapValues<Key extends string, Value>(object: {
  *
  * @internal
  */
-export function objectMapEntries<Key extends string, Value>(object: {
-	[K in Key]: Value
-}): Array<[Key, Value]> {
+export function objectMapEntries<Key extends string, Value>(
+	object: {
+		[K in Key]: Value
+	}
+): Array<[Key, Value]> {
 	return Object.entries(object) as [Key, Value][]
 }
 

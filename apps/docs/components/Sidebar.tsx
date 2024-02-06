@@ -136,20 +136,15 @@ function SidebarCategory({
 							)
 							if (articles.length === 0) return null
 
+							const value = `${linkCtx?.categoryId}-${group}-${linkCtx?.articleId}`
 							return (
-								<Accordion.Item
-									key={group}
-									value={`${linkCtx?.categoryId}-${group}-${linkCtx?.articleId}`}
-								>
-									<Accordion.Trigger
-										className="sidebar__section__group__title"
-										style={{ marginLeft: '8px', paddingRight: '8px' }}
-									>
+								<Accordion.Item key={value} value={value}>
+									<Accordion.Trigger className="sidebar__section__group__title">
 										{group}
 										<Chevron />
 									</Accordion.Trigger>
 									<Accordion.Content>
-										<ul className="sidebar__list sidebar__group" style={{ paddingLeft: '8px' }}>
+										<ul className="sidebar__list sidebar__group">
 											{articles.map((link) => (
 												<SidebarLink key={link.url} headings={headings} {...link} />
 											))}
@@ -202,7 +197,7 @@ function SidebarArticle({
 						?.filter((heading) => heading.level < 4)
 						.map((heading) => (
 							<li
-								key={heading.slug}
+								key={`${heading.slug}`}
 								data-heading-level={heading.title === 'Constructor' ? 2 : heading.level}
 							>
 								<Link href={`#${heading.slug}`} title={heading.title} className="sidebar__link">

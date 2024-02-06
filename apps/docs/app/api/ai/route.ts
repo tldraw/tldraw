@@ -1,8 +1,8 @@
 import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
+import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '@/utils/search-api'
 import assert from 'assert'
 import { NextRequest } from 'next/server'
-import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '@/utils/search-api'
 
 type Data = {
 	results: {
@@ -42,36 +42,44 @@ export async function GET(req: NextRequest) {
 		const queryResults = await vdb.query(query, 25)
 		queryResults.sort((a, b) => b.score - a.score)
 
-		const headings = await Promise.all(
-			queryResults.map(async (result) => {
-				if (result.type !== 'heading') return // bleg
+		const headings = (
+			await Promise.all(
+				queryResults.map(async (result) => {
+					try {
+						if (result.type !== 'heading') return // bleg
 
-				const article = await db.db.get(
-					`SELECT id, title, description, categoryId, sectionId, keywords FROM articles WHERE id = ?`,
-					result.id
-				)
-				assert(article, `No article found for heading ${result.id}`)
-				const category = await db.db.get(
-					`SELECT id, title FROM categories WHERE id = ?`,
-					article.categoryId
-				)
-				const section = await db.db.get(
-					`SELECT id, title FROM sections WHERE id = ?`,
-					article.sectionId
-				)
-				const heading = await db.db.get(`SELECT * FROM headings WHERE slug = ?`, result.slug)
-				assert(heading, `No heading found for ${result.id} ${result.slug}`)
+						const article = await db.db.get(
+							`SELECT id, title, description, categoryId, sectionId, keywords FROM articles WHERE id = ?`,
+							result.id
+						)
+						assert(article, `No article found for heading ${result.id}`)
+						const category = await db.db.get(
+							`SELECT id, title FROM categories WHERE id = ?`,
+							article.categoryId
+						)
+						const section = await db.db.get(
+							`SELECT id, title FROM sections WHERE id = ?`,
+							article.sectionId
+						)
+						const heading = await db.db.get(`SELECT * FROM headings WHERE slug = ?`, result.slug)
+						assert(heading, `No heading found for ${result.id} ${result.slug}`)
 
-				return {
-					id: result.id,
-					article,
-					category,
-					section,
-					heading,
-					score: result.score,
-				}
-			})
-		)
+						return {
+							id: result.id,
+							article,
+							category,
+							section,
+							heading,
+							score: result.score,
+						}
+					} catch (e: any) {
+						console.error(e.message)
+						// something went wrong
+						return
+					}
+				})
+			)
+		).filter(Boolean)
 
 		const visited = new Set<string>()
 		for (const result of headings) {
@@ -146,6 +154,10 @@ export async function GET(req: NextRequest) {
 				.filter((a) => a.score > bottomScore)
 				.sort((a, b) => b.score - a.score)
 				.sort((a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1))
+			results[section as keyof Data['results']] = results[section as keyof Data['results']].slice(
+				0,
+				10
+			)
 		})
 
 		return new Response(

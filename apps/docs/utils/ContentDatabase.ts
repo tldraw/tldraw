@@ -161,8 +161,8 @@ export class ContentDatabase {
 			sectionId === 'examples'
 				? this._sidebarExamplesContentLinks
 				: sectionId === 'reference'
-					? this._sidebarReferenceContentLinks
-					: this._sidebarContentLinks
+				  ? this._sidebarReferenceContentLinks
+				  : this._sidebarContentLinks
 		if (cachedLinks && process.env.NODE_ENV !== 'development') {
 			// Use the previously cached sidebar links
 			links = cachedLinks
