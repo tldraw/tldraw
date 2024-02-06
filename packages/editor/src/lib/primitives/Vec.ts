@@ -362,10 +362,7 @@ export class Vec {
 	 * Get the unit vector of A.
 	 */
 	static Uni(A: VecLike) {
-		const len = Vec.Len(A)
-		if (len === 0) return Vec.From(A)
-
-		return Vec.Div(A, len)
+		return Vec.Div(A, Vec.Len(A))
 	}
 
 	static Tan(A: VecLike, B: VecLike): Vec {
