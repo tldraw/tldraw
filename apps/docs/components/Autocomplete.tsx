@@ -98,21 +98,14 @@ const Autocomplete = forwardRef(function Autocomplete(
 					<Icon className="autocomplete__icon" icon="search" small />
 				)}
 
-				<Combobox
-					autoSelect
-					placeholder="Search…"
-					ref={ref}
-					className="autocomplete__input"
-					value={value}
-				/>
+				<Combobox placeholder="Search…" ref={ref} className="autocomplete__input" value={value} />
 
 				{value && <ComboboxCancel className="autocomplete__cancel" />}
 
-				{value && (
-					<ComboboxPopover className="autocomplete__popover">
+				{value && options.length !== 0 && (
+					<ComboboxPopover sameWidth className="autocomplete__popover">
 						{customUI}
-						{options.length === 0 && <span className="autocomplete__empty">No results found.</span>}
-						{options.length !== 0 && renderedGroups}
+						{renderedGroups}
 					</ComboboxPopover>
 				)}
 			</div>

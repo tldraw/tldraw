@@ -119,6 +119,22 @@ export async function addContentToDb(
 	}
 }
 
+export async function addFTS(db: Database<sqlite3.Database, sqlite3.Statement>) {
+	await db.run(`DROP TABLE IF EXISTS ftsArticles`)
+	await db.run(
+		`CREATE VIRTUAL TABLE ftsArticles USING fts5(title, content, description, keywords, id, sectionId, categoryId, tokenize="trigram")`
+	)
+	await db.run(
+		`INSERT INTO ftsArticles SELECT title, content, description, keywords, id, sectionId, categoryId FROM articles;`
+	)
+
+	await db.run(`DROP TABLE IF EXISTS ftsHeadings`)
+	await db.run(
+		`CREATE VIRTUAL TABLE ftsHeadings USING fts5(title, slug, id, articleId, tokenize="trigram")`
+	)
+	await db.run(`INSERT INTO ftsHeadings SELECT title, slug, id, articleId FROM headings;`)
+}
+
 const slugs = new GithubSlugger()
 
 const MATCH_HEADINGS = /(?:^|\n)(#{1,6})\s+(.+?)(?=\n|$)/g

@@ -154,6 +154,10 @@ export async function GET(req: NextRequest) {
 				.filter((a) => a.score > bottomScore)
 				.sort((a, b) => b.score - a.score)
 				.sort((a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1))
+			results[section as keyof Data['results']] = results[section as keyof Data['results']].slice(
+				0,
+				10
+			)
 		})
 
 		return new Response(
