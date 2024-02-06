@@ -35,26 +35,11 @@ export class Idle extends StateNode {
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		updateHoveredId(this.editor)
 
-		const hitShape = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-			hitInside: false,
-			hitLabels: false,
-			margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
-			renderingOnly: true,
-		})
+		const hitShape = this.editor.getHoveredShape()
 		if (this.isOverArrowLabelTest(hitShape)) {
-			this.editor.updateInstanceState({
-				cursor: {
-					type: 'pointer',
-					rotation: 0,
-				},
-			})
+			this.editor.setCursor({ type: 'pointer', rotation: 0 })
 		} else {
-			this.editor.updateInstanceState({
-				cursor: {
-					type: 'default',
-					rotation: 0,
-				},
-			})
+			this.editor.setCursor({ type: 'default', rotation: 0 })
 		}
 	}
 
