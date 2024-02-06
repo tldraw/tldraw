@@ -892,12 +892,12 @@
 	width: 40px;
 }
 
-.tlui-toolbar__tools__mobile .tlui-toolbar__overflow {
+.tlui-layout__mobile .tlui-toolbar__overflow {
 	width: 32px;
 	padding: 0px;
 }
 
-.tlui-toolbar__mobile *[data-state='open']::after {
+.tlui-layout__mobile .tlui-toolbar *[data-state='open']::after {
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
