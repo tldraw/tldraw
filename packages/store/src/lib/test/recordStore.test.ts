@@ -900,7 +900,7 @@ describe('snapshots', () => {
 
 		expect(() => {
 			store2.loadSnapshot(snapshot1)
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		const books = store2.query.records('book').get()
 		expect(books).toHaveLength(2)
