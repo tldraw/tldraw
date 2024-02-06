@@ -294,6 +294,7 @@ export const PageMenu = function PageMenu() {
 						)}
 					</div>
 					<div
+						data-testid="page-menu.list"
 						className="tlui-page-menu__list tlui-menu__group"
 						style={{ height: ITEM_HEIGHT * pages.length + 4 }}
 						ref={rSortableContainer}
@@ -307,7 +308,7 @@ export const PageMenu = function PageMenu() {
 							return isEditing ? (
 								<div
 									key={page.id + '_editing'}
-									data-testid={`page-menu-item-${page.id}`}
+									data-testid="page-menu.item"
 									className="tlui-page_menu__item__sortable"
 									style={{
 										zIndex: page.id === currentPage.id ? 888 : index,
@@ -364,11 +365,7 @@ export const PageMenu = function PageMenu() {
 									)}
 								</div>
 							) : (
-								<div
-									key={page.id}
-									data-testid={`page-menu-item-${page.id}`}
-									className="tlui-page-menu__item"
-								>
+								<div key={page.id} data-testid="page-menu.item" className="tlui-page-menu__item">
 									<Button
 										type="normal"
 										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
