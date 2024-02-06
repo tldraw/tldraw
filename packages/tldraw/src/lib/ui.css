@@ -264,6 +264,16 @@
 	opacity: 1;
 }
 
+.tlui-layout__mobile .tlui-button__tool {
+	height: 48px;
+	width: 44px;
+}
+
+.tlui-layout__mobile .tlui-button__tool > .tlui-icon {
+	height: 16px;
+	width: 16px;
+}
+
 /* Help */
 
 .tlui-button__help {
@@ -331,16 +341,6 @@
 	width: 60px;
 	min-width: 60px;
 	text-align: center;
-}
-
-.tlui-toolbar__tools__mobile .tlui-button__tool {
-	height: 48px;
-	width: 44px;
-}
-
-.tlui-toolbar__tools__mobile .tlui-button__tool > .tlui-icon {
-	height: 16px;
-	width: 16px;
 }
 
 /* --------------------- Layout --------------------- */
