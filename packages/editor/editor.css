@@ -1143,10 +1143,6 @@ input,
 	align-items: center;
 }
 
-.tl-arrow-label__inner p {
-	cursor: var(--tl-cursor-grab);
-}
-
 .tl-arrow-label p,
 .tl-arrow-label textarea {
 	margin: 0px;

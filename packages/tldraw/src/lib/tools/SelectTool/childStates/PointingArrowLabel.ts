@@ -24,12 +24,7 @@ export class PointingArrowLabel extends StateNode {
 	}
 
 	private updateCursor() {
-		this.editor.updateInstanceState({
-			cursor: {
-				type: 'grabbing',
-				rotation: 0,
-			},
-		})
+		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
 	override onEnter = (

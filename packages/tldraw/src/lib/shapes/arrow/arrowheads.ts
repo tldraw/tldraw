@@ -33,6 +33,10 @@ function getArrowPoints(
 				  : ints[0]
 	}
 
+	if (isNaN(P0.x) || isNaN(P0.y)) {
+		P0 = info.start.point
+	}
+
 	return {
 		point: PT,
 		int: P0,

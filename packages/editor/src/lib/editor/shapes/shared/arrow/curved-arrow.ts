@@ -37,7 +37,9 @@ export function getCurvedArrowInfo(
 	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
 
 	const med = Vec.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end) // point between start and end
-	const u = Vec.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start).uni() // unit vector between start and end
+	const distance = Vec.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start)
+	// Check for divide-by-zero before we call uni()
+	const u = Vec.Len(distance) ? distance.uni() : Vec.From(distance) // unit vector between start and end
 	const middle = Vec.Add(med, u.per().mul(-bend)) // middle handle
 
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.start)
