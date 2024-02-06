@@ -208,11 +208,9 @@ function ToolbarButton({
 	title: string
 	isSelected: boolean
 }) {
-	const breakpoint = useBreakpoint()
 	return (
 		<Button
 			type="tool"
-			className={breakpoint < 5 ? 'tlui-button__tool__mobile' : undefined}
 			data-testid={`tools.${item.id}`}
 			data-tool={item.id}
 			data-geo={item.meta?.geo ?? ''}

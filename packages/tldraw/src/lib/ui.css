@@ -333,12 +333,12 @@
 	text-align: center;
 }
 
-.tlui-button__tool__mobile {
+.tlui-toolbar__tools__mobile .tlui-button__tool {
 	height: 48px;
 	width: 44px;
 }
 
-.tlui-button__tool__mobile > .tlui-icon {
+.tlui-toolbar__tools__mobile .tlui-button__tool > .tlui-icon {
 	height: 16px;
 	width: 16px;
 }
@@ -902,12 +902,12 @@
 	width: 40px;
 }
 
-@media (max-width: 640px) {
-	.tlui-toolbar__overflow {
-		width: 32px;
-		padding: 0px;
-	}
+.tlui-toolbar__tools__mobile .tlui-toolbar__overflow__mobile {
+	width: 32px;
+	padding: 0px;
+}
 
+@media (max-width: 640px) {
 	.tlui-toolbar *[data-state='open']::after {
 		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 	}
