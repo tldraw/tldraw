@@ -107,18 +107,18 @@ describe('Store', () => {
 			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
-			        Array [
-			          Object {
-			            "added": Object {
-			              "author:tolkein": Object {
+			        [
+			          {
+			            "added": {
+			              "author:tolkein": {
 			                "id": "author:tolkein",
 			                "isPseudonym": false,
 			                "name": "J.R.R Tolkein",
 			                "typeName": "author",
 			              },
 			            },
-			            "removed": Object {},
-			            "updated": Object {},
+			            "removed": {},
+			            "updated": {},
 			          },
 			        ]
 		      `)
@@ -126,19 +126,19 @@ describe('Store', () => {
 			store.update(Author.createId('tolkein'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
-			        Array [
-			          Object {
-			            "added": Object {},
-			            "removed": Object {},
-			            "updated": Object {
-			              "author:tolkein": Array [
-			                Object {
+			        [
+			          {
+			            "added": {},
+			            "removed": {},
+			            "updated": {
+			              "author:tolkein": [
+			                {
 			                  "id": "author:tolkein",
 			                  "isPseudonym": false,
 			                  "name": "J.R.R Tolkein",
 			                  "typeName": "author",
 			                },
-			                Object {
+			                {
 			                  "id": "author:tolkein",
 			                  "isPseudonym": false,
 			                  "name": "Jimmy Tolks",
@@ -153,18 +153,18 @@ describe('Store', () => {
 			store.remove([Author.createId('tolkein')])
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
-			        Array [
-			          Object {
-			            "added": Object {},
-			            "removed": Object {
-			              "author:tolkein": Object {
+			        [
+			          {
+			            "added": {},
+			            "removed": {
+			              "author:tolkein": {
 			                "id": "author:tolkein",
 			                "isPseudonym": false,
 			                "name": "Jimmy Tolks",
 			                "typeName": "author",
 			              },
 			            },
-			            "updated": Object {},
+			            "updated": {},
 			          },
 			        ]
 		      `)
@@ -181,30 +181,30 @@ describe('Store', () => {
 			})
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
-			Array [
-			  Object {
-			    "added": Object {
-			      "author:cj": Object {
+			[
+			  {
+			    "added": {
+			      "author:cj": {
 			        "id": "author:cj",
 			        "isPseudonym": false,
 			        "name": "Carter, Jimmy",
 			        "typeName": "author",
 			      },
-			      "author:dfw": Object {
+			      "author:dfw": {
 			        "id": "author:dfw",
 			        "isPseudonym": false,
 			        "name": "David Foster Wallace",
 			        "typeName": "author",
 			      },
-			      "author:tolkein": Object {
+			      "author:tolkein": {
 			        "id": "author:tolkein",
 			        "isPseudonym": false,
 			        "name": "Jimmy Tolks",
 			        "typeName": "author",
 			      },
 			    },
-			    "removed": Object {},
-			    "updated": Object {},
+			    "removed": {},
+			    "updated": {},
 			  },
 			]
 		`)
@@ -284,8 +284,8 @@ describe('Store', () => {
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
-		      Array [
-		        Object {
+		      [
+		        {
 		          "added": Set {
 		            "author:tolkein",
 		          },
@@ -300,8 +300,8 @@ describe('Store', () => {
 		})
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
-		      Array [
-		        Object {
+		      [
+		        {
 		          "added": Set {
 		            "author:mcavoy",
 		            "author:cassidy",
@@ -343,35 +343,35 @@ describe('Store', () => {
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(1)
 		expect(listener.mock.lastCall[0]).toMatchInlineSnapshot(`
-		Object {
-		  "changes": Object {
-		    "added": Object {
-		      "author:cassidy": Object {
+		{
+		  "changes": {
+		    "added": {
+		      "author:cassidy": {
 		        "id": "author:cassidy",
 		        "isPseudonym": false,
 		        "name": "Butch Cassidy",
 		        "typeName": "author",
 		      },
-		      "author:mcavoy": Object {
+		      "author:mcavoy": {
 		        "id": "author:mcavoy",
 		        "isPseudonym": false,
 		        "name": "James McAvoy",
 		        "typeName": "author",
 		      },
-		      "author:tolkein": Object {
+		      "author:tolkein": {
 		        "id": "author:tolkein",
 		        "isPseudonym": false,
 		        "name": "J.R.R Tolkein",
 		        "typeName": "author",
 		      },
-		      "book:hobbit": Object {
+		      "book:hobbit": {
 		        "author": "author:tolkein",
 		        "id": "book:hobbit",
 		        "numPages": 300,
 		        "title": "The Hobbit",
 		        "typeName": "book",
 		      },
-		      "book:lotr": Object {
+		      "book:lotr": {
 		        "author": "author:tolkein",
 		        "id": "book:lotr",
 		        "numPages": 1000,
@@ -379,8 +379,8 @@ describe('Store', () => {
 		        "typeName": "book",
 		      },
 		    },
-		    "removed": Object {},
-		    "updated": Object {},
+		    "removed": {},
+		    "updated": {},
 		  },
 		  "source": "user",
 		}
@@ -398,34 +398,34 @@ describe('Store', () => {
 		expect(listener).toHaveBeenCalledTimes(2)
 
 		expect(listener.mock.lastCall[0]).toMatchInlineSnapshot(`
-		Object {
-		  "changes": Object {
-		    "added": Object {},
-		    "removed": Object {},
-		    "updated": Object {
-		      "author:tolkein": Array [
-		        Object {
+		{
+		  "changes": {
+		    "added": {},
+		    "removed": {},
+		    "updated": {
+		      "author:tolkein": [
+		        {
 		          "id": "author:tolkein",
 		          "isPseudonym": false,
 		          "name": "J.R.R Tolkein",
 		          "typeName": "author",
 		        },
-		        Object {
+		        {
 		          "id": "author:tolkein",
 		          "isPseudonym": false,
 		          "name": "Jimmy Tolks",
 		          "typeName": "author",
 		        },
 		      ],
-		      "book:lotr": Array [
-		        Object {
+		      "book:lotr": [
+		        {
 		          "author": "author:tolkein",
 		          "id": "book:lotr",
 		          "numPages": 1000,
 		          "title": "The Lord of the Rings",
 		          "typeName": "book",
 		        },
-		        Object {
+		        {
 		          "author": "author:tolkein",
 		          "id": "book:lotr",
 		          "numPages": 42,
@@ -451,11 +451,11 @@ describe('Store', () => {
 		expect(listener).toHaveBeenCalledTimes(3)
 
 		expect(listener.mock.lastCall[0]).toMatchInlineSnapshot(`
-		Object {
-		  "changes": Object {
-		    "added": Object {},
-		    "removed": Object {
-		      "book:lotr": Object {
+		{
+		  "changes": {
+		    "added": {},
+		    "removed": {
+		      "book:lotr": {
 		        "author": "author:tolkein",
 		        "id": "book:lotr",
 		        "numPages": 42,
@@ -463,15 +463,15 @@ describe('Store', () => {
 		        "typeName": "book",
 		      },
 		    },
-		    "updated": Object {
-		      "author:mcavoy": Array [
-		        Object {
+		    "updated": {
+		      "author:mcavoy": [
+		        {
 		          "id": "author:mcavoy",
 		          "isPseudonym": false,
 		          "name": "James McAvoy",
 		          "typeName": "author",
 		        },
-		        Object {
+		        {
 		          "id": "author:mcavoy",
 		          "isPseudonym": false,
 		          "name": "Sookie Houseboat",
@@ -511,17 +511,17 @@ describe('Store', () => {
 		expect(listener).toHaveBeenCalledTimes(1)
 
 		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
-		Object {
-		  "added": Object {
-		    "visit:jimmy": Object {
-		      "booksInBasket": Array [],
+		{
+		  "added": {
+		    "visit:jimmy": {
+		      "booksInBasket": [],
 		      "id": "visit:jimmy",
 		      "typeName": "visit",
 		      "visitorName": "Jimmy Beans",
 		    },
 		  },
-		  "removed": Object {},
-		  "updated": Object {},
+		  "removed": {},
+		  "updated": {},
 		}
 	`)
 	})
@@ -540,17 +540,17 @@ describe('Store', () => {
 		expect(listener).toHaveBeenCalledTimes(1)
 
 		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
-		Object {
-		  "added": Object {
-		    "author:salinger": Object {
+		{
+		  "added": {
+		    "author:salinger": {
 		      "id": "author:salinger",
 		      "isPseudonym": false,
 		      "name": "J.D. Salinger",
 		      "typeName": "author",
 		    },
 		  },
-		  "removed": Object {},
-		  "updated": Object {},
+		  "removed": {},
+		  "updated": {},
 		}
 	`)
 	})
@@ -583,15 +583,15 @@ describe('Store', () => {
 		expect(listener).toHaveBeenCalledTimes(1)
 
 		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
-		Object {
-		  "added": Object {
-		    "author:tolkien": Object {
+		{
+		  "added": {
+		    "author:tolkien": {
 		      "id": "author:tolkien",
 		      "isPseudonym": false,
 		      "name": "J.R.R Tolkien",
 		      "typeName": "author",
 		    },
-		    "book:hobbit": Object {
+		    "book:hobbit": {
 		      "author": "author:tolkien",
 		      "id": "book:hobbit",
 		      "numPages": 300,
@@ -599,8 +599,8 @@ describe('Store', () => {
 		      "typeName": "book",
 		    },
 		  },
-		  "removed": Object {},
-		  "updated": Object {},
+		  "removed": {},
+		  "updated": {},
 		}
 	`)
 	})
@@ -633,23 +633,23 @@ describe('Store', () => {
 		expect(listener).toHaveBeenCalledTimes(1)
 
 		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
-		Object {
-		  "added": Object {
-		    "author:salinger": Object {
+		{
+		  "added": {
+		    "author:salinger": {
 		      "id": "author:salinger",
 		      "isPseudonym": false,
 		      "name": "J.D. Salinger",
 		      "typeName": "author",
 		    },
-		    "visit:jimmy": Object {
-		      "booksInBasket": Array [],
+		    "visit:jimmy": {
+		      "booksInBasket": [],
 		      "id": "visit:jimmy",
 		      "typeName": "visit",
 		      "visitorName": "Jimmy Beans",
 		    },
 		  },
-		  "removed": Object {},
-		  "updated": Object {},
+		  "removed": {},
+		  "updated": {},
 		}
 	`)
 	})
@@ -912,6 +912,6 @@ describe('snapshots', () => {
 
 		expect(() => {
 			store2.loadSnapshot(snapshot1)
-		}).not.toThrowError()
+		}).not.toThrow()
 	})
 })

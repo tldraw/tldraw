@@ -25,12 +25,10 @@ export default function ExampleCodeBlock({
 	}
 
 	return (
-		<>
-			<iframe
-				src={`${SERVER}/${articleId}/full`}
-				style={{ border: 0, height: '50vh', width: '100%' }}
-			/>
+		<div className="code-example">
+			<iframe src={`${SERVER}/${articleId}/full`} />
 			<SandpackProvider
+				className="sandpack"
 				key={`sandpack-${theme}-${activeFile}`}
 				template="react-ts"
 				options={{ activeFile }}
@@ -47,6 +45,6 @@ export default function ExampleCodeBlock({
 			>
 				<SandpackCodeEditor readOnly />
 			</SandpackProvider>
-		</>
+		</div>
 	)
 }

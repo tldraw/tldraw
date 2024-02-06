@@ -31,10 +31,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -56,6 +52,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]
@@ -66,10 +66,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -91,6 +87,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]
@@ -101,10 +101,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -126,6 +122,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]
@@ -136,10 +136,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -161,6 +157,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]
@@ -171,10 +171,6 @@
 				"description": "",
 				"groups": [
 					{
-						"id": "Namespace",
-						"path": null
-					},
-					{
 						"id": "Class",
 						"path": null
 					},
@@ -196,6 +192,10 @@
 					},
 					{
 						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
 						"path": null
 					}
 				]

@@ -39,7 +39,7 @@ export function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 		? new Edge2d({
 				start: Vec.From(info.start.point),
 				end: Vec.From(info.end.point),
-			})
+		  })
 		: new Arc2d({
 				center: Vec.Cast(info.handleArc.center),
 				radius: info.handleArc.radius,
@@ -47,7 +47,7 @@ export function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 				end: Vec.Cast(info.end.point),
 				sweepFlag: info.bodyArc.sweepFlag,
 				largeArcFlag: info.bodyArc.largeArcFlag,
-			})
+		  })
 
 	if (shape.props.text.trim()) {
 		const bodyBounds = bodyGeom.bounds
@@ -268,14 +268,28 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	const debugGeom: Geometry2d[] = []
 	const info = editor.getArrowInfo(shape)!
 
+	const hasStartArrowhead = info.start.arrowhead !== 'none'
+	const hasEndArrowhead = info.end.arrowhead !== 'none'
 	if (info.isStraight) {
 		const range = getStraightArrowLabelRange(editor, shape, info)
-		const clampedPosition = clamp(shape.props.labelPosition, range.start, range.end)
+		let clampedPosition = clamp(
+			shape.props.labelPosition,
+			hasStartArrowhead ? range.start : 0,
+			hasEndArrowhead ? range.end : 1
+		)
+		// This makes the position snap in the middle.
+		clampedPosition = clampedPosition >= 0.48 && clampedPosition <= 0.52 ? 0.5 : clampedPosition
 		labelCenter = Vec.Lrp(info.start.point, info.end.point, clampedPosition)
 	} else {
 		const range = getCurvedArrowLabelRange(editor, shape, info)
 		if (range.dbg) debugGeom.push(...range.dbg)
-		const clampedPosition = clamp(shape.props.labelPosition, range.start, range.end)
+		let clampedPosition = clamp(
+			shape.props.labelPosition,
+			hasStartArrowhead ? range.start : 0,
+			hasEndArrowhead ? range.end : 1
+		)
+		// This makes the position snap in the middle.
+		clampedPosition = clampedPosition >= 0.48 && clampedPosition <= 0.52 ? 0.5 : clampedPosition
 		const labelAngle = interpolateArcAngles(
 			Vec.Angle(info.bodyArc.center, info.start.point),
 			Vec.Angle(info.bodyArc.center, info.end.point),
