@@ -4,6 +4,20 @@ import { exportToBlob } from './export'
 /** @public */
 export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
 
+/** @public */
+export type TLExportAsOptions = {
+	/** The editor instance */
+	editor: Editor
+	/** Ids of the shapes we wish to include in the export */
+	ids: TLShapeId[]
+	/** Format of the export @see TLExportType */
+	format: TLExportType
+	/** File name for the exported file */
+	name: string | undefined
+	/** Svg export options @see TLSvgOptions */
+	svgOptions: Partial<TLSvgOptions>
+}
+
 /**
  * Export the given shapes as files.
  *
@@ -18,10 +32,25 @@ export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
 export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
-	format: TLExportType = 'png',
-	name: string | undefined,
-	opts = {} as Partial<TLSvgOptions>
-) {
+	format: TLExportType,
+	opts: Partial<TLSvgOptions>
+): Promise<void>
+/**
+ * Export the given shapes as files.
+ *
+ * @param opts - Options for the export @see {@link TLExportAsOptions}.
+ *
+ * @public
+ */
+export async function exportAs(opts: TLExportAsOptions): Promise<void>
+export async function exportAs(first: Editor | TLExportAsOptions, ...rest: any[]) {
+	let editor: Editor, ids: TLShapeId[], format: TLExportType, opts: Partial<TLSvgOptions>
+	let name: string | undefined = undefined
+	if (arguments.length === 1) {
+		;({ editor, ids, format, svgOptions: opts, name } = first as TLExportAsOptions)
+	} else {
+		;[editor, ids, format, opts] = rest
+	}
 	// If we don't get name then use a predefined one
 	if (!name) {
 		name = `shapes at ${getTimestamp()}`

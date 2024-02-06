@@ -484,7 +484,10 @@ export type EventsProviderProps = {
 };
 
 // @public
-export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
+export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType, opts: Partial<TLSvgOptions>): Promise<void>;
+
+// @public
+export function exportAs(opts: TLExportAsOptions): Promise<void>;
 
 // @public (undocumented)
 export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<string>;
@@ -1346,6 +1349,15 @@ export interface TldrawUiContextProviderProps {
 
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
+
+// @public (undocumented)
+export type TLExportAsOptions = {
+    editor: Editor;
+    ids: TLShapeId[];
+    format: TLExportType;
+    name: string | undefined;
+    svgOptions: Partial<TLSvgOptions>;
+};
 
 // @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
