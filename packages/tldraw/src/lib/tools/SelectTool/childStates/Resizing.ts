@@ -232,7 +232,7 @@ export class Resizing extends StateNode {
 		const shouldSnap = this.editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
 
 		if (shouldSnap && selectionRotation % HALF_PI === 0) {
-			const { nudge } = this.editor.snaps.shapeBounds.snapResize({
+			const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
 				handle: rotateSelectionHandle(dragHandle, selectionRotation),

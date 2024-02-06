@@ -125,7 +125,7 @@ export function Canvas({ className }: { className?: string }) {
 					<SelectedIdIndicators />
 					<HoveredShapeIndicator />
 					<HintedShapeIndicator />
-					<SnapLinesWrapper />
+					<SnapIndicatorWrapper />
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
@@ -189,7 +189,7 @@ function ZoomBrushWrapper() {
 	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
 }
 
-function SnapLinesWrapper() {
+function SnapIndicatorWrapper() {
 	const editor = useEditor()
 	const lines = useValue('snapLines', () => editor.snaps.getIndicators(), [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])

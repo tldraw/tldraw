@@ -397,7 +397,7 @@ export function moveShapesToPoint({
 		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
 
 	if (shouldSnap) {
-		const { nudge } = editor.snaps.shapeBounds.snapTranslate({
+		const { nudge } = editor.snaps.shapeBounds.snapTranslateShapes({
 			dragDelta: delta,
 			initialSelectionPageBounds,
 			lockedAxis: flatten,

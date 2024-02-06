@@ -318,7 +318,7 @@ export class BoundsSnaps {
 		return { horizontal, vertical }
 	}
 
-	snapTranslate({
+	snapTranslateShapes({
 		lockedAxis,
 		initialSelectionPageBounds,
 		initialSelectionSnapPoints,
@@ -413,7 +413,7 @@ export class BoundsSnaps {
 		return { nudge }
 	}
 
-	snapResize({
+	snapResizeShapes({
 		initialSelectionPageBounds,
 		dragDelta,
 		handle: originalHandle,
