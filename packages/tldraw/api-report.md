@@ -484,7 +484,7 @@ export type EventsProviderProps = {
 };
 
 // @public
-export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType, opts?: Partial<TLSvgOptions>): Promise<void>;
+export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public
 export function exportAs(opts: TLExportAsOptions): Promise<void>;
@@ -1354,7 +1354,7 @@ export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
 export type TLExportAsOptions = {
     editor: Editor;
     ids: TLShapeId[];
-    format: TLExportType;
+    format: TLExportType | undefined;
     name: string | undefined;
     svgOptions?: Partial<TLSvgOptions>;
 };

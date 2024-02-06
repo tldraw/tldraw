@@ -11,7 +11,7 @@ export type TLExportAsOptions = {
 	/** Ids of the shapes we wish to include in the export */
 	ids: TLShapeId[]
 	/** Format of the export @see TLExportType */
-	format: TLExportType
+	format: TLExportType | undefined
 	/** File name for the exported file */
 	name: string | undefined
 	/** Svg export options @see TLSvgOptions */
@@ -32,7 +32,7 @@ export type TLExportAsOptions = {
 export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
-	format: TLExportType,
+	format: TLExportType | undefined,
 	opts?: Partial<TLSvgOptions>
 ): Promise<void>
 /**
@@ -46,13 +46,16 @@ export async function exportAs(opts: TLExportAsOptions): Promise<void>
 export async function exportAs(first: Editor | TLExportAsOptions, ...rest: any[]) {
 	let editor: Editor,
 		ids: TLShapeId[],
-		format: TLExportType,
-		opts: Partial<TLSvgOptions> | undefined
+		format: TLExportType | undefined,
+		opts: Partial<TLSvgOptions> | undefined = {} as Partial<TLSvgOptions>
 	let name: string | undefined = undefined
 	if (arguments.length === 1) {
 		;({ editor, ids, format, svgOptions: opts, name } = first as TLExportAsOptions)
 	} else {
 		;[editor, ids, format, opts] = rest
+	}
+	if (!format) {
+		format = 'png'
 	}
 	// If we don't get name then use a predefined one
 	if (!name) {
