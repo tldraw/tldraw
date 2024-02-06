@@ -40,7 +40,7 @@ async function build() {
 					},
 					// serve static files
 					{
-						handle: 'filesystem',
+						handle: 'miss',
 					},
 					// finally handle SPA routing
 					{
