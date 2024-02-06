@@ -5759,12 +5759,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? {
 							...translateStartChanges,
 							[val]: shape[val] + localDelta[val],
-						}
+					  }
 					: {
 							id: shape.id as any,
 							type: shape.type,
 							[val]: shape[val] + localDelta[val],
-						}
+					  }
 			)
 
 			v += pageBounds[shape.id][dim] + shapeGap
@@ -7850,16 +7850,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 					newShape.props.start = mappedId
 						? { ...newShape.props.start, boundShapeId: mappedId }
 						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-							// convert the binding to a point at the time of copying
-							{ type: 'point', x: 0, y: 0 }
+						  // convert the binding to a point at the time of copying
+						  { type: 'point', x: 0, y: 0 }
 				}
 				if (newShape.props.end.type === 'binding') {
 					const mappedId = idMap.get(newShape.props.end.boundShapeId)
 					newShape.props.end = mappedId
 						? { ...newShape.props.end, boundShapeId: mappedId }
 						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-							// convert the binding to a point at the time of copying
-							{ type: 'point', x: 0, y: 0 }
+						  // convert the binding to a point at the time of copying
+						  { type: 'point', x: 0, y: 0 }
 				}
 			}
 
