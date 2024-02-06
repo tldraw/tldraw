@@ -936,6 +936,9 @@ export function menuItem(actionItem: TLUiActionItem | TLUiToolItem, opts?: Parti
 export function menuSubmenu(id: string, label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey, ...children: (false | TLUiMenuChild)[]): null | TLUiSubMenu;
 
 // @public (undocumented)
+export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps): JSX.Element;
+
+// @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_5 | typeof Pointing_4)[];

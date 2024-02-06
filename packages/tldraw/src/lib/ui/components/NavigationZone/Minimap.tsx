@@ -23,6 +23,9 @@ export interface MinimapProps {
 	viewportFill: string
 }
 
+/**
+ * @public
+ */
 export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	const editor = useEditor()
 

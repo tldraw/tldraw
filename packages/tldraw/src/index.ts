@@ -37,7 +37,6 @@ export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
-// UI
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {
 	TldrawUiContextProvider,
@@ -45,6 +44,8 @@ export {
 } from './lib/ui/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu'
+// UI
+export { Minimap } from './lib/ui/components/NavigationZone/Minimap'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
