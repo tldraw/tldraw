@@ -148,7 +148,7 @@ export const Toolbar = memo(function Toolbar() {
 											className="tlui-toolbar__overflow"
 											icon="chevron-up"
 											type="tool"
-											data-testid="tools.more.button"
+											data-testid="tools.more-button"
 											title={msg('tool-panel.more')}
 										/>
 									</M.Trigger>
@@ -178,7 +178,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 	const msg = useTranslation()
 
 	return (
-		<div className="tlui-buttons__grid" data-testid="tools.more.content">
+		<div className="tlui-buttons__grid" data-testid="tools.more-content">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
 				return (
 					<M.Item

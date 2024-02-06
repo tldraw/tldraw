@@ -57,7 +57,12 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	const hideText = font === undefined
 
 	return (
-		<div className="tlui-style-panel" data-ismobile={isMobile} onPointerLeave={handlePointerOut}>
+		<div
+			className="tlui-style-panel"
+			data-testid="style.panel"
+			data-ismobile={isMobile}
+			onPointerLeave={handlePointerOut}
+		>
 			<CommonStylePickerSet styles={styles} opacity={opacity} />
 			{!hideText && <TextStylePickerSet styles={styles} />}
 			{!(hideGeo && hideArrowHeads && hideSpline) && (
