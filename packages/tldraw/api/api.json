@@ -5661,7 +5661,7 @@
             },
             {
               "kind": "Content",
-              "text": ", opts?: "
+              "text": ", opts: "
             },
             {
               "kind": "Reference",
@@ -5737,7 +5737,7 @@
                 "startIndex": 9,
                 "endIndex": 13
               },
-              "isOptional": true
+              "isOptional": false
             }
           ],
           "name": "exportAs"
@@ -15345,7 +15345,7 @@
             },
             {
               "kind": "Content",
-              "text": " | undefined;\n    name: string | undefined;\n    svgOptions?: "
+              "text": " | undefined;\n    name: string | undefined;\n    svgOptions: "
             },
             {
               "kind": "Reference",
