@@ -50,8 +50,8 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 					theyAreFollowingYou
 						? msg('people-menu.leading')
 						: youAreFollowingThem
-							? msg('people-menu.following')
-							: msg('people-menu.follow')
+						  ? msg('people-menu.following')
+						  : msg('people-menu.follow')
 				}
 				icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}
 				onClick={handleFollowClick}

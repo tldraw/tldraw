@@ -39,7 +39,7 @@
 		"refresh-embeddings": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/refresh-embeddings.ts",
 		"refresh-everything": "yarn fetch-api-source && yarn fetch-releases && yarn create-api-markdown && yarn refresh-content && yarn refresh-embeddings && yarn format",
 		"clean": "rm -rf node_modules .yarn",
-		"format": "yarn run -T prettier --write .",
+		"format": "biome format --write .",
 		"watch-content": "tsx ./watcher.ts"
 	},
 	"dependencies": {
@@ -67,10 +67,7 @@
 		"next-themes": "^0.2.1",
 		"octokit": "^3.1.1",
 		"openai": "^4.11.1",
-		"patch-package": "^8.0.0",
-		"postinstall-postinstall": "^2.1.0",
 		"prettier": "^3.0.3",
-		"prettier-plugin-organize-imports": "^3.2.3",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-hotkeys-hook": "^4.4.1",

@@ -1,7 +1,7 @@
 import { SearchResult } from '@/types/search-types'
 import { getDb } from '@/utils/ContentDatabase'
-import { NextRequest } from 'next/server'
 import { SEARCH_RESULTS, searchBucket, sectionTypeBucket } from '@/utils/search-api'
+import { NextRequest } from 'next/server'
 
 type Data = {
 	results: {
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 	WHERE ftsArticles MATCH ?
 	ORDER BY bm25(ftsArticles, 1000.0)
 `,
-			query,
+			query
 		)
 
 		await searchForArticle.all().then(async (queryResults) => {
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
 					url: isUncategorized
 						? `${section.id}/${article.id}`
 						: `${section.id}/${category.id}/${article.id}`,
-					score: 0
+					score: 0,
 				})
 			}
 		})
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
 	WHERE ftsHeadings MATCH ?
 	ORDER BY bm25(ftsHeadings, 1000.0)
 `,
-			query,
+			query
 		)
 
 		await searchForArticleHeadings.all().then(async (queryResults) => {
@@ -100,7 +100,10 @@ export async function GET(req: NextRequest) {
 		})
 
 		Object.keys(results).forEach((section: string) => {
-			results[section as keyof Data['results']] = results[section as keyof Data['results']].slice(0, 20)
+			results[section as keyof Data['results']] = results[section as keyof Data['results']].slice(
+				0,
+				20
+			)
 		})
 
 		results.articles.sort(

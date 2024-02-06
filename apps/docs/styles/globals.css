@@ -774,9 +774,15 @@ body {
 	font-size: 14px;
 }
 
+.sidebar,
+.sidebar button,
+.sidebar a {
+	font-size: 14px;
+	font-weight: 600;
+}
+
 .sidebar a,
 .sidebar .sidebar__link {
-	font-weight: bold;
 	text-decoration: none;
 }
 
@@ -813,12 +819,15 @@ body {
 .sidebar__list li .sidebar__category li a,
 .sidebar__list li .sidebar__article li a {
 	padding-left: 8px;
-	font-size: 13px;
 }
 
 .sidebar__list li .sidebar__category li[data-heading-level='3'] a,
 .sidebar__list li .sidebar__article li[data-heading-level='3'] a {
 	padding-left: 16px;
+}
+
+.sidebar__group {
+	padding-left: 8px;
 }
 
 .sidebar__list li .sidebar__category .sidebar__group li[data-heading-level='2'] a,
@@ -892,7 +901,6 @@ body {
 }
 
 .sidebar__section__group__title {
-	font-size: 14px;
 	font-weight: normal;
 	margin-bottom: 4px;
 	position: relative;
@@ -906,6 +914,8 @@ body {
 	border: 0;
 	width: 100%;
 	cursor: pointer;
+	padding-right: 8px;
+	margin-left: 8px;
 }
 
 .sidebar__sections__list > *:nth-last-of-type(n + 2) > .sidebar__list {
@@ -953,10 +963,6 @@ body {
 	border: 1px solid var(--color-contrast);
 	color: var(--color-background);
 	box-shadow: var(--shadow-small);
-}
-
-.sidebar__category__title {
-	font-size: 14px;
 }
 
 /* --------------------- Search --------------------- */
@@ -1007,6 +1013,7 @@ body {
 	cursor: pointer;
 	margin: 4px 0;
 	background: transparent;
+	padding: 0px 8px 8px 8px;
 }
 
 /* --------------------- Desktop M --------------------- */
@@ -1077,6 +1084,15 @@ body {
 	.menu__button {
 		display: flex;
 		pointer-events: all;
+	}
+
+	.search__wrapper {
+		display: none;
+	}
+
+	.layout__header {
+		grid-template-columns: auto auto;
+		justify-content: space-between;
 	}
 
 	.sidebar {
