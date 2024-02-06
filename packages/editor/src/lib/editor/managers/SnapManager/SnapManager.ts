@@ -53,8 +53,8 @@ export class SnapManager {
 		}
 	}
 
-	setIndicators(lines: SnapIndicator[]) {
-		this._snapIndicators.set(lines)
+	setIndicators(indicators: SnapIndicator[]) {
+		this._snapIndicators.set(indicators)
 	}
 
 	@computed getSnapThreshold() {

@@ -1742,7 +1742,7 @@ export class SnapManager {
     // (undocumented)
     readonly handles: HandleSnaps;
     // (undocumented)
-    setIndicators(lines: SnapIndicator[]): void;
+    setIndicators(indicators: SnapIndicator[]): void;
     // (undocumented)
     readonly shapeBounds: BoundsSnaps;
 }

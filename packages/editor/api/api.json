@@ -32732,7 +32732,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "setIndicators(lines: "
+                  "text": "setIndicators(indicators: "
                 },
                 {
                   "kind": "Reference",
@@ -32766,7 +32766,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "lines",
+                  "parameterName": "indicators",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 3
