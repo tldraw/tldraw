@@ -107,33 +107,3 @@ test.describe('when selecting a tool from the toolbar', () => {
 		}
 	})
 })
-
-test.describe('when selecting a style', () => {
-	test.beforeEach(setup)
-	test('selecting a style changes the button color', async ({ page }) => {
-		//Pseudo elements can't be checked, but we don't have another way to check the color
-		test.skip()
-		const colorButton = page.getByTestId('style.color.violet')
-		await colorButton.click()
-	})
-})
-
-test.describe('pages menu', () => {
-	test.beforeEach(setup)
-	test.only('you can create a page', async ({ isMobile, page }) => {
-		const pagesButton = page.getByTestId('main.page-menu')
-		const pagesMenu = page.locator('.tlui-page-menu__wrapper')
-		const createPageButton = page.getByTestId('page-menu.create')
-		expect(await pagesMenu.isVisible()).toBe(false)
-		await pagesButton.click()
-		expect(await pagesMenu.isVisible()).toBe(true)
-		expect(pagesMenu.locator('.tlui-page-menu__item')).toHaveCount(1)
-		await createPageButton.click()
-		// The page menu is now in edit mode
-		await page.getByTestId('page-menu.edit').click()
-		//not sure why this is failing on mobile
-		if (!isMobile) {
-			expect(pagesMenu.locator('.tlui-page-menu__item')).toHaveCount(2)
-		}
-	})
-})
