@@ -15,7 +15,7 @@ export type TLExportAsOptions = {
 	/** File name for the exported file */
 	name: string | undefined
 	/** Svg export options @see TLSvgOptions */
-	svgOptions: Partial<TLSvgOptions>
+	svgOptions?: Partial<TLSvgOptions>
 }
 
 /**
@@ -33,7 +33,7 @@ export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLExportType,
-	opts: Partial<TLSvgOptions>
+	opts?: Partial<TLSvgOptions>
 ): Promise<void>
 /**
  * Export the given shapes as files.
@@ -44,7 +44,10 @@ export async function exportAs(
  */
 export async function exportAs(opts: TLExportAsOptions): Promise<void>
 export async function exportAs(first: Editor | TLExportAsOptions, ...rest: any[]) {
-	let editor: Editor, ids: TLShapeId[], format: TLExportType, opts: Partial<TLSvgOptions>
+	let editor: Editor,
+		ids: TLShapeId[],
+		format: TLExportType,
+		opts: Partial<TLSvgOptions> | undefined
 	let name: string | undefined = undefined
 	if (arguments.length === 1) {
 		;({ editor, ids, format, svgOptions: opts, name } = first as TLExportAsOptions)
