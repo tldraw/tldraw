@@ -1484,6 +1484,7 @@
 	touch-action: auto;
 }
 
+/* TODO: refactor shortcuts dialog to make it work in small inline components */
 @media (min-width: 475px) {
 	.tlui-shortcuts-dialog__body {
 		columns: 2;
@@ -1491,6 +1492,7 @@
 	}
 }
 
+/* TODO: refactor shortcuts dialog to make it work in small inline components */
 @media (min-width: 960px) {
 	.tlui-shortcuts-dialog__body {
 		columns: 3;
