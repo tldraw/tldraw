@@ -247,9 +247,11 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	 * })
 	 * ```
 	 */
-	extend<Extension extends Record<string, unknown>>(extension: {
-		readonly [K in keyof Extension]: Validatable<Extension[K]>
-	}): ObjectValidator<Shape & Extension> {
+	extend<Extension extends Record<string, unknown>>(
+		extension: {
+			readonly [K in keyof Extension]: Validatable<Extension[K]>
+		}
+	): ObjectValidator<Shape & Extension> {
 		return new ObjectValidator({ ...this.config, ...extension }) as ObjectValidator<
 			Shape & Extension
 		>
@@ -475,9 +477,11 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
  *
  * @public
  */
-export function object<Shape extends object>(config: {
-	readonly [K in keyof Shape]: Validatable<Shape[K]>
-}): ObjectValidator<Shape> {
+export function object<Shape extends object>(
+	config: {
+		readonly [K in keyof Shape]: Validatable<Shape[K]>
+	}
+): ObjectValidator<Shape> {
 	return new ObjectValidator(config)
 }
 

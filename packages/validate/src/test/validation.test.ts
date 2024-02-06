@@ -70,7 +70,7 @@ describe('validations', () => {
 				})
 			).validate({ id: 'abc13', color: 'rubbish' })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At shape().color: Expected \\"red\\" or \\"green\\" or \\"blue\\", got rubbish"`
+			`"At shape().color: Expected "red" or "green" or "blue", got rubbish"`
 		)
 	})
 
@@ -97,7 +97,7 @@ describe('validations', () => {
 		expect(() =>
 			nested.validate({ animal: { type: 'cow', moo: true, id: 'abc123' } })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At animal.type: Expected one of \\"cat\\" or \\"dog\\", got \\"cow\\""`
+			`"At animal.type: Expected one of "cat" or "dog", got "cow""`
 		)
 
 		expect(() =>
