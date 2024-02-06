@@ -70,6 +70,8 @@ export function Search() {
 		router.push(url.startsWith('/') ? url : `/${url}`)
 	}
 
+	// AI is turned off for now.
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const handleSearchTypeChange = () => {
 		setSearchResults([])
 		setSearchType(searchType === SEARCH_TYPE.AI ? SEARCH_TYPE.NORMAL : SEARCH_TYPE.AI)
@@ -95,11 +97,11 @@ export function Search() {
 		<div className="search__wrapper">
 			<Autocomplete
 				ref={rInput}
-				customUI={
-					<button className="search__ai-toggle" onClick={handleSearchTypeChange}>
-						{searchType === SEARCH_TYPE.NORMAL ? '✨ Search using AI' : '⭐ Search without AI'}
-					</button>
-				}
+				// customUI={
+				// 	<button className="search__ai-toggle" onClick={handleSearchTypeChange}>
+				// 		{searchType === SEARCH_TYPE.NORMAL ? '✨ Search using AI' : '⭐ Search without AI'}
+				// 	</button>
+				// }
 				groups={['examples', 'docs', 'reference']}
 				groupsToLabel={{ examples: 'Examples', docs: 'Articles', reference: 'Reference' }}
 				options={searchResults}
