@@ -50,10 +50,12 @@ type DefaultHelpers = ReturnType<typeof useDefaultHelpers>
 
 export type TLUiOverride<Type, Helpers> = (editor: Editor, schema: Type, helpers: Helpers) => Type
 
-type WithDefaultHelpers<T extends TLUiOverride<any, any>> =
-	T extends TLUiOverride<infer Type, infer Helpers>
-		? TLUiOverride<Type, Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers>
-		: never
+type WithDefaultHelpers<T extends TLUiOverride<any, any>> = T extends TLUiOverride<
+	infer Type,
+	infer Helpers
+>
+	? TLUiOverride<Type, Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers>
+	: never
 
 /** @public */
 export type TLUiOverrides = Partial<{
