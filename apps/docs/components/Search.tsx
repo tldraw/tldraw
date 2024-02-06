@@ -39,17 +39,22 @@ export function Search() {
 				const res = await fetch(endPoint)
 				if (res.ok) {
 					const json = await res.json()
+					const topExamples = json.results.examples.slice(0, 5)
 					const topArticles = json.results.articles.slice(0, 10)
-					const topAPI = json.results.apiDocs.slice(0, 10)
-					const topExamples = json.results.examples.slice(0, 10)
+					const topAPI = json.results.apiDocs.slice(0, 20)
 					const allResults = topExamples.concat(topArticles).concat(topAPI)
-					setSearchResults(
-						allResults.map((result: SearchResult) => ({
-							label: result.title,
-							value: result.url,
-							group: result.sectionType,
-						}))
-					)
+
+					if (allResults.length) {
+						setSearchResults(
+							allResults.map((result: SearchResult) => ({
+								label: result.title,
+								value: result.url,
+								group: result.sectionType,
+							}))
+						)
+					} else {
+						setSearchResults([{ label: 'No results found.', value: '#', group: 'docs' }])
+					}
 				}
 			} catch (err) {
 				console.error(err)
@@ -66,6 +71,7 @@ export function Search() {
 	}
 
 	const handleSearchTypeChange = () => {
+		setSearchResults([])
 		setSearchType(searchType === SEARCH_TYPE.AI ? SEARCH_TYPE.NORMAL : SEARCH_TYPE.AI)
 	}
 

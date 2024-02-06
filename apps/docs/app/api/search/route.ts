@@ -14,10 +14,6 @@ type Data = {
 
 const BANNED_HEADINGS = ['new', 'constructor', 'properties', 'example', 'methods']
 
-function scoreResultBasedOnLengthSimilarity(title: string, query: string) {
-	return 1 - Math.min(1, Math.max(0, Math.abs(title.length - query.length) / 12))
-}
-
 export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url)
 	const query = searchParams.get('q')?.toLowerCase()
@@ -37,22 +33,17 @@ export async function GET(req: NextRequest) {
 	try {
 		const results: Data['results'] = structuredClone(SEARCH_RESULTS)
 		const db = await getDb()
-		const queryWithoutSpaces = query.replace(/\s/g, '')
 		const searchForArticle = await db.db.prepare(
 			`
-	SELECT id, title, sectionId, categoryId, content 
-	FROM articles 
-	WHERE title LIKE '%' || ? || '%'
-		OR description LIKE '%' || ? || '%'
-		OR content LIKE '%' || ? || '%'
-		OR keywords LIKE '%' || ? || '%';
+	SELECT id, title, sectionId, categoryId, content
+	FROM ftsArticles
+	WHERE ftsArticles MATCH ?
+	ORDER BY bm25(ftsArticles, 1000.0)
 `,
-			queryWithoutSpaces,
-			queryWithoutSpaces,
-			queryWithoutSpaces
+			query,
 		)
 
-		await searchForArticle.all(query).then(async (queryResults) => {
+		await searchForArticle.all().then(async (queryResults) => {
 			for (const article of queryResults) {
 				const section = await db.getSection(article.sectionId)
 				const category = await db.getCategory(article.categoryId)
@@ -67,7 +58,7 @@ export async function GET(req: NextRequest) {
 					url: isUncategorized
 						? `${section.id}/${article.id}`
 						: `${section.id}/${category.id}/${article.id}`,
-					score: scoreResultBasedOnLengthSimilarity(article.title, query),
+					score: 0
 				})
 			}
 		})
@@ -75,15 +66,14 @@ export async function GET(req: NextRequest) {
 		const searchForArticleHeadings = await db.db.prepare(
 			`
 	SELECT id, title, articleId, slug
-	FROM headings 
-	WHERE title LIKE '%' || ? || '%'
-		OR slug LIKE '%' || ? || '%'
+	FROM ftsHeadings
+	WHERE ftsHeadings MATCH ?
+	ORDER BY bm25(ftsHeadings, 1000.0)
 `,
-			queryWithoutSpaces,
-			queryWithoutSpaces
+			query,
 		)
 
-		await searchForArticleHeadings.all(queryWithoutSpaces).then(async (queryResults) => {
+		await searchForArticleHeadings.all().then(async (queryResults) => {
 			for (const heading of queryResults) {
 				if (BANNED_HEADINGS.some((h) => heading.slug.endsWith(h))) continue
 
@@ -104,12 +94,14 @@ export async function GET(req: NextRequest) {
 					url: isUncategorized
 						? `${section.id}/${article.id}#${heading.slug}`
 						: `${section.id}/${category.id}/${article.id}#${heading.slug}`,
-					score: scoreResultBasedOnLengthSimilarity(article.title, query),
+					score: 0,
 				})
 			}
 		})
 
-		Object.keys(results).forEach((section: string) => results[section as keyof Data['results']].sort((a, b) => b.score - a.score))
+		Object.keys(results).forEach((section: string) => {
+			results[section as keyof Data['results']] = results[section as keyof Data['results']].slice(0, 20)
+		})
 
 		results.articles.sort(
 			(a, b) => (b.type === 'heading' ? -1 : 1) - (a.type === 'heading' ? -1 : 1)
