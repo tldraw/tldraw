@@ -37,8 +37,8 @@ export const ActionsMenu = memo(function ActionsMenu() {
 									? `${msg(label)} ${kbdStr(kbd)}`
 									: `${msg(label)}`
 								: kbd
-									? `${kbdStr(kbd)}`
-									: ''
+								  ? `${kbdStr(kbd)}`
+								  : ''
 						}
 						onClick={() => onSelect('actions-menu')}
 						disabled={item.disabled}
