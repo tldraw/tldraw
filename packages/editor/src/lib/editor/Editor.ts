@@ -8588,11 +8588,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (!inputs.isPinching) return
 
 							const {
+								point: { z = 1 },
 								delta: { x: dx, y: dy },
 							} = info
 
 							const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-							const { x, y, z = 1 } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
+							const { x, y } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
 
 							const { x: cx, y: cy, z: cz } = this.getCamera()
 
