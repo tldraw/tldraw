@@ -44,6 +44,7 @@ async function build() {
 					},
 					// finally handle SPA routing
 					{
+						check: true,
 						src: '.*',
 						dest: '/index.html',
 					},
