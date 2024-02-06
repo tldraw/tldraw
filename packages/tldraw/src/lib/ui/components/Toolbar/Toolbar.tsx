@@ -94,7 +94,11 @@ export const Toolbar = memo(function Toolbar() {
 	}, [dropdownFirstItem, editor, itemsInPanel])
 
 	return (
-		<div className="tlui-toolbar">
+		<div
+			className={classNames('tlui-toolbar', {
+				'tlui-toolbar__mobile': breakpoint < 5,
+			})}
+		>
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
 					{!isReadonly && (
