@@ -1207,6 +1207,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		clearDialogs,
 		clearToasts,
 		printSelectionOrPages,
+		defaultDocumentName,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
