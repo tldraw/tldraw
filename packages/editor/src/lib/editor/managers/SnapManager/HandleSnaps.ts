@@ -13,7 +13,7 @@ export class HandleSnaps {
 		this.editor = manager.editor
 	}
 
-	@computed getOutlinesInPageSpace() {
+	@computed private getOutlinesInPageSpace() {
 		return Array.from(this.manager.getSnappableShapes(), (id) => {
 			const geometry = this.editor.getShapeGeometry(id)
 			const outline = deepCopy(geometry.vertices)
