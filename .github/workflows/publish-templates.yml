@@ -1,0 +1,38 @@
+name: Publish templates
+
+# todo: replace with a manual run OR put into publish-manual/-new when
+#       this workflow is ready
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    name: 'Publish Vite template'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Push vite template to tldraw/vite-template
+        uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900  # v1.7.2
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+        with:
+          source-directory: 'templates/vite'
+          destination-github-username: 'tldraw'
+          destination-repository-name: 'vite-template'
+          user-email: dan+github.actions@tldraw.com
+          target-branch: main
