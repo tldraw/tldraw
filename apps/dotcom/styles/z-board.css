@@ -345,18 +345,15 @@
 .tlui-document-name__text {
 	padding: var(--space-2) var(--space-3);
 	white-space: pre;
-	height: 24px;
 	line-height: 24px;
 }
 
 .tlui-document-name__input {
 	position: absolute;
-	height: 100%;
 	width: 100%;
 	border-radius: var(--radius-2);
 	color: var(--color-text);
 	background: transparent;
-	top: -1px;
 }
 .tlui-document-name__input:focus {
 	box-shadow: inset 0px 0px 0px 1px var(--color-selected);
@@ -364,7 +361,6 @@
 }
 
 .tlui-document-name__text {
-	height: 100%;
 	width: 100%;
 	color: var(--color-text);
 	overflow: hidden;
