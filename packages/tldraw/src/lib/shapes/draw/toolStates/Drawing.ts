@@ -121,7 +121,7 @@ export class Drawing extends StateNode {
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		if (info.key === 'Shift') {
-			this.editor.snaps.clear()
+			this.editor.snaps.clearIndicators()
 
 			switch (this.segmentMode) {
 				case 'straight': {
@@ -142,7 +142,7 @@ export class Drawing extends StateNode {
 	}
 
 	override onExit? = () => {
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 	}
 
@@ -516,7 +516,7 @@ export class Drawing extends StateNode {
 
 					const snappedPoint = Mat.applyToPoint(transform, newPoint)
 
-					this.editor.snaps.setLines([
+					this.editor.snaps.setIndicators([
 						{
 							id: uniqueId(),
 							type: 'points',
@@ -524,7 +524,7 @@ export class Drawing extends StateNode {
 						},
 					])
 				} else {
-					this.editor.snaps.clear()
+					this.editor.snaps.clearIndicators()
 
 					if (shouldSnapToAngle) {
 						// Snap line angle to nearest 15 degrees

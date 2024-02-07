@@ -828,7 +828,7 @@ input,
 
 /* ------------------- Snap Lines ------------------- */
 
-.tl-snap-line {
+.tl-snap-indicator {
 	stroke: var(--color-accent);
 	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;

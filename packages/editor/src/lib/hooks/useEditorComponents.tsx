@@ -45,9 +45,9 @@ import {
 	TLShapeIndicatorErrorFallbackComponent,
 } from '../components/default-components/DefaultShapeIndicatorErrorFallback'
 import {
-	DefaultSnapLine,
-	TLSnapLineComponent,
-} from '../components/default-components/DefaultSnapLine'
+	DefaultSnapIndicator,
+	TLSnapIndicatorComponent,
+} from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner, TLSpinnerComponent } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs, TLSvgDefsComponent } from '../components/default-components/DefaultSvgDefs'
 
@@ -64,7 +64,7 @@ export interface BaseEditorComponents {
 	Grid: TLGridComponent
 	Scribble: TLScribbleComponent
 	CollaboratorScribble: TLScribbleComponent
-	SnapLine: TLSnapLineComponent
+	SnapIndicator: TLSnapIndicatorComponent
 	Handles: TLHandlesComponent
 	Handle: TLHandleComponent
 	Spinner: TLSpinnerComponent
@@ -114,7 +114,7 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 					CollaboratorShapeIndicator: ShapeIndicator,
 					Grid: DefaultGrid,
 					Scribble: DefaultScribble,
-					SnapLine: DefaultSnapLine,
+					SnapIndicator: DefaultSnapIndicator,
 					Handles: DefaultHandles,
 					Handle: DefaultHandle,
 					CollaboratorScribble: DefaultScribble,

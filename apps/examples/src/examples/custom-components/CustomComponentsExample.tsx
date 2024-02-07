@@ -30,7 +30,7 @@ const components: TLEditorComponents = {
 			</svg>
 		)
 	},
-	SnapLine: null,
+	SnapIndicator: null,
 }
 
 export default function CustomComponentsExample() {
