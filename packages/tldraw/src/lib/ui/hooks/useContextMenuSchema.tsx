@@ -87,8 +87,8 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
-	const contextTLUiMenuSchemaWithoutOverrides = useMemo<TLUiMenuSchema>(() => {
-		return compactMenuItems([
+	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
+		let contextTLUiMenuSchema: TLUiContextTTLUiMenuSchemaContextType = compactMenuItems([
 			menuGroup(
 				'selection',
 				showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
@@ -204,7 +204,23 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 				),
 			oneSelected && !isShapeLocked && menuGroup('delete-group', menuItem(actions['delete'])),
 		])
+
+		if (overrides) {
+			contextTLUiMenuSchema = overrides(editor, contextTLUiMenuSchema, {
+				actions,
+				oneSelected,
+				twoSelected,
+				threeSelected,
+				showAutoSizeToggle,
+				showUngroup: allowUngroup,
+				onlyFlippableShapeSelected,
+			})
+		}
+
+		return contextTLUiMenuSchema
 	}, [
+		editor,
+		overrides,
 		actions,
 		oneSelected,
 		twoSelected,
@@ -224,34 +240,6 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		isTransparentBg,
 		isShapeLocked,
 	])
-
-	const contextTLUiMenuSchema = useValue(
-		'overrides',
-		() => {
-			if (!overrides) return contextTLUiMenuSchemaWithoutOverrides
-			return overrides(editor, contextTLUiMenuSchemaWithoutOverrides, {
-				actions,
-				oneSelected,
-				twoSelected,
-				threeSelected,
-				showAutoSizeToggle,
-				showUngroup: allowUngroup,
-				onlyFlippableShapeSelected,
-			})
-		},
-		[
-			actions,
-			allowUngroup,
-			contextTLUiMenuSchemaWithoutOverrides,
-			editor,
-			oneSelected,
-			onlyFlippableShapeSelected,
-			overrides,
-			showAutoSizeToggle,
-			threeSelected,
-			twoSelected,
-		]
-	)
 
 	return (
 		<TLUiContextMenuSchemaContext.Provider value={contextTLUiMenuSchema}>
