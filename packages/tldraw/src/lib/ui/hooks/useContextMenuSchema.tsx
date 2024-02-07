@@ -1,5 +1,5 @@
-import { Editor, TLFrameShape, devFreeze, track, useEditor, useValue } from '@tldraw/editor'
-import React, { useMemo } from 'react'
+import { Editor, TLFrameShape, track, useEditor, useValue } from '@tldraw/editor'
+import React from 'react'
 import {
 	TLUiMenuSchema,
 	compactMenuItems,

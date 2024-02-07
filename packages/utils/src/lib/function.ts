@@ -64,7 +64,7 @@ export function noop(): void {}
  * Create a weak-map backed cache for a single-argument function.
  * @public
  */
-export function weakCache<T extends WeakKey, U>(fn: (arg: T) => U): (arg: T) => U {
+export function weakCache<T extends object, U>(fn: (arg: T) => U): (arg: T) => U {
 	const cache = new WeakMap<T, U>()
 	return (arg: T) => {
 		if (!cache.has(arg)) {

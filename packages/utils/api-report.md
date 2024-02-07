@@ -265,6 +265,9 @@ export function throttledRaf(fn: () => void): void;
 // @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
 
+// @public
+export function weakCache<T extends object, U>(fn: (arg: T) => U): (arg: T) => U;
+
 // (No @packageDocumentation comment for this package)
 
 ```

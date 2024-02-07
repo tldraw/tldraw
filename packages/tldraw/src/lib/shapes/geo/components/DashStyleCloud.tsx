@@ -39,10 +39,10 @@ export const DashStyleCloud = React.memo(function DashStylePolygon({
 				{arcs.map(({ leftPoint, rightPoint, center, radius }, i) => {
 					const arcLength = center
 						? radius *
-						  canonicalizeRotation(
+							canonicalizeRotation(
 								canonicalizeRotation(Vec.Angle(center, rightPoint)) -
 									canonicalizeRotation(Vec.Angle(center, leftPoint))
-						  )
+							)
 						: Vec.Dist(leftPoint, rightPoint)
 
 					const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -99,10 +99,10 @@ export function DashStyleCloudSvg({
 	for (const { leftPoint, rightPoint, center, radius } of arcs) {
 		const arcLength = center
 			? radius *
-			  canonicalizeRotation(
+				canonicalizeRotation(
 					canonicalizeRotation(Vec.Angle(center, rightPoint)) -
 						canonicalizeRotation(Vec.Angle(center, leftPoint))
-			  )
+				)
 			: Vec.Dist(leftPoint, rightPoint)
 
 		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(arcLength, strokeWidth, {

@@ -10,7 +10,7 @@ async function main() {
 
 		const nextVersion = latestVersion.prerelease.length
 			? // if the package is in prerelease mode, we want to release a canary for the current version rather than bumping
-			  latestVersion
+				latestVersion
 			: latestVersion?.inc(bump)
 		const versionString = `${nextVersion.major}.${nextVersion.minor}.${nextVersion.patch}-canary.${sha}`
 
