@@ -12,7 +12,6 @@ import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
-import { ComputedCache } from '@tldraw/store';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
@@ -159,6 +158,18 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     getGeometry(shape: Shape): Geometry2d;
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
+}
+
+// @public (undocumented)
+export interface BoundsSnapPoint {
+    // (undocumented)
+    handle?: SelectionCorner;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
 }
 
 // @public (undocumented)
@@ -481,7 +492,7 @@ export const DefaultSelectionBackground: TLSelectionBackgroundComponent;
 export const DefaultSelectionForeground: TLSelectionForegroundComponent;
 
 // @public (undocumented)
-export const DefaultSnapLine: TLSnapLineComponent;
+export const DefaultSnapIndicator: TLSnapIndicatorComponent;
 
 // @public (undocumented)
 export const DefaultSpinner: TLSpinnerComponent;
@@ -972,7 +983,7 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
 // @public (undocumented)
-export type GapsSnapLine = {
+export type GapsSnapIndicator = {
     id: string;
     type: 'gaps';
     direction: 'horizontal' | 'vertical';
@@ -1425,7 +1436,7 @@ export class Point2d extends Geometry2d {
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean;
 
 // @public (undocumented)
-export type PointsSnapLine = {
+export type PointsSnapIndicator = {
     id: string;
     type: 'points';
     points: VecLike[];
@@ -1711,68 +1722,29 @@ export const SIN: (x: number) => number;
 export function snapAngle(r: number, segments: number): number;
 
 // @public (undocumented)
-export type SnapLine = GapsSnapLine | PointsSnapLine;
+export type SnapIndicator = GapsSnapIndicator | PointsSnapIndicator;
 
 // @public (undocumented)
 export class SnapManager {
     constructor(editor: Editor);
     // (undocumented)
-    clear(): void;
+    clearIndicators(): void;
     // (undocumented)
     readonly editor: Editor;
     // (undocumented)
     getCurrentCommonAncestor(): TLShapeId | undefined;
     // (undocumented)
-    getLines(): SnapLine[];
+    getIndicators(): SnapIndicator[];
     // (undocumented)
-    getOutlinesInPageSpace(): Vec[][];
-    // (undocumented)
-    getSnappablePoints(): SnapPoint[];
-    // (undocumented)
-    getSnappableShapes(): GapNode[];
-    // (undocumented)
-    getSnappingHandleDelta({ handlePoint, additionalSegments, }: {
-        handlePoint: Vec;
-        additionalSegments: Vec[][];
-    }): null | Vec;
-    // (undocumented)
-    getSnapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
+    getSnappableShapes(): Set<TLShapeId>;
     // (undocumented)
     getSnapThreshold(): number;
     // (undocumented)
-    getVisibleGaps(): {
-        horizontal: Gap[];
-        vertical: Gap[];
-    };
+    readonly handles: HandleSnaps;
     // (undocumented)
-    setLines(lines: SnapLine[]): void;
+    setIndicators(indicators: SnapIndicator[]): void;
     // (undocumented)
-    snapResize({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }: {
-        initialSelectionPageBounds: Box;
-        dragDelta: Vec;
-        handle: SelectionCorner | SelectionEdge;
-        isAspectRatioLocked: boolean;
-        isResizingFromCenter: boolean;
-    }): SnapData;
-    // (undocumented)
-    snapTranslate({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: {
-        lockedAxis: 'x' | 'y' | null;
-        initialSelectionSnapPoints: SnapPoint[];
-        initialSelectionPageBounds: Box;
-        dragDelta: Vec;
-    }): SnapData;
-}
-
-// @public (undocumented)
-export interface SnapPoint {
-    // (undocumented)
-    handle?: SelectionCorner;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    x: number;
-    // (undocumented)
-    y: number;
+    readonly shapeBounds: BoundsSnaps;
 }
 
 // @public
@@ -2588,9 +2560,9 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
 export type TLShapeUtilFlag<T> = (shape: T) => boolean;
 
 // @public (undocumented)
-export type TLSnapLineComponent = React_3.ComponentType<{
+export type TLSnapIndicatorComponent = React_3.ComponentType<{
     className?: string;
-    line: SnapLine;
+    line: SnapIndicator;
     zoom: number;
 }>;
 
