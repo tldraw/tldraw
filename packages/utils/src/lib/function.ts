@@ -59,3 +59,17 @@ export function omitFromStackTrace<Args extends Array<unknown>, Return>(
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 export function noop(): void {}
+
+/**
+ * Create a weak-map backed cache for a single-argument function.
+ * @public
+ */
+export function weakCache<T extends WeakKey, U>(fn: (arg: T) => U): (arg: T) => U {
+	const cache = new WeakMap<T, U>()
+	return (arg: T) => {
+		if (!cache.has(arg)) {
+			cache.set(arg, fn(arg))
+		}
+		return cache.get(arg)!
+	}
+}

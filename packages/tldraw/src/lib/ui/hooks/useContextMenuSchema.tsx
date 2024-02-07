@@ -87,156 +87,160 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
-	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
-		const contextTLUiMenuSchemaWithoutOverrides: TLUiMenuSchema = compactMenuItems([
-			menuGroup(
-				'selection',
-				showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
-				showEditLink && !isShapeLocked && menuItem(actions['edit-link']),
-				oneSelected && !isShapeLocked && menuItem(actions['duplicate']),
-				allowGroup && !isShapeLocked && menuItem(actions['group']),
-				allowUngroup && !isShapeLocked && menuItem(actions['ungroup']),
-				allowRemoveFrame && !isShapeLocked && menuItem(actions['remove-frame']),
-				allowFitFrameToContent && !isShapeLocked && menuItem(actions['fit-frame-to-content']),
-				oneSelected && menuItem(actions['toggle-lock'])
-			),
-			menuGroup(
-				'modify',
-				(twoSelected || onlyFlippableShapeSelected) &&
-					menuSubmenu(
-						'arrange',
-						'context-menu.arrange',
-						twoSelected &&
-							menuGroup(
-								'align',
-								menuItem(actions['align-left']),
-								menuItem(actions['align-center-horizontal']),
-								menuItem(actions['align-right']),
-								menuItem(actions['align-top']),
-								menuItem(actions['align-center-vertical']),
-								menuItem(actions['align-bottom'])
-							),
-						threeSelected &&
-							menuGroup(
-								'distribute',
-								menuItem(actions['distribute-horizontal']),
-								menuItem(actions['distribute-vertical'])
-							),
-						twoSelected &&
-							menuGroup(
-								'stretch',
-								menuItem(actions['stretch-horizontal']),
-								menuItem(actions['stretch-vertical'])
-							),
-						onlyFlippableShapeSelected &&
-							!isShapeLocked &&
-							menuGroup(
-								'flip',
-								menuItem(actions['flip-horizontal']),
-								menuItem(actions['flip-vertical'])
-							),
-						twoSelected &&
-							menuGroup(
-								'order',
-								menuItem(actions['pack'], { disabled: !twoSelected }),
-								threeStackableItems && menuItem(actions['stack-vertical']),
-								threeStackableItems && menuItem(actions['stack-horizontal'])
-							)
-					),
-				oneSelected &&
-					!isShapeLocked &&
-					menuSubmenu(
-						'reorder',
-						'context-menu.reorder',
-						menuGroup(
+	const contextTLUiMenuSchema = useValue<TLUiMenuSchema>(
+		'context menu schema',
+		() => {
+			const contextTLUiMenuSchemaWithoutOverrides: TLUiMenuSchema = compactMenuItems([
+				menuGroup(
+					'selection',
+					showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
+					showEditLink && !isShapeLocked && menuItem(actions['edit-link']),
+					oneSelected && !isShapeLocked && menuItem(actions['duplicate']),
+					allowGroup && !isShapeLocked && menuItem(actions['group']),
+					allowUngroup && !isShapeLocked && menuItem(actions['ungroup']),
+					allowRemoveFrame && !isShapeLocked && menuItem(actions['remove-frame']),
+					allowFitFrameToContent && !isShapeLocked && menuItem(actions['fit-frame-to-content']),
+					oneSelected && menuItem(actions['toggle-lock'])
+				),
+				menuGroup(
+					'modify',
+					(twoSelected || onlyFlippableShapeSelected) &&
+						menuSubmenu(
+							'arrange',
+							'context-menu.arrange',
+							twoSelected &&
+								menuGroup(
+									'align',
+									menuItem(actions['align-left']),
+									menuItem(actions['align-center-horizontal']),
+									menuItem(actions['align-right']),
+									menuItem(actions['align-top']),
+									menuItem(actions['align-center-vertical']),
+									menuItem(actions['align-bottom'])
+								),
+							threeSelected &&
+								menuGroup(
+									'distribute',
+									menuItem(actions['distribute-horizontal']),
+									menuItem(actions['distribute-vertical'])
+								),
+							twoSelected &&
+								menuGroup(
+									'stretch',
+									menuItem(actions['stretch-horizontal']),
+									menuItem(actions['stretch-vertical'])
+								),
+							onlyFlippableShapeSelected &&
+								!isShapeLocked &&
+								menuGroup(
+									'flip',
+									menuItem(actions['flip-horizontal']),
+									menuItem(actions['flip-vertical'])
+								),
+							twoSelected &&
+								menuGroup(
+									'order',
+									menuItem(actions['pack'], { disabled: !twoSelected }),
+									threeStackableItems && menuItem(actions['stack-vertical']),
+									threeStackableItems && menuItem(actions['stack-horizontal'])
+								)
+						),
+					oneSelected &&
+						!isShapeLocked &&
+						menuSubmenu(
 							'reorder',
-							menuItem(actions['bring-to-front']),
-							menuItem(actions['bring-forward']),
-							menuItem(actions['send-backward']),
-							menuItem(actions['send-to-back'])
+							'context-menu.reorder',
+							menuGroup(
+								'reorder',
+								menuItem(actions['bring-to-front']),
+								menuItem(actions['bring-forward']),
+								menuItem(actions['send-backward']),
+								menuItem(actions['send-to-back'])
+							)
+						),
+					oneSelected && !isShapeLocked && menuCustom('MOVE_TO_PAGE_MENU', { readonlyOk: false })
+				),
+				menuGroup(
+					'clipboard-group',
+					oneSelected && !isShapeLocked && menuItem(actions['cut']),
+					oneSelected && menuItem(actions['copy']),
+					showMenuPaste && menuItem(actions['paste'])
+				),
+				atLeastOneShapeOnPage &&
+					menuGroup(
+						'conversions',
+						menuSubmenu(
+							'copy-as',
+							'context-menu.copy-as',
+							menuGroup(
+								'copy-as-group',
+								menuItem(actions['copy-as-svg']),
+								hasClipboardWrite && menuItem(actions['copy-as-png']),
+								menuItem(actions['copy-as-json'])
+							),
+							menuGroup(
+								'export-bg',
+								menuItem(actions['toggle-transparent'], { checked: !isTransparentBg })
+							)
+						),
+						menuSubmenu(
+							'export-as',
+							'context-menu.export-as',
+							menuGroup(
+								'export-as-group',
+								menuItem(actions['export-as-svg']),
+								menuItem(actions['export-as-png']),
+								menuItem(actions['export-as-json'])
+							),
+							menuGroup(
+								'export-bg,',
+								menuItem(actions['toggle-transparent'], { checked: !isTransparentBg })
+							)
 						)
 					),
-				oneSelected && !isShapeLocked && menuCustom('MOVE_TO_PAGE_MENU', { readonlyOk: false })
-			),
-			menuGroup(
-				'clipboard-group',
-				oneSelected && !isShapeLocked && menuItem(actions['cut']),
-				oneSelected && menuItem(actions['copy']),
-				showMenuPaste && menuItem(actions['paste'])
-			),
-			atLeastOneShapeOnPage &&
-				menuGroup(
-					'conversions',
-					menuSubmenu(
-						'copy-as',
-						'context-menu.copy-as',
-						menuGroup(
-							'copy-as-group',
-							menuItem(actions['copy-as-svg']),
-							hasClipboardWrite && menuItem(actions['copy-as-png']),
-							menuItem(actions['copy-as-json'])
-						),
-						menuGroup(
-							'export-bg',
-							menuItem(actions['toggle-transparent'], { checked: !isTransparentBg })
-						)
+				atLeastOneShapeOnPage &&
+					menuGroup(
+						'set-selection-group',
+						menuItem(actions['select-all']),
+						oneSelected && menuItem(actions['select-none'])
 					),
-					menuSubmenu(
-						'export-as',
-						'context-menu.export-as',
-						menuGroup(
-							'export-as-group',
-							menuItem(actions['export-as-svg']),
-							menuItem(actions['export-as-png']),
-							menuItem(actions['export-as-json'])
-						),
-						menuGroup(
-							'export-bg,',
-							menuItem(actions['toggle-transparent'], { checked: !isTransparentBg })
-						)
-					)
-				),
-			atLeastOneShapeOnPage &&
-				menuGroup(
-					'set-selection-group',
-					menuItem(actions['select-all']),
-					oneSelected && menuItem(actions['select-none'])
-				),
-			oneSelected && !isShapeLocked && menuGroup('delete-group', menuItem(actions['delete'])),
-		])
+				oneSelected && !isShapeLocked && menuGroup('delete-group', menuItem(actions['delete'])),
+			])
 
-		if (!overrides) return contextTLUiMenuSchemaWithoutOverrides
-		return overrides(editor, contextTLUiMenuSchemaWithoutOverrides, {
+			if (!overrides) return contextTLUiMenuSchemaWithoutOverrides
+			return overrides(editor, contextTLUiMenuSchemaWithoutOverrides, {
+				actions,
+				oneSelected,
+				twoSelected,
+				threeSelected,
+				showAutoSizeToggle,
+				showUngroup: allowUngroup,
+				onlyFlippableShapeSelected,
+			})
+		},
+		[
 			actions,
 			oneSelected,
 			twoSelected,
 			threeSelected,
 			showAutoSizeToggle,
-			showUngroup: allowUngroup,
 			onlyFlippableShapeSelected,
-		})
-	}, [
-		actions,
-		oneSelected,
-		twoSelected,
-		threeSelected,
-		showAutoSizeToggle,
-		onlyFlippableShapeSelected,
-		atLeastOneShapeOnPage,
-		threeStackableItems,
-		allowGroup,
-		allowUngroup,
-		allowRemoveFrame,
-		allowFitFrameToContent,
-		hasClipboardWrite,
-		showEditLink,
-		// oneEmbedSelected,
-		// oneEmbeddableBookmarkSelected,
-		isTransparentBg,
-		isShapeLocked,
-		editor,
-		overrides,
-	])
+			atLeastOneShapeOnPage,
+			threeStackableItems,
+			allowGroup,
+			allowUngroup,
+			allowRemoveFrame,
+			allowFitFrameToContent,
+			hasClipboardWrite,
+			showEditLink,
+			// oneEmbedSelected,
+			// oneEmbeddableBookmarkSelected,
+			isTransparentBg,
+			isShapeLocked,
+			editor,
+			overrides,
+		]
+	)
 
 	return (
 		<TLUiContextMenuSchemaContext.Provider value={contextTLUiMenuSchema}>

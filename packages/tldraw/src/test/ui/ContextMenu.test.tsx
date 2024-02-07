@@ -26,7 +26,7 @@ it('opens on right-click', async () => {
 	expect(screen.queryByTestId('context-menu')).toBeNull()
 })
 
-it.failing('updates overrides reactively', async () => {
+it('updates overrides reactively', async () => {
 	const count = atom('count', 1)
 	const overrides: TLUiOverrides = {
 		contextMenu: (editor, schema) => {
