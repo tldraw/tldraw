@@ -598,13 +598,19 @@ body {
 	align-items: center;
 	justify-content: center;
 	width: 100%;
-	height: 320px;
+	height: 480px;
+}
+
+@media screen and (max-width: 400px) {
+	.article__embed--quickstart {
+		height: 300px;
+	}
+	
 }
 
 .article__embed--quickstart > iframe {
 	width: 100%;
-	max-width: 600px;
-	
+	max-width: 720px;
 	border-radius: 4px;
 	border: 1px solid var(--color-tint-2);
 }
@@ -1288,9 +1294,8 @@ body {
 		height: 100%;
 		justify-content: flex-end;
 	}
-
 }
-
+/* --------------------- Mobile --------------------- */
 @media (max-width: 760px) {
 	.article__image {
 		margin: 32px -16px;
@@ -1324,6 +1329,10 @@ body {
 		height: 100%;
 		width: 100%;
 		justify-content: flex-end;
+	}
+	
+	.article__embed--quickstart {
+		height: 420px;
 	}
 }
 
