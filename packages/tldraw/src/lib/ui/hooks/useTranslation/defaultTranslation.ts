@@ -269,6 +269,8 @@ export const DEFAULT_TRANSLATION = {
 	'people-menu.user': '(You)',
 	'people-menu.invite': 'Invite others',
 	'help-menu.title': 'Help and resources',
+	'help-menu.terms-and-conditions': 'Terms & Conditions',
+	'help-menu.privacy': 'Privacy Policy',
 	'help-menu.about': 'About',
 	'help-menu.discord': 'Discord',
 	'help-menu.github': 'GitHub',

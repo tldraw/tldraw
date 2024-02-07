@@ -266,6 +266,8 @@ export type TLUiTranslationKey =
 	| 'people-menu.user'
 	| 'people-menu.invite'
 	| 'help-menu.title'
+	| 'help-menu.terms-and-conditions'
+	| 'help-menu.privacy'
 	| 'help-menu.about'
 	| 'help-menu.discord'
 	| 'help-menu.github'
