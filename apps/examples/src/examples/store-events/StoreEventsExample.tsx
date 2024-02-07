@@ -1,7 +1,7 @@
 import { Editor, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { useCallback, useEffect, useState } from 'react'
 import _ from 'lodash'
+import { useCallback, useEffect, useState } from 'react'
 
 // There's a guide at the bottom of this file!
 
