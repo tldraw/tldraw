@@ -1,5 +1,5 @@
 /* eslint-disable deprecation/deprecation */
-import { Result, getOwnProperty, objectMapValues } from '@tldraw/utils'
+import { Result, getOwnProperty, objectMapValues, tldrawError } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
 import { LegacyMigrator } from './LegacyMigrator'
 import { RecordType } from './RecordType'
@@ -118,8 +118,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	ensureMigrationSequenceIncluded(id: string): void {
 		if (!this.includedSequenceIds.has(id)) {
-			throw new Error(
-				// TODO: link to migration docs
+			// TODO: link to migration docs
+			throw tldrawError(
 				`Missing migration sequence ${str(id)}. Did you forget to add it to the migrations option?`
 			)
 		}
@@ -134,7 +134,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		try {
 			const recordType = getOwnProperty(this.types, record.typeName)
 			if (!recordType) {
-				throw new Error(`Missing definition for record type ${record.typeName}`)
+				throw tldrawError(`Missing definition for record type ${record.typeName}`)
 			}
 			return recordType.validate(record)
 		} catch (error: unknown) {
@@ -169,7 +169,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							store,
 						})
 						if (res.type === 'error') {
-							throw new Error(res.reason)
+							throw tldrawError(res.reason)
 						}
 						return res.value
 					},

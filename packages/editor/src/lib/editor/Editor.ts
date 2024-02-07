@@ -38,6 +38,7 @@ import {
 	isPageId,
 	isShape,
 	isShapeId,
+	tldrawMigrations,
 } from '@tldraw/tlschema'
 import {
 	assert,
@@ -198,6 +199,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		super()
 
 		this.store = store
+
+		this.store.schema.ensureMigrationSequenceIncluded(tldrawMigrations.id)
 
 		this.snaps = new SnapManager(this)
 
