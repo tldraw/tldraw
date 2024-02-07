@@ -40,12 +40,14 @@
 		"@vercel/analytics": "^1.1.1",
 		"classnames": "^2.3.2",
 		"lazyrepo": "0.0.0-alpha.27",
+		"lodash": "^4.17.21",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.17.0",
 		"vite": "^5.0.0"
 	},
 	"devDependencies": {
+		"@types/lodash": "^4.14.188",
 		"@vitejs/plugin-react": "^4.2.0",
 		"dotenv": "^16.3.1",
 		"remark": "^15.0.1",

@@ -213,8 +213,9 @@ li.examples__sidebar__item {
 	align-items: stretch;
 }
 
-/* ----------------- Footer Buttons ----------------- */
+/* ----------------- Header/Footer Buttons ----------------- */
 
+.example__sidebar__header-links,
 .example__sidebar__footer-links {
 	display: flex;
 	flex-direction: column;
@@ -225,6 +226,7 @@ li.examples__sidebar__item {
 	border-top: 1px solid #e8e8e8;
 }
 
+.example__sidebar__header-link,
 .example__sidebar__footer-link {
 	padding: 8px 8px;
 	border-radius: 6px;
@@ -241,7 +243,7 @@ li.examples__sidebar__item {
 		0px 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.example__sidebar__footer-link > a {
+a.example__sidebar__header-link {
 	color: white;
 }
 
