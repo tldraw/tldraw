@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, atom, computed, transact, whyAmIRunning } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -1448,7 +1448,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 */
 	@computed getSelectedShapes(): TLShape[] {
-		whyAmIRunning()
 		const { selectedShapeIds } = this.getCurrentPageState()
 		return compact(selectedShapeIds.map((id) => this.store.get(id)))
 	}

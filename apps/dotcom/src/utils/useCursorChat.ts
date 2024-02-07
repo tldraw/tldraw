@@ -1,12 +1,4 @@
-import {
-	Editor,
-	TLUiOverrides,
-	computed,
-	menuGroup,
-	menuItem,
-	weakCache,
-	whyAmIRunning,
-} from '@tldraw/tldraw'
+import { Editor, TLUiOverrides, computed, menuGroup, menuItem, weakCache } from '@tldraw/tldraw'
 import { useMemo } from 'react'
 import { useHandleUiEvents } from './useHandleUiEvent'
 
@@ -40,8 +32,6 @@ export function useCursorChat(): TLUiOverrides {
 				return actions
 			},
 			contextMenu(editor, contextMenu, { actions }) {
-				console.log('cursor chat updated')
-				whyAmIRunning()
 				if (editor.getSelectedShapes().length > 0 || isCoarsePointer(editor).get()) {
 					return contextMenu
 				}
