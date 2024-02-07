@@ -435,11 +435,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							? {
 									x: commonBounds.width + 10,
 									y: 0,
-								}
+							  }
 							: {
 									x: 16 / editor.getZoomLevel(),
 									y: 16 / editor.getZoomLevel(),
-								}
+							  }
 					}
 
 					editor.mark('duplicate shapes')

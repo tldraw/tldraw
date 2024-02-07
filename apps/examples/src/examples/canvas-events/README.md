@@ -1,7 +1,7 @@
 ---
 title: Canvas events
 component: ./CanvasEventsExample.tsx
-category: editor
+category: editor-api
 priority: 2
 ---
 

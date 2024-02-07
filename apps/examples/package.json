@@ -33,9 +33,8 @@
 		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
 	},
 	"dependencies": {
-		"@babel/plugin-proposal-decorators": "^7.21.0",
 		"@playwright/test": "^1.38.1",
-		"@radix-ui/react-accordion": "^1.1.2",
+		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",
 		"@vercel/analytics": "^1.1.1",

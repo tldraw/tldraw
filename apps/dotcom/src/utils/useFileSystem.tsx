@@ -101,7 +101,7 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 				const newItem = menuItem(actions[NEW_PROJECT_ACTION])
 				const group = isMultiplayer
 					? // open is not currently supported in multiplayer
-						menuGroup('filesystem', saveItem)
+					  menuGroup('filesystem', saveItem)
 					: menuGroup('filesystem', newItem, openItem, saveItem)
 				fileMenu.children.unshift(group!)
 
