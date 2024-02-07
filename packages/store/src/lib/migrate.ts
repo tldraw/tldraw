@@ -18,7 +18,7 @@ export type Migration = StoreMigration | RecordMigration
 interface BaseMigration {
 	id: MigrationId
 	// if this migration needs to run after another migration from a different sequence, specify it here
-	dependsOn?: MigrationId[]
+	dependsOn?: readonly MigrationId[]
 }
 
 /**

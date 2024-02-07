@@ -263,6 +263,9 @@ export function throttle<T extends (...args: any) => any>(func: T, limit: number
 export function throttledRaf(fn: () => void): void;
 
 // @internal (undocumented)
+export const tldrawError: (msg: string) => Error;
+
+// @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
 
 // (No @packageDocumentation comment for this package)

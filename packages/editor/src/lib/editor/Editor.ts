@@ -40,9 +40,9 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	assert,
 	JsonObject,
 	annotateError,
-	assert,
 	compact,
 	dedupe,
 	deepCopy,
@@ -8888,6 +8888,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								this.emit('event', info)
 								this.root.handleEvent(otherEvent)
 								this.emit('event', otherEvent)
+
 								return
 							}
 
