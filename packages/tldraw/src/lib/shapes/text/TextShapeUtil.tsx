@@ -378,7 +378,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	const cw = autoSize
 		? null
 		: // `measureText` floors the number so we need to do the same here to avoid issues.
-		  Math.floor(Math.max(minWidth, w))
+			Math.floor(Math.max(minWidth, w))
 
 	const result = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,

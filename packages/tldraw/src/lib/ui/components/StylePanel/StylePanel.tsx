@@ -129,7 +129,7 @@ function CommonStylePickerSet({
 					minBy(tldrawSupportedOpacities, (supportedOpacity) =>
 						Math.abs(supportedOpacity - opacity.value)
 					)!
-			  )
+				)
 
 	return (
 		<>
