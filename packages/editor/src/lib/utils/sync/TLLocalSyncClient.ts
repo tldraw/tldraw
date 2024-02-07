@@ -211,7 +211,7 @@ export class TLLocalSyncClient {
 				const msg = data as Message
 				// if their schema is earlier than ours, we need to tell them so they can refresh
 				// if their schema is later than ours, we need to refresh
-				
+
 				const comparison = compareSchemas(
 					this.serializedSchema,
 					msg.schema ?? this.store.schema.serializeEarliestVersion()

@@ -21,7 +21,7 @@ export function defineMigrations<
 				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: LegacyMigration }
 				: {
 						[version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: LegacyMigration
-					}
+				  }
 			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: LegacyMigration }
 		: never
 	subTypeKey?: string

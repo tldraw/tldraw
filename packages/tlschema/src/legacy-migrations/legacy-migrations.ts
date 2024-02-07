@@ -371,12 +371,12 @@ export const instanceMigrations = defineMigrations({
 							opacity < 0.175
 								? '0.1'
 								: opacity < 0.375
-									? '0.25'
-									: opacity < 0.625
-										? '0.5'
-										: opacity < 0.875
-											? '0.75'
-											: '1',
+								  ? '0.25'
+								  : opacity < 0.625
+									  ? '0.5'
+									  : opacity < 0.875
+										  ? '0.75'
+										  : '1',
 					},
 				}
 			},
@@ -865,12 +865,12 @@ export const rootShapeMigrations = defineMigrations({
 							opacity < 0.175
 								? '0.1'
 								: opacity < 0.375
-									? '0.25'
-									: opacity < 0.625
-										? '0.5'
-										: opacity < 0.875
-											? '0.75'
-											: '1',
+								  ? '0.25'
+								  : opacity < 0.625
+									  ? '0.5'
+									  : opacity < 0.875
+										  ? '0.75'
+										  : '1',
 					},
 				}
 			},
@@ -979,14 +979,14 @@ export const arrowShapeMigrations = defineMigrations({
 										isPrecise: !(
 											start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5
 										),
-									}
+								  }
 								: start,
 						end:
 							(end as TLArrowShapeTerminal).type === 'binding'
 								? {
 										...end,
 										isPrecise: !(end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5),
-									}
+								  }
 								: end,
 					},
 				}

@@ -43,19 +43,19 @@ export class LegacyMigrator {
 			const result =
 				direction === 'up'
 					? // eslint-disable-next-line deprecation/deprecation
-						migrateRecord({
+					  migrateRecord({
 							record,
 							migrations: ourMigrations,
 							fromVersion: persistedVersion,
 							toVersion: ourVersion,
-						})
+					  })
 					: // eslint-disable-next-line deprecation/deprecation
-						migrateRecord({
+					  migrateRecord({
 							record,
 							migrations: ourMigrations,
 							fromVersion: ourVersion,
 							toVersion: persistedVersion,
-						})
+					  })
 			if (result.type === 'error') {
 				return result
 			}
@@ -79,7 +79,7 @@ export class LegacyMigrator {
 			'subTypeVersions' in persistedType
 				? persistedType.subTypeVersions[
 						record[ourMigrations.subTypeKey as keyof typeof record] as string
-					]
+				  ]
 				: undefined
 
 		// if ourSubTypeMigrations is undefined then we don't have access to the migrations for this subtype
@@ -100,19 +100,19 @@ export class LegacyMigrator {
 		const result =
 			direction === 'up'
 				? // eslint-disable-next-line deprecation/deprecation
-					migrateRecord({
+				  migrateRecord({
 						record,
 						migrations: ourSubTypeMigrations,
 						fromVersion: persistedSubTypeVersion,
 						toVersion: ourSubTypeMigrations.currentVersion,
-					})
+				  })
 				: // eslint-disable-next-line deprecation/deprecation
-					migrateRecord({
+				  migrateRecord({
 						record,
 						migrations: ourSubTypeMigrations,
 						fromVersion: ourSubTypeMigrations.currentVersion,
 						toVersion: persistedSubTypeVersion,
-					})
+				  })
 
 		if (result.type === 'error') {
 			return result
@@ -193,12 +193,12 @@ export class LegacyMigrator {
 												k,
 												v.currentVersion,
 											])
-										)
+									  )
 									: undefined,
-							}
+						  }
 						: {
 								version: migrations.currentVersion,
-							},
+						  },
 				])
 			),
 		}
@@ -221,12 +221,12 @@ export class LegacyMigrator {
 												k,
 												v.firstVersion,
 											])
-										)
+									  )
 									: undefined,
-							}
+						  }
 						: {
 								version: migrations.firstVersion,
-							},
+						  },
 				])
 			),
 		}
