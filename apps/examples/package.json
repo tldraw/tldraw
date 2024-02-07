@@ -47,7 +47,7 @@
 		"vite": "^5.0.0"
 	},
 	"devDependencies": {
-		"@types/lodash": "^4.14.202",
+		"@types/lodash": "^4.14.188",
 		"@vitejs/plugin-react": "^4.2.0",
 		"dotenv": "^16.3.1",
 		"remark": "^15.0.1",
