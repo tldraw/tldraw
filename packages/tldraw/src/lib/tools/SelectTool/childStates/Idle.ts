@@ -1,6 +1,5 @@
 import {
 	Editor,
-	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
 	TLArrowShape,
@@ -15,6 +14,7 @@ import {
 	createShapeId,
 	pointInPolygon,
 } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
@@ -505,13 +505,8 @@ export class Idle extends StateNode {
 
 		// todo: Extract into general hit test for arrows
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			// How should we handle multiple labels? Do shapes ever have multiple labels?
-			const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
-			// Knowing what we know about arrows... if the shape has no text in its label,
-			// then the label geometry should not be there.
-			if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
-				return true
-			}
+			const arrowShapeUtil = this.editor.getShapeUtil(shape) as ArrowShapeUtil
+			return arrowShapeUtil.isOverArrowLabelTest(shape, pointInShapeSpace)
 		}
 
 		return false

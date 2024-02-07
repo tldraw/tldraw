@@ -32,6 +32,7 @@ import {
 	getDefaultColorTheme,
 	mapObjectMapValues,
 	objectMapEntries,
+	pointInPolygon,
 	toDomPrecision,
 	useIsEditing,
 } from '@tldraw/editor'
@@ -1016,6 +1017,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [getFillDefForCanvas()]
+	}
+
+	isOverArrowLabelTest(arrow: TLArrowShape, pointInShapeSpace: Vec) {
+		// How should we handle multiple labels? Do shapes ever have multiple labels?
+		const labelGeometry = this.getGeometry(arrow).children[1]
+		// Knowing what we know about arrows... if the shape has no text in its label,
+		// then the label geometry should not be there.
+		if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
+			return true
+		}
+
+		return false
 	}
 }
 
