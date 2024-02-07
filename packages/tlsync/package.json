@@ -31,8 +31,8 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"test": "lazy inherit",
-		"test-dev": "yarn run -T jest --watch",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest --watch",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},

@@ -57,7 +57,7 @@ jobs:
         run: yarn api-check
 
       - name: Test
-        run: yarn test
+        run: yarn test-ci
 
   build:
     name: 'Build all projects'
