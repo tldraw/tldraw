@@ -149,17 +149,17 @@ export class Pointing extends StateNode {
 	override onInterrupt: TLInterruptEvent = () => {
 		this.parent.transition('idle')
 		if (this.markId) this.editor.bailToMark(this.markId)
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 
 	complete() {
 		this.parent.transition('idle', { shapeId: this.shape.id })
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 
 	cancel() {
 		if (this.markId) this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', { shapeId: this.shape.id })
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 }
