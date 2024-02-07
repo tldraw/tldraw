@@ -6442,7 +6442,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        isSnappable?: boolean;\n    }"
+                  "text": ";\n    }"
                 },
                 {
                   "kind": "Content",
@@ -20931,36 +20931,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "isPointInBounds"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Geometry2d#isSnappable:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "isSnappable: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "isSnappable",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Method",

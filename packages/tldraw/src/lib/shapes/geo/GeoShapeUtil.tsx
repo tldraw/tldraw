@@ -299,7 +299,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: w,
 					height: h,
 					isFilled,
-					isSnappable: true,
 				})
 				break
 			}
@@ -333,12 +332,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: labelWidth,
 					height: labelHeight,
 					isFilled: true,
-					isSnappable: false,
 					isLabel: true,
 				}),
 				...edges,
 			],
-			isSnappable: false,
 		})
 	}
 
