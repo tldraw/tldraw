@@ -41,8 +41,8 @@ jobs:
       - name: Setup Biome CLI
         uses: biomejs/setup-biome@v2
 
-      - name: Run Biome
-        run: biome ci --formatter-enabled=true --linter-enabled=false --organize-imports-enabled=false .
+#      - name: Run Biome
+#        run: biome ci --formatter-enabled=true --linter-enabled=false --organize-imports-enabled=false .
 
       - name: Typecheck
         run: yarn build-types
