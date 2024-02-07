@@ -24,12 +24,7 @@ export class PointingArrowLabel extends StateNode {
 	}
 
 	private updateCursor() {
-		this.editor.updateInstanceState({
-			cursor: {
-				type: 'grabbing',
-				rotation: 0,
-			},
-		})
+		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
 	override onEnter = (
@@ -99,6 +94,10 @@ export class PointingArrowLabel extends StateNode {
 		} else {
 			const { _center, measure, angleEnd, angleStart } = groupGeometry.children[0] as Arc2d
 			nextLabelPosition = getPointInArcT(measure, angleStart, angleEnd, _center.angle(nearestPoint))
+		}
+
+		if (isNaN(nextLabelPosition)) {
+			nextLabelPosition = 0.5
 		}
 
 		this.editor.updateShape<TLArrowShape>(

@@ -10,6 +10,7 @@ function formatPath(path: ReadonlyArray<number | string>): string | null {
 	if (!path.length) {
 		return null
 	}
+
 	let formattedPath = ''
 	for (const item of path) {
 		if (typeof item === 'number') {
@@ -24,6 +25,10 @@ function formatPath(path: ReadonlyArray<number | string>): string | null {
 			formattedPath += `.${item}`
 		}
 	}
+
+	// N.B. We don't want id's in the path because they make grouping in Sentry tough.
+	formattedPath = formattedPath.replace(/id = [^,]+, /, '').replace(/id = [^)]+/, '')
+
 	if (formattedPath.startsWith('.')) {
 		return formattedPath.slice(1)
 	}
@@ -242,11 +247,9 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	 * })
 	 * ```
 	 */
-	extend<Extension extends Record<string, unknown>>(
-		extension: {
-			readonly [K in keyof Extension]: Validatable<Extension[K]>
-		}
-	): ObjectValidator<Shape & Extension> {
+	extend<Extension extends Record<string, unknown>>(extension: {
+		readonly [K in keyof Extension]: Validatable<Extension[K]>
+	}): ObjectValidator<Shape & Extension> {
 		return new ObjectValidator({ ...this.config, ...extension }) as ObjectValidator<
 			Shape & Extension
 		>
@@ -472,11 +475,9 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
  *
  * @public
  */
-export function object<Shape extends object>(
-	config: {
-		readonly [K in keyof Shape]: Validatable<Shape[K]>
-	}
-): ObjectValidator<Shape> {
+export function object<Shape extends object>(config: {
+	readonly [K in keyof Shape]: Validatable<Shape[K]>
+}): ObjectValidator<Shape> {
 	return new ObjectValidator(config)
 }
 

@@ -34,6 +34,13 @@ export class Idle extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		updateHoveredId(this.editor)
+
+		const hitShape = this.editor.getHoveredShape()
+		if (this.isOverArrowLabelTest(hitShape)) {
+			this.editor.setCursor({ type: 'pointer', rotation: 0 })
+		} else {
+			this.editor.setCursor({ type: 'default', rotation: 0 })
+		}
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -93,21 +100,10 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
-				const pointInShapeSpace = this.editor.getPointInShapeSpace(
-					shape,
-					this.editor.inputs.currentPagePoint
-				)
-				// todo: Extract into general hit test for arrows
-				if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-					// How should we handle multiple labels? Do shapes ever have multiple labels?
-					const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
-					// Knowing what we know about arrows... if the shape has no text in its label,
-					// then the label geometry should not be there.
-					if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
-						// We're moving the label on a shape.
-						this.parent.transition('pointing_arrow_label', info)
-						break
-					}
+				if (this.isOverArrowLabelTest(shape)) {
+					// We're moving the label on a shape.
+					this.parent.transition('pointing_arrow_label', info)
+					break
 				}
 
 				if (this.editor.isShapeOrAncestorLocked(shape)) {
@@ -199,10 +195,10 @@ export class Idle extends StateNode {
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
-						  this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
 								hitInside: false,
-						  })
+							})
 
 				const focusedGroupId = this.editor.getFocusedGroupId()
 
@@ -358,7 +354,7 @@ export class Idle extends StateNode {
 								hitLabels: true,
 								hitFrameInside: false,
 								renderingOnly: true,
-						  })
+							})
 
 				if (hitShape) {
 					this.onRightClick({
@@ -499,6 +495,28 @@ export class Idle extends StateNode {
 
 	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 
+	isOverArrowLabelTest(shape: TLShape | undefined) {
+		if (!shape) return false
+
+		const pointInShapeSpace = this.editor.getPointInShapeSpace(
+			shape,
+			this.editor.inputs.currentPagePoint
+		)
+
+		// todo: Extract into general hit test for arrows
+		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			// How should we handle multiple labels? Do shapes ever have multiple labels?
+			const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
+			// Knowing what we know about arrows... if the shape has no text in its label,
+			// then the label geometry should not be there.
+			if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
+				return true
+			}
+		}
+
+		return false
+	}
+
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getInstanceState().isReadonly) return
@@ -567,8 +585,8 @@ export class Idle extends StateNode {
 				? gridSize * GRID_INCREMENT
 				: gridSize
 			: shiftKey
-			  ? MAJOR_NUDGE_FACTOR
-			  : MINOR_NUDGE_FACTOR
+				? MAJOR_NUDGE_FACTOR
+				: MINOR_NUDGE_FACTOR
 
 		this.editor.nudgeShapes(this.editor.getSelectedShapeIds(), delta.mul(step))
 	}
