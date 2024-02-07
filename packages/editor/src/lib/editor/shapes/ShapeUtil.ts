@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
@@ -16,7 +17,20 @@ export interface TLShapeUtilConstructor<
 	new (editor: Editor): U
 	type: T['type']
 	props?: ShapeProps<T>
-	migrations?: Migrations
+	// TODO: Link to docs
+	/**
+	 * @deprecated - if you have previously deployed your app with this property, rename it to __legacyMigrations_do_not_update
+	 */
+	migrations?: any
+	// TODO: Link to docs
+	/**
+	 * Do not use this property unless you have previously deployed
+	 * your app with the deprecated `migrations` property. Certainly
+	 * do not add any new migrations to this property.
+	 *
+	 * See [docs] for more info.
+	 */
+	__legacyMigrations_do_not_update: Migrations
 }
 
 /** @public */
@@ -32,7 +46,20 @@ export interface TLShapeUtilCanvasSvgDef {
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
 	static props?: ShapeProps<TLUnknownShape>
-	static migrations?: Migrations
+	// TODO: Link to docs
+	/**
+	 * @deprecated - if you have previously deployed your app with this property, rename it to __legacyMigrations_do_not_update
+	 */
+	static migrations?: any
+	// TODO: Link to docs
+	/**
+	 * Do not use this property unless you have previously deployed
+	 * your app with the deprecated `migrations` property. Certainly
+	 * do not add any new migrations to this property.
+	 *
+	 * See [docs] for more info.
+	 */
+	static __legacyMigrations_do_not_update: Migrations
 
 	/**
 	 * The type of the shape util, which should match the shape's type.

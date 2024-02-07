@@ -124,7 +124,7 @@ describe('TLServer', () => {
 			schema,
 		}
 
-		const chunks = chunk(JSON.stringify(connectMsg), 200)
+		const chunks = chunk(JSON.stringify(connectMsg), 100)
 		expect(chunks.length).toBeGreaterThan(1)
 
 		const onClientMessage = jest.fn()

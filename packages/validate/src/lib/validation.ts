@@ -252,7 +252,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 }
 
 // pass this into itself e.g. Config extends UnionObjectSchemaConfig<Key, Config>
-type UnionValidatorConfig<Key extends string, Config> = {
+type UnionValidatorConfig<Key extends string | number, Config> = {
 	readonly [Variant in keyof Config]: Validatable<any> & {
 		validate: (input: any) => { readonly [K in Key]: Variant }
 	}

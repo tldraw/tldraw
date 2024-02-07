@@ -24,7 +24,7 @@ const NOTE_SIZE = 200
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note' as const
 	static override props = noteShapeProps
-	static override migrations = noteShapeMigrations
+	static override __legacyMigrations_do_not_update = noteShapeMigrations
 
 	override canEdit = () => true
 	override hideResizeHandles = () => true

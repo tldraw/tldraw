@@ -333,13 +333,7 @@ function runTest(seed: number) {
 				book: Book,
 				author: Author,
 			},
-			{
-				snapshotMigrations: {
-					currentVersion: 0,
-					firstVersion: 0,
-					migrators: {},
-				},
-			}
+			{}
 		),
 	})
 	store.onBeforeDelete = (record) => {

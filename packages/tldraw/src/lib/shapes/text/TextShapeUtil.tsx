@@ -31,7 +31,7 @@ const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	static override type = 'text' as const
 	static override props = textShapeProps
-	static override migrations = textShapeMigrations
+	static override __legacyMigrations_do_not_update = textShapeMigrations
 
 	getDefaultProps(): TLTextShape['props'] {
 		return {

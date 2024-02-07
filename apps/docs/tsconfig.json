@@ -23,6 +23,6 @@
 		"content.d.ts",
 		".next/types/**/*.ts",
 		"watcher.ts"
-	],
+, "../../packages/utils/src/lib/tldrawError.ts"	],
 	"exclude": ["node_modules"]
 }

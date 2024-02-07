@@ -43,7 +43,7 @@ export interface Signal<Value, Diff = unknown> {
 	 * Returns the current value of the signal without capturing it as a dependency.
 	 * Use this if you need to retrieve the signal's value in a hot loop where the performance overhead of dependency tracking is too high.
 	 */
-	__unsafe__getWithoutCapture(): Value
+	__unsafe__getWithoutCapture(ignoreErrors?: boolean): Value
 	/** @internal */
 	children: ArraySet<Child>
 }

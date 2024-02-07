@@ -3,6 +3,7 @@ import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
 import { SchemaShapeInfo } from '../createTLSchema'
+import { rootShapeMigrations } from '../legacy-migrations/legacy-migrations'
 import { TLArrowShape } from '../shapes/TLArrowShape'
 import { createShapeValidator, TLBaseShape } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
@@ -82,74 +83,6 @@ export type TLShapeProp = keyof TLShapeProps
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
 
-/** @internal */
-export const rootShapeVersions = {
-	AddIsLocked: 1,
-	HoistOpacity: 2,
-	AddMeta: 3,
-} as const
-
-/** @internal */
-export const rootShapeMigrations = defineMigrations({
-	currentVersion: rootShapeVersions.AddMeta,
-	migrators: {
-		[rootShapeVersions.AddIsLocked]: {
-			up: (record) => {
-				return {
-					...record,
-					isLocked: false,
-				}
-			},
-			down: (record) => {
-				const { isLocked: _, ...rest } = record
-				return {
-					...rest,
-				}
-			},
-		},
-		[rootShapeVersions.HoistOpacity]: {
-			up: ({ props: { opacity, ...props }, ...record }) => {
-				return {
-					...record,
-					opacity: Number(opacity ?? '1'),
-					props,
-				}
-			},
-			down: ({ opacity, ...record }) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						opacity:
-							opacity < 0.175
-								? '0.1'
-								: opacity < 0.375
-									? '0.25'
-									: opacity < 0.625
-										? '0.5'
-										: opacity < 0.875
-											? '0.75'
-											: '1',
-					},
-				}
-			},
-		},
-		[rootShapeVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
-			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
-			},
-		},
-	},
-})
-
 /** @public */
 export function isShape(record?: UnknownRecord): record is TLShape {
 	if (!record) return false
@@ -185,14 +118,7 @@ export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>
 
 /** @internal */
 export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
-	return createRecordType<TLShape>('shape', {
-		migrations: defineMigrations({
-			currentVersion: rootShapeMigrations.currentVersion,
-			firstVersion: rootShapeMigrations.firstVersion,
-			migrators: rootShapeMigrations.migrators,
-			subTypeKey: 'type',
-			subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
-		}),
+	const ShapeRecordType = createRecordType<TLShape>('shape', {
 		scope: 'document',
 		validator: T.model(
 			'shape',
@@ -211,4 +137,23 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 		opacity: 1,
 		meta: {},
 	}))
+	const legacyShapeMigrations = defineMigrations({
+		currentVersion: rootShapeMigrations.currentVersion,
+		firstVersion: rootShapeMigrations.firstVersion,
+		migrators: rootShapeMigrations.migrators,
+		subTypeKey: 'type',
+		// eslint-disable-next-line deprecation/deprecation
+		subTypeMigrations: mapObjectMapValues(shapes, (typeName, v) => {
+			// eslint-disable-next-line deprecation/deprecation
+			if (v.migrations) {
+				// TODO: add link to docs
+				throw new Error(
+					`[tldraw] Specifying migrations for the '${typeName}' shape type on the util class is no longer supported. See [docs] for how to resolve.`
+				)
+			}
+			return v.__legacyMigrations_do_not_update ?? defineMigrations({})
+		}),
+	})
+
+	return { ShapeRecordType, legacyShapeMigrations }
 }

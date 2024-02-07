@@ -88,7 +88,6 @@ import { TLParentId } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPointerEventName } from '@tldraw/editor';
-import { TLRecord } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleComponent } from '@tldraw/editor';
@@ -129,6 +128,8 @@ export class ArrowShapeTool extends StateNode {
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canBind: () => boolean;
     // (undocumented)
     canEdit: () => boolean;
@@ -154,8 +155,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
     indicator(shape: TLArrowShape): JSX_2.Element | null;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
     // (undocumented)
@@ -232,6 +231,8 @@ function Body_2({ className, children, style, }: {
 // @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canResize: () => boolean;
     // (undocumented)
     component(shape: TLBookmarkShape): JSX_2.Element;
@@ -241,8 +242,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX_2.Element;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onBeforeCreate?: TLOnBeforeCreateHandler<TLBookmarkShape>;
     // (undocumented)
@@ -348,6 +347,8 @@ export class DrawShapeTool extends StateNode {
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     component(shape: TLDrawShape): JSX_2.Element;
     // (undocumented)
     expandSelectionOutlinePx(shape: TLDrawShape): number;
@@ -365,8 +366,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     hideSelectionBoundsFg: (shape: TLDrawShape) => boolean;
     // (undocumented)
     indicator(shape: TLDrawShape): JSX_2.Element;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onResize: TLOnResizeHandler<TLDrawShape>;
     // (undocumented)
@@ -431,6 +430,8 @@ interface DropdownMenuItemProps extends TLUiButtonProps {
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canEdit: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
     canEditInReadOnly: () => boolean;
@@ -448,8 +449,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     indicator(shape: TLEmbedShape): JSX_2.Element;
     // (undocumented)
     isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape>;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onResize: TLOnResizeHandler<TLEmbedShape>;
     // (undocumented)
@@ -512,6 +511,8 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canBind: () => boolean;
     // (undocumented)
     canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
@@ -527,8 +528,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
     // (undocumented)
@@ -568,6 +567,8 @@ export class GeoShapeTool extends StateNode {
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
     component(shape: TLGeoShape): JSX_2.Element;
@@ -579,8 +580,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getGeometry(shape: TLGeoShape): Geometry2d;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (shape: TLGeoShape) => {
         props: {
@@ -755,6 +754,8 @@ export class HighlightShapeTool extends StateNode {
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     backgroundComponent(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
     component(shape: TLHighlightShape): JSX_2.Element;
@@ -770,8 +771,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     hideSelectionBoundsFg: (shape: TLHighlightShape) => boolean;
     // (undocumented)
     indicator(shape: TLHighlightShape): JSX_2.Element;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onResize: TLOnResizeHandler<TLHighlightShape>;
     // (undocumented)
@@ -799,6 +798,8 @@ export const Icon: NamedExoticComponent<TLUiIconProps>;
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canCrop: () => boolean;
     // (undocumented)
     component(shape: TLImageShape): JSX_2.Element;
@@ -808,8 +809,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
     isAspectRatioLocked: () => boolean;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onDoubleClick: (shape: TLImageShape) => void;
     // (undocumented)
@@ -889,6 +888,8 @@ export class LineShapeTool extends StateNode {
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     component(shape: TLLineShape): JSX_2.Element | undefined;
     // (undocumented)
     getDefaultProps(): TLLineShape['props'];
@@ -908,8 +909,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
     indicator(shape: TLLineShape): JSX_2.Element;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onHandleDrag: TLOnHandleDragHandler<TLLineShape>;
     // (undocumented)
@@ -966,6 +965,8 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
@@ -981,8 +982,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (next: TLNoteShape) => {
         props: {
@@ -1142,6 +1141,8 @@ export class TextShapeTool extends StateNode {
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
     component(shape: TLTextShape): JSX_2.Element;
@@ -1158,8 +1159,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     indicator(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)
     isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (shape: TLTextShape) => {
         x: number;
@@ -1296,7 +1295,7 @@ export type TldrawProps = TldrawEditorBaseProps & ({
     persistenceKey?: string;
     sessionId?: string;
     defaultName?: string;
-    snapshot?: StoreSnapshot<TLRecord>;
+    snapshot?: StoreSnapshot<any>;
 }) & TldrawUiProps & Partial<TLExternalContentProps>;
 
 // @public (undocumented)
@@ -1938,6 +1937,8 @@ export function useUiEvents(): TLUiEventContextType;
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
+    static __legacyMigrations_do_not_update: Migrations;
+    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
     component(shape: TLVideoShape): JSX_2.Element;
@@ -1947,8 +1948,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     indicator(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
     isAspectRatioLocked: () => boolean;
-    // (undocumented)
-    static migrations: Migrations;
     // (undocumented)
     static props: {
         w: Validator<number>;

@@ -622,8 +622,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 
 		transact(() => {
-			this.clear()
-			this.put(Object.values(migrationResult.value))
+			const lastRunCallbacks = this._runCallbacks
+			try {
+				this._runCallbacks = false
+				this.clear()
+				this.put(objectMapValues(migrationResult.value))
+			} finally {
+				this._runCallbacks = lastRunCallbacks
+			}
 			this.ensureStoreIsUsable()
 		})
 	}

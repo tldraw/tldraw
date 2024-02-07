@@ -1,7 +1,8 @@
-import { SerializedSchema } from './StoreSchema'
+import { CURRENT_SCHEMA_VERSION, SerializedSchema } from './StoreSchema'
 
-/** @public */
-export const compareSchemas = (a: SerializedSchema, b: SerializedSchema): 0 | 1 | -1 => {
+type Legacy = Extract<SerializedSchema, { schemaVersion: 1 }>
+
+const legacyCompareSchemas = (a: Legacy, b: Legacy): 0 | 1 | -1 => {
 	if (a.schemaVersion > b.schemaVersion) {
 		return 1
 	}
@@ -52,4 +53,35 @@ export const compareSchemas = (a: SerializedSchema, b: SerializedSchema): 0 | 1 
 		}
 	}
 	return 0
+}
+
+/** @public */
+export const compareSchemas = (a: SerializedSchema, b: SerializedSchema): 0 | 1 | -1 => {
+	if (a.schemaVersion === 1 && b.schemaVersion === 1) {
+		return legacyCompareSchemas(a, b)
+	} else if (a.schemaVersion < b.schemaVersion) {
+		return -1
+	} else if (a.schemaVersion > b.schemaVersion) {
+		return 1
+	}
+
+	// both schemas are now equal and should be the latest version
+	if (a.schemaVersion !== CURRENT_SCHEMA_VERSION || b.schemaVersion !== CURRENT_SCHEMA_VERSION)
+		throw new Error(`Invalid schema versions ${a.schemaVersion} and ${b.schemaVersion}`)
+
+	// check that the shorter schema is a prefix of the longer schema
+	const commonLen = Math.min(a.versionHistory.length, b.versionHistory.length)
+	for (let i = 0; i < commonLen; i++) {
+		if (a.versionHistory[i] !== b.versionHistory[i]) {
+			throw new Error('Incompatible schema comparison')
+		}
+	}
+
+	if (a.versionHistory.length < b.versionHistory.length) {
+		return -1
+	} else if (a.versionHistory.length > b.versionHistory.length) {
+		return 1
+	} else {
+		return 0
+	}
 }

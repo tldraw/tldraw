@@ -164,7 +164,7 @@ export function whyAmIRunning() {
 				'\t',
 				(changedParent as any).name,
 				'changed =>',
-				changedParent.__unsafe__getWithoutCapture()
+				changedParent.__unsafe__getWithoutCapture(true)
 			)
 		}
 	}

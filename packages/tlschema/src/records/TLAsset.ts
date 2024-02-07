@@ -1,13 +1,9 @@
-import { createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { createRecordType, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLBaseAsset } from '../assets/TLBaseAsset'
-import {
-	bookmarkAssetMigrations,
-	bookmarkAssetValidator,
-	TLBookmarkAsset,
-} from '../assets/TLBookmarkAsset'
-import { imageAssetMigrations, imageAssetValidator, TLImageAsset } from '../assets/TLImageAsset'
-import { TLVideoAsset, videoAssetMigrations, videoAssetValidator } from '../assets/TLVideoAsset'
+import { bookmarkAssetValidator, TLBookmarkAsset } from '../assets/TLBookmarkAsset'
+import { imageAssetValidator, TLImageAsset } from '../assets/TLImageAsset'
+import { TLVideoAsset, videoAssetValidator } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
 /** @public */
@@ -23,37 +19,6 @@ export const assetValidator: T.Validator<TLAsset> = T.model(
 	})
 )
 
-/** @internal */
-export const assetVersions = {
-	AddMeta: 1,
-}
-
-/** @internal */
-export const assetMigrations = defineMigrations({
-	subTypeKey: 'type',
-	subTypeMigrations: {
-		image: imageAssetMigrations,
-		video: videoAssetMigrations,
-		bookmark: bookmarkAssetMigrations,
-	},
-	currentVersion: assetVersions.AddMeta,
-	migrators: {
-		[assetVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
-			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
-			},
-		},
-	},
-})
-
 /** @public */
 export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 	? {
@@ -66,7 +31,6 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 
 /** @public */
 export const AssetRecordType = createRecordType<TLAsset>('asset', {
-	migrations: assetMigrations,
 	validator: assetValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({

@@ -1,13 +1,14 @@
 import { computed } from '@tldraw/state'
 import {
 	BaseRecord,
+	Migration,
+	MigrationsConfigBuilder,
 	RecordId,
 	SerializedStore,
 	Store,
 	StoreSchema,
 	UnknownRecord,
 	createRecordType,
-	defineMigrations,
 } from '@tldraw/store'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
@@ -44,10 +45,6 @@ afterEach(() => {
 	disposables.length = 0
 })
 
-const UserVersions = {
-	ReplaceAgeWithBirthdate: 1,
-} as const
-
 interface UserV1 extends BaseRecord<'user', RecordId<UserV1>> {
 	name: string
 	age: number
@@ -64,7 +61,6 @@ const PresenceV1 = createRecordType<PresenceV1>('presence', {
 
 const UserV1 = createRecordType<UserV1>('user', {
 	scope: 'document',
-	migrations: defineMigrations({}),
 	validator: { validate: (value) => value as UserV1 },
 })
 
@@ -73,74 +69,74 @@ interface UserV2 extends BaseRecord<'user', RecordId<UserV2>> {
 	birthdate: string | null
 }
 
+const v2Migration = {
+	id: 'test/001_replace_user_age_with_birthdate',
+	scope: 'record',
+	up(record) {
+		if (record.typeName !== 'user') return record
+		const { age: _, ...rest } = record as any
+		return {
+			...rest,
+			birthdate: null,
+		}
+	},
+	down(record) {
+		if (record.typeName !== 'user') return record
+		const { birthdate: _birthdate, ...user } = record as any
+		return {
+			...user,
+			age: 0,
+		}
+	},
+} as const satisfies Migration
+
 const UserV2 = createRecordType<UserV2>('user', {
 	scope: 'document',
-	migrations: defineMigrations({
-		currentVersion: UserVersions.ReplaceAgeWithBirthdate,
-		migrators: {
-			[UserVersions.ReplaceAgeWithBirthdate]: {
-				up({ age: _age, ...user }) {
-					return {
-						...user,
-						birthdate: null,
-					}
-				},
-				down({ birthdate: _birthdate, ...user }) {
-					return {
-						...user,
-						age: 0,
-					}
-				},
-			},
-		},
-	}),
 	validator: { validate: (value) => value as UserV2 },
 })
 
 type RV1 = UserV1 | PresenceV1
 type RV2 = UserV2 | PresenceV1
 
-const schemaV1 = StoreSchema.create<RV1>(
-	{ user: UserV1, presence: PresenceV1 },
-	{
-		snapshotMigrations: defineMigrations({}),
-	}
-)
+const schemaV1 = StoreSchema.create<RV1>({ user: UserV1, presence: PresenceV1 })
 
 const schemaV2 = StoreSchema.create<RV2>(
 	{ user: UserV2, presence: PresenceV1 },
 	{
-		snapshotMigrations: defineMigrations({}),
+		migrations: new MigrationsConfigBuilder()
+			.addSequence({ id: 'test', migrations: [v2Migration] })
+			.setOrder(['test/001_replace_user_age_with_birthdate']),
 	}
 )
+
+const v3Migration = {
+	id: 'test/002_remove_joe_and_add_steve',
+	scope: 'store',
+	up(store: SerializedStore<UserV2>) {
+		// remove any users called joe
+		const result = Object.fromEntries(
+			Object.entries(store).filter(([_, r]) => r.typeName !== 'user' || r.name !== 'joe')
+		)
+		// add a user called steve
+		const id = UserV2.createId('steve')
+		result[id] = UserV2.create({
+			id,
+			name: 'steve',
+			birthdate: '2022-02-02',
+		})
+		return result
+	},
+	down(store: SerializedStore<UserV2>) {
+		return store
+	},
+} as const satisfies Migration
 
 const schemaV3 = StoreSchema.create<RV2>(
 	{ user: UserV2, presence: PresenceV1 },
 	{
-		snapshotMigrations: defineMigrations({
-			currentVersion: 1,
-			migrators: {
-				1: {
-					up(store: SerializedStore<UserV2>) {
-						// remove any users called joe
-						const result = Object.fromEntries(
-							Object.entries(store).filter(([_, r]) => r.typeName !== 'user' || r.name !== 'joe')
-						)
-						// add a user called steve
-						const id = UserV2.createId('steve')
-						result[id] = UserV2.create({
-							id,
-							name: 'steve',
-							birthdate: '2022-02-02',
-						})
-						return result
-					},
-					down(store: SerializedStore<UserV2>) {
-						return store
-					},
-				},
-			},
-		}),
+		migrations: new MigrationsConfigBuilder()
+			.addSequence({ id: 'test', migrations: [v2Migration, v3Migration] })
+			.setOrder(['test/001_replace_user_age_with_birthdate', 'test/002_remove_joe_and_add_steve']),
 	}
 )
 
@@ -392,7 +388,7 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 })
 
 describe('when the client is too new', () => {
-	function setup() {
+	test('it straight up rejects the client', () => {
 		const steve = UserV1.create({ id: UserV1.createId('steve'), name: 'steve', age: 23 })
 		const jeff = UserV1.create({ id: UserV1.createId('jeff'), name: 'jeff', age: 23 })
 		const annie = UserV1.create({ id: UserV1.createId('annie'), name: 'annie', age: 23 })
@@ -441,13 +437,8 @@ describe('when the client is too new', () => {
 		})
 
 		expect(v2_socket.sendMessage).toHaveBeenCalledWith({
-			type: 'connect',
-			connectRequestId: 'test',
-			hydrationType: 'wipe_presence',
-			diff: {},
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
-			schema: schemaV1.serialize(),
-			serverClock: 10,
+			reason: TLIncompatibilityReason.ServerTooOld,
+			type: 'incompatibility_error',
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(v1_socket.sendMessage).toHaveBeenCalledWith({
@@ -459,120 +450,6 @@ describe('when the client is too new', () => {
 			schema: schemaV1.serialize(),
 			serverClock: 10,
 		} satisfies TLSocketServerSentEvent<RV1>)
-		;(v2_socket.sendMessage as jest.Mock).mockClear()
-		;(v1_socket.sendMessage as jest.Mock).mockClear()
-
-		return {
-			v1Server,
-			v1_id,
-			v2_id,
-			v2SendMessage: v2_socket.sendMessage as jest.Mock,
-			v1SendMessage: v1_socket.sendMessage as jest.Mock,
-			steve,
-			jeff,
-			annie,
-		}
-	}
-
-	let data: ReturnType<typeof setup>
-
-	beforeEach(() => {
-		data = setup()
-	})
-
-	it('allows deletions from v2 client', () => {
-		const { v1Server, v2_id, v2SendMessage, steve } = data
-		v1Server.room.handleMessage(v2_id as any, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[steve.id]: [RecordOpType.Remove],
-			},
-		})
-
-		expect(v2SendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
-		} satisfies TLSocketServerSentEvent<RV2>)
-	})
-
-	it('applies changes atomically', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.jeff.id]: [RecordOpType.Remove],
-				[data.steve.id]: [RecordOpType.Remove],
-				[data.annie.id]: [RecordOpType.Put, { ...data.annie, birthdate: '1999-02-21' } as any],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
-		expect(data.v1Server.room.state.get().documents[data.jeff.id]).toBeDefined()
-		expect(data.v1Server.room.state.get().documents[data.steve.id]).toBeDefined()
-	})
-
-	it('cannot send patches to v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v1_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Patch, { age: [ValueOpType.Put, 24] }],
-			},
-		})
-
-		expect(data.v1SendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-	})
-
-	it('cannot apply patches from v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Patch, { birthdate: [ValueOpType.Put, 'tomorrow'] }],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
-	})
-
-	it('cannot apply puts from v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Put, { ...data.steve, birthdate: 'today' } as any],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
 	})
 })
 

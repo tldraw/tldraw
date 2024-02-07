@@ -1,4 +1,20 @@
 export {
+	arrowShapeMigrations,
+	bookmarkShapeMigrations,
+	drawShapeMigrations,
+	embedShapeMigrations,
+	frameShapeMigrations,
+	geoShapeMigrations,
+	groupShapeMigrations,
+	highlightShapeMigrations,
+	imageShapeMigrations,
+	lineShapeMigrations,
+	noteShapeMigrations,
+	textShapeMigrations,
+	videoShapeMigrations,
+} from './legacy-migrations/legacy-migrations'
+
+export {
 	type TLSerializedStore,
 	type TLStore,
 	type TLStoreProps,
@@ -11,6 +27,7 @@ export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema, type SchemaShapeInfo, type TLSchema } from './createTLSchema'
+export { tldrawMigrations } from './migrations/tldrawMigrations'
 export {
 	TL_CANVAS_UI_COLOR_TYPES,
 	canvasUiColorTypeValidator,
@@ -29,7 +46,6 @@ export {
 export { idValidator } from './misc/id-validator'
 export {
 	AssetRecordType,
-	assetMigrations,
 	assetValidator,
 	type TLAsset,
 	type TLAssetId,
@@ -55,7 +71,6 @@ export {
 	getShapePropKeysByStyle,
 	isShape,
 	isShapeId,
-	rootShapeMigrations,
 	type TLDefaultShape,
 	type TLParentId,
 	type TLShape,
@@ -68,7 +83,6 @@ export {
 export {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
-	arrowShapeMigrations,
 	arrowShapeProps,
 	type TLArrowShape,
 	type TLArrowShapeArrowheadStyle,
@@ -82,60 +96,30 @@ export {
 	type ShapeProps,
 	type TLBaseShape,
 } from './shapes/TLBaseShape'
-export {
-	bookmarkShapeMigrations,
-	bookmarkShapeProps,
-	type TLBookmarkShape,
-} from './shapes/TLBookmarkShape'
-export {
-	drawShapeMigrations,
-	drawShapeProps,
-	type TLDrawShape,
-	type TLDrawShapeSegment,
-} from './shapes/TLDrawShape'
+export { bookmarkShapeProps, type TLBookmarkShape } from './shapes/TLBookmarkShape'
+export { drawShapeProps, type TLDrawShape, type TLDrawShapeSegment } from './shapes/TLDrawShape'
 export {
 	EMBED_DEFINITIONS,
-	embedShapeMigrations,
 	embedShapePermissionDefaults,
 	embedShapeProps,
 	type EmbedDefinition,
 	type TLEmbedShape,
 	type TLEmbedShapePermissions,
 } from './shapes/TLEmbedShape'
-export { frameShapeMigrations, frameShapeProps, type TLFrameShape } from './shapes/TLFrameShape'
+export { frameShapeProps, type TLFrameShape } from './shapes/TLFrameShape'
+export { GeoShapeGeoStyle, geoShapeProps, type TLGeoShape } from './shapes/TLGeoShape'
+export { groupShapeProps, type TLGroupShape } from './shapes/TLGroupShape'
+export { highlightShapeProps, type TLHighlightShape } from './shapes/TLHighlightShape'
 export {
-	GeoShapeGeoStyle,
-	geoShapeMigrations,
-	geoShapeProps,
-	type TLGeoShape,
-} from './shapes/TLGeoShape'
-export { groupShapeMigrations, groupShapeProps, type TLGroupShape } from './shapes/TLGroupShape'
-export {
-	highlightShapeMigrations,
-	highlightShapeProps,
-	type TLHighlightShape,
-} from './shapes/TLHighlightShape'
-export {
-	imageShapeMigrations,
 	imageShapeProps,
 	type TLImageShape,
 	type TLImageShapeCrop,
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
-export {
-	LineShapeSplineStyle,
-	lineShapeMigrations,
-	lineShapeProps,
-	type TLLineShape,
-} from './shapes/TLLineShape'
-export { noteShapeMigrations, noteShapeProps, type TLNoteShape } from './shapes/TLNoteShape'
-export {
-	textShapeMigrations,
-	textShapeProps,
-	type TLTextShape,
-	type TLTextShapeProps,
-} from './shapes/TLTextShape'
-export { videoShapeMigrations, videoShapeProps, type TLVideoShape } from './shapes/TLVideoShape'
+export { LineShapeSplineStyle, lineShapeProps, type TLLineShape } from './shapes/TLLineShape'
+export { noteShapeProps, type TLNoteShape } from './shapes/TLNoteShape'
+export { textShapeProps, type TLTextShape, type TLTextShapeProps } from './shapes/TLTextShape'
+export { videoShapeProps, type TLVideoShape } from './shapes/TLVideoShape'
 export { EnumStyleProp, StyleProp } from './styles/StyleProp'
 export {
 	DefaultColorStyle,

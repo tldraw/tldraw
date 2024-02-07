@@ -66,13 +66,7 @@ beforeEach(() => {
 				author: Author,
 				book: Book,
 			},
-			{
-				snapshotMigrations: {
-					currentVersion: 0,
-					firstVersion: 0,
-					migrators: {},
-				},
-			}
+			{}
 		),
 	})
 	store.put([

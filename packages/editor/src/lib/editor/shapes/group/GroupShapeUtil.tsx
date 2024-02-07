@@ -12,7 +12,7 @@ import { DashedOutlineBox } from './DashedOutlineBox'
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override type = 'group' as const
 	static override props = groupShapeProps
-	static override migrations = groupShapeMigrations
+	static override __legacyMigrations_do_not_update = groupShapeMigrations
 
 	override hideSelectionBoundsFg = () => true
 
