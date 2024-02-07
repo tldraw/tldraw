@@ -582,10 +582,29 @@ body {
 	gap: 12px;
 }
 
+
+
 .article__embed > iframe {
 	width: 100%;
 	height: 100%;
 	max-width: 100%;
+	border-radius: 4px;
+	border: 1px solid var(--color-tint-2);
+}
+
+.article__embed--quickstart {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 320px;
+}
+
+.article__embed--quickstart > iframe {
+	width: 100%;
+	max-width: 600px;
+	
 	border-radius: 4px;
 	border: 1px solid var(--color-tint-2);
 }
@@ -1269,6 +1288,7 @@ body {
 		height: 100%;
 		justify-content: flex-end;
 	}
+
 }
 
 @media (max-width: 760px) {
