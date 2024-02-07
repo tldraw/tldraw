@@ -389,7 +389,6 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     ensureMigrationSequenceIncluded(id: string): void;
     // (undocumented)
     getMigrationsSince(schema: SerializedSchema): Result<Migration[], string>;
-    // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>>;

@@ -202,6 +202,15 @@ Ours:   ${str(this.sortedMigrationIds)}
 		)
 	}
 
+	/**
+	 * Migrates an individual record between two schema versions.
+	 * This is not always possible, e.g. if there is a store-scoped migration in the migrations to be applied between the two schemas.
+	 * @public
+	 * @param record - The record to migrate
+	 * @param persistedSchema - The persistence target schema. If you are migrating up, this is the schema of the persisted record. If you are migrating down, the record should have the latest schema and this schema is the one you are migrating down to.
+	 * @param direction - Whether to migrate 'up' or 'down'
+	 * @returns A migration result. This will return a 'success' type if the migration was successful, and an 'error' type if the migration failed. If the migration failed, the reason will be provided in the 'reason' field.
+	 */
 	migratePersistedRecord(
 		record: R,
 		persistedSchema: SerializedSchema,
