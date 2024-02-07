@@ -318,7 +318,7 @@
 	margin-top: 4px;
 }
 
-/* document Name */
+/* Document Name */
 
 .tlui-document-name__inner {
 	border-radius: calc(var(--radius-2) + var(--space-2));
@@ -339,7 +339,6 @@
 	max-width: calc(100% - 40px);
 	display: flex;
 	flex: auto;
-	min-width: 44px;
 }
 
 .tlui-document-name__input,
