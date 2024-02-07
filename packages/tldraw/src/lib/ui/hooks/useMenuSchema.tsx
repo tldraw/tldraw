@@ -116,12 +116,28 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	)
 
 	const menuSchema = useMemo<TLUiMenuSchema>(() => {
+		const exportSubmenu = menuSubmenu(
+			'export-as',
+			'menu.export-as',
+			menuGroup(
+				'export-as-group',
+				menuItem(actions['export-as-svg'], { disabled: emptyPage }),
+				menuItem(actions['export-as-png'], { disabled: emptyPage }),
+				menuItem(actions['export-as-json'], { disabled: emptyPage })
+			),
+			menuGroup(
+				'export-bg',
+				menuItem(actions['toggle-transparent'], { checked: !exportBackground })
+			)
+		)
+
 		const menuSchema: TLUiMenuSchema = compactMenuItems([
 			menuGroup(
 				'menu',
 				menuSubmenu(
 					'file',
 					'menu.file',
+					exportSubmenu,
 					menuGroup('print', menuItem(actions['print'], { disabled: emptyPage }))
 				),
 				menuSubmenu(
@@ -154,20 +170,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 								menuItem(actions['toggle-transparent'], { checked: !exportBackground })
 							)
 						),
-						menuSubmenu(
-							'export-as',
-							'menu.export-as',
-							menuGroup(
-								'export-as-group',
-								menuItem(actions['export-as-svg'], { disabled: emptyPage }),
-								menuItem(actions['export-as-png'], { disabled: emptyPage }),
-								menuItem(actions['export-as-json'], { disabled: emptyPage })
-							),
-							menuGroup(
-								'export-bg',
-								menuItem(actions['toggle-transparent'], { checked: !exportBackground })
-							)
-						)
+						exportSubmenu
 					),
 					menuGroup(
 						'set-selection-group',
