@@ -207,9 +207,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 					) : null}
 				</div>
 			</HTMLContainer>
-			{'url' in shape.props && shape.props.url && (
-				<HyperlinkButton url={shape.props.url} zoomLevel={videoUtil.editor.getZoomLevel()} />
-			)}
+			<HyperlinkButton url={shape.props?.url} zoomLevel={videoUtil.editor.getZoomLevel()} />
 		</>
 	)
 })

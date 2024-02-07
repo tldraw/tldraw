@@ -956,7 +956,8 @@ input,
 	cursor: var(--tl-cursor-pointer);
 	border: none;
 	outline: none;
-	pointer-events: all;
+	pointer-events: none;
+	opacity: 0;
 }
 
 .tl-hyperlink-button::after {
@@ -971,6 +972,28 @@ input,
 	border-radius: var(--radius-1);
 	background-color: var(--color-background);
 	pointer-events: none;
+}
+
+.tl-hyperlink-button.tl-hyperlink-button__hasurl {
+	opacity: 0;
+	pointer-events: all;
+	animation: make-an-entrance 0.2s ease-in-out forwards;
+	animation-delay: 0.2s;
+}
+
+@keyframes make-an-entrance {
+	0% {
+		opacity: 0;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.5;
+		transform: scale(1.2);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
 }
 
 .tl-hyperlink-button:hover {

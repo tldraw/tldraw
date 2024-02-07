@@ -8,6 +8,7 @@ export function HyperlinkButton({ url, zoomLevel }: { url: string; zoomLevel: nu
 	return (
 		<a
 			className={classNames('tl-hyperlink-button', {
+				'tl-hyperlink-button__hasurl': !!url,
 				'tl-hyperlink-button__hidden': zoomLevel < 0.32,
 			})}
 			href={url}
