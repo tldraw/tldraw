@@ -96,6 +96,10 @@ export class PointingArrowLabel extends StateNode {
 			nextLabelPosition = getPointInArcT(measure, angleStart, angleEnd, _center.angle(nearestPoint))
 		}
 
+		if (isNaN(nextLabelPosition)) {
+			nextLabelPosition = 0.5
+		}
+
 		this.editor.updateShape<TLArrowShape>(
 			{ id: shape.id, type: shape.type, props: { labelPosition: nextLabelPosition } },
 			{ squashing: true }

@@ -1318,6 +1318,133 @@
           "implementsTokenRanges": []
         },
         {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/editor!BoundsSnapPoint:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface BoundsSnapPoint "
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager/BoundsSnaps.ts",
+          "releaseTag": "Public",
+          "name": "BoundsSnapPoint",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!BoundsSnapPoint#handle:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "handle?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SelectionCorner",
+                  "canonicalReference": "@tldraw/editor!SelectionCorner:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "handle",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!BoundsSnapPoint#id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!BoundsSnapPoint#x:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "x: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "x",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!BoundsSnapPoint#y:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "y: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "y",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
           "kind": "Class",
           "canonicalReference": "@tldraw/editor!Box:class",
           "docComment": "/**\n * @public\n */\n",
@@ -6193,23 +6320,23 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultSnapLine:var",
+          "canonicalReference": "@tldraw/editor!DefaultSnapIndicator:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultSnapLine: "
+              "text": "DefaultSnapIndicator: "
             },
             {
               "kind": "Reference",
-              "text": "TLSnapLineComponent",
-              "canonicalReference": "@tldraw/editor!TLSnapLineComponent:type"
+              "text": "TLSnapIndicatorComponent",
+              "canonicalReference": "@tldraw/editor!TLSnapIndicatorComponent:type"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSnapLine.tsx",
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSnapIndictor.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
-          "name": "DefaultSnapLine",
+          "name": "DefaultSnapIndicator",
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -6278,7 +6405,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    name: \"New User\";\n    locale: \"ar\" | \"ca\" | \"cs\" | \"da\" | \"de\" | \"en\" | \"es\" | \"fa\" | \"fi\" | \"fr\" | \"gl\" | \"he\" | \"hi-in\" | \"hu\" | \"it\" | \"ja\" | \"ko-kr\" | \"ku\" | \"my\" | \"ne\" | \"no\" | \"pl\" | \"pt-br\" | \"pt-pt\" | \"ro\" | \"ru\" | \"sv\" | \"te\" | \"th\" | \"tr\" | \"uk\" | \"vi\" | \"zh-cn\" | \"zh-tw\";\n    color: \"#02B1CC\" | \"#11B3A3\" | \"#39B178\" | \"#55B467\" | \"#7B66DC\" | \"#9D5BD2\" | \"#BD54C6\" | \"#E34BA9\" | \"#EC5E41\" | \"#F04F88\" | \"#F2555A\" | \"#FF802B\";\n    isDarkMode: false;\n    edgeScrollSpeed: 1;\n    animationSpeed: 0 | 1;\n    isSnapMode: false;\n}>"
+              "text": "<{\n    name: \"New User\";\n    locale: \"ar\" | \"ca\" | \"cs\" | \"da\" | \"de\" | \"en\" | \"es\" | \"fa\" | \"fi\" | \"fr\" | \"gl\" | \"he\" | \"hi-in\" | \"hr\" | \"hu\" | \"it\" | \"ja\" | \"ko-kr\" | \"ku\" | \"my\" | \"ne\" | \"no\" | \"pl\" | \"pt-br\" | \"pt-pt\" | \"ro\" | \"ru\" | \"sv\" | \"te\" | \"th\" | \"tr\" | \"uk\" | \"vi\" | \"zh-cn\" | \"zh-tw\";\n    color: \"#02B1CC\" | \"#11B3A3\" | \"#39B178\" | \"#55B467\" | \"#7B66DC\" | \"#9D5BD2\" | \"#BD54C6\" | \"#E34BA9\" | \"#EC5E41\" | \"#F04F88\" | \"#F2555A\" | \"#FF802B\";\n    isDarkMode: false;\n    edgeScrollSpeed: 1;\n    animationSpeed: 0 | 1;\n    isSnapMode: false;\n}>"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/config/TLUserPreferences.ts",
@@ -19971,12 +20098,12 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!GapsSnapLine:type",
+          "canonicalReference": "@tldraw/editor!GapsSnapIndicator:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type GapsSnapLine = "
+              "text": "export type GapsSnapIndicator = "
             },
             {
               "kind": "Content",
@@ -20032,9 +20159,9 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager.ts",
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager/SnapManager.ts",
           "releaseTag": "Public",
-          "name": "GapsSnapLine",
+          "name": "GapsSnapIndicator",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 12
@@ -27599,12 +27726,12 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!PointsSnapLine:type",
+          "canonicalReference": "@tldraw/editor!PointsSnapIndicator:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type PointsSnapLine = "
+              "text": "export type PointsSnapIndicator = "
             },
             {
               "kind": "Content",
@@ -27624,9 +27751,9 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager.ts",
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager/SnapManager.ts",
           "releaseTag": "Public",
-          "name": "PointsSnapLine",
+          "name": "PointsSnapIndicator",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 4
@@ -32274,17 +32401,17 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!SnapLine:type",
+          "canonicalReference": "@tldraw/editor!SnapIndicator:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type SnapLine = "
+              "text": "export type SnapIndicator = "
             },
             {
               "kind": "Reference",
-              "text": "GapsSnapLine",
-              "canonicalReference": "@tldraw/editor!GapsSnapLine:type"
+              "text": "GapsSnapIndicator",
+              "canonicalReference": "@tldraw/editor!GapsSnapIndicator:type"
             },
             {
               "kind": "Content",
@@ -32292,17 +32419,17 @@
             },
             {
               "kind": "Reference",
-              "text": "PointsSnapLine",
-              "canonicalReference": "@tldraw/editor!PointsSnapLine:type"
+              "text": "PointsSnapIndicator",
+              "canonicalReference": "@tldraw/editor!PointsSnapIndicator:type"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager.ts",
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager/SnapManager.ts",
           "releaseTag": "Public",
-          "name": "SnapLine",
+          "name": "SnapIndicator",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 4
@@ -32318,7 +32445,7 @@
               "text": "export declare class SnapManager "
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager.ts",
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager/SnapManager.ts",
           "releaseTag": "Public",
           "isAbstract": false,
           "name": "SnapManager",
@@ -32359,12 +32486,12 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#clear:member(1)",
+              "canonicalReference": "@tldraw/editor!SnapManager#clearIndicators:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "clear(): "
+                  "text": "clearIndicators(): "
                 },
                 {
                   "kind": "Content",
@@ -32386,7 +32513,7 @@
               "parameters": [],
               "isOptional": false,
               "isAbstract": false,
-              "name": "clear"
+              "name": "clearIndicators"
             },
             {
               "kind": "Property",
@@ -32457,17 +32584,17 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#getLines:member(1)",
+              "canonicalReference": "@tldraw/editor!SnapManager#getIndicators:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getLines(): "
+                  "text": "getIndicators(): "
                 },
                 {
                   "kind": "Reference",
-                  "text": "SnapLine",
-                  "canonicalReference": "@tldraw/editor!SnapLine:type"
+                  "text": "SnapIndicator",
+                  "canonicalReference": "@tldraw/editor!SnapIndicator:type"
                 },
                 {
                   "kind": "Content",
@@ -32489,79 +32616,7 @@
               "parameters": [],
               "isOptional": false,
               "isAbstract": false,
-              "name": "getLines"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#getOutlinesInPageSpace:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getOutlinesInPageSpace(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[][]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getOutlinesInPageSpace"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#getSnappablePoints:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getSnappablePoints(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SnapPoint",
-                  "canonicalReference": "@tldraw/editor!SnapPoint:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getSnappablePoints"
+              "name": "getIndicators"
             },
             {
               "kind": "Method",
@@ -32574,119 +32629,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "GapNode",
-                  "canonicalReference": "@tldraw/editor!~GapNode:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getSnappableShapes"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#getSnappingHandleDelta:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getSnappingHandleDelta({ handlePoint, additionalSegments, }: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n        handlePoint: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        additionalSegments: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[][];\n    }"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "null | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 7,
-                "endIndex": 9
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "{ handlePoint, additionalSegments, }",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 6
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getSnappingHandleDelta"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#getSnapPointsCache:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getSnapPointsCache(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/store\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ComputedCache",
-                  "canonicalReference": "@tldraw/store!ComputedCache:type"
+                  "text": "Set",
+                  "canonicalReference": "!Set:interface"
                 },
                 {
                   "kind": "Content",
@@ -32694,17 +32638,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SnapPoint",
-                  "canonicalReference": "@tldraw/editor!SnapPoint:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[], "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
                 },
                 {
                   "kind": "Content",
@@ -32718,7 +32653,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 8
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -32726,7 +32661,7 @@
               "parameters": [],
               "isOptional": false,
               "isAbstract": false,
-              "name": "getSnapPointsCache"
+              "name": "getSnappableShapes"
             },
             {
               "kind": "Method",
@@ -32760,67 +32695,49 @@
               "name": "getSnapThreshold"
             },
             {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#getVisibleGaps:member(1)",
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!SnapManager#handles:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getVisibleGaps(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n        horizontal: "
+                  "text": "readonly handles: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "Gap",
-                  "canonicalReference": "@tldraw/editor!~Gap:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[];\n        vertical: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Gap",
-                  "canonicalReference": "@tldraw/editor!~Gap:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[];\n    }"
+                  "text": "HandleSnaps",
+                  "canonicalReference": "@tldraw/editor!~HandleSnaps:class"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 6
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
+              "isReadonly": true,
               "isOptional": false,
-              "isAbstract": false,
-              "name": "getVisibleGaps"
+              "releaseTag": "Public",
+              "name": "handles",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#setLines:member(1)",
+              "canonicalReference": "@tldraw/editor!SnapManager#setIndicators:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "setLines(lines: "
+                  "text": "setIndicators(indicators: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "SnapLine",
-                  "canonicalReference": "@tldraw/editor!SnapLine:type"
+                  "text": "SnapIndicator",
+                  "canonicalReference": "@tldraw/editor!SnapIndicator:type"
                 },
                 {
                   "kind": "Content",
@@ -32849,7 +32766,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "lines",
+                  "parameterName": "indicators",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 3
@@ -32859,307 +32776,41 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "setLines"
+              "name": "setIndicators"
             },
             {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#snapResize:member(1)",
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!SnapManager#shapeBounds:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "snapResize({ initialSelectionPageBounds, dragDelta, "
+                  "text": "readonly shapeBounds: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "handle",
-                  "canonicalReference": "@tldraw/editor!~__type#handle"
-                },
-                {
-                  "kind": "Content",
-                  "text": ": originalHandle, isAspectRatioLocked, isResizingFromCenter, }: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n        initialSelectionPageBounds: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Box",
-                  "canonicalReference": "@tldraw/editor!Box:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        dragDelta: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        handle: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SelectionCorner",
-                  "canonicalReference": "@tldraw/editor!SelectionCorner:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SelectionEdge",
-                  "canonicalReference": "@tldraw/editor!SelectionEdge:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isAspectRatioLocked: boolean;\n        isResizingFromCenter: boolean;\n    }"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SnapData",
-                  "canonicalReference": "@tldraw/editor!~SnapData:interface"
+                  "text": "BoundsSnaps",
+                  "canonicalReference": "@tldraw/editor!~BoundsSnaps:class"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 13,
-                "endIndex": 14
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "{ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 12
-                  },
-                  "isOptional": false
-                }
-              ],
+              "isReadonly": true,
               "isOptional": false,
-              "isAbstract": false,
-              "name": "snapResize"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SnapManager#snapTranslate:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "snapTranslate({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n        lockedAxis: 'x' | 'y' | null;\n        initialSelectionSnapPoints: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SnapPoint",
-                  "canonicalReference": "@tldraw/editor!SnapPoint:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[];\n        initialSelectionPageBounds: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Box",
-                  "canonicalReference": "@tldraw/editor!Box:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        dragDelta: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n    }"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SnapData",
-                  "canonicalReference": "@tldraw/editor!~SnapData:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 9,
-                "endIndex": 10
-              },
               "releaseTag": "Public",
+              "name": "shapeBounds",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
               "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "{ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 8
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "snapTranslate"
+              "isAbstract": false
             }
           ],
           "implementsTokenRanges": []
-        },
-        {
-          "kind": "Interface",
-          "canonicalReference": "@tldraw/editor!SnapPoint:interface",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export interface SnapPoint "
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/managers/SnapManager.ts",
-          "releaseTag": "Public",
-          "name": "SnapPoint",
-          "preserveMemberOrder": false,
-          "members": [
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!SnapPoint#handle:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "handle?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SelectionCorner",
-                  "canonicalReference": "@tldraw/editor!SelectionCorner:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "handle",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!SnapPoint#id:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "id: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "id",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!SnapPoint#x:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "x: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "x",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!SnapPoint#y:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "y: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "y",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            }
-          ],
-          "extendsTokenRanges": []
         },
         {
           "kind": "Function",
@@ -41606,12 +41257,12 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLSnapLineComponent:type",
+          "canonicalReference": "@tldraw/editor!TLSnapIndicatorComponent:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLSnapLineComponent = "
+              "text": "export type TLSnapIndicatorComponent = "
             },
             {
               "kind": "Reference",
@@ -41624,8 +41275,8 @@
             },
             {
               "kind": "Reference",
-              "text": "SnapLine",
-              "canonicalReference": "@tldraw/editor!SnapLine:type"
+              "text": "SnapIndicator",
+              "canonicalReference": "@tldraw/editor!SnapIndicator:type"
             },
             {
               "kind": "Content",
@@ -41636,9 +41287,9 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSnapLine.tsx",
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSnapIndictor.tsx",
           "releaseTag": "Public",
-          "name": "TLSnapLineComponent",
+          "name": "TLSnapIndicatorComponent",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 5
@@ -45748,6 +45399,55 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "FromArray"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Vec.IsNaN:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static IsNaN(A: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "A",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "IsNaN"
             },
             {
               "kind": "Method",

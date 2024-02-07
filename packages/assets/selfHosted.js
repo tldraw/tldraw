@@ -200,6 +200,7 @@ export function getAssetUrls(opts) {
 			gl: formatAssetUrl('./translations/gl.json', opts),
 			he: formatAssetUrl('./translations/he.json', opts),
 			'hi-in': formatAssetUrl('./translations/hi-in.json', opts),
+			hr: formatAssetUrl('./translations/hr.json', opts),
 			hu: formatAssetUrl('./translations/hu.json', opts),
 			it: formatAssetUrl('./translations/it.json', opts),
 			ja: formatAssetUrl('./translations/ja.json', opts),

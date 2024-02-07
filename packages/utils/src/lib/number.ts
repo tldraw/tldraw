@@ -14,6 +14,16 @@ export function lerp(a: number, b: number, t: number) {
 }
 
 /**
+ * Inverse lerp between two values. Given a value `n` in the range [a, b], returns a number between
+ * 0 and 1.
+ *
+ * @public
+ */
+export function invLerp(a: number, b: number, t: number) {
+	return (t - a) / (b - a)
+}
+
+/**
  * Seeded random number generator, using [xorshift](https://en.wikipedia.org/wiki/Xorshift). The
  * result will always be betweeen -1 and 1.
  *

@@ -11,6 +11,7 @@ export const LANGUAGES = [
 	{ locale: 'es', label: 'Español' },
 	{ locale: 'fr', label: 'Français' },
 	{ locale: 'gl', label: 'Galego' },
+	{ locale: 'hr', label: 'Hrvatski' },
 	{ locale: 'it', label: 'Italiano' },
 	{ locale: 'hu', label: 'Magyar' },
 	{ locale: 'no', label: 'Norwegian' },
