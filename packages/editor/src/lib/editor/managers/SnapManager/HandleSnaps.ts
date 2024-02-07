@@ -1,11 +1,27 @@
 import { computed } from '@tldraw/state'
-import { VecModel } from '@tldraw/tlschema'
-import { deepCopy } from '@tldraw/utils'
-import { Mat } from '../../../primitives/Mat'
+import { TLShape } from '@tldraw/tlschema'
+import { assertExists } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
+import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
 import { uniqueId } from '../../../utils/uniqueId'
 import { Editor } from '../../Editor'
 import { SnapData, SnapManager } from './SnapManager'
+
+/**
+ * When dragging a handle, users can snap the handle to key geometry on other nearby shapes.
+ * Customize how handles snap to a shape by returning this from
+ * {@link ShapeUtil.getHandleSnapGeometry}.
+ *
+ * @public
+ */
+export interface HandleSnapGeometry {
+	/**
+	 * A `Geometry2d` that describe the outline of the shape that the handle will snap to - fills
+	 * are ignored. By default, this is the same geometry returned by {@link ShapeUtil.getGeometry}.
+	 * Set this to `null` to disable handle snapping to this shape's outline.
+	 */
+	outline?: Geometry2d | null
+}
 
 export class HandleSnaps {
 	readonly editor: Editor
@@ -13,14 +29,17 @@ export class HandleSnaps {
 		this.editor = manager.editor
 	}
 
-	@computed private getOutlinesInPageSpace() {
-		return Array.from(this.manager.getSnappableShapes(), (id) => {
-			const geometry = this.editor.getShapeGeometry(id)
-			const outline = deepCopy(geometry.vertices)
-			if (geometry.isClosed) outline.push(outline[0])
-			const pageTransform = this.editor.getShapePageTransform(id)
-			if (!pageTransform) throw Error('No page transform')
-			return Mat.applyToPoints(pageTransform, outline)
+	@computed private getSnapGeometryCache() {
+		const { editor } = this
+		return editor.store.createComputedCache('handle snap geometry', (shape: TLShape) => {
+			const snapGeometry = editor.getShapeUtil(shape).getHandleSnapGeometry(shape)
+
+			return {
+				outline:
+					snapGeometry.outline === undefined
+						? editor.getShapeGeometry(shape)
+						: snapGeometry.outline,
+			}
 		})
 	}
 
@@ -32,26 +51,35 @@ export class HandleSnaps {
 		additionalSegments: Vec[][]
 	}): SnapData | null {
 		const snapThreshold = this.manager.getSnapThreshold()
-		const outlinesInPageSpace = this.getOutlinesInPageSpace()
 
 		// Find the nearest point that is within the snap threshold
 		let minDistance = snapThreshold
 		let nearestPoint: Vec | null = null
-		let C: VecModel, D: VecModel, nearest: Vec, distance: number
-		const allSegments = [...outlinesInPageSpace, ...additionalSegments]
-		for (const outline of allSegments) {
-			for (let i = 0; i < outline.length - 1; i++) {
-				C = outline[i]
-				D = outline[i + 1]
 
-				nearest = Vec.NearestPointOnLineSegment(C, D, handlePoint)
-				distance = Vec.Dist(handlePoint, nearest)
+		for (const shapeId of this.manager.getSnappableShapes()) {
+			const handleSnapOutline = this.getSnapGeometryCache().get(shapeId)?.outline
+			if (!handleSnapOutline) continue
 
-				if (isNaN(distance)) continue
-				if (distance < minDistance) {
-					minDistance = distance
-					nearestPoint = nearest
-				}
+			const shapePageTransform = assertExists(this.editor.getShapePageTransform(shapeId))
+			const pointInShapeSpace = this.editor.getPointInShapeSpace(shapeId, handlePoint)
+			const nearestShapePointInShapeSpace = handleSnapOutline.nearestPoint(pointInShapeSpace)
+			const nearestInPageSpace = shapePageTransform.applyToPoint(nearestShapePointInShapeSpace)
+			const distance = Vec.Dist(handlePoint, nearestInPageSpace)
+
+			if (distance < minDistance) {
+				minDistance = distance
+				nearestPoint = nearestInPageSpace
+			}
+		}
+
+		// handle additional segments:
+		for (const segment of additionalSegments) {
+			const nearestOnSegment = Vec.NearestPointOnLineSegment(segment[0], segment[1], handlePoint)
+			const distance = Vec.Dist(handlePoint, nearestOnSegment)
+
+			if (distance < minDistance) {
+				minDistance = distance
+				nearestPoint = nearestOnSegment
 			}
 		}
 
