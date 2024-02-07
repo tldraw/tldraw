@@ -169,6 +169,10 @@ export {
 	serializeTldrawJsonBlob,
 	type TldrawFile,
 } from './lib/utils/tldr/file'
-export { Dialog, DropdownMenu }
+
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
+
+// N.B. Preserve order of import / export here with this comment.
+// Sometimes this can cause an import problem depending on build setup downstream.
+export { Dialog, DropdownMenu }

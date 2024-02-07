@@ -48,6 +48,10 @@
 		"label": "עברית"
 	},
 	{
+		"locale": "hr",
+		"label": "Hrvatski"
+	},
+	{
 		"locale": "it",
 		"label": "Italiano"
 	},

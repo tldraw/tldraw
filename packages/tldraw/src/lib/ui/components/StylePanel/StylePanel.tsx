@@ -17,6 +17,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
+import { useUiEvents } from '../../hooks/useEventsProvider'
 import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
@@ -25,7 +26,6 @@ import { Slider } from '../primitives/Slider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 import { STYLES } from './styles'
-import { useUiEvents } from '../../hooks/useEventsProvider'
 
 interface StylePanelProps {
 	isMobile?: boolean
@@ -136,7 +136,7 @@ function CommonStylePickerSet({
 					minBy(tldrawSupportedOpacities, (supportedOpacity) =>
 						Math.abs(supportedOpacity - opacity.value)
 					)!
-			  )
+				)
 
 	return (
 		<>

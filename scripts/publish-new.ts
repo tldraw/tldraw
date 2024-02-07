@@ -46,7 +46,7 @@ async function main() {
 	const nextVersion = prereleaseTag
 		? `${latestVersion.major}.${latestVersion.minor}.${latestVersion.patch}-${prereleaseTag}.${
 				Number(prereleaseNumber) + 1
-		  }`
+			}`
 		: latestVersion.inc(bump).format()
 
 	setAllVersions(nextVersion)
