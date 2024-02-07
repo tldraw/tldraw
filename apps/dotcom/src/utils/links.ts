@@ -32,12 +32,30 @@ const linksMenuGroup = menuGroup(
 		},
 	}),
 	menuItem({
+		id: 't-and-c',
+		label: 'help-menu.terms-and-conditions',
+		icon: 'external-link',
+		readonlyOk: true,
+		onSelect() {
+			window.open('https://tldraw.dev/community/terms-and-conditions/')
+		},
+	}),
+	menuItem({
+		id: 'privacy',
+		label: 'help-menu.privacy',
+		icon: 'external-link',
+		readonlyOk: true,
+		onSelect() {
+			window.open('https://tldraw.dev/community/privacy-policy/')
+		},
+	}),
+	menuItem({
 		id: 'about',
 		label: 'help-menu.about',
 		icon: 'external-link',
 		readonlyOk: true,
 		onSelect() {
-			window.open('https://www.tldraw.dev')
+			window.open('https://tldraw.dev')
 		},
 	})
 )!
