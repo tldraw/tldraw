@@ -1,4 +1,4 @@
-import { MigrationId, MigrationSequence } from '../migrate'
+import { MigrationId, MigrationSequence, MigrationsConfigBuilder } from '../migrate'
 import { parseMigrations } from '../parseMigrations'
 
 function migration<Id extends MigrationId>(id: Id) {
@@ -397,5 +397,21 @@ test('it does not complain if a dependsOn referee was satisfied correctly', () =
     "com.book/003_MoreStuff",
   ],
 }
+`)
+})
+
+test('we call parseMigrations during the migrations constructor', () => {
+	expect(() => {
+		new MigrationsConfigBuilder().addSequence(bookMigrations).setOrder([])
+	}).toThrowErrorMatchingInlineSnapshot(`
+"[tldraw] Some migration IDs are missing from your migration order array. Did you just update a tldraw dependency?
+
+Add the following IDs to the end of your existing migration order array: [
+  "com.book/000_InitialMigration",
+  "com.book/001_AddAuthor",
+  "com.book/002_FixTitle",
+  "com.book/003_MoreStuff"
+]
+"
 `)
 })

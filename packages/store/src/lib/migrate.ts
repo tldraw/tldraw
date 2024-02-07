@@ -1,5 +1,6 @@
 import { UnknownRecord } from './BaseRecord'
 import { SerializedStore } from './Store'
+import { parseMigrations } from './parseMigrations'
 
 /**
  * A migration ID is a string that uniquely identifies a migration.
@@ -87,9 +88,12 @@ export class MigrationsConfigBuilder<ValidMigrationIds extends MigrationId = nev
 		return this
 	}
 	setOrder(order: ValidMigrationIds[]): MigrationsConfig {
-		return {
+		const result: MigrationsConfig = {
 			sequences: this.sequences,
 			order,
 		}
+		// validate early to provide more useful stack traces
+		parseMigrations(result)
+		return result
 	}
 }
