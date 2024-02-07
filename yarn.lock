@@ -8143,7 +8143,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*, @types/lodash@npm:^4.14.188":
+"@types/lodash@npm:*, @types/lodash@npm:^4.14.188, @types/lodash@npm:^4.14.202":
   version: 4.14.202
   resolution: "@types/lodash@npm:4.14.202"
   checksum: 1bb9760a5b1dda120132c4b987330d67979c95dbc22612678682cd61b00302e190f4207228f3728580059cdab5582362262e3819aea59960c1017bd2b9fb26f6
@@ -13638,11 +13638,13 @@ __metadata:
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
+    "@types/lodash": "npm:^4.14.202"
     "@vercel/analytics": "npm:^1.1.1"
     "@vitejs/plugin-react": "npm:^4.2.0"
     classnames: "npm:^2.3.2"
     dotenv: "npm:^16.3.1"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash: "npm:^4.17.21"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     react-router-dom: "npm:^6.17.0"

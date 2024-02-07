@@ -1533,6 +1533,11 @@ export interface TLUiEventMap {
         id: string;
     };
     // (undocumented)
+    'set-style': {
+        id: string;
+        value: number | string;
+    };
+    // (undocumented)
     'stack-shapes': {
         operation: 'horizontal' | 'vertical';
     };
@@ -1597,7 +1602,7 @@ export interface TLUiEventMap {
 }
 
 // @public (undocumented)
-export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'toolbar' | 'unknown' | 'zoom-menu';
+export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'zoom-menu';
 
 // @public (undocumented)
 export type TLUiHelpMenuSchemaContextType = TLUiMenuSchema;
