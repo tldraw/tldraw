@@ -8,6 +8,7 @@ import { Mdx } from './Mdx'
 import { Sidebar } from './Sidebar'
 import { Image } from './mdx-components/generic'
 
+/** For articles with examples extracted from our apps/examples code. */
 export async function ExampleDocsPage({ article }: { article: Article }) {
 	const db = await getDb()
 	const section = await db.getSection(article.sectionId)

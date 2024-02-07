@@ -3,6 +3,10 @@
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
+/**
+ * For development only, this component refreshes the page when content changes.
+ * (see also `watcher.ts` in the root of the project) or https://www.steveruiz.me/posts/nextjs-refresh-content
+ */
 let AutoRefresh = ({ children }: { children: any }) => {
 	return children
 }

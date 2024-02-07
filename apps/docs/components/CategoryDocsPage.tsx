@@ -5,6 +5,7 @@ import { Breadcrumb } from './Breadcrumb'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 
+/** A page shown when a user visits a category route, like https://tldraw.dev/reference/editor */
 export async function CategoryDocsPage({ category }: { category: Category }) {
 	const db = await getDb()
 	const section = await db.getSection(category.sectionId)
