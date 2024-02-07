@@ -1,4 +1,4 @@
-import { Editor, TLFrameShape, track, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLFrameShape, devFreeze, track, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import {
 	TLUiMenuSchema,
@@ -87,8 +87,8 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
-	const contextTLUiMenuSchemaWithoutOverrides = useMemo<TLUiMenuSchema>(() => {
-		return compactMenuItems([
+	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
+		const contextTLUiMenuSchemaWithoutOverrides: TLUiMenuSchema = compactMenuItems([
 			menuGroup(
 				'selection',
 				showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
@@ -204,6 +204,17 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 				),
 			oneSelected && !isShapeLocked && menuGroup('delete-group', menuItem(actions['delete'])),
 		])
+
+		if (!overrides) return contextTLUiMenuSchemaWithoutOverrides
+		return overrides(editor, contextTLUiMenuSchemaWithoutOverrides, {
+			actions,
+			oneSelected,
+			twoSelected,
+			threeSelected,
+			showAutoSizeToggle,
+			showUngroup: allowUngroup,
+			onlyFlippableShapeSelected,
+		})
 	}, [
 		actions,
 		oneSelected,
@@ -223,35 +234,9 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		// oneEmbeddableBookmarkSelected,
 		isTransparentBg,
 		isShapeLocked,
+		editor,
+		overrides,
 	])
-
-	const contextTLUiMenuSchema = useValue(
-		'overrides',
-		() => {
-			if (!overrides) return contextTLUiMenuSchemaWithoutOverrides
-			return overrides(editor, contextTLUiMenuSchemaWithoutOverrides, {
-				actions,
-				oneSelected,
-				twoSelected,
-				threeSelected,
-				showAutoSizeToggle,
-				showUngroup: allowUngroup,
-				onlyFlippableShapeSelected,
-			})
-		},
-		[
-			actions,
-			allowUngroup,
-			contextTLUiMenuSchemaWithoutOverrides,
-			editor,
-			oneSelected,
-			onlyFlippableShapeSelected,
-			overrides,
-			showAutoSizeToggle,
-			threeSelected,
-			twoSelected,
-		]
-	)
 
 	return (
 		<TLUiContextMenuSchemaContext.Provider value={contextTLUiMenuSchema}>
