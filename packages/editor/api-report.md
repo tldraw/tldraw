@@ -1817,6 +1817,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onMiddleClick?: TLEventHandlers['onMiddleClick'];
     // (undocumented)
+    onPaste?: TLEventHandlers['onPaste'];
+    // (undocumented)
     onPointerDown?: TLEventHandlers['onPointerDown'];
     // (undocumented)
     onPointerMove?: TLEventHandlers['onPointerMove'];
@@ -2140,6 +2142,8 @@ export interface TLEventHandlers {
     // (undocumented)
     onMiddleClick: TLPointerEvent;
     // (undocumented)
+    onPaste: TLPasteEvent;
+    // (undocumented)
     onPointerDown: TLPointerEvent;
     // (undocumented)
     onPointerMove: TLPointerEvent;
@@ -2156,7 +2160,7 @@ export interface TLEventHandlers {
 }
 
 // @public (undocumented)
-export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo;
+export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPasteEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo;
 
 // @public (undocumented)
 export interface TLEventMap {
@@ -2203,7 +2207,7 @@ export interface TLEventMap {
 export type TLEventMapHandler<T extends keyof TLEventMap> = (...args: TLEventMap[T]) => void;
 
 // @public (undocumented)
-export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
+export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'paste' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
 
 // @public (undocumented)
 export type TLExitEventHandler = (info: any, to: string) => void;

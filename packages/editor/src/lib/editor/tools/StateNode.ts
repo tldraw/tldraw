@@ -211,6 +211,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onCancel?: TLEventHandlers['onCancel']
 	onComplete?: TLEventHandlers['onComplete']
 	onInterrupt?: TLEventHandlers['onInterrupt']
+	onPaste?: TLEventHandlers['onPaste']
 
 	onEnter?: TLEnterEventHandler
 	onExit?: TLExitEventHandler

@@ -16,4 +16,5 @@ export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?:
 		point: p,
 		select: true,
 	})
+	editor.emit('event', { type: 'misc', name: 'paste' })
 }

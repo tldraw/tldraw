@@ -342,6 +342,30 @@ input,
 	contain: size layout;
 }
 
+.tl-canvas-recent-paste-event .tl-shape-indicator path {
+	animation: puff 0.2s ease-in forwards;
+}
+
+@keyframes puff {
+  0% {
+		transform-origin: 25% 25%;
+    transform: scale(1, 1);
+    filter: blur(0px);
+  }
+
+  50% {
+		transform-origin: 25% 25%;
+    transform: scale(1.05, 1.05);
+    filter: blur(3px);
+  }
+
+  100% {
+		transform-origin: 25% 25%;
+    transform: scale(1, 1);
+    filter: blur(0px);
+  }
+}
+
 .tl-shape__culled {
 	position: relative;
 	background-color: var(--color-culled);
