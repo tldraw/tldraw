@@ -203,6 +203,7 @@ import translationsFr from './translations/fr.json?url'
 import translationsGl from './translations/gl.json?url'
 import translationsHe from './translations/he.json?url'
 import translationsHiIn from './translations/hi-in.json?url'
+import translationsHr from './translations/hr.json?url'
 import translationsHu from './translations/hu.json?url'
 import translationsIt from './translations/it.json?url'
 import translationsJa from './translations/ja.json?url'
@@ -419,6 +420,7 @@ export function getAssetUrlsByImport(opts) {
 			gl: formatAssetUrl(translationsGl, opts),
 			he: formatAssetUrl(translationsHe, opts),
 			'hi-in': formatAssetUrl(translationsHiIn, opts),
+			hr: formatAssetUrl(translationsHr, opts),
 			hu: formatAssetUrl(translationsHu, opts),
 			it: formatAssetUrl(translationsIt, opts),
 			ja: formatAssetUrl(translationsJa, opts),
