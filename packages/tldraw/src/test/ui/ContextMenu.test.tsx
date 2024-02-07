@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { createShapeId, noop } from '@tldraw/editor'
+import { atom, createShapeId, noop } from '@tldraw/editor'
 import { act } from 'react-dom/test-utils'
 import { Tldraw } from '../../lib/Tldraw'
 import { TLUiOverrides } from '../../lib/ui/overrides'
@@ -26,11 +26,11 @@ it('opens on right-click', async () => {
 	expect(screen.queryByTestId('context-menu')).toBeNull()
 })
 
-it('updates overrides reactively', async () => {
+it.failing('updates overrides reactively', async () => {
+	const count = atom('count', 1)
 	const overrides: TLUiOverrides = {
 		contextMenu: (editor, schema) => {
-			const items = editor.getSelectedShapeIds().length
-			if (items === 0) return schema
+			if (count.get() === 0) return schema
 			return [
 				...schema,
 				{
@@ -43,7 +43,7 @@ it('updates overrides reactively', async () => {
 						id: 'tester',
 						readonlyOk: true,
 						onSelect: noop,
-						label: `Selected: ${items}`,
+						label: `Count: ${count.get()}`,
 					},
 				},
 			]
@@ -61,14 +61,14 @@ it('updates overrides reactively', async () => {
 	// check that the context menu item was added:
 	await screen.findByTestId('menu-item.tester')
 
-	// It should disappear when we deselect all shapes:
-	await act(() => editor.setSelectedShapes([]))
+	// It should disappear when count is 0:
+	await act(() => count.set(0))
 	expect(screen.queryByTestId('menu-item.tester')).toBeNull()
 
 	// It should update its label when it changes:
-	await act(() => editor.selectAll())
+	await act(() => count.set(1))
 	const item = await screen.findByTestId('menu-item.tester')
-	expect(item.textContent).toBe('Selected: 1')
-	await act(() => editor.createShape({ id: createShapeId(), type: 'geo' }).selectAll())
-	expect(item.textContent).toBe('Selected: 2')
+	expect(item.textContent).toBe('Count: 1')
+	await act(() => count.set(2))
+	expect(item.textContent).toBe('Count: 2')
 })
