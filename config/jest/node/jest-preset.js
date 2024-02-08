@@ -1,8 +1,4 @@
 module.exports = {
-	// disabled prettier for snapshot updates until jest 30 is released
-	// see https://github.com/jestjs/jest/issues/14305
-	// tl;dr jest < 30 doesn't support prettier v3 because it went async
-	prettierPath: null,
 	roots: ['<rootDir>/src'],
 	transform: {
 		'^.+\\.(tsx|jsx|ts|js|mjs)?$': [
