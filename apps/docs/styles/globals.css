@@ -499,6 +499,16 @@ body {
 .article ol {
 	margin: 20px 0px;
 	padding-left: 16px;
+	margin-left: 8px;
+}
+
+.article ol h3,
+.article ol li::marker {
+	font-size: 1.17em;
+}
+
+.article ol ul {
+	list-style-type: disc;
 }
 
 .article ul {
