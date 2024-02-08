@@ -4,7 +4,6 @@ dist
 .tsbuild
 node\*modules
 *.d.ts
-*.md
 **/_archive
 **/*.tsbuildinfo
 yarn.lock
