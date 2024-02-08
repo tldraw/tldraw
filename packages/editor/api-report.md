@@ -50,7 +50,7 @@ import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
-import { TLInstancePageStateId } from '@tldraw/tlschema/.tsbuild/records/TLPageState';
+import { TLInstancePageStateId } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';

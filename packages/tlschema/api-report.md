@@ -1094,6 +1094,9 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
 }
 
 // @public (undocumented)
+export type TLInstancePageStateId = RecordId<TLInstancePageState>;
+
+// @public (undocumented)
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
     brush: BoxModel | null;

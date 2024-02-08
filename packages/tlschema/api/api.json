@@ -7344,7 +7344,7 @@
             {
               "kind": "Reference",
               "text": "TLInstancePageStateId",
-              "canonicalReference": "@tldraw/tlschema!~TLInstancePageStateId:type"
+              "canonicalReference": "@tldraw/tlschema!TLInstancePageStateId:type"
             },
             {
               "kind": "Content",
@@ -7660,6 +7660,46 @@
               "endIndex": 5
             }
           ]
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLInstancePageStateId:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLInstancePageStateId = "
+            },
+            {
+              "kind": "Reference",
+              "text": "RecordId",
+              "canonicalReference": "@tldraw/store!RecordId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLInstancePageState",
+              "canonicalReference": "@tldraw/tlschema!TLInstancePageState:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLPageState.ts",
+          "releaseTag": "Public",
+          "name": "TLInstancePageStateId",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
         },
         {
           "kind": "Interface",

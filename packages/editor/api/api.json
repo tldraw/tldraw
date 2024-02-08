@@ -6133,7 +6133,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "import(\"@tldraw/tlschema/.tsbuild/records/TLPageState\")."
+                  "text": "import(\"@tldraw/tlschema\")."
                 },
                 {
                   "kind": "Reference",
