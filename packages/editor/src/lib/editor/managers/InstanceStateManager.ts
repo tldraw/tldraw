@@ -12,7 +12,7 @@ export class InstanceStateManager {
 		this._update = this.editor.history.createCommand(
 			'updateInstanceState',
 			(partial: InstanceStateUpdate, historyOptions?: TLCommandHistoryOptions) => {
-				const prev = this.editor.store.get(this.get().id)!
+				const prev = this.editor.store.get(this.getRecord().id)!
 				const next = { ...prev, ...partial }
 
 				return {
@@ -36,7 +36,7 @@ export class InstanceStateManager {
 		)
 	}
 
-	@computed get(): TLInstance {
+	@computed getRecord(): TLInstance {
 		return this.editor.store.get(TLINSTANCE_ID)!
 	}
 
@@ -66,90 +66,90 @@ export class InstanceStateManager {
 	}
 
 	getCurrentPageId() {
-		return this.get().currentPageId
+		return this.getRecord().currentPageId
 	}
 	@computed getOpacityForNextShape() {
-		return this.get().opacityForNextShape
+		return this.getRecord().opacityForNextShape
 	}
 	@computed getStylesForNextShape() {
-		return this.get().stylesForNextShape
+		return this.getRecord().stylesForNextShape
 	}
 	@computed getFollowingUserId() {
-		return this.get().followingUserId
+		return this.getRecord().followingUserId
 	}
 	@computed getHighlightedUserIds() {
-		return this.get().highlightedUserIds
+		return this.getRecord().highlightedUserIds
 	}
 	@computed getBrush() {
-		return this.get().brush
+		return this.getRecord().brush
 	}
 	@computed getCursor() {
-		return this.get().cursor
+		return this.getRecord().cursor
 	}
 	@computed getScribbles() {
-		return this.get().scribbles
+		return this.getRecord().scribbles
 	}
 	@computed getIsFocusMode() {
-		return this.get().isFocusMode
+		return this.getRecord().isFocusMode
 	}
 	@computed getIsDebugMode() {
-		return this.get().isDebugMode
+		return this.getRecord().isDebugMode
 	}
 	@computed getIsToolLocked() {
-		return this.get().isToolLocked
+		return this.getRecord().isToolLocked
 	}
 	@computed getExportBackground() {
-		return this.get().exportBackground
+		return this.getRecord().exportBackground
 	}
 	@computed getScreenBounds() {
-		return this.get().screenBounds
+		return this.getRecord().screenBounds
 	}
 	@computed getInsets() {
-		return this.get().insets
+		return this.getRecord().insets
 	}
 	@computed getZoomBrush() {
-		return this.get().zoomBrush
+		return this.getRecord().zoomBrush
 	}
 	@computed getChatMessage() {
-		return this.get().chatMessage
+		return this.getRecord().chatMessage
 	}
 	@computed getIsChatting() {
-		return this.get().isChatting
+		return this.getRecord().isChatting
 	}
 	@computed getIsPenMode() {
-		return this.get().isPenMode
+		return this.getRecord().isPenMode
 	}
 	@computed getIsGridMode() {
-		return this.get().isGridMode
+		return this.getRecord().isGridMode
 	}
 	@computed getCanMoveCamera() {
-		return this.get().canMoveCamera
+		return this.getRecord().canMoveCamera
 	}
 	@computed getIsFocused() {
-		return this.get().isFocused
+		return this.getRecord().isFocused
 	}
 	@computed getDevicePixelRatio() {
-		return this.get().devicePixelRatio
+		return this.getRecord().devicePixelRatio
 	}
 	@computed getIsCoarsePointer() {
-		return this.get().isCoarsePointer
+		return this.getRecord().isCoarsePointer
 	}
 	@computed getIsHoveringCanvas() {
-		return this.get().isHoveringCanvas
+		return this.getRecord().isHoveringCanvas
 	}
 	@computed getOpenMenus() {
-		return this.get().openMenus
+		return this.getRecord().openMenus
 	}
 	@computed getIsChangingStyle() {
-		return this.get().isChangingStyle
+		return this.getRecord().isChangingStyle
 	}
 	@computed getIsReadonly() {
-		return this.get().isReadonly
+		return this.getRecord().isReadonly
 	}
 	@computed getMeta() {
-		return this.get().meta
+		return this.getRecord().meta
 	}
 	@computed getDuplicateProps() {
-		return this.get().duplicateProps
+		return this.getRecord().duplicateProps
 	}
 }

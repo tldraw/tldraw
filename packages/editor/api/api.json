@@ -5964,38 +5964,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!CurrentPageStateManager#get:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLInstancePageState",
-                  "canonicalReference": "@tldraw/tlschema!TLInstancePageState:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "get"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!CurrentPageStateManager#getCroppingShapeId:member(1)",
               "docComment": "",
               "excerptTokens": [
@@ -6225,6 +6193,38 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getMeta"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CurrentPageStateManager#getRecord:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRecord(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstancePageState",
+                  "canonicalReference": "@tldraw/tlschema!TLInstancePageState:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRecord"
             },
             {
               "kind": "Method",
@@ -24202,38 +24202,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!InstanceStateManager#get:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLInstance",
-                  "canonicalReference": "@tldraw/tlschema!TLInstance:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "get"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!InstanceStateManager#getBrush:member(1)",
               "docComment": "",
               "excerptTokens": [
@@ -25039,6 +25007,38 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getOpenMenus"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!InstanceStateManager#getRecord:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRecord(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstance",
+                  "canonicalReference": "@tldraw/tlschema!TLInstance:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getRecord"
             },
             {
               "kind": "Method",

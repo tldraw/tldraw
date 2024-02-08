@@ -490,7 +490,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const backupPageId = this.getPages().find((p) => p.id !== record.id)?.id
 			if (!backupPageId) return
-			this.store.put([{ ...this.instanceState.get(), currentPageId: backupPageId }])
+			this.store.put([{ ...this.instanceState.getRecord(), currentPageId: backupPageId }])
 
 			// delete the camera and state for the page if necessary
 			const cameraId = CameraRecordType.createId(record.id)
@@ -1346,7 +1346,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageState(): TLInstancePageState {
-		return this.currentPageState.get()
+		return this.currentPageState.getRecord()
 	}
 
 	/**
@@ -1378,7 +1378,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getSelectedShapeIds() {
-		return this.currentPageState.get().selectedShapeIds
+		return this.currentPageState.getRecord().selectedShapeIds
 	}
 
 	/**
@@ -1418,7 +1418,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _setSelectedShapes = this.history.createCommand(
 		'setSelectedShapes',
 		(ids: TLShapeId[], historyOptions?: TLCommandHistoryOptions) => {
-			const { selectedShapeIds: prevSelectedShapeIds } = this.currentPageState.get()
+			const { selectedShapeIds: prevSelectedShapeIds } = this.currentPageState.getRecord()
 			const prevSet = new Set(prevSelectedShapeIds)
 
 			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
@@ -1431,12 +1431,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ selectedShapeIds }) => {
-				this.store.put([{ ...this.currentPageState.get(), selectedShapeIds }])
+				this.store.put([{ ...this.currentPageState.getRecord(), selectedShapeIds }])
 			},
 			undo: ({ prevSelectedShapeIds }) => {
 				this.store.put([
 					{
-						...this.currentPageState.get(),
+						...this.currentPageState.getRecord(),
 						selectedShapeIds: prevSelectedShapeIds,
 					},
 				])
@@ -1646,7 +1646,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getFocusedGroupId(): TLShapeId | TLPageId {
-		return this.currentPageState.get().focusedGroupId ?? this.getCurrentPageId()
+		return this.currentPageState.getRecord().focusedGroupId ?? this.getCurrentPageId()
 	}
 
 	/**
@@ -1691,7 +1691,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _setFocusedGroupId = this.history.createCommand(
 		'setFocusedGroupId',
 		(next: TLShapeId | null) => {
-			const prev = this.currentPageState.get().focusedGroupId
+			const prev = this.currentPageState.getRecord().focusedGroupId
 			if (prev === next) return
 			return {
 				data: {
@@ -1746,7 +1746,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getEditingShapeId(): TLShapeId | null {
-		return this.currentPageState.get().editingShapeId
+		return this.currentPageState.getRecord().editingShapeId
 	}
 
 	/**
@@ -1798,7 +1798,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getHoveredShapeId(): TLShapeId | null {
-		return this.currentPageState.get().hoveredShapeId
+		return this.currentPageState.getRecord().hoveredShapeId
 	}
 
 	/**
@@ -1838,7 +1838,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getHintingShapeIds() {
-		return this.currentPageState.get().hintingShapeIds
+		return this.currentPageState.getRecord().hintingShapeIds
 	}
 	/**
 	 * The editor's current hinting shapes.
@@ -1881,7 +1881,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getErasingShapeIds() {
-		return this.currentPageState.get().erasingShapeIds
+		return this.currentPageState.getRecord().erasingShapeIds
 	}
 
 	/**
@@ -1940,7 +1940,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCroppingShapeId() {
-		return this.currentPageState.get().croppingShapeId
+		return this.currentPageState.getRecord().croppingShapeId
 	}
 
 	/**
@@ -3313,7 +3313,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					])
 				}
 
-				this.store.put([{ ...this.instanceState.get(), currentPageId: toId }])
+				this.store.put([{ ...this.instanceState.getRecord(), currentPageId: toId }])
 
 				this.updateRenderingBounds()
 			},
@@ -3322,7 +3322,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// in multiplayer contexts this page might have been deleted
 					return
 				}
-				this.store.put([{ ...this.instanceState.get(), currentPageId: fromId }])
+				this.store.put([{ ...this.instanceState.getRecord(), currentPageId: fromId }])
 
 				this.updateRenderingBounds()
 			},

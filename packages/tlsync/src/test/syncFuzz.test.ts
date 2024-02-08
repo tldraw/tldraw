@@ -136,7 +136,7 @@ function runTest(seed: number) {
 		if (peers.some((p) => p.editor?.editor && !p.editor?.editor.getCurrentPage())) {
 			throw new Error(`not all peer editors have current page (${when})`)
 		}
-		if (peers.some((p) => p.editor?.editor && !p.editor?.editor.currentPageState.get())) {
+		if (peers.some((p) => p.editor?.editor && !p.editor?.editor.currentPageState.getRecord())) {
 			throw new Error(`not all peer editors have page states (${when})`)
 		}
 		if (

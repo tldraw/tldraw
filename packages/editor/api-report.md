@@ -423,8 +423,6 @@ export class CubicSpline2d extends Geometry2d {
 export class CurrentPageStateManager {
     constructor(editor: Editor);
     // (undocumented)
-    get(): TLInstancePageState;
-    // (undocumented)
     getCroppingShapeId(): TLShapeId | null;
     // (undocumented)
     getErasingShapeIds(): TLShapeId[];
@@ -436,6 +434,8 @@ export class CurrentPageStateManager {
     getId(): TLInstancePageStateId;
     // (undocumented)
     getMeta(): JsonObject;
+    // (undocumented)
+    getRecord(): TLInstancePageState;
     update(partial: CurrentPageStateUpdate, historyOptions?: TLCommandHistoryOptions): void;
     // @internal (undocumented)
     _update: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, historyOptions?: Partial<{
@@ -1245,8 +1245,6 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 export class InstanceStateManager {
     constructor(editor: Editor);
     // (undocumented)
-    get(): TLInstance;
-    // (undocumented)
     getBrush(): BoxModel | null;
     // (undocumented)
     getCanMoveCamera(): boolean;
@@ -1302,6 +1300,8 @@ export class InstanceStateManager {
     getOpacityForNextShape(): number;
     // (undocumented)
     getOpenMenus(): string[];
+    // (undocumented)
+    getRecord(): TLInstance;
     // (undocumented)
     getScreenBounds(): BoxModel;
     // (undocumented)

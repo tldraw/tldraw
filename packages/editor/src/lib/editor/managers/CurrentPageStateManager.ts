@@ -17,7 +17,7 @@ export class CurrentPageStateManager {
 				partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>,
 				historyOptions?: TLCommandHistoryOptions
 			) => {
-				const prev = this.get()
+				const prev = this.getRecord()
 				return { data: { prev, partial }, ...historyOptions }
 			},
 			{
@@ -34,7 +34,7 @@ export class CurrentPageStateManager {
 	getId() {
 		return InstancePageStateRecordType.createId(this.editor.getCurrentPageId())
 	}
-	@computed get() {
+	@computed getRecord() {
 		return this.editor.store.get(this.getId())!
 	}
 
@@ -65,18 +65,18 @@ export class CurrentPageStateManager {
 	}
 
 	@computed getHintingShapeIds() {
-		return this.get().hintingShapeIds
+		return this.getRecord().hintingShapeIds
 	}
 	@computed getErasingShapeIds() {
-		return this.get().erasingShapeIds
+		return this.getRecord().erasingShapeIds
 	}
 	@computed getHoveredShapeId() {
-		return this.get().hoveredShapeId
+		return this.getRecord().hoveredShapeId
 	}
 	@computed getCroppingShapeId() {
-		return this.get().croppingShapeId
+		return this.getRecord().croppingShapeId
 	}
 	@computed getMeta() {
-		return this.get().meta
+		return this.getRecord().meta
 	}
 }
