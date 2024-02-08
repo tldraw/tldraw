@@ -81,7 +81,7 @@ export const Shape = track(function Shape({
 			if (!shape) return null
 
 			const bounds = editor.getShapeGeometry(shape).bounds
-			const dpr = Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100
+			const dpr = Math.floor(editor.instanceState.getDevicePixelRatio() * 100) / 100
 			// dprMultiple is the smallest number we can multiply dpr by to get an integer
 			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
 			const dprMultiple = nearestMultiple(dpr)

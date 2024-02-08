@@ -2,7 +2,7 @@ import { useEditor, usePresence, useValue } from '@tldraw/editor'
 
 export function FollowingIndicator() {
 	const editor = useEditor()
-	const followingUserId = useValue('follow', () => editor.getInstanceState().followingUserId, [
+	const followingUserId = useValue('follow', () => editor.instanceState.getFollowingUserId(), [
 		editor,
 	])
 	if (!followingUserId) return null

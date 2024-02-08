@@ -35,7 +35,7 @@ beforeEach(() => {
 })
 
 function nudgeAndGet(ids: TLShapeId[], key: string, shiftKey: boolean) {
-	const step = editor.getInstanceState().isGridMode ? (shiftKey ? 50 : 10) : shiftKey ? 10 : 1
+	const step = editor.instanceState.getIsGridMode() ? (shiftKey ? 50 : 10) : shiftKey ? 10 : 1
 	switch (key) {
 		case 'ArrowLeft': {
 			editor.mark('nudge')
@@ -177,7 +177,7 @@ describe('When a shape is selected...', () => {
 
 describe('When grid is enabled...', () => {
 	it('nudges a shape correctly', () => {
-		editor.updateInstanceState({ isGridMode: true })
+		editor.instanceState.update({ isGridMode: true })
 		editor.setSelectedShapes([ids.boxA])
 
 		expect(nudgeAndGet([ids.boxA], 'ArrowUp', false)).toMatchObject([{ x: 10, y: 0 }])
@@ -187,7 +187,7 @@ describe('When grid is enabled...', () => {
 	})
 
 	it('nudges a shape with shift key pressed', () => {
-		editor.updateInstanceState({ isGridMode: true })
+		editor.instanceState.update({ isGridMode: true })
 		editor.setSelectedShapes([ids.boxA])
 
 		expect(nudgeAndGet([ids.boxA], 'ArrowUp', true)).toMatchObject([{ x: 10, y: -40 }])

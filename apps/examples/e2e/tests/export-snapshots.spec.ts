@@ -195,11 +195,8 @@ test.describe('Export snapshots', () => {
 			await setupPage(page)
 			await page.evaluate((shapes) => {
 				editor.user.updateUserPreferences({ isDarkMode: true })
-				editor
-					.updateInstanceState({ exportBackground: false })
-					.selectAll()
-					.deleteShapes(editor.getSelectedShapeIds())
-					.createShapes(shapes)
+				editor.instanceState.update({ exportBackground: false })
+				editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes)
 			}, shapes as any)
 
 			await snapshotTest(page)

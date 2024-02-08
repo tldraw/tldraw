@@ -99,9 +99,9 @@ export function getCodeSnippet(name: string, data: any) {
 		if (data.id === 'media') {
 			codeSnippet = 'insertMedia()'
 		} else if (data.id.startsWith('geo-')) {
-			codeSnippet = `\n  editor.updateInstanceState({
+			codeSnippet = `\n  editor.instanceState.update({
   stylesForNextShape: {
-    ...editor.getInstanceState().stylesForNextShape,
+    ...editor.instanceState.getStylesForNextShape(),
     [GeoShapeGeoStyle.id]: '${data.id.replace('geo-', '')}',
   },
 }, { ephemeral: true });
@@ -130,7 +130,7 @@ if (updates.length > 0) {
 	} else if (name === 'stop-following') {
 		codeSnippet = `editor.stopFollowingUser()`
 	} else if (name === 'exit-pen-mode') {
-		codeSnippet = `editor.updateInstanceState({ isPenMode: false })`
+		codeSnippet = `editor.instanceState.update({ isPenMode: false })`
 	} else if (name === 'remove-frame') {
 		codeSnippet = `removeFrame(editor, editor.getSelectedShapes().map((shape) => shape.id))`
 	} else if (name === 'fit-frame-to-content') {
@@ -153,7 +153,7 @@ if (updates.length > 0) {
 			const prefName = PREFS_EVENT[name as keyof typeof PREFS_EVENT]
 			codeSnippet = userPrefName
 				? `editor.user.updateUserPreferences({ ${userPrefName}: <value> })`
-				: `editor.updateInstanceState({ ${prefName}: !editor.getInstanceState().${prefName} })`
+				: `editor.instanceState.update({ ${prefName}: !editor.getInstanceState().${prefName} })`
 		}
 	}
 

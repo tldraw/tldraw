@@ -13,7 +13,7 @@ export class ZoomBrushing extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState({ zoomBrush: null })
+		this.editor.instanceState.update({ zoomBrush: null })
 	}
 
 	override onPointerMove = () => {
@@ -34,7 +34,7 @@ export class ZoomBrushing extends StateNode {
 		} = this.editor
 
 		this.zoomBrush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
-		this.editor.updateInstanceState({ zoomBrush: this.zoomBrush.toJson() })
+		this.editor.instanceState.update({ zoomBrush: this.zoomBrush.toJson() })
 	}
 
 	private cancel() {

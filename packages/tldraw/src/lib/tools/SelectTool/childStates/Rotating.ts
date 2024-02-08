@@ -87,7 +87,7 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
+		this.editor.instanceState.update({
 			cursor: {
 				type: CursorTypeMap[this.info.handle as RotateCorner],
 				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
@@ -131,7 +131,7 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
+		this.editor.instanceState.update({
 			cursor: {
 				type: CursorTypeMap[this.info.handle as RotateCorner],
 				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
@@ -162,7 +162,7 @@ export class Rotating extends StateNode {
 		} else if (snapToNearestDegree) {
 			newSelectionRotation = Math.round(newSelectionRotation / ONE_DEGREE) * ONE_DEGREE
 
-			if (this.editor.getInstanceState().isCoarsePointer) {
+			if (this.editor.instanceState.getIsCoarsePointer()) {
 				const snappedToRightAngle = snapAngle(newSelectionRotation, 4)
 				const angleToRightAngle = shortAngleDist(newSelectionRotation, snappedToRightAngle)
 				if (Math.abs(angleToRightAngle) < degreesToRadians(5)) {

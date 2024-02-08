@@ -6,7 +6,7 @@ export const StopFollowing = track(function StopFollowing() {
 	const editor = useEditor()
 	const actions = useActions()
 
-	if (!editor.getInstanceState().followingUserId) {
+	if (!editor.instanceState.getFollowingUserId()) {
 		return null
 	}
 

@@ -61,7 +61,7 @@ export class Resizing extends StateNode {
 		if (isCreating) {
 			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
 
-			this.editor.updateInstanceState(
+			this.editor.instanceState.update(
 				{ cursor: { type: 'cross', rotation: 0 } },
 				{ ephemeral: true }
 			)
@@ -119,7 +119,7 @@ export class Resizing extends StateNode {
 			return
 		}
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
+		if (this.editor.instanceState.getIsToolLocked() && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 			return
 		}
@@ -219,7 +219,7 @@ export class Resizing extends StateNode {
 			.sub(this.creationCursorOffset)
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
-		if (this.editor.getInstanceState().isGridMode && !ctrlKey) {
+		if (this.editor.instanceState.getIsGridMode() && !ctrlKey) {
 			const { gridSize } = this.editor.getDocumentSettings()
 			currentPagePoint.snapToGrid(gridSize)
 		}
@@ -377,7 +377,7 @@ export class Resizing extends StateNode {
 		isFlippedY: boolean
 		rotation: number
 	}) {
-		const nextCursor = { ...this.editor.getInstanceState().cursor }
+		const nextCursor = { ...this.editor.instanceState.getCursor() }
 
 		switch (dragHandle) {
 			case 'top_left':
@@ -405,7 +405,7 @@ export class Resizing extends StateNode {
 
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)

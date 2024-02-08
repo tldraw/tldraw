@@ -273,7 +273,7 @@ You can get a shape using the shape's `id` or the shape record itself.
 You can use the [Editor#updateInstanceState](?) method to turn on read only mode.
 
 ```ts
-editor.updateInstanceState({ isReadonly: true })
+editor.instanceState.update({ isReadonly: true })
 ```
 
 ### Move the camera
@@ -289,7 +289,7 @@ editor.setCamera(0, 0, 1)
 You can prevent the user from changing the camera using the [Editor#updateInstanceState](?) method.
 
 ```ts
-editor.updateInstanceState({ canMoveCamera: false })
+editor.instanceState.update({ canMoveCamera: false })
 ```
 
 ### Turn on dark mode

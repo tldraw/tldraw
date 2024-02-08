@@ -64,7 +64,7 @@ export class Cropping extends StateNode {
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
+		this.editor.instanceState.update({
 			cursor: {
 				type: cursorType,
 				rotation: selectedShape.rotation,

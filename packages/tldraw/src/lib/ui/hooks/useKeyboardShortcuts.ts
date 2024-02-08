@@ -22,7 +22,7 @@ export function useKeyboardShortcuts() {
 	const isReadonly = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
-	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
+	const isFocused = useValue('is focused', () => editor.instanceState.getIsFocused(), [editor])
 	const { itemsInPanel: toolbarItemsInPanel } = useToolbarItems()
 
 	useEffect(() => {
@@ -59,7 +59,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.getInstanceState().isReadonly)) {
+			if (!tool.kbd || (!tool.readonlyOk && editor.instanceState.getIsReadonly())) {
 				continue
 			}
 
@@ -94,7 +94,7 @@ export function useKeyboardShortcuts() {
 				ctrlKey: e.metaKey || e.ctrlKey,
 				pointerId: 0,
 				button: 0,
-				isPen: editor.getInstanceState().isPenMode,
+				isPen: editor.instanceState.getIsPenMode(),
 				target: 'canvas',
 			}
 
@@ -117,7 +117,7 @@ export function useKeyboardShortcuts() {
 				ctrlKey: e.metaKey || e.ctrlKey,
 				pointerId: 0,
 				button: 0,
-				isPen: editor.getInstanceState().isPenMode,
+				isPen: editor.instanceState.getIsPenMode(),
 				target: 'canvas',
 			}
 

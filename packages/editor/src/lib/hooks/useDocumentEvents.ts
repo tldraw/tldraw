@@ -9,7 +9,7 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.getInstanceState().isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.instanceState.getIsFocused(), [editor])
 
 	useEffect(() => {
 		if (typeof matchMedia === undefined) return
@@ -44,7 +44,7 @@ export function useDocumentEvents() {
 					media.removeListener(safariCb)
 				}
 			}
-			editor.updateInstanceState({ devicePixelRatio: window.devicePixelRatio })
+			editor.instanceState.update({ devicePixelRatio: window.devicePixelRatio })
 		}
 		updatePixelRatio()
 		return () => {

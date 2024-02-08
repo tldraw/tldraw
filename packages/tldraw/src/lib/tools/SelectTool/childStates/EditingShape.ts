@@ -20,7 +20,7 @@ export class EditingShape extends StateNode {
 	}
 
 	override onExit = () => {
-		const { editingShapeId } = this.editor.getCurrentPageState()
+		const editingShapeId = this.editor.getEditingShapeId()
 		if (!editingShapeId) return
 
 		// Clear the editing shape

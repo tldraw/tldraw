@@ -5,7 +5,7 @@ export class Pointing extends StateNode {
 
 	override onEnter = () => {
 		this.editor.stopCameraAnimation()
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: 'grabbing', rotation: 0 } },
 			{ ephemeral: true }
 		)

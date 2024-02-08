@@ -88,7 +88,7 @@ describe('When dragging the line', () => {
 	})
 
 	it('returns to line.idle, keeping shape, on pointer up if tool lock is enabled', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		const shapesBefore = editor.getCurrentPageShapes().length
 		editor
 			.setCurrentTool('line')
@@ -116,7 +116,7 @@ describe('When dragging the line', () => {
 
 describe('When extending the line with the shift-key in tool-lock mode', () => {
 	it('extends a line by joining-the-dots', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		editor
 			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -133,7 +133,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line after a click by shift-click dragging', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		editor
 			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -150,7 +150,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-click dragging', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		editor
 			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -168,7 +168,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointerdown', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		editor
 			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -188,7 +188,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointermove', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		editor
 			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -213,8 +213,8 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 describe('tool lock bug', () => {
 	it('works as expected when tool lock is on but shift is off', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(0)
+		editor.instanceState.update({ isToolLocked: true })
 		editor
-			.updateInstanceState({ isToolLocked: true })
 			.setCurrentTool('line')
 			.pointerDown(0, 0)
 			.pointerMove(10, 10)

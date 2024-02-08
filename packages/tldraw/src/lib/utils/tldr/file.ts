@@ -279,7 +279,7 @@ export async function parseAndLoadDocument(
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
 	transact(() => {
-		const isFocused = editor.getInstanceState().isFocused
+		const isFocused = editor.instanceState.getIsFocused()
 		editor.store.clear()
 		const [shapes, nonShapes] = partition(
 			parseFileResult.value.allRecords(),
@@ -296,7 +296,7 @@ export async function parseAndLoadDocument(
 		if (bounds) {
 			editor.zoomToBounds(bounds, 1)
 		}
-		editor.updateInstanceState({ isFocused })
+		editor.instanceState.update({ isFocused })
 	})
 
 	if (forceDarkMode) editor.user.updateUserPreferences({ isDarkMode: true })

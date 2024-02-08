@@ -152,7 +152,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Creates a geo and returns to geo.idle on pointer up if tool lock is enabled', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
@@ -181,7 +181,7 @@ describe('When in the resizing state while creating a geo shape', () => {
 	})
 
 	it('Returns to geo.idle on complete if tool lock is enabled', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)

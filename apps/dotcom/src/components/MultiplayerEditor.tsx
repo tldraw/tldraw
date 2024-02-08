@@ -43,7 +43,7 @@ export function MultiplayerEditor({
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			editor.updateInstanceState({ isReadonly: isReadOnly })
+			editor.instanceState.update({ isReadonly: isReadOnly })
 			editor.registerExternalAssetHandler('file', createAssetFromFile)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 		},

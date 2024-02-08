@@ -118,7 +118,7 @@ export class Erasing extends StateNode {
 	}
 
 	complete() {
-		this.editor.deleteShapes(this.editor.getCurrentPageState().erasingShapeIds)
+		this.editor.deleteShapes(this.editor.getErasingShapeIds())
 		this.editor.setErasingShapes([])
 		this.parent.transition('idle')
 	}

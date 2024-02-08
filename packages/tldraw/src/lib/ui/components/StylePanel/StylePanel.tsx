@@ -39,7 +39,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
-			editor.updateInstanceState({ isChangingStyle: false })
+			editor.instanceState.update({ isChangingStyle: false })
 		}
 	}, [editor, isMobile])
 
@@ -83,7 +83,7 @@ function useStyleChangeCallback() {
 					editor.setStyleForSelectedShapes(style, value, { squashing })
 				}
 				editor.setStyleForNextShapes(style, value, { squashing })
-				editor.updateInstanceState({ isChangingStyle: true })
+				editor.instanceState.update({ isChangingStyle: true })
 			})
 
 			trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
@@ -114,7 +114,7 @@ function CommonStylePickerSet({
 					editor.setOpacityForSelectedShapes(item, { ephemeral })
 				}
 				editor.setOpacityForNextShapes(item, { ephemeral })
-				editor.updateInstanceState({ isChangingStyle: true })
+				editor.instanceState.update({ isChangingStyle: true })
 			})
 
 			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })

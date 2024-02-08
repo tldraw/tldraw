@@ -77,7 +77,7 @@ export class ScreenshotDragging extends StateNode {
 					editor,
 					shapes.map((s) => s.id),
 					'png',
-					{ bounds: box, background: editor.getInstanceState().exportBackground }
+					{ bounds: box, background: editor.instanceState.getExportBackground() }
 				)
 			} else {
 				// Export the shapes as a png
@@ -85,7 +85,7 @@ export class ScreenshotDragging extends StateNode {
 					editor,
 					shapes.map((s) => s.id),
 					'png',
-					{ bounds: box, background: editor.getInstanceState().exportBackground }
+					{ bounds: box, background: editor.instanceState.getExportBackground() }
 				)
 			}
 		}

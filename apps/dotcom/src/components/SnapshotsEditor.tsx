@@ -30,7 +30,7 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
-					editor.updateInstanceState({ isReadonly: true })
+					editor.instanceState.update({ isReadonly: true })
 				}}
 				components={{
 					ErrorFallback: ({ error }) => {

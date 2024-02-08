@@ -123,7 +123,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Creates a frame and returns to frame.idle on pointer up if tool lock is enabled', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
@@ -152,7 +152,7 @@ describe('When in the resizing state', () => {
 	})
 
 	it('Returns to frame.idle on complete if tool lock is enabled', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)

@@ -30,7 +30,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	const rPointing = React.useRef(false)
 
 	const isDarkMode = useIsDarkMode()
-	const devicePixelRatio = useComputed('dpr', () => editor.getInstanceState().devicePixelRatio, [
+	const devicePixelRatio = useComputed('dpr', () => editor.instanceState.getDevicePixelRatio(), [
 		editor,
 	])
 	const presences = React.useMemo(() => editor.store.query.records('instance_presence'), [editor])
@@ -137,7 +137,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				name: 'pointer_move',
 				...getPointerInfo(e),
 				point: screenPoint,
-				isPen: editor.getInstanceState().isPenMode,
+				isPen: editor.instanceState.getIsPenMode(),
 			}
 
 			editor.dispatch(info)

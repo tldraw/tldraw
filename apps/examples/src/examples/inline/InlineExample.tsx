@@ -38,7 +38,7 @@ function InlineEditor({ width, height }: { width: number; height: number }) {
 	const title = `${width} x ${height}`
 
 	const handleMount = (editor: Editor) => {
-		editor.updateInstanceState({ isDebugMode: false })
+		editor.instanceState.update({ isDebugMode: false })
 	}
 
 	return (

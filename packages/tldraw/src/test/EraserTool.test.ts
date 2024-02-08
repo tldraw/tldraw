@@ -298,14 +298,14 @@ describe('When clicking and dragging', () => {
 		editor.pointerDown(-100, -100) // outside of any shapes
 
 		editor.expectToBeIn('eraser.pointing')
-		expect(editor.getInstanceState().scribbles.length).toBe(0)
+		expect(editor.instanceState.getScribbles().length).toBe(0)
 
 		editor.pointerMove(50, 50) // inside of box1
 
 		editor.expectToBeIn('eraser.erasing')
 
 		jest.advanceTimersByTime(16)
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		expect(editor.instanceState.getScribbles().length).toBe(1)
 
 		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 
@@ -331,7 +331,7 @@ describe('When clicking and dragging', () => {
 		editor.pointerDown(-100, -100) // outside of any shapes
 		editor.pointerMove(50, 50) // inside of box1
 		jest.advanceTimersByTime(16)
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		expect(editor.instanceState.getScribbles().length).toBe(1)
 		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 		editor.cancel()
 		editor.expectToBeIn('eraser.idle')
@@ -346,7 +346,7 @@ describe('When clicking and dragging', () => {
 		editor.pointerDown(275, 275) // in between box2 AND box3, so over of the new group
 		editor.pointerMove(280, 280) // still outside of the new group
 		jest.advanceTimersByTime(16)
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		expect(editor.instanceState.getScribbles().length).toBe(1)
 		expect(editor.getErasingShapeIds()).toEqual([])
 		editor.pointerMove(0, 0)
 		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
@@ -361,7 +361,7 @@ describe('When clicking and dragging', () => {
 		editor.pointerDown(325, 25) // directly on frame1, not its children
 		editor.pointerMove(350, 375) // still in the frame, passing through box3
 		jest.advanceTimersByTime(16)
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		expect(editor.instanceState.getScribbles().length).toBe(1)
 		expect(editor.getErasingShapeIds()).toEqual([ids.box3])
 		editor.pointerUp()
 		expect(editor.getShape(ids.frame1)).toBeDefined()
@@ -375,7 +375,7 @@ describe('When clicking and dragging', () => {
 		expect(editor.getErasingShapeIds()).toEqual([])
 		editor.pointerMove(425, 500) // Through the masked part of box3
 		jest.advanceTimersByTime(16)
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		expect(editor.instanceState.getScribbles().length).toBe(1)
 		expect(editor.getErasingShapeIds()).toEqual([])
 		editor.pointerUp()
 		expect(editor.getShape(ids.box3)).toBeDefined()
@@ -383,7 +383,7 @@ describe('When clicking and dragging', () => {
 		editor.pointerMove(375, 0)
 		editor.pointerDown() // Above the not-masked part of box3
 		editor.pointerMove(375, 500) // Through the masked part of box3
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		expect(editor.instanceState.getScribbles().length).toBe(1)
 		expect(editor.getErasingShapeIds()).toEqual([ids.box3])
 		editor.pointerUp()
 		expect(editor.getShape(ids.box3)).not.toBeDefined()
@@ -400,16 +400,16 @@ describe('When clicking and dragging', () => {
 	it('Starts a scribble on pointer down, updates it on pointer move, stops it on exit', () => {
 		editor.setCurrentTool('eraser')
 		editor.pointerDown(-100, -100)
-		expect(editor.getInstanceState().scribbles.length).toBe(0)
+		expect(editor.instanceState.getScribbles().length).toBe(0)
 		editor.pointerMove(50, 50)
 		jest.advanceTimersByTime(16)
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		expect(editor.instanceState.getScribbles().length).toBe(1)
 		editor.pointerMove(50, 50)
 		editor.pointerMove(51, 50)
 		editor.pointerMove(52, 50)
 		editor.pointerMove(53, 50)
 		editor.pointerUp()
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		expect(editor.instanceState.getScribbles().length).toBe(1)
 	})
 })
 

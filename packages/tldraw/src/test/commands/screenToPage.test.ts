@@ -47,7 +47,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when offset', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100 },
 		})
 
@@ -59,7 +59,7 @@ describe('viewport.screenToPage', () => {
 	it('converts correctly when zoomed out', () => {
 		// camera at zero, screenbounds at zero, but zoom at .5
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
 
@@ -70,7 +70,7 @@ describe('viewport.screenToPage', () => {
 
 	it('converts correctly when zoomed in', () => {
 		editor.setCamera({ x: 0, y: 0, z: 2 })
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
 
@@ -81,7 +81,7 @@ describe('viewport.screenToPage', () => {
 
 	it('converts correctly when zoomed', () => {
 		// camera at zero, screenbounds at zero, but zoom at .5
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
@@ -93,7 +93,7 @@ describe('viewport.screenToPage', () => {
 
 	it('converts correctly when offset and zoomed', () => {
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100 },
 		})
 
@@ -103,7 +103,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when zoomed and panned', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
@@ -114,7 +114,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when offset', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100 },
 		})
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
@@ -125,7 +125,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when panned', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
 		editor.setCamera({ x: 100, y: 100, z: 1 })
@@ -136,7 +136,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when panned and zoomed', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
@@ -147,7 +147,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when panned and zoomed and offset', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100 },
 		})
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
@@ -160,7 +160,7 @@ describe('viewport.screenToPage', () => {
 
 describe('viewportPageBounds', () => {
 	it('sets the page bounds', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0, w: 1000, h: 1000 },
 		})
 		editor.setCamera({ x: 0, y: 0, z: 1 })
@@ -174,7 +174,7 @@ describe('viewportPageBounds', () => {
 	})
 
 	it('sets the page bounds when camera is zoomed', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0, w: 1000, h: 1000 },
 		})
 		editor.setCamera({ x: 0, y: 0, z: 2 })
@@ -196,7 +196,7 @@ describe('viewportPageBounds', () => {
 	})
 
 	it('sets the page bounds when camera is panned', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0, w: 1000, h: 1000 },
 		})
 		editor.setCamera({ x: 100, y: 100, z: 1 })
@@ -212,7 +212,7 @@ describe('viewportPageBounds', () => {
 	})
 
 	it('sets the page bounds when camera is panned and zoomed', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0, w: 1000, h: 1000 },
 		})
 		editor.setCamera({ x: 100, y: 100, z: 2 })
@@ -228,7 +228,7 @@ describe('viewportPageBounds', () => {
 	})
 
 	it('sets the page bounds when viewport is offset', () => {
-		editor.updateInstanceState({
+		editor.instanceState.update({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100, w: 1000, h: 1000 },
 		})
 		editor.setCamera({ x: 0, y: 0, z: 2 })

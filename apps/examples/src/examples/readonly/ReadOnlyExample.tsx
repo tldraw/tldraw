@@ -7,7 +7,7 @@ export default function ReadOnlyExample() {
 			<Tldraw
 				persistenceKey="example"
 				onMount={(editor) => {
-					editor.updateInstanceState({ isReadonly: true })
+					editor.instanceState.update({ isReadonly: true })
 				}}
 			/>
 		</div>

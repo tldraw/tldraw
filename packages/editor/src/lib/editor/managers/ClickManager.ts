@@ -228,7 +228,7 @@ export class ClickManager {
 			this._clickState !== 'idle' &&
 			this._clickScreenPoint &&
 			this._clickScreenPoint.dist(this.editor.inputs.currentScreenPoint) >
-				(this.editor.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
+				(this.editor.instanceState.getIsCoarsePointer() ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
 		) {
 			this.cancelDoubleClickTimeout()
 		}

@@ -110,7 +110,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Returns to the note tool on complete from translating when tool lock is enabled', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(55, 55)
@@ -135,7 +135,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Creates a frame and returns to frame.idle on pointer up if tool lock is enabled', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+		editor.instanceState.update({ isToolLocked: true })
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)

@@ -59,7 +59,7 @@ export class DraggingHandle extends StateNode {
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
 
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
 			{ ephemeral: true }
 		)
@@ -170,7 +170,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clearIndicators()
 
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
@@ -180,7 +180,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clearIndicators()
 
 		const { onInteractionEnd } = this.info
-		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
+		if (this.editor.instanceState.getIsToolLocked() && onInteractionEnd) {
 			// Return to the tool that was active before this one,
 			// but only if tool lock is turned on!
 			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })

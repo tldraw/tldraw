@@ -86,7 +86,7 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clearIndicators()
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
@@ -170,7 +170,7 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
 		this.handleEnd()
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
+		if (this.editor.instanceState.getIsToolLocked() && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			if (this.isCreating) {
@@ -218,7 +218,7 @@ export class Translating extends StateNode {
 				movingShapes.map((s) => this.editor.getShapePageTransform(s.id)!.point())
 			)
 			const offset = Vec.Sub(currentAveragePagePoint, this.selectionSnapshot.averagePagePoint)
-			this.editor.updateInstanceState({
+			this.editor.instanceState.update({
 				duplicateProps: {
 					shapeIds: movingShapes.map((s) => s.id),
 					offset: { x: offset.x, y: offset.y },
@@ -369,7 +369,7 @@ export function moveShapesToPoint({
 }) {
 	const { inputs } = editor
 
-	const isGridMode = editor.getInstanceState().isGridMode
+	const isGridMode = editor.instanceState.getIsGridMode()
 
 	const gridSize = editor.getDocumentSettings().gridSize
 

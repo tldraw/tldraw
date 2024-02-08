@@ -48,16 +48,16 @@ export class SelectTool extends StateNode {
 	// We want to clean up the duplicate props when the selection changes
 	private cleanUpDuplicateProps = () => {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
-		const instance = this.editor.getInstanceState()
-		if (!instance.duplicateProps) return
-		const duplicatedShapes = new Set(instance.duplicateProps.shapeIds)
+		const duplicateProps = this.editor.instanceState.getDuplicateProps()
+		if (!duplicateProps) return
+		const duplicatedShapes = new Set(duplicateProps.shapeIds)
 		if (
 			selectedShapeIds.length === duplicatedShapes.size &&
 			selectedShapeIds.every((shapeId) => duplicatedShapes.has(shapeId))
 		) {
 			return
 		}
-		this.editor.updateInstanceState({
+		this.editor.instanceState.update({
 			duplicateProps: null,
 		})
 	}
@@ -78,7 +78,7 @@ export class SelectTool extends StateNode {
 
 	override onExit = () => {
 		this.reactor?.()
-		if (this.editor.getCurrentPageState().editingShapeId) {
+		if (this.editor.getEditingShapeId()) {
 			this.editor.setEditingShape(null)
 		}
 	}

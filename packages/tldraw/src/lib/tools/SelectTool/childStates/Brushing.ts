@@ -59,7 +59,7 @@ export class Brushing extends StateNode {
 
 	override onExit = () => {
 		this.initialSelectedShapeIds = []
-		this.editor.updateInstanceState({ brush: null })
+		this.editor.instanceState.update({ brush: null })
 	}
 
 	override onTick: TLTickEventHandler = () => {
@@ -174,12 +174,12 @@ export class Brushing extends StateNode {
 			}
 		}
 
-		this.editor.updateInstanceState({ brush: { ...this.brush.toJson() } })
+		this.editor.instanceState.update({ brush: { ...this.brush.toJson() } })
 		this.editor.setSelectedShapes(Array.from(results), { squashing: true })
 	}
 
 	override onInterrupt: TLInterruptEvent = () => {
-		this.editor.updateInstanceState({ brush: null })
+		this.editor.instanceState.update({ brush: null })
 	}
 
 	private handleHit(

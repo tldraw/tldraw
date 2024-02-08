@@ -50,6 +50,7 @@ import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
+import { TLInstancePageStateId } from '@tldraw/tlschema/.tsbuild/records/TLPageState';
 import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
@@ -419,6 +420,35 @@ export class CubicSpline2d extends Geometry2d {
 }
 
 // @public (undocumented)
+export class CurrentPageStateManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    get(): TLInstancePageState;
+    // (undocumented)
+    getCroppingShapeId(): TLShapeId | null;
+    // (undocumented)
+    getErasingShapeIds(): TLShapeId[];
+    // (undocumented)
+    getHintingShapeIds(): TLShapeId[];
+    // (undocumented)
+    getHoveredShapeId(): TLShapeId | null;
+    // (undocumented)
+    getId(): TLInstancePageStateId;
+    // (undocumented)
+    getMeta(): JsonObject;
+    update(partial: CurrentPageStateUpdate, historyOptions?: TLCommandHistoryOptions): void;
+    // @internal (undocumented)
+    _update: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, historyOptions?: Partial<{
+        squashing: boolean;
+        ephemeral: boolean;
+        preservesRedoStack: boolean;
+    }> | undefined) => Editor;
+}
+
+// @public (undocumented)
+export type CurrentPageStateUpdate = Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>;
+
+// @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
 // @internal (undocumented)
@@ -626,6 +656,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    // (undocumented)
+    currentPageState: CurrentPageStateManager;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(page: TLPage | TLPageId): this;
@@ -687,6 +719,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapeIds(): Set<TLShapeId>;
     getCurrentPageShapes(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
+    // @deprecated
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
@@ -704,6 +737,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
+    // @deprecated
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
     getOnlySelectedShape(): null | TLShape;
@@ -802,6 +836,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         pointerVelocity: Vec;
     };
+    // (undocumented)
+    readonly instanceState: InstanceStateManager;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isIn(path: string): boolean;
@@ -904,9 +940,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLCommandHistoryOptions): this;
+    // @deprecated
+    updateCurrentPageState(partial: CurrentPageStateUpdate, historyOptions?: TLCommandHistoryOptions): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLCommandHistoryOptions): this;
+    // @deprecated
+    updateInstanceState(partial: InstanceStateUpdate, historyOptions?: TLCommandHistoryOptions): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: TLCommandHistoryOptions): this;
     // @internal
     updateRenderingBounds(): this;
@@ -1202,6 +1240,81 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
+
+// @public (undocumented)
+export class InstanceStateManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    get(): TLInstance;
+    // (undocumented)
+    getBrush(): BoxModel | null;
+    // (undocumented)
+    getCanMoveCamera(): boolean;
+    // (undocumented)
+    getChatMessage(): string;
+    // (undocumented)
+    getCurrentPageId(): TLPageId;
+    // (undocumented)
+    getCursor(): TLCursor;
+    // (undocumented)
+    getDevicePixelRatio(): number;
+    // (undocumented)
+    getDuplicateProps(): {
+        shapeIds: TLShapeId[];
+        offset: {
+            x: number;
+            y: number;
+        };
+    } | null;
+    // (undocumented)
+    getExportBackground(): boolean;
+    // (undocumented)
+    getFollowingUserId(): null | string;
+    // (undocumented)
+    getHighlightedUserIds(): string[];
+    // (undocumented)
+    getInsets(): boolean[];
+    // (undocumented)
+    getIsChangingStyle(): boolean;
+    // (undocumented)
+    getIsChatting(): boolean;
+    // (undocumented)
+    getIsCoarsePointer(): boolean;
+    // (undocumented)
+    getIsDebugMode(): boolean;
+    // (undocumented)
+    getIsFocused(): boolean;
+    // (undocumented)
+    getIsFocusMode(): boolean;
+    // (undocumented)
+    getIsGridMode(): boolean;
+    // (undocumented)
+    getIsHoveringCanvas(): boolean | null;
+    // (undocumented)
+    getIsPenMode(): boolean;
+    // (undocumented)
+    getIsReadonly(): boolean;
+    // (undocumented)
+    getIsToolLocked(): boolean;
+    // (undocumented)
+    getMeta(): JsonObject;
+    // (undocumented)
+    getOpacityForNextShape(): number;
+    // (undocumented)
+    getOpenMenus(): string[];
+    // (undocumented)
+    getScreenBounds(): BoxModel;
+    // (undocumented)
+    getScribbles(): TLScribble[];
+    // (undocumented)
+    getStylesForNextShape(): Record<string, unknown>;
+    // (undocumented)
+    getZoomBrush(): BoxModel | null;
+    update(partial: InstanceStateUpdate, historyOptions?: TLCommandHistoryOptions): void;
+}
+
+// @public (undocumented)
+export type InstanceStateUpdate = Partial<Omit<TLInstance, 'currentPageId'>>;
 
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];

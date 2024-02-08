@@ -84,7 +84,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
 			() => {
-				const { editingShapeId, hoveredShapeId } = this.editor.getCurrentPageState()
+				const hoveredShapeId = this.editor.getHoveredShapeId()
+				const editingShapeId = this.editor.getEditingShapeId()
 
 				if (editingShapeId && hoveredShapeId !== editingShapeId) {
 					const editingShape = this.editor.getShape(editingShapeId)

@@ -18,7 +18,7 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 	const presence = usePresence(userId)
 
 	const handleFollowClick = useCallback(() => {
-		if (editor.getInstanceState().followingUserId === userId) {
+		if (editor.instanceState.getFollowingUserId() === userId) {
 			editor.stopFollowingUser()
 			trackEvent('stop-following', { source: 'people-menu' })
 		} else {
@@ -28,7 +28,7 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 	}, [editor, userId, trackEvent])
 
 	const theyAreFollowingYou = presence?.followingUserId === editor.user.getId()
-	const youAreFollowingThem = editor.getInstanceState().followingUserId === userId
+	const youAreFollowingThem = editor.instanceState.getFollowingUserId() === userId
 
 	if (!presence) return null
 

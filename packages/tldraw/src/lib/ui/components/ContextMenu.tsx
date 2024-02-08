@@ -36,7 +36,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 				}
 			} else {
 				// Weird route: selecting locked shapes on long press
-				if (editor.getInstanceState().isCoarsePointer) {
+				if (editor.instanceState.getIsCoarsePointer()) {
 					const selectedShapes = editor.getSelectedShapes()
 					const {
 						inputs: { currentPagePoint },

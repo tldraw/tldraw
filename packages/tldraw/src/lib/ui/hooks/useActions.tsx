@@ -406,17 +406,18 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('duplicate-shapes', { source })
-					const instanceState = editor.getInstanceState()
+					const duplicateProps = editor.instanceState.getDuplicateProps()
+					const canMoveCamera = editor.instanceState.getCanMoveCamera()
 					let ids: TLShapeId[]
 					let offset: { x: number; y: number }
 
-					if (instanceState.duplicateProps) {
-						ids = instanceState.duplicateProps.shapeIds
-						offset = instanceState.duplicateProps.offset
+					if (duplicateProps) {
+						ids = duplicateProps.shapeIds
+						offset = duplicateProps.offset
 					} else {
 						ids = editor.getSelectedShapeIds()
 						const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-						offset = instanceState.canMoveCamera
+						offset = canMoveCamera
 							? {
 									x: commonBounds.width + 10,
 									y: 0,
@@ -429,12 +430,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					editor.mark('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
-					if (instanceState.duplicateProps) {
+					if (duplicateProps) {
 						// If we are using duplicate props then we update the shape ids to the
 						// ids of the newly created shapes to keep the duplication going
-						editor.updateInstanceState({
+						editor.instanceState.update({
 							duplicateProps: {
-								...instanceState.duplicateProps,
+								...duplicateProps,
 								shapeIds: editor.getSelectedShapeIds(),
 							},
 						})
@@ -1035,9 +1036,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
-					editor.updateInstanceState(
+					editor.instanceState.update(
 						{
-							exportBackground: !editor.getInstanceState().exportBackground,
+							exportBackground: !editor.instanceState.getExportBackground(),
 						},
 						{ ephemeral: true }
 					)
@@ -1052,7 +1053,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
-					editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
+					editor.instanceState.update({ isToolLocked: !editor.instanceState.getIsToolLocked() })
 				},
 				checkbox: true,
 			},
@@ -1088,7 +1089,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
-							editor.updateInstanceState({ isFocusMode: !editor.getInstanceState().isFocusMode })
+							editor.instanceState.update({ isFocusMode: !editor.instanceState.getIsFocusMode() })
 						})
 					})
 				},
@@ -1101,7 +1102,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
-					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
+					editor.instanceState.update({ isGridMode: !editor.instanceState.getIsGridMode() })
 				},
 				checkbox: true,
 			},
@@ -1112,8 +1113,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-debug-mode', { source })
-					editor.updateInstanceState({
-						isDebugMode: !editor.getInstanceState().isDebugMode,
+					editor.instanceState.update({
+						isDebugMode: !editor.instanceState.getIsDebugMode(),
 					})
 				},
 				checkbox: true,
@@ -1135,7 +1136,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('exit-pen-mode', { source })
-					editor.updateInstanceState({ isPenMode: false })
+					editor.instanceState.update({ isPenMode: false })
 				},
 			},
 			{

@@ -126,7 +126,7 @@ async function getSvgAsString(svg: SVGElement) {
 async function getSvg(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
 	const svg = await editor.getSvg(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
 		scale: 1,
-		background: editor.getInstanceState().exportBackground,
+		background: editor.instanceState.getExportBackground(),
 		...opts,
 	})
 	if (!svg) {

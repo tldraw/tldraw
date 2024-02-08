@@ -24,7 +24,7 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 
-	const isToolLocked = useValue('is tool locked', () => editor.getInstanceState().isToolLocked, [
+	const isToolLocked = useValue('is tool locked', () => editor.instanceState.getIsToolLocked(), [
 		editor,
 	])
 
@@ -38,7 +38,7 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 				'tlui-toolbar__lock-button__mobile': breakpoint < 5,
 			})}
 			icon={isToolLocked ? 'lock' : 'unlock'}
-			onClick={() => editor.updateInstanceState({ isToolLocked: !isToolLocked })}
+			onClick={() => editor.instanceState.update({ isToolLocked: !isToolLocked })}
 			smallIcon
 		/>
 	)

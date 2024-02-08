@@ -65,7 +65,7 @@ export class Pointing extends StateNode {
 
 	private complete() {
 		if (this.wasFocusedOnEnter) {
-			if (this.editor.getInstanceState().isToolLocked) {
+			if (this.editor.instanceState.getIsToolLocked()) {
 				this.parent.transition('idle')
 			} else {
 				this.editor.setEditingShape(this.shape.id)

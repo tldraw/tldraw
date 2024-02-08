@@ -18,17 +18,17 @@ export function useCursorChat(): TLUiOverrides {
 						handleUiEvent('open-cursor-chat', { source })
 
 						// Don't open cursor chat if we're on a touch device
-						if (editor.getInstanceState().isCoarsePointer) {
+						if (editor.instanceState.getIsCoarsePointer()) {
 							return
 						}
 
-						editor.updateInstanceState({ isChatting: true })
+						editor.instanceState.update({ isChatting: true })
 					},
 				}
 				return actions
 			},
 			contextMenu(editor, contextMenu, { actions }) {
-				if (editor.getSelectedShapes().length > 0 || editor.getInstanceState().isCoarsePointer) {
+				if (editor.getSelectedShapes().length > 0 || editor.instanceState.getIsCoarsePointer()) {
 					return contextMenu
 				}
 

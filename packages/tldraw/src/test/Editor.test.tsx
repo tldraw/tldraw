@@ -244,10 +244,10 @@ describe('Editor.setOpacity', () => {
 	it('stores opacity on opacityForNextShape', () => {
 		editor.setOpacityForSelectedShapes(0.5)
 		editor.setOpacityForNextShapes(0.5)
-		expect(editor.getInstanceState().opacityForNextShape).toBe(0.5)
+		expect(editor.instanceState.getOpacityForNextShape()).toBe(0.5)
 		editor.setOpacityForSelectedShapes(0.6)
 		editor.setOpacityForNextShapes(0.6)
-		expect(editor.getInstanceState().opacityForNextShape).toBe(0.6)
+		expect(editor.instanceState.getOpacityForNextShape()).toBe(0.6)
 	})
 })
 
@@ -297,7 +297,7 @@ describe("App's default tool", () => {
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
-		editor.updateInstanceState({ isReadonly: true })
+		editor.instanceState.update({ isReadonly: true })
 		editor.setCurrentTool('hand')
 		expect(editor.getCurrentToolId()).toBe('hand')
 	})
@@ -363,12 +363,12 @@ describe('isFocused', () => {
 
 		const updateFocus = debounce(() => {
 			const { activeElement } = document
-			const { isFocused: wasFocused } = editor.getInstanceState()
+			const wasFocused = editor.instanceState.getIsFocused()
 			const isFocused =
 				document.hasFocus() && (container === activeElement || container.contains(activeElement))
 
 			if (wasFocused !== isFocused) {
-				editor.updateInstanceState({ isFocused })
+				editor.instanceState.update({ isFocused })
 				editor.updateViewportScreenBounds()
 
 				if (!isFocused) {
@@ -385,48 +385,48 @@ describe('isFocused', () => {
 	})
 
 	it('is false by default', () => {
-		expect(editor.getInstanceState().isFocused).toBe(false)
+		expect(editor.instanceState.getIsFocused()).toBe(false)
 	})
 
 	it('becomes true when you call .focus()', () => {
-		editor.updateInstanceState({ isFocused: true })
-		expect(editor.getInstanceState().isFocused).toBe(true)
+		editor.instanceState.update({ isFocused: true })
+		expect(editor.instanceState.getIsFocused()).toBe(true)
 	})
 
 	it('becomes false when you call .blur()', () => {
-		editor.updateInstanceState({ isFocused: true })
-		expect(editor.getInstanceState().isFocused).toBe(true)
+		editor.instanceState.update({ isFocused: true })
+		expect(editor.instanceState.getIsFocused()).toBe(true)
 
-		editor.updateInstanceState({ isFocused: false })
-		expect(editor.getInstanceState().isFocused).toBe(false)
+		editor.instanceState.update({ isFocused: false })
+		expect(editor.instanceState.getIsFocused()).toBe(false)
 	})
 
 	it('remains false when you call .blur()', () => {
-		expect(editor.getInstanceState().isFocused).toBe(false)
-		editor.updateInstanceState({ isFocused: false })
-		expect(editor.getInstanceState().isFocused).toBe(false)
+		expect(editor.instanceState.getIsFocused()).toBe(false)
+		editor.instanceState.update({ isFocused: false })
+		expect(editor.instanceState.getIsFocused()).toBe(false)
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
 		jest.advanceTimersByTime(100)
-		expect(editor.getInstanceState().isFocused).toBe(false)
+		expect(editor.instanceState.getIsFocused()).toBe(false)
 
 		editor.elm.focus()
 
 		jest.advanceTimersByTime(100)
-		expect(editor.getInstanceState().isFocused).toBe(true)
+		expect(editor.instanceState.getIsFocused()).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
 		editor.elm.focus()
 
 		jest.advanceTimersByTime(100)
-		expect(editor.getInstanceState().isFocused).toBe(true)
+		expect(editor.instanceState.getIsFocused()).toBe(true)
 
 		editor.elm.blur()
 
 		jest.advanceTimersByTime(100)
-		expect(editor.getInstanceState().isFocused).toBe(false)
+		expect(editor.instanceState.getIsFocused()).toBe(false)
 	})
 
 	it.skip('becomes true when a child of the app container div receives a focusin event', () => {
@@ -438,27 +438,27 @@ describe('isFocused', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 		jest.advanceTimersByTime(100)
-		expect(editor.getInstanceState().isFocused).toBe(false)
+		expect(editor.instanceState.getIsFocused()).toBe(false)
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
 		jest.advanceTimersByTime(100)
-		expect(editor.getInstanceState().isFocused).toBe(true)
+		expect(editor.instanceState.getIsFocused()).toBe(true)
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 		jest.advanceTimersByTime(100)
-		expect(editor.getInstanceState().isFocused).toBe(false)
+		expect(editor.instanceState.getIsFocused()).toBe(false)
 	})
 
 	it('becomes false when a child of the app container div receives a focusout event', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
-		editor.updateInstanceState({ isFocused: true })
+		editor.instanceState.update({ isFocused: true })
 
-		expect(editor.getInstanceState().isFocused).toBe(true)
+		expect(editor.instanceState.getIsFocused()).toBe(true)
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
 		jest.advanceTimersByTime(100)
-		expect(editor.getInstanceState().isFocused).toBe(false)
+		expect(editor.instanceState.getIsFocused()).toBe(false)
 	})
 })
 

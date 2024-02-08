@@ -237,7 +237,7 @@ describe('When duplicating shapes after cloning', () => {
 		expect(shape.y).toBe(-10)
 
 		// Make sure the duplicate props are set
-		let instance = editor.getInstanceState()
+		let instance = editor.instanceState.get()
 		let duplicateProps = instance?.duplicateProps
 		if (!duplicateProps) throw new Error('duplicateProps should be set')
 		expect(duplicateProps.shapeIds).toEqual([shape.id])
@@ -252,7 +252,7 @@ describe('When duplicating shapes after cloning', () => {
 
 		// Make sure the duplicate props are cleared when we select a different shape
 		editor.select(ids.box1)
-		instance = editor.getInstanceState()
+		instance = editor.instanceState.get()
 		duplicateProps = instance?.duplicateProps
 		expect(duplicateProps).toBe(null)
 	})

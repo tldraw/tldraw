@@ -210,7 +210,7 @@ describe('<TldrawEditor />', () => {
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
-			editor.updateInstanceState(
+			editor.instanceState.update(
 				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
 				{ ephemeral: true, squashing: true }
 			)
@@ -335,7 +335,7 @@ describe('Custom shapes', () => {
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
-			editor.updateInstanceState(
+			editor.instanceState.update(
 				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
 				{ ephemeral: true, squashing: true }
 			)

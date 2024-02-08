@@ -13,13 +13,13 @@ export function useCoarsePointer() {
 			!editor.environment.isAndroid &&
 			!editor.environment.isIos
 		) {
-			editor.updateInstanceState({ isCoarsePointer: false })
+			editor.instanceState.update({ isCoarsePointer: false })
 			return
 		}
 		if (window.matchMedia) {
 			const mql = window.matchMedia('(pointer: coarse)')
 			const handler = () => {
-				editor.updateInstanceState({ isCoarsePointer: !!mql.matches })
+				editor.instanceState.update({ isCoarsePointer: !!mql.matches })
 			}
 			handler()
 			if (mql) {

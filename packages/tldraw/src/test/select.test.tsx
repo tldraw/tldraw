@@ -22,7 +22,7 @@ describe(SelectTool, () => {
 			editor.expectToBeIn('select.idle')
 			editor.doubleClick(50, 50, shapeId)
 
-			expect(editor.getCurrentPageState().editingShapeId).toBe(shapeId)
+			expect(editor.getEditingShapeId()).toBe(shapeId)
 
 			// note: this behavior has moved to the React hook useEditableText.
 			// clicking on the input will preserve selection, however you can
@@ -36,7 +36,7 @@ describe(SelectTool, () => {
 			jest.advanceTimersByTime(1000)
 
 			editor.pointerDown(150, 150).pointerUp()
-			expect(editor.getCurrentPageState().editingShapeId).toBe(null)
+			expect(editor.getEditingShapeId()).toBe(null)
 			editor.expectToBeIn('select.idle')
 		})
 	})
@@ -48,18 +48,18 @@ describe(SelectTool, () => {
 		editor.setCurrentTool('select')
 		editor.doubleClick(50, 50, shapeId)
 
-		expect(editor.getCurrentPageState().editingShapeId).toBe(shapeId)
+		expect(editor.getEditingShapeId()).toBe(shapeId)
 
 		// clicking outside the shape should end editing
 		jest.advanceTimersByTime(1000)
 
 		editor.pointerDown(150, 150).pointerUp()
-		expect(editor.getCurrentPageState().editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		editor.expectToBeIn('select.idle')
 
 		editor.undo()
 
-		expect(editor.getCurrentPageState().editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 	})
 })
 

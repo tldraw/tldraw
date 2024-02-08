@@ -59,7 +59,7 @@ export function BoardHistorySnapshot({
 					store={store}
 					assetUrls={assetUrls}
 					onMount={(editor) => {
-						editor.updateInstanceState({ isReadonly: true })
+						editor.instanceState.update({ isReadonly: true })
 						setTimeout(() => {
 							editor.setCurrentTool('hand')
 						})

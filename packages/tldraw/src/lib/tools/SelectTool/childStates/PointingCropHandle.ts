@@ -14,7 +14,7 @@ export class PointingCropHandle extends StateNode {
 
 	private updateCursor(shape: TLShape) {
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
+		this.editor.instanceState.update({
 			cursor: {
 				type: cursorType,
 				rotation: shape.rotation,
@@ -33,7 +33,7 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)

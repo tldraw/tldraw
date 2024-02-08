@@ -58,7 +58,7 @@ export class ScribbleManager {
 	}
 
 	reset() {
-		this.editor.updateInstanceState({ scribbles: [] })
+		this.editor.instanceState.update({ scribbles: [] })
 		this.scribbleItems.clear()
 		this.pause()
 	}
@@ -182,7 +182,7 @@ export class ScribbleManager {
 
 			// The object here will get frozen into the record, so we need to
 			// create a copies of the parts that what we'll be mutating later.
-			this.editor.updateInstanceState({
+			this.editor.instanceState.update({
 				scribbles: Array.from(this.scribbleItems.values())
 					.map(({ scribble }) => ({
 						...scribble,

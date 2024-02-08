@@ -19,7 +19,8 @@ const CHAT_MESSAGE_TIMEOUT_CHATTING = 5000
 export const CursorChatBubble = track(function CursorChatBubble() {
 	const editor = useEditor()
 	const container = useContainer()
-	const { isChatting, chatMessage } = editor.getInstanceState()
+	const isChatting = editor.instanceState.getIsChatting()
+	const chatMessage = editor.instanceState.getChatMessage()
 
 	const rTimeout = useRef<any>(-1)
 	const [value, setValue] = useState('')
@@ -29,7 +30,7 @@ export const CursorChatBubble = track(function CursorChatBubble() {
 		if (closingUp || isChatting) {
 			const duration = isChatting ? CHAT_MESSAGE_TIMEOUT_CHATTING : CHAT_MESSAGE_TIMEOUT_CLOSING
 			rTimeout.current = setTimeout(() => {
-				editor.updateInstanceState({ chatMessage: '', isChatting: false })
+				editor.instanceState.update({ chatMessage: '', isChatting: false })
 				setValue('')
 				container.focus()
 			}, duration)
@@ -135,7 +136,7 @@ const CursorChatInput = track(function CursorChatInput({
 	}, [editor])
 
 	const stopChatting = useCallback(() => {
-		editor.updateInstanceState({ isChatting: false })
+		editor.instanceState.update({ isChatting: false })
 		container.focus()
 	}, [editor, container])
 
@@ -144,7 +145,7 @@ const CursorChatInput = track(function CursorChatInput({
 		(e: ChangeEvent<HTMLInputElement>) => {
 			const { value } = e.target
 			setValue(value.slice(0, 64))
-			editor.updateInstanceState({ chatMessage: value })
+			editor.instanceState.update({ chatMessage: value })
 		},
 		[editor, setValue]
 	)

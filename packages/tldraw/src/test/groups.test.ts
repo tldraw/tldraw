@@ -291,7 +291,7 @@ describe('creating groups', () => {
 		// │ A │   │ B │   │ C │
 		// └───┘   └───┘   └───┘
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
-		editor.updateInstanceState({ isReadonly: true })
+		editor.instanceState.update({ isReadonly: true })
 		editor.setCurrentTool('hand')
 		editor.selectAll()
 		expect(editor.getSelectedShapeIds().length).toBe(3)
@@ -505,7 +505,7 @@ describe('ungrouping shapes', () => {
 		expect(editor.getSelectedShapeIds().length).toBe(3)
 		editor.groupShapes(editor.getSelectedShapeIds())
 		expect(editor.getSelectedShapeIds().length).toBe(1)
-		editor.updateInstanceState({ isReadonly: true })
+		editor.instanceState.update({ isReadonly: true })
 		editor.setCurrentTool('hand')
 
 		editor.ungroupShapes(editor.getSelectedShapeIds())
@@ -1502,8 +1502,8 @@ describe('erasing', () => {
 
 		// erase D
 		editor.pointerDown(65, 5, ids.boxD)
-		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
-		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(groupCId)
+		expect(editor.getErasingShapeIds().length).toBe(1)
+		expect(editor.getErasingShapeIds()[0]).toBe(groupCId)
 		editor.pointerUp()
 		expect(editor.getShape(groupCId)).toBeFalsy()
 	})
@@ -1523,8 +1523,8 @@ describe('erasing', () => {
 
 		// erase B
 		editor.pointerDown(25, 5, ids.boxB)
-		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
-		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(ids.boxB)
+		expect(editor.getErasingShapeIds().length).toBe(1)
+		expect(editor.getErasingShapeIds()[0]).toBe(ids.boxB)
 		editor.pointerUp()
 
 		// group A disappears
@@ -1539,8 +1539,8 @@ describe('erasing', () => {
 
 		// erase E
 		editor.pointerDown(5, 25, ids.boxE)
-		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
-		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(ids.boxE)
+		expect(editor.getErasingShapeIds().length).toBe(1)
+		expect(editor.getErasingShapeIds()[0]).toBe(ids.boxE)
 
 		// move to group B
 		editor.pointerMove(65, 5)

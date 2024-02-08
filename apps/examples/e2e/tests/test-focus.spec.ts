@@ -43,9 +43,9 @@ test.describe('Focus', () => {
 				({ id }) => {
 					if (
 						!(
-							EDITOR_A.getInstanceState().isFocused === (id === 'A') &&
-							EDITOR_B.getInstanceState().isFocused === (id === 'B') &&
-							EDITOR_C.getInstanceState().isFocused === (id === 'C')
+							EDITOR_A.instanceState.getIsFocused() === (id === 'A') &&
+							EDITOR_B.instanceState.getIsFocused() === (id === 'B') &&
+							EDITOR_C.instanceState.getIsFocused() === (id === 'C')
 						)
 					) {
 						throw Error('isFocused is not correct')

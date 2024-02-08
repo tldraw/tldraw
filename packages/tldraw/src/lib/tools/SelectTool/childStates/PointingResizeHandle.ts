@@ -34,7 +34,7 @@ export class PointingResizeHandle extends StateNode {
 	private updateCursor() {
 		const selected = this.editor.getSelectedShapes()
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
+		this.editor.instanceState.update({
 			cursor: { type: cursorType, rotation: selected.length === 1 ? selected[0].rotation : 0 },
 		})
 	}

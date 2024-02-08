@@ -146,6 +146,14 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export {
+	CurrentPageStateManager,
+	CurrentPageStateUpdate,
+} from './lib/editor/managers/InstancePageStateManager'
+export {
+	InstanceStateManager,
+	InstanceStateUpdate,
+} from './lib/editor/managers/InstanceStateManager'
 export type {
 	TLAfterChangeHandler,
 	TLAfterCreateHandler,

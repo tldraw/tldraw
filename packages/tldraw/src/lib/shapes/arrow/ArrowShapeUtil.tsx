@@ -540,7 +540,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'select.dragging_handle',
 				'select.translating',
 				'arrow.dragging'
-			) && !this.editor.getInstanceState().isReadonly
+			) && !this.editor.instanceState.getIsReadonly()
 
 		const info = this.editor.getArrowInfo(shape)
 		const bounds = Box.ZeroFix(this.editor.getShapeGeometry(shape).bounds)

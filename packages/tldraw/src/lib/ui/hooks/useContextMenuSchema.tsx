@@ -70,7 +70,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	)
 	const isTransparentBg = useValue(
 		'isTransparentBg',
-		() => editor.getInstanceState().exportBackground,
+		() => editor.instanceState.getExportBackground(),
 		[]
 	)
 	const allowGroup = useAllowGroup()

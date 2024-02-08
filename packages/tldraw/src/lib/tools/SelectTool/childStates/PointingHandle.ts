@@ -14,7 +14,7 @@ export class PointingHandle extends StateNode {
 			this.editor.setHintingShapes([initialTerminal.boundShapeId])
 		}
 
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: 'grabbing', rotation: 0 } },
 			{ ephemeral: true }
 		)
@@ -22,7 +22,7 @@ export class PointingHandle extends StateNode {
 
 	override onExit = () => {
 		this.editor.setHintingShapes([])
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)

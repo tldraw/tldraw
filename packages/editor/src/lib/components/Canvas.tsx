@@ -139,7 +139,7 @@ function GridWrapper() {
 	const editor = useEditor()
 	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
 	const { x, y, z } = useValue('camera', () => editor.getCamera(), [editor])
-	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.instanceState.getIsGridMode(), [editor])
 	const { Grid } = useEditorComponents()
 
 	if (!(Grid && isGridMode)) return null
@@ -149,7 +149,7 @@ function GridWrapper() {
 
 function ScribbleWrapper() {
 	const editor = useEditor()
-	const scribbles = useValue('scribbles', () => editor.getInstanceState().scribbles, [editor])
+	const scribbles = useValue('scribbles', () => editor.instanceState.getScribbles(), [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 	const { Scribble } = useEditorComponents()
 
@@ -171,7 +171,7 @@ function ScribbleWrapper() {
 
 function BrushWrapper() {
 	const editor = useEditor()
-	const brush = useValue('brush', () => editor.getInstanceState().brush, [editor])
+	const brush = useValue('brush', () => editor.instanceState.getBrush(), [editor])
 	const { Brush } = useEditorComponents()
 
 	if (!(Brush && brush)) return null
@@ -181,7 +181,7 @@ function BrushWrapper() {
 
 function ZoomBrushWrapper() {
 	const editor = useEditor()
-	const zoomBrush = useValue('zoomBrush', () => editor.getInstanceState().zoomBrush, [editor])
+	const zoomBrush = useValue('zoomBrush', () => editor.instanceState.getZoomBrush(), [editor])
 	const { ZoomBrush } = useEditorComponents()
 
 	if (!(ZoomBrush && zoomBrush)) return null
@@ -212,17 +212,17 @@ function HandlesWrapper() {
 
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 
-	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
+	const isCoarse = useValue('coarse pointer', () => editor.instanceState.getIsCoarsePointer(), [
 		editor,
 	])
 
-	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
+	const isReadonly = useValue('isChangingStyle', () => editor.instanceState.getIsReadonly(), [
 		editor,
 	])
 
 	const isChangingStyle = useValue(
 		'isChangingStyle',
-		() => editor.getInstanceState().isChangingStyle,
+		() => editor.instanceState.getIsChangingStyle(),
 		[editor]
 	)
 
@@ -354,11 +354,9 @@ function ShapesToDisplay() {
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
-	const selectedShapeIds = useValue(
-		'selectedShapeIds',
-		() => editor.getCurrentPageState().selectedShapeIds,
-		[editor]
-	)
+	const selectedShapeIds = useValue('selectedShapeIds', () => editor.getSelectedShapeIds(), [
+		editor,
+	])
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {
@@ -372,7 +370,7 @@ function SelectedIdIndicators() {
 					'select.pointing_shape',
 					'select.pointing_selection',
 					'select.pointing_handle'
-				) && !editor.getInstanceState().isChangingStyle
+				) && !editor.instanceState.getIsChangingStyle()
 			)
 		},
 		[editor]
@@ -394,17 +392,15 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const { HoveredShapeIndicator } = useEditorComponents()
 	const isCoarsePointer = useValue(
 		'coarse pointer',
-		() => editor.getInstanceState().isCoarsePointer,
+		() => editor.instanceState.getIsCoarsePointer(),
 		[editor]
 	)
 	const isHoveringCanvas = useValue(
 		'hovering canvas',
-		() => editor.getInstanceState().isHoveringCanvas,
+		() => editor.instanceState.getIsHoveringCanvas(),
 		[editor]
 	)
-	const hoveredShapeId = useValue('hovered id', () => editor.getCurrentPageState().hoveredShapeId, [
-		editor,
-	])
+	const hoveredShapeId = useValue('hovered id', () => editor.getHoveredShapeId(), [editor])
 
 	if (isCoarsePointer || !isHoveringCanvas || !hoveredShapeId || !HoveredShapeIndicator) return null
 
@@ -485,7 +481,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			const bb = editor.getShapePageBounds(id)
 			const el = await editor.getSvg([id], {
 				padding: 0,
-				background: editor.getInstanceState().exportBackground,
+				background: editor.instanceState.getExportBackground(),
 			})
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')

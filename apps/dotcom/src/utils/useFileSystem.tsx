@@ -76,13 +76,13 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 						if (!shouldOverride) return
 
 						transact(() => {
-							const isFocused = editor.getInstanceState().isFocused
+							const isFocused = editor.instanceState.getIsFocused()
 							editor.store.clear()
 							editor.store.ensureStoreIsUsable()
 							editor.history.clear()
 							editor.updateViewportScreenBounds()
 							editor.updateRenderingBounds()
-							editor.updateInstanceState({ isFocused })
+							editor.instanceState.update({ isFocused })
 						})
 					},
 				}

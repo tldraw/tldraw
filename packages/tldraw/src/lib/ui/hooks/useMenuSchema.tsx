@@ -54,14 +54,14 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const edgeScrollSpeed = useValue('edgeScrollSpeed', () => editor.user.getEdgeScrollSpeed(), [
 		editor,
 	])
-	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.instanceState.getIsGridMode(), [editor])
 	const isSnapMode = useValue('isSnapMode', () => editor.user.getIsSnapMode(), [editor])
-	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
-	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
-	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
+	const isToolLock = useValue('isToolLock', () => editor.instanceState.getIsToolLocked(), [editor])
+	const isFocusMode = useValue('isFocusMode', () => editor.instanceState.getIsFocusMode(), [editor])
+	const isDebugMode = useValue('isDebugMode', () => editor.instanceState.getIsDebugMode(), [editor])
 	const exportBackground = useValue(
 		'exportBackground',
-		() => editor.getInstanceState().exportBackground,
+		() => editor.instanceState.getExportBackground(),
 		[editor]
 	)
 

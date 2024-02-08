@@ -105,10 +105,10 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: ('geo-' + id) as TLUiIconType,
 				onSelect(source: TLUiEventSource) {
 					editor.batch(() => {
-						editor.updateInstanceState(
+						editor.instanceState.update(
 							{
 								stylesForNextShape: {
-									...editor.getInstanceState().stylesForNextShape,
+									...editor.instanceState.getStylesForNextShape(),
 									[GeoShapeGeoStyle.id]: id,
 								},
 							},

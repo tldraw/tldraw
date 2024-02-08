@@ -10,8 +10,8 @@ export function useFocusEvents(autoFocus: boolean) {
 		if (autoFocus) {
 			// When autoFocus is true, update the editor state to be focused
 			// unless it's already focused
-			if (!editor.getInstanceState().isFocused) {
-				editor.updateInstanceState({ isFocused: true })
+			if (!editor.instanceState.getIsFocused()) {
+				editor.instanceState.update({ isFocused: true })
 			}
 
 			// Note: Focus is also handled by the side effect manager in tldraw.
@@ -24,8 +24,8 @@ export function useFocusEvents(autoFocus: boolean) {
 		} else {
 			// When autoFocus is false, update the editor state to be not focused
 			// unless it's already not focused
-			if (editor.getInstanceState().isFocused) {
-				editor.updateInstanceState({ isFocused: false })
+			if (editor.instanceState.getIsFocused()) {
+				editor.instanceState.update({ isFocused: false })
 			}
 		}
 	}, [editor, container, autoFocus])

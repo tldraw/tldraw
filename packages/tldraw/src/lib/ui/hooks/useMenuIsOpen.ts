@@ -17,7 +17,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 					editor.complete()
 					editor.addOpenMenu(id)
 				} else {
-					editor.updateInstanceState({
+					editor.instanceState.update({
 						openMenus: editor.getOpenMenus().filter((m) => !m.startsWith(id)),
 					})
 				}

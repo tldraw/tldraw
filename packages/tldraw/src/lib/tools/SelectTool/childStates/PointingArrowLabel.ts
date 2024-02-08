@@ -58,7 +58,7 @@ export class PointingArrowLabel extends StateNode {
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
 
-		this.editor.updateInstanceState(
+		this.editor.instanceState.update(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
