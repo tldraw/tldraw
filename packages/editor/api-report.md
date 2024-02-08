@@ -548,7 +548,6 @@ export class Edge2d extends Geometry2d {
     constructor(config: {
         start: Vec;
         end: Vec;
-        isSnappable?: boolean;
     });
     // (undocumented)
     d: Vec;
@@ -1032,8 +1031,6 @@ export abstract class Geometry2d {
     isLabel: boolean;
     // (undocumented)
     isPointInBounds(point: Vec, margin?: number): boolean;
-    // (undocumented)
-    isSnappable: boolean;
     // (undocumented)
     abstract nearestPoint(point: Vec): Vec;
     // (undocumented)
