@@ -23,6 +23,7 @@ export default function InlineExample() {
 					gap: 12,
 				}}
 			>
+				<InlineEditor width={900} height={600} />
 				<InlineEditor width={700} height={500} />
 				<InlineEditor width={600} height={400} />
 				<InlineEditor width={500} height={300} />
