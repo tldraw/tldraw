@@ -592,27 +592,19 @@ body {
 	border: 1px solid var(--color-tint-2);
 }
 
-.article__embed--quickstart {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: 480px;
+.article__embed--quickstart{
+	aspect-ratio: 16 / 9;
+	height: 405px;
 }
-
-@media screen and (max-width: 400px) {
-	.article__embed--quickstart {
-		height: 300px;
+@media screen and (max-width: 520px) {
+	.article__embed--quickstart{
+		aspect-ratio: 1/1;
+		height: auto;
+		width: 100%;
 	}
-	
 }
-
 .article__embed--quickstart > iframe {
-	width: 100%;
-	max-width: 720px;
-	border-radius: 4px;
-	border: 1px solid var(--color-tint-2);
+	height: 100%;
 }
 
 .article__caption {
@@ -1330,9 +1322,10 @@ body {
 		width: 100%;
 		justify-content: flex-end;
 	}
-	
+
 	.article__embed--quickstart {
-		height: 420px;
+		aspect-ratio: 16/9;
+		height: 280px;
 	}
 }
 
