@@ -34,7 +34,7 @@ export class CurrentPageStateManager {
 	getId() {
 		return InstancePageStateRecordType.createId(this.editor.getCurrentPageId())
 	}
-	get() {
+	@computed get() {
 		return this.editor.store.get(this.getId())!
 	}
 

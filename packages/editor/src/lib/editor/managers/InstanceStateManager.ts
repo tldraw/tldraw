@@ -36,7 +36,7 @@ export class InstanceStateManager {
 		)
 	}
 
-	get(): TLInstance {
+	@computed get(): TLInstance {
 		return this.editor.store.get(TLINSTANCE_ID)!
 	}
 
@@ -65,7 +65,7 @@ export class InstanceStateManager {
 		}
 	}
 
-	@computed getCurrentPageId() {
+	getCurrentPageId() {
 		return this.get().currentPageId
 	}
 	@computed getOpacityForNextShape() {

@@ -149,7 +149,7 @@ export {
 export {
 	CurrentPageStateManager,
 	CurrentPageStateUpdate,
-} from './lib/editor/managers/InstancePageStateManager'
+} from './lib/editor/managers/CurrentPageStateManager'
 export {
 	InstanceStateManager,
 	InstanceStateUpdate,

@@ -270,7 +270,7 @@ You can get a shape using the shape's `id` or the shape record itself.
 
 ### Turn on read only mode
 
-You can use the [Editor#updateInstanceState](?) method to turn on read only mode.
+You can use the [InstanceStateManager#update](?) method to turn on read only mode.
 
 ```ts
 editor.instanceState.update({ isReadonly: true })
@@ -286,7 +286,7 @@ editor.setCamera(0, 0, 1)
 
 ### Freeze the camera
 
-You can prevent the user from changing the camera using the [Editor#updateInstanceState](?) method.
+You can prevent the user from changing the camera using the [InstanceStateManager#update](?) method.
 
 ```ts
 editor.instanceState.update({ canMoveCamera: false })

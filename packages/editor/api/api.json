@@ -5923,7 +5923,7 @@
               "text": "export declare class CurrentPageStateManager "
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/editor/managers/InstancePageStateManager.ts",
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/CurrentPageStateManager.ts",
           "releaseTag": "Public",
           "isAbstract": false,
           "name": "CurrentPageStateManager",
@@ -6336,7 +6336,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/editor/managers/InstancePageStateManager.ts",
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/CurrentPageStateManager.ts",
           "releaseTag": "Public",
           "name": "CurrentPageStateUpdate",
           "typeTokenRange": {

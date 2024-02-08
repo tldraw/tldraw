@@ -103,12 +103,9 @@ import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager'
+import { CurrentPageStateManager, CurrentPageStateUpdate } from './managers/CurrentPageStateManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
-import {
-	CurrentPageStateManager,
-	CurrentPageStateUpdate,
-} from './managers/InstancePageStateManager'
 import { InstanceStateManager, InstanceStateUpdate } from './managers/InstanceStateManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SideEffectManager } from './managers/SideEffectManager'
