@@ -7,7 +7,7 @@ export const UnorderedList = (props: any) => {
 }
 
 export const OrderedList = (props: any) => {
-	return <ol {...props} />
+	return <ol className={props.className} {...props} />
 }
 
 export const ListItem = (props: any) => {
