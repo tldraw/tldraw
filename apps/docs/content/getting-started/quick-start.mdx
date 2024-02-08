@@ -14,54 +14,54 @@ You will be making this:
 
 You can follow the steps below, or [clone the repo](https://github.com/tldraw/vite-template). 
 
-<OrderedList className="ordered-list__quickstart">
-#
-<ListItem>
-### Installation
+<ol className="ordered-list__quickstart">
+  <li>
+    ### Installation
 
-- Set up a React project however you normally do
-- Install the tldraw library using this command:
-```bash
-npm install @tldraw/tldraw@beta
-```
-</ListItem>
-<ListItem>
-### Import Styles
-To import fonts and CSS for tldraw:
+    - Set up a React project however you normally do
+    - Install the tldraw library using this command:
+    ```bash
+    npm install @tldraw/tldraw@beta
+    ```
+  </li>
+  <li>
+    ### Import Styles
+    To import fonts and CSS for tldraw:
 
-- Create or edit a css file called index.css 
-- Copy and paste this into the file:
-```CSS
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap");
-@import url("@tldraw/tldraw/tldraw.css");
+    - Create or edit a css file called index.css 
+    - Copy and paste this into the file:
+    ```CSS
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap");
+    @import url("@tldraw/tldraw/tldraw.css");
 
-body {
-  font-family: "Inter";
-}
-```
-</ListItem>
-<ListItem>
-### Render Tldraw Component
+    body {
+      font-family: "Inter";
+    }
+    ```
+  </li>
+  <li>
+    ### Render Tldraw Component
 
-To render the Tldraw component
+    To render the Tldraw component
 
-- Import the ```<Tldraw />``` component from “@tldraw/tldraw”
-- Import index.css
-- To render a full screen canvas, wrap the Tldraw component in a div with the style attribute set to: ```{position: 'fixed', inset: 0}```
-```javascript
-import { Tldraw } from "@tldraw/tldraw";
-import "./index.css";
+    - Import the ```<Tldraw />``` component from “@tldraw/tldraw”
+    - Import index.css
+    - To render a full screen canvas, wrap the Tldraw component in a div with the style attribute set to: ```{position: 'fixed', inset: 0}```
+    ```javascript
+    import { Tldraw } from "@tldraw/tldraw";
+    import "./index.css";
 
-export default function App() {
-  return (
-    <div style={{ position: 'fixed', inset: 0 }}>
-      <Tldraw />
-    </div>
-  );
-}
-```
-</ListItem>
-</OrderedList>
+    export default function App() {
+      return (
+        <div style={{ position: 'fixed', inset: 0 }}>
+          <Tldraw />
+        </div>
+      );
+    }
+    ```
+  </li>
+</ol>
+
 ### Next Steps
 You can look at: 
 
