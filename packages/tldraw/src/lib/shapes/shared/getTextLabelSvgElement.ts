@@ -1,4 +1,4 @@
-import { Box2d, Editor, TLGeoShape, TLNoteShape } from '@tldraw/editor'
+import { Box, Editor, TLGeoShape, TLNoteShape } from '@tldraw/editor'
 import { createTextSvgElementFromSpans } from './createTextSvgElementFromSpans'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 import { getLegacyOffsetX } from './legacyProps'
@@ -9,7 +9,7 @@ export function getTextLabelSvgElement({
 	font,
 	shape,
 }: {
-	bounds: Box2d
+	bounds: Box
 	editor: Editor
 	font: string
 	shape: TLGeoShape | TLNoteShape

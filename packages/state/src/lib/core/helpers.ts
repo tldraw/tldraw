@@ -84,5 +84,14 @@ export function equals(a: any, b: any): boolean {
 
 export declare function assertNever(x: never): never
 
-/** @public */
-export const EMPTY_ARRAY: [] = Object.freeze([]) as any
+export function singleton<T>(key: string, init: () => T): T {
+	const symbol = Symbol.for(`com.tldraw.state/${key}`)
+	const global = globalThis as any
+	global[symbol] ??= init()
+	return global[symbol]
+}
+
+/**
+ * @public
+ */
+export const EMPTY_ARRAY: [] = singleton('empty_array', () => Object.freeze([]) as any)

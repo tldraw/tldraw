@@ -4,7 +4,7 @@ import { T } from '@tldraw/validate'
  * A serializable model for 2D boxes.
  *
  * @public */
-export interface Box2dModel {
+export interface BoxModel {
 	x: number
 	y: number
 	w: number
@@ -15,21 +15,21 @@ export interface Box2dModel {
  * A serializable model for 2D vectors.
  *
  * @public */
-export interface Vec2dModel {
+export interface VecModel {
 	x: number
 	y: number
 	z?: number
 }
 
 /** @public */
-export const vec2dModelValidator: T.Validator<Vec2dModel> = T.object({
+export const vecModelValidator: T.Validator<VecModel> = T.object({
 	x: T.number,
 	y: T.number,
 	z: T.number.optional(),
 })
 
 /** @public */
-export const box2dModelValidator: T.Validator<Box2dModel> = T.object({
+export const boxModelValidator: T.Validator<BoxModel> = T.object({
 	x: T.number,
 	y: T.number,
 	w: T.number,

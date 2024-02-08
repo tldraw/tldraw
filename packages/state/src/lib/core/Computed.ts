@@ -3,19 +3,22 @@ import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
-import { EMPTY_ARRAY, equals, haveParentsChanged } from './helpers'
-import { globalEpoch } from './transactions'
+import { EMPTY_ARRAY, equals, haveParentsChanged, singleton } from './helpers'
+import { getGlobalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
-import { logComputedGetterWarning, logDotValueWarning } from './warnings'
+import { logComputedGetterWarning } from './warnings'
 
-const UNINITIALIZED = Symbol('UNINITIALIZED')
+/**
+ * @public
+ */
+export const UNINITIALIZED = Symbol.for('com.tldraw.state/UNINITIALIZED')
 /**
  * The type of the first value passed to a computed signal function as the 'prevValue' parameter.
  *
  * @see [[isUninitialized]].
  * @public
  */
-type UNINITIALIZED = typeof UNINITIALIZED
+export type UNINITIALIZED = typeof UNINITIALIZED
 
 /**
  * Call this inside a computed signal function to determine whether it is the first time the function is being called.
@@ -40,9 +43,17 @@ export const isUninitialized = (value: any): value is UNINITIALIZED => {
 	return value === UNINITIALIZED
 }
 
-class WithDiff<Value, Diff> {
-	constructor(public value: Value, public diff: Diff) {}
-}
+export const WithDiff = singleton(
+	'WithDiff',
+	() =>
+		class WithDiff<Value, Diff> {
+			constructor(
+				public value: Value,
+				public diff: Diff
+			) {}
+		}
+)
+export type WithDiff<Value, Diff> = { value: Value; diff: Diff }
 
 /**
  * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.
@@ -121,7 +132,7 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
 /**
  * @internal
  */
-export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
+class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	lastChangedEpoch = GLOBAL_START_EPOCH
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
@@ -173,8 +184,8 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	__unsafe__getWithoutCapture(): Value {
 		const isNew = this.lastChangedEpoch === GLOBAL_START_EPOCH
 
-		if (!isNew && (this.lastCheckedEpoch === globalEpoch || !haveParentsChanged(this))) {
-			this.lastCheckedEpoch = globalEpoch
+		if (!isNew && (this.lastCheckedEpoch === getGlobalEpoch() || !haveParentsChanged(this))) {
+			this.lastCheckedEpoch = getGlobalEpoch()
 			return this.state
 		}
 
@@ -187,16 +198,16 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(
 						this.lastChangedEpoch,
-						globalEpoch,
+						getGlobalEpoch(),
 						diff ??
-							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, globalEpoch) ??
+							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, getGlobalEpoch()) ??
 							RESET_VALUE
 					)
 				}
-				this.lastChangedEpoch = globalEpoch
+				this.lastChangedEpoch = getGlobalEpoch()
 				this.state = newState
 			}
-			this.lastCheckedEpoch = globalEpoch
+			this.lastCheckedEpoch = getGlobalEpoch()
 
 			return this.state
 		} finally {
@@ -208,15 +219,6 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 		const value = this.__unsafe__getWithoutCapture()
 		maybeCaptureParent(this)
 		return value
-	}
-
-	/**
-	 * @deprecated Use [[get]] instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get value() {
-		logDotValueWarning()
-		return this.get()
 	}
 
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
@@ -232,6 +234,9 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	}
 }
 
+export const _Computed = singleton('Computed', () => __UNSAFE__Computed)
+export type _Computed = InstanceType<typeof __UNSAFE__Computed>
+
 function computedMethodAnnotation(
 	options: ComputedOptions<any, any> = {},
 	_target: any,
@@ -242,7 +247,7 @@ function computedMethodAnnotation(
 	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
 
 	descriptor.value = function (this: any) {
-		let d = this[derivationKey] as _Computed<any> | undefined
+		let d = this[derivationKey] as Computed<any> | undefined
 
 		if (!d) {
 			d = new _Computed(key, originalMethod!.bind(this) as any, options)
@@ -284,7 +289,7 @@ function computedGetterAnnotation(
 	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
 
 	descriptor.get = function (this: any) {
-		let d = this[derivationKey] as _Computed<any> | undefined
+		let d = this[derivationKey] as Computed<any> | undefined
 
 		if (!d) {
 			d = new _Computed(key, originalMethod!.bind(this) as any, options)
@@ -334,7 +339,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	propertyName: Prop
 ): Computed<Obj[Prop]> {
 	const key = Symbol.for('__@tldraw/state__computed__' + propertyName.toString())
-	let inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
+	let inst = obj[key as keyof typeof obj] as Computed<Obj[Prop]> | undefined
 	if (!inst) {
 		// deref to make sure it exists first
 		const val = obj[propertyName]
@@ -342,7 +347,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 			val.call(obj)
 		}
 
-		inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
+		inst = obj[key as keyof typeof obj] as Computed<Obj[Prop]> | undefined
 	}
 	return inst as any
 }

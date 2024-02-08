@@ -4,7 +4,7 @@ import {
 	DRAG_DISTANCE,
 	MULTI_CLICK_DURATION,
 } from '../../constants'
-import { Vec2d } from '../../primitives/Vec2d'
+import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'
@@ -26,9 +26,9 @@ export class ClickManager {
 
 	private _clickTimeout?: any
 
-	private _clickScreenPoint?: Vec2d
+	private _clickScreenPoint?: Vec
 
-	private _previousScreenPoint?: Vec2d
+	private _previousScreenPoint?: Vec
 
 	private _getClickTimeout = (state: TLClickState, id = uniqueId()) => {
 		this._clickId = id
@@ -103,7 +103,7 @@ export class ClickManager {
 	transformPointerDownEvent = (info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo => {
 		if (!this._clickState) return info
 
-		this._clickScreenPoint = Vec2d.From(info.point)
+		this._clickScreenPoint = Vec.From(info.point)
 
 		if (
 			this._previousScreenPoint &&
@@ -173,7 +173,7 @@ export class ClickManager {
 	transformPointerUpEvent = (info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo => {
 		if (!this._clickState) return info
 
-		this._clickScreenPoint = Vec2d.From(info.point)
+		this._clickScreenPoint = Vec.From(info.point)
 
 		switch (this._clickState) {
 			case 'pendingTriple': {

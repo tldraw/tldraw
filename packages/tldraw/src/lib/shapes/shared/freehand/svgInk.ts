@@ -1,5 +1,5 @@
 import {
-	Vec2d,
+	Vec,
 	VecLike,
 	assert,
 	average,
@@ -40,8 +40,8 @@ function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
 		const prevPoint = points[i - 1]
 		const thisPoint = points[i]
 		const nextPoint = points[i + 1]
-		const prevAngle = Vec2d.Angle(prevPoint.point, thisPoint.point)
-		const nextAngle = Vec2d.Angle(thisPoint.point, nextPoint.point)
+		const prevAngle = Vec.Angle(prevPoint.point, thisPoint.point)
+		const nextAngle = Vec.Angle(thisPoint.point, nextPoint.point)
 		// acuteness is a normalized representation of how acute the angle is.
 		// 1 is an infinitely thin wedge
 		// 0 is a straight line
@@ -66,8 +66,8 @@ function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
 		// so now we have a reasonably acute angle but it might not be an elbow if it's far
 		// away from it's neighbors
 		const avgRadius = (prevPoint.radius + thisPoint.radius + nextPoint.radius) / 3
-		const incomingNormalizedDist = Vec2d.Dist(prevPoint.point, thisPoint.point) / avgRadius
-		const outgoingNormalizedDist = Vec2d.Dist(thisPoint.point, nextPoint.point) / avgRadius
+		const incomingNormalizedDist = Vec.Dist(prevPoint.point, thisPoint.point) / avgRadius
+		const outgoingNormalizedDist = Vec.Dist(thisPoint.point, nextPoint.point) / avgRadius
 		// angular dist is a normalized representation of how far away the point is from it's neighbors
 		// (normalized by the radius)
 		const angularDist = incomingNormalizedDist + outgoingNormalizedDist
@@ -91,7 +91,7 @@ function cleanUpPartition(partition: StrokePoint[]) {
 	const startPoint = partition[0]
 	while (partition.length > 2) {
 		const nextPoint = partition[1]
-		const dist = Vec2d.Dist(startPoint.point, nextPoint.point)
+		const dist = Vec.Dist(startPoint.point, nextPoint.point)
 		const avgRadius = (startPoint.radius + nextPoint.radius) / 2
 		if (dist < avgRadius * 0.5) {
 			partition.splice(1, 1)
@@ -103,7 +103,7 @@ function cleanUpPartition(partition: StrokePoint[]) {
 	const endPoint = partition[partition.length - 1]
 	while (partition.length > 2) {
 		const prevPoint = partition[partition.length - 2]
-		const dist = Vec2d.Dist(endPoint.point, prevPoint.point)
+		const dist = Vec.Dist(endPoint.point, prevPoint.point)
 		const avgRadius = (endPoint.radius + prevPoint.radius) / 2
 		if (dist < avgRadius * 0.5) {
 			partition.splice(partition.length - 2, 1)
@@ -115,12 +115,12 @@ function cleanUpPartition(partition: StrokePoint[]) {
 	if (partition.length > 1) {
 		partition[0] = {
 			...partition[0],
-			vector: Vec2d.FromAngle(Vec2d.Angle(partition[1].point, partition[0].point)),
+			vector: Vec.FromAngle(Vec.Angle(partition[1].point, partition[0].point)),
 		}
 		partition[partition.length - 1] = {
 			...partition[partition.length - 1],
-			vector: Vec2d.FromAngle(
-				Vec2d.Angle(partition[partition.length - 1].point, partition[partition.length - 2].point)
+			vector: Vec.FromAngle(
+				Vec.Angle(partition[partition.length - 1].point, partition[partition.length - 2].point)
 			),
 		}
 	}
@@ -170,8 +170,8 @@ export function renderPartition(strokePoints: StrokePoint[], options: StrokeOpti
 		const point = strokePoints[strokePoints.length - 1]
 		const radius = point.radius
 		const direction = point.vector.clone().per().neg()
-		const arcStart = Vec2d.Add(point.point, Vec2d.Mul(direction, radius))
-		const arcEnd = Vec2d.Add(point.point, Vec2d.Mul(direction, -radius))
+		const arcStart = Vec.Add(point.point, Vec.Mul(direction, radius))
+		const arcEnd = Vec.Add(point.point, Vec.Mul(direction, -radius))
 		svg += `${precise(arcStart)}A${toDomPrecision(radius)},${toDomPrecision(
 			radius
 		)} 0 0 1 ${precise(arcEnd)}T`
@@ -185,8 +185,8 @@ export function renderPartition(strokePoints: StrokePoint[], options: StrokeOpti
 		const point = strokePoints[0]
 		const radius = point.radius
 		const direction = point.vector.clone().per()
-		const arcStart = Vec2d.Add(point.point, Vec2d.Mul(direction, radius))
-		const arcEnd = Vec2d.Add(point.point, Vec2d.Mul(direction, -radius))
+		const arcStart = Vec.Add(point.point, Vec.Mul(direction, radius))
+		const arcEnd = Vec.Add(point.point, Vec.Mul(direction, -radius))
 		svg += `${precise(arcStart)}A${toDomPrecision(radius)},${toDomPrecision(
 			radius
 		)} 0 0 1 ${precise(arcEnd)}Z`

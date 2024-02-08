@@ -1,3 +1,59 @@
+# v2.0.0-beta.2 (Wed Jan 10 2024)
+
+### Release Notes
+
+#### Fix trademark links ([#2380](https://github.com/tldraw/tldraw/pull/2380))
+
+- Fixes broken links in a number of docs files.
+
+---
+
+#### 📝 Documentation
+
+- Fix trademark links [#2380](https://github.com/tldraw/tldraw/pull/2380) ([@nonparibus](https://github.com/nonparibus))
+- Another typo fix. [#2366](https://github.com/tldraw/tldraw/pull/2366) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 2
+
+- David @ HASH ([@nonparibus](https://github.com/nonparibus))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-beta.1 (Wed Dec 20 2023)
+
+### Release Notes
+
+#### Use custom font ([#2343](https://github.com/tldraw/tldraw/pull/2343))
+
+- Add a brief release note for your PR here.
+
+#### Lokalise: Translations update ([#2342](https://github.com/tldraw/tldraw/pull/2342))
+
+Added Czech translations.
+Updated translations for German, Korean, Russian, Ukrainian, Traditional Chinese.
+
+---
+
+#### 💥 Breaking Change
+
+- bump to beta [#2364](https://github.com/tldraw/tldraw/pull/2364) ([@steveruizok](https://github.com/steveruizok))
+- Use custom font [#2343](https://github.com/tldraw/tldraw/pull/2343) ([@ds300](https://github.com/ds300) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Change licenses to tldraw [#2167](https://github.com/tldraw/tldraw/pull/2167) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Lokalise: Translations update [#2342](https://github.com/tldraw/tldraw/pull/2342) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 4
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.18 (Fri Nov 10 2023)
 
 #### 🏠 Internal

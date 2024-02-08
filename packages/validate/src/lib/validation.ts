@@ -10,6 +10,7 @@ function formatPath(path: ReadonlyArray<number | string>): string | null {
 	if (!path.length) {
 		return null
 	}
+
 	let formattedPath = ''
 	for (const item of path) {
 		if (typeof item === 'number') {
@@ -24,6 +25,10 @@ function formatPath(path: ReadonlyArray<number | string>): string | null {
 			formattedPath += `.${item}`
 		}
 	}
+
+	// N.B. We don't want id's in the path because they make grouping in Sentry tough.
+	formattedPath = formattedPath.replace(/id = [^,]+, /, '').replace(/id = [^)]+/, '')
+
 	if (formattedPath.startsWith('.')) {
 		return formattedPath.slice(1)
 	}
@@ -96,6 +101,16 @@ export class Validator<T> implements Validatable<T> {
 			throw new ValidationError('Validator functions must return the same value they were passed')
 		}
 		return validated
+	}
+
+	/** Checks that the passed value is of the correct type. */
+	isValid(value: unknown): value is T {
+		try {
+			this.validate(value)
+			return true
+		} catch {
+			return false
+		}
 	}
 
 	/**
@@ -251,7 +266,7 @@ type UnionValidatorConfig<Key extends string, Config> = {
 export class UnionValidator<
 	Key extends string,
 	Config extends UnionValidatorConfig<Key, Config>,
-	UnknownValue = never
+	UnknownValue = never,
 > extends Validator<TypeOf<Config[keyof Config]> | UnknownValue> {
 	constructor(
 		private readonly key: Key,
@@ -602,3 +617,54 @@ export function literalEnum<const Values extends readonly unknown[]>(
 ): Validator<Values[number]> {
 	return setEnum(new Set(values))
 }
+
+function parseUrl(str: string) {
+	try {
+		return new URL(str)
+	} catch (error) {
+		if (str.startsWith('/') || str.startsWith('./')) {
+			try {
+				return new URL(str, 'http://example.com')
+			} catch (error) {
+				throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
+			}
+		}
+		throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
+	}
+}
+
+const validLinkProtocols = new Set(['http:', 'https:', 'mailto:'])
+
+/**
+ * Validates that a value is a url safe to use as a link.
+ *
+ * @public
+ */
+export const linkUrl = string.check((value) => {
+	if (value === '') return
+	const url = parseUrl(value)
+
+	if (!validLinkProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
+})
+
+const validSrcProtocols = new Set(['http:', 'https:', 'data:'])
+
+/**
+ * Validates that a valid is a url safe to load as an asset.
+ *
+ * @public
+ */
+export const srcUrl = string.check((value) => {
+	if (value === '') return
+	const url = parseUrl(value)
+
+	if (!validSrcProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
+})

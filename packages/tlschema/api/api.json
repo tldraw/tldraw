@@ -350,12 +350,12 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n        }>;\n        point: "
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -395,12 +395,12 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n        }>;\n        point: "
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -427,7 +427,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n}"
+              "text": "<string>;\n    labelPosition: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLArrowShape.ts",
@@ -436,7 +445,7 @@
           "name": "arrowShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 42
+            "endIndex": 44
           }
         },
         {
@@ -587,22 +596,22 @@
         },
         {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tlschema!Box2dModel:interface",
+          "canonicalReference": "@tldraw/tlschema!BoxModel:interface",
           "docComment": "/**\n * A serializable model for 2D boxes.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface Box2dModel "
+              "text": "export interface BoxModel "
             }
           ],
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "releaseTag": "Public",
-          "name": "Box2dModel",
+          "name": "BoxModel",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#h:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#h:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -629,7 +638,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#w:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#w:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -656,7 +665,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#x:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#x:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -683,7 +692,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel#y:member",
+              "canonicalReference": "@tldraw/tlschema!BoxModel#y:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -713,12 +722,12 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!box2dModelValidator:var",
+          "canonicalReference": "@tldraw/tlschema!boxModelValidator:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "box2dModelValidator: "
+              "text": "boxModelValidator: "
             },
             {
               "kind": "Reference",
@@ -731,8 +740,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Box2dModel",
-              "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+              "text": "BoxModel",
+              "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
             },
             {
               "kind": "Content",
@@ -742,7 +751,7 @@
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "isReadonly": true,
           "releaseTag": "Public",
-          "name": "box2dModelValidator",
+          "name": "boxModelValidator",
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 5
@@ -1684,8 +1693,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2290,8 +2299,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2403,8 +2412,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2412,8 +2421,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2688,7 +2697,7 @@
             },
             {
               "kind": "Content",
-              "text": "readonly [{\n    readonly locale: \"ar\";\n    readonly label: \"عربي\";\n}, {\n    readonly locale: \"ca\";\n    readonly label: \"Català\";\n}, {\n    readonly locale: \"da\";\n    readonly label: \"Danish\";\n}, {\n    readonly locale: \"de\";\n    readonly label: \"Deutsch\";\n}, {\n    readonly locale: \"en\";\n    readonly label: \"English\";\n}, {\n    readonly locale: \"es\";\n    readonly label: \"Español\";\n}, {\n    readonly locale: \"fa\";\n    readonly label: \"فارسی\";\n}, {\n    readonly locale: \"fi\";\n    readonly label: \"Suomi\";\n}, {\n    readonly locale: \"fr\";\n    readonly label: \"Français\";\n}, {\n    readonly locale: \"gl\";\n    readonly label: \"Galego\";\n}, {\n    readonly locale: \"he\";\n    readonly label: \"עברית\";\n}, {\n    readonly locale: \"it\";\n    readonly label: \"Italiano\";\n}, {\n    readonly locale: \"ja\";\n    readonly label: \"日本語\";\n}, {\n    readonly locale: \"ko-kr\";\n    readonly label: \"한국어\";\n}, {\n    readonly locale: \"ku\";\n    readonly label: \"کوردی\";\n}, {\n    readonly locale: \"hi-in\";\n    readonly label: \"हिन्दी\";\n}, {\n    readonly locale: \"hu\";\n    readonly label: \"Magyar\";\n}, {\n    readonly locale: \"my\";\n    readonly label: \"မြန်မာစာ\";\n}, {\n    readonly locale: \"ne\";\n    readonly label: \"नेपाली\";\n}, {\n    readonly locale: \"no\";\n    readonly label: \"Norwegian\";\n}, {\n    readonly locale: \"pl\";\n    readonly label: \"Polski\";\n}, {\n    readonly locale: \"pt-br\";\n    readonly label: \"Português - Brasil\";\n}, {\n    readonly locale: \"pt-pt\";\n    readonly label: \"Português - Europeu\";\n}, {\n    readonly locale: \"ro\";\n    readonly label: \"Română\";\n}, {\n    readonly locale: \"ru\";\n    readonly label: \"Russian\";\n}, {\n    readonly locale: \"sv\";\n    readonly label: \"Svenska\";\n}, {\n    readonly locale: \"te\";\n    readonly label: \"తెలుగు\";\n}, {\n    readonly locale: \"th\";\n    readonly label: \"ภาษาไทย\";\n}, {\n    readonly locale: \"tr\";\n    readonly label: \"Türkçe\";\n}, {\n    readonly locale: \"uk\";\n    readonly label: \"Ukrainian\";\n}, {\n    readonly locale: \"vi\";\n    readonly label: \"Tiếng Việt\";\n}, {\n    readonly locale: \"zh-cn\";\n    readonly label: \"Chinese - Simplified\";\n}, {\n    readonly locale: \"zh-tw\";\n    readonly label: \"繁體中文 (台灣)\";\n}]"
+              "text": "readonly [{\n    readonly locale: \"ca\";\n    readonly label: \"Català\";\n}, {\n    readonly locale: \"cs\";\n    readonly label: \"Čeština\";\n}, {\n    readonly locale: \"da\";\n    readonly label: \"Danish\";\n}, {\n    readonly locale: \"de\";\n    readonly label: \"Deutsch\";\n}, {\n    readonly locale: \"en\";\n    readonly label: \"English\";\n}, {\n    readonly locale: \"es\";\n    readonly label: \"Español\";\n}, {\n    readonly locale: \"fr\";\n    readonly label: \"Français\";\n}, {\n    readonly locale: \"gl\";\n    readonly label: \"Galego\";\n}, {\n    readonly locale: \"hr\";\n    readonly label: \"Hrvatski\";\n}, {\n    readonly locale: \"it\";\n    readonly label: \"Italiano\";\n}, {\n    readonly locale: \"hu\";\n    readonly label: \"Magyar\";\n}, {\n    readonly locale: \"no\";\n    readonly label: \"Norwegian\";\n}, {\n    readonly locale: \"pl\";\n    readonly label: \"Polski\";\n}, {\n    readonly locale: \"pt-br\";\n    readonly label: \"Português - Brasil\";\n}, {\n    readonly locale: \"pt-pt\";\n    readonly label: \"Português - Europeu\";\n}, {\n    readonly locale: \"ro\";\n    readonly label: \"Română\";\n}, {\n    readonly locale: \"ru\";\n    readonly label: \"Russian\";\n}, {\n    readonly locale: \"fi\";\n    readonly label: \"Suomi\";\n}, {\n    readonly locale: \"sv\";\n    readonly label: \"Svenska\";\n}, {\n    readonly locale: \"vi\";\n    readonly label: \"Tiếng Việt\";\n}, {\n    readonly locale: \"tr\";\n    readonly label: \"Türkçe\";\n}, {\n    readonly locale: \"uk\";\n    readonly label: \"Ukrainian\";\n}, {\n    readonly locale: \"he\";\n    readonly label: \"עברית\";\n}, {\n    readonly locale: \"ar\";\n    readonly label: \"عربي\";\n}, {\n    readonly locale: \"fa\";\n    readonly label: \"فارسی\";\n}, {\n    readonly locale: \"ku\";\n    readonly label: \"کوردی\";\n}, {\n    readonly locale: \"ne\";\n    readonly label: \"नेपाली\";\n}, {\n    readonly locale: \"hi-in\";\n    readonly label: \"हिन्दी\";\n}, {\n    readonly locale: \"te\";\n    readonly label: \"తెలుగు\";\n}, {\n    readonly locale: \"th\";\n    readonly label: \"ภาษาไทย\";\n}, {\n    readonly locale: \"my\";\n    readonly label: \"မြန်မာစာ\";\n}, {\n    readonly locale: \"ko-kr\";\n    readonly label: \"한국어\";\n}, {\n    readonly locale: \"ja\";\n    readonly label: \"日本語\";\n}, {\n    readonly locale: \"zh-cn\";\n    readonly label: \"简体中文\";\n}, {\n    readonly locale: \"zh-tw\";\n    readonly label: \"繁體中文 (台灣)\";\n}]"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/translations/languages.ts",
@@ -6460,8 +6469,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -6620,6 +6629,42 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLInstance#duplicateProps:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "duplicateProps: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        shapeIds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        offset: {\n            x: number;\n            y: number;\n        };\n    } | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "duplicateProps",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLInstance#exportBackground:member",
               "docComment": "",
               "excerptTokens": [
@@ -6701,6 +6746,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLInstance#insets:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "insets: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "insets",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLInstance#isChangingStyle:member",
               "docComment": "",
               "excerptTokens": [
@@ -6756,7 +6828,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLInstance#isCoarsePointer:member",
-              "docComment": "",
+              "docComment": "/**\n * This is whether the primary input mechanism includes a pointing device of limited accuracy, such as a finger on a touchscreen. See: https://developer.mozilla.org/en-US/docs/Web/CSS/\\@media/pointer\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7090,8 +7162,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7182,8 +7254,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7637,8 +7709,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -7896,8 +7968,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Box2dModel",
-                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                  "text": "BoxModel",
+                  "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -8570,8 +8642,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -9263,22 +9335,22 @@
         },
         {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface",
+          "canonicalReference": "@tldraw/tlschema!VecModel:interface",
           "docComment": "/**\n * A serializable model for 2D vectors.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface Vec2dModel "
+              "text": "export interface VecModel "
             }
           ],
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "releaseTag": "Public",
-          "name": "Vec2dModel",
+          "name": "VecModel",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#x:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#x:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9305,7 +9377,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#y:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#y:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9332,7 +9404,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel#z:member",
+              "canonicalReference": "@tldraw/tlschema!VecModel#z:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -9362,12 +9434,12 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!vec2dModelValidator:var",
+          "canonicalReference": "@tldraw/tlschema!vecModelValidator:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "vec2dModelValidator: "
+              "text": "vecModelValidator: "
             },
             {
               "kind": "Reference",
@@ -9380,8 +9452,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Vec2dModel",
-              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -9391,7 +9463,7 @@
           "fileUrlPath": "packages/tlschema/src/misc/geometry-types.ts",
           "isReadonly": true,
           "releaseTag": "Public",
-          "name": "vec2dModelValidator",
+          "name": "vecModelValidator",
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 5

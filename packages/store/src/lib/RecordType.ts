@@ -25,7 +25,7 @@ export type RecordScope = 'session' | 'document' | 'presence'
  */
 export class RecordType<
 	R extends UnknownRecord,
-	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>
+	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>,
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 	readonly migrations: Migrations
@@ -224,7 +224,7 @@ export function createRecordType<R extends UnknownRecord>(
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
-		createDefaultProperties: () => ({} as any),
+		createDefaultProperties: () => ({}) as any,
 		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
 		validator: config.validator,
 		scope: config.scope,

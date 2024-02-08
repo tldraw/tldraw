@@ -634,7 +634,7 @@
             {
               "kind": "Reference",
               "text": "WithDiff",
-              "canonicalReference": "@tldraw/state!~WithDiff:class"
+              "canonicalReference": "@tldraw/state!~WithDiff:type"
             },
             {
               "kind": "Content",
@@ -1129,17 +1129,31 @@
           "extendsTokenRanges": []
         },
         {
-          "kind": "Class",
-          "canonicalReference": "@tldraw/state!EffectScheduler:class",
-          "docComment": "/**\n * An EffectScheduler is responsible for executing side effects in response to changes in state.\n *\n * You probably don't need to use this directly unless you're integrating this library with a framework of some kind.\n *\n * Instead, use the [[react]] and [[reactor]] functions.\n *\n * @example\n * ```ts\n * const render = new EffectScheduler('render', drawToCanvas)\n *\n * render.attach()\n * render.execute()\n * ```\n *\n * @public\n */\n",
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/state!EffectScheduler:type",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare class EffectScheduler<Result> "
+              "text": "export type EffectScheduler<Result> = "
+            },
+            {
+              "kind": "Reference",
+              "text": "__EffectScheduler__",
+              "canonicalReference": "@tldraw/state!~__EffectScheduler__:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<Result>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/state/src/lib/core/EffectScheduler.ts",
           "releaseTag": "Public",
+          "name": "EffectScheduler",
           "typeParameters": [
             {
               "typeParameterName": "Result",
@@ -1153,260 +1167,38 @@
               }
             }
           ],
-          "isAbstract": false,
-          "name": "EffectScheduler",
-          "preserveMemberOrder": false,
-          "members": [
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/state!EffectScheduler:var",
+          "docComment": "/**\n * An EffectScheduler is responsible for executing side effects in response to changes in state.\n *\n * You probably don't need to use this directly unless you're integrating this library with a framework of some kind.\n *\n * Instead, use the [[react]] and [[reactor]] functions.\n *\n * @example\n * ```ts\n * const render = new EffectScheduler('render', drawToCanvas)\n *\n * render.attach()\n * render.execute()\n * ```\n *\n * @public\n */\n",
+          "excerptTokens": [
             {
-              "kind": "Constructor",
-              "canonicalReference": "@tldraw/state!EffectScheduler:constructor(1)",
-              "docComment": "/**\n * Constructs a new instance of the `EffectScheduler` class\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "constructor(name: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", runEffect: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(lastReactedEpoch: number) => Result"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", options?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EffectSchedulerOptions",
-                  "canonicalReference": "@tldraw/state!~EffectSchedulerOptions:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ");"
-                }
-              ],
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "name",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "runEffect",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "options",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 5,
-                    "endIndex": 6
-                  },
-                  "isOptional": true
-                }
-              ]
+              "kind": "Content",
+              "text": "EffectScheduler: "
             },
             {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/state!EffectScheduler#attach:member(1)",
-              "docComment": "/**\n * Makes this scheduler become 'actively listening' to its parents. If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls. If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling [[EffectScheduler.execute]].\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "attach(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "attach"
+              "kind": "Content",
+              "text": "typeof "
             },
             {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/state!EffectScheduler#detach:member(1)",
-              "docComment": "/**\n * Makes this scheduler stop 'actively listening' to its parents. It will no longer be eligible to receive 'maybeScheduleEffect' calls until [[EffectScheduler.attach]] is called again.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "detach(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "detach"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/state!EffectScheduler#execute:member(1)",
-              "docComment": "/**\n * Executes the effect immediately and returns the result.\n *\n * @returns The result of the effect.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "execute(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "Result"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "execute"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/state!EffectScheduler#isActivelyListening:member",
-              "docComment": "/**\n * Whether this scheduler is attached and actively listening to its parents.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get isActivelyListening(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "isActivelyListening",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/state!EffectScheduler#name:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "readonly name: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "name",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/state!EffectScheduler#scheduleCount:member",
-              "docComment": "/**\n * The number of times this effect has been scheduled.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get scheduleCount(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "scheduleCount",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
+              "kind": "Reference",
+              "text": "__EffectScheduler__",
+              "canonicalReference": "@tldraw/state!~__EffectScheduler__:class"
             }
           ],
-          "implementsTokenRanges": []
+          "fileUrlPath": "packages/state/src/lib/core/EffectScheduler.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "EffectScheduler",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
         },
         {
           "kind": "Variable",
@@ -1599,7 +1391,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/state!isSignal:function(1)",
-          "docComment": "/**\n * Returns true if the given value is a signal (either an Atom or a Computed).\n *\n * @public\n */\n",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1914,7 +1706,7 @@
                 {
                   "kind": "Reference",
                   "text": "EffectScheduler",
-                  "canonicalReference": "@tldraw/state!EffectScheduler:class"
+                  "canonicalReference": "@tldraw/state!EffectScheduler:type"
                 },
                 {
                   "kind": "Content",
@@ -2266,33 +2058,6 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "name",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/state!Signal#value:member",
-              "docComment": "/**\n * @deprecated\n *\n * Use [[Signal.get]] instead.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "value: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "Value"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "value",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -3276,7 +3041,7 @@
             {
               "kind": "Reference",
               "text": "WithDiff",
-              "canonicalReference": "@tldraw/state!~WithDiff:class"
+              "canonicalReference": "@tldraw/state!~WithDiff:type"
             },
             {
               "kind": "Content",

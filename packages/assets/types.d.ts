@@ -179,6 +179,7 @@ export type AssetUrls = {
 	translations: {
 		ar: string
 		ca: string
+		cs: string
 		da: string
 		de: string
 		en: string
@@ -189,6 +190,7 @@ export type AssetUrls = {
 		gl: string
 		he: string
 		'hi-in': string
+		hr: string
 		hu: string
 		it: string
 		ja: string

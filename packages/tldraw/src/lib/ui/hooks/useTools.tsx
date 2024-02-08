@@ -10,7 +10,7 @@ import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 /** @public */
 export interface TLUiToolItem<
 	TranslationKey extends string = string,
-	IconType extends string = string
+	IconType extends string = string,
 > {
 	id: string
 	label: TranslationKey
@@ -211,7 +211,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		toolsArray.push({
 			id: 'highlight',
 			label: 'tool.highlight',
-			readonlyOk: true,
+			readonlyOk: false,
 			icon: 'tool-highlight',
 			// TODO: pick a better shortcut
 			kbd: '!d',

@@ -1,11 +1,11 @@
 import {
 	EASINGS,
+	HALF_PI,
 	PI2,
-	TAU,
 	TLDefaultColorTheme,
 	TLGeoShape,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	getSvgPathFromPoints,
 	perimeterOfEllipse,
 	rng,
@@ -98,10 +98,10 @@ export function getEllipseStrokePoints(
 	const ry = height / 2
 	const perimeter = perimeterOfEllipse(rx, ry)
 
-	const points: Vec2d[] = []
+	const points: Vec[] = []
 
 	const start = PI2 * getRandom()
-	const length = PI2 + TAU / 2 + Math.abs(getRandom()) * TAU
+	const length = PI2 + HALF_PI / 2 + Math.abs(getRandom()) * HALF_PI
 	const count = Math.max(16, perimeter / 10)
 
 	for (let i = 0; i < count; i++) {
@@ -110,7 +110,7 @@ export function getEllipseStrokePoints(
 		const c = Math.cos(r)
 		const s = Math.sin(r)
 		points.push(
-			new Vec2d(
+			new Vec(
 				rx * c + width * 0.5 + 0.05 * getRandom(),
 				ry * s + height / 2 + 0.05 * getRandom(),
 				Math.min(

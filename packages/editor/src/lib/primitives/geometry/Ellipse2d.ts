@@ -1,5 +1,5 @@
-import { Box2d } from '../Box2d'
-import { Vec2d } from '../Vec2d'
+import { Box } from '../Box'
+import { Vec } from '../Vec'
 import { PI, PI2 } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
@@ -63,7 +63,7 @@ export class Ellipse2d extends Geometry2d {
 		const vertices = Array(len)
 
 		for (let i = 0; i < len; i++) {
-			vertices[i] = new Vec2d(cx + cx * cos, cy + cy * sin)
+			vertices[i] = new Vec(cx + cx * cos, cy + cy * sin)
 			ts = b * cos + a * sin
 			tc = a * cos - b * sin
 			sin = ts
@@ -73,8 +73,8 @@ export class Ellipse2d extends Geometry2d {
 		return vertices
 	}
 
-	nearestPoint(A: Vec2d): Vec2d {
-		let nearest: Vec2d | undefined
+	nearestPoint(A: Vec): Vec {
+		let nearest: Vec | undefined
 		let dist = Infinity
 		for (const edge of this.edges) {
 			const p = edge.nearestPoint(A)
@@ -89,11 +89,11 @@ export class Ellipse2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+	hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
 		return this.edges.some((edge) => edge.hitTestLineSegment(A, B, zoom))
 	}
 
 	getBounds() {
-		return new Box2d(0, 0, this.w, this.h)
+		return new Box(0, 0, this.w, this.h)
 	}
 }

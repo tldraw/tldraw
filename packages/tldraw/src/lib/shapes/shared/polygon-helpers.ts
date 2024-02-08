@@ -1,4 +1,4 @@
-import { Vec2d, VecLike, toDomPrecision } from '@tldraw/editor'
+import { Vec, VecLike, toDomPrecision } from '@tldraw/editor'
 
 function precise(A: VecLike) {
 	return `${toDomPrecision(A.x)},${toDomPrecision(A.y)} `
@@ -67,12 +67,12 @@ export function getRoundedPolygonPoints(
 	const len = outline.length
 
 	for (let i = 0, n = len * passes; i < n; i++) {
-		p1 = Vec2d.AddXY(outline[(i + 1) % len], random() * offset, random() * offset)
+		p1 = Vec.AddXY(outline[(i + 1) % len], random() * offset, random() * offset)
 
-		const delta = Vec2d.Sub(p1, p0)
-		const distance = Vec2d.Len(delta)
-		const vector = Vec2d.Div(delta, distance).mul(Math.min(distance / 4, roundness))
-		results.push(Vec2d.Add(p0, vector), Vec2d.Add(p1, vector.neg()), p1)
+		const delta = Vec.Sub(p1, p0)
+		const distance = Vec.Len(delta)
+		const vector = Vec.Div(delta, distance).mul(Math.min(distance / 4, roundness))
+		results.push(Vec.Add(p0, vector), Vec.Add(p1, vector.neg()), p1)
 
 		p0 = p1
 	}
@@ -99,21 +99,21 @@ export function getDrawLinePathData(id: string, outline: VecLike[], strokeWidth:
 
 	for (let i = 0, n = len - 1; i < n; i++) {
 		p1 = outline[i + 1]
-		s1 = Vec2d.AddXY(outline[i + 1], random() * offset, random() * offset)
+		s1 = Vec.AddXY(outline[i + 1], random() * offset, random() * offset)
 
-		const delta = Vec2d.Sub(p1, p0)
-		const distance = Vec2d.Len(delta)
-		const vector = Vec2d.Div(delta, distance).mul(Math.min(distance / 4, roundness))
+		const delta = Vec.Sub(p1, p0)
+		const distance = Vec.Len(delta)
+		const vector = Vec.Div(delta, distance).mul(Math.min(distance / 4, roundness))
 
-		const q0 = Vec2d.Add(p0, vector)
-		const q1 = Vec2d.Add(p1, vector.neg())
+		const q0 = Vec.Add(p0, vector)
+		const q1 = Vec.Add(p1, vector.neg())
 
-		const sDelta = Vec2d.Sub(s1, s0)
-		const sDistance = Vec2d.Len(sDelta)
-		const sVector = Vec2d.Div(sDelta, sDistance).mul(Math.min(sDistance / 4, roundness))
+		const sDelta = Vec.Sub(s1, s0)
+		const sDistance = Vec.Len(sDelta)
+		const sVector = Vec.Div(sDelta, sDistance).mul(Math.min(sDistance / 4, roundness))
 
-		const sq0 = Vec2d.Add(s0, sVector)
-		const sq1 = Vec2d.Add(s1, sVector.neg())
+		const sq0 = Vec.Add(s0, sVector)
+		const sq1 = Vec.Add(s1, sVector.neg())
 
 		if (i === n - 1) {
 			innerPathData += `${precise(q0)}L ${precise(p1)}`

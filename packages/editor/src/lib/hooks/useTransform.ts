@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react'
-import { VecLike } from '../primitives/Vec2d'
+import { VecLike } from '../primitives/Vec'
 
 /** @public */
 export function useTransform(

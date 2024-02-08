@@ -1,7 +1,7 @@
 import {
-	Box2d,
+	Box,
 	HIT_TEST_MARGIN,
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLCancelEvent,
 	TLEventHandlers,
@@ -13,7 +13,9 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
-	Vec2d,
+	TLTickEventHandler,
+	Vec,
+	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
 } from '@tldraw/editor'
@@ -23,7 +25,7 @@ export class Brushing extends StateNode {
 
 	info = {} as TLPointerEventInfo & { target: 'canvas' }
 
-	brush = new Box2d()
+	brush = new Box()
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
 
@@ -58,6 +60,10 @@ export class Brushing extends StateNode {
 	override onExit = () => {
 		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
+	}
+
+	override onTick: TLTickEventHandler = () => {
+		moveCameraWhenCloseToEdge(this.editor)
 	}
 
 	override onPointerMove = () => {
@@ -102,17 +108,17 @@ export class Brushing extends StateNode {
 		} = this.editor
 
 		// Set the brush to contain the current and origin points
-		this.brush.setTo(Box2d.FromPoints([originPagePoint, currentPagePoint]))
+		this.brush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
 
 		// We'll be collecting shape ids
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
-		let A: Vec2d,
-			B: Vec2d,
+		let A: Vec,
+			B: Vec,
 			shape: TLShape,
-			pageBounds: Box2d | undefined,
-			pageTransform: Matrix2d | undefined,
-			localCorners: Vec2d[]
+			pageBounds: Box | undefined,
+			pageTransform: Mat | undefined,
+			localCorners: Vec[]
 
 		// We'll be testing the corners of the brush against the shapes
 		const { corners } = this.brush
@@ -178,10 +184,10 @@ export class Brushing extends StateNode {
 
 	private handleHit(
 		shape: TLShape,
-		currentPagePoint: Vec2d,
+		currentPagePoint: Vec,
 		currentPageId: TLPageId,
 		results: Set<TLShapeId>,
-		corners: Vec2d[]
+		corners: Vec[]
 	) {
 		if (shape.parentId === currentPageId) {
 			results.add(shape.id)

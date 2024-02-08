@@ -1,6 +1,6 @@
 import {
-	Box2d,
-	Box2dModel,
+	Box,
+	BoxModel,
 	Editor,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
@@ -13,7 +13,7 @@ function correctSpacesToNbsp(input: string) {
 /** Get an SVG element for a text shape. */
 export function createTextSvgElementFromSpans(
 	editor: Editor,
-	spans: { text: string; box: Box2dModel }[],
+	spans: { text: string; box: BoxModel }[],
 	opts: {
 		fontSize: number
 		fontFamily: string
@@ -46,7 +46,7 @@ export function createTextSvgElementFromSpans(
 
 	if (spans.length === 0) return textElm
 
-	const bounds = Box2d.From(spans[0].box)
+	const bounds = Box.From(spans[0].box)
 	for (const { box } of spans) {
 		bounds.union(box)
 	}
@@ -59,8 +59,8 @@ export function createTextSvgElementFromSpans(
 		(opts.verticalTextAlign === 'start'
 			? padding
 			: opts.verticalTextAlign === 'end'
-			? opts.height - padding - bounds.height
-			: (Math.ceil(opts.height) - bounds.height) / 2)
+				? opts.height - padding - bounds.height
+				: (Math.ceil(opts.height) - bounds.height) / 2)
 
 	// Create text span elements for each word
 	let currentLineTop = null

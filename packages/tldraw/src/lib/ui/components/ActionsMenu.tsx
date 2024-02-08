@@ -3,6 +3,7 @@ import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
+import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
@@ -14,6 +15,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	const container = useContainer()
 	const menuSchema = useActionsMenuSchema()
 	const isReadonly = useReadonly()
+	const breakpoint = useBreakpoint()
 
 	function getActionMenuItem(item: TLUiMenuChild) {
 		if (!item) return null
@@ -35,8 +37,8 @@ export const ActionsMenu = memo(function ActionsMenu() {
 									? `${msg(label)} ${kbdStr(kbd)}`
 									: `${msg(label)}`
 								: kbd
-								? `${kbdStr(kbd)}`
-								: ''
+									? `${kbdStr(kbd)}`
+									: ''
 						}
 						onClick={() => onSelect('actions-menu')}
 						disabled={item.disabled}
@@ -61,7 +63,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 			<PopoverPrimitive.Portal container={container}>
 				<PopoverPrimitive.Content
 					className="tlui-popover__content"
-					side="bottom"
+					side={breakpoint >= 6 ? 'bottom' : 'top'}
 					dir="ltr"
 					sideOffset={6}
 				>

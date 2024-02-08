@@ -23,9 +23,27 @@ export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetV
 		title: T.string,
 		description: T.string,
 		image: T.string,
-		src: T.string.nullable(),
+		src: T.srcUrl.nullable(),
 	})
 )
 
+const Versions = {
+	MakeUrlsValid: 1,
+} as const
+
 /** @internal */
-export const bookmarkAssetMigrations = defineMigrations({})
+export const bookmarkAssetMigrations = defineMigrations({
+	currentVersion: Versions.MakeUrlsValid,
+	migrators: {
+		[Versions.MakeUrlsValid]: {
+			up: (asset) => {
+				const src = asset.props.src
+				if (src && !T.srcUrl.isValid(src)) {
+					return { ...asset, props: { ...asset.props, src: '' } }
+				}
+				return asset
+			},
+			down: (asset) => asset,
+		},
+	},
+})

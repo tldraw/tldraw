@@ -52,26 +52,10 @@ export interface ComputedOptions<Value, Diff> {
 }
 
 // @public
-export class EffectScheduler<Result> {
-    constructor(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions);
-    attach(): void;
-    detach(): void;
-    execute(): Result;
-    get isActivelyListening(): boolean;
-    // @internal (undocumented)
-    lastTraversedEpoch: number;
-    // @internal (undocumented)
-    maybeScheduleEffect(): void;
-    // (undocumented)
-    readonly name: string;
-    // @internal (undocumented)
-    parentEpochs: number[];
-    // @internal (undocumented)
-    parents: Signal<any, any>[];
-    get scheduleCount(): number;
-    // @internal (undocumented)
-    scheduleEffect(): void;
-}
+export const EffectScheduler: typeof __EffectScheduler__;
+
+// @public (undocumented)
+export type EffectScheduler<Result> = __EffectScheduler__<Result>;
 
 // @public (undocumented)
 export const EMPTY_ARRAY: [];
@@ -82,7 +66,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 // @public
 export function isAtom(value: unknown): value is Atom<unknown>;
 
-// @public
+// @public (undocumented)
 export function isSignal(value: any): value is Signal<any>;
 
 // @public
@@ -118,8 +102,6 @@ export interface Signal<Value, Diff = unknown> {
     getDiffSince(epoch: number): Diff[] | RESET_VALUE;
     lastChangedEpoch: number;
     name: string;
-    // @deprecated (undocumented)
-    value: Value;
 }
 
 // @public

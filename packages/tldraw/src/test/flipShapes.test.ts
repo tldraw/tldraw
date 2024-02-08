@@ -1,5 +1,5 @@
 import {
-	Matrix2d,
+	Mat,
 	PI,
 	TLArrowShape,
 	TLArrowShapeProps,
@@ -410,8 +410,8 @@ describe('flipping rotated shapes', () => {
 		const arrow = editor.getShape<TLArrowShape>(id)!
 		if (arrow.props.start.type !== 'point' || arrow.props.end.type !== 'point')
 			throw new Error('not a point')
-		const start = Matrix2d.applyToPoint(transform, arrow.props.start)
-		const end = Matrix2d.applyToPoint(transform, arrow.props.end)
+		const start = Mat.applyToPoint(transform, arrow.props.start)
+		const end = Mat.applyToPoint(transform, arrow.props.end)
 		return { start, end }
 	}
 
@@ -503,12 +503,14 @@ describe('When flipping shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -524,12 +526,14 @@ describe('When flipping shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -545,12 +549,14 @@ describe('When flipping shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box3,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},

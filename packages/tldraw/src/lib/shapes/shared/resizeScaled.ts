@@ -1,4 +1,4 @@
-import { Box2d, TLShape, Vec2d, Vec2dModel } from '@tldraw/editor'
+import { Box, TLShape, Vec, VecModel } from '@tldraw/editor'
 
 export function resizeScaled(
 	shape: Extract<TLShape, { props: { scale: number } }>,
@@ -8,8 +8,8 @@ export function resizeScaled(
 		scaleY,
 		newPoint,
 	}: {
-		newPoint: Vec2dModel
-		initialBounds: Box2d
+		newPoint: VecModel
+		initialBounds: Box
 		scaleX: number
 		scaleY: number
 	}
@@ -18,7 +18,7 @@ export function resizeScaled(
 	const scaleDelta = Math.max(0.01, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
 
 	// Compute the offset (if flipped X or flipped Y)
-	const offset = new Vec2d(0, 0)
+	const offset = new Vec(0, 0)
 
 	if (scaleX < 0) {
 		offset.x = -(initialBounds.width * scaleDelta)
@@ -28,7 +28,7 @@ export function resizeScaled(
 	}
 
 	// Apply the offset to the new point
-	const { x, y } = Vec2d.Add(newPoint, offset.rot(shape.rotation))
+	const { x, y } = Vec.Add(newPoint, offset.rot(shape.rotation))
 
 	return {
 		x,

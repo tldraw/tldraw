@@ -25,7 +25,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 				opts
 			),
 			draw: formatAssetUrl(
-				new URL('./fonts/Shantell_Sans-Normal-SemiBold.woff2', import.meta.url).href,
+				new URL('./fonts/Shantell_Sans-Tldrawish.woff2', import.meta.url).href,
 				opts
 			),
 		},
@@ -558,6 +558,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 		translations: {
 			ar: formatAssetUrl(new URL('./translations/ar.json', import.meta.url).href, opts),
 			ca: formatAssetUrl(new URL('./translations/ca.json', import.meta.url).href, opts),
+			cs: formatAssetUrl(new URL('./translations/cs.json', import.meta.url).href, opts),
 			da: formatAssetUrl(new URL('./translations/da.json', import.meta.url).href, opts),
 			de: formatAssetUrl(new URL('./translations/de.json', import.meta.url).href, opts),
 			en: formatAssetUrl(new URL('./translations/en.json', import.meta.url).href, opts),
@@ -568,6 +569,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			gl: formatAssetUrl(new URL('./translations/gl.json', import.meta.url).href, opts),
 			he: formatAssetUrl(new URL('./translations/he.json', import.meta.url).href, opts),
 			'hi-in': formatAssetUrl(new URL('./translations/hi-in.json', import.meta.url).href, opts),
+			hr: formatAssetUrl(new URL('./translations/hr.json', import.meta.url).href, opts),
 			hu: formatAssetUrl(new URL('./translations/hu.json', import.meta.url).href, opts),
 			it: formatAssetUrl(new URL('./translations/it.json', import.meta.url).href, opts),
 			ja: formatAssetUrl(new URL('./translations/ja.json', import.meta.url).href, opts),

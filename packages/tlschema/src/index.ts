@@ -21,10 +21,10 @@ export { type TLHandle, type TLHandleType } from './misc/TLHandle'
 export { opacityValidator, type TLOpacityType } from './misc/TLOpacity'
 export { scribbleValidator, type TLScribble } from './misc/TLScribble'
 export {
-	box2dModelValidator,
-	vec2dModelValidator,
-	type Box2dModel,
-	type Vec2dModel,
+	boxModelValidator,
+	vecModelValidator,
+	type BoxModel,
+	type VecModel,
 } from './misc/geometry-types'
 export { idValidator } from './misc/id-validator'
 export {

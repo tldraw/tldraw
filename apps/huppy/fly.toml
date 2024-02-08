@@ -1,0 +1,34 @@
+# fly.toml file generated for tldraw-repo-sync on 2023-04-25T14:25:01+01:00
+app = "tldraw-repo-sync"
+kill_signal = "SIGINT"
+kill_timeout = 5
+primary_region = "lhr"
+processes = []
+
+[build]
+
+[env]
+PORT = "8080"
+
+[mounts]
+source = "git_store"
+destination = "/tldraw_repo_sync_data"
+
+[[services]]
+internal_port = 8080
+processes = ["app"]
+protocol = "tcp"
+
+[services.concurrency]
+hard_limit = 25
+soft_limit = 20
+type = "connections"
+
+[[services.ports]]
+force_https = true
+handlers = ["http"]
+port = 80
+
+[[services.ports]]
+handlers = ["tls", "http"]
+port = 443

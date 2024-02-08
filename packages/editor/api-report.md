@@ -8,17 +8,17 @@
 
 import { Atom } from '@tldraw/state';
 import { atom } from '@tldraw/state';
-import { Box2dModel } from '@tldraw/tlschema';
+import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
-import { ComputedCache } from '@tldraw/store';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
 import { HTMLProps } from 'react';
 import { JsonObject } from '@tldraw/utils';
+import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
@@ -71,11 +71,11 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
-import { Vec2dModel } from '@tldraw/tlschema';
+import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
 // @public
-export function angleDelta(a0: number, a1: number): number;
+export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
 export const ANIMATION_MEDIUM_MS = 320;
@@ -97,10 +97,10 @@ export function approximately(a: number, b: number, precision?: number): boolean
 // @public (undocumented)
 export class Arc2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
-        center: Vec2d;
+        center: Vec;
         radius: number;
-        start: Vec2d;
-        end: Vec2d;
+        start: Vec;
+        end: Vec;
         sweepFlag: number;
         largeArcFlag: number;
     });
@@ -109,23 +109,23 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     angleStart: number;
     // (undocumented)
-    _center: Vec2d;
+    _center: Vec;
     // (undocumented)
-    end: Vec2d;
+    end: Vec;
     // (undocumented)
-    getVertices(): Vec2d[];
+    getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean;
     // (undocumented)
     length: number;
     // (undocumented)
     measure: number;
     // (undocumented)
-    nearestPoint(point: Vec2d): Vec2d;
+    nearestPoint(point: Vec): Vec;
     // (undocumented)
     radius: number;
     // (undocumented)
-    start: Vec2d;
+    start: Vec;
 }
 
 // @public
@@ -161,58 +161,72 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 }
 
 // @public (undocumented)
-export class Box2d {
+export interface BoundsSnapPoint {
+    // (undocumented)
+    handle?: SelectionCorner;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public (undocumented)
+export class Box {
     constructor(x?: number, y?: number, w?: number, h?: number);
     // (undocumented)
     get aspectRatio(): number;
     // (undocumented)
-    get center(): Vec2d;
-    set center(v: Vec2d);
+    get center(): Vec;
+    set center(v: Vec);
     // (undocumented)
-    clone(): Box2d;
+    clone(): Box;
     // (undocumented)
-    static Collides: (A: Box2d, B: Box2d) => boolean;
+    static Collides: (A: Box, B: Box) => boolean;
     // (undocumented)
-    collides(B: Box2d): boolean;
+    collides(B: Box): boolean;
     // (undocumented)
-    static Common: (boxes: Box2d[]) => Box2d;
+    static Common: (boxes: Box[]) => Box;
     // (undocumented)
-    static Contains: (A: Box2d, B: Box2d) => boolean;
+    static Contains: (A: Box, B: Box) => boolean;
     // (undocumented)
-    contains(B: Box2d): boolean;
+    contains(B: Box): boolean;
     // (undocumented)
-    static ContainsPoint: (A: Box2d, B: VecLike, margin?: number) => boolean;
+    static ContainsPoint: (A: Box, B: VecLike, margin?: number) => boolean;
     // (undocumented)
     containsPoint(V: VecLike, margin?: number): boolean;
     // (undocumented)
-    get corners(): Vec2d[];
+    get corners(): Vec[];
     // (undocumented)
-    static Equals(a: Box2d | Box2dModel, b: Box2d | Box2dModel): boolean;
+    static Equals(a: Box | BoxModel, b: Box | BoxModel): boolean;
     // (undocumented)
-    equals(other: Box2d | Box2dModel): boolean;
+    equals(other: Box | BoxModel): boolean;
     // (undocumented)
-    static Expand(A: Box2d, B: Box2d): Box2d;
+    static Expand(A: Box, B: Box): Box;
     // (undocumented)
-    expand(A: Box2d): this;
+    expand(A: Box): this;
     // (undocumented)
-    static ExpandBy(A: Box2d, n: number): Box2d;
+    static ExpandBy(A: Box, n: number): Box;
     // (undocumented)
     expandBy(n: number): this;
     // (undocumented)
-    static From(box: Box2dModel): Box2d;
+    static From(box: BoxModel): Box;
     // (undocumented)
-    static FromPoints(points: VecLike[]): Box2d;
+    static FromCenter(center: VecLike, size: VecLike): Box;
     // (undocumented)
-    getHandlePoint(handle: SelectionCorner | SelectionEdge): Vec2d;
+    static FromPoints(points: VecLike[]): Box;
+    // (undocumented)
+    getHandlePoint(handle: SelectionCorner | SelectionEdge): Vec;
     // (undocumented)
     h: number;
     // (undocumented)
     get height(): number;
     set height(n: number);
     // (undocumented)
-    static Includes: (A: Box2d, B: Box2d) => boolean;
+    static Includes: (A: Box, B: Box) => boolean;
     // (undocumented)
-    includes(B: Box2d): boolean;
+    includes(B: Box): boolean;
     // (undocumented)
     get maxX(): number;
     // (undocumented)
@@ -228,11 +242,11 @@ export class Box2d {
     get minY(): number;
     set minY(n: number);
     // (undocumented)
-    get point(): Vec2d;
-    set point(val: Vec2d);
+    get point(): Vec;
+    set point(val: Vec);
     // (undocumented)
-    static Resize(box: Box2d, handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number, isAspectRatioLocked?: boolean): {
-        box: Box2d;
+    static Resize(box: Box, handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number, isAspectRatioLocked?: boolean): {
+        box: Box;
         scaleX: number;
         scaleY: number;
     };
@@ -243,25 +257,25 @@ export class Box2d {
     // (undocumented)
     set(x?: number, y?: number, w?: number, h?: number): this;
     // (undocumented)
-    setTo(B: Box2d): this;
+    setTo(B: Box): this;
     // (undocumented)
-    static Sides: (A: Box2d, inset?: number) => Vec2d[][];
+    static Sides: (A: Box, inset?: number) => Vec[][];
     // (undocumented)
-    get sides(): Array<[Vec2d, Vec2d]>;
+    get sides(): Array<[Vec, Vec]>;
     // (undocumented)
-    get size(): Vec2d;
+    get size(): Vec;
     // (undocumented)
-    get snapPoints(): Vec2d[];
+    get snapPoints(): Vec[];
     // (undocumented)
     snapToGrid(size: number): void;
     // (undocumented)
     toFixed(): this;
     // (undocumented)
-    toJson(): Box2dModel;
+    toJson(): BoxModel;
     // (undocumented)
     translate(delta: VecLike): this;
     // (undocumented)
-    union(box: Box2dModel): this;
+    union(box: BoxModel): this;
     // (undocumented)
     w: number;
     // (undocumented)
@@ -272,13 +286,13 @@ export class Box2d {
     // (undocumented)
     y: number;
     // (undocumented)
-    static ZeroFix(other: Box2d | Box2dModel): Box2d;
+    static ZeroFix(other: Box | BoxModel): Box;
     // (undocumented)
     zeroFix(): this;
 }
 
 // @public (undocumented)
-export type BoxLike = Box2d | Box2dModel;
+export type BoxLike = Box | BoxModel;
 
 // @internal (undocumented)
 export const CAMERA_SLIDE_FRICTION = 0.09;
@@ -289,7 +303,7 @@ export function canonicalizeRotation(a: number): number;
 // @public (undocumented)
 export function Canvas({ className }: {
     className?: string;
-}): JSX.Element;
+}): JSX_2.Element;
 
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
@@ -300,7 +314,7 @@ export class Circle2d extends Geometry2d {
         isFilled: boolean;
     });
     // (undocumented)
-    _center: Vec2d;
+    _center: Vec;
     // (undocumented)
     config: Omit<Geometry2dOptions, 'isClosed'> & {
         x?: number;
@@ -309,13 +323,13 @@ export class Circle2d extends Geometry2d {
         isFilled: boolean;
     };
     // (undocumented)
-    getBounds(): Box2d;
+    getBounds(): Box;
     // (undocumented)
-    getVertices(): Vec2d[];
+    getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean;
     // (undocumented)
-    nearestPoint(point: Vec2d): Vec2d;
+    nearestPoint(point: Vec): Vec;
     // (undocumented)
     radius: number;
     // (undocumented)
@@ -342,6 +356,9 @@ export { computed }
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
 // @public
+export function counterClockwiseAngleDist(a0: number, a1: number): number;
+
+// @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
@@ -357,44 +374,44 @@ export function createTLUser(opts?: {
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
-        start: Vec2d;
-        cp1: Vec2d;
-        cp2: Vec2d;
-        end: Vec2d;
+        start: Vec;
+        cp1: Vec;
+        cp2: Vec;
+        end: Vec;
     });
     // (undocumented)
-    a: Vec2d;
+    a: Vec;
     // (undocumented)
-    b: Vec2d;
+    b: Vec;
     // (undocumented)
-    c: Vec2d;
+    c: Vec;
     // (undocumented)
-    d: Vec2d;
+    d: Vec;
     // (undocumented)
-    getVertices(): Vec2d[];
+    getVertices(): Vec[];
     // (undocumented)
-    midPoint(): Vec2d;
+    midPoint(): Vec;
     // (undocumented)
-    nearestPoint(A: Vec2d): Vec2d;
+    nearestPoint(A: Vec): Vec;
 }
 
 // @public (undocumented)
 export class CubicSpline2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
-        points: Vec2d[];
+        points: Vec[];
     });
     // (undocumented)
-    getVertices(): Vec2d[];
+    getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)
     _length?: number;
     // (undocumented)
-    nearestPoint(A: Vec2d): Vec2d;
+    nearestPoint(A: Vec): Vec;
     // (undocumented)
-    points: Vec2d[];
+    points: Vec[];
     // (undocumented)
     get segments(): CubicBezier2d[];
     // (undocumented)
@@ -415,6 +432,7 @@ export const debugFlags: {
     pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
     elementRemovalLogging: DebugFlag<boolean>;
     debugSvg: DebugFlag<boolean>;
+    showFps: DebugFlag<boolean>;
     throwToBlob: DebugFlag<boolean>;
     logMessages: DebugFlag<any[]>;
     resetConnectionEveryPing: DebugFlag<boolean>;
@@ -431,7 +449,7 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 };
 
 // @public (undocumented)
-export function DefaultBackground(): JSX.Element;
+export function DefaultBackground(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultBrush: TLBrushComponent;
@@ -442,7 +460,7 @@ export const DefaultCollaboratorHint: TLCollaboratorHintComponent;
 // @public (undocumented)
 export const DefaultCursor: NamedExoticComponent<    {
 className?: string | undefined;
-point: null | Vec2dModel;
+point: null | VecModel;
 zoom: number;
 color?: string | undefined;
 name: null | string;
@@ -474,7 +492,7 @@ export const DefaultSelectionBackground: TLSelectionBackgroundComponent;
 export const DefaultSelectionForeground: TLSelectionForegroundComponent;
 
 // @public (undocumented)
-export const DefaultSnapLine: TLSnapLineComponent;
+export const DefaultSnapIndicator: TLSnapIndicatorComponent;
 
 // @public (undocumented)
 export const DefaultSpinner: TLSpinnerComponent;
@@ -485,9 +503,10 @@ export const DefaultSvgDefs: () => null;
 // @public (undocumented)
 export const defaultUserPreferences: Readonly<{
     name: "New User";
-    locale: "ar" | "ca" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     isDarkMode: false;
+    edgeScrollSpeed: 1;
     animationSpeed: 0 | 1;
     isSnapMode: false;
 }>;
@@ -527,30 +546,30 @@ export const EASINGS: {
 // @public (undocumented)
 export class Edge2d extends Geometry2d {
     constructor(config: {
-        start: Vec2d;
-        end: Vec2d;
+        start: Vec;
+        end: Vec;
         isSnappable?: boolean;
     });
     // (undocumented)
-    d: Vec2d;
+    d: Vec;
     // (undocumented)
-    end: Vec2d;
+    end: Vec;
     // (undocumented)
-    getVertices(): Vec2d[];
+    getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)
     _length?: number;
     // (undocumented)
-    midPoint(): Vec2d;
+    midPoint(): Vec;
     // (undocumented)
-    nearestPoint(point: Vec2d): Vec2d;
+    nearestPoint(point: Vec): Vec;
     // (undocumented)
-    start: Vec2d;
+    start: Vec;
     // (undocumented)
-    u: Vec2d;
+    u: Vec;
     // (undocumented)
     ul: number;
 }
@@ -574,24 +593,17 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         extras?: Record<string, unknown>;
     }): this;
-    // @deprecated (undocumented)
-    get assets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
-    // @deprecated (undocumented)
-    get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
-    // @deprecated (undocumented)
-    get canRedo(): boolean;
-    // @deprecated (undocumented)
-    get canUndo(): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this;
+    clearOpenMenus(): this;
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
@@ -614,28 +626,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
-    // @deprecated (undocumented)
-    get croppingShapeId(): null | TLShapeId;
-    // @deprecated (undocumented)
-    get currentPage(): TLPage;
-    // @deprecated (undocumented)
-    get currentPageBounds(): Box2d | undefined;
-    // @deprecated (undocumented)
-    get currentPageId(): TLPageId;
-    // @deprecated (undocumented)
-    get currentPageRenderingShapesSorted(): TLShape[];
-    // @deprecated (undocumented)
-    get currentPageShapeIds(): Set<TLShapeId>;
-    // @deprecated (undocumented)
-    get currentPageShapes(): TLShape[];
-    // @deprecated (undocumented)
-    get currentPageShapesSorted(): TLShape[];
-    // @deprecated (undocumented)
-    get currentPageState(): TLInstancePageState;
-    // @deprecated (undocumented)
-    get currentTool(): StateNode;
-    // @deprecated (undocumented)
-    get currentToolId(): string;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(page: TLPage | TLPageId): this;
@@ -650,19 +640,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    // @deprecated (undocumented)
-    get documentSettings(): TLDocument;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
-    // @deprecated (undocumented)
-    get editingShape(): TLShape | undefined;
-    // @deprecated (undocumented)
-    get editingShapeId(): null | TLShapeId;
     readonly environment: EnvironmentManager;
-    // @deprecated (undocumented)
-    get erasingShapeIds(): TLShapeId[];
-    // @deprecated (undocumented)
-    get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent['type']]: {
@@ -682,10 +662,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    // @deprecated (undocumented)
-    get focusedGroup(): TLShape | undefined;
-    // @deprecated (undocumented)
-    get focusedGroupId(): TLPageId | TLShapeId;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
     getArrowsBoundTo(shapeId: TLShapeId): {
@@ -705,7 +681,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
     getCurrentPage(): TLPage;
-    getCurrentPageBounds(): Box2d | undefined;
+    getCurrentPageBounds(): Box | undefined;
     getCurrentPageId(): TLPageId;
     getCurrentPageRenderingShapesSorted(): TLShape[];
     getCurrentPageShapeIds(): Set<TLShapeId>;
@@ -738,10 +714,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
     getPageStates(): TLInstancePageState[];
     getPath(): string;
-    getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
-    getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
-    getRenderingBounds(): Box2d;
-    getRenderingBoundsExpanded(): Box2d;
+    getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
+    getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
+    getRenderingBounds(): Box;
+    getRenderingBoundsExpanded(): Box;
     getRenderingShapes(): {
         id: TLShapeId;
         shape: TLShape;
@@ -750,13 +726,13 @@ export class Editor extends EventEmitter<TLEventMap> {
         backgroundIndex: number;
         opacity: number;
         isCulled: boolean;
-        maskedPageBounds: Box2d | undefined;
+        maskedPageBounds: Box | undefined;
     }[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
-    getSelectionPageBounds(): Box2d | null;
-    getSelectionRotatedPageBounds(): Box2d | undefined;
+    getSelectionPageBounds(): Box | null;
+    getSelectionRotatedPageBounds(): Box | undefined;
     getSelectionRotation(): number;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
@@ -772,14 +748,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
-    getShapeLocalTransform(shape: TLShape | TLShapeId): Matrix2d;
+    getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
-    getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box2d | undefined;
-    getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec2d[][];
-    getShapePageBounds(shape: TLShape | TLShapeId): Box2d | undefined;
-    getShapePageTransform(shape: TLShape | TLShapeId): Matrix2d;
+    getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
+    getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec[][];
+    getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
+    getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
-    getShapeParentTransform(shape: TLShape | TLShapeId): Matrix2d;
+    getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
     getShapesAtPoint(point: VecLike, opts?: {
         margin?: number | undefined;
         hitInside?: boolean | undefined;
@@ -798,29 +774,21 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
-    getViewportPageBounds(): Box2d;
-    getViewportPageCenter(): Vec2d;
-    getViewportScreenBounds(): Box2d;
-    getViewportScreenCenter(): Vec2d;
+    getViewportPageBounds(): Box;
+    getViewportPageCenter(): Vec;
+    getViewportScreenBounds(): Box;
+    getViewportScreenCenter(): Vec;
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
-    // @deprecated (undocumented)
-    get hintingShape(): NonNullable<TLShape | undefined>[];
-    // @deprecated (undocumented)
-    get hintingShapeIds(): TLShapeId[];
     readonly history: HistoryManager<this>;
-    // @deprecated (undocumented)
-    get hoveredShape(): TLShape | undefined;
-    // @deprecated (undocumented)
-    get hoveredShapeId(): null | TLShapeId;
     inputs: {
-        originPagePoint: Vec2d;
-        originScreenPoint: Vec2d;
-        previousPagePoint: Vec2d;
-        previousScreenPoint: Vec2d;
-        currentPagePoint: Vec2d;
-        currentScreenPoint: Vec2d;
+        originPagePoint: Vec;
+        originScreenPoint: Vec;
+        previousPagePoint: Vec;
+        previousScreenPoint: Vec;
+        currentPagePoint: Vec;
+        currentScreenPoint: Vec;
         keys: Set<string>;
         buttons: Set<number>;
         isPen: boolean;
@@ -832,16 +800,12 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPinching: boolean;
         isEditing: boolean;
         isPanning: boolean;
-        pointerVelocity: Vec2d;
+        pointerVelocity: Vec;
     };
-    // @deprecated (undocumented)
-    get instanceState(): TLInstance;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
-    // @deprecated (undocumented)
-    get isMenuOpen(): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         margin?: number | undefined;
         hitInside?: boolean | undefined;
@@ -856,15 +820,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
-    // @deprecated (undocumented)
-    get onlySelectedShape(): null | TLShape;
-    // @deprecated (undocumented)
-    get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
-    // @deprecated (undocumented)
-    get pages(): TLPage[];
-    // @deprecated (undocumented)
-    get pageStates(): TLInstancePageState[];
     pageToScreen(point: VecLike): {
         x: number;
         y: number;
@@ -887,26 +843,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
         type: T;
     } : TLExternalContent) => void) | null): this;
-    removeFrame(ids: TLShapeId[]): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
-    // @deprecated (undocumented)
-    get renderingBounds(): Box2d;
-    // @deprecated (undocumented)
-    get renderingBoundsExpanded(): Box2d;
     renderingBoundsMargin: number;
-    // @deprecated (undocumented)
-    get renderingShapes(): {
-        id: TLShapeId;
-        shape: TLShape;
-        util: ShapeUtil<TLUnknownShape>;
-        index: number;
-        backgroundIndex: number;
-        opacity: number;
-        isCulled: boolean;
-        maskedPageBounds: Box2d | undefined;
-    }[];
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
-    resetZoom(point?: Vec2d, animation?: TLAnimationOptions): this;
+    resetZoom(point?: Vec, animation?: TLAnimationOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
@@ -918,16 +858,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
-    // @deprecated (undocumented)
-    get selectedShapeIds(): TLShapeId[];
-    // @deprecated (undocumented)
-    get selectedShapes(): TLShape[];
-    // @deprecated (undocumented)
-    get selectionPageBounds(): Box2d | null;
-    // @deprecated (undocumented)
-    get selectionRotatedPageBounds(): Box2d | undefined;
-    // @deprecated (undocumented)
-    get selectionRotation(): number;
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
@@ -949,10 +879,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
-    // @deprecated (undocumented)
-    get sharedOpacity(): SharedStyle<number>;
-    // @deprecated (undocumented)
-    get sharedStyles(): ReadonlySharedStyleMap;
     readonly sideEffects: SideEffectManager<this>;
     slideCamera(opts?: {
         speed: number;
@@ -988,20 +914,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
-    // @deprecated (undocumented)
-    get viewportPageBounds(): Box2d;
-    // @deprecated (undocumented)
-    get viewportPageCenter(): Vec2d;
-    // @deprecated (undocumented)
-    get viewportScreenBounds(): Box2d;
-    // @deprecated (undocumented)
-    get viewportScreenCenter(): Vec2d;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
-    zoomIn(point?: Vec2d, animation?: TLAnimationOptions): this;
-    // @deprecated (undocumented)
-    get zoomLevel(): number;
-    zoomOut(point?: Vec2d, animation?: TLAnimationOptions): this;
-    zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this;
+    zoomIn(point?: Vec, animation?: TLAnimationOptions): this;
+    zoomOut(point?: Vec, animation?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box, targetZoom?: number, animation?: TLAnimationOptions): this;
     zoomToContent(): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
@@ -1023,23 +939,20 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     _edges?: Edge2d[];
     // (undocumented)
-    getBounds(): Box2d;
+    getBounds(): Box;
     // (undocumented)
     getVertices(): any[];
     // (undocumented)
     h: number;
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
     // (undocumented)
-    nearestPoint(A: Vec2d): Vec2d;
+    nearestPoint(A: Vec): Vec;
     // (undocumented)
     w: number;
 }
 
 export { EMPTY_ARRAY }
-
-// @public (undocumented)
-export const EPSILON: number;
 
 // @public (undocumented)
 export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<TLErrorBoundaryProps>>, TLErrorBoundaryState> {
@@ -1050,7 +963,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
         error: Error;
     };
     // (undocumented)
-    render(): boolean | JSX.Element | null | number | React_3.ReactFragment | string | undefined;
+    render(): boolean | JSX_2.Element | Iterable<React_3.ReactNode> | null | number | string | undefined;
     // (undocumented)
     state: TLErrorBoundaryState;
 }
@@ -1058,7 +971,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
 // @public (undocumented)
 export function ErrorScreen({ children }: {
     children: any;
-}): JSX.Element;
+}): JSX_2.Element;
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
@@ -1070,7 +983,7 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
 // @public (undocumented)
-export type GapsSnapLine = {
+export type GapsSnapIndicator = {
     id: string;
     type: 'gaps';
     direction: 'horizontal' | 'vertical';
@@ -1088,25 +1001,29 @@ export abstract class Geometry2d {
     // (undocumented)
     _area: number | undefined;
     // (undocumented)
-    get bounds(): Box2d;
+    get bounds(): Box;
     // (undocumented)
-    _bounds: Box2d | undefined;
+    _bounds: Box | undefined;
     // (undocumented)
-    get center(): Vec2d;
+    get center(): Vec;
     // (undocumented)
-    distanceToLineSegment(A: Vec2d, B: Vec2d): number;
+    debugColor?: string;
     // (undocumented)
-    distanceToPoint(point: Vec2d, hitInside?: boolean): number;
+    distanceToLineSegment(A: Vec, B: Vec): number;
+    // (undocumented)
+    distanceToPoint(point: Vec, hitInside?: boolean): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
-    getBounds(): Box2d;
+    getBounds(): Box;
     // (undocumented)
-    abstract getVertices(): Vec2d[];
+    abstract getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, distance?: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec2d, margin?: number, hitInside?: boolean): boolean;
+    hitTestPoint(point: Vec, margin?: number, hitInside?: boolean): boolean;
+    // (undocumented)
+    ignore?: boolean;
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -1114,44 +1031,36 @@ export abstract class Geometry2d {
     // (undocumented)
     isLabel: boolean;
     // (undocumented)
-    isPointInBounds(point: Vec2d, margin?: number): boolean;
+    isPointInBounds(point: Vec, margin?: number): boolean;
     // (undocumented)
     isSnappable: boolean;
     // (undocumented)
-    abstract nearestPoint(point: Vec2d): Vec2d;
+    abstract nearestPoint(point: Vec): Vec;
     // (undocumented)
-    nearestPointOnLineSegment(A: Vec2d, B: Vec2d): Vec2d;
+    nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
-    get snapPoints(): Vec2d[];
+    get snapPoints(): Vec[];
     // (undocumented)
-    _snapPoints: undefined | Vec2d[];
+    _snapPoints: undefined | Vec[];
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
-    get vertices(): Vec2d[];
+    get vertices(): Vec[];
     // (undocumented)
-    _vertices: undefined | Vec2d[];
+    _vertices: undefined | Vec[];
 }
 
 // @public
-export function getArcLength(C: VecLike, r: number, A: VecLike, B: VecLike): number;
-
-// @public (undocumented)
-export function getArrowheadPathForType(info: TLArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;
+export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
 
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
-    start: Vec2d;
-    end: Vec2d;
+    start: Vec;
+    end: Vec;
 };
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
-
-// @public
-export function getCurvedArrowHandlePath(info: TLArrowInfo & {
-    isStraight: false;
-}): string;
 
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
@@ -1196,10 +1105,13 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
 };
 
 // @public
-export function getPointOnCircle(cx: number, cy: number, r: number, a: number): Vec2d;
+export function getPointInArcT(mAB: number, A: number, B: number, P: number): number;
+
+// @public
+export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
 
 // @public (undocumented)
-export function getPolygonVertices(width: number, height: number, sides: number): Vec2d[];
+export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
 
 // @internal (undocumented)
 export function getRotationSnapshot({ editor }: {
@@ -1207,28 +1119,7 @@ export function getRotationSnapshot({ editor }: {
 }): null | TLRotationSnapshot;
 
 // @public
-export function getSolidCurvedArrowPath(info: TLArrowInfo & {
-    isStraight: false;
-}): string;
-
-// @public (undocumented)
-export function getSolidStraightArrowPath(info: TLArrowInfo & {
-    isStraight: true;
-}): string;
-
-// @public
-export const getStarBounds: (sides: number, w: number, h: number) => Box2d;
-
-// @public (undocumented)
-export function getStraightArrowHandlePath(info: TLArrowInfo & {
-    isStraight: true;
-}): string;
-
-// @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
-
-// @public
-export function getSweep(C: VecLike, A: VecLike, B: VecLike): number;
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
@@ -1248,17 +1139,19 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     children: Geometry2d[];
     // (undocumented)
-    distanceToPoint(point: Vec2d, hitInside?: boolean): number;
+    distanceToPoint(point: Vec, hitInside?: boolean): number;
     // (undocumented)
     getArea(): number;
     // (undocumented)
-    getVertices(): Vec2d[];
+    getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec2d, margin: number, hitInside: boolean): boolean;
+    hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean;
     // (undocumented)
-    nearestPoint(point: Vec2d): Vec2d;
+    ignoredChildren: Geometry2d[];
+    // (undocumented)
+    nearestPoint(point: Vec): Vec;
     // (undocumented)
     toSimpleSvgPath(): string;
 }
@@ -1268,7 +1161,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
     // (undocumented)
-    component(shape: TLGroupShape): JSX.Element | null;
+    component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLGroupShape['props'];
     // (undocumented)
@@ -1276,7 +1169,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
-    indicator(shape: TLGroupShape): JSX.Element;
+    indicator(shape: TLGroupShape): JSX_2.Element;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)
@@ -1286,6 +1179,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     static type: "group";
 }
+
+// @public (undocumented)
+export const HALF_PI: number;
 
 // @public
 export function hardReset({ shouldReload }?: {
@@ -1302,10 +1198,25 @@ export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
 export const HIT_TEST_MARGIN = 8;
 
 // @public (undocumented)
-export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX.Element;
+export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX_2.Element;
 
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
+
+// @public
+export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
+
+// @public
+export function intersectCirclePolygon(c: VecLike, r: number, points: VecLike[]): null | VecLike[];
+
+// @public
+export function intersectCirclePolyline(c: VecLike, r: number, points: VecLike[]): null | VecLike[];
+
+// @public
+export function intersectLineSegmentCircle(a1: VecLike, a2: VecLike, c: VecLike, r: number): null | VecLike[];
+
+// @public
+export function intersectLineSegmentLineSegment(a1: VecLike, a2: VecLike, b1: VecLike, b2: VecLike): null | Vec;
 
 // @public
 export function intersectLineSegmentPolygon(a1: VecLike, a2: VecLike, points: VecLike[]): null | VecLike[];
@@ -1314,16 +1225,13 @@ export function intersectLineSegmentPolygon(a1: VecLike, a2: VecLike, points: Ve
 export function intersectLineSegmentPolyline(a1: VecLike, a2: VecLike, points: VecLike[]): null | VecLike[];
 
 // @public
+export function intersectPolygonBounds(points: VecLike[], bounds: Box): null | VecLike[];
+
+// @public
 export function intersectPolygonPolygon(polygonA: VecLike[], polygonB: VecLike[]): null | VecLike[];
 
 // @public
-export function isAngleBetween(a: number, b: number, c: number): boolean;
-
-// @public
 export const isSafeFloat: (n: number) => boolean;
-
-// @public
-export function lerpAngles(a0: number, a1: number, t: number): number;
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
@@ -1331,34 +1239,31 @@ export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): 
 // @public (undocumented)
 export function LoadingScreen({ children }: {
     children: any;
-}): JSX.Element;
+}): JSX_2.Element;
 
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
-
-// @public
-export function longAngleDist(a0: number, a1: number): number;
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
 
 // @public (undocumented)
-export class Matrix2d {
+export class Mat {
     constructor(a: number, b: number, c: number, d: number, e: number, f: number);
     // (undocumented)
     a: number;
     // (undocumented)
-    static Absolute(m: MatLike): Matrix2dModel;
+    static Absolute(m: MatLike): MatModel;
     // (undocumented)
-    static applyToBounds(m: MatLike, box: Box2d): Box2d;
+    static applyToBounds(m: MatLike, box: Box): Box;
     // (undocumented)
-    applyToPoint(point: VecLike): Vec2d;
+    applyToPoint(point: VecLike): Vec;
     // (undocumented)
-    static applyToPoint(m: MatLike, point: VecLike): Vec2d;
+    static applyToPoint(m: MatLike, point: VecLike): Vec;
     // (undocumented)
-    applyToPoints(points: VecLike[]): Vec2d[];
+    applyToPoints(points: VecLike[]): Vec[];
     // (undocumented)
-    static applyToPoints(m: MatLike, points: VecLike[]): Vec2d[];
+    static applyToPoints(m: MatLike, points: VecLike[]): Vec[];
     // (undocumented)
     static applyToXY(m: MatLike, x: number, y: number): number[];
     // (undocumented)
@@ -1366,60 +1271,78 @@ export class Matrix2d {
     // (undocumented)
     c: number;
     // (undocumented)
-    static Cast(m: MatLike): Matrix2d;
+    static Cast(m: MatLike): Mat;
     // (undocumented)
-    clone(): Matrix2d;
+    clone(): Mat;
     // (undocumented)
-    static Compose(...matrices: MatLike[]): Matrix2d;
+    static Compose(...matrices: MatLike[]): Mat;
     // (undocumented)
     d: number;
     // (undocumented)
-    static Decompose(m: MatLike): MatrixInfo;
+    static Decompose(m: MatLike): {
+        x: number;
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        rotation: number;
+    };
     // (undocumented)
-    decompose(): MatrixInfo;
+    decompose(): {
+        x: number;
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        rotation: number;
+    };
     // (undocumented)
-    decomposed(): MatrixInfo;
+    decomposed(): {
+        x: number;
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        rotation: number;
+    };
     // (undocumented)
     e: number;
     // (undocumented)
-    equals(m: Matrix2d | Matrix2dModel): boolean;
+    equals(m: Mat | MatModel): boolean;
     // (undocumented)
     f: number;
     // (undocumented)
-    static From(m: MatLike): Matrix2d;
+    static From(m: MatLike): Mat;
     // (undocumented)
-    static Identity(): Matrix2d;
+    static Identity(): Mat;
     // (undocumented)
     identity(): this;
     // (undocumented)
-    static Inverse(m: Matrix2dModel): Matrix2dModel;
+    static Inverse(m: MatModel): MatModel;
     // (undocumented)
     invert(): this;
     // (undocumented)
-    static Multiply(m1: Matrix2dModel, m2: Matrix2dModel): Matrix2dModel;
+    static Multiply(m1: MatModel, m2: MatModel): MatModel;
     // (undocumented)
-    multiply(m: Matrix2d | Matrix2dModel): this;
+    multiply(m: Mat | MatModel): this;
     // (undocumented)
-    static Point(m: MatLike): Vec2d;
+    static Point(m: MatLike): Vec;
     // (undocumented)
-    point(): Vec2d;
+    point(): Vec;
     // (undocumented)
-    static Rotate(r: number, cx?: number, cy?: number): Matrix2d;
+    static Rotate(r: number, cx?: number, cy?: number): Mat;
     // (undocumented)
-    rotate(r: number, cx?: number, cy?: number): Matrix2d;
+    rotate(r: number, cx?: number, cy?: number): Mat;
     // (undocumented)
     static Rotation(m: MatLike): number;
     // (undocumented)
     rotation(): number;
     // (undocumented)
     static Scale: {
-        (x: number, y: number): Matrix2dModel;
-        (x: number, y: number, cx: number, cy: number): Matrix2dModel;
+        (x: number, y: number): MatModel;
+        (x: number, y: number, cx: number, cy: number): MatModel;
     };
     // (undocumented)
     scale(x: number, y: number): this;
     // (undocumented)
-    setTo(model: Matrix2dModel): this;
+    setTo(model: MatModel): this;
     // (undocumented)
     static Smooth(m: MatLike, precision?: number): MatLike;
     // (undocumented)
@@ -1427,13 +1350,16 @@ export class Matrix2d {
     // (undocumented)
     static toCssString(m: MatLike): string;
     // (undocumented)
-    static Translate(x: number, y: number): Matrix2d;
+    static Translate(x: number, y: number): Mat;
     // (undocumented)
-    translate(x: number, y: number): Matrix2d;
+    translate(x: number, y: number): Mat;
 }
 
 // @public (undocumented)
-export interface Matrix2dModel {
+export type MatLike = Mat | MatModel;
+
+// @public (undocumented)
+export interface MatModel {
     // (undocumented)
     a: number;
     // (undocumented)
@@ -1460,6 +1386,9 @@ export const MAX_ZOOM = 8;
 // @internal (undocumented)
 export const MIN_ZOOM = 0.1;
 
+// @public
+export function moveCameraWhenCloseToEdge(editor: Editor): void;
+
 // @internal (undocumented)
 export const MULTI_CLICK_DURATION = 200;
 
@@ -1476,7 +1405,7 @@ export function openWindow(url: string, target?: string): void;
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: TLErrorFallbackComponent;
-}): JSX.Element;
+}): JSX_2.Element;
 
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
@@ -1487,32 +1416,27 @@ export const PI: number;
 // @public (undocumented)
 export const PI2: number;
 
-// @public
-export function pointInBounds(A: VecLike, b: Box2d): boolean;
-
-// @public
-export function pointInCircle(A: VecLike, C: VecLike, r: number): boolean;
-
-// @public
-export function pointInEllipse(A: VecLike, C: VecLike, rx: number, ry: number, rotation?: number): boolean;
+// @public (undocumented)
+export class Point2d extends Geometry2d {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
+        margin: number;
+        point: Vec;
+    });
+    // (undocumented)
+    getVertices(): Vec[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec, B: Vec, margin: number): boolean;
+    // (undocumented)
+    nearestPoint(): Vec;
+    // (undocumented)
+    point: Vec;
+}
 
 // @public
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean;
 
-// @public
-export function pointInPolyline(A: VecLike, points: VecLike[], distance?: number): boolean;
-
-// @public
-export function pointInRect(A: VecLike, point: VecLike, size: VecLike): boolean;
-
-// @public
-export function pointNearToLineSegment(A: VecLike, p1: VecLike, p2: VecLike, distance?: number): boolean;
-
-// @public
-export function pointNearToPolyline(A: VecLike, points: VecLike[], distance?: number): boolean;
-
 // @public (undocumented)
-export type PointsSnapLine = {
+export type PointsSnapIndicator = {
     id: string;
     type: 'points';
     points: VecLike[];
@@ -1521,7 +1445,7 @@ export type PointsSnapLine = {
 // @public (undocumented)
 export class Polygon2d extends Polyline2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
-        points: Vec2d[];
+        points: Vec[];
     });
 }
 
@@ -1531,20 +1455,20 @@ export function polygonsIntersect(a: VecLike[], b: VecLike[]): boolean;
 // @public (undocumented)
 export class Polyline2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
-        points: Vec2d[];
+        points: Vec[];
     });
     // (undocumented)
-    getVertices(): Vec2d[];
+    getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)
     _length?: number;
     // (undocumented)
-    nearestPoint(A: Vec2d): Vec2d;
+    nearestPoint(A: Vec): Vec;
     // (undocumented)
-    points: Vec2d[];
+    points: Vec[];
     // (undocumented)
     get segments(): Edge2d[];
     // (undocumented)
@@ -1556,7 +1480,7 @@ export const PositionedOnCanvas: MemoExoticComponent<({ x: offsetX, y: offsetY, 
 x?: number | undefined;
 y?: number | undefined;
 rotation?: number | undefined;
-} & HTMLProps<HTMLDivElement>) => JSX.Element>;
+} & HTMLProps<HTMLDivElement>) => JSX_2.Element>;
 
 // @public (undocumented)
 export function precise(A: VecLike): string;
@@ -1604,7 +1528,7 @@ export class Rectangle2d extends Polygon2d {
         height: number;
     });
     // (undocumented)
-    getBounds(): Box2d;
+    getBounds(): Box;
     // (undocumented)
     h: number;
     // (undocumented)
@@ -1626,12 +1550,12 @@ export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K
 
 // @public (undocumented)
 export function resizeBox(shape: TLBaseBoxShape, info: {
-    newPoint: Vec2dModel;
+    newPoint: VecModel;
     handle: TLResizeHandle;
     mode: TLResizeMode;
     scaleX: number;
     scaleY: number;
-    initialBounds: Box2d;
+    initialBounds: Box;
     initialShape: TLBaseBoxShape;
 }, opts?: Partial<{
     minWidth: number;
@@ -1727,7 +1651,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract getDefaultProps(): Shape['props'];
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
-    getOutlineSegments(shape: Shape): Vec2d[][];
+    getOutlineSegments(shape: Shape): Vec[][];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
@@ -1751,7 +1675,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     }>;
     onDropShapesOver?: TLOnDragHandler<Shape>;
     onEditEnd?: TLOnEditEndHandler<Shape>;
-    onHandleChange?: TLOnHandleChangeHandler<Shape>;
+    onHandleDrag?: TLOnHandleDragHandler<Shape>;
     onResize?: TLOnResizeHandler<Shape>;
     onResizeEnd?: TLOnResizeEndHandler<Shape>;
     onResizeStart?: TLOnResizeStartHandler<Shape>;
@@ -1798,87 +1722,29 @@ export const SIN: (x: number) => number;
 export function snapAngle(r: number, segments: number): number;
 
 // @public (undocumented)
-export type SnapLine = GapsSnapLine | PointsSnapLine;
+export type SnapIndicator = GapsSnapIndicator | PointsSnapIndicator;
 
 // @public (undocumented)
 export class SnapManager {
     constructor(editor: Editor);
     // (undocumented)
-    clear(): void;
-    // @deprecated (undocumented)
-    get currentCommonAncestor(): TLShapeId | undefined;
+    clearIndicators(): void;
     // (undocumented)
     readonly editor: Editor;
     // (undocumented)
     getCurrentCommonAncestor(): TLShapeId | undefined;
     // (undocumented)
-    getLines(): SnapLine[];
+    getIndicators(): SnapIndicator[];
     // (undocumented)
-    getOutlinesInPageSpace(): Vec2d[][];
-    // (undocumented)
-    getSnappablePoints(): SnapPoint[];
-    // (undocumented)
-    getSnappableShapes(): GapNode[];
-    // (undocumented)
-    getSnappingHandleDelta({ handlePoint, additionalSegments, }: {
-        handlePoint: Vec2d;
-        additionalSegments: Vec2d[][];
-    }): null | Vec2d;
-    // (undocumented)
-    getSnapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
+    getSnappableShapes(): Set<TLShapeId>;
     // (undocumented)
     getSnapThreshold(): number;
     // (undocumented)
-    getVisibleGaps(): {
-        horizontal: Gap[];
-        vertical: Gap[];
-    };
-    // @deprecated (undocumented)
-    get lines(): SnapLine[];
-    // @deprecated (undocumented)
-    get outlinesInPageSpace(): Vec2d[][];
+    readonly handles: HandleSnaps;
     // (undocumented)
-    setLines(lines: SnapLine[]): void;
-    // @deprecated (undocumented)
-    get snappablePoints(): SnapPoint[];
-    // @deprecated (undocumented)
-    get snappableShapes(): GapNode[];
-    // @deprecated (undocumented)
-    get snapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
+    setIndicators(indicators: SnapIndicator[]): void;
     // (undocumented)
-    snapResize({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }: {
-        initialSelectionPageBounds: Box2d;
-        dragDelta: Vec2d;
-        handle: SelectionCorner | SelectionEdge;
-        isAspectRatioLocked: boolean;
-        isResizingFromCenter: boolean;
-    }): SnapData;
-    // @deprecated (undocumented)
-    get snapThreshold(): number;
-    // (undocumented)
-    snapTranslate({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: {
-        lockedAxis: 'x' | 'y' | null;
-        initialSelectionSnapPoints: SnapPoint[];
-        initialSelectionPageBounds: Box2d;
-        dragDelta: Vec2d;
-    }): SnapData;
-    // @deprecated (undocumented)
-    get visibleGaps(): {
-        horizontal: Gap[];
-        vertical: Gap[];
-    };
-}
-
-// @public (undocumented)
-export interface SnapPoint {
-    // (undocumented)
-    handle?: SelectionCorner;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    x: number;
-    // (undocumented)
-    y: number;
+    readonly shapeBounds: BoundsSnaps;
 }
 
 // @public
@@ -1898,7 +1764,7 @@ export class Stadium2d extends Ellipse2d {
         height: number;
     };
     // (undocumented)
-    getVertices(): Vec2d[];
+    getVertices(): Vec[];
 }
 
 // @public (undocumented)
@@ -1908,9 +1774,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
-    // @deprecated (undocumented)
-    get currentToolIdMask(): string | undefined;
-    set currentToolIdMask(id: string | undefined);
     _currentToolIdMask: Atom<string | undefined, unknown>;
     // (undocumented)
     editor: Editor;
@@ -1964,6 +1827,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onRightClick?: TLEventHandlers['onRightClick'];
     // (undocumented)
+    onTick?: TLTickEventHandler;
+    // (undocumented)
     onTripleClick?: TLEventHandlers['onTripleClick'];
     // (undocumented)
     onWheel?: TLEventHandlers['onWheel'];
@@ -1987,7 +1852,7 @@ export const stopEventPropagation: (e: any) => any;
 export const SVG_PADDING = 32;
 
 // @public (undocumented)
-export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX.Element;
+export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
 
 // @public (undocumented)
 export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
@@ -2009,7 +1874,13 @@ export interface SvgExportDef {
 export const TAB_ID: string;
 
 // @public (undocumented)
-export const TAU: number;
+export type TLAfterChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;
+
+// @public (undocumented)
+export type TLAfterCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
+
+// @public (undocumented)
+export type TLAfterDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
 
 // @public (undocumented)
 export type TLAnimationOptions = Partial<{
@@ -2019,6 +1890,47 @@ export type TLAnimationOptions = Partial<{
 
 // @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
+
+// @public (undocumented)
+export interface TLArcInfo {
+    // (undocumented)
+    center: VecLike;
+    // (undocumented)
+    largeArcFlag: number;
+    // (undocumented)
+    length: number;
+    // (undocumented)
+    radius: number;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    sweepFlag: number;
+}
+
+// @public (undocumented)
+export type TLArrowInfo = {
+    isStraight: false;
+    start: TLArrowPoint;
+    end: TLArrowPoint;
+    middle: VecLike;
+    handleArc: TLArcInfo;
+    bodyArc: TLArcInfo;
+    isValid: boolean;
+} | {
+    isStraight: true;
+    start: TLArrowPoint;
+    end: TLArrowPoint;
+    middle: VecLike;
+    isValid: boolean;
+    length: number;
+};
+
+// @public (undocumented)
+export type TLArrowPoint = {
+    handle: VecLike;
+    point: VecLike;
+    arrowhead: TLArrowShapeArrowheadStyle;
+};
 
 // @public (undocumented)
 export type TLBackgroundComponent = ComponentType;
@@ -2042,8 +1954,20 @@ export interface TLBaseEventInfo {
 }
 
 // @public (undocumented)
+export type TLBatchCompleteHandler = () => void;
+
+// @public (undocumented)
+export type TLBeforeChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => R;
+
+// @public (undocumented)
+export type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => R;
+
+// @public (undocumented)
+export type TLBeforeDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => false | void;
+
+// @public (undocumented)
 export type TLBrushComponent = ComponentType<{
-    brush: Box2dModel;
+    brush: BoxModel;
     color?: string;
     opacity?: number;
     className?: string;
@@ -2077,8 +2001,8 @@ export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_clic
 // @public (undocumented)
 export type TLCollaboratorHintComponent = ComponentType<{
     className?: string;
-    point: Vec2dModel;
-    viewport: Box2d;
+    point: VecModel;
+    viewport: Box;
     zoom: number;
     opacity?: number;
     color: string;
@@ -2100,6 +2024,13 @@ export type TLCommandHandler<Data> = {
     redo?: (data: Data) => void;
     squash?: (prevData: Data, nextData: Data) => Data;
 };
+
+// @public (undocumented)
+export type TLCommandHistoryOptions = Partial<{
+    squashing: boolean;
+    ephemeral: boolean;
+    preservesRedoStack: boolean;
+}>;
 
 // @public (undocumented)
 export type TLCompleteEvent = (info: TLCompleteEventInfo) => void;
@@ -2125,7 +2056,7 @@ export interface TLContent {
 // @public (undocumented)
 export type TLCursorComponent = ComponentType<{
     className?: string;
-    point: null | Vec2dModel;
+    point: null | VecModel;
     zoom: number;
     color?: string;
     name: null | string;
@@ -2419,7 +2350,7 @@ export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TL
 export type TLOnEditEndHandler<T extends TLShape> = (shape: T) => void;
 
 // @public (undocumented)
-export type TLOnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
+export type TLOnHandleDragHandler<T extends TLShape> = (shape: T, info: {
     handle: TLHandle;
     isPrecise: boolean;
     initial?: T | undefined;
@@ -2465,8 +2396,8 @@ export type TLPinchEvent = (info: TLPinchEventInfo) => void;
 export type TLPinchEventInfo = TLBaseEventInfo & {
     type: 'pinch';
     name: TLPinchEventName;
-    point: Vec2dModel;
-    delta: Vec2dModel;
+    point: VecModel;
+    delta: VecModel;
 };
 
 // @public (undocumented)
@@ -2510,12 +2441,12 @@ export type TLResizeHandle = SelectionCorner | SelectionEdge;
 
 // @public
 export type TLResizeInfo<T extends TLShape> = {
-    newPoint: Vec2d;
+    newPoint: Vec;
     handle: TLResizeHandle;
     mode: TLResizeMode;
     scaleX: number;
     scaleY: number;
-    initialBounds: Box2d;
+    initialBounds: Box;
     initialShape: T;
 };
 
@@ -2524,7 +2455,7 @@ export type TLResizeMode = 'resize_bounds' | 'scale_shape';
 
 // @public (undocumented)
 export type TLResizeShapeOptions = Partial<{
-    initialBounds: Box2d;
+    initialBounds: Box;
     scaleOrigin: VecLike;
     scaleAxisRotation: number;
     initialShape: TLShape;
@@ -2535,12 +2466,12 @@ export type TLResizeShapeOptions = Partial<{
 
 // @public
 export type TLRotationSnapshot = {
-    selectionPageCenter: Vec2d;
+    selectionPageCenter: Vec;
     initialCursorAngle: number;
     initialSelectionRotation: number;
     shapeSnapshots: {
         shape: TLShape;
-        initialPagePoint: Vec2d;
+        initialPagePoint: Vec;
     }[];
 };
 
@@ -2555,13 +2486,13 @@ export type TLScribbleComponent = ComponentType<{
 
 // @public (undocumented)
 export type TLSelectionBackgroundComponent = React_3.ComponentType<{
-    bounds: Box2d;
+    bounds: Box;
     rotation: number;
 }>;
 
 // @public (undocumented)
 export type TLSelectionForegroundComponent = ComponentType<{
-    bounds: Box2d;
+    bounds: Box;
     rotation: number;
 }>;
 
@@ -2629,9 +2560,9 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
 export type TLShapeUtilFlag<T> = (shape: T) => boolean;
 
 // @public (undocumented)
-export type TLSnapLineComponent = React_3.ComponentType<{
+export type TLSnapIndicatorComponent = React_3.ComponentType<{
     className?: string;
-    line: SnapLine;
+    line: SnapIndicator;
     zoom: number;
 }>;
 
@@ -2692,7 +2623,7 @@ export type TLSvgDefsComponent = React.ComponentType;
 
 // @public (undocumented)
 export type TLSvgOptions = {
-    bounds: Box2d;
+    bounds: Box;
     scale: number;
     background: boolean;
     padding: number;
@@ -2703,12 +2634,17 @@ export type TLSvgOptions = {
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
 
+// @public (undocumented)
+export type TLTickEventHandler = () => void;
+
 // @public
 export interface TLUserPreferences {
     // (undocumented)
     animationSpeed?: null | number;
     // (undocumented)
     color?: null | string;
+    // (undocumented)
+    edgeScrollSpeed?: null | number;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -2728,8 +2664,8 @@ export type TLWheelEvent = (info: TLWheelEventInfo) => void;
 export type TLWheelEventInfo = TLBaseEventInfo & {
     type: 'wheel';
     name: 'wheel';
-    delta: Vec2dModel;
-    point: Vec2dModel;
+    delta: VecModel;
+    point: VecModel;
 };
 
 // @public
@@ -2768,7 +2704,7 @@ export { useComputed }
 export function useContainer(): HTMLDivElement;
 
 // @public (undocumented)
-export const useEditor: () => Editor;
+export function useEditor(): Editor;
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
@@ -2806,6 +2742,12 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
     onPointerUp: PointerEventHandler<Element>;
 };
 
+// @internal (undocumented)
+export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
+
+// @internal (undocumented)
+export function useShallowObjectIdentity<T extends Record<string, unknown>>(arr: T): T;
+
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {
     snapshot?: StoreSnapshot<TLRecord>;
@@ -2817,22 +2759,22 @@ export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?:
 export { useValue }
 
 // @public (undocumented)
-export class Vec2d {
+export class Vec {
     constructor(x?: number, y?: number, z?: number);
     // (undocumented)
-    static Abs(A: VecLike): Vec2d;
+    static Abs(A: VecLike): Vec;
     // (undocumented)
     abs(): this;
     // (undocumented)
-    static Add(A: VecLike, B: VecLike): Vec2d;
+    static Add(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     add(V: VecLike): this;
     // (undocumented)
-    static AddScalar(A: VecLike, n: number): Vec2d;
+    static AddScalar(A: VecLike, n: number): Vec;
     // (undocumented)
     addScalar(n: number): this;
     // (undocumented)
-    static AddXY(A: VecLike, x: number, y: number): Vec2d;
+    static AddXY(A: VecLike, x: number, y: number): Vec;
     // (undocumented)
     addXY(x: number, y: number): this;
     // (undocumented)
@@ -2840,23 +2782,22 @@ export class Vec2d {
     // (undocumented)
     angle(B: VecLike): number;
     // (undocumented)
-    static Average(arr: VecLike[]): Vec2d;
+    static Average(arr: VecLike[]): Vec;
     // (undocumented)
-    static Cast(A: VecLike): Vec2d;
+    static Cast(A: VecLike): Vec;
     // (undocumented)
-    static Clamp(A: Vec2d, min: number, max?: number): Vec2d;
+    static Clamp(A: Vec, min: number, max?: number): Vec;
     // (undocumented)
     clamp(min: number, max?: number): this;
     // (undocumented)
     static Clockwise(A: VecLike, B: VecLike, C: VecLike): boolean;
     // (undocumented)
-    clone(): Vec2d;
-    // (undocumented)
+    clone(): Vec;
     static Cpr(A: VecLike, B: VecLike): number;
     // (undocumented)
     cpr(V: VecLike): number;
     // (undocumented)
-    static Cross(A: VecLike, V: VecLike): Vec2d;
+    static Cross(A: VecLike, V: VecLike): Vec;
     // (undocumented)
     cross(V: VecLike): this;
     // (undocumented)
@@ -2872,14 +2813,13 @@ export class Vec2d {
     // (undocumented)
     static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number;
     // (undocumented)
-    static Div(A: VecLike, t: number): Vec2d;
+    static Div(A: VecLike, t: number): Vec;
     // (undocumented)
     div(t: number): this;
     // (undocumented)
-    static DivV(A: VecLike, B: VecLike): Vec2d;
+    static DivV(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     divV(V: VecLike): this;
-    // (undocumented)
     static Dpr(A: VecLike, B: VecLike): number;
     // (undocumented)
     dpr(V: VecLike): number;
@@ -2892,11 +2832,13 @@ export class Vec2d {
     // (undocumented)
     equalsXY(x: number, y: number): boolean;
     // (undocumented)
-    static From({ x, y, z }: Vec2dModel): Vec2d;
+    static From({ x, y, z }: VecModel): Vec;
     // (undocumented)
-    static FromAngle(r: number, length?: number): Vec2d;
+    static FromAngle(r: number, length?: number): Vec;
     // (undocumented)
-    static FromArray(v: number[]): Vec2d;
+    static FromArray(v: number[]): Vec;
+    // (undocumented)
+    static IsNaN(A: VecLike): boolean;
     // (undocumented)
     static Len(A: VecLike): number;
     // (undocumented)
@@ -2905,60 +2847,57 @@ export class Vec2d {
     static Len2(A: VecLike): number;
     // (undocumented)
     len2(): number;
+    static Lrp(A: VecLike, B: VecLike, t: number): Vec;
     // (undocumented)
-    static Lrp(A: VecLike, B: VecLike, t: number): Vec2d;
+    lrp(B: VecLike, t: number): Vec;
     // (undocumented)
-    lrp(B: VecLike, t: number): Vec2d;
+    static Max(A: VecLike, B: VecLike): Vec;
     // (undocumented)
-    static Max(A: VecLike, B: VecLike): Vec2d;
+    static Med(A: VecLike, B: VecLike): Vec;
     // (undocumented)
-    static Med(A: VecLike, B: VecLike): Vec2d;
+    static Min(A: VecLike, B: VecLike): Vec;
     // (undocumented)
-    static Min(A: VecLike, B: VecLike): Vec2d;
-    // (undocumented)
-    static Mul(A: VecLike, t: number): Vec2d;
+    static Mul(A: VecLike, t: number): Vec;
     // (undocumented)
     mul(t: number): this;
     // (undocumented)
-    static MulV(A: VecLike, B: VecLike): Vec2d;
+    static MulV(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     mulV(V: VecLike): this;
     // (undocumented)
-    static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp?: boolean): Vec2d;
-    static NearestPointOnLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): Vec2d;
+    static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp?: boolean): Vec;
+    static NearestPointOnLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): Vec;
     // (undocumented)
-    static Neg(A: VecLike): Vec2d;
+    static Neg(A: VecLike): Vec;
     // (undocumented)
     neg(): this;
     // (undocumented)
     norm(): this;
     // (undocumented)
-    static Nudge(A: VecLike, B: VecLike, distance: number): Vec2d;
+    static Nudge(A: VecLike, B: VecLike, distance: number): Vec;
     // (undocumented)
     nudge(B: VecLike, distance: number): this;
-    // (undocumented)
-    static Per(A: VecLike): Vec2d;
+    static Per(A: VecLike): Vec;
     // (undocumented)
     per(): this;
-    static PointsBetween(A: Vec2dModel, B: Vec2dModel, steps?: number): Vec2d[];
+    static PointsBetween(A: VecModel, B: VecModel, steps?: number): Vec[];
     // (undocumented)
     get pressure(): number;
-    // (undocumented)
     static Pry(A: VecLike, B: VecLike): number;
     // (undocumented)
     pry(V: VecLike): number;
     // (undocumented)
-    static Rescale(A: VecLike, n: number): Vec2d;
+    static Rescale(A: VecLike, n: number): Vec;
     // (undocumented)
-    static Rot(A: VecLike, r?: number): Vec2d;
+    static Rot(A: VecLike, r?: number): Vec;
     // (undocumented)
     rot(r: number): this;
     // (undocumented)
-    static RotWith(A: VecLike, C: VecLike, r: number): Vec2d;
+    static RotWith(A: VecLike, C: VecLike, r: number): Vec;
     // (undocumented)
     rotWith(C: VecLike, r: number): this;
     // (undocumented)
-    static ScaleWithOrigin(A: VecLike, scale: number, origin: VecLike): Vec2d;
+    static ScaleWithOrigin(A: VecLike, scale: number, origin: VecLike): Vec;
     // (undocumented)
     set(x?: number, y?: number, z?: number): this;
     // (undocumented)
@@ -2968,27 +2907,27 @@ export class Vec2d {
     // (undocumented)
     slope(B: VecLike): number;
     // (undocumented)
-    static Snap(A: VecLike, step?: number): Vec2d;
+    static Snap(A: VecLike, step?: number): Vec;
     // (undocumented)
-    static SnapToGrid(A: VecLike, gridSize?: number): Vec2d;
+    static SnapToGrid(A: VecLike, gridSize?: number): Vec;
     // (undocumented)
     snapToGrid(gridSize: number): this;
     // (undocumented)
-    static Sub(A: VecLike, B: VecLike): Vec2d;
+    static Sub(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     sub(V: VecLike): this;
     // (undocumented)
-    static SubScalar(A: VecLike, n: number): Vec2d;
+    static SubScalar(A: VecLike, n: number): Vec;
     // (undocumented)
     subScalar(n: number): this;
     // (undocumented)
-    static SubXY(A: VecLike, x: number, y: number): Vec2d;
+    static SubXY(A: VecLike, x: number, y: number): Vec;
     // (undocumented)
     subXY(x: number, y: number): this;
     // (undocumented)
-    static Tan(A: VecLike, B: VecLike): Vec2d;
+    static Tan(A: VecLike, B: VecLike): Vec;
     // (undocumented)
-    tan(V: VecLike): Vec2d;
+    tan(V: VecLike): Vec;
     // (undocumented)
     static ToAngle(A: VecLike): number;
     // (undocumented)
@@ -2998,9 +2937,9 @@ export class Vec2d {
     // (undocumented)
     toArray(): number[];
     // (undocumented)
-    static ToFixed(A: VecLike, n?: number): Vec2d;
+    static ToFixed(A: VecLike, n?: number): Vec;
     // (undocumented)
-    toFixed(): Vec2d;
+    toFixed(): Vec;
     // (undocumented)
     static ToJson(A: VecLike): {
         x: number;
@@ -3008,15 +2947,14 @@ export class Vec2d {
         z: number | undefined;
     };
     // (undocumented)
-    toJson(): Vec2dModel;
+    toJson(): VecModel;
     // (undocumented)
     static ToString(A: VecLike): string;
     // (undocumented)
     toString(): string;
+    static Uni(A: VecLike): Vec;
     // (undocumented)
-    static Uni(A: VecLike): Vec2d;
-    // (undocumented)
-    uni(): Vec2d;
+    uni(): Vec;
     // (undocumented)
     x: number;
     // (undocumented)
@@ -3026,7 +2964,7 @@ export class Vec2d {
 }
 
 // @public (undocumented)
-export type VecLike = Vec2d | Vec2dModel;
+export type VecLike = Vec | VecModel;
 
 // @public (undocumented)
 export class WeakMapCache<T extends object, K> {

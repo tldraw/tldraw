@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useRef } from 'react'
 import { useActions } from '../hooks/useActions'
 import { useCanRedo } from '../hooks/useCanRedo'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -11,6 +11,7 @@ export const RedoButton = memo(function RedoButton() {
 	const actions = useActions()
 
 	const redo = actions['redo']
+	const ref = useRef<HTMLButtonElement>(null)
 
 	return (
 		<Button
@@ -21,6 +22,7 @@ export const RedoButton = memo(function RedoButton() {
 			disabled={!canRedo}
 			onClick={() => redo.onSelect('quick-actions')}
 			smallIcon
+			ref={ref}
 		/>
 	)
 })

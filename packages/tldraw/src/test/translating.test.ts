@@ -1,11 +1,12 @@
 import {
-	GapsSnapLine,
-	PointsSnapLine,
-	SnapLine,
+	GapsSnapIndicator,
+	PointsSnapIndicator,
+	SnapIndicator,
 	TLArrowShape,
+	TLGeoShape,
 	TLShapeId,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	createShapeId,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
@@ -40,17 +41,17 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
-const getNumSnapPoints = (snap: SnapLine): number => {
+const getNumSnapPoints = (snap: SnapIndicator): number => {
 	return snap.type === 'points' ? snap.points.length : (null as any as number)
 }
 
-function assertGaps(snap: SnapLine): asserts snap is GapsSnapLine {
+function assertGaps(snap: SnapIndicator): asserts snap is GapsSnapIndicator {
 	expect(snap.type).toBe('gaps')
 }
 
-function getGapAndPointLines(snaps: SnapLine[]) {
-	const gapLines = snaps.filter((snap) => snap.type === 'gaps') as GapsSnapLine[]
-	const pointLines = snaps.filter((snap) => snap.type === 'points') as PointsSnapLine[]
+function getGapAndPointLines(snaps: SnapIndicator[]) {
+	const gapLines = snaps.filter((snap) => snap.type === 'gaps') as GapsSnapIndicator[]
+	const pointLines = snaps.filter((snap) => snap.type === 'points') as PointsSnapIndicator[]
 	return { gapLines, pointLines }
 }
 
@@ -127,6 +128,46 @@ describe('When translating...', () => {
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 	})
 
+	it('translates a single shape near the top left edge', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		editor.pointerDown(50, 50, ids.box1).pointerMove(0, 50) // [-50, 0]
+
+		const before = editor.getShape<TLGeoShape>(ids.box1)!
+
+		jest.advanceTimersByTime(100)
+		editor
+			// The change is bigger than expected because the camera moves
+			.expectShapeToMatch({ id: ids.box1, x: -160, y: 10 })
+			// We'll continue moving in the x postion, but now we'll also move in the y position.
+			// The speed in the y position is smaller since we are further away from the edge.
+			.pointerMove(0, 25)
+		jest.advanceTimersByTime(100)
+		editor.pointerUp()
+
+		const after = editor.getShape<TLGeoShape>(ids.box1)!
+
+		expect(after.x).toBeLessThan(before.x)
+		expect(after.y).toBeLessThan(before.y)
+		expect(after.props.w).toEqual(before.props.w)
+		expect(after.props.h).toEqual(before.props.h)
+	})
+
+	it('translates a single shape near the bottom right edge', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
+
+		jest.advanceTimersByTime(100)
+		editor
+			// The change is bigger than expected because the camera moves
+			.expectShapeToMatch({ id: ids.box1, x: 1140, y: 10 })
+			.pointerMove(1080, 800)
+		jest.advanceTimersByTime(100)
+		editor
+			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+			.pointerUp()
+			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+	})
+
 	it('translates multiple shapes', () => {
 		editor
 			.select(ids.box1, ids.box2)
@@ -173,6 +214,7 @@ describe('When cloning...', () => {
 	})
 
 	it('clones a single shape and restores when stopping cloning', () => {
+		// Move the camera so that we are not at the edges, which causes the camera to move when we translate
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
 		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
@@ -352,17 +394,17 @@ describe('When translating shapes that are descendants of a rotated shape...', (
 		const shapeA = editor.getShape(ids.box1)!
 		const shapeD = editor.getShape(ids.boxD)!
 
-		expect(editor.getPageCenter(shapeA)).toMatchObject(new Vec2d(60, 60))
-		expect(editor.getShapeGeometry(shapeD).center).toMatchObject(new Vec2d(5, 5))
-		expect(editor.getPageCenter(shapeD)).toMatchObject(new Vec2d(35, 35))
+		expect(editor.getPageCenter(shapeA)).toMatchObject(new Vec(60, 60))
+		expect(editor.getShapeGeometry(shapeD).center).toMatchObject(new Vec(5, 5))
+		expect(editor.getPageCenter(shapeD)).toMatchObject(new Vec(35, 35))
 
 		const rads = 0
 
-		expect(editor.getPageCenter(shapeA)).toMatchObject(new Vec2d(60, 60))
+		expect(editor.getPageCenter(shapeA)).toMatchObject(new Vec(60, 60))
 
 		// Expect the node's page position to be rotated around its parent's page center
 		expect(editor.getPageCenter(shapeD)).toMatchObject(
-			new Vec2d(35, 35).rotWith(editor.getPageCenter(shapeA)!, rads)
+			new Vec(35, 35).rotWith(editor.getPageCenter(shapeA)!, rads)
 		)
 
 		const centerD = editor.getPageCenter(shapeD)!.clone().toFixed()
@@ -374,7 +416,7 @@ describe('When translating shapes that are descendants of a rotated shape...', (
 			.pointerMove(centerD.x, centerD.y - 10)
 			.pointerUp()
 
-		expect(editor.getPageCenter(shapeD)).toMatchObject(new Vec2d(centerD.x, centerD.y - 10))
+		expect(editor.getPageCenter(shapeD)).toMatchObject(new Vec(centerD.x, centerD.y - 10))
 
 		const centerA = editor.getPageCenter(shapeA)!.clone().toFixed()
 
@@ -510,9 +552,9 @@ describe('snapping with single shapes', () => {
 		//       ┼  └──────┘
 
 		editor.pointerDown(25, 5, ids.box2).pointerMove(16, 35, { ctrlKey: true })
-		expect(editor.snaps.getLines()?.length).toBe(1)
+		expect(editor.snaps.getIndicators()?.length).toBe(1)
 
-		expect(getNumSnapPoints(editor.snaps.getLines()![0])).toBe(4)
+		expect(getNumSnapPoints(editor.snaps.getIndicators()![0])).toBe(4)
 	})
 
 	it('shows all the horizonal lines + points where the bounding boxes align', () => {
@@ -523,7 +565,9 @@ describe('snapping with single shapes', () => {
 		// x─────x────────────────────x─────x
 		editor.pointerDown(25, 5, ids.box2).pointerMove(36, 5, { ctrlKey: true })
 
-		const snaps = editor.snaps.getLines()!.sort((a, b) => getNumSnapPoints(a) - getNumSnapPoints(b))
+		const snaps = editor.snaps
+			.getIndicators()!
+			.sort((a, b) => getNumSnapPoints(a) - getNumSnapPoints(b))
 		expect(snaps.length).toBe(3)
 
 		// center snap line
@@ -544,7 +588,9 @@ describe('snapping with single shapes', () => {
 		// x └─────┘ x
 		editor.pointerDown(25, 5, ids.box2).pointerMove(5, 45, { ctrlKey: true })
 
-		const snaps = editor.snaps.getLines()!.sort((a, b) => getNumSnapPoints(a) - getNumSnapPoints(b))
+		const snaps = editor.snaps
+			.getIndicators()!
+			.sort((a, b) => getNumSnapPoints(a) - getNumSnapPoints(b))
 		expect(snaps.length).toBe(3)
 
 		// center snap line
@@ -560,23 +606,23 @@ describe('snapping with single shapes', () => {
 		editor.updateShapes([{ id: ids.box1, type: 'geo', x: -20 }])
 
 		editor.pointerDown(25, 5, ids.box2).pointerMove(36, 5, { ctrlKey: true })
-		expect(editor.snaps.getLines()!.length).toBe(0)
+		expect(editor.snaps.getIndicators()!.length).toBe(0)
 
 		editor.updateShapes([{ id: ids.box1, type: 'geo', x: editor.getViewportScreenBounds().w + 10 }])
 		editor.pointerMove(33, 5, { ctrlKey: true })
 
-		expect(editor.snaps.getLines()!.length).toBe(0)
+		expect(editor.snaps.getIndicators()!.length).toBe(0)
 		editor.updateShapes([{ id: ids.box1, type: 'geo', y: -20 }])
 
 		editor.pointerMove(5, 5, { ctrlKey: true })
-		expect(editor.snaps.getLines()!.length).toBe(0)
+		expect(editor.snaps.getIndicators()!.length).toBe(0)
 
 		editor.updateShapes([
 			{ id: ids.box1, type: 'geo', x: 0, y: editor.getViewportScreenBounds().h + 10 },
 		])
 
 		editor.pointerMove(5, 5, { ctrlKey: true })
-		expect(editor.snaps.getLines()!.length).toBe(0)
+		expect(editor.snaps.getIndicators()!.length).toBe(0)
 	})
 
 	it('does not snap on the Y axis if the shift key is pressed', () => {
@@ -740,8 +786,8 @@ describe('Snap-between behavior', () => {
 		// the midpoint is 125 and c is 10 wide so it should snap to 120 if we put it at 121
 		editor.pointerDown(55, 5, ids.line1).pointerMove(126, 67, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 120, y: 62 })
-		expect(editor.snaps.getLines()?.length).toBe(1)
-		const line = editor.snaps.getLines()![0]
+		expect(editor.snaps.getIndicators()?.length).toBe(1)
+		const line = editor.snaps.getIndicators()![0]
 		assertGaps(line)
 		expect(line.gaps.length).toBe(2)
 	})
@@ -764,7 +810,7 @@ describe('Snap-between behavior', () => {
 
 		editor.pointerDown(55, 5, ids.line1).pointerMove(126, 94, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 120, y: 90 })
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(1)
 		expect(gapLines[0].gaps.length).toBe(2)
@@ -794,7 +840,7 @@ describe('Snap-between behavior', () => {
 		// the midpoint is 125 and c is 10 wide so it should snap to 120 if we put it at 121
 		editor.pointerDown(55, 5, ids.line1).pointerMove(126, 67, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 120, y: 62 })
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(1)
 
@@ -829,9 +875,9 @@ describe('Snap-between behavior', () => {
 		// the midpoint is 125 and c is 10 wide so it should snap to 120 if we put it at 121
 		editor.pointerDown(55, 155, ids.line1).pointerMove(27, 126, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 22, y: 120 })
-		expect(editor.snaps.getLines()?.length).toBe(1)
-		assertGaps(editor.snaps.getLines()![0])
-		const { gapLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		expect(editor.snaps.getIndicators()?.length).toBe(1)
+		assertGaps(editor.snaps.getIndicators()![0])
+		const { gapLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines[0].gaps.length).toBe(2)
 	})
 	it('shows vertical snap points at the same time as vertical gaps', () => {
@@ -863,7 +909,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(55, 155, ids.line1).pointerMove(6, 126, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 0, y: 120 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(1)
 		expect(gapLines[0].gaps.length).toBe(2)
@@ -899,7 +945,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(55, 155, ids.line1).pointerMove(27, 126, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 22, y: 120 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -934,10 +980,10 @@ describe('Snap-between behavior', () => {
 		])
 		editor.pointerDown(5, 5, ids.boxE).pointerMove(101, 126, { ctrlKey: true })
 		expect(editor.getShape(ids.boxE)).toMatchObject({ x: 95, y: 120 })
-		expect(editor.snaps.getLines()?.length).toBe(2)
-		assertGaps(editor.snaps.getLines()![0])
-		assertGaps(editor.snaps.getLines()![1])
-		const { gapLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		expect(editor.snaps.getIndicators()?.length).toBe(2)
+		assertGaps(editor.snaps.getIndicators()![0])
+		assertGaps(editor.snaps.getIndicators()![1])
+		const { gapLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines[0].gaps.length).toBe(2)
 		expect(gapLines[1].gaps.length).toBe(2)
 	})
@@ -979,7 +1025,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(5, 5, ids.boxX).pointerMove(46, 46, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 40 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(2)
 		expect(gapLines[0].gaps).toHaveLength(4)
 		expect(gapLines[1].gaps).toHaveLength(4)
@@ -1012,7 +1058,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(65, 25, ids.boxX).pointerMove(16, 25, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 0, y: 20 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(2)
 		expect(gapLines[0].gaps).toHaveLength(2)
 		expect(gapLines[1].gaps).toHaveLength(2)
@@ -1049,7 +1095,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(50, 55, ids.boxX).pointerMove(51, 66, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 1, y: 61 })
-		expect(editor.snaps.getLines()?.length).toBe(0)
+		expect(editor.snaps.getIndicators()?.length).toBe(0)
 	})
 
 	it('should work if the thing being dragged is a selection', () => {
@@ -1077,7 +1123,7 @@ describe('Snap-between behavior', () => {
 
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 200, y: 21 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(0)
@@ -1116,7 +1162,7 @@ describe('Snap-next-to behavior', () => {
 		editor.pointerDown(5, 5, ids.boxX).pointerMove(6, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 0, y: 10 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -1152,7 +1198,7 @@ describe('Snap-next-to behavior', () => {
 		editor.pointerDown(5, 5, ids.boxX).pointerMove(6, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 0, y: 10 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(4)
@@ -1179,7 +1225,7 @@ describe('Snap-next-to behavior', () => {
 		editor.pointerDown(105, 5, ids.boxX).pointerMove(106, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 100, y: 10 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -1213,7 +1259,7 @@ describe('Snap-next-to behavior', () => {
 		editor.pointerDown(205, 5, ids.boxX).pointerMove(206, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 200, y: 10 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(4)
@@ -1239,7 +1285,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 10, y: 0 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -1281,7 +1327,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 10, y: 0 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(4)
@@ -1308,7 +1354,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 10, y: 40 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -1349,7 +1395,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 10, y: 80 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(4)
@@ -1383,7 +1429,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxD)).toMatchObject({ x: 200, y: 131 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(0)
@@ -1504,7 +1550,7 @@ describe('snap lines', () => {
 		})
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
-      Array [
+      [
         "0,0 0,100 0,200 0,300",
         "0,0 100,0 200,0 300,0",
         "0,100 100,100 200,100 300,100",
@@ -1534,7 +1580,7 @@ describe('translating a shape with a child', () => {
 
 		editor.pointerDown(25, 25, ids.box1).pointerMove(50, 25, { ctrlKey: true })
 
-		expect(editor.snaps.getLines()?.length).toBe(0)
+		expect(editor.snaps.getIndicators()?.length).toBe(0)
 		expect(editor.getShape(ids.box1)).toMatchObject({
 			x: 25,
 			y: 0,
@@ -1576,7 +1622,7 @@ describe('translating a shape with a bound shape', () => {
 
 		editor.pointerDown(50, 50, ids.box1).pointerMove(84, 110, { ctrlKey: true })
 
-		expect(editor.snaps.getLines().length).toBe(0)
+		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 
 	it('should preserve arrow bindings', () => {
@@ -1595,12 +1641,14 @@ describe('translating a shape with a bound shape', () => {
 						isExact: false,
 						boundShapeId: ids.box1,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 					end: {
 						type: 'binding',
 						isExact: false,
 						boundShapeId: ids.box2,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 				},
 			},
@@ -1631,12 +1679,14 @@ describe('translating a shape with a bound shape', () => {
 						isExact: false,
 						boundShapeId: ids.box1,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 					end: {
 						type: 'binding',
 						isExact: false,
 						boundShapeId: ids.box2,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 				},
 			},

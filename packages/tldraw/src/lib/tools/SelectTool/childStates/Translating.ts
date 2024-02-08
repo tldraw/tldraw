@@ -1,18 +1,20 @@
 import {
-	Box2d,
+	BoundsSnapPoint,
+	Box,
 	Editor,
-	Matrix2d,
-	Matrix2dModel,
+	Mat,
+	MatModel,
 	PageRecordType,
-	SnapPoint,
 	StateNode,
 	TLEventHandlers,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
-	Vec2d,
+	TLTickEventHandler,
+	Vec,
 	compact,
 	isPageId,
+	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import { DragAndDropManager } from '../DragAndDropManager'
 
@@ -77,20 +79,26 @@ export class Translating extends StateNode {
 		this.snapshot = this.selectionSnapshot
 		this.handleStart()
 		this.updateShapes()
-		this.editor.on('tick', this.updateParent)
 	}
 
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
-		this.editor.off('tick', this.updateParent)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
 		this.dragAndDropManager.clear()
+	}
+
+	override onTick: TLTickEventHandler = () => {
+		this.dragAndDropManager.updateDroppingNode(
+			this.snapshot.movingShapes,
+			this.updateParentTransforms
+		)
+		moveCameraWhenCloseToEdge(this.editor)
 	}
 
 	override onPointerMove = () => {
@@ -153,11 +161,6 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	updateParent = () => {
-		const { snapshot } = this
-		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
-	}
-
 	reset() {
 		this.editor.bailToMark(this.markId)
 	}
@@ -209,6 +212,19 @@ export class Translating extends StateNode {
 
 	protected handleEnd() {
 		const { movingShapes } = this.snapshot
+
+		if (this.isCloning) {
+			const currentAveragePagePoint = Vec.Average(
+				movingShapes.map((s) => this.editor.getShapePageTransform(s.id)!.point())
+			)
+			const offset = Vec.Sub(currentAveragePagePoint, this.selectionSnapshot.averagePagePoint)
+			this.editor.updateInstanceState({
+				duplicateProps: {
+					shapeIds: movingShapes.map((s) => s.id),
+					offset: { x: offset.x, y: offset.y },
+				},
+			})
+		}
 
 		const changes: TLShapePartial[] = []
 
@@ -274,7 +290,7 @@ export class Translating extends StateNode {
 
 			const parentTransform = isPageId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getShapePageTransform(shape.parentId)!)
+				: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
@@ -283,7 +299,7 @@ export class Translating extends StateNode {
 
 function getTranslatingSnapshot(editor: Editor) {
 	const movingShapes: TLShape[] = []
-	const pagePoints: Vec2d[] = []
+	const pagePoints: Vec[] = []
 
 	const shapeSnapshots = compact(
 		editor.getSelectedShapeIds().map((id): null | MovingShapeSnapshot => {
@@ -297,7 +313,7 @@ function getTranslatingSnapshot(editor: Editor) {
 
 			const parentTransform = PageRecordType.isId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getShapePageTransform(shape.parentId)!)
+				: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
 			return {
 				shape,
@@ -307,9 +323,9 @@ function getTranslatingSnapshot(editor: Editor) {
 		})
 	)
 
-	let initialSnapPoints: SnapPoint[] = []
+	let initialSnapPoints: BoundsSnapPoint[] = []
 	if (editor.getSelectedShapeIds().length === 1) {
-		initialSnapPoints = editor.snaps.getSnapPointsCache().get(editor.getSelectedShapeIds()[0])!
+		initialSnapPoints = editor.snaps.shapeBounds.getSnapPoints(editor.getSelectedShapeIds()[0])!
 	} else {
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		if (selectionPageBounds) {
@@ -322,7 +338,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	}
 
 	return {
-		averagePagePoint: Vec2d.Average(pagePoints),
+		averagePagePoint: Vec.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
 		initialPageBounds: editor.getSelectionPageBounds()!,
@@ -334,8 +350,8 @@ export type TranslatingSnapshot = ReturnType<typeof getTranslatingSnapshot>
 
 export interface MovingShapeSnapshot {
 	shape: TLShape
-	pagePoint: Vec2d
-	parentTransform: Matrix2dModel | null
+	pagePoint: Vec
+	parentTransform: MatModel | null
 }
 
 export function moveShapesToPoint({
@@ -347,9 +363,9 @@ export function moveShapesToPoint({
 }: {
 	editor: Editor
 	shapeSnapshots: MovingShapeSnapshot[]
-	averagePagePoint: Vec2d
-	initialSelectionPageBounds: Box2d
-	initialSelectionSnapPoints: SnapPoint[]
+	averagePagePoint: Vec
+	initialSelectionPageBounds: Box
+	initialSelectionSnapPoints: BoundsSnapPoint[]
 }) {
 	const { inputs } = editor
 
@@ -357,7 +373,7 @@ export function moveShapesToPoint({
 
 	const gridSize = editor.getDocumentSettings().gridSize
 
-	const delta = Vec2d.Sub(inputs.currentPagePoint, inputs.originPagePoint)
+	const delta = Vec.Sub(inputs.currentPagePoint, inputs.originPagePoint)
 
 	const flatten: 'x' | 'y' | null = editor.inputs.shiftKey
 		? Math.abs(delta.x) < Math.abs(delta.y)
@@ -372,14 +388,14 @@ export function moveShapesToPoint({
 	}
 
 	// Provisional snapping
-	editor.snaps.clear()
+	editor.snaps.clearIndicators()
 
 	const shouldSnap =
 		(editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey) &&
 		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
 
 	if (shouldSnap) {
-		const { nudge } = editor.snaps.snapTranslate({
+		const { nudge } = editor.snaps.shapeBounds.snapTranslateShapes({
 			dragDelta: delta,
 			initialSelectionPageBounds,
 			lockedAxis: flatten,
@@ -389,20 +405,20 @@ export function moveShapesToPoint({
 		delta.add(nudge)
 	}
 
-	const averageSnappedPoint = Vec2d.Add(averagePagePoint, delta)
+	const averageSnappedPoint = Vec.Add(averagePagePoint, delta)
 
 	if (isGridMode && !inputs.ctrlKey) {
 		averageSnappedPoint.snapToGrid(gridSize)
 	}
 
-	const averageSnap = Vec2d.Sub(averageSnappedPoint, averagePagePoint)
+	const averageSnap = Vec.Sub(averageSnappedPoint, averagePagePoint)
 
 	editor.updateShapes(
 		compact(
 			snapshots.map(({ shape, pagePoint, parentTransform }): TLShapePartial | null => {
-				const newPagePoint = Vec2d.Add(pagePoint, averageSnap)
+				const newPagePoint = Vec.Add(pagePoint, averageSnap)
 				const newLocalPoint = parentTransform
-					? Matrix2d.applyToPoint(parentTransform, newPagePoint)
+					? Mat.applyToPoint(parentTransform, newPagePoint)
 					: newPagePoint
 
 				return {

@@ -6,9 +6,9 @@ import {
 	ShapeUtil,
 	TLHandle,
 	TLLineShape,
-	TLOnHandleChangeHandler,
+	TLOnHandleDragHandler,
 	TLOnResizeHandler,
-	Vec2d,
+	Vec,
 	WeakMapCache,
 	deepCopy,
 	getDefaultColorTheme,
@@ -129,7 +129,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
-	override onHandleChange: TLOnHandleChangeHandler<TLLineShape> = (shape, { handle }) => {
+	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
 		const next = deepCopy(shape)
 
 		switch (handle.id) {
@@ -408,7 +408,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 /** @public */
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
 	const { spline, handles } = shape.props
-	const handlePoints = Object.values(handles).sort(sortByIndex).map(Vec2d.From)
+	const handlePoints = Object.values(handles).sort(sortByIndex).map(Vec.From)
 
 	switch (spline) {
 		case 'cubic': {

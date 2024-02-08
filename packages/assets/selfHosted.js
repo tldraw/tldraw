@@ -15,7 +15,7 @@ export function getAssetUrls(opts) {
 			monospace: formatAssetUrl('./fonts/IBMPlexMono-Medium.woff2', opts),
 			sansSerif: formatAssetUrl('./fonts/IBMPlexSans-Medium.woff2', opts),
 			serif: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
-			draw: formatAssetUrl('./fonts/Shantell_Sans-Normal-SemiBold.woff2', opts),
+			draw: formatAssetUrl('./fonts/Shantell_Sans-Tldrawish.woff2', opts),
 		},
 		icons: {
 			'align-bottom-center': formatAssetUrl('./icons/icon/align-bottom-center.svg', opts),
@@ -189,6 +189,7 @@ export function getAssetUrls(opts) {
 		translations: {
 			ar: formatAssetUrl('./translations/ar.json', opts),
 			ca: formatAssetUrl('./translations/ca.json', opts),
+			cs: formatAssetUrl('./translations/cs.json', opts),
 			da: formatAssetUrl('./translations/da.json', opts),
 			de: formatAssetUrl('./translations/de.json', opts),
 			en: formatAssetUrl('./translations/en.json', opts),
@@ -199,6 +200,7 @@ export function getAssetUrls(opts) {
 			gl: formatAssetUrl('./translations/gl.json', opts),
 			he: formatAssetUrl('./translations/he.json', opts),
 			'hi-in': formatAssetUrl('./translations/hi-in.json', opts),
+			hr: formatAssetUrl('./translations/hr.json', opts),
 			hu: formatAssetUrl('./translations/hu.json', opts),
 			it: formatAssetUrl('./translations/it.json', opts),
 			ja: formatAssetUrl('./translations/ja.json', opts),

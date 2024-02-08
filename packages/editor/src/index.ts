@@ -17,6 +17,7 @@ export {
 	type Atom,
 	type Signal,
 } from '@tldraw/state'
+export type { TLCommandHistoryOptions } from './lib/editor/types/history-types'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -88,9 +89,9 @@ export {
 	type TLSelectionForegroundComponent,
 } from './lib/components/default-components/DefaultSelectionForeground'
 export {
-	DefaultSnapLine,
-	type TLSnapLineComponent,
-} from './lib/components/default-components/DefaultSnapLine'
+	DefaultSnapIndicator,
+	type TLSnapIndicatorComponent,
+} from './lib/components/default-components/DefaultSnapIndictor'
 export {
 	DefaultSpinner,
 	type TLSpinnerComponent,
@@ -145,13 +146,22 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export type {
+	TLAfterChangeHandler,
+	TLAfterCreateHandler,
+	TLAfterDeleteHandler,
+	TLBatchCompleteHandler,
+	TLBeforeChangeHandler,
+	TLBeforeCreateHandler,
+	TLBeforeDeleteHandler,
+} from './lib/editor/managers/SideEffectManager'
+export { type BoundsSnapPoint } from './lib/editor/managers/SnapManager/BoundsSnaps'
 export {
 	SnapManager,
-	type GapsSnapLine,
-	type PointsSnapLine,
-	type SnapLine,
-	type SnapPoint,
-} from './lib/editor/managers/SnapManager'
+	type GapsSnapIndicator,
+	type PointsSnapIndicator,
+	type SnapIndicator,
+} from './lib/editor/managers/SnapManager/SnapManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
@@ -164,7 +174,7 @@ export {
 	type TLOnDoubleClickHandler,
 	type TLOnDragHandler,
 	type TLOnEditEndHandler,
-	type TLOnHandleChangeHandler,
+	type TLOnHandleDragHandler,
 	type TLOnResizeEndHandler,
 	type TLOnResizeHandler,
 	type TLOnResizeStartHandler,
@@ -181,16 +191,12 @@ export {
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export { getArrowheadPathForType } from './lib/editor/shapes/shared/arrow/arrowheads'
 export {
-	getCurvedArrowHandlePath,
-	getSolidCurvedArrowPath,
-} from './lib/editor/shapes/shared/arrow/curved-arrow'
+	type TLArcInfo,
+	type TLArrowInfo,
+	type TLArrowPoint,
+} from './lib/editor/shapes/shared/arrow/arrow-types'
 export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/shared'
-export {
-	getSolidStraightArrowPath,
-	getStraightArrowHandlePath,
-} from './lib/editor/shapes/shared/arrow/straight-arrow'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
@@ -225,6 +231,7 @@ export {
 	type TLPointerEventName,
 	type TLPointerEventTarget,
 	type TLTickEvent,
+	type TLTickEventHandler,
 	type TLWheelEvent,
 	type TLWheelEventInfo,
 	type UiEvent,
@@ -247,6 +254,7 @@ export { useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
 export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
@@ -257,7 +265,7 @@ export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export {
-	Box2d,
+	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	rotateSelectionHandle,
 	type BoxLike,
@@ -265,9 +273,9 @@ export {
 	type SelectionCorner,
 	type SelectionEdge,
 	type SelectionHandle,
-} from './lib/primitives/Box2d'
-export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
-export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
+} from './lib/primitives/Box'
+export { Mat, type MatLike, type MatModel } from './lib/primitives/Mat'
+export { Vec, type VecLike } from './lib/primitives/Vec'
 export { EASINGS } from './lib/primitives/easings'
 export { Arc2d } from './lib/primitives/geometry/Arc2d'
 export { Circle2d } from './lib/primitives/geometry/Circle2d'
@@ -277,24 +285,30 @@ export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
 export { Geometry2d } from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
+export { Point2d } from './lib/primitives/geometry/Point2d'
 export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
 export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
 export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
 export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
 export {
+	intersectCircleCircle,
+	intersectCirclePolygon,
+	intersectCirclePolyline,
+	intersectLineSegmentCircle,
+	intersectLineSegmentLineSegment,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
+	intersectPolygonBounds,
 	intersectPolygonPolygon,
 	linesIntersect,
 	polygonsIntersect,
 } from './lib/primitives/intersect'
 export {
-	EPSILON,
+	HALF_PI,
 	PI,
 	PI2,
 	SIN,
-	TAU,
-	angleDelta,
+	angleDistance,
 	approximately,
 	areAnglesCompatible,
 	average,
@@ -302,25 +316,15 @@ export {
 	clamp,
 	clampRadians,
 	clockwiseAngleDist,
+	counterClockwiseAngleDist,
 	degreesToRadians,
-	getArcLength,
+	getArcMeasure,
+	getPointInArcT,
 	getPointOnCircle,
 	getPolygonVertices,
-	getStarBounds,
-	getSweep,
-	isAngleBetween,
 	isSafeFloat,
-	lerpAngles,
-	longAngleDist,
 	perimeterOfEllipse,
-	pointInBounds,
-	pointInCircle,
-	pointInEllipse,
 	pointInPolygon,
-	pointInPolyline,
-	pointInRect,
-	pointNearToLineSegment,
-	pointNearToPolyline,
 	precise,
 	radiansToDegrees,
 	rangeIntersection,
@@ -345,6 +349,7 @@ export {
 	setPointerCapture,
 	stopEventPropagation,
 } from './lib/utils/dom'
+export { moveCameraWhenCloseToEdge } from './lib/utils/edgeScrolling'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'

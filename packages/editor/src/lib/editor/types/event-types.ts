@@ -1,5 +1,5 @@
-import { TLHandle, TLShape, Vec2dModel } from '@tldraw/tlschema'
-import { VecLike } from '../../primitives/Vec2d'
+import { TLHandle, TLShape, VecModel } from '@tldraw/tlschema'
+import { VecLike } from '../../primitives/Vec'
 import { TLSelectionHandle } from './selection-types'
 
 /** @public */
@@ -52,6 +52,7 @@ export interface TLBaseEventInfo {
 export type TLPointerEventInfo = TLBaseEventInfo & {
 	type: 'pointer'
 	name: TLPointerEventName
+	// The pointer position in client space, i.e. clientX / clientY
 	point: VecLike
 	pointerId: number
 	button: number
@@ -80,16 +81,16 @@ export type TLKeyboardEventInfo = TLBaseEventInfo & {
 export type TLPinchEventInfo = TLBaseEventInfo & {
 	type: 'pinch'
 	name: TLPinchEventName
-	point: Vec2dModel
-	delta: Vec2dModel
+	point: VecModel
+	delta: VecModel
 }
 
 /** @public */
 export type TLWheelEventInfo = TLBaseEventInfo & {
 	type: 'wheel'
 	name: 'wheel'
-	delta: Vec2dModel
-	point: Vec2dModel
+	delta: VecModel
+	point: VecModel
 }
 
 /** @public */
@@ -136,6 +137,8 @@ export type UiEvent =
 	| TLCancelEvent
 	| TLCompleteEvent
 
+/** @public */
+export type TLTickEventHandler = () => void
 /** @public */
 export type TLEnterEventHandler = (info: any, from: string) => void
 /** @public */

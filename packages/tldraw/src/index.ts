@@ -148,13 +148,14 @@ export {
 	DEFAULT_ACCEPTED_IMG_TYPE,
 	DEFAULT_ACCEPTED_VID_TYPE,
 	containBoxSize,
-	getResizedImageDataUrl,
+	downsizeImage,
 	isGifAnimated,
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
 export { getSvgAsImage } from './lib/utils/export/export'
 export { exportAs } from './lib/utils/export/exportAs'
+export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
@@ -169,6 +170,10 @@ export {
 	serializeTldrawJsonBlob,
 	type TldrawFile,
 } from './lib/utils/tldr/file'
-export { Dialog, DropdownMenu }
+
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
+
+// N.B. Preserve order of import / export here with this comment.
+// Sometimes this can cause an import problem depending on build setup downstream.
+export { Dialog, DropdownMenu }

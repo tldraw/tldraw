@@ -187,7 +187,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				objectMapFromEntries(
 					objectMapEntries(initialData).map(([id, record]) => [
 						id,
-						atom('atom:' + id, this.schema.validateRecord(this, record, 'initialize', null)),
+						atom(
+							'atom:' + id,
+							devFreeze(this.schema.validateRecord(this, record, 'initialize', null))
+						),
 					])
 				)
 			)
@@ -379,11 +382,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				if (recordAtom) {
-					if (beforeUpdate) record = beforeUpdate(recordAtom.get(), record, source)
-
 					// If we already have an atom for this record, update its value.
-
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
+
+					// If we have a beforeUpdate callback, run it against the initial and next records
+					if (beforeUpdate) record = beforeUpdate(initialValue, record, source)
 
 					// Validate the record
 					record = this.schema.validateRecord(
@@ -399,6 +402,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					const finalValue = recordAtom.__unsafe__getWithoutCapture()
 
 					// If the value has changed, assign it to updates.
+					// todo: is this always going to be true?
 					if (initialValue !== finalValue) {
 						didChange = true
 						updates[record.id] = [initialValue, finalValue]
@@ -881,7 +885,7 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 				continue
 			}
 			if (result.updated[id]) {
-				result.updated[id][1] = to
+				result.updated[id] = [result.updated[id][0], to]
 				delete result.removed[id]
 				continue
 			}
@@ -937,7 +941,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 
 	result.push(current)
 
-	return result
+	return devFreeze(result)
 }
 
 /** @public */

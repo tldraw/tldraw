@@ -33,3 +33,37 @@ Object.defineProperty(global.URL, 'createObjectURL', {
 	writable: true,
 	value: jest.fn(),
 })
+
+// Extract verson from package.json
+const { version } = require('./package.json')
+
+window.fetch = async (input, init) => {
+	if (input === `https://unpkg.com/@tldraw/assets@${version}/translations/en.json`) {
+		const json = await import('@tldraw/assets/translations/main.json')
+		return {
+			ok: true,
+			json: async () => json.default,
+		}
+	}
+
+	if (input === '/icons/icon/icon-names.json') {
+		return {
+			ok: true,
+			json: async () => [],
+		}
+	}
+
+	throw new Error(`Unhandled request: ${input}`)
+}
+
+window.DOMRect = class DOMRect {
+	static fromRect(rect) {
+		return new DOMRect(rect.x, rect.y, rect.width, rect.height)
+	}
+	constructor(x, y, width, height) {
+		this.x = x
+		this.y = y
+		this.width = width
+		this.height = height
+	}
+}

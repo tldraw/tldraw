@@ -2,11 +2,11 @@ import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
-import { nearestMultiple } from '../hooks/useDPRMultiple'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
-import { Matrix2d } from '../primitives/Matrix2d'
+import { Mat } from '../primitives/Mat'
 import { toDomPrecision } from '../primitives/utils'
+import { nearestMultiple } from '../utils/nearestMultiple'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
@@ -56,7 +56,7 @@ export const Shape = track(function Shape({
 			if (!shape) return // probably the shape was just deleted
 
 			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Matrix2d.toCssString(pageTransform)
+			const transform = Mat.toCssString(pageTransform)
 			setProperty('transform', transform)
 		},
 		[editor, setProperty]
@@ -146,7 +146,10 @@ const InnerShape = React.memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		return useStateTracking('InnerShape:' + shape.type, () => util.component(shape))
 	},
-	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
+	(prev, next) =>
+		prev.shape.props === next.shape.props &&
+		prev.shape.meta === next.shape.meta &&
+		prev.util === next.util
 )
 
 const InnerShapeBackground = React.memo(

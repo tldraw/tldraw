@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { useTransform } from '../../hooks/useTransform'
-import { Box2d } from '../../primitives/Box2d'
+import { Box } from '../../primitives/Box'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
 export type TLSelectionBackgroundComponent = React.ComponentType<{
-	bounds: Box2d
+	bounds: Box
 	rotation: number
 }>
 

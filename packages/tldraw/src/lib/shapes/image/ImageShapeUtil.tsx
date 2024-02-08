@@ -5,7 +5,7 @@ import {
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	deepCopy,
 	imageShapeMigrations,
 	imageShapeProps,
@@ -170,12 +170,16 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
+	shouldGetDataURI(src: string) {
+		return src && (src.startsWith('http') || src.startsWith('/') || src.startsWith('./'))
+	}
+
 	override async toSvg(shape: TLImageShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 
 		let src = asset?.props.src || ''
-		if (src && src.startsWith('http')) {
+		if (this.shouldGetDataURI(src)) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''
 		}
@@ -186,14 +190,29 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const crop = shape.props.crop
 		if (containerStyle.transform && crop) {
 			const { transform, width, height } = containerStyle
+			const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
+			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
+
 			const points = [
-				new Vec2d(crop.topLeft.x * width, crop.topLeft.y * height),
-				new Vec2d(crop.bottomRight.x * width, crop.topLeft.y * height),
-				new Vec2d(crop.bottomRight.x * width, crop.bottomRight.y * height),
-				new Vec2d(crop.topLeft.x * width, crop.bottomRight.y * height),
+				new Vec(0, 0),
+				new Vec(croppedWidth, 0),
+				new Vec(croppedWidth, croppedHeight),
+				new Vec(0, croppedHeight),
 			]
+
+			const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+			polygon.setAttribute('points', points.map((p) => `${p.x},${p.y}`).join(' '))
+
+			const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+			clipPath.setAttribute('id', 'cropClipPath')
+			clipPath.appendChild(polygon)
+
+			const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+			defs.appendChild(clipPath)
+			g.appendChild(defs)
+
 			const innerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-			innerElement.style.clipPath = `polygon(${points.map((p) => `${p.x}px ${p.y}px`).join(',')})`
+			innerElement.setAttribute('clip-path', 'url(#cropClipPath)')
 			image.setAttribute('width', width.toString())
 			image.setAttribute('height', height.toString())
 			image.style.transform = transform
@@ -246,7 +265,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
 		const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
 
-		const pointDelta = new Vec2d(crop.topLeft.x * w, crop.topLeft.y * h).rot(shape.rotation)
+		const pointDelta = new Vec(crop.topLeft.x * w, crop.topLeft.y * h).rot(shape.rotation)
 
 		const partial: TLShapePartial<TLImageShape> = {
 			id: shape.id,

@@ -1,4 +1,4 @@
-import { Vec2d } from '../Vec2d'
+import { Vec } from '../Vec'
 import { Circle2d } from './Circle2d'
 
 describe('Circle2d.bounds', () => {
@@ -53,7 +53,7 @@ describe('Circle2d.isPointInBounds', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).isPointInBounds(new Vec2d(-2, -2))
+			}).isPointInBounds(new Vec(-2, -2))
 		).toBe(false)
 	})
 
@@ -62,7 +62,7 @@ describe('Circle2d.isPointInBounds', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).isPointInBounds(new Vec2d(5, 5))
+			}).isPointInBounds(new Vec(5, 5))
 		).toBe(true)
 	})
 
@@ -71,7 +71,7 @@ describe('Circle2d.isPointInBounds', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).isPointInBounds(new Vec2d(-2, -2), 2)
+			}).isPointInBounds(new Vec(-2, -2), 2)
 		).toBe(true)
 	})
 })
@@ -82,7 +82,7 @@ describe('Circle2d.getDistanceToPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).distanceToPoint(new Vec2d(10, -2))
+			}).distanceToPoint(new Vec(10, -2))
 		).toBe(2)
 	})
 
@@ -91,7 +91,7 @@ describe('Circle2d.getDistanceToPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).distanceToPoint(new Vec2d(10, 2))
+			}).distanceToPoint(new Vec(10, 2))
 		).toBe(2)
 	})
 
@@ -100,7 +100,7 @@ describe('Circle2d.getDistanceToPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: true,
-			}).distanceToPoint(new Vec2d(10, 2))
+			}).distanceToPoint(new Vec(10, 2))
 		).toBe(-2)
 	})
 })
@@ -111,7 +111,7 @@ describe('Circle2d.hitTestPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).hitTestPoint(new Vec2d(10, -2), 0)
+			}).hitTestPoint(new Vec(10, -2), 0)
 		).toBe(false)
 	})
 
@@ -120,7 +120,7 @@ describe('Circle2d.hitTestPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).hitTestPoint(new Vec2d(10, 2), 0)
+			}).hitTestPoint(new Vec(10, 2), 0)
 		).toBe(false)
 	})
 
@@ -129,7 +129,7 @@ describe('Circle2d.hitTestPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: true,
-			}).hitTestPoint(new Vec2d(10, 2), 0)
+			}).hitTestPoint(new Vec(10, 2), 0)
 		).toBe(true)
 	})
 
@@ -140,7 +140,7 @@ describe('Circle2d.hitTestPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).hitTestPoint(new Vec2d(10, -2), 2)
+			}).hitTestPoint(new Vec(10, -2), 2)
 		).toBe(true)
 	})
 
@@ -149,7 +149,7 @@ describe('Circle2d.hitTestPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).hitTestPoint(new Vec2d(10, 2), 2)
+			}).hitTestPoint(new Vec(10, 2), 2)
 		).toBe(true)
 	})
 
@@ -158,7 +158,7 @@ describe('Circle2d.hitTestPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: true,
-			}).hitTestPoint(new Vec2d(10, 2), 2)
+			}).hitTestPoint(new Vec(10, 2), 2)
 		).toBe(true)
 	})
 })
@@ -169,22 +169,22 @@ describe('Circle2d.nearestPoint', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).nearestPoint(new Vec2d(10, -2))
-		).toMatchObject(new Vec2d(10, 0))
+			}).nearestPoint(new Vec(10, -2))
+		).toMatchObject(new Vec(10, 0))
 
 		expect(
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).nearestPoint(new Vec2d(10, 2))
-		).toMatchObject(new Vec2d(10, 0))
+			}).nearestPoint(new Vec(10, 2))
+		).toMatchObject(new Vec(10, 0))
 
 		expect(
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).nearestPoint(new Vec2d(10, 30))
-		).toMatchObject(new Vec2d(10, 20))
+			}).nearestPoint(new Vec(10, 30))
+		).toMatchObject(new Vec(10, 20))
 	})
 })
 
@@ -194,14 +194,14 @@ describe('Circle2d.hitTestLineSegment', () => {
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).hitTestLineSegment(new Vec2d(0, -2), new Vec2d(20, -2), 1)
+			}).hitTestLineSegment(new Vec(0, -2), new Vec(20, -2), 1)
 		).toBe(false)
 
 		expect(
 			new Circle2d({
 				radius: 10,
 				isFilled: false,
-			}).hitTestLineSegment(new Vec2d(0, 2), new Vec2d(20, 2), 1)
+			}).hitTestLineSegment(new Vec(0, 2), new Vec(20, 2), 1)
 		).toBe(true)
 	})
 })

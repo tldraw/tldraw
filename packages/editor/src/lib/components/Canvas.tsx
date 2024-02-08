@@ -3,6 +3,7 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import React from 'react'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../constants'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../hooks/useDocumentEvents'
@@ -12,7 +13,8 @@ import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoub
 import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
 import { useScreenBounds } from '../hooks/useScreenBounds'
-import { Matrix2d } from '../primitives/Matrix2d'
+import { Mat } from '../primitives/Mat'
+import { Vec } from '../primitives/Vec'
 import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
 import { GeometryDebuggingView } from './GeometryDebuggingView'
@@ -67,7 +69,7 @@ export function Canvas({ className }: { className?: string }) {
 	const shapeSvgDefs = useValue(
 		'shapeSvgDefs',
 		() => {
-			const shapeSvgDefsByKey = new Map<string, JSX.Element>()
+			const shapeSvgDefsByKey = new Map<string, React.JSX.Element>()
 			for (const util of objectMapValues(editor.shapeUtils)) {
 				if (!util) return
 				const defs = util.getCanvasSvgDefs()
@@ -123,7 +125,7 @@ export function Canvas({ className }: { className?: string }) {
 					<SelectedIdIndicators />
 					<HoveredShapeIndicator />
 					<HintedShapeIndicator />
-					<SnapLinesWrapper />
+					<SnapIndicatorWrapper />
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
@@ -187,94 +189,100 @@ function ZoomBrushWrapper() {
 	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
 }
 
-function SnapLinesWrapper() {
+function SnapIndicatorWrapper() {
 	const editor = useEditor()
-	const lines = useValue('snapLines', () => editor.snaps.getLines(), [editor])
+	const lines = useValue('snapLines', () => editor.snaps.getIndicators(), [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
-	const { SnapLine } = useEditorComponents()
+	const { SnapIndicator } = useEditorComponents()
 
-	if (!(SnapLine && lines.length > 0)) return null
+	if (!(SnapIndicator && lines.length > 0)) return null
 
 	return (
 		<>
 			{lines.map((line) => (
-				<SnapLine key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
+				<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
 			))}
 		</>
 	)
 }
-
-const MIN_HANDLE_DISTANCE = 48
 
 function HandlesWrapper() {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
 	])
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
+
+	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
 		editor,
 	])
+
 	const isChangingStyle = useValue(
 		'isChangingStyle',
 		() => editor.getInstanceState().isChangingStyle,
 		[editor]
 	)
-	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
+
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
 		editor,
 	])
-	const handles = useValue(
-		'handles',
-		() => {
-			const onlySelectedShape = editor.getOnlySelectedShape()
-			if (onlySelectedShape) {
-				return editor.getShapeHandles(onlySelectedShape)
-			}
-			return undefined
-		},
-		[editor]
-	)
+
 	const transform = useValue(
 		'transform',
 		() => {
-			const onlySelectedShape = editor.getOnlySelectedShape()
-			if (onlySelectedShape) {
-				return editor.getShapePageTransform(onlySelectedShape)
-			}
-			return undefined
+			if (!onlySelectedShape) return null
+
+			return editor.getShapePageTransform(onlySelectedShape)
 		},
-		[editor]
+		[editor, onlySelectedShape]
 	)
 
-	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly) return null
-	if (!handles) return null
-	if (!transform) return null
+	const handles = useValue(
+		'handles',
+		() => {
+			if (!onlySelectedShape) return null
 
-	// Don't display a temporary handle if the distance between it and its neighbors is too small.
-	const handlesToDisplay: TLHandle[] = []
+			const handles = editor.getShapeHandles(onlySelectedShape)
+			if (!handles) return null
 
-	for (let i = 0, handle = handles[i]; i < handles.length; i++, handle = handles[i]) {
-		if (handle.type !== 'vertex') {
-			const prev = handles[i - 1]
-			const next = handles[i + 1]
-			if (prev && next) {
-				if (Math.hypot(prev.y - next.y, prev.x - next.x) < MIN_HANDLE_DISTANCE / zoomLevel) {
-					continue
-				}
-			}
-		}
+			const minDistBetweenVirtualHandlesAndRegularHandles =
+				((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
 
-		handlesToDisplay.push(handle)
+			return (
+				handles
+					.filter(
+						(handle) =>
+							// if the handle isn't a virtual handle, we'll display it
+							handle.type !== 'virtual' ||
+							// but for virtual handles, we'll only display them if they're far enough away from vertex handles
+							!handles.some(
+								(h) =>
+									// skip the handle we're checking against
+									h !== handle &&
+									// only check against vertex handles
+									h.type === 'vertex' &&
+									// and check that their distance isn't below the minimum distance
+									Vec.Dist(handle, h) < minDistBetweenVirtualHandlesAndRegularHandles
+							)
+					)
+					// We want vertex handles in front of all other handles
+					.sort((a) => (a.type === 'vertex' ? 1 : -1))
+			)
+		},
+		[editor, onlySelectedShape, zoomLevel, isCoarse]
+	)
+
+	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
+		return null
 	}
-
-	handlesToDisplay.sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
 		<Handles>
-			<g transform={Matrix2d.toCssString(transform)}>
-				{handlesToDisplay.map((handle) => {
+			<g transform={Mat.toCssString(transform)}>
+				{handles.map((handle) => {
 					return (
 						<HandleWrapper
 							key={handle.id}
@@ -475,7 +483,10 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			const renderId = Math.random()
 			latest = renderId
 			const bb = editor.getShapePageBounds(id)
-			const el = await editor.getSvg([id], { padding: 0 })
+			const el = await editor.getSvg([id], {
+				padding: 0,
+				background: editor.getInstanceState().exportBackground,
+			})
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')
 				el.setAttribute('preserveAspectRatio', 'xMidYMin slice')
@@ -520,7 +531,7 @@ function UiLogger() {
 	)
 }
 
-export function SelectionForegroundWrapper() {
+function SelectionForegroundWrapper() {
 	const editor = useEditor()
 	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
 		editor,
@@ -535,7 +546,7 @@ export function SelectionForegroundWrapper() {
 	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
-export function SelectionBackgroundWrapper() {
+function SelectionBackgroundWrapper() {
 	const editor = useEditor()
 	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
 		editor,
@@ -550,13 +561,13 @@ export function SelectionBackgroundWrapper() {
 	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
-export function OnTheCanvasWrapper() {
+function OnTheCanvasWrapper() {
 	const { OnTheCanvas } = useEditorComponents()
 	if (!OnTheCanvas) return null
 	return <OnTheCanvas />
 }
 
-export function InFrontOfTheCanvasWrapper() {
+function InFrontOfTheCanvasWrapper() {
 	const { InFrontOfTheCanvas } = useEditorComponents()
 	if (!InFrontOfTheCanvas) return null
 	return <InFrontOfTheCanvas />

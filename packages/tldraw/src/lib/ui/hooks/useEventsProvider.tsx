@@ -18,6 +18,7 @@ export type TLUiEventSource =
 	| 'dialog'
 	| 'help-menu'
 	| 'helper-buttons'
+	| 'style-panel'
 	| 'unknown'
 
 /** @public */
@@ -28,6 +29,7 @@ export interface TLUiEventMap {
 	'group-shapes': null
 	'ungroup-shapes': null
 	'remove-frame': null
+	'fit-frame-to-content': null
 	'convert-to-embed': null
 	'convert-to-bookmark': null
 	'open-embed-link': null
@@ -71,6 +73,7 @@ export interface TLUiEventMap {
 	copy: null
 	paste: null
 	cut: null
+	'set-style': { id: string; value: string | number }
 	'toggle-transparent': null
 	'toggle-snap-mode': null
 	'toggle-tool-lock': null
@@ -80,6 +83,7 @@ export interface TLUiEventMap {
 	'toggle-debug-mode': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
+	'toggle-edge-scrolling': null
 	'exit-pen-mode': null
 	'stop-following': null
 	'open-cursor-chat': null

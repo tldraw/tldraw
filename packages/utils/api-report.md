@@ -8,6 +8,12 @@
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
 // @internal (undocumented)
+export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[]): boolean;
+
+// @internal (undocumented)
+export function areObjectsShallowEqual<T extends Record<string, unknown>>(obj1: T, obj2: T): boolean;
+
+// @internal (undocumented)
 export const assert: (value: unknown, message?: string) => asserts value;
 
 // @internal (undocumented)
@@ -63,6 +69,9 @@ export function getErrorAnnotations(error: Error): ErrorAnnotations;
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
 // @public
+export function getHashForBuffer(buffer: ArrayBuffer): string;
+
+// @public
 export function getHashForObject(obj: any): string;
 
 // @public
@@ -78,6 +87,9 @@ export function getOwnProperty(obj: object, key: string): unknown;
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @public
+export function invLerp(a: number, b: number, t: number): number;
+
+// @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
 // @public
@@ -85,9 +97,6 @@ export function isNonNull<T>(value: T): value is typeof value extends null ? nev
 
 // @public
 export function isNonNullish<T>(value: T): value is typeof value extends undefined ? never : typeof value extends null ? never : T;
-
-// @public (undocumented)
-export function isValidUrl(url: string): boolean;
 
 // @public (undocumented)
 export type JsonArray = JsonValue[];
@@ -121,14 +130,19 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 
 // @public
 export class MediaHelpers {
-    static getImageSizeFromSrc(dataURL: string): Promise<{
+    static blobToDataUrl(blob: Blob): Promise<string>;
+    static getImageSize(blob: Blob): Promise<{
         w: number;
         h: number;
     }>;
-    static getVideoSizeFromSrc(src: string): Promise<{
+    static getVideoSize(blob: Blob): Promise<{
         w: number;
         h: number;
     }>;
+    static loadImage(src: string): Promise<HTMLImageElement>;
+    static loadVideo(src: string): Promise<HTMLVideoElement>;
+    // (undocumented)
+    static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
 
 // @internal (undocumented)

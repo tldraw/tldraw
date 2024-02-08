@@ -1,0 +1,36 @@
+name: Prune preview deploys
+
+on:
+  schedule:
+    # run once per day at midnight or whatever
+    - cron: '0 0 * * *'
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: Prune preview deploys
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+    environment: deploy-staging
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Prune preview deploys
+        run: yarn tsx scripts/prune-preview-deploys.ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

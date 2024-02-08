@@ -157,8 +157,8 @@ function getStateFromElapsedTime(elapsed: number) {
 	return elapsed > COLLABORATOR_INACTIVE_TIMEOUT
 		? 'inactive'
 		: elapsed > COLLABORATOR_IDLE_TIMEOUT
-		? 'idle'
-		: 'active'
+			? 'idle'
+			: 'active'
 }
 
 function useCollaboratorState(latestPresence: TLInstancePresence | null) {

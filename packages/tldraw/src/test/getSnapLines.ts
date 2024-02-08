@@ -8,7 +8,7 @@ const simplifyNumber = (n: number) => {
 }
 export const getSnapLines = (scene: Editor) => {
 	const result = []
-	for (const snap of scene.snaps.getLines()) {
+	for (const snap of scene.snaps.getIndicators()) {
 		if (snap.type !== 'points') {
 			throw new Error('Expected only points snap')
 		}

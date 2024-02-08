@@ -1,6 +1,6 @@
 import { atom } from '../Atom'
 import { reactor } from '../EffectScheduler'
-import { globalEpoch, transact, transaction } from '../transactions'
+import { getGlobalEpoch, transact, transaction } from '../transactions'
 import { RESET_VALUE } from '../types'
 
 describe('atoms', () => {
@@ -17,20 +17,20 @@ describe('atoms', () => {
 		expect(a.get()).toBe(2)
 	})
 	it('will not advance the global epoch on creation', () => {
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 		atom('', 3)
-		expect(globalEpoch).toBe(startEpoch)
+		expect(getGlobalEpoch()).toBe(startEpoch)
 	})
 	it('will advance the global epoch on .set', () => {
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 		const a = atom('', 3)
 		a.set(4)
-		expect(globalEpoch).toBe(startEpoch + 1)
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
 	})
 	it('can store history', () => {
 		const a = atom('', 1, { historyLength: 3, computeDiff: (a, b) => b - a })
 
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		expect(a.getDiffSince(startEpoch)).toEqual([])
 
@@ -55,24 +55,24 @@ describe('atoms', () => {
 		const a = atom('', 1, { historyLength: 3, computeDiff: (a, b) => b - a })
 		const b = atom('', 1, { historyLength: 3, computeDiff: (a, b) => b - a })
 
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		b.set(-5)
 		b.set(-10)
 		b.set(-20)
 		expect(b.getDiffSince(startEpoch)).toEqual([-6, -5, -10])
-		expect(b.getDiffSince(globalEpoch)).toEqual([])
+		expect(b.getDiffSince(getGlobalEpoch())).toEqual([])
 
 		expect(a.getDiffSince(startEpoch)).toEqual([])
 		a.set(5)
 		expect(a.getDiffSince(startEpoch)).toEqual([+4])
 		expect(b.getDiffSince(startEpoch)).toEqual([-6, -5, -10])
-		expect(b.getDiffSince(globalEpoch)).toEqual([])
+		expect(b.getDiffSince(getGlobalEpoch())).toEqual([])
 	})
 	it('still updates history during transactions', () => {
 		const a = atom('', 1, { historyLength: 3, computeDiff: (a, b) => b - a })
 
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		transact(() => {
 			expect(a.getDiffSince(startEpoch)).toEqual([])
@@ -95,7 +95,7 @@ describe('atoms', () => {
 	it('will clear the history if the transaction aborts', () => {
 		const a = atom('', 1, { historyLength: 3, computeDiff: (a, b) => b - a })
 
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		transaction((rollback) => {
 			expect(a.getDiffSince(startEpoch)).toEqual([])
@@ -110,18 +110,18 @@ describe('atoms', () => {
 		expect(a.getDiffSince(startEpoch)).toEqual(RESET_VALUE)
 	})
 	it('supports an update operation', () => {
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 		const a = atom('', 1)
 
 		a.update((value) => value + 1)
 
 		expect(a.get()).toBe(2)
-		expect(globalEpoch).toBe(startEpoch + 1)
+		expect(getGlobalEpoch()).toBe(startEpoch + 1)
 	})
 	it('supports passing diffs in .set', () => {
 		const a = atom('', 1, { historyLength: 3 })
 
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		a.set(5, +4)
 		expect(a.getDiffSince(startEpoch)).toEqual([+4])
@@ -132,7 +132,7 @@ describe('atoms', () => {
 	it('does not push history if nothing changed', () => {
 		const a = atom('', 1, { historyLength: 3 })
 
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		a.set(5, +4)
 		expect(a.getDiffSince(startEpoch)).toEqual([+4])
@@ -141,7 +141,7 @@ describe('atoms', () => {
 	})
 	it('clears the history buffer if you fail to provide a diff', () => {
 		const a = atom('', 1, { historyLength: 3 })
-		const startEpoch = globalEpoch
+		const startEpoch = getGlobalEpoch()
 
 		a.set(5, +4)
 

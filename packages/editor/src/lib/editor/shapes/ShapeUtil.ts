@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
-import { Box2d } from '../../primitives/Box2d'
-import { Vec2d } from '../../primitives/Vec2d'
+import { Box } from '../../primitives/Box'
+import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
 import { SvgExportContext } from '../types/SvgExportContext'
@@ -11,7 +11,7 @@ import { TLResizeHandle } from '../types/selection-types'
 /** @public */
 export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
-	U extends ShapeUtil<T> = ShapeUtil<T>
+	U extends ShapeUtil<T> = ShapeUtil<T>,
 > {
 	new (editor: Editor): U
 	type: T['type']
@@ -150,7 +150,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	hideResizeHandles: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape should hide its resize handles when selected.
+	 * Whether the shape should hide its rotation handles when selected.
 	 *
 	 * @public
 	 */
@@ -214,7 +214,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	getOutlineSegments(shape: Shape): Vec2d[][] {
+	getOutlineSegments(shape: Shape): Vec[][] {
 		return [this.editor.getShapeGeometry(shape).vertices]
 	}
 
@@ -412,6 +412,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onTranslateEnd?: TLOnTranslateEndHandler<Shape>
 
 	/**
+	 * A callback called when a shape's handle changes.
+	 *
+	 * @param shape - The current shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDrag?: TLOnHandleDragHandler<Shape>
+
+	/**
 	 * A callback called when a shape starts being rotated.
 	 *
 	 * @param shape - The shape.
@@ -439,16 +449,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onRotateEnd?: TLOnRotateEndHandler<Shape>
-
-	/**
-	 * A callback called when a shape's handle changes.
-	 *
-	 * @param shape - The current shape.
-	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onHandleChange?: TLOnHandleChangeHandler<Shape>
 
 	/**
 	 * Not currently used.
@@ -554,12 +554,12 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @public
  */
 export type TLResizeInfo<T extends TLShape> = {
-	newPoint: Vec2d
+	newPoint: Vec
 	handle: TLResizeHandle
 	mode: TLResizeMode
 	scaleX: number
 	scaleY: number
-	initialBounds: Box2d
+	initialBounds: Box
 	initialShape: T
 }
 
@@ -587,7 +587,7 @@ export type TLOnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapeP
 export type TLOnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void
 
 /** @public */
-export type TLOnHandleChangeHandler<T extends TLShape> = (
+export type TLOnHandleDragHandler<T extends TLShape> = (
 	shape: T,
 	info: {
 		handle: TLHandle

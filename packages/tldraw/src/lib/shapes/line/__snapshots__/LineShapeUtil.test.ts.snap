@@ -1,18 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Misc resizes: line shape after resize 1`] = `
-Object {
+{
   "id": "shape:line1",
   "index": "a1",
   "isLocked": false,
-  "meta": Object {},
+  "meta": {},
   "opacity": 1,
   "parentId": "page:page",
-  "props": Object {
+  "props": {
     "color": "black",
     "dash": "draw",
-    "handles": Object {
-      "end": Object {
+    "handles": {
+      "end": {
         "canBind": false,
         "id": "end",
         "index": "a2",
@@ -20,7 +20,7 @@ Object {
         "x": 100,
         "y": 700,
       },
-      "start": Object {
+      "start": {
         "canBind": false,
         "id": "start",
         "index": "a1",

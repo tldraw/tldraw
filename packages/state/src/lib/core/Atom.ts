@@ -1,10 +1,9 @@
 import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent } from './capture'
-import { EMPTY_ARRAY, equals } from './helpers'
-import { advanceGlobalEpoch, atomDidChange, globalEpoch } from './transactions'
+import { EMPTY_ARRAY, equals, singleton } from './helpers'
+import { advanceGlobalEpoch, atomDidChange, getGlobalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
-import { logDotValueWarning } from './warnings'
 
 /**
  * The options to configure an atom, passed into the [[atom]] function.
@@ -69,7 +68,7 @@ export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
 /**
  * @internal
  */
-export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
+class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 	constructor(
 		public readonly name: string,
 		private current: Value,
@@ -90,7 +89,7 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 
 	computeDiff?: ComputeDiff<Value, Diff>
 
-	lastChangedEpoch = globalEpoch
+	lastChangedEpoch = getGlobalEpoch()
 
 	children = new ArraySet<Child>()
 
@@ -103,15 +102,6 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 	get() {
 		maybeCaptureParent(this)
 		return this.current
-	}
-
-	/**
-	 * @deprecated Use [[Atom.get]] instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get value() {
-		logDotValueWarning()
-		return this.get()
 	}
 
 	set(value: Value, diff?: Diff): Value {
@@ -127,21 +117,21 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 		if (this.historyBuffer) {
 			this.historyBuffer.pushEntry(
 				this.lastChangedEpoch,
-				globalEpoch,
+				getGlobalEpoch(),
 				diff ??
-					this.computeDiff?.(this.current, value, this.lastChangedEpoch, globalEpoch) ??
+					this.computeDiff?.(this.current, value, this.lastChangedEpoch, getGlobalEpoch()) ??
 					RESET_VALUE
 			)
 		}
 
 		// Update the atom's record of the epoch when last changed.
-		this.lastChangedEpoch = globalEpoch
+		this.lastChangedEpoch = getGlobalEpoch()
 
 		const oldValue = this.current
 		this.current = value
 
 		// Notify all children that this atom has changed.
-		atomDidChange(this, oldValue)
+		atomDidChange(this as any, oldValue)
 
 		return value
 	}
@@ -161,6 +151,9 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 		return this.historyBuffer?.getChangesSince(epoch) ?? RESET_VALUE
 	}
 }
+
+export const _Atom = singleton('Atom', () => __Atom__)
+export type _Atom = InstanceType<typeof _Atom>
 
 /**
  * Creates a new [[Atom]].

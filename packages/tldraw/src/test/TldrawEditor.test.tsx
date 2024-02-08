@@ -13,21 +13,7 @@ import {
 } from '@tldraw/editor'
 import { defaultTools } from '../lib/defaultTools'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
-
-let originalFetch: typeof window.fetch
-beforeEach(() => {
-	window.fetch = jest.fn().mockImplementation((...args: Parameters<typeof fetch>) => {
-		if (args[0] === '/icons/icon/icon-names.json') {
-			return Promise.resolve({ json: () => Promise.resolve([]) } as Response)
-		}
-		return originalFetch(...args)
-	})
-})
-
-afterEach(() => {
-	jest.restoreAllMocks()
-	window.fetch = originalFetch
-})
+import { renderTldrawComponent } from './testutils/renderTldrawComponent'
 
 function checkAllShapes(editor: Editor, shapes: string[]) {
 	expect(Object.keys(editor!.store.schema.types.shape.migrations.subTypeMigrations!)).toStrictEqual(
@@ -39,17 +25,19 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
-		render(
+		await renderTldrawComponent(
 			<TldrawEditor tools={defaultTools} autoFocus initialState="select">
 				<div data-testid="canvas-1" />
-			</TldrawEditor>
+				<Canvas />
+			</TldrawEditor>,
+			{ waitForPatterns: false }
 		)
 		await screen.findByTestId('canvas-1')
 	})
 
 	it('Creates its own store with core shapes', async () => {
 		let editor: Editor
-		render(
+		await renderTldrawComponent(
 			<TldrawEditor
 				onMount={(e) => {
 					editor = e
@@ -59,7 +47,8 @@ describe('<TldrawEditor />', () => {
 				autoFocus
 			>
 				<div data-testid="canvas-1" />
-			</TldrawEditor>
+			</TldrawEditor>,
+			{ waitForPatterns: false }
 		)
 		await screen.findByTestId('canvas-1')
 		checkAllShapes(editor!, ['group'])
@@ -67,7 +56,7 @@ describe('<TldrawEditor />', () => {
 
 	it('Can be created with default shapes', async () => {
 		let editor: Editor
-		render(
+		await renderTldrawComponent(
 			<TldrawEditor
 				shapeUtils={[]}
 				tools={defaultTools}
@@ -78,7 +67,9 @@ describe('<TldrawEditor />', () => {
 				autoFocus
 			>
 				<div data-testid="canvas-1" />
-			</TldrawEditor>
+				<Canvas />
+			</TldrawEditor>,
+			{ waitForPatterns: false }
 		)
 		await screen.findByTestId('canvas-1')
 		expect(editor!).toBeTruthy()
@@ -88,7 +79,7 @@ describe('<TldrawEditor />', () => {
 
 	it('Renders with an external store', async () => {
 		const store = createTLStore({ shapeUtils: [] })
-		render(
+		await renderTldrawComponent(
 			<TldrawEditor
 				store={store}
 				tools={defaultTools}
@@ -99,7 +90,9 @@ describe('<TldrawEditor />', () => {
 				autoFocus
 			>
 				<div data-testid="canvas-1" />
-			</TldrawEditor>
+				<Canvas />
+			</TldrawEditor>,
+			{ waitForPatterns: false }
 		)
 		await screen.findByTestId('canvas-1')
 	})
@@ -199,21 +192,19 @@ describe('<TldrawEditor />', () => {
 
 	it('Renders the canvas and shapes', async () => {
 		let editor = {} as Editor
-		await act(async () =>
-			render(
-				<TldrawEditor
-					shapeUtils={[GeoShapeUtil]}
-					initialState="select"
-					tools={defaultTools}
-					autoFocus
-					onMount={(editorApp) => {
-						editor = editorApp
-					}}
-				>
-					<Canvas />
-					<div data-testid="canvas-1" />
-				</TldrawEditor>
-			)
+		await renderTldrawComponent(
+			<TldrawEditor
+				shapeUtils={[GeoShapeUtil]}
+				initialState="select"
+				tools={defaultTools}
+				autoFocus
+				onMount={(editorApp) => {
+					editor = editorApp
+				}}
+			>
+				<Canvas />
+				<div data-testid="canvas-1" />
+			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-1')
 
@@ -325,7 +316,7 @@ describe('Custom shapes', () => {
 
 	it('Uses custom shapes', async () => {
 		let editor = {} as Editor
-		render(
+		await renderTldrawComponent(
 			<TldrawEditor
 				shapeUtils={shapeUtils}
 				tools={[...defaultTools, ...tools]}
@@ -337,7 +328,8 @@ describe('Custom shapes', () => {
 			>
 				<Canvas />
 				<div data-testid="canvas-1" />
-			</TldrawEditor>
+			</TldrawEditor>,
+			{ waitForPatterns: false }
 		)
 		await screen.findByTestId('canvas-1')
 

@@ -1,5 +1,5 @@
 import {
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLArrowShape,
 	TLArrowShapeTerminal,
@@ -11,7 +11,7 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	TLShapePartial,
-	Vec2d,
+	Vec,
 	deepCopy,
 	snapAngle,
 	sortByIndex,
@@ -23,7 +23,7 @@ export class DraggingHandle extends StateNode {
 	shapeId = '' as TLShapeId
 	initialHandle = {} as TLHandle
 	initialAdjacentHandle = null as TLHandle | null
-	initialPagePoint = {} as Vec2d
+	initialPagePoint = {} as Vec
 
 	markId = ''
 	initialPageTransform: any
@@ -98,7 +98,7 @@ export class DraggingHandle extends StateNode {
 		if (initialTerminal?.type === 'binding') {
 			this.editor.setHintingShapes([initialTerminal.boundShapeId])
 
-			this.isPrecise = !Vec2d.Equals(initialTerminal.normalizedAnchor, { x: 0.5, y: 0.5 })
+			this.isPrecise = initialTerminal.isPrecise
 			if (this.isPrecise) {
 				this.isPreciseId = initialTerminal.boundShapeId
 			} else {
@@ -168,7 +168,8 @@ export class DraggingHandle extends StateNode {
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setHintingShapes([])
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
+
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
@@ -176,7 +177,7 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private complete() {
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 
 		const { onInteractionEnd } = this.info
 		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
@@ -191,7 +192,7 @@ export class DraggingHandle extends StateNode {
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
@@ -226,14 +227,14 @@ export class DraggingHandle extends StateNode {
 			.add(initialHandle)
 
 		if (shiftKey && initialAdjacentHandle && initialHandle.id !== 'middle') {
-			const angle = Vec2d.Angle(initialAdjacentHandle, point)
+			const angle = Vec.Angle(initialAdjacentHandle, point)
 			const snappedAngle = snapAngle(angle, 24)
 			const angleDifference = snappedAngle - angle
-			point = Vec2d.RotWith(point, initialAdjacentHandle, angleDifference)
+			point = Vec.RotWith(point, initialAdjacentHandle, angleDifference)
 		}
 
 		// Clear any existing snaps
-		editor.snaps.clear()
+		editor.snaps.clearIndicators()
 
 		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
 			// We're snapping
@@ -252,21 +253,21 @@ export class DraggingHandle extends StateNode {
 			// Get all the outline segments from the shape
 			const additionalSegments = util
 				.getOutlineSegments(shape)
-				.map((segment) => Matrix2d.applyToPoints(pageTransform, segment))
+				.map((segment) => Mat.applyToPoints(pageTransform, segment))
 				.filter((_segment, i) => i !== handleIndex - 1 && i !== handleIndex)
 
-			const snapDelta = snaps.getSnappingHandleDelta({
+			const snap = snaps.handles.snapHandle({
 				additionalSegments,
-				handlePoint: Matrix2d.applyToPoint(pageTransform, point),
+				handlePoint: Mat.applyToPoint(pageTransform, point),
 			})
 
-			if (snapDelta) {
-				snapDelta.rot(-editor.getShapeParentTransform(shape)!.rotation())
-				point.add(snapDelta)
+			if (snap) {
+				snap.nudge.rot(-editor.getShapeParentTransform(shape)!.rotation())
+				point.add(snap.nudge)
 			}
 		}
 
-		const changes = util.onHandleChange?.(shape, {
+		const changes = util.onHandleDrag?.(shape, {
 			handle: {
 				...initialHandle,
 				x: point.x,

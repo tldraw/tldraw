@@ -1,6 +1,6 @@
-import { Box2d } from './Box2d'
+import { Box } from './Box'
 import { pointInPolygon } from './utils'
-import { Vec2d, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec'
 
 // need even more intersections? See https://gist.github.com/steveruizok/35c02d526c707003a5c79761bfb89a52
 
@@ -37,7 +37,7 @@ export function intersectLineSegmentLineSegment(
 		const ua = ua_t / u_b
 		const ub = ub_t / u_b
 		if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
-			return Vec2d.AddXY(a1, ua * AVx, ua * AVy)
+			return Vec.AddXY(a1, ua * AVx, ua * AVy)
 		}
 	}
 
@@ -76,8 +76,8 @@ export function intersectLineSegmentCircle(a1: VecLike, a2: VecLike, c: VecLike,
 
 	const result: VecLike[] = []
 
-	if (0 <= u1 && u1 <= 1) result.push(Vec2d.Lrp(a1, a2, u1))
-	if (0 <= u2 && u2 <= 1) result.push(Vec2d.Lrp(a1, a2, u2))
+	if (0 <= u1 && u1 <= 1) result.push(Vec.Lrp(a1, a2, u1))
+	if (0 <= u2 && u2 <= 1) result.push(Vec.Lrp(a1, a2, u2))
 
 	if (result.length === 0) return null // no intersection
 
@@ -151,8 +151,8 @@ export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: 
 	dx /= d
 	dy /= d
 	return [
-		new Vec2d(c1.x + dx * x - dy * y, c1.y + dy * x + dx * y),
-		new Vec2d(c1.x + dx * x + dy * y, c1.y + dy * x - dx * y),
+		new Vec(c1.x + dx * x - dy * y, c1.y + dy * x + dx * y),
+		new Vec(c1.x + dx * x + dy * y, c1.y + dy * x - dx * y),
 	]
 }
 
@@ -209,7 +209,7 @@ export function intersectCirclePolyline(c: VecLike, r: number, points: VecLike[]
  *
  * @public
  */
-export function intersectPolygonBounds(points: VecLike[], bounds: Box2d) {
+export function intersectPolygonBounds(points: VecLike[], bounds: Box) {
 	const result: VecLike[] = []
 	let segmentIntersection: VecLike[] | null
 
@@ -243,26 +243,32 @@ export function intersectPolygonPolygon(
 	polygonA: VecLike[],
 	polygonB: VecLike[]
 ): VecLike[] | null {
-	// Create an empty polygon as P
-	const result: VecLike[] = []
+	// Create an empty polygon as result
+	const result: Map<string, VecLike> = new Map()
 	let a: VecLike, b: VecLike, c: VecLike, d: VecLike
 
-	// Add all corners of PolygonA that is inside PolygonB to P
+	// Add all corners of PolygonA that is inside PolygonB to result
 	for (let i = 0, n = polygonA.length; i < n; i++) {
 		a = polygonA[i]
 		if (pointInPolygon(a, polygonB)) {
-			result.push(a)
+			const id = getPointId(a)
+			if (!result.has(id)) {
+				result.set(id, a)
+			}
 		}
 	}
-	// Add all corners of PolygonB that is inside PolygonA to P
+	// Add all corners of PolygonB that is inside PolygonA to result
 	for (let i = 0, n = polygonB.length; i < n; i++) {
 		a = polygonB[i]
 		if (pointInPolygon(a, polygonA)) {
-			result.push(a)
+			const id = getPointId(a)
+			if (!result.has(id)) {
+				result.set(id, a)
+			}
 		}
 	}
 
-	// Add all intersection points to P
+	// Add all intersection points to result
 	for (let i = 0, n = polygonA.length; i < n; i++) {
 		a = polygonA[i]
 		b = polygonA[(i + 1) % polygonA.length]
@@ -273,20 +279,27 @@ export function intersectPolygonPolygon(
 			const intersection = intersectLineSegmentLineSegment(a, b, c, d)
 
 			if (intersection !== null) {
-				result.push(intersection)
+				const id = getPointId(intersection)
+				if (!result.has(id)) {
+					result.set(id, intersection)
+				}
 			}
 		}
 	}
 
-	if (result.length === 0) return null // no intersection
+	if (result.size === 0) return null // no intersection
 
-	// Order all points in the P counter-clockwise.
-	return orderClockwise(result)
+	// Order all points in the result counter-clockwise.
+	return orderClockwise([...result.values()])
+}
+
+function getPointId(point: VecLike) {
+	return `${point.x},${point.y}`
 }
 
 function orderClockwise(points: VecLike[]): VecLike[] {
-	const C = Vec2d.Average(points)
-	return points.sort((A, B) => Vec2d.Angle(C, A) - Vec2d.Angle(C, B))
+	const C = Vec.Average(points)
+	return points.sort((A, B) => Vec.Angle(C, A) - Vec.Angle(C, B))
 }
 
 /** @public */

@@ -24,7 +24,7 @@ const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: ShapeUtil
 	return useStateTracking('Indicator:' + shape.type, () => util.indicator(shape))
 }
 
-export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
+const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
 	const shape = useValue('shape', () => new ShapeWithPropsEquality(editor.store.get(id)), [
 		editor,
 		id,

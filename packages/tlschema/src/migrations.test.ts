@@ -1,5 +1,6 @@
 import { Migrations, Store, createRecordType } from '@tldraw/store'
 import fs from 'fs'
+import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { assetMigrations, assetVersions } from './records/TLAsset'
@@ -11,7 +12,7 @@ import { instancePageStateMigrations, instancePageStateVersions } from './record
 import { pointerMigrations, pointerVersions } from './records/TLPointer'
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeMigrations, rootShapeVersions } from './records/TLShape'
-import { arrowShapeMigrations } from './shapes/TLArrowShape'
+import { ArrowMigrationVersions, arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations } from './shapes/TLDrawShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
@@ -1054,7 +1055,7 @@ describe('user config refactor', () => {
 		// it cannot be added back so it should add some meaningless id in there
 		// in practice, because we bumped the store version, this down migrator will never be used
 		expect(down(next)).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "id": "instance:123",
 		  "typeName": "instance",
 		  "userId": "user:none",
@@ -1103,11 +1104,11 @@ describe('making instance state independent', () => {
 		expect(up(prev)).toEqual(next)
 		// down should never be called
 		expect(down(next)).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "cameraId": "camera:void",
 		  "id": "instance_page_state:123",
 		  "instanceId": "instance:instance",
-		  "selectedShapeIds": Array [],
+		  "selectedShapeIds": [],
 		  "typeName": "instance_page_state",
 		}
 	`)
@@ -1134,10 +1135,10 @@ describe('making instance state independent', () => {
 
 		// down should never be called
 		expect(down(next)).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "id": "instance_presence:123",
 		  "instanceId": "instance:instance",
-		  "selectedShapeIds": Array [],
+		  "selectedShapeIds": [],
 		  "typeName": "instance_presence",
 		}
 	`)
@@ -1607,6 +1608,18 @@ describe('add isHoveringCanvas to TLInstance', () => {
 	})
 })
 
+describe('add isInset to TLInstance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddInset]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ insets: [false, false, false, false] })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ insets: [false, false, false, false] })).toEqual({})
+	})
+})
+
 describe('add scribbles to TLInstance', () => {
 	const { up, down } = instanceMigrations.migrators[instanceVersions.AddScribbles]
 
@@ -1620,6 +1633,214 @@ describe('add scribbles to TLInstance', () => {
 
 	test('down works as expected', () => {
 		expect(down({ scribbles: [] })).toEqual({ scribble: null })
+	})
+})
+
+describe('add isPrecise to arrow handles', () => {
+	const { up, down } = arrowShapeMigrations.migrators[ArrowMigrationVersions.AddIsPrecise]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'point',
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
+				},
+			},
+		})
+		expect(
+			up({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.15, y: 0.15 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'point',
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.15, y: 0.15 },
+					isPrecise: true,
+				},
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: true,
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'point',
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			},
+		})
+
+		expect(
+			down({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.25, y: 0.25 },
+						isPrecise: true,
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'point',
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.25, y: 0.25 },
+				},
+			},
+		})
+
+		expect(
+			down({
+				props: {
+					start: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.15, y: 0.15 },
+						isPrecise: false,
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				start: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			},
+		})
+	})
+})
+
+describe('add AddLabelPosition to arrow handles', () => {
+	const { up, down } = arrowShapeMigrations.migrators[ArrowMigrationVersions.AddLabelPosition]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: { labelPosition: 0.5 },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					labelPosition: 0.5,
+				},
+			})
+		).toEqual({
+			props: {},
+		})
+	})
+})
+
+const invalidUrl = 'invalid-url'
+const validUrl = ''
+
+describe('Make urls valid for all the shapes', () => {
+	const migrations = [
+		['bookmark shape', bookmarkShapeMigrations.migrators[2]],
+		['geo shape', geoShapeMigrations.migrators[8]],
+		['image shape', imageShapeMigrations.migrators[3]],
+		['note shape', noteShapeMigrations.migrators[5]],
+		['video shape', videoShapeMigrations.migrators[2]],
+	] as const
+
+	for (const [shapeName, { up, down }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			const shape = { props: { url: invalidUrl } }
+			expect(up(shape)).toEqual({ props: { url: validUrl } })
+			expect(down(shape)).toEqual(shape)
+		})
+	}
+})
+
+describe('Make urls valid for all the assets', () => {
+	const migrations = [
+		['bookmark asset', bookmarkAssetMigrations.migrators[1]],
+		['image asset', imageAssetMigrations.migrators[3]],
+		['video asset', videoAssetMigrations.migrators[3]],
+	] as const
+
+	for (const [assetName, { up, down }] of migrations) {
+		it(`works for ${assetName}`, () => {
+			const asset = { props: { src: invalidUrl } }
+			expect(up(asset)).toEqual({ props: { src: validUrl } })
+			expect(down(asset)).toEqual(asset)
+		})
+	}
+})
+
+describe('Add duplicate props to instance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddDuplicateProps]
+	it('up works as expected', () => {
+		expect(up({})).toEqual({ duplicateProps: null })
+	})
+	it('down works as expected', () => {
+		expect(down({ duplicateProps: null })).toEqual({})
 	})
 })
 

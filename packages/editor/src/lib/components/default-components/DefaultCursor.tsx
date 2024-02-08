@@ -1,4 +1,4 @@
-import { Vec2dModel } from '@tldraw/tlschema'
+import { VecModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { ComponentType, memo, useRef } from 'react'
 import { useTransform } from '../../hooks/useTransform'
@@ -6,7 +6,7 @@ import { useTransform } from '../../hooks/useTransform'
 /** @public */
 export type TLCursorComponent = ComponentType<{
 	className?: string
-	point: Vec2dModel | null
+	point: VecModel | null
 	zoom: number
 	color?: string
 	name: string | null

@@ -1708,3 +1708,145 @@ describe('right clicking', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })
+
+describe('When brushing close to the edges of the screen', () => {
+	it('moves the camera', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera1 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(0, 0)
+		jest.advanceTimersByTime(100)
+		editor.pointerUp()
+		const camera2 = editor.getCamera()
+		expect(camera2.x).toBeGreaterThan(camera1.x) // for some reason > is left
+		expect(camera2.y).toBeGreaterThan(camera1.y) // for some reason > is up
+	})
+
+	it('moves the camera correctly when the viewport is nonzero', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera1 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		jest.advanceTimersByTime(100)
+		editor.pointerUp()
+		const camera2 = editor.getCamera()
+		// should NOT have moved the camera by edge scrolling
+		expect(camera2.x).toEqual(camera1.x)
+		expect(camera2.y).toEqual(camera1.y)
+
+		// Now change the bounds so that the corner is at 100,100 on the screen
+		editor.setScreenBounds({ ...editor.getViewportScreenBounds(), x: 100, y: 100 })
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera3 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		jest.advanceTimersByTime(100)
+		editor.pointerUp()
+		const camera4 = editor.getCamera()
+		// should NOT have moved the camera by edge scrolling because the edge is now "inset"
+		expect(camera4.x).toEqual(camera3.x)
+		expect(camera4.y).toEqual(camera3.y)
+
+		editor.pointerDown()
+		editor.pointerMove(90, 90) // off the edge of the component
+		jest.advanceTimersByTime(100)
+		const camera5 = editor.getCamera()
+		// should have moved the camera by edge scrolling off the component edge
+		expect(camera5.x).toBeGreaterThan(camera4.x)
+		expect(camera5.y).toBeGreaterThan(camera4.y)
+	})
+
+	it('selects shapes that are outside of the viewport', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+		editor.createShapes([
+			{ id: ids.box2, type: 'geo', x: -150, y: -150, props: { w: 100, h: 100 } },
+		])
+
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerMove(0, 0)
+		// still only box 1...
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		jest.advanceTimersByTime(100)
+		// ...but now viewport will have moved to select box2 as well
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
+		editor.pointerUp()
+	})
+
+	it('doesnt edge scroll to the other shape', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 0 }) // <-- no edge scrolling
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+		editor.createShapes([
+			{ id: ids.box2, type: 'geo', x: -150, y: -150, props: { w: 100, h: 100 } },
+		])
+
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(50, 50)
+		editor.expectToBeIn('select.brushing')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerMove(0, 0)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		jest.advanceTimersByTime(100)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerUp()
+	})
+})
+
+describe('When a shape is locked', () => {
+	beforeEach(() => {
+		editor.createShape({
+			id: ids.box1,
+			type: 'geo',
+			x: 0,
+			y: 0,
+			isLocked: true,
+			props: { w: 300, h: 300 },
+		})
+	})
+
+	it('does not select the shape', () => {
+		editor.pointerDown(50, 50)
+		editor.expectToBeIn('select.pointing_canvas')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('allows translating shapes on top of the locked shape', () => {
+		editor.createShape({ id: ids.box2, x: 50, y: 50, type: 'geo', props: { w: 50, h: 50 } })
+		editor.createShape({ id: ids.box3, x: 200, y: 200, type: 'geo', props: { w: 50, h: 50 } })
+
+		// Select the first shape
+		editor.pointerMove(60, 60)
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+		// Shift select the second shape
+		editor.pointerMove(210, 210)
+		editor.keyDown('Shift')
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.keyUp('Shift')
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
+
+		// Click between them and start dragging
+		editor.pointerMove(150, 150)
+		editor.pointerDown()
+		editor.expectToBeIn('select.pointing_selection')
+		editor.pointerMove(100, 150)
+		editor.expectToBeIn('select.translating')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
+	})
+})

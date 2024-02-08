@@ -34,12 +34,14 @@ it('creates new bindings for arrows when pasting', async () => {
 						boundShapeId: ids.box1,
 						isExact: false,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 					end: {
 						type: 'binding',
 						boundShapeId: ids.box2,
 						isExact: false,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
 					},
 				},
 			},
@@ -119,12 +121,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -140,12 +144,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -161,12 +167,14 @@ describe('When duplicating shapes that include arrows', () => {
 						normalizedAnchor: { x: 0.75, y: 0.75 },
 						boundShapeId: box1,
 						isExact: false,
+						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
 						normalizedAnchor: { x: 0.25, y: 0.25 },
 						boundShapeId: box3,
 						isExact: false,
+						isPrecise: true,
 					},
 				},
 			},
@@ -205,5 +213,47 @@ describe('When duplicating shapes that include arrows', () => {
 
 		// If you're feeling up to it:
 		// expect(editor.selectionRotatedBounds).toCloselyMatchObject(boundsBefore)
+	})
+})
+
+describe('When duplicating shapes after cloning', () => {
+	beforeEach(() => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	})
+	it('preserves the cloning properties (offset and shapes)', () => {
+		// Clone the shape by alt dragging it to a new location
+		expect(editor.getCurrentPageShapeIds().size).toBe(1)
+
+		editor.keyDown('Alt')
+		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(30, 40).pointerUp(30, 40) // [-20, -10]
+		editor.keyUp('Alt')
+		const shape = editor.getSelectedShapes()[0]
+		expect(editor.getCurrentPageShapeIds().size).toBe(2)
+		expect(shape.id).not.toBe(ids.box1)
+		expect(shape.x).toBe(-20)
+		expect(shape.y).toBe(-10)
+
+		// Make sure the duplicate props are set
+		let instance = editor.getInstanceState()
+		let duplicateProps = instance?.duplicateProps
+		if (!duplicateProps) throw new Error('duplicateProps should be set')
+		expect(duplicateProps.shapeIds).toEqual([shape.id])
+		expect(duplicateProps.offset).toEqual({ x: -20, y: -10 })
+
+		// Make sure duplication with these props works (we can't invoke the duplicate action directly since it's a hook)
+		editor.duplicateShapes(duplicateProps.shapeIds, duplicateProps.offset)
+		const newShapes = editor.getSelectedShapes()
+		expect(newShapes.length).toBe(1)
+		expect(newShapes[0].x).toBe(-40)
+		expect(newShapes[0].y).toBe(-20)
+
+		// Make sure the duplicate props are cleared when we select a different shape
+		editor.select(ids.box1)
+		instance = editor.getInstanceState()
+		duplicateProps = instance?.duplicateProps
+		expect(duplicateProps).toBe(null)
 	})
 })
