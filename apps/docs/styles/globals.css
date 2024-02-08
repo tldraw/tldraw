@@ -502,9 +502,14 @@ body {
 	margin-left: 8px;
 }
 
+.article ol h3 a {
+	color: white;
+}
+
 .article ol h3,
 .article ol li::marker {
 	font-size: 1.17em;
+	line-height: 28px;
 }
 
 .article ol ul {

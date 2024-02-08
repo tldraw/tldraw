@@ -10,24 +10,26 @@ Add a tldraw canvas to your React app in just 5 minutes.
 
 The tldraw React component is an easy way to introduce a fun, interactive canvas experience into your project.
 
-You will be making this:  
+By the end of this guide you will have made something that looks like this: 
 
 <Embed className="article__embed--quickstart" width="75%" src="https://vite-template-five.vercel.app/" />
 
-You can follow the steps below, or [clone the repo](https://github.com/tldraw/vite-template). 
+Follow this link to see the [deployed version of the app](https://vite-template-five.vercel.app/). You can follow the steps below to make your own version of it, or [clone the repo](https://github.com/tldraw/vite-template) to skip to the end. 
 
 <ol className="ordered-list__quickstart">
   <li>
     ### Installation
 
-    - Set up a React project however you normally do
+    - Set up a React project however you normally do. [We recommend Vite.](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
     - Install the tldraw library using this command:
+    
     ```bash
     npm install @tldraw/tldraw@beta
     ```
   </li>
   <li>
     ### Import Styles
+    <br />
     To import fonts and CSS for tldraw:
 
     - Create or edit a css file called index.css 
@@ -43,12 +45,15 @@ You can follow the steps below, or [clone the repo](https://github.com/tldraw/vi
   </li>
   <li>
     ### Render Tldraw Component
-
+    <br />
     To render the Tldraw component
 
     - Import the ```<Tldraw />``` component from “@tldraw/tldraw”
-    - Import index.css
-    - To render a full screen canvas, wrap the Tldraw component in a div with the style attribute set to: ```{position: 'fixed', inset: 0}```
+    - Import our CSS file from earlier, index.css
+    - Wrap the Tldraw component in a div with the style attribute set to: ```{position: 'fixed', inset: 0}``` 
+    
+    <p className="">This will render a full screen canvas:</p>
+
     ```javascript
     import { Tldraw } from "@tldraw/tldraw";
     import "./index.css";
@@ -65,9 +70,10 @@ You can follow the steps below, or [clone the repo](https://github.com/tldraw/vi
 </ol>
 
 ### Next Steps
-You can look at: 
+Now you have your canvas working, what next? Well, you can look at: 
 
-- Customising the ui 
-- Adding your own shapes and tools 
-- or multiplayer 
+- Give the editor a makeover by [customizing the ui](https://tldraw.dev/docs/user-interface)
+- Adding your own [shapes](https://tldraw.dev/docs/shapes) and [tools](https://tldraw.dev/docs/tools)
+- or [multiplayer](https://github.com/tldraw/tldraw-yjs-example) 
+- We provide examples of all of those and more in our [examples section](http://tldraw.dev/examples/basic/develop)
 - Go wild! 
