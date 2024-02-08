@@ -148,11 +148,11 @@ export {
 } from './lib/editor/Editor'
 export {
 	CurrentPageStateManager,
-	CurrentPageStateUpdate,
+	type CurrentPageStateUpdate,
 } from './lib/editor/managers/CurrentPageStateManager'
 export {
 	InstanceStateManager,
-	InstanceStateUpdate,
+	type InstanceStateUpdate,
 } from './lib/editor/managers/InstanceStateManager'
 export type {
 	TLAfterChangeHandler,
