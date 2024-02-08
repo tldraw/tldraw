@@ -7463,6 +7463,7 @@ __metadata:
     "@peculiar/webcrypto": "npm:^1.4.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@types/lodash.isequal": "npm:^4.5.6"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
