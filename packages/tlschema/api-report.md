@@ -934,7 +934,7 @@ export const tldrawMigrations: {
     readonly migrations: readonly [{
         readonly id: "com.tldraw/000_InitialMigration";
         readonly scope: "store";
-        readonly up: (data: SerializedStore<UnknownRecord>) => SerializedStore<UnknownRecord>;
+        readonly up: (_data: SerializedStore<UnknownRecord>) => void;
     }];
 };
 

@@ -205,11 +205,11 @@ export type RecordId<R extends UnknownRecord> = string & {
 // @public
 export interface RecordMigration extends BaseMigration {
     // (undocumented)
-    down?(record: UnknownRecord): UnknownRecord;
+    down?(record: UnknownRecord): UnknownRecord | void;
     // (undocumented)
     scope: 'record';
     // (undocumented)
-    up(record: UnknownRecord): UnknownRecord;
+    up(record: UnknownRecord): UnknownRecord | void;
 }
 
 // @public
@@ -366,11 +366,11 @@ export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) =>
 // @public
 export interface StoreMigration extends BaseMigration {
     // (undocumented)
-    down?(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord>;
+    down?(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord> | void;
     // (undocumented)
     scope: 'store';
     // (undocumented)
-    up(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord>;
+    up(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord> | void;
 }
 
 // @public (undocumented)

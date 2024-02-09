@@ -231,9 +231,11 @@ Ours:   ${str(this.sortedMigrationIds)}
 			migrations.reverse()
 		}
 
+		record = structuredClone(record)
+
 		try {
 			for (const migration of migrations) {
-				record = migration[direction]!(record as any) as any
+				record = (migration[direction]!(record as any) as any) ?? record
 			}
 		} catch (e) {
 			console.error('Failed to apply migration', e)
@@ -252,17 +254,15 @@ Ours:   ${str(this.sortedMigrationIds)}
 			return { type: 'success', value: snapshot.store }
 		}
 
-		let store = snapshot.store
+		let store = structuredClone(snapshot.store)
 		try {
 			for (const migration of migrationsToApply.value) {
 				if (migration.scope === 'store') {
-					store = migration.up(store) as any
+					store = (migration.up(store) as any) ?? store
 				} else {
-					const nextStore = { ...store }
 					for (const record of objectMapValues(store)) {
-						nextStore[record.id as keyof typeof nextStore] = migration.up(record) as any
+						store[record.id as keyof typeof store] = (migration.up(record) as any) ?? record
 					}
-					store = nextStore
 				}
 			}
 		} catch (e) {

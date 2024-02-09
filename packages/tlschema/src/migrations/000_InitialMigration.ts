@@ -3,8 +3,7 @@ import { Migration } from '@tldraw/store'
 export const InitialMigration = {
 	id: 'com.tldraw/000_InitialMigration',
 	scope: 'store',
-	up: (data) => {
-		// noop to get the ball rolling
-		return data
+	up: (_data) => {
+		// no-op to get the ball rolling
 	},
 } as const satisfies Migration

@@ -2282,13 +2282,17 @@
                 },
                 {
                   "kind": "Content",
+                  "text": " | void"
+                },
+                {
+                  "kind": "Content",
                   "text": ";"
                 }
               ],
               "isOptional": true,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -2356,13 +2360,17 @@
                 },
                 {
                   "kind": "Content",
+                  "text": " | void"
+                },
+                {
+                  "kind": "Content",
                   "text": ";"
                 }
               ],
               "isOptional": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
@@ -5381,7 +5389,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ">"
+                  "text": "> | void"
                 },
                 {
                   "kind": "Content",
@@ -5481,7 +5489,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ">"
+                  "text": "> | void"
                 },
                 {
                   "kind": "Content",

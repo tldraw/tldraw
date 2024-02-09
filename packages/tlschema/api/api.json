@@ -5703,7 +5703,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly id: \"com.tldraw\";\n    readonly migrations: readonly [{\n        readonly id: \"com.tldraw/000_InitialMigration\";\n        readonly scope: \"store\";\n        readonly up: (data: import(\"@tldraw/store\")."
+              "text": "{\n    readonly id: \"com.tldraw\";\n    readonly migrations: readonly [{\n        readonly id: \"com.tldraw/000_InitialMigration\";\n        readonly scope: \"store\";\n        readonly up: (_data: import(\"@tldraw/store\")."
             },
             {
               "kind": "Reference",
@@ -5721,25 +5721,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => import(\"@tldraw/store\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "SerializedStore",
-              "canonicalReference": "@tldraw/store!SerializedStore:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"@tldraw/store\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "UnknownRecord",
-              "canonicalReference": "@tldraw/store!UnknownRecord:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n    }];\n}"
+              "text": ">) => void;\n    }];\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/migrations/tldrawMigrations.ts",
@@ -5748,7 +5730,7 @@
           "name": "tldrawMigrations",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 10
+            "endIndex": 6
           }
         },
         {

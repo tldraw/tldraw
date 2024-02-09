@@ -31,8 +31,8 @@ interface BaseMigration {
  */
 export interface StoreMigration extends BaseMigration {
 	scope: 'store'
-	up(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord>
-	down?(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord>
+	up(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord> | void
+	down?(store: SerializedStore<UnknownRecord>): SerializedStore<UnknownRecord> | void
 }
 
 /**
@@ -44,8 +44,8 @@ export interface StoreMigration extends BaseMigration {
  */
 export interface RecordMigration extends BaseMigration {
 	scope: 'record'
-	up(record: UnknownRecord): UnknownRecord
-	down?(record: UnknownRecord): UnknownRecord
+	up(record: UnknownRecord): UnknownRecord | void
+	down?(record: UnknownRecord): UnknownRecord | void
 }
 
 /**

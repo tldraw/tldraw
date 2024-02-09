@@ -283,3 +283,106 @@ test('migrating a record up from a newer version does not work', () => {
 }
 `)
 })
+
+test('record migrations are allowed to mutate their inputs', () => {
+	const mutatingRecordMigration = {
+		id: 'mutating/1',
+		scope: 'record',
+		up(record: TestRecord) {
+			record.migrationsApplied.push('mutating/1')
+		},
+		down(record: TestRecord) {
+			record.migrationsApplied.pop()
+		},
+	} as const satisfies Migration
+
+	const schema = StoreSchema.create(
+		{ test: TestRecordType },
+		{
+			migrations: new MigrationsConfigBuilder()
+				.addSequence({
+					id: 'mutating',
+					migrations: [mutatingRecordMigration],
+				})
+				.setOrder(['mutating/1'])
+				.build(),
+		}
+	)
+
+	const record = TestRecordType.create({
+		id: TestRecordType.createId('0'),
+		migrationsApplied: [],
+	})
+
+	const upResult = schema.migratePersistedRecord(record, schemaV0.serialize(), 'up')
+
+	if (upResult.type !== 'success') throw new Error('up migration failed')
+	expect(record.migrationsApplied).toHaveLength(0)
+	expect((upResult.value as TestRecord).migrationsApplied).toEqual(['mutating/1'])
+
+	const downResult = schema.migratePersistedRecord(
+		upResult.value as TestRecord,
+		schemaV0.serialize(),
+		'down'
+	)
+	if (downResult.type !== 'success') throw new Error('down migration failed')
+	expect((upResult.value as TestRecord).migrationsApplied).toEqual(['mutating/1'])
+	expect((downResult.value as TestRecord).migrationsApplied).toHaveLength(0)
+	expect(record.migrationsApplied).toHaveLength(0)
+})
+
+test('store migrations are allowed to mutate their inputs', () => {
+	const mutatingRecordMigration = {
+		id: 'mutating/1',
+		scope: 'record',
+		up(record: TestRecord) {
+			record.migrationsApplied.push('mutating/1')
+		},
+		down(record: TestRecord) {
+			record.migrationsApplied.pop()
+		},
+	} as const satisfies Migration
+
+	const mutatingStoreMigration = {
+		id: 'mutating/2',
+		scope: 'store',
+		up(store: Record<string, TestRecord>) {
+			// duplicate the first record
+			store['test:1'] = structuredClone(store['test:0'])
+		},
+		down(store: Record<string, TestRecord>) {
+			delete store['test:1']
+		},
+	} as const satisfies Migration
+
+	const schema = StoreSchema.create(
+		{ test: TestRecordType },
+		{
+			migrations: new MigrationsConfigBuilder()
+				.addSequence({
+					id: 'mutating',
+					migrations: [mutatingRecordMigration, mutatingStoreMigration],
+				})
+				.setOrder(['mutating/1', 'mutating/2'])
+				.build(),
+		}
+	)
+
+	const snapshot = {
+		schema: schemaV0.serialize(),
+		store: {
+			'test:0': TestRecordType.create({
+				id: TestRecordType.createId('0'),
+				migrationsApplied: [],
+			}),
+		},
+	}
+
+	const upResult = schema.migrateStoreSnapshot(snapshot)
+
+	if (upResult.type !== 'success') throw new Error('up migration failed')
+	expect(snapshot.store['test:0'].migrationsApplied).toHaveLength(0)
+	expect(snapshot.store['test:1' as keyof typeof snapshot.store]).toBeUndefined()
+	expect((upResult as any).value['test:0'].migrationsApplied).toEqual(['mutating/1'])
+	expect((upResult as any).value['test:1'].migrationsApplied).toEqual(['mutating/1'])
+})
