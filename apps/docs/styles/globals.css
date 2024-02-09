@@ -675,7 +675,7 @@ body {
 }
 
 .footer__fancybox__item {
-	transition: all 3s;
+	transition: opacity 3s;
 	opacity: 0;
 	width: 28px;
 	height: 28px;
@@ -714,7 +714,7 @@ body {
 }
 
 .footer__fancybox__item:hover {
-	transition: all 0s;
+	transition: opacity 0s;
 	opacity: 0.32;
 }
 
