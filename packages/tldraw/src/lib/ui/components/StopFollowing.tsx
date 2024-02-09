@@ -2,7 +2,7 @@ import { track, useEditor } from '@tldraw/editor'
 import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
-export const StopFollowing = track(function ExitPenMode() {
+export const StopFollowing = track(function StopFollowing() {
 	const editor = useEditor()
 	const actions = useActions()
 

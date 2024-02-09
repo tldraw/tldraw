@@ -5,10 +5,23 @@ import { useCallback, useState } from 'react'
 // There's a guide at the bottom of this file!
 
 export default function CanvasEventsExample() {
-	const [events, setEvents] = useState<string[]>([])
+	const [events, setEvents] = useState<any[]>([])
 
 	const handleEvent = useCallback((data: TLEventInfo) => {
-		setEvents((events) => [JSON.stringify(data, null, '\t'), ...events.slice(0, 100)])
+		setEvents((events) => {
+			const newEvents = events.slice(0, 100)
+			if (
+				newEvents[newEvents.length - 1] &&
+				newEvents[newEvents.length - 1].type === 'pointer' &&
+				data.type === 'pointer' &&
+				data.target === 'canvas'
+			) {
+				newEvents[newEvents.length - 1] = data
+			} else {
+				newEvents.unshift(data)
+			}
+			return newEvents
+		})
 	}, [])
 
 	return (
@@ -36,9 +49,7 @@ export default function CanvasEventsExample() {
 					whiteSpace: 'pre-wrap',
 				}}
 			>
-				{events.map((t, i) => (
-					<div key={i}>{t}</div>
-				))}
+				<div>{JSON.stringify(events, undefined, 2)}</div>
 			</div>
 		</div>
 	)
