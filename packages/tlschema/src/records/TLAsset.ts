@@ -6,6 +6,9 @@ import { imageAssetValidator, TLImageAsset } from '../assets/TLImageAsset'
 import { TLVideoAsset, videoAssetValidator } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
+// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+// 💡❗ (see the tlschema README.md for instructions)
+
 /** @public */
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
@@ -16,6 +19,8 @@ export const assetValidator: T.Validator<TLAsset> = T.model(
 		image: imageAssetValidator,
 		video: videoAssetValidator,
 		bookmark: bookmarkAssetValidator,
+		// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+		// 💡❗ (see the tlschema README.md for instructions)
 	})
 )
 

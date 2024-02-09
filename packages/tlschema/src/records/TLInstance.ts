@@ -18,6 +18,8 @@ import { TLShapeId } from './TLShape'
  * @public
  */
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	currentPageId: TLPageId
 	opacityForNextShape: TLOpacityType
 	stylesForNextShape: Record<string, unknown>

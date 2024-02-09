@@ -8,6 +8,8 @@ import { T } from '@tldraw/validate'
  * @public
  */
 export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	gridSize: number
 	name: string
 	meta: JsonObject

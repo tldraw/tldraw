@@ -9,6 +9,8 @@ import { idValidator } from '../misc/id-validator'
  * @public
  */
 export interface TLPage extends BaseRecord<'page', TLPageId> {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	name: string
 	index: string
 	meta: JsonObject

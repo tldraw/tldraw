@@ -594,6 +594,8 @@ export type TLEmbedShapePermissions = { [K in keyof typeof embedShapePermissionD
 
 /** @public */
 export const embedShapeProps = {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	url: T.string,

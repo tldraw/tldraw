@@ -9,6 +9,8 @@ import { idValidator } from '../misc/id-validator'
  * @public
  */
 export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	x: number
 	y: number
 	z: number

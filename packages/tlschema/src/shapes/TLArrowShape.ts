@@ -9,6 +9,8 @@ import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { ShapePropsType, TLBaseShape, shapeIdValidator } from './TLBaseShape'
 
 const arrowheadTypes = [
+	// 💡❗ If you remove a value from this enum, make sure you also add a migration.
+	// 💡❗ (see the tlschema README.md for instructions)
 	'arrow',
 	'triangle',
 	'square',
@@ -37,6 +39,8 @@ export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStar
 
 /** @public */
 const ArrowShapeTerminal = T.union('type', {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	binding: T.object({
 		type: T.literal('binding'),
 		boundShapeId: shapeIdValidator,
@@ -56,6 +60,8 @@ export type TLArrowShapeTerminal = T.TypeOf<typeof ArrowShapeTerminal>
 
 /** @public */
 export const arrowShapeProps = {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	labelColor: DefaultLabelColorStyle,
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,

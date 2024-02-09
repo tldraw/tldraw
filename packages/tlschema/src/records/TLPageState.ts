@@ -15,6 +15,8 @@ import { TLShapeId } from './TLShape'
  */
 export interface TLInstancePageState
 	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	pageId: RecordId<TLPage>
 	selectedShapeIds: TLShapeId[]
 	hintingShapeIds: TLShapeId[]

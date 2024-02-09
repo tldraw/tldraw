@@ -7,6 +7,8 @@ import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export const textShapeProps = {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,

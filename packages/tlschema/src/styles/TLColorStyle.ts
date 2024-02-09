@@ -3,6 +3,8 @@ import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
 const colors = [
+	// 💡❗ If you remove a value from this enum, make sure you also add a migration.
+	// 💡❗ (see the tlschema README.md for instructions)
 	'black',
 	'grey',
 	'light-violet',

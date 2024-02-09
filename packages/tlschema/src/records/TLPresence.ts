@@ -10,6 +10,8 @@ import { TLShapeId } from './TLShape'
 
 /** @public */
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	userId: string
 	userName: string
 	lastActivityTimestamp: number

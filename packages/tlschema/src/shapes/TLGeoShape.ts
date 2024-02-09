@@ -13,6 +13,8 @@ import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 export const GeoShapeGeoStyle = StyleProp.defineEnum('tldraw:geo', {
 	defaultValue: 'rectangle',
 	values: [
+		// 💡❗ If you remove a value from this enum, make sure you also add a migration.
+		// 💡❗ (see the tlschema README.md for instructions)
 		'cloud',
 		'rectangle',
 		'ellipse',
@@ -40,6 +42,8 @@ export type TLGeoShapeGeoStyle = T.TypeOf<typeof GeoShapeGeoStyle>
 
 /** @public */
 export const geoShapeProps = {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	geo: GeoShapeGeoStyle,
 	labelColor: DefaultLabelColorStyle,
 	color: DefaultColorStyle,

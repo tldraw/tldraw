@@ -8,6 +8,8 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
 /** @public */
 export interface TLBaseShape<Type extends string, Props extends object>
 	extends BaseRecord<'shape', TLShapeId> {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	type: Type
 	x: number
 	y: number
@@ -54,6 +56,8 @@ export function createShapeValidator<
 		opacity: opacityValidator,
 		props: props ? T.object(props) : (T.jsonValue as T.ObjectValidator<Props>),
 		meta: meta ? T.object(meta) : (T.jsonValue as T.ObjectValidator<Meta>),
+		// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+		// 💡❗ (see the tlschema README.md for instructions)
 	})
 }
 

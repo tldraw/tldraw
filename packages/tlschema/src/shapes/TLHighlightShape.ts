@@ -6,6 +6,8 @@ import { DrawShapeSegment } from './TLDrawShape'
 
 /** @public */
 export const highlightShapeProps = {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	segments: T.arrayOf(DrawShapeSegment),

@@ -7,6 +7,8 @@ import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 export const DrawShapeSegment = T.object({
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	type: T.literalEnum('free', 'straight'),
 	points: T.arrayOf(vecModelValidator),
 })
@@ -16,6 +18,8 @@ export type TLDrawShapeSegment = T.TypeOf<typeof DrawShapeSegment>
 
 /** @public */
 export const drawShapeProps = {
+	// 💡❗ If you make any changes to this type, make sure you also add a migration if required.
+	// 💡❗ (see the tlschema README.md for instructions)
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
 	dash: DefaultDashStyle,
