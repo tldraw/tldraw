@@ -2,15 +2,28 @@ import { LegacyMigrator, MigrationOptions, Migrations, StoreSchema } from '@tldr
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import {
+	arrowShapeMigrations,
 	assetMigrations,
+	bookmarkShapeMigrations,
 	cameraMigrations,
 	documentMigrations,
+	drawShapeMigrations,
+	embedShapeMigrations,
+	frameShapeMigrations,
+	geoShapeMigrations,
+	groupShapeMigrations,
+	highlightShapeMigrations,
+	imageShapeMigrations,
 	instanceMigrations,
 	instancePageStateMigrations,
 	instancePresenceMigrations,
+	lineShapeMigrations,
+	noteShapeMigrations,
 	pageMigrations,
 	pointerMigrations,
 	storeMigrations,
+	textShapeMigrations,
+	videoShapeMigrations,
 } from './legacy-migrations/legacy-migrations'
 import { tldrawMigrations } from './migrations/tldrawMigrations'
 import { AssetRecordType } from './records/TLAsset'
@@ -22,7 +35,20 @@ import { InstancePageStateRecordType } from './records/TLPageState'
 import { PointerRecordType } from './records/TLPointer'
 import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
-import { createShapeRecordType, getShapePropKeysByStyle } from './records/TLShape'
+import { TLDefaultShape, createShapeRecordType, getShapePropKeysByStyle } from './records/TLShape'
+import { arrowShapeProps } from './shapes/TLArrowShape'
+import { bookmarkShapeProps } from './shapes/TLBookmarkShape'
+import { drawShapeProps } from './shapes/TLDrawShape'
+import { embedShapeProps } from './shapes/TLEmbedShape'
+import { frameShapeProps } from './shapes/TLFrameShape'
+import { geoShapeProps } from './shapes/TLGeoShape'
+import { groupShapeProps } from './shapes/TLGroupShape'
+import { highlightShapeProps } from './shapes/TLHighlightShape'
+import { imageShapeProps } from './shapes/TLImageShape'
+import { lineShapeProps } from './shapes/TLLineShape'
+import { noteShapeProps } from './shapes/TLNoteShape'
+import { textShapeProps } from './shapes/TLTextShape'
+import { videoShapeProps } from './shapes/TLVideoShape'
 import { StyleProp } from './styles/StyleProp'
 
 /** @public */
@@ -49,12 +75,12 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  *
  * @public */
 export function createTLSchema({
-	shapes,
+	shapes = defaultShapes,
 	migrations,
 }: {
-	shapes: Record<string, SchemaShapeInfo>
+	shapes?: Record<string, SchemaShapeInfo>
 	migrations?: MigrationOptions
-}): TLSchema {
+} = {}): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {
 		for (const style of getShapePropKeysByStyle(shape.props ?? {}).keys()) {
@@ -109,3 +135,58 @@ export function createTLSchema({
 		}
 	)
 }
+
+const defaultShapes = {
+	group: {
+		props: groupShapeProps,
+		__legacyMigrations_do_not_update: groupShapeMigrations,
+	},
+	text: {
+		props: textShapeProps,
+		__legacyMigrations_do_not_update: textShapeMigrations,
+	},
+	bookmark: {
+		props: bookmarkShapeProps,
+		__legacyMigrations_do_not_update: bookmarkShapeMigrations,
+	},
+	draw: {
+		props: drawShapeProps,
+		__legacyMigrations_do_not_update: drawShapeMigrations,
+	},
+	geo: {
+		props: geoShapeProps,
+		__legacyMigrations_do_not_update: geoShapeMigrations,
+	},
+	note: {
+		props: noteShapeProps,
+		__legacyMigrations_do_not_update: noteShapeMigrations,
+	},
+	line: {
+		props: lineShapeProps,
+		__legacyMigrations_do_not_update: lineShapeMigrations,
+	},
+	frame: {
+		props: frameShapeProps,
+		__legacyMigrations_do_not_update: frameShapeMigrations,
+	},
+	arrow: {
+		props: arrowShapeProps,
+		__legacyMigrations_do_not_update: arrowShapeMigrations,
+	},
+	highlight: {
+		props: highlightShapeProps,
+		__legacyMigrations_do_not_update: highlightShapeMigrations,
+	},
+	embed: {
+		props: embedShapeProps,
+		__legacyMigrations_do_not_update: embedShapeMigrations,
+	},
+	image: {
+		props: imageShapeProps,
+		__legacyMigrations_do_not_update: imageShapeMigrations,
+	},
+	video: {
+		props: videoShapeProps,
+		__legacyMigrations_do_not_update: videoShapeMigrations,
+	},
+} satisfies { [k in TLDefaultShape['type']]: SchemaShapeInfo }

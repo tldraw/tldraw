@@ -76,7 +76,9 @@ type ExtractValidMigrationIds<Sequence extends MigrationSequence> =
  * @public
  */
 export class MigrationsConfigBuilder<ValidMigrationIds extends MigrationId = never> {
-	sequences: MigrationsConfig['sequences'] = []
+	private sequences: MigrationsConfig['sequences'] = []
+	private order: MigrationsConfig['order'] = []
+
 	addSequence<S extends MigrationSequence>(
 		sequence: S,
 		versionAtInstallation?: ExtractValidMigrationIds<S>
@@ -87,10 +89,16 @@ export class MigrationsConfigBuilder<ValidMigrationIds extends MigrationId = nev
 		})
 		return this
 	}
-	setOrder(order: ValidMigrationIds[]): MigrationsConfig {
+
+	setOrder(order: ValidMigrationIds[]): MigrationsConfigBuilder {
+		this.order = order
+		return this
+	}
+
+	build() {
 		const result: MigrationsConfig = {
 			sequences: this.sequences,
-			order,
+			order: this.order,
 		}
 		// validate early to provide more useful stack traces
 		parseMigrations(result)

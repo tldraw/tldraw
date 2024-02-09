@@ -1,6 +1,6 @@
 ---
-title: Persistence
-component: ./PersistenceExample.tsx
+title: LocalStorage
+component: ./LocalStorageExample.tsx
 category: data/assets
 ---
 

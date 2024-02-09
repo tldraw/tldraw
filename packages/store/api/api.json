@@ -2067,13 +2067,13 @@
               "name": "addSequence"
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/store!MigrationsConfigBuilder#sequences:member",
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!MigrationsConfigBuilder#build:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "sequences: "
+                  "text": "build(): "
                 },
                 {
                   "kind": "Reference",
@@ -2082,24 +2082,21 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "['sequences']"
-                },
-                {
-                  "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "sequences",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
               "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
               "isProtected": false,
-              "isAbstract": false
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "build"
             },
             {
               "kind": "Method",
@@ -2120,8 +2117,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "MigrationsConfig",
-                  "canonicalReference": "@tldraw/store!MigrationOptions:type"
+                  "text": "MigrationsConfigBuilder",
+                  "canonicalReference": "@tldraw/store!MigrationsConfigBuilder:class"
                 },
                 {
                   "kind": "Content",

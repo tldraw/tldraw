@@ -186,9 +186,9 @@ export class MigrationsConfigBuilder<ValidMigrationIds extends MigrationId = nev
     // (undocumented)
     addSequence<S extends MigrationSequence>(sequence: S, versionAtInstallation?: ExtractValidMigrationIds<S>): MigrationsConfigBuilder<ExtractValidMigrationIds<S> | ValidMigrationIds>;
     // (undocumented)
-    sequences: MigrationOptions['sequences'];
+    build(): MigrationOptions;
     // (undocumented)
-    setOrder(order: ValidMigrationIds[]): MigrationOptions;
+    setOrder(order: ValidMigrationIds[]): MigrationsConfigBuilder;
 }
 
 // @public (undocumented)

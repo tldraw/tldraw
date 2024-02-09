@@ -28,7 +28,7 @@ const Author = createRecordType<Author>('author', {
 	isPseudonym: false,
 }))
 
-const migrations = new MigrationsConfigBuilder().setOrder([])
+const migrations = new MigrationsConfigBuilder().setOrder([]).build()
 
 const migrations2 = new MigrationsConfigBuilder()
 	.addSequence({
@@ -49,6 +49,7 @@ const migrations2 = new MigrationsConfigBuilder()
 		],
 	})
 	.setOrder(['test/001'])
+	.build()
 
 interface Visit extends BaseRecord<'visit', RecordId<Visit>> {
 	visitorName: string

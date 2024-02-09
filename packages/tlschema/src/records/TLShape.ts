@@ -137,12 +137,12 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 		opacity: 1,
 		meta: {},
 	}))
+	// eslint-disable-next-line deprecation/deprecation
 	const legacyShapeMigrations = defineMigrations({
 		currentVersion: rootShapeMigrations.currentVersion,
 		firstVersion: rootShapeMigrations.firstVersion,
 		migrators: rootShapeMigrations.migrators,
 		subTypeKey: 'type',
-		// eslint-disable-next-line deprecation/deprecation
 		subTypeMigrations: mapObjectMapValues(shapes, (typeName, v) => {
 			// eslint-disable-next-line deprecation/deprecation
 			if (v.migrations) {
@@ -151,6 +151,7 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 					`[tldraw] Specifying migrations for the '${typeName}' shape type on the util class is no longer supported. See [docs] for how to resolve.`
 				)
 			}
+			// eslint-disable-next-line deprecation/deprecation
 			return v.__legacyMigrations_do_not_update ?? defineMigrations({})
 		}),
 	})

@@ -1,5 +1,5 @@
 ---
-title: Persistence
+title: Persistence & Collaboration
 status: published
 author: steveruizok
 date: 3/22/2023
@@ -17,7 +17,7 @@ Persistence in tldraw means storing information about the editor's state to a da
 
 ## The `"persistenceKey"` prop
 
-Both the `<Tldraw>` or `<TldrawEditor>` components support local persitence and cross-tab synchronization via the `persistenceKey` prop. Passing a value to this prop will persist the contents of the editor locally to the browser's IndexedDb.
+Both the `<Tldraw>` or `<TldrawEditor>` components support local persistence and cross-tab synchronization via the `persistenceKey` prop. Passing a value to this prop will persist the contents of the editor locally to the browser's IndexedDb.
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
@@ -54,7 +54,7 @@ export default function () {
 
 In the example above, both editors would synchronize their document locally. They would still have two independent instance states (e.g. selections) but the document would be kept in sync and persisted under the same key.
 
-## Snapshots
+## Document Snapshots
 
 You can get a JSON snapshot of the editor's content using the [Editor#store](?)'s [Store#getSnapshot](?) method.
 
@@ -96,7 +96,7 @@ function LoadButton() {
 
 A [snapshot](/reference/store/StoreSnapshot) includes both the store's [serialized records](/reference/store/SerializedStore) and its [serialized schema](/reference/store/SerializedSchema), which is used for migrations.
 
-> By default, the `getSnapshot` method returns only the editor's document data. If you want to get records from a different scope, You can pass in `session`, `document`, `presence`, or else `all` for all scopes.
+> By default, the `getSnapshot` method returns only the editor's document data. If you want to get records from a different scope, you can pass in `session`, `document`, `presence`, or else `all` for all scopes.
 
 Note that loading a snapshot does not reset the editor's in memory state or UI state. For example, loading a snapshot during a resizing operation may lead to a crash. This is because the resizing state maintains its own cache of information about which shapes it is resizing, and its possible that those shapes may no longer exist!
 
@@ -167,6 +167,228 @@ export default function () {
 
 	return <Tldraw persistenceKey="my-persistence-key" store={storeWithStatus} />
 }
-```
 
 For a good example of this pattern, see the [yjs-example](https://github.com/tldraw/tldraw-yjs-example).
+
+## Incremental Updates
+
+You can listen for incremental updates to the document state by calling `editor.store.listen`, e.g.
+
+```ts
+const unlisten = editor.store.listen((update) => {
+  console.log('update', update)
+}, { scope: 'document', source: 'user' })
+```
+
+These updates contain information about which records were added, removed, and updated. See [HistoryEntry](?)
+
+The `scope` filter can be used to listen for changes to a specific record scope, e.g. `document`, `session`, `presence`, or `all`.
+
+The `source` filter can be used to listen for changes from a specific source, e.g. `user`, `remote`, or `all`. (See [Store#mergeRemoteChanges](?) for more information on remote changes.)
+
+Note that these incremental updates do not include the schema version. You should make sure that you keep a record of the latest schema version if you are incrementally updating a persistence target across multiple tldraw sessions.
+
+You can get the schema version by calling `editor.store.schema.serialize()` and the returned value can replace the `schema` property in the snapshot next time you need to load a snapshot. The schema does not change at runtime so you only need to do this once per session.
+
+## Handling remote changes
+
+If you need to synchronize changes from a remote source, e.g. a multiplayer backend, you can use the `editor.store.mergeRemoteChanges` method. This will 'tag' the changes with the `source` property as `'remote'` so you can filter them out when listening for changes.
+
+## Migrations
+
+Tldraw uses migrations to bring data from old snapshots up to date. These run automatically when calling `editor.store.loadSnapshot`.
+
+### Running migrations manually
+
+If you need to run migrations on a snapshot without loading it into the store, you can call [StoreSchema#migrateStoreSnapshot](?) directly.
+
+```ts
+import { createTLSchema } from '@tldraw/tldraw'
+
+const snapshot = await getSnapshotFromSomewhere()
+const migrationResult = createTLSchema().migrateStoreSnapshot(snapshot)
+if (migrationResult.type === 'success') {
+	console.log('Migrated snapshot', migrationResult.value)
+} else {
+	console.error('Migration failed', migrationResult.reason)
+}
+```
+
+### Custom migrations
+
+Tldraw supports a couple of ways of adding custom data structures to the tldraw store:
+
+- [Custom shape types](/docs/shapes#Custom-shapes-1)
+- [`meta` properties](/docs/shapes#Meta-information) on all of our built-in record types.
+
+You might wish to migrate this data over time as you make changes to your data types.
+
+To enable this, tldraw allows you to inject custom migrations into the schema.
+
+Configuring migrations in tldraw is a two step process:
+
+1. **Collect any migration 'sequences' that need to be included.** These contain the migrations functions themselves. Tldraw ships with a single built-in sequence and you probably only need to add one more for your own data.
+2. **Combine the independent sequences into a canonical linear ordering.** This takes the form of a list of migration ID strings that you will need to append to manually over time when either upgrading tldraw or adding your own migrations.
+
+<Image
+	title="Migrations Step 1"
+	src="/images/api/migrations-step-1.png"
+	alt="A diagram showing two independent sequences of migrations, one for tldraw's built-in migrations and another for the user's own custom migrations."
+	style={{width:"500px", maxWidth:"90%", marginBottom:"20px"}}
+	center
+/>
+
+<Image
+	title="Migrations Step 2"
+	src="/images/api/migrations-step-2.png"
+	alt="A diagram showing the migrations from the two sequences in the previous diagram, but woven together into a unified sequence."
+	style={{width:"500px", maxWidth:"90%"}}
+	center
+/>
+
+In order to add your own migrations you first need to 'eject' the built-in migrations configuration. 
+
+First, run this code and remember the number that is logged out
+
+```ts
+import { tldrawMigrations } from '@tldraw/tldraw'
+
+console.log('NUM_MIGRATIONS =', tldrawMigrations.migrations.length)
+```
+
+Then, create a new migrations configuration that matches the default configuration at the time
+you are ejecting.
+
+```ts
+import { MigrationsConfigBuilder, tldrawMigrations } from "@tldraw/tldraw"
+
+const migrations = new MigrationsConfigBuilder()
+	.addSequence(tldrawMigrations)
+	.setOrder([
+		// Replace <NUM_MIGRATIONS> with the number you logged out earlier.
+		// IT IS VERY IMPORTANT THAT THIS NUMBER IS HARD-CODED, AND NEVER MODIFIED
+		...tldrawMigrations.migrations.slice(0, <NUM_MIGRATIONS>).map((m) => m.id),
+	])
+	.build()
+```
+
+Then, you can create your own migration sequence
+
+```ts
+import { MigrationSequence } from "@tldraw/tldraw"
+
+const myCustomMigrations = {
+	// This should be a globally unique string to identify your app or library
+	id: 'my-special-app',
+	migrations: [
+		{
+			// A migration's ID should be unique and should start with the sequence ID defined above.
+			// The numbers are optional but we recommend using them for clarity.
+			id: 'my-special-app/001_FixSpecialShape',
+			// scope can be 'record' or 'store'
+			// 'record' migrations will run on every record individually and are not
+			// able to read from other records or add or delete records.
+			// 'store' migrations run on the whole document at once and can add or remove
+			// records or read data from multiple records.
+			scope: 'record',
+			up(record) {
+				// this will be called for all records in the snapshot so you need to filter
+				// out any that are not relevant to your app
+				if (record.typeName !== 'shape' || record.type !== 'my-special-shape-type') return record
+			
+				return fixTheRecord(record)
+			},
+		},
+		// When adding more migrations in the future, you should append them to the end of the list.
+		// You must make sure that you never change the order of the migrations.
+	],
+	// We strongly recommend that you use the following type annotation pattern
+	// to help the type checker ensure that your config makes sense.
+} as const satisfies MigrationSequence
+```
+
+Then you can add your sequence to the migrations configuration
+
+```diff
+ const migrations = new MigrationsConfigBuilder()
+ 	.addSequence(tldrawMigrations)
++	.addSequence(myCustomMigrations)
+ 	.setOrder([
+		...tldrawMigrations.migrations.slice(0, <NUM_MIGRATIONS>).map((m) => m.id),
++ 	'my-special-app/001_FixSpecialShape',
+ 	])
+	.build()
+```
+
+And finally pass your migrations in to tldraw. Where you do this will depend on how custom your setup is, but it's probably one of these:
+
+```tsx
+// When rendering the Tldraw component
+<Tldraw
+  ...
+	migrations={migrations}
+	/>
+
+// or when creating the store
+store = createTLStore({
+	...
+	migrations,
+})
+
+// or when creating the schema
+schema = createTLSchema({
+	...
+	migrations,
+})
+```
+
+### Handling Upgrades to tldraw
+
+If you have a custom 'ejected' migrations config, as outlined above, upgrading tldraw may involve a little extra work. When you upgrade to a newer version which includes extra migrations, you will need to append the new migrations' IDs to the end of the array you pass to `setOrder()`.
+
+[MigrationsConfigBuilder#build](?) will throw a runtime error instructing you to do this, and it will specify the missing migration IDs so that you can copy and paste easily.
+
+We recommend also setting up a test that loads the file in which you build your migrations config, to make 100% sure that you catch any issues before they hit production.
+
+```ts
+// migrations.test.ts
+test('migrations are consistent and up-to-date', () => {
+	expect(() => require('./migrations')).not.toThrow()
+})
+```
+
+### Legacy Custom Migrations
+
+Prior to v2 tldraw only allowed passing migrations on Shape Util classes. If you had been using this feature you need to rename the `migrations` property in your shape util class to `__legacyMigrations_do_not_update`
+
+```diff
+ class MyCustomShape extends ShapeUtil {
+ 	static type = 'custom-shape'
+-	static migrations = defineMigrations(....)
++	static __legacyMigrations_do_not_update = defineMigrations(....)
+ 
+ 	...
+ }
+```
+
+From that point on you should never update the migrations on the `__legacyMigrations_do_not_update` property. Instead, you should add new migrations to the `migrations` property on the `MigrationsConfig` object as described above. Your legacy migrations will continue to run when needed, as before.
+
+## Examples
+
+### Local persistence
+
+Tldraw ships with a local-only sync engine based on `IndexedDb` and `BroadcastChannel` called [`TLLocalSyncClient`](https://github.com/tldraw/tldraw/blob/main/packages/editor/src/lib/utils/sync/TLLocalSyncClient.ts). 
+
+### Tldraw.com sync engine
+[tldraw.com/r](https://tldraw.com/r) currently uses a simple custom sync engine based on a push/pull/rebase-style algorithm.
+It can be found [here](https://github.com/tldraw/tldraw/tree/main/packages/tlsync).
+It was optimized for Cloudflare workers with [DurableObjects](https://developers.cloudflare.com/durable-objects/)
+
+We don't suggest using our code directly yet, but it may serve as a good reference for your own sync engine.
+
+### Yjs example
+
+We created a [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) to illustrate a way of using yjs with the `@tldraw/tldraw` library.
+
+### Custom migrations example
+

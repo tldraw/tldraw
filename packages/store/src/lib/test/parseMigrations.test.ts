@@ -402,7 +402,7 @@ test('it does not complain if a dependsOn referee was satisfied correctly', () =
 
 test('we call parseMigrations during the migrations constructor', () => {
 	expect(() => {
-		new MigrationsConfigBuilder().addSequence(bookMigrations).setOrder([])
+		new MigrationsConfigBuilder().addSequence(bookMigrations).setOrder([]).build()
 	}).toThrowErrorMatchingInlineSnapshot(`
 "[tldraw] Some migration IDs are missing from your migration order array. Did you just update a tldraw dependency?
 

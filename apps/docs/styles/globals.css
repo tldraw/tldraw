@@ -555,12 +555,15 @@ body {
 }
 
 .article__image {
-	display: block;
 	width: 100%;
 	margin: 32px 0px;
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+}
+
+.article__image--centered {
+	align-items: center;
 }
 
 .article__image > img {

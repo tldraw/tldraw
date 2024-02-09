@@ -28,6 +28,7 @@ const migrations = new MigrationsConfigBuilder()
 		// If you upgrade tldraw and the new version has extra migrations you will be
 		// asked to add them at the end here.
 	])
+	.build()
 
 // [2]
 export default function CustomConfigExample() {

@@ -233,6 +233,7 @@ export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
 				'test/005_add_shape_parent',
 				'test/006_add_rectangle_opacity',
 				'test/007_add_oval_border_style',
-			]),
+			])
+			.build(),
 	}
 )

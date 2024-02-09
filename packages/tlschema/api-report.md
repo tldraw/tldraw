@@ -139,8 +139,8 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<TLBaseShape<Type, Props>>;
 
 // @public
-export function createTLSchema({ shapes, migrations, }: {
-    shapes: Record<string, SchemaShapeInfo>;
+export function createTLSchema({ shapes, migrations, }?: {
+    shapes?: Record<string, SchemaShapeInfo>;
     migrations?: MigrationOptions;
 }): TLSchema;
 

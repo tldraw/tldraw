@@ -1,5 +1,6 @@
 /* ---------------------- Lists --------------------- */
 
+import classNames from 'classnames'
 import React from 'react'
 
 export const UnorderedList = (props: any) => {
@@ -117,9 +118,11 @@ export const TD = (props: any) => {
 
 export const Image = (props: any) => {
 	return (
-		<a className="article__image" href={props.href ?? props.src}>
+		<a
+			className={classNames('article__image', props.center ? 'article__image--centered' : null)}
+			href={props.href ?? props.src}
+		>
 			<img alt={props.title} {...props} />
-			{props.caption && <span className="article__caption">{props.caption}</span>}
 		</a>
 	)
 }

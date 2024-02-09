@@ -74,7 +74,7 @@ const sequenceAV1 = {
 
 const schemaV1 = StoreSchema.create(
 	{ test: TestRecordType },
-	{ migrations: new MigrationsConfigBuilder().addSequence(sequenceAV1).setOrder(['A/1']) }
+	{ migrations: new MigrationsConfigBuilder().addSequence(sequenceAV1).setOrder(['A/1']).build() }
 )
 
 const sequenceAV2 = {
@@ -99,7 +99,8 @@ const schemaV2 = StoreSchema.create(
 			.addSequence(sequenceAV2)
 			.addSequence(sequenceBV2)
 			.addSequence(sequenceCV2, 'C/1')
-			.setOrder(['A/1', 'A/2', 'B/2', 'C/2']),
+			.setOrder(['A/1', 'A/2', 'B/2', 'C/2'])
+			.build(),
 	}
 )
 
@@ -115,7 +116,8 @@ const schemaV3 = StoreSchema.create(
 			.addSequence(sequenceAV3)
 			.addSequence(sequenceBV2)
 			.addSequence(sequenceCV2, 'C/1')
-			.setOrder(['A/1', 'A/2', 'B/2', 'C/2', 'A/3']),
+			.setOrder(['A/1', 'A/2', 'B/2', 'C/2', 'A/3'])
+			.build(),
 	}
 )
 

@@ -105,7 +105,8 @@ const schemaV2 = StoreSchema.create<RV2>(
 	{
 		migrations: new MigrationsConfigBuilder()
 			.addSequence({ id: 'test', migrations: [v2Migration] })
-			.setOrder(['test/001_replace_user_age_with_birthdate']),
+			.setOrder(['test/001_replace_user_age_with_birthdate'])
+			.build(),
 	}
 )
 
@@ -136,7 +137,8 @@ const schemaV3 = StoreSchema.create<RV2>(
 	{
 		migrations: new MigrationsConfigBuilder()
 			.addSequence({ id: 'test', migrations: [v2Migration, v3Migration] })
-			.setOrder(['test/001_replace_user_age_with_birthdate', 'test/002_remove_joe_and_add_steve']),
+			.setOrder(['test/001_replace_user_age_with_birthdate', 'test/002_remove_joe_and_add_steve'])
+			.build(),
 	}
 )
 
