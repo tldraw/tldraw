@@ -6,15 +6,15 @@ date: 3/22/2023
 order: 0
 ---
 
-### Add a tldraw canvas to your React app in just 5 minutes.
+<h2>Add a tldraw canvas to your React app in just 5 minutes.</h2>
 
-The tldraw sdk provides a really simple way to craft infinite canvas experiences for the web. It's perfect for collaborative applications, productivity tools, interfacing with multi modal ai, and more.
+The tldraw SDK provides a really simple way to craft infinite canvas experiences for the web. It's perfect for collaborative applications, productivity tools, interfacing with multi-modal AI, and more.
 
 By the end of this guide you will have made something that looks like this: 
 
-<Embed className="article__embed--quickstart" width="75%" src="https://vite-template-five.vercel.app/" />
+<Embed className="article__embed--quickstart" src="https://vite-template-five.vercel.app/" />
 
-Follow this link to see the [deployed version of the app](https://vite-template-five.vercel.app/).
+
 Follow the steps below to make your own version of it, or [clone the repo](https://github.com/tldraw/vite-template) to skip to the end. 
 
 <hr />
@@ -22,7 +22,7 @@ Follow the steps below to make your own version of it, or [clone the repo](https
   <li>
     ### Installation
 
-    - Set up a React project however you normally do. [We recommend Vite.](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
+    - Set up a React project however you normally do. [We recommend Vite](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
     - Install the tldraw library using this command:
     
     ```bash
@@ -34,7 +34,7 @@ Follow the steps below to make your own version of it, or [clone the repo](https
     <br />
     To import fonts and CSS for tldraw:
 
-    - Create or edit a css file called index.css 
+    - Create or edit a css file called `index.css`
     - Copy and paste this into the file:
     ```CSS
     @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap");
@@ -50,9 +50,9 @@ Follow the steps below to make your own version of it, or [clone the repo](https
     <br />
     To render the Tldraw component
 
-    - Import the ```<Tldraw />``` component from “@tldraw/tldraw”
-    - Import our CSS file from earlier, index.css
-    - Wrap the Tldraw component in a div with the style attribute set to: ```{position: 'fixed', inset: 0}``` 
+    - Import the `<Tldraw />` component from `@tldraw/tldraw`
+    - Import the `index.css` CSS file from earlier
+    - Wrap the Tldraw component in a `<div>` element with the style attribute set to: `{ position: 'fixed', inset: 0 }`
     
     <p className="">This will render a full screen canvas:</p>
 
@@ -70,12 +70,15 @@ Follow the steps below to make your own version of it, or [clone the repo](https
     ```
   </li>
 </ol>
-<hr />
-### Next Steps
-You did it! Now you have your canvas working, what next? You can try: 
 
-- Give the editor a makeover by [customizing the ui](https://tldraw.dev/docs/user-interface)
-- Adding your own [shapes](https://tldraw.dev/docs/shapes) and [tools](https://tldraw.dev/docs/tools)
-- or [multiplayer](https://github.com/tldraw/tldraw-yjs-example) 
-- We provide examples of all of those and more in our [examples section](http://tldraw.dev/examples/basic/develop)
-- Go wild! 
+<hr />
+
+### Next Steps
+
+You did it! Now that you have your canvas working, you may be wondering: what next? You can try: 
+
+- Giving the editor a makeover by [customizing the UI](/docs/user-interface)
+- Adding your own [shapes](/docs/shapes) and [tools](/docs/tools)
+- Providing collaboration using [multiplayer](https://github.com/tldraw/tldraw-yjs-example) 
+
+We provide the above examples and more in our [examples section](/examples/basic/develop). Go build something creative and please do share it with us in our [#show-and-tell](https://discord.com/invite/SBBEVCA4PG) channel on Discord!
