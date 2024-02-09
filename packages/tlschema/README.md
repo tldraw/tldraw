@@ -20,49 +20,54 @@ There are three main kinds of types:
 
 If you make any kind of change to any persisted data shape in this package, you must add migrations that are able to convert old versions to new versions, and vice-versa.
 
-If you are making a change that affects the structure of a record, shape, or asset, update the migrations in the same file as the record, shape, or asset is defined.
+1. Create a new migrations file in the `src/migrations` directory. The file name should match the migration's ID. Copy the previous file and rename it, bumping the number prefix, then update the migration metadata and up/down functions.
+2. Add a test file in `src/migrations/test` with the same name and the `.test.ts` extension. This file should test the migration you added in step 1.
+3. Add your migration **at the end of** the `migrations` array in `tldrawMigrations.ts`
+5. Increment the number in the `tldrawMigrations.migrations.slice(0, ...)` call in `CustomConfigExample.tsx`
+4. Run `yarn test tldrawMigrations.ts` in this package to generate a new snapshot and check that you updated the number in `CustomConfigExample.tsx` correctly.
 
-If you are making a change that affects the structure of the store (e.g. renaming or deleting a type, consolidating two shape types into one, etc), add your changes in the migrations in `schema.ts`.
+## Types of migration
 
-After making your changes, add a new version number, using a meaninful name. For example, if you add a new property
-to the `TLShape` type called `ownerId` that points to a user, you might do this:
+There are two types of migration you can add:
 
-In `TLShape.ts`
+1. **Record-scoped migrations**. These are called on every record in the store individually. They are useful for adding, removing, renaming, and editing properties on records.
 
-```diff
- const Versions = {
-   RemoveSomeProp: 1,
-+  AddOwnerId: 2,
- } as const
-```
+   ```ts
+   export const AddArrowLabel = {
+   	id: 'com.tldraw/003_AddArrowLabel',
+   	scope: 'record',
+   	up: (record) => {
+   		if (record.typeName === 'shape' && record.type === 'arrow') {
+   			// mutating records is allowed during migrations now
+   			record.props.label = null
+   		}
+   	},
+   	down: (record) => {
+   		if (record.typeName === 'shape' && record.type === 'arrow') {
+   			delete props.label
+   		}
+   	},
+   } as const satisfies Migration
+   ```
 
-and then in the `TLShape` type
+2. **Store-scoped migrations**. These are called on the whole document at once, and are therefore able to add records, remove records, and read from multiple records at once.
 
-```diff
-   x: number
-   y: number
-+  ownerId: ID<TLUser> | null
-   props: Props
-   parentId: ID<TLShape> | ID<TLPage>
-```
-
-and then adding a migration:
-
-```diff
- export const shapeTypeMigrations = defineMigrations({
-   currentVersion: Versions.Initial,
-   firstVersion: Versions.Initial,
-   migrators: {
-+    [Versions.AddOwnerId]: {
-+      // add ownerId property
-+      up: (shape) => ({...shape, ownerId: null}),
-+      // remove ownerId property
-+      down: ({ownerId, ...shape}) => shape,
-+    }
-   },
-```
-
-After you've added your migration, make sure to add a test for it in `src/migrations.test.ts`. It will complain if you do not!
+   ```ts
+   export const DeleteArrowShapes = {
+   	id: 'com.tldraw/004_DeleteArrowShapes',
+   	scope: 'store',
+   	up: (store) => {
+   		for (const { id, typeName, type } of Object.values(store)) {
+   			if (typeName === 'shape' && type === 'arrow') {
+   				delete store[id]
+   			}
+   		}
+   	},
+   	down: (store) => {
+   		// noop
+   	},
+   } as const satisfies Migration
+   ```
 
 ## Community
 

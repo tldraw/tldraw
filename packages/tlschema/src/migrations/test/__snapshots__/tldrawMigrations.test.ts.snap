@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`the order of migrations must not change over time 1`] = `
+[
+  {
+    "id": "com.tldraw/000_InitialMigration",
+    "scope": "store",
+    "up": [Function],
+  },
+]
+`;

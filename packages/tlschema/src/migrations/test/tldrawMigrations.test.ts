@@ -7,17 +7,17 @@ test('tldrawMigrations', () => {
 	// It is EXTREMELY important that the order of the migrations is never changed after they have been run in production.
 	// You can add to the end, but never remove or change the order of the migrations.
 	expect(tldrawMigrations).toMatchInlineSnapshot(`
-{
-  "id": "com.tldraw",
-  "migrations": [
-    {
-      "id": "com.tldraw/000_InitialMigration",
-      "scope": "store",
-      "up": [Function],
-    },
-  ],
-}
-`)
+		{
+		  "id": "com.tldraw",
+		  "migrations": [
+		    {
+		      "id": "com.tldraw/000_InitialMigration",
+		      "scope": "store",
+		      "up": [Function],
+		    },
+		  ],
+		}
+	`)
 })
 
 describe('each migration should be in a separate file', () => {
@@ -82,4 +82,12 @@ test('the CustomConfigExample.tsx file should be up-to-date', () => {
 	// If this line is failing you need to bump the hard-coded number of
 	// tldraw migrations in the slice command in CustomConfigExample.tsx
 	expect(num).toBe(numMigrations)
+})
+
+test('the order of migrations must not change over time', () => {
+	// Every time we add a new migration, this will create a new snapshot while checking existing
+	// snapshots.
+	for (let i = 0; i < tldrawMigrations.migrations.length; i++) {
+		expect(tldrawMigrations.migrations.slice(0, i + 1)).toMatchSnapshot()
+	}
 })

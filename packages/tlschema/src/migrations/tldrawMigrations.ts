@@ -6,5 +6,8 @@ import { InitialMigration } from './000_InitialMigration'
  */
 export const tldrawMigrations = {
 	id: 'com.tldraw',
-	migrations: [InitialMigration],
+	migrations: [
+		// New migrations must be appended AT THE END OF THIS ARRAY ONLY.
+		InitialMigration,
+	],
 } as const satisfies MigrationSequence
