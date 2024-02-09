@@ -12,21 +12,21 @@ const customShapeUtils = [CardShapeUtil]
 const customTools = [CardShapeTool]
 
 // TODO: add link to migration docs
-// TODO: maybe even move migrations to a separate example
 const migrations = new MigrationsConfigBuilder()
 	// tldraw's migration sequence should always be passed in
 	.addSequence(tldrawMigrations)
 	// then pass in your own migration sequence
 	.addSequence(cardShapeMigrations)
 	.setOrder([
-		// You will need to hard-code all of the tldraw migration ids in order here.
-		'com.tldraw/000_InitialMigration',
+		...tldrawMigrations.migrations
+			.slice(
+				0,
+				// You need to hard-code the number of tldraw migrations at the time of setup.
+				1
+			)
+			.map((m) => m.id),
 		// And finally add your own migration ids.
 		'com.tldraw.card-shape-example/001_add_some_property',
-		// This array must only ever be appended to, and the ids may never change.
-		// So it's helpful to hard-code the strings like this.
-		// If you upgrade tldraw and the new version has extra migrations you will be
-		// asked to add them at the end here.
 	])
 	.build()
 
