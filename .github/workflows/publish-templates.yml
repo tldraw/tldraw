@@ -17,8 +17,8 @@ defaults:
     shell: bash
 
 jobs:
-  publish_vite_template:
-    name: 'Publish Vite template'
+  publish_vite:
+    name: 'Vite'
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open
 
@@ -34,5 +34,25 @@ jobs:
           source-directory: 'templates/vite'
           destination-github-username: 'tldraw'
           destination-repository-name: 'vite-template'
+          user-email: dan+github.actions@tldraw.com
+          target-branch: main
+
+  publish_next:
+    name: 'Next.js'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Push next.js template to tldraw/vite-template
+        uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900  # v1.7.2
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+        with:
+          source-directory: 'templates/nextjs'
+          destination-github-username: 'tldraw'
+          destination-repository-name: 'nextjs-template'
           user-email: dan+github.actions@tldraw.com
           target-branch: main
