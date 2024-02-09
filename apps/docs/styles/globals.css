@@ -1346,7 +1346,7 @@ body {
 
 	.article__embed--quickstart {
 		aspect-ratio: 16/9;
-		height: 280px;
+		min-height: 280px;
 	}
 }
 

@@ -7,7 +7,7 @@ export const UnorderedList = (props: any) => {
 }
 
 export const OrderedList = (props: any) => {
-	return <ol className={props.className} {...props} />
+	return <ol {...props} />
 }
 
 export const ListItem = (props: any) => {
@@ -136,13 +136,13 @@ export const Footnotes = (props: any) => {
 /* -------------------- API docs -------------------- */
 
 export const ApiHeading = (props: any) => {
-	return <div className="article__api-heading" {...props} />
+	return <div {...props} />
 }
 
 export const Embed = (props: any) => {
 	return (
 		<div className={props.className || 'article__embed'}>
-			<iframe className="iframe" src={props.src} width={'100%'} height={600} />
+			<iframe className="iframe" src={props.src} width="100%" height={600} />
 			{props.caption && <span className="article__caption">{props.caption}</span>}
 		</div>
 	)
