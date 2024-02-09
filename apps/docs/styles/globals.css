@@ -1172,6 +1172,10 @@ body {
 		height: auto;
 	}
 
+	.search__keyboard kbd {
+		display: none;
+	}
+
 	.article {
 		padding: 24px 16px 16px 16px;
 	}
@@ -1210,6 +1214,8 @@ body {
 		justify-content: flex-end;
 	}
 }
+
+/* ------------------ Mobile ------------------ */
 
 @media (max-width: 760px) {
 	.article__image {
@@ -1280,6 +1286,18 @@ html[data-theme='light'] .hero__dark {
 	background-color: transparent;
 	margin: 0px;
 	padding: 0px;
+}
+
+.code-example .sandpack .sp-syntax-string {
+	color: var(--sp-syntax-color-definition);
+}
+
+.code-example .sandpack .sp-syntax-property {
+	color: var(--sp-syntax-color-keyword);
+}
+
+.code-example .sandpack .sp-syntax-static {
+	color: var(--sp-syntax-color-keyword);
 }
 
 /* ------------------- Hero images ------------------ */
