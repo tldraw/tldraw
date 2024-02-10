@@ -2,6 +2,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../../hooks/useActions'
 import { useCanRedo } from '../../../hooks/useCanRedo'
 import { useCanUndo } from '../../../hooks/useCanUndo'
+import { LanguageMenu } from '../../LanguageMenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
@@ -14,9 +15,20 @@ import {
 	RemoveFrameMenuItem,
 	SetSelectionGroup,
 	ToggleAutoSizeMenuItem,
+	ToggleDarkModeItem,
+	ToggleDebugModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
 	ToggleLockMenuItem,
+	ToggleReduceMotionItem,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
 } from '../MenuItems/MenuItems'
 import { TldrawUiMenuGroup } from '../MenuItems/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../MenuItems/TldrawUiMenuItem'
@@ -26,32 +38,11 @@ import { TldrawUiMenuSubmenu } from '../MenuItems/TldrawUiMenuSubmenu'
 export function DefaultMainMenu() {
 	return (
 		<>
-			<MenuGroup />
-		</>
-	)
-}
-
-function MenuGroup() {
-	return (
-		<TldrawUiMenuGroup id="menu">
-			<FileSubmenu />
 			<EditSubmenu />
-		</TldrawUiMenuGroup>
-	)
-}
-
-function FileSubmenu() {
-	const editor = useEditor()
-	const actions = useActions()
-	const emptyPage = useValue('emptyPage', () => editor.getCurrentPageShapeIds().size === 0, [
-		editor,
-	])
-	return (
-		<TldrawUiMenuSubmenu id="file" label="menu.file">
-			<TldrawUiMenuGroup id="print">
-				<TldrawUiMenuItem {...actions['print']} disabled={emptyPage} />
-			</TldrawUiMenuGroup>
-		</TldrawUiMenuSubmenu>
+			<ViewSubmenu />
+			<ExtrasGroup />
+			<PreferencesGroup />
+		</>
 	)
 }
 
@@ -104,5 +95,52 @@ function UndoRedoGroup() {
 			<TldrawUiMenuItem {...actions['undo']} disabled={!canUndo} />
 			<TldrawUiMenuItem {...actions['redo']} disabled={!canRedo} />
 		</TldrawUiMenuGroup>
+	)
+}
+
+function ViewSubmenu() {
+	const actions = useActions()
+	return (
+		<TldrawUiMenuSubmenu id="view" label="menu.view">
+			<TldrawUiMenuGroup id="view-actions">
+				<TldrawUiMenuItem {...actions['zoom-in']} />
+				<TldrawUiMenuItem {...actions['zoom-out']} />
+				<ZoomTo100MenuItem />
+				<ZoomToFitMenuItem />
+				<ZoomToSelectionMenuItem />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+function ExtrasGroup() {
+	const actions = useActions()
+	return (
+		<TldrawUiMenuGroup id="extras">
+			<TldrawUiMenuItem {...actions['insert-embed']} />
+			<TldrawUiMenuItem {...actions['insert-media']} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/* ------------------- Preferences ------------------ */
+
+function PreferencesGroup() {
+	return (
+		<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
+			<TldrawUiMenuGroup id="preferences-actions">
+				<ToggleSnapModeItem />
+				<ToggleToolLockItem />
+				<ToggleGridItem />
+				<ToggleDarkModeItem />
+				<ToggleFocusModeItem />
+				<ToggleEdgeScrollingItem />
+				<ToggleReduceMotionItem />
+				<ToggleDebugModeItem />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="language">
+				<LanguageMenu />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
 	)
 }

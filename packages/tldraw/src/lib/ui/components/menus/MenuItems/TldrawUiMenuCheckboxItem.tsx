@@ -56,6 +56,7 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
+					<Icon small icon={checked ? 'check' : 'checkbox-empty'} />
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}

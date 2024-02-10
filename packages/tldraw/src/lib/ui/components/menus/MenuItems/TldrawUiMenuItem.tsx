@@ -35,10 +35,11 @@ export function TldrawUiMenuItem<
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
 	const editor = useEditor()
-	const isReadOnly = useValue('isReadOnly', () => editor.getInstanceState().isReadonly, [editor])
 	const msg = useTranslation()
+
 	const [disableClicks, setDisableClicks] = useState(false)
 
+	const isReadOnly = useValue('isReadOnly', () => editor.getInstanceState().isReadonly, [editor])
 	if (isReadOnly && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)
@@ -53,8 +54,9 @@ export function TldrawUiMenuItem<
 			disabled={disabled}
 			iconLeft={undefined}
 			onClick={(e) => {
-				if (noClose) preventDefault(e)
-
+				if (noClose) {
+					preventDefault(e)
+				}
 				if (disableClicks) {
 					setDisableClicks(false)
 				} else {
@@ -67,7 +69,7 @@ export function TldrawUiMenuItem<
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<_DropdownMenu.Item dir="ltr" asChild onClick={preventDefault}>
+				<_DropdownMenu.Item dir="ltr" asChild>
 					{button}
 				</_DropdownMenu.Item>
 			)

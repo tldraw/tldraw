@@ -443,3 +443,81 @@ export function EmbedsGroup() {
 		</TldrawUiMenuGroup>
 	)
 }
+
+/* ------------------- Preferences ------------------ */
+
+export function ToggleSnapModeItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isSnapMode = useValue('isSnapMode', () => editor.user.getIsSnapMode(), [editor])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-snap-mode']} checked={isSnapMode} />
+}
+
+export function ToggleToolLockItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-tool-lock']} checked={isToolLock} />
+}
+
+export function ToggleGridItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-grid']} checked={isGridMode} />
+}
+
+export function ToggleDarkModeItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-dark-mode']} checked={isDarkMode} />
+}
+
+export function ToggleFocusModeItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-focus-mode']} checked={isFocusMode} />
+}
+
+export function ToggleEdgeScrollingItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const edgeScrollSpeed = useValue('edgeScrollSpeed', () => editor.user.getEdgeScrollSpeed(), [
+		editor,
+	])
+	return (
+		<TldrawUiMenuCheckboxItem
+			{...actions['toggle-edge-scrolling']}
+			checked={edgeScrollSpeed === 1}
+		/>
+	)
+}
+
+export function ToggleReduceMotionItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])
+	return (
+		<TldrawUiMenuCheckboxItem {...actions['toggle-reduce-motion']} checked={animationSpeed === 0} />
+	)
+}
+
+export function ToggleDebugModeItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-debug-mode']} checked={isDebugMode} />
+}
+
+/* ---------------------- Print --------------------- */
+
+export function PrintItem() {
+	const editor = useEditor()
+	const actions = useActions()
+	const emptyPage = useValue('emptyPage', () => editor.getCurrentPageShapeIds().size === 0, [
+		editor,
+	])
+	return <TldrawUiMenuItem {...actions['print']} disabled={emptyPage} />
+}
