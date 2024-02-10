@@ -299,13 +299,15 @@ children: any;
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public (undocumented)
-export const CustomContextMenu: ({ children }: {
-    children: ReactNode;
+export const CustomContextMenu: ({ hidden, children }: {
+    hidden?: boolean | undefined;
+    children?: ReactNode;
 }) => null;
 
 // @public (undocumented)
-export const CustomHelpMenu: ({ children }: {
-    children: ReactNode;
+export const CustomHelpMenu: ({ hidden, children }: {
+    hidden?: boolean | undefined;
+    children?: ReactNode;
 }) => null;
 
 // @public (undocumented)

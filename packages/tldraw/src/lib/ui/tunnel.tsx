@@ -6,7 +6,7 @@ import { create, StoreApi } from 'zustand'
 // support lists.
 // See https://github.com/pmndrs/tunnel-rat for original.
 
-type Props = { children: React.ReactNode }
+type Props = { hidden?: boolean; children?: React.ReactNode }
 
 type State = {
 	current: React.ReactNode
@@ -22,7 +22,7 @@ export default function tunnel(initial: React.ReactNode) {
 	}))
 
 	return {
-		In: ({ children }: Props) => {
+		In: ({ hidden, children }: Props) => {
 			const set = useStore((state) => state.set)
 			const version = useStore((state) => state.version)
 
@@ -34,14 +34,14 @@ export default function tunnel(initial: React.ReactNode) {
 
 			useIsomorphicLayoutEffect(() => {
 				set(() => ({
-					current: children,
+					current: hidden ? null : children,
 				}))
 
 				return () =>
 					set(() => ({
 						current: initial,
 					}))
-			}, [children, version])
+			}, [children, hidden, version])
 
 			return null
 		},

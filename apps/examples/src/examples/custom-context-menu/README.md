@@ -2,7 +2,6 @@
 title: Custom Context Menu
 component: ./CustomContextMenuExample.tsx
 category: ui
-priority: 1
 ---
 
 Customize tldraw's context menu.

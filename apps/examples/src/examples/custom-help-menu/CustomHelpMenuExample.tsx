@@ -1,6 +1,6 @@
 import {
-	CustomContextMenu,
-	DefaultContextMenu,
+	CustomHelpMenu,
+	DefaultHelpMenu,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -11,10 +11,10 @@ export default function CustomContextMenuExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw>
-				<CustomContextMenu>
+				<CustomHelpMenu>
+					<DefaultHelpMenu />
 					<CustomMenuItem />
-					<DefaultContextMenu />
-				</CustomContextMenu>
+				</CustomHelpMenu>
 			</Tldraw>
 		</div>
 	)

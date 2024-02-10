@@ -2453,7 +2453,7 @@
             },
             {
               "kind": "Content",
-              "text": "({ children }: {\n    children: import(\"react\")."
+              "text": "({ hidden, children }: {\n    hidden?: boolean | undefined;\n    children?: import(\"react\")."
             },
             {
               "kind": "Reference",
@@ -2485,7 +2485,7 @@
             },
             {
               "kind": "Content",
-              "text": "({ children }: {\n    children: import(\"react\")."
+              "text": "({ hidden, children }: {\n    hidden?: boolean | undefined;\n    children?: import(\"react\")."
             },
             {
               "kind": "Reference",
