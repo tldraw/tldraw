@@ -289,7 +289,6 @@ export async function parseAndLoadDocument(
 		editor.store.ensureStoreIsUsable()
 		editor.store.put(shapes, 'initialize')
 		editor.history.clear()
-		editor.updateViewportScreenBounds()
 		editor.updateRenderingBounds()
 
 		const bounds = editor.getCurrentPageBounds()

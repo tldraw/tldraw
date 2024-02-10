@@ -1,22 +1,35 @@
 import throttle from 'lodash.throttle'
 import { useLayoutEffect } from 'react'
+import { Box } from '../primitives/Box'
 import { useEditor } from './useEditor'
 
-export function useScreenBounds() {
+export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {
-		const updateBounds = throttle(
-			() => {
-				editor.updateViewportScreenBounds()
-			},
-			200,
-			{
-				trailing: true,
+		const updateScreenBounds = () => {
+			const container = ref.current
+			if (!container) {
+				return null
 			}
-		)
 
-		editor.updateViewportScreenBounds()
+			const rect = container.getBoundingClientRect()
+
+			editor.updateViewportScreenBounds(
+				new Box(
+					rect.left || rect.x,
+					rect.top || rect.y,
+					Math.max(rect.width, 1),
+					Math.max(rect.height, 1)
+				)
+			)
+		}
+
+		const updateBounds = throttle(updateScreenBounds, 200, {
+			trailing: true,
+		})
+
+		updateScreenBounds()
 
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes / scrolls.
@@ -29,5 +42,5 @@ export function useScreenBounds() {
 			window.removeEventListener('resize', updateBounds)
 			window.removeEventListener('scroll', updateBounds)
 		}
-	}, [editor])
+	}, [editor, ref])
 }

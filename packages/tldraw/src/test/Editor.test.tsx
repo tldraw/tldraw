@@ -369,7 +369,6 @@ describe('isFocused', () => {
 
 			if (wasFocused !== isFocused) {
 				editor.updateInstanceState({ isFocused })
-				editor.updateViewportScreenBounds()
 
 				if (!isFocused) {
 					// When losing focus, run complete() to ensure that any interacts end

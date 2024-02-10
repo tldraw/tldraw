@@ -2709,17 +2709,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(center = false): this {
-		const container = this.getContainer()
-		if (!container) return this
-
-		const rect = container.getBoundingClientRect()
-		const screenBounds = new Box(
-			rect.left || rect.x,
-			rect.top || rect.y,
-			Math.max(rect.width, 1),
-			Math.max(rect.height, 1)
-		)
+	updateViewportScreenBounds(screenBounds: Box, center = false): this {
+		screenBounds.x = Math.max(screenBounds.x, 0)
+		screenBounds.y = Math.max(screenBounds.y, 0)
+		screenBounds.width = Math.max(screenBounds.width, 1)
+		screenBounds.height = Math.max(screenBounds.height, 1)
 
 		const insets = [
 			// top

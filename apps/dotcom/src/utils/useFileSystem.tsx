@@ -80,7 +80,6 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 							editor.store.clear()
 							editor.store.ensureStoreIsUsable()
 							editor.history.clear()
-							editor.updateViewportScreenBounds()
 							editor.updateRenderingBounds()
 							editor.updateInstanceState({ isFocused })
 						})
