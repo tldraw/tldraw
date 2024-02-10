@@ -1,15 +1,23 @@
-import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/tldraw/tldraw.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
-import { Editor, ErrorBoundary, TLUiMenuSchema, Tldraw, setRuntimeOverrides } from '@tldraw/tldraw'
+import {
+	CustomHelpMenu,
+	DefaultHelpMenu,
+	Editor,
+	ErrorBoundary,
+	TLUiMenuSchema,
+	Tldraw,
+	setRuntimeOverrides,
+} from '@tldraw/tldraw'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { ChangeResponder } from './ChangeResponder'
 import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
+import { Links } from './Links'
 import { onCreateAssetFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
@@ -126,10 +134,14 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 			assetUrls={assetUrls}
 			persistenceKey={uri}
 			onMount={handleMount}
-			overrides={[menuOverrides, linksUiOverrides]}
+			overrides={[menuOverrides]}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
+			<CustomHelpMenu>
+				<DefaultHelpMenu />
+				<Links />
+			</CustomHelpMenu>
 			<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
 			<ChangeResponder />
 		</Tldraw>

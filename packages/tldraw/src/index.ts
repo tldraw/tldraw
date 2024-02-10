@@ -96,10 +96,6 @@ export {
 	type TLUiEventSource,
 } from './lib/ui/hooks/useEventsProvider'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
-export {
-	useHelpMenuSchema,
-	type TLUiHelpMenuSchemaContextType,
-} from './lib/ui/hooks/useHelpMenuSchema'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export {
 	useKeyboardShortcutsSchema,
@@ -170,6 +166,10 @@ export {
 // Context menu default component and custom tunnel
 export { CustomContextMenu } from './lib/ui/components/ContextMenu/ContextMenu'
 export { DefaultContextMenu } from './lib/ui/components/ContextMenu/DefaultContextMenu'
+
+// Help menu default component and custom tunnel
+export { DefaultHelpMenu } from './lib/ui/components/HelpMenu/DefaultHelpMenu'
+export { CustomHelpMenu } from './lib/ui/components/HelpMenu/HelpMenu'
 
 // General UI components for building menus
 export { TldrawUiMenuCheckboxItem } from './lib/ui/components/MenuItems/TldrawUiMenuCheckboxItem'

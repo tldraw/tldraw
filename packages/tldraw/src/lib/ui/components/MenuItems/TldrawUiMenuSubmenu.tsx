@@ -22,7 +22,7 @@ export function TldrawUiMenuSubmenu({
 	children: any
 }) {
 	const container = useContainer()
-	const menuType = useTldrawUiMenuContext()
+	const { type: menuType } = useTldrawUiMenuContext()
 	const msg = useTranslation()
 
 	const [_, onOpenChange] = useMenuIsOpen(`context menu sub`)

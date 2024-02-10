@@ -13,7 +13,7 @@ export function TldrawUiMenuGroup({
 	small?: boolean
 	children?: any
 }) {
-	const menuType = useTldrawUiMenuContext()
+	const { type: menuType } = useTldrawUiMenuContext()
 
 	switch (menuType) {
 		case 'menu': {

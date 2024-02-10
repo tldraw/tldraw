@@ -1,6 +1,6 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { preventDefault, useContainer, useEditor } from '@tldraw/editor'
-import { useCallback } from 'react'
+import { memo, useCallback } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import tunnel from '../../tunnel'
 import { TldrawUiMenuContextProvider } from '../MenuItems/TldrawUiMenuContext'
@@ -17,7 +17,7 @@ export interface TLUiContextMenuProps {
 }
 
 /** @public */
-export const ContextMenu = function ContextMenu({ children }: { children: any }) {
+export const ContextMenu = memo(function ContextMenu({ children }: { children: any }) {
 	const editor = useEditor()
 
 	const cb = useCallback(
@@ -82,7 +82,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 						collisionPadding={4}
 						onContextMenu={preventDefault}
 					>
-						<TldrawUiMenuContextProvider type="context-menu">
+						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
 							<_ContextMenuContent.Out />
 						</TldrawUiMenuContextProvider>
 					</_ContextMenu.Content>
@@ -90,4 +90,4 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 			)}
 		</_ContextMenu.Root>
 	)
-}
+})

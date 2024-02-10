@@ -3,7 +3,6 @@ import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useEditor, useValue } from '@tldraw/editor'
 import { useState } from 'react'
 import { TLUiActionItem } from '../../hooks/useActions'
-import { TLUiEventSource } from '../../hooks/useEventsProvider'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
@@ -17,7 +16,7 @@ export function TldrawUiMenuItem({
 	actionItem: TLUiActionItem
 	disabled?: boolean
 }) {
-	const menuType = useTldrawUiMenuContext()
+	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getInstanceState().isReadonly, [editor])
@@ -42,7 +41,7 @@ export function TldrawUiMenuItem({
 				if (disableClicks) {
 					setDisableClicks(false)
 				} else {
-					onSelect(menuType as TLUiEventSource)
+					onSelect(sourceId)
 				}
 			}}
 		/>

@@ -1,6 +1,8 @@
 import {
 	CustomContextMenu,
+	CustomHelpMenu,
 	DefaultContextMenu,
+	DefaultHelpMenu,
 	Editor,
 	OfflineIndicator,
 	Tldraw,
@@ -14,7 +16,6 @@ import { MULTIPLAYER_SERVER } from '../utils/config'
 import { CursorChatMenuItem } from '../utils/context-menu/CursorChatMenuItem'
 import { createAssetFromFile } from '../utils/createAssetFromFile'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
-import { linksUiOverrides } from '../utils/links'
 import { useSharing } from '../utils/sharing'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { useCursorChat } from '../utils/useCursorChat'
@@ -22,6 +23,7 @@ import { useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { CursorChatBubble } from './CursorChatBubble'
 import { EmbeddedInIFrameWarning } from './EmbeddedInIFrameWarning'
+import { Links } from './Links'
 import { PeopleMenu } from './PeopleMenu/PeopleMenu'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
@@ -75,12 +77,7 @@ export function MultiplayerEditor({
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}
-				overrides={[
-					sharingUiOverrides,
-					fileSystemUiOverrides,
-					linksUiOverrides,
-					cursorChatOverrides,
-				]}
+				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
 				onUiEvent={handleUiEvent}
 				components={{
 					ErrorFallback: ({ error }) => {
@@ -101,6 +98,10 @@ export function MultiplayerEditor({
 					<CursorChatMenuItem />
 					<DefaultContextMenu />
 				</CustomContextMenu>
+				<CustomHelpMenu>
+					<DefaultHelpMenu />
+					<Links />
+				</CustomHelpMenu>
 				<UrlStateSync />
 				<CursorChatBubble />
 				<SneakyOnDropOverride isMultiplayer />

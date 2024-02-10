@@ -1,14 +1,14 @@
-import { SerializedSchema, TLRecord, Tldraw } from '@tldraw/tldraw'
+import { CustomHelpMenu, DefaultHelpMenu, SerializedSchema, TLRecord, Tldraw } from '@tldraw/tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { StoreErrorScreen } from '../components/StoreErrorScreen'
 import { useLocalStore } from '../hooks/useLocalStore'
 import { assetUrls } from '../utils/assetUrls'
-import { linksUiOverrides } from '../utils/links'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
 import { useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
+import { Links } from './Links'
 
 type SnapshotEditorProps = {
 	schema: SerializedSchema
@@ -27,7 +27,7 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 			<Tldraw
 				assetUrls={assetUrls}
 				store={storeResult.value}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides]}
+				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
 					editor.updateInstanceState({ isReadonly: true })
@@ -47,6 +47,10 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				inferDarkMode
 			>
 				<UrlStateSync />
+				<CustomHelpMenu>
+					<DefaultHelpMenu />
+					<Links />
+				</CustomHelpMenu>
 			</Tldraw>
 		</div>
 	)

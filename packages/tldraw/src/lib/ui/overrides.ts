@@ -4,7 +4,6 @@ import { ActionsProviderProps } from './hooks/useActions'
 import { ActionsMenuSchemaProviderProps } from './hooks/useActionsMenuSchema'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useDialogs } from './hooks/useDialogsProvider'
-import { TLUiHelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
 import { TLUiKeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
 import { TLUiMenuSchemaProviderProps } from './hooks/useMenuSchema'
 import { useToasts } from './hooks/useToastsProvider'
@@ -58,7 +57,6 @@ type WithDefaultHelpers<T extends TLUiOverride<any, any>> =
 export type TLUiOverrides = Partial<{
 	actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
 	actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
-	helpMenu: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>
 	menu: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>
 	toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
 	keyboardShortcutsMenu: WithDefaultHelpers<
@@ -71,7 +69,6 @@ export type TLUiOverrides = Partial<{
 export type TLUiOverridesWithoutDefaults = Partial<{
 	actionsMenu: ActionsMenuSchemaProviderProps['overrides']
 	actions: ActionsProviderProps['overrides']
-	helpMenu: TLUiHelpMenuSchemaProviderProps['overrides']
 	menu: TLUiMenuSchemaProviderProps['overrides']
 	toolbar: TLUiToolbarSchemaProviderProps['overrides']
 	keyboardShortcutsMenu: TLUiKeyboardShortcutsSchemaProviderProps['overrides']
@@ -108,14 +105,6 @@ export function mergeOverrides(
 			for (const override of overrides) {
 				if (override.actions) {
 					schema = override.actions(editor, schema, defaultHelpers)
-				}
-			}
-			return schema
-		},
-		helpMenu: (editor, schema, helpers) => {
-			for (const override of overrides) {
-				if (override.helpMenu) {
-					schema = override.helpMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema

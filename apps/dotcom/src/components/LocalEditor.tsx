@@ -1,14 +1,14 @@
-import { Editor, Tldraw } from '@tldraw/tldraw'
+import { CustomHelpMenu, DefaultHelpMenu, Editor, Tldraw } from '@tldraw/tldraw'
 import { useCallback } from 'react'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
-import { linksUiOverrides } from '../utils/links'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../utils/migration/LocalMigration'
 import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
@@ -29,7 +29,7 @@ export function LocalEditor() {
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}
 				autoFocus
-				overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides]}
+				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={{
 					ErrorFallback: ({ error }) => {
@@ -47,6 +47,10 @@ export function LocalEditor() {
 				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
+				<CustomHelpMenu>
+					<DefaultHelpMenu />
+					<Links />
+				</CustomHelpMenu>
 			</Tldraw>
 		</div>
 	)

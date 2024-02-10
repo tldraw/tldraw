@@ -19,7 +19,7 @@ export function TldrawUiMenuCheckboxItem({
 	disabled?: boolean
 }) {
 	const editor = useEditor()
-	const menuContext = useTldrawUiMenuContext()
+	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const isReadOnly = useValue('isReadOnly', () => editor.getInstanceState().isReadonly, [editor])
 	const msg = useTranslation()
 
@@ -29,7 +29,7 @@ export function TldrawUiMenuCheckboxItem({
 	const labelToUse = contextMenuLabel ?? label
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
-	switch (menuContext) {
+	switch (menuType) {
 		case 'menu': {
 			return (
 				<_DropdownMenu.CheckboxItem
@@ -37,7 +37,7 @@ export function TldrawUiMenuCheckboxItem({
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
 					title={labelStr ? labelStr : undefined}
 					onSelect={(e) => {
-						onSelect?.('menu')
+						onSelect?.(sourceId)
 						preventDefault(e)
 					}}
 					disabled={disabled}
@@ -60,7 +60,7 @@ export function TldrawUiMenuCheckboxItem({
 					dir="ltr"
 					title={labelStr ? labelStr : undefined}
 					onSelect={(e) => {
-						onSelect('context-menu')
+						onSelect(sourceId)
 						preventDefault(e)
 					}}
 					disabled={disabled}

@@ -72,7 +72,6 @@ import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
-import { TLLanguage } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLOnBeforeCreateHandler } from '@tldraw/editor';
@@ -292,15 +291,20 @@ function Content({ side, align, sideOffset, alignOffset, children, }: {
 }): JSX_2.Element;
 
 // @public (undocumented)
-export const ContextMenu: ({ children }: {
-    children: any;
-}) => JSX_2.Element | null;
+export const ContextMenu: NamedExoticComponent<    {
+children: any;
+}>;
 
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public (undocumented)
 export const CustomContextMenu: ({ children }: {
+    children: ReactNode;
+}) => null;
+
+// @public (undocumented)
+export const CustomHelpMenu: ({ children }: {
     children: ReactNode;
 }) => null;
 
@@ -312,6 +316,9 @@ export const DEFAULT_ACCEPTED_VID_TYPE: string[];
 
 // @public (undocumented)
 export function DefaultContextMenu(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function DefaultHelpMenu(): JSX_2.Element;
 
 // @public (undocumented)
 export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
@@ -1350,8 +1357,9 @@ export function TldrawUiMenuCheckboxItem({ disabled, checked, actionItem, }: {
 }): JSX_2.Element | null | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuContextProvider({ type, children, }: {
+export function TldrawUiMenuContextProvider({ type, sourceId, children, }: {
     type: TldrawUiMenuContextType;
+    sourceId: TLUiEventSource;
     children: React.ReactNode;
 }): JSX_2.Element;
 
@@ -1645,9 +1653,6 @@ export interface TLUiEventMap {
 export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'zoom-menu';
 
 // @public (undocumented)
-export type TLUiHelpMenuSchemaContextType = TLUiMenuSchema;
-
-// @public (undocumented)
 export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
     // (undocumented)
     children?: undefined;
@@ -1758,7 +1763,6 @@ export type TLUiMenuSchemaProviderProps = {
 export type TLUiOverrides = Partial<{
     actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>;
     actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
-    helpMenu: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>;
     menu: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>;
     toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
     keyboardShortcutsMenu: WithDefaultHelpers<NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>>;
@@ -1929,9 +1933,6 @@ export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format?: TLExportType) => void;
-
-// @public (undocumented)
-export function useHelpMenuSchema(): TLUiMenuSchema;
 
 // @public (undocumented)
 export function useKeyboardShortcuts(): void;
