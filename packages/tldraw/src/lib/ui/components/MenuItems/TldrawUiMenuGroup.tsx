@@ -1,9 +1,9 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import classNames from 'classnames'
-import { Children } from 'react'
-import { useMenuContext } from './TldrawUiMenuContext'
+import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
+/** @public */
 export function TldrawUiMenuGroup({
 	id,
 	small = false,
@@ -13,9 +13,7 @@ export function TldrawUiMenuGroup({
 	small?: boolean
 	children?: any
 }) {
-	const menuType = useMenuContext()
-
-	if (children && Children.count(children) === 0) return null
+	const menuType = useTldrawUiMenuContext()
 
 	switch (menuType) {
 		case 'menu': {

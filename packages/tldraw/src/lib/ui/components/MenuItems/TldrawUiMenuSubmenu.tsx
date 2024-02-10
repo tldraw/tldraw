@@ -5,8 +5,9 @@ import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
-import { useMenuContext } from './TldrawUiMenuContext'
+import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
+/** @public */
 export function TldrawUiMenuSubmenu({
 	id,
 	disabled = false,
@@ -21,7 +22,7 @@ export function TldrawUiMenuSubmenu({
 	children: any
 }) {
 	const container = useContainer()
-	const menuType = useMenuContext()
+	const menuType = useTldrawUiMenuContext()
 	const msg = useTranslation()
 
 	const [open, onOpenChange] = useMenuIsOpen(`${menuType} ${id} menu sub`)

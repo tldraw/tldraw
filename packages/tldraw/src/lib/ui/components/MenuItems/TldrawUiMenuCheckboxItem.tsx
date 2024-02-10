@@ -6,8 +6,9 @@ import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKe
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Icon } from '../primitives/Icon'
 import { Kbd } from '../primitives/Kbd'
-import { useMenuContext } from './TldrawUiMenuContext'
+import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
+/** @public */
 export function TldrawUiMenuCheckboxItem({
 	disabled = false,
 	checked = false,
@@ -18,7 +19,7 @@ export function TldrawUiMenuCheckboxItem({
 	disabled?: boolean
 }) {
 	const editor = useEditor()
-	const menuContext = useMenuContext()
+	const menuContext = useTldrawUiMenuContext()
 	const isReadOnly = useValue('isReadOnly', () => editor.getInstanceState().isReadonly, [editor])
 	const msg = useTranslation()
 

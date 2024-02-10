@@ -1,18 +1,21 @@
 import { createContext, useContext } from 'react'
 
-export type MenuContextType = 'menu' | 'context-menu' | 'actions-menu'
+/** @public */
+export type TldrawUiMenuContextType = 'menu' | 'context-menu' | 'actions-menu'
 
 const menuContext = createContext('menu')
 
-export function useMenuContext() {
+/** @public */
+export function useTldrawUiMenuContext() {
 	return useContext(menuContext)
 }
 
+/** @public */
 export function TldrawUiMenuContextProvider({
 	type,
 	children,
 }: {
-	type: MenuContextType
+	type: TldrawUiMenuContextType
 	children: React.ReactNode
 }) {
 	return <menuContext.Provider value={type}>{children}</menuContext.Provider>

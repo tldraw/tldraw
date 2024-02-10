@@ -300,10 +300,18 @@ export const ContextMenu: ({ children }: {
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public (undocumented)
+export const CustomContextMenu: ({ children }: {
+    children: ReactNode;
+}) => null;
+
+// @public (undocumented)
 export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 
 // @public (undocumented)
 export const DEFAULT_ACCEPTED_VID_TYPE: string[];
+
+// @public (undocumented)
+export function DefaultContextMenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
@@ -1333,6 +1341,41 @@ export interface TldrawUiContextProviderProps {
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
+
+// @public (undocumented)
+export function TldrawUiMenuCheckboxItem({ disabled, checked, actionItem, }: {
+    actionItem: TLUiActionItem;
+    checked?: boolean;
+    disabled?: boolean;
+}): JSX_2.Element | null | undefined;
+
+// @public (undocumented)
+export function TldrawUiMenuContextProvider({ type, children, }: {
+    type: TldrawUiMenuContextType;
+    children: React.ReactNode;
+}): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiMenuGroup({ id, small, children, }: {
+    id: string;
+    small?: boolean;
+    children?: any;
+}): JSX_2.Element | undefined;
+
+// @public (undocumented)
+export function TldrawUiMenuItem({ disabled, actionItem, }: {
+    actionItem: TLUiActionItem;
+    disabled?: boolean;
+}): JSX_2.Element | null | undefined;
+
+// @public (undocumented)
+export function TldrawUiMenuSubmenu({ id, disabled, label, contextMenuLabel, children, }: {
+    id: string;
+    label: string;
+    contextMenuLabel?: string;
+    disabled?: boolean;
+    children: any;
+}): JSX_2.Element | undefined;
 
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;

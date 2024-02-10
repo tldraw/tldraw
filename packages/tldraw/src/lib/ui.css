@@ -928,6 +928,10 @@
 
 /* ---------------------- Menu ---------------------- */
 
+.tlui-menu:empty {
+	display: none;
+}
+
 .tlui-menu {
 	z-index: var(--layer-menus);
 	height: fit-content;
@@ -952,6 +956,10 @@
 	fill: var(--color-panel);
 	stroke: var(--color-panel-contrast);
 	stroke-width: 1px;
+}
+
+.tlui-menu__group:empty {
+	display: none;
 }
 
 .tlui-menu__group[data-size='large'] {

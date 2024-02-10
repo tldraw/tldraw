@@ -1,9 +1,17 @@
-import { Editor, OfflineIndicator, Tldraw, lns } from '@tldraw/tldraw'
+import {
+	CustomContextMenu,
+	DefaultContextMenu,
+	Editor,
+	OfflineIndicator,
+	Tldraw,
+	lns,
+} from '@tldraw/tldraw'
 import { useCallback, useEffect } from 'react'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
+import { CursorChatMenuItem } from '../utils/context-menu/CursorChatMenuItem'
 import { createAssetFromFile } from '../utils/createAssetFromFile'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { linksUiOverrides } from '../utils/links'
@@ -89,6 +97,10 @@ export function MultiplayerEditor({
 				autoFocus
 				inferDarkMode
 			>
+				<CustomContextMenu>
+					<CursorChatMenuItem />
+					<DefaultContextMenu />
+				</CustomContextMenu>
 				<UrlStateSync />
 				<CursorChatBubble />
 				<SneakyOnDropOverride isMultiplayer />

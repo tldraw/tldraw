@@ -4,7 +4,6 @@ import { useActions } from '../../hooks/useActions'
 import { useAnySelectedShapesCount } from '../../hooks/useAnySelectedShapesCount'
 import { useOnlyFlippableShape } from '../../hooks/useOnlyFlippableShape'
 import { useUnlockedSelectedShapesCount } from '../../hooks/useUnlockedSelectedShapesCount'
-import { MoveToPageMenu as _MoveToPageMenu } from '../MoveToPageMenu'
 import {
 	DuplicateMenuItem,
 	EditLinkMenuItem,
@@ -15,14 +14,13 @@ import {
 	ToggleLockMenuItem,
 	ToggleTransparentBgMenuItem,
 	UngroupMenuItem,
-} from './MenuItems'
-import { TldrawUiMenuGroup } from './TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from './TldrawUiMenuItem'
-import { TldrawUiMenuSubmenu } from './TldrawUiMenuSubmenu'
+} from '../MenuItems/MenuItems'
+import { TldrawUiMenuGroup } from '../MenuItems/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../MenuItems/TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from '../MenuItems/TldrawUiMenuSubmenu'
+import { MoveToPageMenu as _MoveToPageMenu } from '../MoveToPageMenu'
 
 /** @public */
-export type TldrawUiContextMenuComponent = React.ComponentType
-
 export function DefaultContextMenu() {
 	const editor = useEditor()
 

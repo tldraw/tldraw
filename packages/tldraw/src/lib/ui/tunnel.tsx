@@ -39,7 +39,7 @@ export default function tunnel(initial: React.ReactNode) {
 
 				return () =>
 					set(() => ({
-						current: null,
+						current: initial,
 					}))
 			}, [children, version])
 

@@ -1,14 +1,13 @@
-import { Tldraw } from '@tldraw/tldraw'
-import { ContextMenuContent } from '@tldraw/tldraw/src/lib/ui/components/ContextMenu'
+import { CustomContextMenu, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-export default function CustomContextMenu() {
+export default function CustomContextMenuExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw>
-				<ContextMenuContent>
+				<CustomContextMenu>
 					<button className="tlui-button">Hello</button>
-				</ContextMenuContent>
+				</CustomContextMenu>
 			</Tldraw>
 		</div>
 	)

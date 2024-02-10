@@ -44,7 +44,7 @@ export {
 	type TldrawUiContextProviderProps,
 } from './lib/ui/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
-export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu'
+export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu/ContextMenu'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
@@ -166,6 +166,17 @@ export {
 	serializeTldrawJsonBlob,
 	type TldrawFile,
 } from './lib/utils/tldr/file'
+
+// Context menu default component and custom tunnel
+export { CustomContextMenu } from './lib/ui/components/ContextMenu/ContextMenu'
+export { DefaultContextMenu } from './lib/ui/components/ContextMenu/DefaultContextMenu'
+
+// General UI components for building menus
+export { TldrawUiMenuCheckboxItem } from './lib/ui/components/MenuItems/TldrawUiMenuCheckboxItem'
+export { TldrawUiMenuContextProvider } from './lib/ui/components/MenuItems/TldrawUiMenuContext'
+export { TldrawUiMenuGroup } from './lib/ui/components/MenuItems/TldrawUiMenuGroup'
+export { TldrawUiMenuItem } from './lib/ui/components/MenuItems/TldrawUiMenuItem'
+export { TldrawUiMenuSubmenu } from './lib/ui/components/MenuItems/TldrawUiMenuSubmenu'
 
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'

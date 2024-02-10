@@ -7,8 +7,9 @@ import { TLUiEventSource } from '../../hooks/useEventsProvider'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
-import { useMenuContext } from './TldrawUiMenuContext'
+import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
+/** @public */
 export function TldrawUiMenuItem({
 	disabled = false,
 	actionItem,
@@ -16,7 +17,7 @@ export function TldrawUiMenuItem({
 	actionItem: TLUiActionItem
 	disabled?: boolean
 }) {
-	const menuType = useMenuContext()
+	const menuType = useTldrawUiMenuContext()
 
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getInstanceState().isReadonly, [editor])
