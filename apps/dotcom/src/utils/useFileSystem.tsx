@@ -77,9 +77,14 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 
 						transact(() => {
 							const isFocused = editor.getInstanceState().isFocused
+
+							const bounds = editor.getViewportScreenBounds().clone()
+
 							editor.store.clear()
 							editor.store.ensureStoreIsUsable()
 							editor.history.clear()
+							// Put the old bounds back in place
+							editor.updateViewportScreenBounds(bounds)
 							editor.updateRenderingBounds()
 							editor.updateInstanceState({ isFocused })
 						})
