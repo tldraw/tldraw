@@ -375,8 +375,10 @@ test.describe('Context menu', async () => {
 		// distribute horizontal
 		await page.keyboard.press('Control+a')
 		await page.mouse.click(200, 200, { button: 'right' })
-		await page.getByTestId('menu-item.arrange').click()
-		await page.getByTestId('menu-item.distribute-horizontal').click()
+		await page.getByTestId('menu-item.arrange')?.click()
+		console.log('clicking...')
+		await page.getByTestId('menu-item.distribute-horizontal')?.click()
+		console.log('yep')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'distribute-shapes',
 			data: { operation: 'horizontal', source: 'context-menu' },

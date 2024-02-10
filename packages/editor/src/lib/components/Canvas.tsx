@@ -64,7 +64,7 @@ export function Canvas({ className }: { className?: string }) {
 		[editor]
 	)
 
-	const events = useCanvasEvents()
+	useCanvasEvents(rCanvas)
 
 	const shapeSvgDefs = useValue(
 		'shapeSvgDefs',
@@ -95,7 +95,6 @@ export function Canvas({ className }: { className?: string }) {
 			draggable={false}
 			className={classNames('tl-canvas', className)}
 			data-testid="canvas"
-			{...events}
 		>
 			{Background && <Background />}
 			<GridWrapper />
