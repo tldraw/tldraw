@@ -311,6 +311,12 @@ export const CustomHelpMenu: ({ hidden, children }: {
 }) => null;
 
 // @public (undocumented)
+export const CustomMainMenu: ({ hidden, children }: {
+    hidden?: boolean | undefined;
+    children?: ReactNode;
+}) => null;
+
+// @public (undocumented)
 export const CustomZoomMenu: ({ hidden, children }: {
     hidden?: boolean | undefined;
     children?: ReactNode;
@@ -327,6 +333,9 @@ export function DefaultContextMenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function DefaultHelpMenu(): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultMainMenu(): JSX_2.Element;
 
 // @public (undocumented)
 export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];

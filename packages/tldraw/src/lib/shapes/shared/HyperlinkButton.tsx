@@ -13,10 +13,7 @@ export function HyperlinkButton({ url, zoomLevel }: { url: string; zoomLevel: nu
 			href={url}
 			target="_blank"
 			rel="noopener noreferrer"
-			onPointerDown={(e) => {
-				console.log('POINTER DOWN HYPERLINK BUTTON')
-				stopEventPropagation(e)
-			}}
+			onPointerDown={stopEventPropagation}
 			onPointerUp={stopEventPropagation}
 			title={url}
 			draggable={false}

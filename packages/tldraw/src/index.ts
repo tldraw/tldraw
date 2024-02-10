@@ -166,6 +166,10 @@ export {
 	type TldrawFile,
 } from './lib/utils/tldr/file'
 
+// Main menu default component and custom tunnel
+export { DefaultMainMenu } from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
+export { CustomMainMenu } from './lib/ui/components/menus/MainMenu/MainMenu'
+
 // Context menu default component and custom tunnel
 export { CustomContextMenu } from './lib/ui/components/menus/ContextMenu/ContextMenu'
 export { DefaultContextMenu } from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
