@@ -8,7 +8,9 @@ export function useUnlockedSelectedShapesCount(min?: number, max?: number) {
 	return useValue(
 		'selectedShapes',
 		() => {
-			const len = editor.getSelectedShapes().filter((s) => editor.isShapeOrAncestorLocked(s)).length
+			const len = editor
+				.getSelectedShapes()
+				.filter((s) => !editor.isShapeOrAncestorLocked(s)).length
 			if (min === undefined) {
 				if (max === undefined) {
 					// just length

@@ -295,15 +295,18 @@ function ArrangeMenuSubmenu() {
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
+	console.log(twoSelected)
 	if (!(twoSelected || onlyFlippableShapeSelected)) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange">
-			<AlignMenuGroup />
-			<DistributeMenuGroup />
-			<StretchMenuGroup />
-			<FlipMenuGroup />
-			<OrderMenuGroup />
+			<TldrawUiMenuGroup id="arrange">
+				<AlignMenuGroup />
+				<DistributeMenuGroup />
+				<StretchMenuGroup />
+				<FlipMenuGroup />
+				<OrderMenuGroup />
+			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
 }
