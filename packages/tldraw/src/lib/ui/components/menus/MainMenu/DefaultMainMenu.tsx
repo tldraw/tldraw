@@ -127,20 +127,22 @@ function ExtrasGroup() {
 
 function PreferencesGroup() {
 	return (
-		<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
-			<TldrawUiMenuGroup id="preferences-actions">
-				<ToggleSnapModeItem />
-				<ToggleToolLockItem />
-				<ToggleGridItem />
-				<ToggleDarkModeItem />
-				<ToggleFocusModeItem />
-				<ToggleEdgeScrollingItem />
-				<ToggleReduceMotionItem />
-				<ToggleDebugModeItem />
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="language">
-				<LanguageMenu />
-			</TldrawUiMenuGroup>
-		</TldrawUiMenuSubmenu>
+		<TldrawUiMenuGroup id="preferences">
+			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
+				<TldrawUiMenuGroup id="preferences-actions">
+					<ToggleSnapModeItem />
+					<ToggleToolLockItem />
+					<ToggleGridItem />
+					<ToggleDarkModeItem />
+					<ToggleFocusModeItem />
+					<ToggleEdgeScrollingItem />
+					<ToggleReduceMotionItem />
+					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="language">
+					<LanguageMenu />
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuSubmenu>
+		</TldrawUiMenuGroup>
 	)
 }
