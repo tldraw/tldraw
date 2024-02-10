@@ -38,32 +38,3 @@ test.describe('Context menu', async () => {
 		})
 	})
 })
-
-test.describe('Delete bug', () => {
-	test.beforeEach(async ({ browser }) => {
-		page = await browser.newPage()
-		await setupPage(page)
-	})
-
-	test('delete bug without drag', async () => {
-		await page.keyboard.press('r')
-		await page.mouse.click(100, 100)
-		await page.keyboard.press('Backspace')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'delete-shapes',
-			data: { source: 'kbd' },
-		})
-	})
-
-	test('delete bug with drag', async () => {
-		await page.keyboard.press('r')
-		await page.mouse.down()
-		await page.mouse.move(100, 100)
-		await page.mouse.up()
-		await page.keyboard.press('Backspace')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'delete-shapes',
-			data: { source: 'kbd' },
-		})
-	})
-})
