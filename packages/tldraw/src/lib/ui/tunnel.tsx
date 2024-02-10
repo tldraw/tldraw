@@ -1,5 +1,5 @@
-import React, { useLayoutEffect } from 'react'
-import { create, StoreApi } from 'zustand'
+import { ReactNode, useLayoutEffect } from 'react'
+import { StoreApi, create } from 'zustand'
 
 // This is basically tunnel-rat but with a default initial component.
 // Setting the `In` will replace the current `In`, so it does not
@@ -9,15 +9,15 @@ import { create, StoreApi } from 'zustand'
 // instances having the same custom ui elements.
 // See https://github.com/pmndrs/tunnel-rat for original.
 
-type Props = { hidden?: boolean; children?: React.ReactNode }
+type Props = { hidden?: boolean; children?: ReactNode }
 
 type State = {
-	current: React.ReactNode
+	current: ReactNode
 	version: number
 	set: StoreApi<State>['setState']
 }
 
-export default function tunnel(initial: React.ReactNode) {
+export default function tunnel(initial: ReactNode) {
 	const useStore = create<State>((set) => ({
 		current: initial,
 		version: 0,
