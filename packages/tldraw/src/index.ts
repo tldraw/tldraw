@@ -107,11 +107,6 @@ export {
 } from './lib/ui/hooks/useKeyboardShortcutsSchema'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
-export {
-	useMenuSchema,
-	type TLUiMenuSchemaContextType,
-	type TLUiMenuSchemaProviderProps,
-} from './lib/ui/hooks/useMenuSchema'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export {
 	useToasts,

@@ -12,11 +12,7 @@ import {
 	TLUiOverrides,
 	TLUiToastsContextType,
 	TLUiTranslationKey,
-	assert,
-	findMenuItem,
 	isShape,
-	menuGroup,
-	menuItem,
 } from '@tldraw/tldraw'
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -30,8 +26,9 @@ import { UI_OVERRIDE_TODO_EVENT, useHandleUiEvents } from './useHandleUiEvent'
 
 export const SHARE_PROJECT_ACTION = 'share-project' as const
 export const SHARE_SNAPSHOT_ACTION = 'share-snapshot' as const
-const LEAVE_SHARED_PROJECT_ACTION = 'leave-shared-project' as const
+export const LEAVE_SHARED_PROJECT_ACTION = 'leave-shared-project' as const
 export const FORK_PROJECT_ACTION = 'fork-project' as const
+
 const CREATE_SNAPSHOT_ENDPOINT = `/api/snapshots`
 const SNAPSHOT_UPLOAD_URL = `/api/new-room`
 
@@ -93,7 +90,7 @@ async function getSnapshotLink(
 	})
 }
 
-export function useSharing({ isMultiplayer }: { isMultiplayer: boolean }): TLUiOverrides {
+export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
 	const id = useSearchParams()[0].get('id') ?? undefined
 	const uploadFileToAsset = useMultiplayerAssets(ASSET_UPLOADER_URL)
@@ -188,24 +185,24 @@ export function useSharing({ isMultiplayer }: { isMultiplayer: boolean }): TLUiO
 				}
 				return actions
 			},
-			menu(editor, menu, { actions }) {
-				const fileMenu = findMenuItem(menu, ['menu', 'file'])
-				assert(fileMenu.type === 'submenu')
-				if (isMultiplayer) {
-					fileMenu.children.unshift(
-						menuGroup(
-							'share',
-							menuItem(actions[FORK_PROJECT_ACTION]),
-							menuItem(actions[LEAVE_SHARED_PROJECT_ACTION])
-						)!
-					)
-				} else {
-					fileMenu.children.unshift(menuGroup('share', menuItem(actions[SHARE_PROJECT_ACTION]))!)
-				}
-				return menu
-			},
+			// menu(editor, menu, { actions }) {
+			// 	const fileMenu = findMenuItem(menu, ['menu', 'file'])
+			// 	assert(fileMenu.type === 'submenu')
+			// 	if (isMultiplayer) {
+			// 		fileMenu.children.unshift(
+			// 			menuGroup(
+			// 				'share',
+			// 				menuItem(actions[FORK_PROJECT_ACTION]),
+			// 				menuItem(actions[LEAVE_SHARED_PROJECT_ACTION])
+			// 			)!
+			// 		)
+			// 	} else {
+			// 		fileMenu.children.unshift(menuGroup('share', menuItem(actions[SHARE_PROJECT_ACTION]))!)
+			// 	}
+			// 	return menu
+			// },
 		}),
-		[handleUiEvent, navigate, uploadFileToAsset, id, isMultiplayer]
+		[handleUiEvent, navigate, uploadFileToAsset, id]
 	)
 }
 

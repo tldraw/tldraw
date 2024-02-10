@@ -1,6 +1,8 @@
 import {
 	CustomHelpMenu,
+	CustomMainMenu,
 	DefaultHelpMenu,
+	DefaultMainMenu,
 	SerializedSchema,
 	TLRecord,
 	Tldraw,
@@ -15,6 +17,7 @@ import { useSharing } from '../utils/sharing'
 import { useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
+import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
 
 type SnapshotEditorProps = {
@@ -24,7 +27,7 @@ type SnapshotEditorProps = {
 
 export function SnapshotsEditor(props: SnapshotEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing({ isMultiplayer: true })
+	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const storeResult = useLocalStore(props.records, props.schema)
 	if (!storeResult?.ok) return <StoreErrorScreen error={new Error(storeResult?.error)} />
@@ -54,6 +57,10 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				inferDarkMode
 			>
 				<UrlStateSync />
+				<CustomMainMenu>
+					<MultiplayerFileMenu />
+					<DefaultMainMenu />
+				</CustomMainMenu>
 				<CustomHelpMenu>
 					<TldrawUiMenuGroup id="help">
 						<DefaultHelpMenu />

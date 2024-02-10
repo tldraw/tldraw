@@ -1779,25 +1779,9 @@ export type TLUiMenuItem = {
 export type TLUiMenuSchema = (TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem)[];
 
 // @public (undocumented)
-export type TLUiMenuSchemaContextType = TLUiMenuSchema;
-
-// @public (undocumented)
-export type TLUiMenuSchemaProviderProps = {
-    overrides?: (editor: Editor, schema: TLUiMenuSchemaContextType, helpers: {
-        actions: ReturnType<typeof useActions>;
-        noneSelected: boolean;
-        oneSelected: boolean;
-        twoSelected: boolean;
-        threeSelected: boolean;
-    }) => TLUiMenuSchemaContextType;
-    children: any;
-};
-
-// @public (undocumented)
 export type TLUiOverrides = Partial<{
     actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>;
     actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
-    menu: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>;
     toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
     keyboardShortcutsMenu: WithDefaultHelpers<NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>>;
     tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>;
@@ -1989,9 +1973,6 @@ export function useMenuClipboardEvents(): {
 
 // @public (undocumented)
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
-
-// @public (undocumented)
-export function useMenuSchema(): TLUiMenuSchema;
 
 // @public (undocumented)
 export function useNativeClipboardEvents(): void;

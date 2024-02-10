@@ -1,4 +1,12 @@
-import { CustomHelpMenu, DefaultHelpMenu, Editor, Tldraw, TldrawUiMenuGroup } from '@tldraw/tldraw'
+import {
+	CustomHelpMenu,
+	CustomMainMenu,
+	DefaultHelpMenu,
+	DefaultMainMenu,
+	Editor,
+	Tldraw,
+	TldrawUiMenuGroup,
+} from '@tldraw/tldraw'
 import { useCallback } from 'react'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -8,6 +16,7 @@ import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { LocalFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
@@ -15,7 +24,7 @@ import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
 export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing({ isMultiplayer: false })
+	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
@@ -47,6 +56,10 @@ export function LocalEditor() {
 				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
+				<CustomMainMenu>
+					<LocalFileMenu />
+					<DefaultMainMenu />
+				</CustomMainMenu>
 				<CustomHelpMenu>
 					<TldrawUiMenuGroup id="help">
 						<DefaultHelpMenu />

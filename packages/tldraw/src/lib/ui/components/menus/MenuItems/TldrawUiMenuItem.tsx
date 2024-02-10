@@ -1,9 +1,10 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { preventDefault, useEditor, useValue } from '@tldraw/editor'
+import { preventDefault } from '@tldraw/editor'
 import { useState } from 'react'
 import { unwrapLabel } from '../../../hooks/useActions'
 import { TLUiEventSource } from '../../../hooks/useEventsProvider'
+import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { Button } from '../../primitives/Button'
@@ -34,12 +35,11 @@ export function TldrawUiMenuItem<
 }) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
-	const editor = useEditor()
 	const msg = useTranslation()
 
 	const [disableClicks, setDisableClicks] = useState(false)
 
-	const isReadOnly = useValue('isReadOnly', () => editor.getInstanceState().isReadonly, [editor])
+	const isReadOnly = useReadonly()
 	if (isReadOnly && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)

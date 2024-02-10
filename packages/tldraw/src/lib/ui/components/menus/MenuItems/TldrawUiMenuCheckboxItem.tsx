@@ -1,8 +1,9 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { preventDefault, useEditor, useValue } from '@tldraw/editor'
+import { preventDefault } from '@tldraw/editor'
 import { unwrapLabel } from '../../../hooks/useActions'
 import { TLUiEventSource } from '../../../hooks/useEventsProvider'
+import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { Icon } from '../../primitives/Icon'
@@ -32,9 +33,8 @@ export function TldrawUiMenuCheckboxItem<
 	checked?: boolean
 	disabled?: boolean
 }) {
-	const editor = useEditor()
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
-	const isReadOnly = useValue('isReadOnly', () => editor.getInstanceState().isReadonly, [editor])
+	const isReadOnly = useReadonly()
 	const msg = useTranslation()
 
 	if (isReadOnly && !readonlyOk) return null

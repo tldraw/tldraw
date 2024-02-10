@@ -7,7 +7,6 @@ import { BreakPointProvider } from './hooks/useBreakpoint'
 import { DialogsProvider } from './hooks/useDialogsProvider'
 import { TLUiEventHandler, UiEventsProvider } from './hooks/useEventsProvider'
 import { KeyboardShortcutsSchemaProvider } from './hooks/useKeyboardShortcutsSchema'
-import { TLUiMenuSchemaProvider } from './hooks/useMenuSchema'
 import { ToastsProvider } from './hooks/useToastsProvider'
 import { ToolbarSchemaProvider } from './hooks/useToolbarSchema'
 import { ToolsProvider } from './hooks/useTools'
@@ -81,9 +80,7 @@ function InternalProviders({
 				<ToolbarSchemaProvider overrides={mergedOverrides.toolbar}>
 					<ActionsMenuSchemaProvider overrides={mergedOverrides.actionsMenu}>
 						<KeyboardShortcutsSchemaProvider overrides={mergedOverrides.keyboardShortcutsMenu}>
-							<TLUiMenuSchemaProvider overrides={mergedOverrides.menu}>
-								{children}
-							</TLUiMenuSchemaProvider>
+							{children}
 						</KeyboardShortcutsSchemaProvider>
 					</ActionsMenuSchemaProvider>
 				</ToolbarSchemaProvider>

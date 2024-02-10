@@ -1,8 +1,10 @@
 import {
 	CustomContextMenu,
 	CustomHelpMenu,
+	CustomMainMenu,
 	DefaultContextMenu,
 	DefaultHelpMenu,
+	DefaultMainMenu,
 	Editor,
 	OfflineIndicator,
 	Tldraw,
@@ -24,6 +26,7 @@ import { useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { CursorChatBubble } from './CursorChatBubble'
 import { EmbeddedInIFrameWarning } from './EmbeddedInIFrameWarning'
+import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { PeopleMenu } from './PeopleMenu/PeopleMenu'
 import { ShareMenu } from './ShareMenu'
@@ -48,7 +51,7 @@ export function MultiplayerEditor({
 	})
 
 	const isEmbedded = useIsEmbedded(roomSlug)
-	const sharingUiOverrides = useSharing({ isMultiplayer: true })
+	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
 
@@ -95,6 +98,10 @@ export function MultiplayerEditor({
 				autoFocus
 				inferDarkMode
 			>
+				<CustomMainMenu>
+					<MultiplayerFileMenu />
+					<DefaultMainMenu />
+				</CustomMainMenu>
 				<CustomContextMenu>
 					<CursorChatMenuItem />
 					<DefaultContextMenu />

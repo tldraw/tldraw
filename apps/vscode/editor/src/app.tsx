@@ -7,7 +7,6 @@ import {
 	DefaultHelpMenu,
 	Editor,
 	ErrorBoundary,
-	TLUiMenuSchema,
 	Tldraw,
 	TldrawUiMenuGroup,
 	setRuntimeOverrides,
@@ -62,24 +61,6 @@ export function WrappedTldrawEditor() {
 	)
 }
 
-const menuOverrides = {
-	menu: (_editor: Editor, schema: TLUiMenuSchema, _helpers: any) => {
-		schema.forEach((item) => {
-			if (item.id === 'menu' && item.type === 'group') {
-				item.children = item.children.filter((menuItem) => {
-					if (!menuItem) return false
-					if (menuItem.id === 'file' && menuItem.type === 'submenu') {
-						return false
-					}
-					return true
-				})
-			}
-		})
-
-		return schema
-	},
-}
-
 export const TldrawWrapper = () => {
 	const [tldrawInnerProps, setTldrawInnerProps] = useState<TLDrawInnerProps | null>(null)
 
@@ -131,13 +112,7 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 	}, [])
 
 	return (
-		<Tldraw
-			assetUrls={assetUrls}
-			persistenceKey={uri}
-			onMount={handleMount}
-			overrides={[menuOverrides]}
-			autoFocus
-		>
+		<Tldraw assetUrls={assetUrls} persistenceKey={uri} onMount={handleMount} autoFocus>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<CustomHelpMenu>
 				<TldrawUiMenuGroup id="help">

@@ -19912,104 +19912,6 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiMenuSchemaContextType:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiMenuSchemaContextType = "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiMenuSchema",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchema:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useMenuSchema.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiMenuSchemaContextType",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiMenuSchemaProviderProps:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiMenuSchemaProviderProps = "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    overrides?: (editor: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Editor",
-              "canonicalReference": "@tldraw/editor!Editor:class"
-            },
-            {
-              "kind": "Content",
-              "text": ", schema: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiMenuSchemaContextType",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", helpers: {\n        actions: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ReturnType",
-              "canonicalReference": "!ReturnType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<typeof "
-            },
-            {
-              "kind": "Reference",
-              "text": "useActions",
-              "canonicalReference": "@tldraw/tldraw!useActions:function"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        noneSelected: boolean;\n        oneSelected: boolean;\n        twoSelected: boolean;\n        threeSelected: boolean;\n    }) => "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiMenuSchemaContextType",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    children: any;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useMenuSchema.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiMenuSchemaProviderProps",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 12
-          }
-        },
-        {
-          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/tldraw!TLUiOverrides:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -20075,33 +19977,6 @@
               "kind": "Reference",
               "text": "ActionsProviderProps",
               "canonicalReference": "@tldraw/tldraw!~ActionsProviderProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "['overrides']>>;\n    menu: "
-            },
-            {
-              "kind": "Reference",
-              "text": "WithDefaultHelpers",
-              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "NonNullable",
-              "canonicalReference": "!NonNullable:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiMenuSchemaProviderProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchemaProviderProps:type"
             },
             {
               "kind": "Content",
@@ -20207,7 +20082,7 @@
           "name": "TLUiOverrides",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 41
+            "endIndex": 35
           }
         },
         {
@@ -22025,35 +21900,6 @@
             }
           ],
           "name": "useMenuIsOpen"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!useMenuSchema:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useMenuSchema(): "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiMenuSchema",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchema:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useMenuSchema.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "useMenuSchema"
         },
         {
           "kind": "Function",
