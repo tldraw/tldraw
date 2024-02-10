@@ -2710,8 +2710,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateViewportScreenBounds(screenBounds: Box, center = false): this {
-		screenBounds.x = Math.max(screenBounds.x, 0)
-		screenBounds.y = Math.max(screenBounds.y, 0)
 		screenBounds.width = Math.max(screenBounds.width, 1)
 		screenBounds.height = Math.max(screenBounds.height, 1)
 
