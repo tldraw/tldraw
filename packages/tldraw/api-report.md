@@ -294,7 +294,7 @@ function Content({ side, align, sideOffset, alignOffset, children, }: {
 // @public (undocumented)
 export const ContextMenu: ({ children }: {
     children: any;
-}) => JSX_2.Element;
+}) => JSX_2.Element | null;
 
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
@@ -1405,9 +1405,6 @@ export interface TLUiContextMenuProps {
 }
 
 // @public (undocumented)
-export type TLUiContextTTLUiMenuSchemaContextType = TLUiMenuSchema;
-
-// @public (undocumented)
 export type TLUiCustomMenuItem = {
     id: string;
     type: 'custom';
@@ -1718,7 +1715,6 @@ export type TLUiMenuSchemaProviderProps = {
 export type TLUiOverrides = Partial<{
     actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>;
     actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
-    contextMenu: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>;
     helpMenu: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>;
     menu: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>;
     toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
@@ -1864,9 +1860,6 @@ export function useCanRedo(): boolean;
 
 // @public (undocumented)
 export function useCanUndo(): boolean;
-
-// @public (undocumented)
-export function useContextMenuSchema(): TLUiMenuSchema;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;

@@ -78,10 +78,7 @@ export { BreakPointProvider, useBreakpoint } from './lib/ui/hooks/useBreakpoint'
 export { useCanRedo } from './lib/ui/hooks/useCanRedo'
 export { useCanUndo } from './lib/ui/hooks/useCanUndo'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
-export {
-	useContextMenuSchema,
-	type TLUiContextTTLUiMenuSchemaContextType,
-} from './lib/ui/hooks/useContextMenuSchema'
+
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export {
 	useDialogs,

@@ -3,7 +3,6 @@ import { useMemo } from 'react'
 import { ActionsProviderProps } from './hooks/useActions'
 import { ActionsMenuSchemaProviderProps } from './hooks/useActionsMenuSchema'
 import { useBreakpoint } from './hooks/useBreakpoint'
-import { TLUiContextMenuSchemaProviderProps } from './hooks/useContextMenuSchema'
 import { useDialogs } from './hooks/useDialogsProvider'
 import { TLUiHelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
 import { TLUiKeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
@@ -59,7 +58,6 @@ type WithDefaultHelpers<T extends TLUiOverride<any, any>> =
 export type TLUiOverrides = Partial<{
 	actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
 	actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
-	contextMenu: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>
 	helpMenu: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>
 	menu: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>
 	toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
@@ -73,7 +71,6 @@ export type TLUiOverrides = Partial<{
 export type TLUiOverridesWithoutDefaults = Partial<{
 	actionsMenu: ActionsMenuSchemaProviderProps['overrides']
 	actions: ActionsProviderProps['overrides']
-	contextMenu: TLUiContextMenuSchemaProviderProps['overrides']
 	helpMenu: TLUiHelpMenuSchemaProviderProps['overrides']
 	menu: TLUiMenuSchemaProviderProps['overrides']
 	toolbar: TLUiToolbarSchemaProviderProps['overrides']
@@ -111,14 +108,6 @@ export function mergeOverrides(
 			for (const override of overrides) {
 				if (override.actions) {
 					schema = override.actions(editor, schema, defaultHelpers)
-				}
-			}
-			return schema
-		},
-		contextMenu: (editor, schema, helpers) => {
-			for (const override of overrides) {
-				if (override.contextMenu) {
-					schema = override.contextMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema

@@ -201,7 +201,38 @@ function shapesWithArrowsBoundToThem(editor: Editor) {
 /** @internal */
 export const useAllowGroup = () => {
 	const editor = useEditor()
-	return useValue('allowGroup', () => shapesWithArrowsBoundToThem(editor).length > 1, [editor])
+	return useValue(
+		'allow group',
+		() => {
+			// We can't group arrows that are bound to shapes that aren't selected
+			// if more than one shape has an arrow bound to it, allow group
+			const selectedShapes = editor.getSelectedShapes()
+
+			if (selectedShapes.length < 2) return false
+
+			for (const shape of selectedShapes) {
+				if (editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+					const { start, end } = shape.props
+					if (start.type === 'binding') {
+						// if the other shape is not among the selected shapes...
+						if (!selectedShapes.some((s) => s.id === start.boundShapeId)) {
+							return false
+						}
+					}
+					if (end.type === 'binding') {
+						// if the other shape is not among the selected shapes...
+						if (!selectedShapes.some((s) => s.id === end.boundShapeId)) {
+							return false
+						}
+					}
+				}
+			}
+			return true
+		},
+		[editor]
+	)
+
+	// return useValue('allowGroup', () => shapesWithArrowsBoundToThem(editor).length > 1, [editor])
 }
 
 /** @internal */
