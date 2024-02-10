@@ -25,12 +25,12 @@ export function TldrawUiMenuSubmenu({
 	const menuType = useTldrawUiMenuContext()
 	const msg = useTranslation()
 
-	const [open, onOpenChange] = useMenuIsOpen(`${menuType} ${id} menu sub`)
+	const [_, onOpenChange] = useMenuIsOpen(`context menu sub`)
 
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<_DropdownMenu.Sub open={open} onOpenChange={onOpenChange}>
+				<_DropdownMenu.Sub onOpenChange={onOpenChange}>
 					<_DropdownMenu.SubTrigger dir="ltr" disabled={disabled} asChild>
 						<Button
 							type="menu"
@@ -58,7 +58,7 @@ export function TldrawUiMenuSubmenu({
 			const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 			return (
-				<_ContextMenu.Sub open={open} onOpenChange={onOpenChange}>
+				<_ContextMenu.Sub onOpenChange={onOpenChange}>
 					<_ContextMenu.SubTrigger dir="ltr" disabled={disabled} asChild>
 						<Button
 							type="menu"

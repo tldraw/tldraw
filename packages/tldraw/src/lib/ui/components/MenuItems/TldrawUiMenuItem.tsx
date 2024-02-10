@@ -58,7 +58,7 @@ export function TldrawUiMenuItem({
 		}
 		case 'context-menu': {
 			return (
-				<_ContextMenu.Item dir="ltr" asChild onClick={preventDefault}>
+				<_ContextMenu.Item dir="ltr" asChild>
 					{button}
 				</_ContextMenu.Item>
 			)
