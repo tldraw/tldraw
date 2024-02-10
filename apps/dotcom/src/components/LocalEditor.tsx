@@ -1,4 +1,4 @@
-import { CustomHelpMenu, DefaultHelpMenu, Editor, Tldraw } from '@tldraw/tldraw'
+import { CustomHelpMenu, DefaultHelpMenu, Editor, Tldraw, TldrawUiMenuGroup } from '@tldraw/tldraw'
 import { useCallback } from 'react'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -48,7 +48,9 @@ export function LocalEditor() {
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
 				<CustomHelpMenu>
-					<DefaultHelpMenu />
+					<TldrawUiMenuGroup id="help">
+						<DefaultHelpMenu />
+					</TldrawUiMenuGroup>
 					<Links />
 				</CustomHelpMenu>
 			</Tldraw>

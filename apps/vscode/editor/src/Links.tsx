@@ -1,9 +1,9 @@
-import { TldrawUiMenuItem } from '@tldraw/tldraw'
+import { TldrawUiMenuGroup, TldrawUiMenuItem } from '@tldraw/tldraw'
 import { openUrl } from './utils/openUrl'
 
 export function Links() {
 	return (
-		<>
+		<TldrawUiMenuGroup id="links">
 			<TldrawUiMenuItem
 				id="github"
 				label="help-menu.github"
@@ -40,6 +40,6 @@ export function Links() {
 					openUrl('https://www.tldraw.dev')
 				}}
 			/>
-		</>
+		</TldrawUiMenuGroup>
 	)
 }

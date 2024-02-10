@@ -9,6 +9,7 @@ import {
 	ErrorBoundary,
 	TLUiMenuSchema,
 	Tldraw,
+	TldrawUiMenuGroup,
 	setRuntimeOverrides,
 } from '@tldraw/tldraw'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -139,7 +140,9 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<CustomHelpMenu>
-				<DefaultHelpMenu />
+				<TldrawUiMenuGroup id="help">
+					<DefaultHelpMenu />
+				</TldrawUiMenuGroup>
 				<Links />
 			</CustomHelpMenu>
 			<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />

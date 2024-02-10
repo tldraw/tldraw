@@ -7,7 +7,7 @@ import {
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-export default function CustomContextMenuExample() {
+export default function CustomZoomMenuExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw>

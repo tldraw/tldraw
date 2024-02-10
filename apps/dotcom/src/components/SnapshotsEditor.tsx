@@ -1,4 +1,11 @@
-import { CustomHelpMenu, DefaultHelpMenu, SerializedSchema, TLRecord, Tldraw } from '@tldraw/tldraw'
+import {
+	CustomHelpMenu,
+	DefaultHelpMenu,
+	SerializedSchema,
+	TLRecord,
+	Tldraw,
+	TldrawUiMenuGroup,
+} from '@tldraw/tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { StoreErrorScreen } from '../components/StoreErrorScreen'
 import { useLocalStore } from '../hooks/useLocalStore'
@@ -48,7 +55,9 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 			>
 				<UrlStateSync />
 				<CustomHelpMenu>
-					<DefaultHelpMenu />
+					<TldrawUiMenuGroup id="help">
+						<DefaultHelpMenu />
+					</TldrawUiMenuGroup>
 					<Links />
 				</CustomHelpMenu>
 			</Tldraw>

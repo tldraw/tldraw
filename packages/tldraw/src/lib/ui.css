@@ -978,7 +978,7 @@
 	min-width: 0px;
 }
 
-.tlui-menu__group + .tlui-menu__group {
+.tlui-menu__group:not(:empty) + .tlui-menu__group {
 	border-top: 1px solid var(--color-divider);
 }
 

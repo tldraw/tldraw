@@ -64,10 +64,6 @@ export const ContextMenu = memo(function ContextMenu({ children }: { children: a
 	const container = useContainer()
 	const [isOpen, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
-	const out = <_ContextMenuContent.Out />
-
-	if (!out) return null
-
 	return (
 		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr">

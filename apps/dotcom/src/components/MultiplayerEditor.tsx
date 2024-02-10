@@ -6,6 +6,7 @@ import {
 	Editor,
 	OfflineIndicator,
 	Tldraw,
+	TldrawUiMenuGroup,
 	lns,
 } from '@tldraw/tldraw'
 import { useCallback, useEffect } from 'react'
@@ -99,7 +100,9 @@ export function MultiplayerEditor({
 					<DefaultContextMenu />
 				</CustomContextMenu>
 				<CustomHelpMenu>
-					<DefaultHelpMenu />
+					<TldrawUiMenuGroup id="help">
+						<DefaultHelpMenu />
+					</TldrawUiMenuGroup>
 					<Links />
 				</CustomHelpMenu>
 				<UrlStateSync />
