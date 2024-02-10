@@ -1,11 +1,22 @@
-import { TLFrameShape, useEditor, useValue } from '@tldraw/editor'
-import { useAllowGroup, useAllowUngroup } from '../../../hooks/menuHelpers'
+import { TLBookmarkShape, TLEmbedShape, TLFrameShape, useEditor, useValue } from '@tldraw/editor'
+import { getEmbedInfo } from '../../../../utils/embeds/embeds'
+import {
+	showMenuPaste,
+	useAllowGroup,
+	useAllowUngroup,
+	useThreeStackableItems,
+} from '../../../hooks/menuHelpers'
 import { useActions } from '../../../hooks/useActions'
+import { useAnySelectedShapesCount } from '../../../hooks/useAnySelectedShapesCount'
 import { useHasLinkShapeSelected } from '../../../hooks/useHasLinkShapeSelected'
+import { useOnlyFlippableShape } from '../../../hooks/useOnlyFlippableShape'
 import { useShowAutoSizeToggle } from '../../../hooks/useShowAutoSizeToggle'
 import { useUnlockedSelectedShapesCount } from '../../../hooks/useUnlockedSelectedShapesCount'
+import { MoveToPageMenu as _MoveToPageMenu } from '../../MoveToPageMenu'
 import { TldrawUiMenuCheckboxItem } from './TldrawUiMenuCheckboxItem'
+import { TldrawUiMenuGroup } from './TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from './TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from './TldrawUiMenuSubmenu'
 
 /* -------------------- Selection ------------------- */
 
@@ -95,4 +106,340 @@ export function ToggleTransparentBgMenuItem() {
 		[editor]
 	)
 	return <TldrawUiMenuCheckboxItem {...actions['toggle-transparent']} checked={isTransparentBg} />
+}
+
+export function UnlockAllMenuItem() {
+	const editor = useEditor()
+	const actions = useActions()
+	const shouldDisplay = useValue('any shapes', () => editor.getCurrentPageShapeIds().size > 0, [
+		editor,
+	])
+	if (!shouldDisplay) return null
+	return <TldrawUiMenuItem {...actions['unlock-all']} />
+}
+
+/* ---------------------- Zoom ---------------------- */
+
+export function ZoomTo100MenuItem() {
+	const editor = useEditor()
+	const isZoomedTo100 = useValue('zoomed to 100', () => editor.getZoomLevel() === 1, [editor])
+	const actions = useActions()
+
+	return <TldrawUiMenuItem {...actions['zoom-to-100']} noClose disabled={isZoomedTo100} />
+}
+
+export function ZoomToFitMenuItem() {
+	const editor = useEditor()
+	const hasShapes = useValue('has shapes', () => editor.getCurrentPageShapeIds().size > 0, [editor])
+	const actions = useActions()
+
+	return (
+		<TldrawUiMenuItem
+			{...actions['zoom-to-fit']}
+			disabled={!hasShapes}
+			data-testid="minimap.zoom-menu.zoom-to-fit"
+			noClose
+		/>
+	)
+}
+
+export function ZoomToSelectionMenuItem() {
+	const editor = useEditor()
+	const hasSelected = useValue('has shapes', () => editor.getSelectedShapeIds().length > 0, [
+		editor,
+	])
+	const actions = useActions()
+
+	return (
+		<TldrawUiMenuItem
+			{...actions['zoom-to-selection']}
+			disabled={!hasSelected}
+			data-testid="minimap.zoom-menu.zoom-to-selection"
+			noClose
+		/>
+	)
+}
+
+/* -------------------- Clipboard ------------------- */
+
+export function ClipboardMenuGroup() {
+	return (
+		<TldrawUiMenuGroup id="clipboard">
+			<CutMenuItem />
+			<CopyMenuItem />
+			<PasteMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function CutMenuItem() {
+	const actions = useActions()
+	const shouldDisplay = useUnlockedSelectedShapesCount(1)
+	if (!shouldDisplay) return null
+	return <TldrawUiMenuItem {...actions['cut']} />
+}
+
+function CopyMenuItem() {
+	const actions = useActions()
+	const shouldDisplay = useAnySelectedShapesCount(1)
+	if (!shouldDisplay) return null
+	return <TldrawUiMenuItem {...actions['copy']} />
+}
+
+function PasteMenuItem() {
+	const actions = useActions()
+	const shouldDisplay = showMenuPaste
+	if (!shouldDisplay) return null
+	return <TldrawUiMenuItem {...actions['paste']} />
+}
+
+/* ------------------- Conversions ------------------ */
+
+export function ConversionsMenuGroup() {
+	const editor = useEditor()
+	const atLeastOneShapeOnPage = useValue(
+		'atLeastOneShapeOnPage',
+		() => editor.getCurrentPageShapeIds().size > 0,
+		[]
+	)
+	if (!atLeastOneShapeOnPage) return null
+
+	return (
+		<TldrawUiMenuGroup id="conversions">
+			<CopyAsMenuSubmenu />
+			<ExportAsMenuSubmenu />
+		</TldrawUiMenuGroup>
+	)
+}
+
+export function CopyAsMenuSubmenu() {
+	const actions = useActions()
+	return (
+		<TldrawUiMenuSubmenu id="copy-as" label="context-menu.copy-as">
+			<TldrawUiMenuGroup id="copy-as-group">
+				<TldrawUiMenuItem {...actions['copy-as-svg']} />
+				{Boolean(window.navigator.clipboard?.write) && (
+					<TldrawUiMenuItem {...actions['copy-as-png']} />
+				)}
+				<TldrawUiMenuItem {...actions['copy-as-json']} />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="copy-as-bg">
+				<ToggleTransparentBgMenuItem />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+export function ExportAsMenuSubmenu() {
+	const actions = useActions()
+	return (
+		<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as">
+			<TldrawUiMenuGroup id="export-as-group">
+				<TldrawUiMenuItem {...actions['export-as-svg']} />
+				<TldrawUiMenuItem {...actions['export-as-png']} />
+				<TldrawUiMenuItem {...actions['export-as-json']} />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="export-as-bg">
+				<ToggleTransparentBgMenuItem />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/* ------------------ Set Selection ----------------- */
+
+export function SetSelectionGroup() {
+	const actions = useActions()
+	const editor = useEditor()
+	const atLeastOneShapeOnPage = useValue(
+		'atLeastOneShapeOnPage',
+		() => editor.getCurrentPageShapeIds().size > 0,
+		[editor]
+	)
+	const oneSelected = useUnlockedSelectedShapesCount(1)
+	if (!atLeastOneShapeOnPage) return null
+	return (
+		<TldrawUiMenuGroup id="set-selection-group">
+			<TldrawUiMenuItem {...actions['select-all']} />
+			{oneSelected && <TldrawUiMenuItem {...actions['select-none']} />}
+		</TldrawUiMenuGroup>
+	)
+}
+
+/* ------------------ Delete Group ------------------ */
+
+export function DeleteGroup() {
+	const actions = useActions()
+	const oneSelected = useUnlockedSelectedShapesCount(1)
+	if (!oneSelected) return null
+	return (
+		<TldrawUiMenuGroup id="delete-group">
+			<TldrawUiMenuItem {...actions['delete']} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/* --------------------- Modify --------------------- */
+
+export function ModifyMenuGroup() {
+	return (
+		<TldrawUiMenuGroup id="modify">
+			<ArrangeMenuSubmenu />
+			<ReorderMenuSubmenu />
+			<MoveToPageMenu />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function ArrangeMenuSubmenu() {
+	const twoSelected = useUnlockedSelectedShapesCount(2)
+	const onlyFlippableShapeSelected = useOnlyFlippableShape()
+
+	if (!(twoSelected || onlyFlippableShapeSelected)) return null
+
+	return (
+		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange">
+			<AlignMenuGroup />
+			<DistributeMenuGroup />
+			<StretchMenuGroup />
+			<FlipMenuGroup />
+			<OrderMenuGroup />
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+function AlignMenuGroup() {
+	const actions = useActions()
+	const twoSelected = useUnlockedSelectedShapesCount(2)
+	if (!twoSelected) return null
+
+	return (
+		<TldrawUiMenuGroup id="align">
+			<TldrawUiMenuItem {...actions['align-left']} />
+			<TldrawUiMenuItem {...actions['align-center-horizontal']} />
+			<TldrawUiMenuItem {...actions['align-right']} />
+			<TldrawUiMenuItem {...actions['align-top']} />
+			<TldrawUiMenuItem {...actions['align-center-vertical']} />
+			<TldrawUiMenuItem {...actions['align-bottom']} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function DistributeMenuGroup() {
+	const actions = useActions()
+	const threeSelected = useUnlockedSelectedShapesCount(3)
+	if (!threeSelected) return null
+
+	return (
+		<TldrawUiMenuGroup id="distribute">
+			<TldrawUiMenuItem {...actions['distribute-horizontal']} />
+			<TldrawUiMenuItem {...actions['distribute-vertical']} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function StretchMenuGroup() {
+	const actions = useActions()
+	const twoSelected = useUnlockedSelectedShapesCount(2)
+	if (!twoSelected) return null
+
+	return (
+		<TldrawUiMenuGroup id="stretch">
+			<TldrawUiMenuItem {...actions['stretch-horizontal']} />
+			<TldrawUiMenuItem {...actions['stretch-vertical']} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function FlipMenuGroup() {
+	const actions = useActions()
+	const onlyFlippableShapeSelected = useOnlyFlippableShape()
+	if (!onlyFlippableShapeSelected) return null
+
+	return (
+		<TldrawUiMenuGroup id="flip">
+			<TldrawUiMenuItem {...actions['flip-horizontal']} />
+			<TldrawUiMenuItem {...actions['flip-vertical']} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function OrderMenuGroup() {
+	const actions = useActions()
+	const twoSelected = useUnlockedSelectedShapesCount(2)
+	const threeStackableItems = useThreeStackableItems()
+	if (!twoSelected) return null
+
+	return (
+		<TldrawUiMenuGroup id="order">
+			<TldrawUiMenuItem {...actions['pack']} />
+			{threeStackableItems && <TldrawUiMenuItem {...actions['stack-horizontal']} />}
+			{threeStackableItems && <TldrawUiMenuItem {...actions['stack-vertical']} />}
+		</TldrawUiMenuGroup>
+	)
+}
+
+function ReorderMenuSubmenu() {
+	const actions = useActions()
+	const oneSelected = useUnlockedSelectedShapesCount(1)
+	if (!oneSelected) return null
+
+	return (
+		<TldrawUiMenuSubmenu id="reorder" label="context-menu.reorder">
+			<TldrawUiMenuGroup id="reorder">
+				<TldrawUiMenuItem {...actions['bring-to-front']} />
+				<TldrawUiMenuItem {...actions['bring-forward']} />
+				<TldrawUiMenuItem {...actions['send-backward']} />
+				<TldrawUiMenuItem {...actions['send-to-back']} />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+function MoveToPageMenu() {
+	const oneSelected = useUnlockedSelectedShapesCount(1)
+	if (!oneSelected) return null
+	return <_MoveToPageMenu />
+}
+
+export function EmbedsGroup() {
+	const editor = useEditor()
+	const actions = useActions()
+
+	const oneEmbedSelected = useValue(
+		'oneEmbedSelected',
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape) return false
+			return !!(
+				editor.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed') &&
+				onlySelectedShape.props.url &&
+				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+			)
+		},
+		[editor]
+	)
+
+	const oneEmbeddableBookmarkSelected = useValue(
+		'oneEmbeddableBookmarkSelected',
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape) return false
+			return !!(
+				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
+				onlySelectedShape.props.url &&
+				getEmbedInfo(onlySelectedShape.props.url) &&
+				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+			)
+		},
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuGroup id="embeds">
+			{oneEmbedSelected && <TldrawUiMenuItem {...actions['edit-embed']} />}
+			{oneEmbedSelected && <TldrawUiMenuItem {...actions['convert-to-bookmark']} />}
+			{oneEmbeddableBookmarkSelected && <TldrawUiMenuItem {...actions['convert-to-embed']} />}
+		</TldrawUiMenuGroup>
+	)
 }

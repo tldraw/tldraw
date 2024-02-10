@@ -978,8 +978,11 @@
 	min-width: 0px;
 }
 
-.tlui-menu__group:not(:empty) + .tlui-menu__group {
-	border-top: 1px solid var(--color-divider);
+.tlui-menu__group {
+	border-bottom: 1px solid var(--color-divider);
+}
+.tlui-menu__group:nth-last-of-type(1) {
+	border-bottom: none;
 }
 
 .tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
