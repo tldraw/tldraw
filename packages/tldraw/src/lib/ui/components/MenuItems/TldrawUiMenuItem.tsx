@@ -30,46 +30,36 @@ export function TldrawUiMenuItem({
 	const labelToUse = contextMenuLabel ?? label
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
+	const button = (
+		<Button
+			type="menu"
+			data-testid={`menu-item.${id}`}
+			kbd={kbd}
+			label={labelStr}
+			disabled={disabled}
+			iconLeft={undefined}
+			onClick={() => {
+				if (disableClicks) {
+					setDisableClicks(false)
+				} else {
+					onSelect(menuType as TLUiEventSource)
+				}
+			}}
+		/>
+	)
+
 	switch (menuType) {
 		case 'menu': {
 			return (
 				<_DropdownMenu.Item dir="ltr" asChild onClick={preventDefault}>
-					<Button
-						type="menu"
-						data-testid={`menu-item.${id}`}
-						kbd={kbd}
-						label={labelStr}
-						disabled={disabled}
-						iconLeft={undefined}
-						onClick={() => {
-							if (disableClicks) {
-								setDisableClicks(false)
-							} else {
-								onSelect(menuType as TLUiEventSource)
-							}
-						}}
-					/>
+					{button}
 				</_DropdownMenu.Item>
 			)
 		}
 		case 'context-menu': {
 			return (
-				<_ContextMenu.Item dir="ltr" asChild>
-					<Button
-						type="menu"
-						data-testid={`menu-item.${id}`}
-						kbd={kbd}
-						label={labelStr}
-						disabled={disabled}
-						iconLeft={undefined}
-						onClick={() => {
-							if (disableClicks) {
-								setDisableClicks(false)
-							} else {
-								onSelect(menuType as TLUiEventSource)
-							}
-						}}
-					/>
+				<_ContextMenu.Item dir="ltr" asChild onClick={preventDefault}>
+					{button}
 				</_ContextMenu.Item>
 			)
 		}

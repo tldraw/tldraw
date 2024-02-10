@@ -69,7 +69,12 @@ export function TldrawUiMenuSubmenu({
 						/>
 					</_ContextMenu.SubTrigger>
 					<_ContextMenu.Portal container={container}>
-						<_ContextMenu.SubContent className="tlui-menu" sideOffset={-4} collisionPadding={4}>
+						<_ContextMenu.SubContent
+							className="tlui-menu"
+							sideOffset={-4}
+							alignOffset={-1}
+							collisionPadding={4}
+						>
 							{children}
 						</_ContextMenu.SubContent>
 					</_ContextMenu.Portal>
