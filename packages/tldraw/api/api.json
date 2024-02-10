@@ -2314,7 +2314,7 @@
               "text": "<{\n    children: any;\n}>"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/ContextMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/ContextMenu.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "ContextMenu",
@@ -2465,7 +2465,7 @@
               "text": ";\n}) => null"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/ContextMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/ContextMenu.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "CustomContextMenu",
@@ -2497,10 +2497,42 @@
               "text": ";\n}) => null"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/HelpMenu/HelpMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/HelpMenu/HelpMenu.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "CustomHelpMenu",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!CustomZoomMenu:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "CustomZoomMenu: "
+            },
+            {
+              "kind": "Content",
+              "text": "({ hidden, children }: {\n    hidden?: boolean | undefined;\n    children?: import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}) => null"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ZoomMenu/ZoomMenu.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "CustomZoomMenu",
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 4
@@ -2579,7 +2611,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/DefaultContextMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenu.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 4
@@ -2612,7 +2644,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/HelpMenu/DefaultHelpMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/HelpMenu/DefaultHelpMenu.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
@@ -2803,6 +2835,39 @@
             "startIndex": 1,
             "endIndex": 12
           }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DefaultZoomMenu:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultZoomMenu(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ZoomMenu/DefaultZoomMenu.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DefaultZoomMenu"
         },
         {
           "kind": "Namespace",
@@ -15278,20 +15343,61 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiMenuCheckboxItem({ disabled, checked, actionItem, }: "
+              "text": "export declare function TldrawUiMenuCheckboxItem<TransationKey extends "
             },
             {
               "kind": "Content",
-              "text": "{\n    actionItem: "
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", IconType extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ">({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    icon?: IconType;\n    id: string;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TransationKey;\n    } | TransationKey;\n    readonlyOk: boolean;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiActionItem",
-              "canonicalReference": "@tldraw/tldraw!TLUiActionItem:interface"
+              "text": "TLUiEventSource",
+              "canonicalReference": "@tldraw/tldraw!TLUiEventSource:type"
             },
             {
               "kind": "Content",
-              "text": ";\n    checked?: boolean;\n    disabled?: boolean;\n}"
+              "text": ") => "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<void> | void;\n    checked?: boolean;\n    disabled?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -15315,21 +15421,45 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MenuItems/TldrawUiMenuCheckboxItem.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/MenuItems/TldrawUiMenuCheckboxItem.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 8
+            "startIndex": 15,
+            "endIndex": 18
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ disabled, checked, actionItem, }",
+              "parameterName": "{ id, kbd, label, readonlyOk, onSelect, disabled, checked, }",
               "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 4
+                "startIndex": 9,
+                "endIndex": 14
               },
               "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "TransationKey",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            },
+            {
+              "typeParameterName": "IconType",
+              "constraintTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              }
             }
           ],
           "name": "TldrawUiMenuCheckboxItem"
@@ -15392,7 +15522,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MenuItems/TldrawUiMenuContext.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/MenuItems/TldrawUiMenuContext.tsx",
           "returnTypeTokenRange": {
             "startIndex": 9,
             "endIndex": 11
@@ -15446,7 +15576,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MenuItems/TldrawUiMenuGroup.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/MenuItems/TldrawUiMenuGroup.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 6
@@ -15472,20 +15602,61 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiMenuItem({ disabled, actionItem, }: "
+              "text": "export declare function TldrawUiMenuItem<TransationKey extends "
             },
             {
               "kind": "Content",
-              "text": "{\n    actionItem: "
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", IconType extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ">({ disabled, id, kbd, label, readonlyOk, onSelect, noClose, }: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    icon?: IconType;\n    id: string;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TransationKey;\n    } | TransationKey;\n    readonlyOk: boolean;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiActionItem",
-              "canonicalReference": "@tldraw/tldraw!TLUiActionItem:interface"
+              "text": "TLUiEventSource",
+              "canonicalReference": "@tldraw/tldraw!TLUiEventSource:type"
             },
             {
               "kind": "Content",
-              "text": ";\n    disabled?: boolean;\n}"
+              "text": ") => "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<void> | void;\n    disabled?: boolean;\n    noClose?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -15509,21 +15680,45 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MenuItems/TldrawUiMenuItem.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/MenuItems/TldrawUiMenuItem.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 8
+            "startIndex": 15,
+            "endIndex": 18
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ disabled, actionItem, }",
+              "parameterName": "{ disabled, id, kbd, label, readonlyOk, onSelect, noClose, }",
               "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 4
+                "startIndex": 9,
+                "endIndex": 14
               },
               "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "TransationKey",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            },
+            {
+              "typeParameterName": "IconType",
+              "constraintTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              }
             }
           ],
           "name": "TldrawUiMenuItem"
@@ -15535,11 +15730,27 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiMenuSubmenu({ id, disabled, label, contextMenuLabel, children, }: "
+              "text": "export declare function TldrawUiMenuSubmenu<TransationKey extends "
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label: string;\n    contextMenuLabel?: string;\n    disabled?: boolean;\n    children: any;\n}"
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ">({ id, disabled, label, children, }: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    id: string;\n    label?: {\n        [key: string]: TransationKey;\n    } | TransationKey;\n    disabled?: boolean;\n    children: any;\n}"
             },
             {
               "kind": "Content",
@@ -15563,21 +15774,34 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MenuItems/TldrawUiMenuSubmenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/MenuItems/TldrawUiMenuSubmenu.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 6
+            "startIndex": 7,
+            "endIndex": 10
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, disabled, label, contextMenuLabel, children, }",
+              "parameterName": "{ id, disabled, label, children, }",
               "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "TransationKey",
+              "constraintTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
               },
-              "isOptional": false
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
             }
           ],
           "name": "TldrawUiMenuSubmenu"
@@ -15718,33 +15942,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiActionItem#contextMenuLabel:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "contextMenuLabel?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "TransationKey"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "contextMenuLabel",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TLUiActionItem#icon:member",
               "docComment": "",
               "excerptTokens": [
@@ -15835,7 +16032,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "TransationKey"
+                  "text": "{\n        [key: string]: TransationKey;\n    } | TransationKey"
                 },
                 {
                   "kind": "Content",
@@ -15846,33 +16043,6 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "label",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiActionItem#menuLabel:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "menuLabel?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "TransationKey"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "menuLabel",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -15945,33 +16115,6 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "readonlyOk",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiActionItem#shortcutsLabel:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "shortcutsLabel?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "TransationKey"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "shortcutsLabel",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -16523,7 +16666,7 @@
               "text": "export interface TLUiContextMenuProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/ContextMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/ContextMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiContextMenuProps",
           "preserveMemberOrder": false,
@@ -21118,6 +21261,72 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!unwrapLabel:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function unwrapLabel(label?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionItem",
+              "canonicalReference": "@tldraw/tldraw!TLUiActionItem:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "['label']"
+            },
+            {
+              "kind": "Content",
+              "text": ", menuType?: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "string | undefined"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useActions.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 6,
+            "endIndex": 7
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "label",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "menuType",
+              "parameterTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 5
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "unwrapLabel"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!useActions:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -21369,7 +21578,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n    msg: (id: string) => string;\n    isMobile: boolean;\n}"
+              "text": ">) => string;\n    msg: (id?: string | undefined) => string;\n    isMobile: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -21935,7 +22144,7 @@
             },
             {
               "kind": "Content",
-              "text": "(id: "
+              "text": "(id?: "
             },
             {
               "kind": "Reference",

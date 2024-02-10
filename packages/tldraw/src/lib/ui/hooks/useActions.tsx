@@ -42,10 +42,7 @@ export interface TLUiActionItem<
 	id: string
 	kbd?: string
 	title?: string
-	label?: TransationKey
-	menuLabel?: TransationKey
-	shortcutsLabel?: TransationKey
-	contextMenuLabel?: TransationKey
+	label?: TransationKey | { [key: string]: TransationKey }
 	readonlyOk: boolean
 	checkbox?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
@@ -162,9 +159,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'export-as-svg',
-				label: 'action.export-as-svg',
-				menuLabel: 'action.export-as-svg.short',
-				contextMenuLabel: 'action.export-as-svg.short',
+				label: {
+					default: 'action.export-as-svg',
+					menu: 'action.export-as-svg.short',
+					['context-menu']: 'action.export-as-svg.short',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'svg', source })
@@ -173,9 +172,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'export-as-png',
-				label: 'action.export-as-png',
-				menuLabel: 'action.export-as-png.short',
-				contextMenuLabel: 'action.export-as-png.short',
+				label: {
+					default: 'action.export-as-png',
+					menu: 'action.export-as-png.short',
+					['context-menu']: 'action.export-as-png.short',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'png', source })
@@ -184,9 +185,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'export-as-json',
-				label: 'action.export-as-json',
-				menuLabel: 'action.export-as-json.short',
-				contextMenuLabel: 'action.export-as-json.short',
+				label: {
+					default: 'action.export-as-json',
+					menu: 'action.export-as-json.short',
+					['context-menu']: 'action.export-as-json.short',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'json', source })
@@ -195,9 +198,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'copy-as-svg',
-				label: 'action.copy-as-svg',
-				menuLabel: 'action.copy-as-svg.short',
-				contextMenuLabel: 'action.copy-as-svg.short',
+				label: {
+					default: 'action.copy-as-svg',
+					menu: 'action.copy-as-svg.short',
+					['context-menu']: 'action.copy-as-svg.short',
+				},
 				kbd: '$!c',
 				readonlyOk: true,
 				onSelect(source) {
@@ -207,9 +212,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'copy-as-png',
-				label: 'action.copy-as-png',
-				menuLabel: 'action.copy-as-png.short',
-				contextMenuLabel: 'action.copy-as-png.short',
+				label: {
+					default: 'action.copy-as-png',
+					menu: 'action.copy-as-png.short',
+					['context-menu']: 'action.copy-as-png.short',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('copy-as', { format: 'png', source })
@@ -218,9 +225,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'copy-as-json',
-				label: 'action.copy-as-json',
-				menuLabel: 'action.copy-as-json.short',
-				contextMenuLabel: 'action.copy-as-json.short',
+				label: {
+					default: 'action.copy-as-json',
+					menu: 'action.copy-as-json.short',
+					['context-menu']: 'action.copy-as-json.short',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('copy-as', { format: 'json', source })
@@ -531,8 +540,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'align-center-horizontal',
-				label: 'action.align-center-horizontal',
-				contextMenuLabel: 'action.align-center-horizontal.short',
+				label: {
+					default: 'action.align-center-horizontal',
+					['context-menu']: 'action.align-center-horizontal.short',
+				},
 				kbd: '?H',
 				icon: 'align-center-horizontal',
 				readonlyOk: false,
@@ -562,8 +573,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'align-center-vertical',
-				label: 'action.align-center-vertical',
-				contextMenuLabel: 'action.align-center-vertical.short',
+				label: {
+					default: 'action.align-center-vertical',
+					['context-menu']: 'action.align-center-vertical.short',
+				},
 				kbd: '?V',
 				icon: 'align-center-vertical',
 				readonlyOk: false,
@@ -608,8 +621,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'distribute-horizontal',
-				label: 'action.distribute-horizontal',
-				contextMenuLabel: 'action.distribute-horizontal.short',
+				label: {
+					default: 'action.distribute-horizontal',
+					['context-menu']: 'action.distribute-horizontal.short',
+				},
 				icon: 'distribute-horizontal',
 				kbd: '?!h',
 				readonlyOk: false,
@@ -624,8 +639,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'distribute-vertical',
-				label: 'action.distribute-vertical',
-				contextMenuLabel: 'action.distribute-vertical.short',
+				label: {
+					default: 'action.distribute-vertical',
+					['context-menu']: 'action.distribute-vertical.short',
+				},
 				icon: 'distribute-vertical',
 				kbd: '?!V',
 				readonlyOk: false,
@@ -640,8 +657,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stretch-horizontal',
-				label: 'action.stretch-horizontal',
-				contextMenuLabel: 'action.stretch-horizontal.short',
+				label: {
+					default: 'action.stretch-horizontal',
+					['context-menu']: 'action.stretch-horizontal.short',
+				},
 				icon: 'stretch-horizontal',
 				readonlyOk: false,
 				onSelect(source) {
@@ -655,8 +674,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stretch-vertical',
-				label: 'action.stretch-vertical',
-				contextMenuLabel: 'action.stretch-vertical.short',
+				label: {
+					default: 'action.stretch-vertical',
+					['context-menu']: 'action.stretch-vertical.short',
+				},
 				icon: 'stretch-vertical',
 				readonlyOk: false,
 				onSelect(source) {
@@ -670,8 +691,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flip-horizontal',
-				label: 'action.flip-horizontal',
-				contextMenuLabel: 'action.flip-horizontal.short',
+				label: {
+					default: 'action.flip-horizontal',
+					['context-menu']: 'action.flip-horizontal.short',
+				},
 				kbd: '!h',
 				readonlyOk: false,
 				onSelect(source) {
@@ -685,8 +708,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flip-vertical',
-				label: 'action.flip-vertical',
-				contextMenuLabel: 'action.flip-vertical.short',
+				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
 				kbd: '!v',
 				readonlyOk: false,
 				onSelect(source) {
@@ -714,8 +736,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stack-vertical',
-				label: 'action.stack-vertical',
-				contextMenuLabel: 'action.stack-vertical.short',
+				label: {
+					default: 'action.stack-vertical',
+					['context-menu']: 'action.stack-vertical.short',
+				},
 				icon: 'stack-vertical',
 				readonlyOk: false,
 				onSelect(source) {
@@ -729,8 +753,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stack-horizontal',
-				label: 'action.stack-horizontal',
-				contextMenuLabel: 'action.stack-horizontal.short',
+				label: {
+					default: 'action.stack-horizontal',
+					['context-menu']: 'action.stack-horizontal.short',
+				},
 				icon: 'stack-horizontal',
 				readonlyOk: false,
 				onSelect(source) {
@@ -980,8 +1006,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-snap-mode',
-				label: 'action.toggle-snap-mode',
-				menuLabel: 'action.toggle-snap-mode.menu',
+				label: {
+					default: 'action.toggle-snap-mode',
+					menu: 'action.toggle-snap-mode.menu',
+				},
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
@@ -991,8 +1019,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-dark-mode',
-				label: 'action.toggle-dark-mode',
-				menuLabel: 'action.toggle-dark-mode.menu',
+				label: {
+					default: 'action.toggle-dark-mode',
+					menu: 'action.toggle-dark-mode.menu',
+				},
 				kbd: '$/',
 				readonlyOk: true,
 				onSelect(source) {
@@ -1003,8 +1033,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-reduce-motion',
-				label: 'action.toggle-reduce-motion',
-				menuLabel: 'action.toggle-reduce-motion.menu',
+				label: {
+					default: 'action.toggle-reduce-motion',
+					menu: 'action.toggle-reduce-motion.menu',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
@@ -1016,8 +1048,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-edge-scrolling',
-				label: 'action.toggle-edge-scrolling',
-				menuLabel: 'action.toggle-edge-scrolling.menu',
+				label: {
+					default: 'action.toggle-edge-scrolling',
+					menu: 'action.toggle-edge-scrolling.menu',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-edge-scrolling', { source })
@@ -1029,9 +1063,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-transparent',
-				label: 'action.toggle-transparent',
-				menuLabel: 'action.toggle-transparent.menu',
-				contextMenuLabel: 'action.toggle-transparent.context-menu',
+				label: {
+					default: 'action.toggle-transparent',
+					menu: 'action.toggle-transparent.menu',
+					['context-menu']: 'action.toggle-transparent.context-menu',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
@@ -1046,8 +1082,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-tool-lock',
-				label: 'action.toggle-tool-lock',
-				menuLabel: 'action.toggle-tool-lock.menu',
+				label: {
+					default: 'action.toggle-tool-lock',
+					menu: 'action.toggle-tool-lock.menu',
+				},
 				readonlyOk: false,
 				kbd: 'q',
 				onSelect(source) {
@@ -1075,8 +1113,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-focus-mode',
-				label: 'action.toggle-focus-mode',
-				menuLabel: 'action.toggle-focus-mode.menu',
+				label: {
+					default: 'action.toggle-focus-mode',
+					menu: 'action.toggle-focus-mode.menu',
+				},
 				readonlyOk: true,
 				kbd: '$.',
 				checkbox: true,
@@ -1095,8 +1135,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-grid',
-				label: 'action.toggle-grid',
-				menuLabel: 'action.toggle-grid.menu',
+				label: {
+					default: 'action.toggle-grid',
+					menu: 'action.toggle-grid.menu',
+				},
 				readonlyOk: true,
 				kbd: "$'",
 				onSelect(source) {
@@ -1107,8 +1149,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-debug-mode',
-				label: 'action.toggle-debug-mode',
-				menuLabel: 'action.toggle-debug-mode.menu',
+				label: {
+					default: 'action.toggle-debug-mode',
+					menu: 'action.toggle-debug-mode.menu',
+				},
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-debug-mode', { source })
@@ -1210,4 +1254,15 @@ export function useActions() {
 
 function asActions<T extends Record<string, TLUiActionItem>>(actions: T) {
 	return actions as Record<keyof typeof actions, TLUiActionItem>
+}
+
+/** @public */
+export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string) {
+	return label
+		? typeof label === 'string'
+			? label
+			: menuType
+				? label[menuType] ?? label['default']
+				: undefined
+		: undefined
 }

@@ -1,11 +1,11 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
-import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import tunnel from '../../tunnel'
+import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import tunnel from '../../../tunnel'
+import { Button } from '../../primitives/Button'
 import { TldrawUiMenuContextProvider } from '../MenuItems/TldrawUiMenuContext'
-import { Button } from '../primitives/Button'
 import { DefaultHelpMenu } from './DefaultHelpMenu'
 
 const _HelpMenuContent = tunnel(<DefaultHelpMenu />)

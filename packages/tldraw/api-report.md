@@ -311,6 +311,12 @@ export const CustomHelpMenu: ({ hidden, children }: {
 }) => null;
 
 // @public (undocumented)
+export const CustomZoomMenu: ({ hidden, children }: {
+    hidden?: boolean | undefined;
+    children?: ReactNode;
+}) => null;
+
+// @public (undocumented)
 export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 
 // @public (undocumented)
@@ -330,6 +336,9 @@ export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 
 // @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof LaserTool | typeof SelectTool | typeof ZoomTool)[];
+
+// @public (undocumented)
+export function DefaultZoomMenu(): JSX_2.Element;
 
 declare namespace Dialog {
     export {
@@ -1352,8 +1361,16 @@ export interface TldrawUiContextProviderProps {
 }
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem({ disabled, checked, actionItem, }: {
-    actionItem: TLUiActionItem;
+export function TldrawUiMenuCheckboxItem<TransationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: {
+    icon?: IconType;
+    id: string;
+    kbd?: string;
+    title?: string;
+    label?: {
+        [key: string]: TransationKey;
+    } | TransationKey;
+    readonlyOk: boolean;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
     checked?: boolean;
     disabled?: boolean;
 }): JSX_2.Element | null | undefined;
@@ -1373,16 +1390,26 @@ export function TldrawUiMenuGroup({ id, small, children, }: {
 }): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem({ disabled, actionItem, }: {
-    actionItem: TLUiActionItem;
+export function TldrawUiMenuItem<TransationKey extends string = string, IconType extends string = string>({ disabled, id, kbd, label, readonlyOk, onSelect, noClose, }: {
+    icon?: IconType;
+    id: string;
+    kbd?: string;
+    title?: string;
+    label?: {
+        [key: string]: TransationKey;
+    } | TransationKey;
+    readonlyOk: boolean;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
     disabled?: boolean;
+    noClose?: boolean;
 }): JSX_2.Element | null | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu({ id, disabled, label, contextMenuLabel, children, }: {
+export function TldrawUiMenuSubmenu<TransationKey extends string = string>({ id, disabled, label, children, }: {
     id: string;
-    label: string;
-    contextMenuLabel?: string;
+    label?: {
+        [key: string]: TransationKey;
+    } | TransationKey;
     disabled?: boolean;
     children: any;
 }): JSX_2.Element | undefined;
@@ -1395,23 +1422,19 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     // (undocumented)
     checkbox?: boolean;
     // (undocumented)
-    contextMenuLabel?: TransationKey;
-    // (undocumented)
     icon?: IconType;
     // (undocumented)
     id: string;
     // (undocumented)
     kbd?: string;
     // (undocumented)
-    label?: TransationKey;
-    // (undocumented)
-    menuLabel?: TransationKey;
+    label?: {
+        [key: string]: TransationKey;
+    } | TransationKey;
     // (undocumented)
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
     readonlyOk: boolean;
-    // (undocumented)
-    shortcutsLabel?: TransationKey;
     // (undocumented)
     title?: string;
 }
@@ -1893,6 +1916,9 @@ export const truncateStringWithEllipsis: (str: string, maxLength: number) => str
 export function UiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
+export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
+
+// @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
 // @public (undocumented)
@@ -1926,7 +1952,7 @@ export function useDefaultHelpers(): {
     clearDialogs: () => void;
     removeDialog: (id: string) => string;
     updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-    msg: (id: string) => string;
+    msg: (id?: string | undefined) => string;
     isMobile: boolean;
 };
 
@@ -1974,7 +2000,7 @@ export function useToolbarSchema(): TLUiToolbarSchemaContextType;
 export function useTools(): TLUiToolsContextType;
 
 // @public
-export function useTranslation(): (id: Exclude<string, TLUiTranslationKey> | string) => string;
+export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
 export function useUiEvents(): TLUiEventContextType;

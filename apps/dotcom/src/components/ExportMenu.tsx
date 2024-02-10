@@ -1,5 +1,12 @@
 import * as Popover from '@radix-ui/react-popover'
-import { Button, useActions, useContainer, useEditor, useTranslation } from '@tldraw/tldraw'
+import {
+	Button,
+	unwrapLabel,
+	useActions,
+	useContainer,
+	useEditor,
+	useTranslation,
+} from '@tldraw/tldraw'
 import React, { useState } from 'react'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
@@ -36,7 +43,7 @@ export const ExportMenu = React.memo(function ExportMenu() {
 					<div className="tlui-menu__group">
 						<Button
 							type="menu"
-							label={shareProject.label}
+							label={unwrapLabel(shareProject.label)}
 							icon={'share-1'}
 							onClick={() => {
 								shareProject.onSelect('export-menu')
@@ -50,7 +57,7 @@ export const ExportMenu = React.memo(function ExportMenu() {
 						<Button
 							type="menu"
 							icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
-							label={shareSnapshot.label!}
+							label={unwrapLabel(shareSnapshot.label)}
 							onClick={async () => {
 								setIsUploadingSnapshot(true)
 								await shareSnapshot.onSelect('share-menu')
@@ -67,7 +74,7 @@ export const ExportMenu = React.memo(function ExportMenu() {
 					<div className="tlui-menu__group">
 						<Button
 							type="menu"
-							label={saveFileCopyAction.label}
+							label={unwrapLabel(saveFileCopyAction.label)}
 							icon={'share-2'}
 							onClick={() => {
 								saveFileCopyAction.onSelect('export-menu')

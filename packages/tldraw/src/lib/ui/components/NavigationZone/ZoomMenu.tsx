@@ -1,6 +1,6 @@
 import { ANIMATION_MEDIUM_MS, track, useEditor } from '@tldraw/editor'
 import * as React from 'react'
-import { useActions } from '../../hooks/useActions'
+import { unwrapLabel, useActions } from '../../hooks/useActions'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
@@ -76,7 +76,7 @@ function ZoomMenuItem(props: {
 	return (
 		<M.Item
 			type="menu"
-			label={actions[action].label}
+			label={unwrapLabel(actions[action].label)}
 			kbd={actions[action].kbd}
 			data-testid={props['data-testid']}
 			onClick={() => actions[action].onSelect('zoom-menu')}

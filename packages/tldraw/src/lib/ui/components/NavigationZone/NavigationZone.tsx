@@ -1,12 +1,12 @@
 import { memo, useCallback } from 'react'
-import { useActions } from '../../hooks/useActions'
+import { unwrapLabel, useActions } from '../../hooks/useActions'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { ZoomMenu } from '../menus/ZoomMenu/ZoomMenu'
 import { Button } from '../primitives/Button'
 import { kbdStr } from '../primitives/shared'
 import { Minimap } from './Minimap'
-import { ZoomMenu } from './ZoomMenu'
 
 /** @internal */
 export const NavigationZone = memo(function NavigationZone() {
@@ -47,7 +47,7 @@ export const NavigationZone = memo(function NavigationZone() {
 							type="icon"
 							icon="minus"
 							data-testid="minimap.zoom-out"
-							title={`${msg(actions['zoom-out'].label!)} ${kbdStr(actions['zoom-out'].kbd!)}`}
+							title={`${msg(unwrapLabel(actions['zoom-out'].label))} ${kbdStr(actions['zoom-out'].kbd!)}`}
 							onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
 						/>
 						<ZoomMenu />
@@ -55,7 +55,7 @@ export const NavigationZone = memo(function NavigationZone() {
 							type="icon"
 							icon="plus"
 							data-testid="minimap.zoom-in"
-							title={`${msg(actions['zoom-in'].label!)} ${kbdStr(actions['zoom-in'].kbd!)}`}
+							title={`${msg(unwrapLabel(actions['zoom-in'].label))} ${kbdStr(actions['zoom-in'].kbd!)}`}
 							onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
 						/>
 						<Button

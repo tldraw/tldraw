@@ -2,6 +2,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
+import { unwrapLabel } from '../hooks/useActions'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useReadonly } from '../hooks/useReadonly'
@@ -34,8 +35,8 @@ export const ActionsMenu = memo(function ActionsMenu() {
 						title={
 							label
 								? kbd
-									? `${msg(label)} ${kbdStr(kbd)}`
-									: `${msg(label)}`
+									? `${msg(unwrapLabel(label))} ${kbdStr(kbd)}`
+									: `${msg(unwrapLabel(label))}`
 								: kbd
 									? `${kbdStr(kbd)}`
 									: ''

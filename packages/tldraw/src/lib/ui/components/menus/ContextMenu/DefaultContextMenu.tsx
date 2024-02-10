@@ -1,9 +1,10 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { showMenuPaste, useThreeStackableItems } from '../../hooks/menuHelpers'
-import { useActions } from '../../hooks/useActions'
-import { useAnySelectedShapesCount } from '../../hooks/useAnySelectedShapesCount'
-import { useOnlyFlippableShape } from '../../hooks/useOnlyFlippableShape'
-import { useUnlockedSelectedShapesCount } from '../../hooks/useUnlockedSelectedShapesCount'
+import { showMenuPaste, useThreeStackableItems } from '../../../hooks/menuHelpers'
+import { useActions } from '../../../hooks/useActions'
+import { useAnySelectedShapesCount } from '../../../hooks/useAnySelectedShapesCount'
+import { useOnlyFlippableShape } from '../../../hooks/useOnlyFlippableShape'
+import { useUnlockedSelectedShapesCount } from '../../../hooks/useUnlockedSelectedShapesCount'
+import { MoveToPageMenu as _MoveToPageMenu } from '../../MoveToPageMenu'
 import {
 	DuplicateMenuItem,
 	EditLinkMenuItem,
@@ -18,7 +19,6 @@ import {
 import { TldrawUiMenuGroup } from '../MenuItems/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../MenuItems/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../MenuItems/TldrawUiMenuSubmenu'
-import { MoveToPageMenu as _MoveToPageMenu } from '../MoveToPageMenu'
 
 /** @public */
 export function DefaultContextMenu() {
@@ -93,12 +93,12 @@ function AlignMenuGroup() {
 
 	return (
 		<TldrawUiMenuGroup id="align">
-			<TldrawUiMenuItem actionItem={actions['align-left']} />
-			<TldrawUiMenuItem actionItem={actions['align-center-horizontal']} />
-			<TldrawUiMenuItem actionItem={actions['align-right']} />
-			<TldrawUiMenuItem actionItem={actions['align-top']} />
-			<TldrawUiMenuItem actionItem={actions['align-center-vertical']} />
-			<TldrawUiMenuItem actionItem={actions['align-bottom']} />
+			<TldrawUiMenuItem {...actions['align-left']} />
+			<TldrawUiMenuItem {...actions['align-center-horizontal']} />
+			<TldrawUiMenuItem {...actions['align-right']} />
+			<TldrawUiMenuItem {...actions['align-top']} />
+			<TldrawUiMenuItem {...actions['align-center-vertical']} />
+			<TldrawUiMenuItem {...actions['align-bottom']} />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -110,8 +110,8 @@ function DistributeMenuGroup() {
 
 	return (
 		<TldrawUiMenuGroup id="distribute">
-			<TldrawUiMenuItem actionItem={actions['distribute-horizontal']} />
-			<TldrawUiMenuItem actionItem={actions['distribute-vertical']} />
+			<TldrawUiMenuItem {...actions['distribute-horizontal']} />
+			<TldrawUiMenuItem {...actions['distribute-vertical']} />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -123,8 +123,8 @@ function StretchMenuGroup() {
 
 	return (
 		<TldrawUiMenuGroup id="stretch">
-			<TldrawUiMenuItem actionItem={actions['stretch-horizontal']} />
-			<TldrawUiMenuItem actionItem={actions['stretch-vertical']} />
+			<TldrawUiMenuItem {...actions['stretch-horizontal']} />
+			<TldrawUiMenuItem {...actions['stretch-vertical']} />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -136,8 +136,8 @@ function FlipMenuGroup() {
 
 	return (
 		<TldrawUiMenuGroup id="flip">
-			<TldrawUiMenuItem actionItem={actions['flip-horizontal']} />
-			<TldrawUiMenuItem actionItem={actions['flip-vertical']} />
+			<TldrawUiMenuItem {...actions['flip-horizontal']} />
+			<TldrawUiMenuItem {...actions['flip-vertical']} />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -150,9 +150,9 @@ function OrderMenuGroup() {
 
 	return (
 		<TldrawUiMenuGroup id="order">
-			<TldrawUiMenuItem actionItem={actions['pack']} />
-			{threeStackableItems && <TldrawUiMenuItem actionItem={actions['stack-horizontal']} />}
-			{threeStackableItems && <TldrawUiMenuItem actionItem={actions['stack-vertical']} />}
+			<TldrawUiMenuItem {...actions['pack']} />
+			{threeStackableItems && <TldrawUiMenuItem {...actions['stack-horizontal']} />}
+			{threeStackableItems && <TldrawUiMenuItem {...actions['stack-vertical']} />}
 		</TldrawUiMenuGroup>
 	)
 }
@@ -165,10 +165,10 @@ function ReorderMenuSubmenu() {
 	return (
 		<TldrawUiMenuSubmenu id="reorder" label="context-menu.reorder">
 			<TldrawUiMenuGroup id="reorder">
-				<TldrawUiMenuItem actionItem={actions['bring-to-front']} />
-				<TldrawUiMenuItem actionItem={actions['bring-forward']} />
-				<TldrawUiMenuItem actionItem={actions['send-backward']} />
-				<TldrawUiMenuItem actionItem={actions['send-to-back']} />
+				<TldrawUiMenuItem {...actions['bring-to-front']} />
+				<TldrawUiMenuItem {...actions['bring-forward']} />
+				<TldrawUiMenuItem {...actions['send-backward']} />
+				<TldrawUiMenuItem {...actions['send-to-back']} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
@@ -196,21 +196,21 @@ function CutMenuItem() {
 	const actions = useActions()
 	const shouldDisplay = useUnlockedSelectedShapesCount(1)
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['cut']} />
+	return <TldrawUiMenuItem {...actions['cut']} />
 }
 
 function CopyMenuItem() {
 	const actions = useActions()
 	const shouldDisplay = useAnySelectedShapesCount(1)
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['copy']} />
+	return <TldrawUiMenuItem {...actions['copy']} />
 }
 
 function PasteMenuItem() {
 	const actions = useActions()
 	const shouldDisplay = showMenuPaste
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['paste']} />
+	return <TldrawUiMenuItem {...actions['paste']} />
 }
 
 /* ------------------- Conversions ------------------ */
@@ -239,11 +239,11 @@ function CopyAsMenuSubmenu() {
 	return (
 		<TldrawUiMenuSubmenu id="copy-as" label="context-menu.copy-as">
 			<TldrawUiMenuGroup id="copy-as-group">
-				<TldrawUiMenuItem actionItem={actions['copy-as-svg']} />
+				<TldrawUiMenuItem {...actions['copy-as-svg']} />
 				{Boolean(window.navigator.clipboard?.write) && (
-					<TldrawUiMenuItem actionItem={actions['copy-as-png']} />
+					<TldrawUiMenuItem {...actions['copy-as-png']} />
 				)}
-				<TldrawUiMenuItem actionItem={actions['copy-as-json']} />
+				<TldrawUiMenuItem {...actions['copy-as-json']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">
 				<ToggleTransparentBgMenuItem />
@@ -259,9 +259,9 @@ function ExportAsMenuSubmenu() {
 	return (
 		<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as">
 			<TldrawUiMenuGroup id="export-as-group">
-				<TldrawUiMenuItem actionItem={actions['export-as-svg']} />
-				<TldrawUiMenuItem actionItem={actions['export-as-png']} />
-				<TldrawUiMenuItem actionItem={actions['export-as-json']} />
+				<TldrawUiMenuItem {...actions['export-as-svg']} />
+				<TldrawUiMenuItem {...actions['export-as-png']} />
+				<TldrawUiMenuItem {...actions['export-as-json']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="export-as-bg">
 				<ToggleTransparentBgMenuItem />
@@ -282,8 +282,8 @@ function SetSelectionGroup() {
 	if (!atLeastOneShapeOnPage) return null
 	return (
 		<TldrawUiMenuGroup id="set-selection-group">
-			<TldrawUiMenuItem actionItem={actions['select-all']} />
-			{oneSelected && <TldrawUiMenuItem actionItem={actions['select-none']} />}
+			<TldrawUiMenuItem {...actions['select-all']} />
+			{oneSelected && <TldrawUiMenuItem {...actions['select-none']} />}
 		</TldrawUiMenuGroup>
 	)
 }
@@ -294,7 +294,7 @@ function DeleteGroup() {
 	if (!oneSelected) return null
 	return (
 		<TldrawUiMenuGroup id="delete-group">
-			<TldrawUiMenuItem actionItem={actions['delete']} />
+			<TldrawUiMenuItem {...actions['delete']} />
 		</TldrawUiMenuGroup>
 	)
 }

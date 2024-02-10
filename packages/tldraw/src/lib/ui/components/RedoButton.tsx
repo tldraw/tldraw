@@ -1,5 +1,5 @@
 import { memo, useRef } from 'react'
-import { useActions } from '../hooks/useActions'
+import { unwrapLabel, useActions } from '../hooks/useActions'
 import { useCanRedo } from '../hooks/useCanRedo'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
@@ -18,7 +18,7 @@ export const RedoButton = memo(function RedoButton() {
 			data-testid="main.redo"
 			icon={redo.icon}
 			type="icon"
-			title={`${msg(redo.label!)} ${kbdStr(redo.kbd!)}`}
+			title={`${msg(unwrapLabel(redo.label))} ${kbdStr(redo.kbd!)}`}
 			disabled={!canRedo}
 			onClick={() => redo.onSelect('quick-actions')}
 			smallIcon

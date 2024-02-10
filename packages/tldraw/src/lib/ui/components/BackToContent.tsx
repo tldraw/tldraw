@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
-import { useActions } from '../hooks/useActions'
+import { unwrapLabel, useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
 export function BackToContent() {
@@ -44,7 +44,7 @@ export function BackToContent() {
 	return (
 		<Button
 			iconLeft={action.icon}
-			label={action.label}
+			label={unwrapLabel(action.label)}
 			type="low"
 			onClick={() => {
 				action.onSelect('helper-buttons')

@@ -1,11 +1,11 @@
 ---
-title: Custom Help Menu
-component: ./CustomHelpMenuExample.tsx
+title: Custom Zoom Menu
+component: ./CustomZoomMenuExample.tsx
 category: ui
 ---
 
-Customize tldraw's help menu.
+Customize tldraw's zoom menu.
 
 ---
 
-The hlep menu can be customized by providing a `<CustomHelpMenu>` component as a child of the `<Tldraw>` component.
+The hlep menu can be customized by providing a `<CustomZoomMenu>` component as a child of the `<Tldraw>` component.

@@ -2,19 +2,35 @@ import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useEditor, useValue } from '@tldraw/editor'
 import { useState } from 'react'
-import { TLUiActionItem } from '../../hooks/useActions'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Button } from '../primitives/Button'
+import { unwrapLabel } from '../../../hooks/useActions'
+import { TLUiEventSource } from '../../../hooks/useEventsProvider'
+import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { Button } from '../../primitives/Button'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export function TldrawUiMenuItem({
+export function TldrawUiMenuItem<
+	TransationKey extends string = string,
+	IconType extends string = string,
+>({
 	disabled = false,
-	actionItem,
+	id,
+	kbd,
+	label,
+	readonlyOk,
+	onSelect,
+	noClose,
 }: {
-	actionItem: TLUiActionItem
+	icon?: IconType
+	id: string
+	kbd?: string
+	title?: string
+	label?: TransationKey | { [key: string]: TransationKey }
+	readonlyOk: boolean
+	onSelect: (source: TLUiEventSource) => Promise<void> | void
 	disabled?: boolean
+	noClose?: boolean
 }) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
@@ -23,10 +39,9 @@ export function TldrawUiMenuItem({
 	const msg = useTranslation()
 	const [disableClicks, setDisableClicks] = useState(false)
 
-	if (isReadOnly && !actionItem.readonlyOk) return null
+	if (isReadOnly && !readonlyOk) return null
 
-	const { id, contextMenuLabel, label, onSelect, kbd } = actionItem
-	const labelToUse = contextMenuLabel ?? label
+	const labelToUse = unwrapLabel(label, menuType)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 	const button = (
@@ -37,7 +52,9 @@ export function TldrawUiMenuItem({
 			label={labelStr}
 			disabled={disabled}
 			iconLeft={undefined}
-			onClick={() => {
+			onClick={(e) => {
+				if (noClose) preventDefault(e)
+
 				if (disableClicks) {
 					setDisableClicks(false)
 				} else {

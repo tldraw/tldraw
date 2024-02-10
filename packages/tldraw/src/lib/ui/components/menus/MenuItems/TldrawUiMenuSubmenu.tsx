@@ -1,29 +1,33 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useContainer } from '@tldraw/editor'
-import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Button } from '../primitives/Button'
+import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
+import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { Button } from '../../primitives/Button'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export function TldrawUiMenuSubmenu({
+export function TldrawUiMenuSubmenu<TransationKey extends string = string>({
 	id,
 	disabled = false,
 	label,
-	contextMenuLabel,
 	children,
 }: {
 	id: string
-	label: string
-	contextMenuLabel?: string
+	label?: TransationKey | { [key: string]: TransationKey }
 	disabled?: boolean
 	children: any
 }) {
 	const container = useContainer()
 	const { type: menuType } = useTldrawUiMenuContext()
 	const msg = useTranslation()
+	const labelToUse = label
+		? typeof label === 'string'
+			? label
+			: label[menuType] ?? label['default']
+		: undefined
+	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 	const [_, onOpenChange] = useMenuIsOpen(`context menu sub`)
 
@@ -36,7 +40,7 @@ export function TldrawUiMenuSubmenu({
 							type="menu"
 							className="tlui-menu__submenu__trigger"
 							data-testid={`menu-item.${id}`}
-							label={label}
+							label={labelStr}
 							icon="chevron-right"
 						/>
 					</_DropdownMenu.SubTrigger>
@@ -54,9 +58,6 @@ export function TldrawUiMenuSubmenu({
 			)
 		}
 		case 'context-menu': {
-			const labelToUse = contextMenuLabel ?? label
-			const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
-
 			return (
 				<_ContextMenu.Sub onOpenChange={onOpenChange}>
 					<_ContextMenu.SubTrigger dir="ltr" disabled={disabled} asChild>

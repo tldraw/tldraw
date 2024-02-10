@@ -14,5 +14,5 @@ export function CursorChatMenuItem() {
 
 	if (!shouldShow) return null
 
-	return <TldrawUiMenuItem actionItem={actions[CURSOR_CHAT_ACTION]} />
+	return <TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
 }

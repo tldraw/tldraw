@@ -1,3 +1,4 @@
+import { ContextMenu } from '@radix-ui/react-context-menu'
 import {
 	Canvas,
 	Editor,
@@ -31,7 +32,6 @@ import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
-import { ContextMenu } from './ui/components/ContextMenu/ContextMenu'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 

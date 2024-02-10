@@ -1,4 +1,5 @@
 import { TLUiMenuChild } from '../hooks/menuHelpers'
+import { unwrapLabel } from '../hooks/useActions'
 import { useKeyboardShortcutsSchema } from '../hooks/useKeyboardShortcutsSchema'
 import { useReadonly } from '../hooks/useReadonly'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -31,12 +32,12 @@ export const KeyboardShortcutsDialog = () => {
 				)
 			}
 			case 'item': {
-				const { id, label, shortcutsLabel, kbd } = item.actionItem
+				const { id, label, kbd } = item.actionItem
 
 				return (
 					<div className="tlui-shortcuts-dialog__key-pair" key={id}>
 						<div className="tlui-shortcuts-dialog__key-pair__key">
-							{msg((shortcutsLabel ?? label)!)}
+							{msg(unwrapLabel(label, 'shortcuts'))}
 						</div>
 						<div className="tlui-shortcuts-dialog__key-pair__value">
 							<Kbd>{kbd!}</Kbd>

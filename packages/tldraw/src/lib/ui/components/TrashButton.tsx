@@ -1,6 +1,6 @@
 import { track, useEditor } from '@tldraw/editor'
 import { useRef } from 'react'
-import { useActions } from '../hooks/useActions'
+import { unwrapLabel, useActions } from '../hooks/useActions'
 import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
@@ -27,7 +27,7 @@ export const TrashButton = track(function TrashButton() {
 				editor.getContainer().focus()
 			}}
 			disabled={!(editor.isIn('select') && editor.getSelectedShapeIds().length > 0)}
-			title={`${msg(action.label!)} ${kbdStr(action.kbd!)}`}
+			title={`${msg(unwrapLabel(action.label))} ${kbdStr(action.kbd!)}`}
 			smallIcon
 			ref={ref}
 		/>

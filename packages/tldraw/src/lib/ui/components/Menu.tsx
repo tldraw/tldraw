@@ -1,6 +1,7 @@
 import { Editor, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
+import { unwrapLabel } from '../hooks/useActions'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useMenuSchema } from '../hooks/useMenuSchema'
 import { useReadonly } from '../hooks/useReadonly'
@@ -89,8 +90,8 @@ function MenuContent() {
 			case 'item': {
 				if (isReadonly && !item.readonlyOk) return null
 
-				const { id, checkbox, menuLabel, label, onSelect, kbd } = item.actionItem
-				const labelToUse = menuLabel ?? label
+				const { id, checkbox, label, onSelect, kbd } = item.actionItem
+				const labelToUse = unwrapLabel(label, 'menu')
 				const labelStr = labelToUse ? msg(labelToUse) : undefined
 
 				if (checkbox) {

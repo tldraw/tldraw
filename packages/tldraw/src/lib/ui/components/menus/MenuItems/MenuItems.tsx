@@ -1,9 +1,9 @@
 import { TLFrameShape, useEditor, useValue } from '@tldraw/editor'
-import { useAllowGroup, useAllowUngroup } from '../../hooks/menuHelpers'
-import { useActions } from '../../hooks/useActions'
-import { useHasLinkShapeSelected } from '../../hooks/useHasLinkShapeSelected'
-import { useShowAutoSizeToggle } from '../../hooks/useShowAutoSizeToggle'
-import { useUnlockedSelectedShapesCount } from '../../hooks/useUnlockedSelectedShapesCount'
+import { useAllowGroup, useAllowUngroup } from '../../../hooks/menuHelpers'
+import { useActions } from '../../../hooks/useActions'
+import { useHasLinkShapeSelected } from '../../../hooks/useHasLinkShapeSelected'
+import { useShowAutoSizeToggle } from '../../../hooks/useShowAutoSizeToggle'
+import { useUnlockedSelectedShapesCount } from '../../../hooks/useUnlockedSelectedShapesCount'
 import { TldrawUiMenuCheckboxItem } from './TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuItem } from './TldrawUiMenuItem'
 
@@ -13,35 +13,35 @@ export function ToggleAutoSizeMenuItem() {
 	const actions = useActions()
 	const shouldDisplay = useShowAutoSizeToggle()
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['toggle-auto-size']} />
+	return <TldrawUiMenuItem {...actions['toggle-auto-size']} />
 }
 
 export function EditLinkMenuItem() {
 	const actions = useActions()
 	const shouldDisplay = useHasLinkShapeSelected()
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['edit-link']} />
+	return <TldrawUiMenuItem {...actions['edit-link']} />
 }
 
 export function DuplicateMenuItem() {
 	const actions = useActions()
 	const shouldDisplay = useUnlockedSelectedShapesCount(1)
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['duplicate']} />
+	return <TldrawUiMenuItem {...actions['duplicate']} />
 }
 
 export function GroupMenuItem() {
 	const actions = useActions()
 	const shouldDisplay = useAllowGroup()
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['group']} />
+	return <TldrawUiMenuItem {...actions['group']} />
 }
 
 export function UngroupMenuItem() {
 	const actions = useActions()
 	const shouldDisplay = useAllowUngroup()
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['ungroup']} />
+	return <TldrawUiMenuItem {...actions['ungroup']} />
 }
 
 export function RemoveFrameMenuItem() {
@@ -57,7 +57,7 @@ export function RemoveFrameMenuItem() {
 		[editor]
 	)
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['remove-frame']} />
+	return <TldrawUiMenuItem {...actions['remove-frame']} />
 }
 
 export function FitFrameToContentMenuItem() {
@@ -73,7 +73,7 @@ export function FitFrameToContentMenuItem() {
 		[editor]
 	)
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['fit-frame-to-content']} />
+	return <TldrawUiMenuItem {...actions['fit-frame-to-content']} />
 }
 
 export function ToggleLockMenuItem() {
@@ -83,7 +83,7 @@ export function ToggleLockMenuItem() {
 		editor,
 	])
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem actionItem={actions['toggle-lock']} />
+	return <TldrawUiMenuItem {...actions['toggle-lock']} />
 }
 
 export function ToggleTransparentBgMenuItem() {
@@ -94,10 +94,5 @@ export function ToggleTransparentBgMenuItem() {
 		() => editor.getInstanceState().exportBackground,
 		[editor]
 	)
-	return (
-		<TldrawUiMenuCheckboxItem
-			actionItem={actions['toggle-transparent']}
-			checked={isTransparentBg}
-		/>
-	)
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-transparent']} checked={isTransparentBg} />
 }

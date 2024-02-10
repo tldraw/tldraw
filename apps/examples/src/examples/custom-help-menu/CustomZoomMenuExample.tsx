@@ -1,6 +1,6 @@
 import {
-	CustomHelpMenu,
-	DefaultHelpMenu,
+	CustomZoomMenu,
+	DefaultZoomMenu,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -11,10 +11,10 @@ export default function CustomContextMenuExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw>
-				<CustomHelpMenu>
-					<DefaultHelpMenu />
+				<CustomZoomMenu>
+					<DefaultZoomMenu />
 					<CustomMenuItem />
-				</CustomHelpMenu>
+				</CustomZoomMenu>
 			</Tldraw>
 		</div>
 	)
@@ -24,14 +24,12 @@ function CustomMenuItem() {
 	return (
 		<TldrawUiMenuGroup id="custom stuff">
 			<TldrawUiMenuItem
-				actionItem={{
-					id: 'about',
-					label: 'Like my posts',
-					icon: 'external-link',
-					readonlyOk: true,
-					onSelect() {
-						window.open('https://x.com/tldraw', '_blank')
-					},
+				id="about"
+				label="Like my posts"
+				icon="external-link"
+				readonlyOk
+				onSelect={() => {
+					window.open('https://x.com/tldraw', '_blank')
 				}}
 			/>
 		</TldrawUiMenuGroup>

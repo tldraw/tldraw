@@ -1,5 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
-import { Button, lns, useActions, useContainer, useTranslation } from '@tldraw/tldraw'
+import { Button, lns, unwrapLabel, useActions, useContainer, useTranslation } from '@tldraw/tldraw'
 import React, { useEffect, useState } from 'react'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { createQRCodeImageDataString } from '../utils/qrcode'
@@ -153,7 +153,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 								<Button
 									type="menu"
 									icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
-									label={shareSnapshot.label!}
+									label={unwrapLabel(shareSnapshot.label)}
 									onClick={async () => {
 										setIsUploadingSnapshot(true)
 										await shareSnapshot.onSelect('share-menu')
@@ -197,7 +197,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 								<Button
 									type="menu"
 									icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
-									label={shareSnapshot.label!}
+									label={unwrapLabel(shareSnapshot.label)}
 									onClick={async () => {
 										setIsUploadingSnapshot(true)
 										await shareSnapshot.onSelect('share-menu')
