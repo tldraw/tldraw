@@ -295,7 +295,6 @@ function ArrangeMenuSubmenu() {
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
-	console.log(twoSelected)
 	if (!(twoSelected || onlyFlippableShapeSelected)) return null
 
 	return (
