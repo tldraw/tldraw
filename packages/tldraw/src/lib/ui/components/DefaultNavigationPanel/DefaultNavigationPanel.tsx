@@ -7,8 +7,8 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { kbdStr } from '../primitives/shared'
 
-/** @internal */
-export const NavigationZone = memo(function NavigationZone() {
+/** @public */
+export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const actions = useActions()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
@@ -26,7 +26,7 @@ export const NavigationZone = memo(function NavigationZone() {
 	}
 
 	return (
-		<div className="tlui-navigation-zone">
+		<div className="tlui-navigation-panel">
 			<div className="tlui-buttons__horizontal">
 				{ZoomMenu && breakpoint < 6 ? (
 					<ZoomMenu />
@@ -39,7 +39,7 @@ export const NavigationZone = memo(function NavigationZone() {
 								icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'}
 								data-testid="minimap.toggle"
 								title={msg('navigation-zone.toggle-minimap')}
-								className="tlui-navigation-zone__toggle"
+								className="tlui-navigation-panel__toggle"
 								onClick={toggleMinimap}
 							/>
 						)}
@@ -67,7 +67,7 @@ export const NavigationZone = memo(function NavigationZone() {
 								icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'}
 								data-testid="minimap.toggle"
 								title={msg('navigation-zone.toggle-minimap')}
-								className="tlui-navigation-zone__toggle"
+								className="tlui-navigation-panel__toggle"
 								onClick={toggleMinimap}
 							/>
 						)}

@@ -1,4 +1,5 @@
 import { ComponentType, createContext, useContext, useMemo } from 'react'
+import { DefaultNavigationPanel } from '../components/DefaultNavigationPanel/DefaultNavigationPanel'
 import { DefaultMinimap } from '../components/Minimap/DefaultMinimap'
 import { DefaultPageMenu } from '../components/PageMenu/DefaultPageMenu'
 import {
@@ -38,6 +39,7 @@ export interface BaseTLUiComponents {
 	StylePanel: ComponentType<TLUiStylePanelProps>
 	StylePanelContent: ComponentType<TLUiStylePanelContentProps>
 	PageMenu: ComponentType
+	NavigationPanel: ComponentType
 }
 
 /** @public */
@@ -75,6 +77,7 @@ export function TldrawUiComponentsProvider({
 					StylePanel: DefaultStylePanel,
 					StylePanelContent: DefaultStylePanelContent,
 					PageMenu: DefaultPageMenu,
+					NavigationPanel: DefaultNavigationPanel,
 					...overrides,
 				}),
 				[overrides]

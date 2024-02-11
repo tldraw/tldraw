@@ -22480,6 +22480,15 @@
             },
             {
               "kind": "Content",
+              "text": " | null;\n    NavigationPanel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
               "text": " | null;\n}>"
             },
             {
@@ -22490,7 +22499,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTldrawUiComponents.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 37
+            "endIndex": 39
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

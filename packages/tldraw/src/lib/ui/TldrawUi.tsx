@@ -9,7 +9,6 @@ import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { MenuZone } from './components/MenuZone'
-import { NavigationZone } from './components/NavigationZone/NavigationZone'
 import { ExitPenMode } from './components/PenModeToggle'
 import { StopFollowing } from './components/StopFollowing'
 import { ToastViewport, Toasts } from './components/Toasts'
@@ -135,7 +134,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
-	const { StylePanel, HelpMenu } = useTldrawUiComponents()
+	const { StylePanel, HelpMenu, NavigationPanel } = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
@@ -180,7 +179,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 						</div>
 						<div className="tlui-layout__bottom">
 							<div className="tlui-layout__bottom__main">
-								<NavigationZone />
+								{NavigationPanel && <NavigationPanel />}
 								<Toolbar />
 								{HelpMenu && <HelpMenu />}
 							</div>

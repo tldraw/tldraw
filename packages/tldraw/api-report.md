@@ -2016,6 +2016,7 @@ export function useTldrawUiComponents(): Partial<{
     StylePanel: ComponentType<StylePanelProps> | null;
     StylePanelContent: ComponentType<StylePanelContentProps> | null;
     PageMenu: ComponentType | null;
+    NavigationPanel: ComponentType | null;
 }>;
 
 // @public (undocumented)

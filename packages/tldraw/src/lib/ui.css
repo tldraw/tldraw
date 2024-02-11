@@ -1119,7 +1119,7 @@
 
 /* ------------------- Navigation ------------------- */
 
-.tlui-navigation-zone {
+.tlui-navigation-panel {
 	display: flex;
 	width: min-content;
 	flex-direction: column;
@@ -1130,7 +1130,7 @@
 	bottom: 0px;
 }
 
-.tlui-navigation-zone::before {
+.tlui-navigation-panel::before {
 	content: '';
 	display: block;
 	position: absolute;
@@ -1143,16 +1143,16 @@
 	background-color: var(--color-low);
 }
 
-.tlui-navigation-zone__toggle .tlui-icon {
+.tlui-navigation-panel__toggle .tlui-icon {
 	opacity: 0.24;
 }
 
-.tlui-navigation-zone__toggle:active .tlui-icon {
+.tlui-navigation-panel__toggle:active .tlui-icon {
 	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-navigation-zone__toggle:hover .tlui-icon {
+	.tlui-navigation-panel__toggle:hover .tlui-icon {
 		opacity: 1;
 	}
 }
