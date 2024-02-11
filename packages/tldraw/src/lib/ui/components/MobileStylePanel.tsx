@@ -7,8 +7,8 @@ import {
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useRelevantStyles } from '../hooks/useRevelantStyles'
+import { useTldrawUiComponents } from '../hooks/useTldrawUiComponents'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { StylePanel } from './StylePanel/StylePanel'
 import { Button } from './primitives/Button'
 import { Icon } from './primitives/Icon'
 import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'
@@ -38,6 +38,9 @@ export function MobileStylePanel() {
 		},
 		[editor]
 	)
+
+	const { StylePanel } = useTldrawUiComponents()
+	if (!StylePanel) return null
 
 	return (
 		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>

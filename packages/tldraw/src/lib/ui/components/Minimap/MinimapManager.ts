@@ -171,6 +171,16 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
+	updateColors = () => {
+		const style = getComputedStyle(this.editor.getContainer())
+
+		this.colors = {
+			shapeFill: style.getPropertyValue('--color-text-3').trim(),
+			selectFill: style.getPropertyValue('--color-selected').trim(),
+			viewportFill: style.getPropertyValue('--color-muted-1').trim(),
+		}
+	}
+
 	render = () => {
 		const { cvs, pageBounds } = this
 		this.updateCanvasPageBounds()

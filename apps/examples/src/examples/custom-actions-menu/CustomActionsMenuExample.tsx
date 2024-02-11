@@ -1,37 +1,39 @@
 import {
-	CustomActionsMenu,
-	DefaultActionsMenu,
+	DefaultActionsMenuContent,
+	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-export default function CustomActionsMenuExample() {
+function CustomActionsMenuContent() {
 	return (
-		<div className="tldraw__editor">
-			<Tldraw>
-				<CustomActionsMenu>
-					<DefaultActionsMenu />
-					<CustomMenuItem />
-				</CustomActionsMenu>
-			</Tldraw>
-		</div>
+		<>
+			<DefaultActionsMenuContent />
+			<TldrawUiMenuGroup id="custom stuff">
+				<TldrawUiMenuItem
+					id="about"
+					label="Like my posts"
+					icon="external-link"
+					readonlyOk
+					onSelect={() => {
+						window.open('https://x.com/tldraw', '_blank')
+					}}
+				/>
+			</TldrawUiMenuGroup>
+		</>
 	)
 }
 
-function CustomMenuItem() {
+const uiComponents: TLUiComponents = {
+	ActionsMenuContent: CustomActionsMenuContent,
+}
+
+export default function CustomActionsMenuExample() {
 	return (
-		<TldrawUiMenuGroup id="custom stuff">
-			<TldrawUiMenuItem
-				id="about"
-				label="Like my posts"
-				icon="external-link"
-				readonlyOk
-				onSelect={() => {
-					window.open('https://x.com/tldraw', '_blank')
-				}}
-			/>
-		</TldrawUiMenuGroup>
+		<div className="tldraw__editor">
+			<Tldraw uiComponents={uiComponents} />
+		</div>
 	)
 }

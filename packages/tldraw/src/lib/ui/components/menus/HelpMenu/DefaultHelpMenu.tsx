@@ -1,29 +1,51 @@
-import { useDialogs } from '../../../hooks/useDialogsProvider'
-import { KeyboardShortcutsDialog } from '../../KeyboardShortcutsDialog'
-import { LanguageMenu } from '../../LanguageMenu'
-import { TldrawUiMenuItem } from '../TldrawUiMenuItem'
+import * as _Dropdown from '@radix-ui/react-dropdown-menu'
+import { useContainer } from '@tldraw/editor'
+import { memo } from 'react'
+import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
+import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { Button } from '../../primitives/Button'
+import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
 
 /** @public */
-export function DefaultHelpMenu() {
-	return (
-		<>
-			<LanguageMenu />
-			<KeyboardShortcutsMenuItem />
-		</>
-	)
-}
+export const DefaultHelpMenu = memo(function DefaultHelpMenu() {
+	const container = useContainer()
+	const msg = useTranslation()
+	const [isOpen, onOpenChange] = useMenuIsOpen('help menu')
 
-function KeyboardShortcutsMenuItem() {
-	const { addDialog } = useDialogs()
+	// Get the help menu content, either the default component or the user's
+	// override. If there's no menu content, then the user has set it to null,
+	// so skip rendering the menu.
+	const { HelpMenuContent } = useTldrawUiComponents()
+	if (!HelpMenuContent) return null
 
 	return (
-		<TldrawUiMenuItem
-			id="keyboard-shortcuts"
-			label="help-menu.keyboard-shortcuts"
-			readonlyOk
-			onSelect={() => {
-				addDialog({ component: KeyboardShortcutsDialog })
-			}}
-		/>
+		<div className="tlui-help-menu">
+			<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
+				<_Dropdown.Trigger asChild dir="ltr">
+					<Button
+						type="help"
+						className="tlui-button"
+						smallIcon
+						title={msg('help-menu.title')}
+						icon="question-mark"
+					/>
+				</_Dropdown.Trigger>
+				<_Dropdown.Portal container={container}>
+					<_Dropdown.Content
+						className="tlui-menu"
+						side="top"
+						sideOffset={8}
+						align="end"
+						alignOffset={0}
+						collisionPadding={4}
+					>
+						<TldrawUiMenuContextProvider type="menu" sourceId="help-menu">
+							<HelpMenuContent />
+						</TldrawUiMenuContextProvider>
+					</_Dropdown.Content>
+				</_Dropdown.Portal>
+			</_Dropdown.Root>
+		</div>
 	)
-}
+})

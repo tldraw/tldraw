@@ -1,7 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { createShapeId } from '@tldraw/editor'
 import { Tldraw } from '../../lib/Tldraw'
-import { CustomContextMenu } from '../../lib/ui/components/menus/ContextMenu/ContextMenu'
 import { renderTldrawComponent } from '../testutils/renderTldrawComponent'
 
 it('opens on right-click', async () => {
@@ -23,16 +22,22 @@ it('opens on right-click', async () => {
 })
 
 it('tunnels context menu', async () => {
+	const uiComponents = {
+		ContextMenuContent: () => {
+			return (
+				<>
+					<button data-testid="abc123">Hello</button>
+				</>
+			)
+		},
+	}
 	await renderTldrawComponent(
 		<Tldraw
 			onMount={(editor) => {
 				editor.createShape({ id: createShapeId(), type: 'geo' })
 			}}
-		>
-			<CustomContextMenu>
-				<button data-testid="abc123">Hello</button>
-			</CustomContextMenu>
-		</Tldraw>
+			uiComponents={uiComponents}
+		/>
 	)
 
 	const canvas = await screen.findByTestId('canvas')

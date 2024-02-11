@@ -12,6 +12,7 @@ import { BaseBoxShapeUtil } from '@tldraw/editor';
 import { BoundsSnapPoint } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
+import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { DictValidator } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
@@ -34,6 +35,7 @@ import { Polyline2d } from '@tldraw/editor';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactNode } from 'react';
+import { ReadonlySharedStyleMap } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
 import { Result } from '@tldraw/editor';
@@ -42,6 +44,7 @@ import { SelectionEdge } from '@tldraw/editor';
 import { SelectionHandle } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
+import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StoreSnapshot } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
@@ -299,52 +302,28 @@ children: any;
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public (undocumented)
-export const CustomActionsMenu: ({ hidden, children }: {
-    hidden?: boolean | undefined;
-    children?: ReactNode;
-}) => null;
-
-// @public (undocumented)
-export const CustomContextMenu: ({ hidden, children }: {
-    hidden?: boolean | undefined;
-    children?: ReactNode;
-}) => null;
-
-// @public (undocumented)
-export const CustomHelpMenu: ({ hidden, children }: {
-    hidden?: boolean | undefined;
-    children?: ReactNode;
-}) => null;
-
-// @public (undocumented)
-export const CustomMainMenu: ({ hidden, children }: {
-    hidden?: boolean | undefined;
-    children?: ReactNode;
-}) => null;
-
-// @public (undocumented)
-export const CustomZoomMenu: ({ hidden, children }: {
-    hidden?: boolean | undefined;
-    children?: ReactNode;
-}) => null;
-
-// @public (undocumented)
 export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 
 // @public (undocumented)
 export const DEFAULT_ACCEPTED_VID_TYPE: string[];
 
 // @public (undocumented)
-export function DefaultActionsMenu(): JSX_2.Element;
+export function DefaultActionsMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultContextMenu(): JSX_2.Element | null;
+export function DefaultContextMenuContent(): JSX_2.Element | null;
 
 // @public (undocumented)
-export function DefaultHelpMenu(): JSX_2.Element;
+export function DefaultHelpMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultMainMenu(): JSX_2.Element;
+export const DefaultMainMenu: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export function DefaultMainMenuContent(): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultMinimap(): JSX_2.Element;
 
 // @public (undocumented)
 export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
@@ -353,10 +332,16 @@ export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | 
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 
 // @public (undocumented)
+export const DefaultStylePanel: NamedExoticComponent<StylePanelProps>;
+
+// @public (undocumented)
+export function DefaultStylePanelContent({ relevantStyles }: StylePanelContentProps): JSX_2.Element;
+
+// @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof LaserTool | typeof SelectTool | typeof ZoomTool)[];
 
 // @public (undocumented)
-export function DefaultZoomMenu(): JSX_2.Element;
+export function DefaultZoomMenuContent(): JSX_2.Element;
 
 declare namespace Dialog {
     export {
@@ -1152,6 +1137,17 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
 
 // @public (undocumented)
+export type StylePanelContentProps = {
+    relevantStyles: NonNullable<ReturnType<typeof useRelevantStyles>>;
+};
+
+// @public (undocumented)
+export interface StylePanelProps {
+    // (undocumented)
+    isMobile?: boolean;
+}
+
+// @public (undocumented)
 function Sub({ id, children }: {
     id: string;
     children: any;
@@ -1364,15 +1360,20 @@ export interface TldrawUiBaseProps {
     shareZone?: ReactNode;
     // @internal
     topZone?: ReactNode;
+    uiComponents?: TLUiComponents;
 }
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
+export function TldrawUiComponentsProvider({ overrides, children, }: ComponentsContextProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
 
 // @public
 export interface TldrawUiContextProviderProps {
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
     children?: any;
+    components?: TLUiComponents;
     forceMobile?: boolean;
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
@@ -1488,6 +1489,11 @@ export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElemen
     // (undocumented)
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
+
+// @public (undocumented)
+export type TLUiComponents = Partial<{
+    [K in keyof BaseTLUiComponents]: BaseTLUiComponents[K] | null;
+}>;
 
 // @public (undocumented)
 export interface TLUiContextMenuProps {
@@ -1981,6 +1987,24 @@ export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
 export function useReadonly(): boolean;
+
+// @public (undocumented)
+export function useTldrawUiComponents(): Partial<{
+    ContextMenu: ComponentType<TLUiContextMenuProps> | null;
+    ContextMenuContent: ComponentType | null;
+    ActionsMenu: ComponentType | null;
+    ActionsMenuContent: ComponentType | null;
+    HelpMenu: ComponentType | null;
+    HelpMenuContent: ComponentType | null;
+    ZoomMenu: ComponentType | null;
+    ZoomMenuContent: ComponentType | null;
+    MainMenu: ComponentType | null;
+    MainMenuContent: ComponentType | null;
+    Minimap: ComponentType | null;
+    StylePanel: ComponentType<StylePanelProps> | null;
+    StylePanelContent: ComponentType<StylePanelContentProps> | null;
+    PageMenu: ComponentType | null;
+}>;
 
 // @public (undocumented)
 export function useToasts(): TLUiToastsContextType;

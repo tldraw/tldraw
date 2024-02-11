@@ -12,16 +12,16 @@ import { MenuZone } from './components/MenuZone'
 import { NavigationZone } from './components/NavigationZone/NavigationZone'
 import { ExitPenMode } from './components/PenModeToggle'
 import { StopFollowing } from './components/StopFollowing'
-import { StylePanel } from './components/StylePanel/StylePanel'
 import { ToastViewport, Toasts } from './components/Toasts'
 import { Toolbar } from './components/Toolbar/Toolbar'
-import { HelpMenu } from './components/menus/HelpMenu/HelpMenu'
+import { DefaultHelpMenu } from './components/menus/HelpMenu/DefaultHelpMenu'
 import { Button } from './components/primitives/Button'
 import { useActions } from './hooks/useActions'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { TLUiComponents, useTldrawUiComponents } from './hooks/useTldrawUiComponents'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
 /**
@@ -46,6 +46,11 @@ export interface TldrawUiBaseProps {
 	 * Whether to hide the user interface and only display the canvas.
 	 */
 	hideUi?: boolean
+
+	/**
+	 * Overrides for the UI components.
+	 */
+	uiComponents?: TLUiComponents
 
 	/**
 	 * A component to use for the share zone (will be deprecated)
@@ -76,10 +81,11 @@ export const TldrawUi = React.memo(function TldrawUi({
 	renderDebugMenuItems,
 	children,
 	hideUi,
+	uiComponents,
 	...rest
 }: TldrawUiProps) {
 	return (
-		<TldrawUiContextProvider {...rest}>
+		<TldrawUiContextProvider {...rest} components={uiComponents}>
 			<TldrawUiInner
 				hideUi={hideUi}
 				shareZone={shareZone}
@@ -130,6 +136,8 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
+	const { StylePanel } = useTldrawUiComponents()
+
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
 	useEditorEvents()
@@ -168,18 +176,14 @@ const TldrawUiContent = React.memo(function TldrawUI({
 							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
 								{shareZone}
-								{breakpoint >= 5 && !isReadonlyMode && (
-									<div className="tlui-style-panel__wrapper">
-										<StylePanel />
-									</div>
-								)}
+								{StylePanel && breakpoint >= 5 && !isReadonlyMode && <StylePanel />}
 							</div>
 						</div>
 						<div className="tlui-layout__bottom">
 							<div className="tlui-layout__bottom__main">
 								<NavigationZone />
 								<Toolbar />
-								{breakpoint >= 4 && <HelpMenu />}
+								{breakpoint >= 4 && <DefaultHelpMenu />}
 							</div>
 							{isDebugMode && <DebugPanel renderDebugMenuItems={renderDebugMenuItems ?? null} />}
 						</div>

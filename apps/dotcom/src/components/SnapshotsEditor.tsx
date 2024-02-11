@@ -1,10 +1,10 @@
 import {
-	CustomHelpMenu,
-	CustomMainMenu,
-	DefaultHelpMenu,
-	DefaultMainMenu,
+	DefaultHelpMenuContent,
+	DefaultMainMenuContent,
 	SerializedSchema,
+	TLEditorComponents,
 	TLRecord,
+	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 } from '@tldraw/tldraw'
@@ -19,6 +19,29 @@ import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
+
+const editorComponents: TLEditorComponents = {
+	ErrorFallback: ({ error }) => {
+		throw error
+	},
+}
+
+const uiComponents: TLUiComponents = {
+	HelpMenuContent: () => (
+		<>
+			<TldrawUiMenuGroup id="help">
+				<DefaultHelpMenuContent />
+			</TldrawUiMenuGroup>
+			<Links />
+		</>
+	),
+	MainMenuContent: () => (
+		<>
+			<MultiplayerFileMenu />
+			<DefaultMainMenuContent />
+		</>
+	),
+}
 
 type SnapshotEditorProps = {
 	schema: SerializedSchema
@@ -42,11 +65,8 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				onMount={(editor) => {
 					editor.updateInstanceState({ isReadonly: true })
 				}}
-				components={{
-					ErrorFallback: ({ error }) => {
-						throw error
-					},
-				}}
+				components={editorComponents}
+				uiComponents={uiComponents}
 				shareZone={
 					<div className="tlui-share-zone" draggable={false}>
 						<ExportMenu />
@@ -57,16 +77,6 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				inferDarkMode
 			>
 				<UrlStateSync />
-				<CustomMainMenu>
-					<MultiplayerFileMenu />
-					<DefaultMainMenu />
-				</CustomMainMenu>
-				<CustomHelpMenu>
-					<TldrawUiMenuGroup id="help">
-						<DefaultHelpMenu />
-					</TldrawUiMenuGroup>
-					<Links />
-				</CustomHelpMenu>
 			</Tldraw>
 		</div>
 	)

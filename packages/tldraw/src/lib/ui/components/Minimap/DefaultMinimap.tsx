@@ -17,13 +17,8 @@ import {
 import * as React from 'react'
 import { MinimapManager } from './MinimapManager'
 
-export interface MinimapProps {
-	shapeFill: string
-	selectFill: string
-	viewportFill: string
-}
-
-export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
+/** @public */
+export function DefaultMinimap() {
 	const editor = useEditor()
 
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
@@ -40,20 +35,13 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	React.useEffect(() => {
 		// Must check after render
 		const raf = requestAnimationFrame(() => {
-			const style = getComputedStyle(editor.getContainer())
-
-			minimap.colors = {
-				shapeFill: style.getPropertyValue(shapeFill).trim(),
-				selectFill: style.getPropertyValue(selectFill).trim(),
-				viewportFill: style.getPropertyValue(viewportFill).trim(),
-			}
-
+			minimap.updateColors()
 			minimap.render()
 		})
 		return () => {
 			cancelAnimationFrame(raf)
 		}
-	}, [editor, selectFill, shapeFill, viewportFill, minimap, isDarkMode])
+	}, [editor, minimap, isDarkMode])
 
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {

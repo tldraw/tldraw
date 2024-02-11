@@ -1,5 +1,5 @@
 import {
-	DefaultZoomMenuContent,
+	DefaultMainMenuContent,
 	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -7,10 +7,10 @@ import {
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-function CustomZoomMenuContent() {
+function CustomMainMenuContent() {
 	return (
 		<>
-			<DefaultZoomMenuContent />
+			<DefaultMainMenuContent />
 			<TldrawUiMenuGroup id="custom stuff">
 				<TldrawUiMenuItem
 					id="about"
@@ -27,10 +27,10 @@ function CustomZoomMenuContent() {
 }
 
 const uiComponents: TLUiComponents = {
-	ZoomMenuContent: CustomZoomMenuContent,
+	MainMenuContent: CustomMainMenuContent,
 }
 
-export default function CustomZoomMenuExample() {
+export default function CustomMainMenuExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw uiComponents={uiComponents} />

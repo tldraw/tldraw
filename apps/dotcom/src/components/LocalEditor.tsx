@@ -1,9 +1,8 @@
 import {
-	CustomHelpMenu,
-	CustomMainMenu,
-	DefaultHelpMenu,
-	DefaultMainMenu,
+	DefaultHelpMenuContent,
+	DefaultMainMenuContent,
 	Editor,
+	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 } from '@tldraw/tldraw'
@@ -21,6 +20,23 @@ import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
+
+const uiComponents: TLUiComponents = {
+	HelpMenuContent: () => (
+		<>
+			<TldrawUiMenuGroup id="help">
+				<DefaultHelpMenuContent />
+			</TldrawUiMenuGroup>
+			<Links />
+		</>
+	),
+	MainMenuContent: () => (
+		<>
+			<LocalFileMenu />
+			<DefaultMainMenuContent />
+		</>
+	),
+}
 
 export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
@@ -45,6 +61,7 @@ export function LocalEditor() {
 						throw error
 					},
 				}}
+				uiComponents={uiComponents}
 				shareZone={
 					<div className="tlui-share-zone" draggable={false}>
 						<ShareMenu />
@@ -56,16 +73,6 @@ export function LocalEditor() {
 				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
-				<CustomMainMenu>
-					<LocalFileMenu />
-					<DefaultMainMenu />
-				</CustomMainMenu>
-				<CustomHelpMenu>
-					<TldrawUiMenuGroup id="help">
-						<DefaultHelpMenu />
-					</TldrawUiMenuGroup>
-					<Links />
-				</CustomHelpMenu>
 			</Tldraw>
 		</div>
 	)

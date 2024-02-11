@@ -7,7 +7,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -19,7 +19,7 @@ import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 import { onMovePage } from './edit-pages-shared'
 
-export const PageMenu = function PageMenu() {
+export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
@@ -412,4 +412,4 @@ export const PageMenu = function PageMenu() {
 			</PopoverContent>
 		</Popover>
 	)
-}
+})

@@ -3,10 +3,10 @@ import '@tldraw/tldraw/tldraw.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 import {
-	CustomHelpMenu,
-	DefaultHelpMenu,
+	DefaultHelpMenuContent,
 	Editor,
 	ErrorBoundary,
+	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	setRuntimeOverrides,
@@ -104,6 +104,16 @@ export type TLDrawInnerProps = {
 	isDarkMode: boolean
 }
 
+const uiComponents: TLUiComponents = {
+	HelpMenuContent: () => (
+		<>
+			<TldrawUiMenuGroup id="help">
+				<DefaultHelpMenuContent />
+			</TldrawUiMenuGroup>
+			<Links />
+		</>
+	),
+}
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
@@ -112,14 +122,15 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 	}, [])
 
 	return (
-		<Tldraw assetUrls={assetUrls} persistenceKey={uri} onMount={handleMount} autoFocus>
+		<Tldraw
+			assetUrls={assetUrls}
+			persistenceKey={uri}
+			onMount={handleMount}
+			uiComponents={uiComponents}
+			autoFocus
+		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
-			<CustomHelpMenu>
-				<TldrawUiMenuGroup id="help">
-					<DefaultHelpMenu />
-				</TldrawUiMenuGroup>
-				<Links />
-			</CustomHelpMenu>
+
 			<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
 			<ChangeResponder />
 		</Tldraw>

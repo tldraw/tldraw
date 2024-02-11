@@ -5,6 +5,7 @@ import React, { memo, useEffect, useMemo } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { useReadonly } from '../../hooks/useReadonly'
+import { useTldrawUiComponents } from '../../hooks/useTldrawUiComponents'
 import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -13,7 +14,6 @@ import { MobileStylePanel } from '../MobileStylePanel'
 import { RedoButton } from '../RedoButton'
 import { TrashButton } from '../TrashButton'
 import { UndoButton } from '../UndoButton'
-import { ActionsMenu } from '../menus/ActionsMenu/ActionsMenu'
 import { Button } from '../primitives/Button'
 import * as M from '../primitives/DropdownMenu'
 import { kbdStr } from '../primitives/shared'
@@ -93,6 +93,8 @@ export const Toolbar = memo(function Toolbar() {
 		}
 	}, [dropdownFirstItem, editor, itemsInPanel])
 
+	const { ActionsMenu } = useTldrawUiComponents()
+
 	return (
 		<div className="tlui-toolbar">
 			<div className="tlui-toolbar__inner">
@@ -105,7 +107,7 @@ export const Toolbar = memo(function Toolbar() {
 									<RedoButton />
 									<TrashButton />
 									<DuplicateButton />
-									<ActionsMenu />
+									{ActionsMenu && <ActionsMenu />}
 								</div>
 							)}
 							<ToggleToolLockedButton activeToolId={activeToolId} />

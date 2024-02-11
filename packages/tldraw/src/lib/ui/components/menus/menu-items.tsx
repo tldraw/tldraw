@@ -256,12 +256,10 @@ export function SetSelectionGroup() {
 		() => editor.getCurrentPageShapeIds().size > 0,
 		[editor]
 	)
-	const oneSelected = useUnlockedSelectedShapesCount(1)
 	if (!atLeastOneShapeOnPage) return null
 	return (
 		<TldrawUiMenuGroup id="set-selection-group">
 			<TldrawUiMenuItem {...actions['select-all']} />
-			{oneSelected && <TldrawUiMenuItem {...actions['select-none']} />}
 		</TldrawUiMenuGroup>
 	)
 }

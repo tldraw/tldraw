@@ -1,5 +1,5 @@
 ---
-title: Custom Help Menu
+title: Custom help menu
 component: ./CustomHelpMenuExample.tsx
 category: ui
 ---
@@ -8,4 +8,4 @@ You can customize tldraw's help menu. Open the help menu by clicking the "?" but
 
 ---
 
-The help menu can be customized by providing a `<CustomHelpMenu>` component as a child of the `<Tldraw>` component.
+The help menu content can be customized by providing a `HelpMenuContent` component to the `Tldraw` component's `uiComponents` prop. If you provide `null`, then that component will be hidden.

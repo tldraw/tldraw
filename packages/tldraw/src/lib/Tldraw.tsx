@@ -31,8 +31,8 @@ import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
-import { ContextMenu } from './ui/components/menus/ContextMenu/ContextMenu'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
+import { useTldrawUiComponents } from './ui/hooks/useTldrawUiComponents'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
@@ -67,6 +67,7 @@ export function Tldraw(props: TldrawProps) {
 		...rest
 	} = props
 
+	const uiComponents = useShallowObjectIdentity(rest.uiComponents ?? {})
 	const components = useShallowObjectIdentity(rest.components ?? {})
 	const shapeUtils = useShallowArrayIdentity(rest.shapeUtils ?? [])
 	const tools = useShallowArrayIdentity(rest.tools ?? [])
@@ -104,10 +105,7 @@ export function Tldraw(props: TldrawProps) {
 
 	return (
 		<TldrawEditor {...withDefaults}>
-			<TldrawUi {...withDefaults}>
-				<ContextMenu>
-					<Canvas />
-				</ContextMenu>
+			<TldrawUi {...withDefaults} components={uiComponents}>
 				<InsideOfEditorContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
@@ -121,12 +119,21 @@ export function Tldraw(props: TldrawProps) {
 	)
 }
 
+const defaultAcceptedImageMimeTypes = Object.freeze([
+	'image/jpeg',
+	'image/png',
+	'image/gif',
+	'image/svg+xml',
+])
+
+const defaultAcceptedVideoMimeTypes = Object.freeze(['video/mp4', 'video/quicktime'])
+
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor.
 function InsideOfEditorContext({
 	maxImageDimension = 1000,
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
-	acceptedImageMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'],
-	acceptedVideoMimeTypes = ['video/mp4', 'video/quicktime'],
+	acceptedImageMimeTypes = defaultAcceptedImageMimeTypes,
+	acceptedVideoMimeTypes = defaultAcceptedVideoMimeTypes,
 	onMount,
 }: Partial<TLExternalContentProps & { onMount: TLOnMountHandler }>) {
 	const editor = useEditor()
@@ -156,7 +163,14 @@ function InsideOfEditorContext({
 		if (editor) return onMountEvent?.(editor)
 	}, [editor, onMountEvent])
 
-	return null
+	const { ContextMenu } = useTldrawUiComponents()
+	if (!ContextMenu) return <Canvas />
+
+	return (
+		<ContextMenu>
+			<Canvas />
+		</ContextMenu>
+	)
 }
 
 // duped from tldraw editor

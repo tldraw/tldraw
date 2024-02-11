@@ -1,5 +1,5 @@
 ---
-title: Custom Context Menu
+title: Custom context menu
 component: ./CustomContextMenuExample.tsx
 category: ui
 ---
@@ -8,4 +8,4 @@ Customize tldraw's context menu. Open the context menu by right clicking or long
 
 ---
 
-The context menu can be customized by providing a `<CustomContextMenu>` component as a child of the `<Tldraw>` component.
+The context menu can be customized by providing a `ContextMenuContent` component to the `Tldraw` component's `uiComponents` prop. If you provide `null`, then that component will be hidden.

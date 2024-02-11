@@ -47,9 +47,9 @@ export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/asse
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
-	ContextMenu,
+	DefaultContextMenu as ContextMenu,
 	type TLUiContextMenuProps,
-} from './lib/ui/components/menus/ContextMenu/ContextMenu'
+} from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
@@ -157,25 +157,23 @@ export {
 	type TldrawFile,
 } from './lib/utils/tldr/file'
 
-// Main menu default component and custom tunnel
-export { DefaultMainMenu } from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
-export { CustomMainMenu } from './lib/ui/components/menus/MainMenu/MainMenu'
+// Main menu default component
+export { DefaultMainMenuContent } from './lib/ui/components/menus/MainMenu/DefaultMainMenuContent'
 
-// Context menu default component and custom tunnel
-export { CustomContextMenu } from './lib/ui/components/menus/ContextMenu/ContextMenu'
-export { DefaultContextMenu } from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
+// Context menu default component
+export { DefaultContextMenuContent } from './lib/ui/components/menus/ContextMenu/DefaultContextMenuContent'
 
-// Help menu default component and custom tunnel
-export { DefaultHelpMenu } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'
-export { CustomHelpMenu } from './lib/ui/components/menus/HelpMenu/HelpMenu'
+// Help menu default component
+export { DefaultHelpMenuContent } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenuContent'
 
-// Zoom menu default component and custom tunnel
-export { DefaultZoomMenu } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
-export { CustomZoomMenu } from './lib/ui/components/menus/ZoomMenu/ZoomMenu'
+// Zoom menu default component
+export { DefaultZoomMenuContent } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenuContent'
 
-// Actions menu default component and custom tunnel
-export { CustomActionsMenu } from './lib/ui/components/menus/ActionsMenu/ActionsMenu'
-export { DefaultActionsMenu } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
+// Actions menu default component
+export { DefaultActionsMenuContent } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenuContent'
+
+// Minimap default component
+export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 
 // General UI components for building menus
 export { TldrawUiMenuCheckboxItem } from './lib/ui/components/menus/TldrawUiMenuCheckboxItem'
@@ -185,6 +183,21 @@ export { TldrawUiMenuItem } from './lib/ui/components/menus/TldrawUiMenuItem'
 export { TldrawUiMenuSubmenu } from './lib/ui/components/menus/TldrawUiMenuSubmenu'
 export { unwrapLabel } from './lib/ui/hooks/useActions'
 
+export {
+	TldrawUiComponentsProvider,
+	useTldrawUiComponents,
+	type TLUiComponents,
+} from './lib/ui/hooks/useTldrawUiComponents'
+
+export {
+	DefaultStylePanel,
+	type TLUiStylePanelProps as StylePanelProps,
+} from './lib/ui/components/StylePanel/DefaultStylePanel'
+export {
+	DefaultStylePanelContent,
+	type TLUiStylePanelContentProps as StylePanelContentProps,
+} from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export { DefaultMainMenu } from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
 

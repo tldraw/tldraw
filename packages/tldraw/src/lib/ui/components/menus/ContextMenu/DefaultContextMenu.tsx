@@ -1,58 +1,91 @@
-import { useEditor, useValue } from '@tldraw/editor'
-import { TldrawUiMenuGroup } from '../TldrawUiMenuGroup'
-import {
-	ClipboardMenuGroup,
-	ConversionsMenuGroup,
-	DeleteGroup,
-	DuplicateMenuItem,
-	EditLinkMenuItem,
-	EmbedsGroup,
-	FitFrameToContentMenuItem,
-	GroupMenuItem,
-	ModifyMenuGroup,
-	RemoveFrameMenuItem,
-	SetSelectionGroup,
-	ToggleAutoSizeMenuItem,
-	ToggleLockMenuItem,
-	UngroupMenuItem,
-} from '../menu-items'
+import * as _ContextMenu from '@radix-ui/react-context-menu'
+import { preventDefault, useContainer, useEditor } from '@tldraw/editor'
+import { memo, useCallback } from 'react'
+import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
+import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
+import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
 
 /** @public */
-export function DefaultContextMenu() {
+export interface TLUiContextMenuProps {
+	children: any
+}
+
+/** @public */
+export const DefaultContextMenu = memo(function DefaultContextMenu({
+	children,
+}: {
+	children: any
+}) {
 	const editor = useEditor()
 
-	const selectToolActive = useValue(
-		'isSelectToolActive',
-		() => editor.getCurrentToolId() === 'select',
+	const cb = useCallback(
+		(isOpen: boolean) => {
+			if (!isOpen) {
+				const onlySelectedShape = editor.getOnlySelectedShape()
+
+				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
+					editor.setSelectedShapes([])
+				}
+			} else {
+				// Weird route: selecting locked shapes on long press
+				if (editor.getInstanceState().isCoarsePointer) {
+					const selectedShapes = editor.getSelectedShapes()
+					const {
+						inputs: { currentPagePoint },
+					} = editor
+
+					// get all of the shapes under the current pointer
+					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)
+
+					if (
+						// if there are no selected shapes
+						!editor.getSelectedShapes().length ||
+						// OR if none of the shapes at the point include the selected shape
+						!shapesAtPoint.some((s) => selectedShapes.includes(s))
+					) {
+						// then are there any locked shapes under the current pointer?
+						const lockedShapes = shapesAtPoint.filter((s) => editor.isShapeOrAncestorLocked(s))
+
+						if (lockedShapes.length) {
+							// nice, let's select them
+							editor.select(...lockedShapes.map((s) => s.id))
+						}
+					}
+				}
+			}
+		},
 		[editor]
 	)
 
-	if (!selectToolActive) return null
+	const container = useContainer()
+	const [isOpen, handleOpenChange] = useMenuIsOpen('context menu', cb)
+
+	// Get the context menu content, either the default component or the user's
+	// override. If there's no menu content, then the user has set it to null,
+	// so skip rendering the menu.
+	const { ContextMenuContent } = useTldrawUiComponents()
+	if (!ContextMenuContent) return children
 
 	return (
-		<>
-			<SelectionMenuGroup />
-			<EmbedsGroup />
-			<ModifyMenuGroup />
-			<ClipboardMenuGroup />
-			<ConversionsMenuGroup />
-			<SetSelectionGroup />
-			<DeleteGroup />
-		</>
+		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
+			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr">
+				{children}
+			</_ContextMenu.Trigger>
+			{isOpen && (
+				<_ContextMenu.Portal container={container}>
+					<_ContextMenu.Content
+						className="tlui-menu scrollable"
+						data-testid="context-menu"
+						alignOffset={-4}
+						collisionPadding={4}
+						onContextMenu={preventDefault}
+					>
+						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+							<ContextMenuContent />
+						</TldrawUiMenuContextProvider>
+					</_ContextMenu.Content>
+				</_ContextMenu.Portal>
+			)}
+		</_ContextMenu.Root>
 	)
-}
-
-function SelectionMenuGroup() {
-	return (
-		<TldrawUiMenuGroup id="selection">
-			<ToggleAutoSizeMenuItem />
-			<EditLinkMenuItem />
-			<DuplicateMenuItem />
-			<GroupMenuItem />
-			<UngroupMenuItem />
-			<RemoveFrameMenuItem />
-			<FitFrameToContentMenuItem />
-			<ToggleLockMenuItem />
-		</TldrawUiMenuGroup>
-	)
-}
+})

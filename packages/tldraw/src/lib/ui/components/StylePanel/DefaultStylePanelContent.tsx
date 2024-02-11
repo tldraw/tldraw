@@ -16,7 +16,7 @@ import {
 	minBy,
 	useEditor,
 } from '@tldraw/editor'
-import React, { useCallback } from 'react'
+import React from 'react'
 import { useUiEvents } from '../../hooks/useEventsProvider'
 import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -27,24 +27,13 @@ import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 import { STYLES } from './styles'
 
-interface StylePanelProps {
-	isMobile?: boolean
+/** @public */
+export type TLUiStylePanelContentProps = {
+	relevantStyles: NonNullable<ReturnType<typeof useRelevantStyles>>
 }
 
-/** @internal */
-export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
-	const editor = useEditor()
-
-	const relevantStyles = useRelevantStyles()
-
-	const handlePointerOut = useCallback(() => {
-		if (!isMobile) {
-			editor.updateInstanceState({ isChangingStyle: false })
-		}
-	}, [editor, isMobile])
-
-	if (!relevantStyles) return null
-
+/** @public */
+export function DefaultStylePanelContent({ relevantStyles }: TLUiStylePanelContentProps) {
 	const { styles, opacity } = relevantStyles
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
@@ -58,7 +47,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	const hideText = font === undefined
 
 	return (
-		<div className="tlui-style-panel" data-ismobile={isMobile} onPointerLeave={handlePointerOut}>
+		<>
 			<CommonStylePickerSet styles={styles} opacity={opacity} />
 			{!hideText && <TextStylePickerSet styles={styles} />}
 			{!(hideGeo && hideArrowHeads && hideSpline) && (
@@ -68,7 +57,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 					<SplineStylePickerSet styles={styles} />
 				</div>
 			)}
-		</div>
+		</>
 	)
 }
 

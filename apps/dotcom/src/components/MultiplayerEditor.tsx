@@ -1,12 +1,11 @@
 import {
-	CustomContextMenu,
-	CustomHelpMenu,
-	CustomMainMenu,
-	DefaultContextMenu,
-	DefaultHelpMenu,
-	DefaultMainMenu,
+	DefaultContextMenuContent,
+	DefaultHelpMenuContent,
+	DefaultMainMenuContent,
 	Editor,
 	OfflineIndicator,
+	TLEditorComponents,
+	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	lns,
@@ -33,6 +32,35 @@ import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
+
+const editorComponents: TLEditorComponents = {
+	ErrorFallback: ({ error }) => {
+		throw error
+	},
+}
+
+const uiComponents: TLUiComponents = {
+	ContextMenuContent: () => (
+		<>
+			<CursorChatMenuItem />
+			<DefaultContextMenuContent />
+		</>
+	),
+	HelpMenuContent: () => (
+		<>
+			<TldrawUiMenuGroup id="help">
+				<DefaultHelpMenuContent />
+			</TldrawUiMenuGroup>
+			<Links />
+		</>
+	),
+	MainMenuContent: () => (
+		<>
+			<MultiplayerFileMenu />
+			<DefaultMainMenuContent />
+		</>
+	),
+}
 
 export function MultiplayerEditor({
 	isReadOnly,
@@ -83,11 +111,8 @@ export function MultiplayerEditor({
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
 				onUiEvent={handleUiEvent}
-				components={{
-					ErrorFallback: ({ error }) => {
-						throw error
-					},
-				}}
+				components={editorComponents}
+				uiComponents={uiComponents}
 				topZone={isOffline && <OfflineIndicator />}
 				shareZone={
 					<div className="tlui-share-zone" draggable={false}>
@@ -98,20 +123,6 @@ export function MultiplayerEditor({
 				autoFocus
 				inferDarkMode
 			>
-				<CustomMainMenu>
-					<MultiplayerFileMenu />
-					<DefaultMainMenu />
-				</CustomMainMenu>
-				<CustomContextMenu>
-					<CursorChatMenuItem />
-					<DefaultContextMenu />
-				</CustomContextMenu>
-				<CustomHelpMenu>
-					<TldrawUiMenuGroup id="help">
-						<DefaultHelpMenu />
-					</TldrawUiMenuGroup>
-					<Links />
-				</CustomHelpMenu>
 				<UrlStateSync />
 				<CursorChatBubble />
 				<SneakyOnDropOverride isMultiplayer />

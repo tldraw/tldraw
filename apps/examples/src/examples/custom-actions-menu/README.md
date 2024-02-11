@@ -1,5 +1,5 @@
 ---
-title: Custom Actions Menu
+title: Custom actions menu
 component: ./CustomActionsMenuExample.tsx
 category: ui
 ---
@@ -8,4 +8,4 @@ You can customize tldraw's actions menu. Open the actions menu by clicking the "
 
 ---
 
-The help menu can be customized by providing a `<CustomActionsMenu>` component as a child of the `<Tldraw>` component.
+The actions menu can be customized by providing a `ActionsMenuContent` component to the `Tldraw` component's `uiComponents` prop. If you provide `null`, then that component will be hidden.
