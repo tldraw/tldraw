@@ -1,4 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { TldrawUiMenuGroup } from '../TldrawUiMenuGroup'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
@@ -14,8 +15,7 @@ import {
 	ToggleAutoSizeMenuItem,
 	ToggleLockMenuItem,
 	UngroupMenuItem,
-} from '../MenuItems/MenuItems'
-import { TldrawUiMenuGroup } from '../MenuItems/TldrawUiMenuGroup'
+} from '../menu-items'
 
 /** @public */
 export function DefaultContextMenu() {

@@ -1,12 +1,12 @@
 import { track, useEditor } from '@tldraw/editor'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useReadonly } from '../hooks/useReadonly'
-import { ActionsMenu } from './ActionsMenu'
 import { DuplicateButton } from './DuplicateButton'
 import { PageMenu } from './PageMenu/PageMenu'
 import { RedoButton } from './RedoButton'
 import { TrashButton } from './TrashButton'
 import { UndoButton } from './UndoButton'
+import { ActionsMenu } from './menus/ActionsMenu/ActionsMenu'
 import { MainMenu } from './menus/MainMenu/MainMenu'
 
 export const MenuZone = track(function MenuZone() {

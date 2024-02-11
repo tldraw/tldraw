@@ -1,7 +1,6 @@
 import { RecursivePartial } from '@tldraw/editor'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from './assetUrls'
 import { ActionsProvider } from './hooks/useActions'
-import { ActionsMenuSchemaProvider } from './hooks/useActionsMenuSchema'
 import { AssetUrlsProvider } from './hooks/useAssetUrls'
 import { BreakPointProvider } from './hooks/useBreakpoint'
 import { DialogsProvider } from './hooks/useDialogsProvider'
@@ -78,11 +77,9 @@ function InternalProviders({
 		<ActionsProvider overrides={mergedOverrides.actions}>
 			<ToolsProvider overrides={mergedOverrides.tools}>
 				<ToolbarSchemaProvider overrides={mergedOverrides.toolbar}>
-					<ActionsMenuSchemaProvider overrides={mergedOverrides.actionsMenu}>
-						<KeyboardShortcutsSchemaProvider overrides={mergedOverrides.keyboardShortcutsMenu}>
-							{children}
-						</KeyboardShortcutsSchemaProvider>
-					</ActionsMenuSchemaProvider>
+					<KeyboardShortcutsSchemaProvider overrides={mergedOverrides.keyboardShortcutsMenu}>
+						{children}
+					</KeyboardShortcutsSchemaProvider>
 				</ToolbarSchemaProvider>
 			</ToolsProvider>
 		</ActionsProvider>

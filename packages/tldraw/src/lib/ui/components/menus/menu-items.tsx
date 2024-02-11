@@ -1,18 +1,18 @@
 import { TLBookmarkShape, TLEmbedShape, TLFrameShape, useEditor, useValue } from '@tldraw/editor'
-import { getEmbedInfo } from '../../../../utils/embeds/embeds'
+import { getEmbedInfo } from '../../../utils/embeds/embeds'
 import {
 	showMenuPaste,
 	useAllowGroup,
 	useAllowUngroup,
 	useThreeStackableItems,
-} from '../../../hooks/menuHelpers'
-import { useActions } from '../../../hooks/useActions'
-import { useAnySelectedShapesCount } from '../../../hooks/useAnySelectedShapesCount'
-import { useHasLinkShapeSelected } from '../../../hooks/useHasLinkShapeSelected'
-import { useOnlyFlippableShape } from '../../../hooks/useOnlyFlippableShape'
-import { useShowAutoSizeToggle } from '../../../hooks/useShowAutoSizeToggle'
-import { useUnlockedSelectedShapesCount } from '../../../hooks/useUnlockedSelectedShapesCount'
-import { MoveToPageMenu as _MoveToPageMenu } from '../../MoveToPageMenu'
+} from '../../hooks/menuHelpers'
+import { useActions } from '../../hooks/useActions'
+import { useAnySelectedShapesCount } from '../../hooks/useAnySelectedShapesCount'
+import { useHasLinkShapeSelected } from '../../hooks/useHasLinkShapeSelected'
+import { useOnlyFlippableShape } from '../../hooks/useOnlyFlippableShape'
+import { useShowAutoSizeToggle } from '../../hooks/useShowAutoSizeToggle'
+import { useUnlockedSelectedShapesCount } from '../../hooks/useUnlockedSelectedShapesCount'
+import { MoveToPageMenu as _MoveToPageMenu } from '../MoveToPageMenu'
 import { TldrawUiMenuCheckboxItem } from './TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from './TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from './TldrawUiMenuItem'

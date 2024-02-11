@@ -2,12 +2,13 @@ import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault } from '@tldraw/editor'
 import { useState } from 'react'
-import { unwrapLabel } from '../../../hooks/useActions'
-import { TLUiEventSource } from '../../../hooks/useEventsProvider'
-import { useReadonly } from '../../../hooks/useReadonly'
-import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { Button } from '../../primitives/Button'
+import { unwrapLabel } from '../../hooks/useActions'
+import { TLUiEventSource } from '../../hooks/useEventsProvider'
+import { useReadonly } from '../../hooks/useReadonly'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { Button } from '../primitives/Button'
+import { kbdStr } from '../primitives/shared'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -19,6 +20,7 @@ export function TldrawUiMenuItem<
 	id,
 	kbd,
 	label,
+	icon,
 	readonlyOk,
 	onSelect,
 	noClose,
@@ -79,6 +81,27 @@ export function TldrawUiMenuItem<
 				<_ContextMenu.Item dir="ltr" asChild>
 					{button}
 				</_ContextMenu.Item>
+			)
+		}
+		case 'actions': {
+			return (
+				<Button
+					key={id}
+					data-testid={`menu-item.${id}`}
+					icon={icon}
+					type="icon"
+					title={
+						label
+							? kbd
+								? `${msg(unwrapLabel(label))} ${kbdStr(kbd)}`
+								: `${msg(unwrapLabel(label))}`
+							: kbd
+								? `${kbdStr(kbd)}`
+								: ''
+					}
+					onClick={() => onSelect('actions-menu')}
+					disabled={disabled}
+				/>
 			)
 		}
 	}

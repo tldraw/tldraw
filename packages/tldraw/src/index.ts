@@ -72,10 +72,6 @@ export {
 	type TLUiActionItem,
 	type TLUiActionsContextType,
 } from './lib/ui/hooks/useActions'
-export {
-	useActionsMenuSchema,
-	type TLUiActionsMenuSchemaContextType,
-} from './lib/ui/hooks/useActionsMenuSchema'
 export { AssetUrlsProvider, useAssetUrls } from './lib/ui/hooks/useAssetUrls'
 export { BreakPointProvider, useBreakpoint } from './lib/ui/hooks/useBreakpoint'
 export { useCanRedo } from './lib/ui/hooks/useCanRedo'
@@ -173,16 +169,20 @@ export { DefaultContextMenu } from './lib/ui/components/menus/ContextMenu/Defaul
 export { DefaultHelpMenu } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'
 export { CustomHelpMenu } from './lib/ui/components/menus/HelpMenu/HelpMenu'
 
-// Zoon menu default component and custom tunnel
+// Zoom menu default component and custom tunnel
 export { DefaultZoomMenu } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
 export { CustomZoomMenu } from './lib/ui/components/menus/ZoomMenu/ZoomMenu'
 
+// Actions menu default component and custom tunnel
+export { CustomActionsMenu } from './lib/ui/components/menus/ActionsMenu/ActionsMenu'
+export { DefaultActionsMenu } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
+
 // General UI components for building menus
-export { TldrawUiMenuCheckboxItem } from './lib/ui/components/menus/MenuItems/TldrawUiMenuCheckboxItem'
-export { TldrawUiMenuContextProvider } from './lib/ui/components/menus/MenuItems/TldrawUiMenuContext'
-export { TldrawUiMenuGroup } from './lib/ui/components/menus/MenuItems/TldrawUiMenuGroup'
-export { TldrawUiMenuItem } from './lib/ui/components/menus/MenuItems/TldrawUiMenuItem'
-export { TldrawUiMenuSubmenu } from './lib/ui/components/menus/MenuItems/TldrawUiMenuSubmenu'
+export { TldrawUiMenuCheckboxItem } from './lib/ui/components/menus/TldrawUiMenuCheckboxItem'
+export { TldrawUiMenuContextProvider } from './lib/ui/components/menus/TldrawUiMenuContext'
+export { TldrawUiMenuGroup } from './lib/ui/components/menus/TldrawUiMenuGroup'
+export { TldrawUiMenuItem } from './lib/ui/components/menus/TldrawUiMenuItem'
+export { TldrawUiMenuSubmenu } from './lib/ui/components/menus/TldrawUiMenuSubmenu'
 export { unwrapLabel } from './lib/ui/hooks/useActions'
 
 import * as Dialog from './lib/ui/components/primitives/Dialog'

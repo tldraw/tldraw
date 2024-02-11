@@ -3,6 +3,9 @@ import { useActions } from '../../../hooks/useActions'
 import { useCanRedo } from '../../../hooks/useCanRedo'
 import { useCanUndo } from '../../../hooks/useCanUndo'
 import { LanguageMenu } from '../../LanguageMenu'
+import { TldrawUiMenuGroup } from '../TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from '../TldrawUiMenuSubmenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
@@ -29,10 +32,7 @@ import {
 	ZoomTo100MenuItem,
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
-} from '../MenuItems/MenuItems'
-import { TldrawUiMenuGroup } from '../MenuItems/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../MenuItems/TldrawUiMenuItem'
-import { TldrawUiMenuSubmenu } from '../MenuItems/TldrawUiMenuSubmenu'
+} from '../menu-items'
 
 /** @public */
 export function DefaultMainMenu() {

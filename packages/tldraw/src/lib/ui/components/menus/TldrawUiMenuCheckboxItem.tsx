@@ -1,13 +1,13 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault } from '@tldraw/editor'
-import { unwrapLabel } from '../../../hooks/useActions'
-import { TLUiEventSource } from '../../../hooks/useEventsProvider'
-import { useReadonly } from '../../../hooks/useReadonly'
-import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { Icon } from '../../primitives/Icon'
-import { Kbd } from '../../primitives/Kbd'
+import { unwrapLabel } from '../../hooks/useActions'
+import { TLUiEventSource } from '../../hooks/useEventsProvider'
+import { useReadonly } from '../../hooks/useReadonly'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { Icon } from '../primitives/Icon'
+import { Kbd } from '../primitives/Kbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -89,6 +89,10 @@ export function TldrawUiMenuCheckboxItem<
 					{kbd && <Kbd>{kbd}</Kbd>}
 				</_ContextMenu.CheckboxItem>
 			)
+		}
+		case 'actions': {
+			// no checkbox items in actions menu
+			return null
 		}
 	}
 }

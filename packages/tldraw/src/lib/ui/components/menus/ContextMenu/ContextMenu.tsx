@@ -3,7 +3,7 @@ import { preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import { memo, useCallback } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import tunnel from '../../../tunnel'
-import { TldrawUiMenuContextProvider } from '../MenuItems/TldrawUiMenuContext'
+import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
 import { DefaultContextMenu } from './DefaultContextMenu'
 
 const _ContextMenuContent = tunnel(<DefaultContextMenu />)

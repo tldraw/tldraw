@@ -1,10 +1,10 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useContainer } from '@tldraw/editor'
-import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
-import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { Button } from '../../primitives/Button'
+import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { Button } from '../primitives/Button'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -81,6 +81,10 @@ export function TldrawUiMenuSubmenu<TransationKey extends string = string>({
 					</_ContextMenu.Portal>
 				</_ContextMenu.Sub>
 			)
+		}
+		case 'actions': {
+			// no submenus in actions
+			return children
 		}
 	}
 }

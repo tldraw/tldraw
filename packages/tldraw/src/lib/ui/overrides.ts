@@ -1,7 +1,6 @@
 import { Editor, objectMapEntries } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { ActionsProviderProps } from './hooks/useActions'
-import { ActionsMenuSchemaProviderProps } from './hooks/useActionsMenuSchema'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useDialogs } from './hooks/useDialogsProvider'
 import { TLUiKeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
@@ -54,7 +53,6 @@ type WithDefaultHelpers<T extends TLUiOverride<any, any>> =
 
 /** @public */
 export type TLUiOverrides = Partial<{
-	actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
 	actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
 	toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
 	keyboardShortcutsMenu: WithDefaultHelpers<
@@ -65,7 +63,6 @@ export type TLUiOverrides = Partial<{
 }>
 
 export type TLUiOverridesWithoutDefaults = Partial<{
-	actionsMenu: ActionsMenuSchemaProviderProps['overrides']
 	actions: ActionsProviderProps['overrides']
 	toolbar: TLUiToolbarSchemaProviderProps['overrides']
 	keyboardShortcutsMenu: TLUiKeyboardShortcutsSchemaProviderProps['overrides']
@@ -90,14 +87,6 @@ export function mergeOverrides(
 		}
 	}
 	return {
-		actionsMenu: (editor, schema, helpers) => {
-			for (const override of overrides) {
-				if (override.actionsMenu) {
-					schema = override.actionsMenu(editor, schema, { ...defaultHelpers, ...helpers })
-				}
-			}
-			return schema
-		},
 		actions: (editor, schema) => {
 			for (const override of overrides) {
 				if (override.actions) {

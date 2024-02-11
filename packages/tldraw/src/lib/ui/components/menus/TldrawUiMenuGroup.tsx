@@ -41,5 +41,9 @@ export function TldrawUiMenuGroup({
 				</_ContextMenu.Group>
 			)
 		}
+		case 'actions': {
+			// no groups in actions
+			return children
+		}
 	}
 }

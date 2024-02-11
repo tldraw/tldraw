@@ -299,6 +299,12 @@ children: any;
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public (undocumented)
+export const CustomActionsMenu: ({ hidden, children }: {
+    hidden?: boolean | undefined;
+    children?: ReactNode;
+}) => null;
+
+// @public (undocumented)
 export const CustomContextMenu: ({ hidden, children }: {
     hidden?: boolean | undefined;
     children?: ReactNode;
@@ -327,6 +333,9 @@ export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 
 // @public (undocumented)
 export const DEFAULT_ACCEPTED_VID_TYPE: string[];
+
+// @public (undocumented)
+export function DefaultActionsMenu(): JSX_2.Element;
 
 // @public (undocumented)
 export function DefaultContextMenu(): JSX_2.Element | null;
@@ -1382,7 +1391,7 @@ export function TldrawUiMenuCheckboxItem<TransationKey extends string = string, 
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     checked?: boolean;
     disabled?: boolean;
-}): JSX_2.Element | null | undefined;
+}): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: {
@@ -1396,10 +1405,10 @@ export function TldrawUiMenuGroup({ id, small, children, }: {
     id: string;
     small?: boolean;
     children?: any;
-}): JSX_2.Element | undefined;
+}): any;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TransationKey extends string = string, IconType extends string = string>({ disabled, id, kbd, label, readonlyOk, onSelect, noClose, }: {
+export function TldrawUiMenuItem<TransationKey extends string = string, IconType extends string = string>({ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }: {
     icon?: IconType;
     id: string;
     kbd?: string;
@@ -1411,7 +1420,7 @@ export function TldrawUiMenuItem<TransationKey extends string = string, IconType
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     disabled?: boolean;
     noClose?: boolean;
-}): JSX_2.Element | null | undefined;
+}): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<TransationKey extends string = string>({ id, disabled, label, children, }: {
@@ -1421,7 +1430,7 @@ export function TldrawUiMenuSubmenu<TransationKey extends string = string>({ id,
     } | TransationKey;
     disabled?: boolean;
     children: any;
-}): JSX_2.Element | undefined;
+}): any;
 
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
@@ -1450,9 +1459,6 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
 
 // @public (undocumented)
 export type TLUiActionsContextType = Record<string, TLUiActionItem>;
-
-// @public (undocumented)
-export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema;
 
 // @public (undocumented)
 export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
@@ -1780,7 +1786,6 @@ export type TLUiMenuSchema = (TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem)
 
 // @public (undocumented)
 export type TLUiOverrides = Partial<{
-    actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>;
     actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
     toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
     keyboardShortcutsMenu: WithDefaultHelpers<NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>>;
@@ -1913,9 +1918,6 @@ export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string):
 
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;
-
-// @public (undocumented)
-export function useActionsMenuSchema(): TLUiMenuSchema;
 
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;

@@ -5,7 +5,7 @@ import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import tunnel from '../../../tunnel'
 import { Button } from '../../primitives/Button'
-import { TldrawUiMenuContextProvider } from '../MenuItems/TldrawUiMenuContext'
+import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
 import { DefaultMainMenu } from './DefaultMainMenu'
 
 const _MainMenuContent = tunnel(<DefaultMainMenu />)

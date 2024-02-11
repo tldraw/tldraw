@@ -1,7 +1,7 @@
 import { useDialogs } from '../../../hooks/useDialogsProvider'
 import { KeyboardShortcutsDialog } from '../../KeyboardShortcutsDialog'
 import { LanguageMenu } from '../../LanguageMenu'
-import { TldrawUiMenuItem } from '../MenuItems/TldrawUiMenuItem'
+import { TldrawUiMenuItem } from '../TldrawUiMenuItem'
 
 /** @public */
 export function DefaultHelpMenu() {
