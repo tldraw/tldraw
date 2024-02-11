@@ -347,6 +347,9 @@ export const DefaultStylePanel: NamedExoticComponent<StylePanelProps>;
 export function DefaultStylePanelContent({ relevantStyles }: StylePanelContentProps): JSX_2.Element;
 
 // @public (undocumented)
+export const DefaultToolbar: React_2.NamedExoticComponent<object>;
+
+// @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof LaserTool | typeof SelectTool | typeof ZoomTool)[];
 
 // @public (undocumented)
@@ -2017,6 +2020,7 @@ export function useTldrawUiComponents(): Partial<{
     StylePanelContent: ComponentType<StylePanelContentProps> | null;
     PageMenu: ComponentType | null;
     NavigationPanel: ComponentType | null;
+    Toolbar: ComponentType | null;
 }>;
 
 // @public (undocumented)

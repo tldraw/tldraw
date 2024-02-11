@@ -10,6 +10,7 @@ import {
 	DefaultStylePanelContent,
 	TLUiStylePanelContentProps,
 } from '../components/StylePanel/DefaultStylePanelContent'
+import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultActionsMenu } from '../components/menus/ActionsMenu/DefaultActionsMenu'
 import { DefaultActionsMenuContent } from '../components/menus/ActionsMenu/DefaultActionsMenuContent'
 import {
@@ -40,6 +41,7 @@ export interface BaseTLUiComponents {
 	StylePanelContent: ComponentType<TLUiStylePanelContentProps>
 	PageMenu: ComponentType
 	NavigationPanel: ComponentType
+	Toolbar: ComponentType
 }
 
 /** @public */
@@ -78,6 +80,7 @@ export function TldrawUiComponentsProvider({
 					StylePanelContent: DefaultStylePanelContent,
 					PageMenu: DefaultPageMenu,
 					NavigationPanel: DefaultNavigationPanel,
+					Toolbar: DefaultToolbar,
 					...overrides,
 				}),
 				[overrides]

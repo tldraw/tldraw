@@ -20,7 +20,7 @@ import { kbdStr } from '../primitives/shared'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
 /** @public */
-export const Toolbar = memo(function Toolbar() {
+export const DefaultToolbar = memo(function DefaultToolbar() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()

@@ -3002,6 +3002,34 @@
         },
         {
           "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!DefaultToolbar:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DefaultToolbar: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbar.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DefaultToolbar",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
+        },
+        {
+          "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!defaultTools:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -22489,6 +22517,15 @@
             },
             {
               "kind": "Content",
+              "text": " | null;\n    Toolbar: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
               "text": " | null;\n}>"
             },
             {
@@ -22499,7 +22536,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTldrawUiComponents.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 39
+            "endIndex": 41
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

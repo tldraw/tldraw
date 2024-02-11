@@ -198,6 +198,7 @@ export {
 	DefaultStylePanelContent,
 	type TLUiStylePanelContentProps as StylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 export { DefaultActionsMenu } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
 export { DefaultContextMenu } from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
 export { DefaultHelpMenu } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'

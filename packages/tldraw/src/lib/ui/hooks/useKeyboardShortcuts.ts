@@ -1,7 +1,7 @@
 import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
-import { useToolbarItems } from '../components/Toolbar/Toolbar'
+import { useToolbarItems } from '../components/Toolbar/DefaultToolbar'
 import { useActions } from './useActions'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
