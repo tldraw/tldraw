@@ -1,33 +1,16 @@
-import {
-	DefaultZoomMenuContent,
-	TLUiComponents,
-	Tldraw,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
+import { DefaultZoomMenu, TLUiComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-function CustomZoomMenuContent() {
+function CustomZoomMenu() {
 	return (
-		<>
-			<DefaultZoomMenuContent />
-			<TldrawUiMenuGroup id="custom stuff">
-				<TldrawUiMenuItem
-					id="about"
-					label="Like my posts"
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
-					}}
-				/>
-			</TldrawUiMenuGroup>
-		</>
+		<div style={{ transform: 'rotate(180deg)', position: 'relative' }}>
+			<DefaultZoomMenu />
+		</div>
 	)
 }
 
 const uiComponents: TLUiComponents = {
-	ZoomMenuContent: CustomZoomMenuContent,
+	ZoomMenu: CustomZoomMenu,
 }
 
 export default function CustomZoomMenuExample() {

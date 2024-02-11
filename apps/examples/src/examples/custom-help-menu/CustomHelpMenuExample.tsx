@@ -1,28 +1,23 @@
-import { DefaultHelpMenuContent, Tldraw, TldrawUiMenuGroup, TldrawUiMenuItem } from '@tldraw/tldraw'
-import { TLUiComponents } from '@tldraw/tldraw/src/lib/ui/hooks/useTldrawUiComponents'
+import { TLUiComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-function CustomHelpMenuContent() {
+function CustomHelpMenu() {
 	return (
-		<>
-			<DefaultHelpMenuContent />
-			<TldrawUiMenuGroup id="custom stuff">
-				<TldrawUiMenuItem
-					id="about"
-					label="Like my posts"
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
-					}}
-				/>
-			</TldrawUiMenuGroup>
-		</>
+		<button
+			style={{
+				position: 'absolute',
+				bottom: 8,
+				right: 8,
+				pointerEvents: 'all',
+			}}
+		>
+			halp
+		</button>
 	)
 }
 
 const uiComponents: TLUiComponents = {
-	HelpMenuContent: CustomHelpMenuContent,
+	HelpMenu: CustomHelpMenu,
 }
 
 export default function CustomHelpMenuExample() {

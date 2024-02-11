@@ -1,33 +1,16 @@
-import {
-	DefaultActionsMenuContent,
-	TLUiComponents,
-	Tldraw,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
+import { DefaultActionsMenu, TLUiComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-function CustomActionsMenuContent() {
+function CustomActionsMenu() {
 	return (
-		<>
-			<DefaultActionsMenuContent />
-			<TldrawUiMenuGroup id="custom stuff">
-				<TldrawUiMenuItem
-					id="about"
-					label="Like my posts"
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
-					}}
-				/>
-			</TldrawUiMenuGroup>
-		</>
+		<div style={{ transform: 'rotate(90deg)' }}>
+			<DefaultActionsMenu />
+		</div>
 	)
 }
 
 const uiComponents: TLUiComponents = {
-	ActionsMenuContent: CustomActionsMenuContent,
+	ActionsMenu: CustomActionsMenu,
 }
 
 export default function CustomActionsMenuExample() {

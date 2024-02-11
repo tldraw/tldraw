@@ -164,6 +164,7 @@ function InsideOfEditorContext({
 	}, [editor, onMountEvent])
 
 	const { ContextMenu } = useTldrawUiComponents()
+	console.log(ContextMenu)
 	if (!ContextMenu) return <Canvas />
 
 	return (

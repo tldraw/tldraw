@@ -1,5 +1,5 @@
 ---
-title: Custom Style Panel
+title: Custom style panel
 component: ./CustomStylePanelExample.tsx
 category: ui
 ---

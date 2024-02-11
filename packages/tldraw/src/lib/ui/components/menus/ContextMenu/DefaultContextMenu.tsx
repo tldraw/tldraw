@@ -7,15 +7,13 @@ import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
 
 /** @public */
 export interface TLUiContextMenuProps {
-	children: any
+	children?: any
 }
 
 /** @public */
 export const DefaultContextMenu = memo(function DefaultContextMenu({
 	children,
-}: {
-	children: any
-}) {
+}: TLUiContextMenuProps) {
 	const editor = useEditor()
 
 	const cb = useCallback(

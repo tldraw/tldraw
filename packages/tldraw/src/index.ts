@@ -189,6 +189,7 @@ export {
 	type TLUiComponents,
 } from './lib/ui/hooks/useTldrawUiComponents'
 
+export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
 export {
 	DefaultStylePanel,
 	type TLUiStylePanelProps as StylePanelProps,
@@ -197,7 +198,11 @@ export {
 	DefaultStylePanelContent,
 	type TLUiStylePanelContentProps as StylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export { DefaultActionsMenu } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
+export { DefaultContextMenu } from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
+export { DefaultHelpMenu } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'
 export { DefaultMainMenu } from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
+export { DefaultZoomMenu } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
 

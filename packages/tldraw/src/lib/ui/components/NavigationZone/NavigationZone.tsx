@@ -4,7 +4,6 @@ import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { useTldrawUiComponents } from '../../hooks/useTldrawUiComponents'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { DefaultZoomMenu } from '../menus/ZoomMenu/DefaultZoomMenu'
 import { Button } from '../primitives/Button'
 import { kbdStr } from '../primitives/shared'
 
@@ -20,7 +19,7 @@ export const NavigationZone = memo(function NavigationZone() {
 		setCollapsed((s) => !s)
 	}, [setCollapsed])
 
-	const { Minimap } = useTldrawUiComponents()
+	const { ZoomMenu, Minimap } = useTldrawUiComponents()
 
 	if (breakpoint < 4) {
 		return null
@@ -29,11 +28,11 @@ export const NavigationZone = memo(function NavigationZone() {
 	return (
 		<div className="tlui-navigation-zone">
 			<div className="tlui-buttons__horizontal">
-				{breakpoint < 6 ? (
-					<DefaultZoomMenu />
+				{ZoomMenu && breakpoint < 6 ? (
+					<ZoomMenu />
 				) : collapsed ? (
 					<>
-						<DefaultZoomMenu />
+						{ZoomMenu && <ZoomMenu />}
 						{Minimap && (
 							<Button
 								type="icon"
@@ -54,7 +53,7 @@ export const NavigationZone = memo(function NavigationZone() {
 							title={`${msg(unwrapLabel(actions['zoom-out'].label))} ${kbdStr(actions['zoom-out'].kbd!)}`}
 							onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
 						/>
-						<DefaultZoomMenu />
+						{ZoomMenu && <ZoomMenu />}
 						<Button
 							type="icon"
 							icon="plus"

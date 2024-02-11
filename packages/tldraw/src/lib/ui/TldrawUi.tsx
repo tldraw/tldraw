@@ -14,7 +14,6 @@ import { ExitPenMode } from './components/PenModeToggle'
 import { StopFollowing } from './components/StopFollowing'
 import { ToastViewport, Toasts } from './components/Toasts'
 import { Toolbar } from './components/Toolbar/Toolbar'
-import { DefaultHelpMenu } from './components/menus/HelpMenu/DefaultHelpMenu'
 import { Button } from './components/primitives/Button'
 import { useActions } from './hooks/useActions'
 import { useBreakpoint } from './hooks/useBreakpoint'
@@ -136,7 +135,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
-	const { StylePanel } = useTldrawUiComponents()
+	const { StylePanel, HelpMenu } = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
@@ -183,7 +182,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 							<div className="tlui-layout__bottom__main">
 								<NavigationZone />
 								<Toolbar />
-								{breakpoint >= 4 && <DefaultHelpMenu />}
+								{HelpMenu && <HelpMenu />}
 							</div>
 							{isDebugMode && <DebugPanel renderDebugMenuItems={renderDebugMenuItems ?? null} />}
 						</div>

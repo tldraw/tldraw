@@ -293,11 +293,6 @@ function Content({ side, align, sideOffset, alignOffset, children, }: {
     side?: 'bottom' | 'left' | 'right' | 'top';
 }): JSX_2.Element;
 
-// @public (undocumented)
-export const ContextMenu: NamedExoticComponent<    {
-children: any;
-}>;
-
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
@@ -308,10 +303,21 @@ export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 export const DEFAULT_ACCEPTED_VID_TYPE: string[];
 
 // @public (undocumented)
+export const DefaultActionsMenu: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export function DefaultActionsMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+const DefaultContextMenu: NamedExoticComponent<TLUiContextMenuProps>;
+export { DefaultContextMenu as ContextMenu }
+export { DefaultContextMenu }
+
+// @public (undocumented)
 export function DefaultContextMenuContent(): JSX_2.Element | null;
+
+// @public (undocumented)
+export const DefaultHelpMenu: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export function DefaultHelpMenuContent(): JSX_2.Element;
@@ -324,6 +330,9 @@ export function DefaultMainMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
 export function DefaultMinimap(): JSX_2.Element;
+
+// @public (undocumented)
+export const DefaultPageMenu: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
@@ -339,6 +348,9 @@ export function DefaultStylePanelContent({ relevantStyles }: StylePanelContentPr
 
 // @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof LaserTool | typeof SelectTool | typeof ZoomTool)[];
+
+// @public (undocumented)
+export const DefaultZoomMenu: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export function DefaultZoomMenuContent(): JSX_2.Element;
@@ -1498,7 +1510,7 @@ export type TLUiComponents = Partial<{
 // @public (undocumented)
 export interface TLUiContextMenuProps {
     // (undocumented)
-    children: any;
+    children?: any;
 }
 
 // @public (undocumented)

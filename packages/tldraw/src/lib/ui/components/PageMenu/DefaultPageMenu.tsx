@@ -19,6 +19,7 @@ import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 import { onMovePage } from './edit-pages-shared'
 
+/** @public */
 export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const editor = useEditor()
 	const msg = useTranslation()

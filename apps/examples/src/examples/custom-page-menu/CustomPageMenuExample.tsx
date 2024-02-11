@@ -1,5 +1,4 @@
-import { TLUiComponents, Tldraw } from '@tldraw/tldraw'
-import { DefaultPageMenu } from '@tldraw/tldraw/src/lib/ui/components/PageMenu/PageMenu'
+import { DefaultPageMenu, TLUiComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomPageMenu() {

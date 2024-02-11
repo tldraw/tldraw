@@ -1,6 +1,6 @@
 import { ComponentType, createContext, useContext, useMemo } from 'react'
 import { DefaultMinimap } from '../components/Minimap/DefaultMinimap'
-import { DefaultPageMenu } from '../components/PageMenu/PageMenu'
+import { DefaultPageMenu } from '../components/PageMenu/DefaultPageMenu'
 import {
 	DefaultStylePanel,
 	type TLUiStylePanelProps,

@@ -2292,38 +2292,6 @@
           "name": "containBoxSize"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tldraw!ContextMenu:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "DefaultContextMenu: "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "NamedExoticComponent",
-              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<{\n    children: any;\n}>"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenu.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "ContextMenu",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 4
-          }
-        },
-        {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!copyAs:function(1)",
           "docComment": "/**\n * Copy the given shapes to the clipboard.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to copy.\n *\n * @param format - The format to copy as.\n *\n * @param opts - Options for the copy.\n *\n * @public\n */\n",
@@ -2489,6 +2457,38 @@
           }
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!DefaultActionsMenu:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DefaultActionsMenu: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ActionsMenu/DefaultActionsMenu.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DefaultActionsMenu",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!DefaultActionsMenuContent:function(1)",
           "docComment": "/**\n * @public\n */\n",
@@ -2520,6 +2520,47 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "DefaultActionsMenuContent"
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!DefaultContextMenu:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DefaultContextMenu: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiContextMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiContextMenuProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenu.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DefaultContextMenu",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
+          }
         },
         {
           "kind": "Function",
@@ -2557,6 +2598,38 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "DefaultContextMenuContent"
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!DefaultHelpMenu:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DefaultHelpMenu: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/HelpMenu/DefaultHelpMenu.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DefaultHelpMenu",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
         },
         {
           "kind": "Function",
@@ -2688,6 +2761,38 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "DefaultMinimap"
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!DefaultPageMenu:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DefaultPageMenu: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/PageMenu/DefaultPageMenu.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DefaultPageMenu",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
         },
         {
           "kind": "Variable",
@@ -2961,6 +3066,38 @@
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 12
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!DefaultZoomMenu:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DefaultZoomMenu: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ZoomMenu/DefaultZoomMenu.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DefaultZoomMenu",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
           }
         },
         {
@@ -17015,7 +17152,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "children: "
+                  "text": "children?: "
                 },
                 {
                   "kind": "Content",
@@ -17028,7 +17165,7 @@
               ],
               "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenu.tsx",
               "isReadonly": false,
-              "isOptional": false,
+              "isOptional": true,
               "releaseTag": "Public",
               "name": "children",
               "propertyTypeTokenRange": {

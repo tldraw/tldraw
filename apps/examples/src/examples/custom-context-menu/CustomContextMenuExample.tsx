@@ -1,33 +1,17 @@
-import {
-	DefaultContextMenuContent,
-	Tldraw,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
-import { TLUiComponents } from '@tldraw/tldraw/src/lib/ui/hooks/useTldrawUiComponents'
+import { DefaultContextMenu, TLUiComponents, TLUiContextMenuProps, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-function CustomContextMenuContent() {
+function CustomContextMenu({ children }: TLUiContextMenuProps) {
 	return (
-		<>
-			<DefaultContextMenuContent />
-			<TldrawUiMenuGroup id="custom stuff">
-				<TldrawUiMenuItem
-					id="about"
-					label="Like my posts"
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
-					}}
-				/>
-			</TldrawUiMenuGroup>
-		</>
+		<DefaultContextMenu>
+			{/* The context menu wraps the canvas, and is the parent to the canvas */}
+			<div style={{ opacity: 0.1 }}>{children}</div>
+		</DefaultContextMenu>
 	)
 }
 
 const uiComponents: TLUiComponents = {
-	ContextMenuContent: CustomContextMenuContent,
+	ContextMenu: CustomContextMenu,
 }
 
 export default function CustomContextMenuExample() {

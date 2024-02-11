@@ -1,6 +1,7 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
+import { useBreakpoint } from '../../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -11,6 +12,7 @@ import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
 export const DefaultHelpMenu = memo(function DefaultHelpMenu() {
 	const container = useContainer()
 	const msg = useTranslation()
+	const breakpoint = useBreakpoint()
 	const [isOpen, onOpenChange] = useMenuIsOpen('help menu')
 
 	// Get the help menu content, either the default component or the user's
@@ -18,6 +20,8 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu() {
 	// so skip rendering the menu.
 	const { HelpMenuContent } = useTldrawUiComponents()
 	if (!HelpMenuContent) return null
+
+	if (breakpoint < 4) return null
 
 	return (
 		<div className="tlui-help-menu">
