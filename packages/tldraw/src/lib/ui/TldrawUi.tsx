@@ -129,6 +129,12 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	])
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
+	const selectToolActive = useValue('debug', () => editor.getCurrentToolId() === 'select', [editor])
+	const selectedShapesCount = useValue(
+		'selectedShapesCount',
+		() => editor.getSelectedShapes().length,
+		[editor]
+	)
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
@@ -168,11 +174,13 @@ const TldrawUiContent = React.memo(function TldrawUI({
 							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
 								{shareZone}
-								{breakpoint >= 5 && !isReadonlyMode && (
-									<div className="tlui-style-panel__wrapper">
-										<StylePanel />
-									</div>
-								)}
+								{breakpoint >= 5 &&
+									!isReadonlyMode &&
+									(!selectToolActive || selectedShapesCount > 0) && (
+										<div className="tlui-style-panel__wrapper">
+											<StylePanel />
+										</div>
+									)}
 							</div>
 						</div>
 						<div className="tlui-layout__bottom">
