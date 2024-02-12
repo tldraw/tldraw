@@ -17,7 +17,7 @@ export default function SnapshotImageExample() {
 					Toggle snapshot image
 				</label>
 			</div>
-			<div style={{ width: 600, height: 400 }}>
+			<div style={{ width: 600, height: 400, border: '1px solid black', overflow: 'hidden' }}>
 				{showImage ? (
 					<TldrawImage persistenceKey="snapshot-image" />
 				) : (

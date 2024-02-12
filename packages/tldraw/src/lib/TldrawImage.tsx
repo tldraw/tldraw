@@ -31,10 +31,6 @@ export function TldrawImage({
 				position: 'relative',
 				width: '100%',
 				height: '100%',
-				outline: 'black solid 1px',
-				// display: 'flex',
-				// justifyContent: 'center',
-				// alignItems: 'center',
 			}}
 		>
 			{container && (
