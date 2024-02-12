@@ -16,10 +16,8 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
-import { HTMLProps } from 'react';
 import { JsonObject } from '@tldraw/utils';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
-import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { PointerEventHandler } from 'react';
@@ -1471,13 +1469,6 @@ export class Polyline2d extends Geometry2d {
     // (undocumented)
     _segments?: Edge2d[];
 }
-
-// @public (undocumented)
-export const PositionedOnCanvas: MemoExoticComponent<({ x: offsetX, y: offsetY, rotation, ...rest }: {
-x?: number | undefined;
-y?: number | undefined;
-rotation?: number | undefined;
-} & HTMLProps<HTMLDivElement>) => JSX_2.Element>;
 
 // @public (undocumented)
 export function precise(A: VecLike): string;
