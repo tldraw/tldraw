@@ -63,7 +63,6 @@ export { BreakPointProvider, useBreakpoint } from './lib/ui/hooks/useBreakpoint'
 export { useCanRedo } from './lib/ui/hooks/useCanRedo'
 export { useCanUndo } from './lib/ui/hooks/useCanUndo'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
-
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export {
 	useDialogs,
@@ -182,6 +181,7 @@ export {
 	type TLUiStylePanelContentProps as StylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+export { DefaultToolbarContent } from './lib/ui/components/Toolbar/DefaultToolbarContent'
 export { DefaultActionsMenu } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
 export { DefaultContextMenu } from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
 export { DefaultHelpMenu } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'

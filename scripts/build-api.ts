@@ -42,10 +42,7 @@ async function buildApi(sourcePackageDir: string) {
 			},
 		})
 	} catch (e) {
-		console.error(e)
-
 		// get git diff
-		console.error('api-report diff')
 		await exec('git', [
 			'diff',
 			'--no-color',
@@ -54,6 +51,9 @@ async function buildApi(sourcePackageDir: string) {
 			'api-report.md',
 			'api/temp/api-report.md',
 		])
+
+		// @ts-expect-error
+		console.error(e.message)
 
 		process.exit(1)
 	}

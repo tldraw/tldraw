@@ -354,6 +354,9 @@ export function DefaultStylePanelContent({ relevantStyles }: StylePanelContentPr
 export const DefaultToolbar: React_2.NamedExoticComponent<object>;
 
 // @public (undocumented)
+export function DefaultToolbarContent(): JSX_2.Element;
+
+// @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof LaserTool | typeof SelectTool | typeof ZoomTool)[];
 
 // @public (undocumented)
