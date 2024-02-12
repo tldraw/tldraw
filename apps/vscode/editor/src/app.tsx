@@ -6,7 +6,7 @@ import {
 	DefaultHelpMenuContent,
 	Editor,
 	ErrorBoundary,
-	TLUiComponents,
+	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	setRuntimeOverrides,
@@ -104,7 +104,7 @@ export type TLDrawInnerProps = {
 	isDarkMode: boolean
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	HelpMenuContent: () => (
 		<>
 			<TldrawUiMenuGroup id="help">
@@ -126,7 +126,7 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 			assetUrls={assetUrls}
 			persistenceKey={uri}
 			onMount={handleMount}
-			uiComponents={uiComponents}
+			components={components}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}

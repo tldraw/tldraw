@@ -1,6 +1,6 @@
 import {
 	DefaultMainMenuContent,
-	TLUiComponents,
+	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -26,14 +26,14 @@ function CustomMainMenuContent() {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	MainMenuContent: CustomMainMenuContent,
 }
 
 export default function CustomMainMenuExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

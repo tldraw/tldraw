@@ -3,7 +3,7 @@ import {
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenuContent,
 	Editor,
-	TLUiComponents,
+	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -24,7 +24,10 @@ import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
+	ErrorFallback: ({ error }) => {
+		throw error
+	},
 	HelpMenuContent: () => (
 		<>
 			<TldrawUiMenuGroup id="help">
@@ -71,12 +74,7 @@ export function LocalEditor() {
 				autoFocus
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
-				components={{
-					ErrorFallback: ({ error }) => {
-						throw error
-					},
-				}}
-				uiComponents={uiComponents}
+				components={components}
 				shareZone={
 					<div className="tlui-share-zone" draggable={false}>
 						<ShareMenu />

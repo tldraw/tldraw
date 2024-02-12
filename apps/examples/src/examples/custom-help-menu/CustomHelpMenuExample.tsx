@@ -1,4 +1,4 @@
-import { TLUiComponents, Tldraw } from '@tldraw/tldraw'
+import { TLComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomHelpMenu() {
@@ -16,14 +16,14 @@ function CustomHelpMenu() {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	HelpMenu: CustomHelpMenu,
 }
 
 export default function CustomHelpMenuExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

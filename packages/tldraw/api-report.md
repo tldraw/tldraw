@@ -61,6 +61,7 @@ import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
+import { TLEditorComponents } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEnterEventHandler } from '@tldraw/editor';
 import { TLEventHandlers } from '@tldraw/editor';
@@ -1313,6 +1314,9 @@ function Title({ className, children }: {
 }): JSX_2.Element;
 
 // @public (undocumented)
+export type TLComponents = TLEditorComponents & TLUiComponents;
+
+// @public (undocumented)
 export function Tldraw(props: TldrawProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -1350,7 +1354,9 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
-export type TldrawProps = TldrawEditorBaseProps & ({
+export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
+    components?: TLComponents;
+}) & Partial<TLExternalContentProps> & ({
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
@@ -1358,7 +1364,7 @@ export type TldrawProps = TldrawEditorBaseProps & ({
     sessionId?: string;
     defaultName?: string;
     snapshot?: StoreSnapshot<TLRecord>;
-}) & TldrawUiProps & Partial<TLExternalContentProps>;
+});
 
 // @public (undocumented)
 export const TldrawScribble: TLScribbleComponent;
@@ -1376,12 +1382,12 @@ export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;
 export interface TldrawUiBaseProps {
     assetUrls?: TLUiAssetUrlOverrides;
     children?: ReactNode;
+    components?: TLUiComponents;
     hideUi?: boolean;
     renderDebugMenuItems?: () => React_2.ReactNode;
     shareZone?: ReactNode;
     // @internal
     topZone?: ReactNode;
-    uiComponents?: TLUiComponents;
 }
 
 // @public (undocumented)

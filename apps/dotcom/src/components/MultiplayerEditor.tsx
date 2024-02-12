@@ -5,8 +5,7 @@ import {
 	DefaultMainMenuContent,
 	Editor,
 	OfflineIndicator,
-	TLEditorComponents,
-	TLUiComponents,
+	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -36,13 +35,10 @@ import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
-const editorComponents: TLEditorComponents = {
+const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-}
-
-const uiComponents: TLUiComponents = {
 	ContextMenuContent: () => (
 		<>
 			<CursorChatMenuItem />
@@ -129,8 +125,7 @@ export function MultiplayerEditor({
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
 				onUiEvent={handleUiEvent}
-				components={editorComponents}
-				uiComponents={uiComponents}
+				components={components}
 				topZone={isOffline && <OfflineIndicator />}
 				shareZone={
 					<div className="tlui-share-zone" draggable={false}>

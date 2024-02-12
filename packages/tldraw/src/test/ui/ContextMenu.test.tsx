@@ -36,7 +36,7 @@ it('tunnels context menu', async () => {
 			onMount={(editor) => {
 				editor.createShape({ id: createShapeId(), type: 'geo' })
 			}}
-			uiComponents={uiComponents}
+			components={uiComponents}
 		/>
 	)
 

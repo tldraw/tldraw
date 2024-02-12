@@ -1,4 +1,4 @@
-import { TLUiComponents, Tldraw } from '@tldraw/tldraw'
+import { TLComponents, Tldraw } from '@tldraw/tldraw'
 import { DefaultToolbar } from '@tldraw/tldraw/src/lib/ui/components/Toolbar/DefaultToolbar'
 import '@tldraw/tldraw/tldraw.css'
 
@@ -10,14 +10,14 @@ function CustomToolbar() {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	Toolbar: CustomToolbar, // null will hide the panel instead
 }
 
 export default function CustomToolbarExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

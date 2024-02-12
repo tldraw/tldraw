@@ -1,6 +1,6 @@
 import {
 	DefaultHelpMenuContent,
-	TLUiComponents,
+	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -26,14 +26,14 @@ function CustomHelpMenuContent() {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	HelpMenuContent: CustomHelpMenuContent,
 }
 
 export default function CustomHelpMenuContentExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

@@ -2,7 +2,7 @@ import {
 	Button,
 	DefaultStylePanelContent,
 	StylePanelContentProps,
-	TLUiComponents,
+	TLComponents,
 	Tldraw,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
@@ -19,14 +19,14 @@ function CustomStylePanelContent({ relevantStyles }: StylePanelContentProps) {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	StylePanelContent: CustomStylePanelContent, // null will hide the panel instead
 }
 
 export default function CustomStylePanelContentExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

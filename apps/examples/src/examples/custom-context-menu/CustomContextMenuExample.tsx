@@ -1,4 +1,4 @@
-import { DefaultContextMenu, TLUiComponents, TLUiContextMenuProps, Tldraw } from '@tldraw/tldraw'
+import { DefaultContextMenu, TLComponents, TLUiContextMenuProps, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomContextMenu({ children }: TLUiContextMenuProps) {
@@ -10,14 +10,14 @@ function CustomContextMenu({ children }: TLUiContextMenuProps) {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	ContextMenu: CustomContextMenu,
 }
 
 export default function CustomContextMenuExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

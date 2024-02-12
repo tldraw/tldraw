@@ -1,6 +1,6 @@
 import {
 	DefaultZoomMenuContent,
-	TLUiComponents,
+	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -28,14 +28,14 @@ function CustomZoomMenuContent() {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	ZoomMenuContent: CustomZoomMenuContent,
 }
 
 export default function CustomZoomMenuContentExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

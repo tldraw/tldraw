@@ -1,4 +1,4 @@
-import { DefaultPageMenu, TLUiComponents, Tldraw } from '@tldraw/tldraw'
+import { DefaultPageMenu, TLComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomPageMenu() {
@@ -9,14 +9,14 @@ function CustomPageMenu() {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	PageMenu: CustomPageMenu, // null will hide the page menu instead
 }
 
 export default function CustomPageMenuExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

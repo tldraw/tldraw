@@ -4,13 +4,13 @@ import {
 	ErrorScreen,
 	LoadingScreen,
 	StoreSnapshot,
+	TLEditorComponents,
 	TLOnMountHandler,
 	TLRecord,
 	TLStore,
 	TLStoreWithStatus,
 	TldrawEditor,
 	TldrawEditorBaseProps,
-	TldrawEditorProps,
 	assert,
 	useEditor,
 	useShallowArrayIdentity,
@@ -32,28 +32,36 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
-import { useTldrawUiComponents } from './ui/hooks/useTldrawUiComponents'
+import { TLUiComponents, useTldrawUiComponents } from './ui/hooks/useTldrawUiComponents'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
+/**@public */
+export type TLComponents = TLEditorComponents & TLUiComponents
+
 /** @public */
-export type TldrawProps = TldrawEditorBaseProps &
-	(
-		| {
-				store: TLStore | TLStoreWithStatus
-		  }
-		| {
-				store?: undefined
-				persistenceKey?: string
-				sessionId?: string
-				defaultName?: string
-				/**
-				 * A snapshot to load for the store's initial data / schema.
-				 */
-				snapshot?: StoreSnapshot<TLRecord>
-		  }
-	) &
-	TldrawUiProps &
-	Partial<TLExternalContentProps>
+export type TldrawProps =
+	// combine components from base editor and ui
+	(Omit<TldrawUiProps, 'components'> &
+		Omit<TldrawEditorBaseProps, 'components'> & {
+			components?: TLComponents
+		}) &
+		// external content
+		Partial<TLExternalContentProps> &
+		// store stuff
+		(| {
+					store: TLStore | TLStoreWithStatus
+			  }
+			| {
+					store?: undefined
+					persistenceKey?: string
+					sessionId?: string
+					defaultName?: string
+					/**
+					 * A snapshot to load for the store's initial data / schema.
+					 */
+					snapshot?: StoreSnapshot<TLRecord>
+			  }
+		)
 
 /** @public */
 export function Tldraw(props: TldrawProps) {
@@ -67,12 +75,11 @@ export function Tldraw(props: TldrawProps) {
 		...rest
 	} = props
 
-	const uiComponents = useShallowObjectIdentity(rest.uiComponents ?? {})
 	const components = useShallowObjectIdentity(rest.components ?? {})
 	const shapeUtils = useShallowArrayIdentity(rest.shapeUtils ?? [])
 	const tools = useShallowArrayIdentity(rest.tools ?? [])
 
-	const withDefaults: TldrawEditorProps = {
+	const withDefaults = {
 		initialState: 'select',
 		...rest,
 		components: useMemo(
@@ -105,7 +112,7 @@ export function Tldraw(props: TldrawProps) {
 
 	return (
 		<TldrawEditor {...withDefaults}>
-			<TldrawUi {...withDefaults} components={uiComponents}>
+			<TldrawUi {...withDefaults}>
 				<InsideOfEditorContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}

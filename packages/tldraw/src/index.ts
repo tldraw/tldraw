@@ -207,3 +207,5 @@ import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
 // N.B. Preserve order of import / export here with this comment.
 // Sometimes this can cause an import problem depending on build setup downstream.
 export { Dialog, DropdownMenu }
+
+export { type TLComponents } from './lib/Tldraw'

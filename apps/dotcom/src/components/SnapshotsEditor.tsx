@@ -3,9 +3,8 @@ import {
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenuContent,
 	SerializedSchema,
-	TLEditorComponents,
+	TLComponents,
 	TLRecord,
-	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -23,13 +22,10 @@ import { ExportMenu } from './ExportMenu'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
 
-const editorComponents: TLEditorComponents = {
+const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-}
-
-const uiComponents: TLUiComponents = {
 	HelpMenuContent: () => (
 		<>
 			<TldrawUiMenuGroup id="help">
@@ -79,8 +75,7 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				onMount={(editor) => {
 					editor.updateInstanceState({ isReadonly: true })
 				}}
-				components={editorComponents}
-				uiComponents={uiComponents}
+				components={components}
 				shareZone={
 					<div className="tlui-share-zone" draggable={false}>
 						<ExportMenu />

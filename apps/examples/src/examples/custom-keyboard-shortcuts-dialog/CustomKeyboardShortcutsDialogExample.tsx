@@ -1,4 +1,4 @@
-import { DefaultKeyboardShortcutsDialog, TLUiComponents, Tldraw } from '@tldraw/tldraw'
+import { DefaultKeyboardShortcutsDialog, TLComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomKeyboardShortcutsDialog() {
@@ -9,14 +9,14 @@ function CustomKeyboardShortcutsDialog() {
 	)
 }
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	KeyboardShortcutsDialog: CustomKeyboardShortcutsDialog,
 }
 
 export default function CustomKeyboardShortcutsDialogExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

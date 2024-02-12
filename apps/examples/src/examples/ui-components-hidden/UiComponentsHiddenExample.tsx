@@ -1,7 +1,7 @@
-import { TLUiComponents, Tldraw } from '@tldraw/tldraw'
+import { TLComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-const uiComponents: TLUiComponents = {
+const components: TLComponents = {
 	HelpMenu: null,
 	HelpMenuContent: null,
 	ContextMenu: null,
@@ -23,7 +23,7 @@ const uiComponents: TLUiComponents = {
 export default function UiComponentsHiddenExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw uiComponents={uiComponents} />
+			<Tldraw components={components} />
 		</div>
 	)
 }

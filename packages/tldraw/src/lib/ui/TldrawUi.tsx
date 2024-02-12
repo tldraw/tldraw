@@ -47,7 +47,7 @@ export interface TldrawUiBaseProps {
 	/**
 	 * Overrides for the UI components.
 	 */
-	uiComponents?: TLUiComponents
+	components?: TLUiComponents
 
 	/**
 	 * A component to use for the share zone (will be deprecated)
@@ -78,11 +78,11 @@ export const TldrawUi = React.memo(function TldrawUi({
 	renderDebugMenuItems,
 	children,
 	hideUi,
-	uiComponents,
+	components,
 	...rest
 }: TldrawUiProps) {
 	return (
-		<TldrawUiContextProvider {...rest} components={uiComponents}>
+		<TldrawUiContextProvider {...rest} components={components}>
 			<TldrawUiInner
 				hideUi={hideUi}
 				shareZone={shareZone}
