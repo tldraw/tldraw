@@ -1,9 +1,11 @@
 import {
+	DefaultKeyboardShortcutsDialogContent,
 	TLUiAssetUrlOverrides,
-	TLUiMenuGroup,
+	TLUiComponents,
 	TLUiOverrides,
-	menuItem,
+	TldrawUiMenuItem,
 	toolbarItem,
+	useTools,
 } from '@tldraw/tldraw'
 
 // There's a guide at the bottom of this file!
@@ -27,13 +29,6 @@ export const uiOverrides: TLUiOverrides = {
 		toolbar.splice(4, 0, toolbarItem(tools.speech))
 		return toolbar
 	},
-	keyboardShortcutsMenu(_app, keyboardShortcutsMenu, { tools }) {
-		const toolsGroup = keyboardShortcutsMenu.find(
-			(group) => group.id === 'shortcuts-dialog.tools'
-		) as TLUiMenuGroup
-		toolsGroup.children.push(menuItem(tools.speech))
-		return keyboardShortcutsMenu
-	},
 }
 
 // [2]
@@ -41,6 +36,18 @@ export const uiOverrides: TLUiOverrides = {
 export const customAssetUrls: TLUiAssetUrlOverrides = {
 	icons: {
 		'speech-bubble': '/speech-bubble.svg',
+	},
+}
+
+export const uiComponents: TLUiComponents = {
+	KeyboardShortcutsDialogContent: () => {
+		const tools = useTools()
+		return (
+			<>
+				<DefaultKeyboardShortcutsDialogContent />
+				<TldrawUiMenuItem {...tools['speech']} />
+			</>
+		)
 	},
 }
 

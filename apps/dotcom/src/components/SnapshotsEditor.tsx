@@ -1,5 +1,6 @@
 import {
 	DefaultHelpMenuContent,
+	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenuContent,
 	SerializedSchema,
 	TLEditorComponents,
@@ -7,6 +8,8 @@ import {
 	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	useActions,
 } from '@tldraw/tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { StoreErrorScreen } from '../components/StoreErrorScreen'
@@ -14,7 +17,7 @@ import { useLocalStore } from '../hooks/useLocalStore'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
-import { useFileSystem } from '../utils/useFileSystem'
+import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
 import { MultiplayerFileMenu } from './FileMenu'
@@ -41,6 +44,17 @@ const uiComponents: TLUiComponents = {
 			<DefaultMainMenuContent />
 		</>
 	),
+	KeyboardShortcutsDialogContent: () => {
+		const actions = useActions()
+		return (
+			<>
+				<TldrawUiMenuGroup id="shortcuts-dialog.file">
+					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+				</TldrawUiMenuGroup>
+				<DefaultKeyboardShortcutsDialogContent />
+			</>
+		)
+	},
 }
 
 type SnapshotEditorProps = {

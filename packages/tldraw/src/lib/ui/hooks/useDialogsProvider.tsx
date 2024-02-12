@@ -1,5 +1,5 @@
 import { Editor, uniqueId, useEditor } from '@tldraw/editor'
-import { createContext, useCallback, useContext, useState } from 'react'
+import { ComponentType, createContext, useCallback, useContext, useState } from 'react'
 import { useUiEvents } from './useEventsProvider'
 
 /** @public */
@@ -11,7 +11,7 @@ export interface TLUiDialogProps {
 export interface TLUiDialog {
 	id: string
 	onClose?: () => void
-	component: (props: TLUiDialogProps) => any
+	component: ComponentType<TLUiDialogProps>
 }
 
 /** @public */

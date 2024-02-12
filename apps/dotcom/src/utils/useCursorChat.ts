@@ -1,4 +1,4 @@
-import { TLUiOverrides, menuGroup, menuItem } from '@tldraw/tldraw'
+import { TLUiOverrides } from '@tldraw/tldraw'
 import { useMemo } from 'react'
 import { useHandleUiEvents } from './useHandleUiEvent'
 
@@ -26,17 +26,6 @@ export function useCursorChat(): TLUiOverrides {
 					},
 				}
 				return actions
-			},
-			keyboardShortcutsMenu(editor, keyboardShortcutsMenu, { actions }) {
-				const group = menuGroup(
-					'shortcuts-dialog.collaboration',
-					menuItem(actions[CURSOR_CHAT_ACTION])
-				)
-				if (!group) {
-					return keyboardShortcutsMenu
-				}
-				keyboardShortcutsMenu.push(group)
-				return keyboardShortcutsMenu
 			},
 		}),
 		[handleUiEvent]

@@ -3,7 +3,6 @@ import { useMemo } from 'react'
 import { ActionsProviderProps } from './hooks/useActions'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useDialogs } from './hooks/useDialogsProvider'
-import { TLUiKeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
 import { useToasts } from './hooks/useToastsProvider'
 import { TLUiToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
 import { TLUiToolsProviderProps } from './hooks/useTools'
@@ -55,9 +54,6 @@ type WithDefaultHelpers<T extends TLUiOverride<any, any>> =
 export type TLUiOverrides = Partial<{
 	actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
 	toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
-	keyboardShortcutsMenu: WithDefaultHelpers<
-		NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>
-	>
 	tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>
 	translations: TLUiTranslationProviderProps['overrides']
 }>
@@ -65,7 +61,6 @@ export type TLUiOverrides = Partial<{
 export type TLUiOverridesWithoutDefaults = Partial<{
 	actions: ActionsProviderProps['overrides']
 	toolbar: TLUiToolbarSchemaProviderProps['overrides']
-	keyboardShortcutsMenu: TLUiKeyboardShortcutsSchemaProviderProps['overrides']
 	tools: TLUiToolsProviderProps['overrides']
 	translations: TLUiTranslationProviderProps['overrides']
 }>
@@ -99,14 +94,6 @@ export function mergeOverrides(
 			for (const override of overrides) {
 				if (override.toolbar) {
 					schema = override.toolbar(editor, schema, { ...defaultHelpers, ...helpers })
-				}
-			}
-			return schema
-		},
-		keyboardShortcutsMenu: (editor, schema, helpers) => {
-			for (const override of overrides) {
-				if (override.keyboardShortcutsMenu) {
-					schema = override.keyboardShortcutsMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema

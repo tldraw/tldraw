@@ -1,10 +1,13 @@
 import {
 	DefaultHelpMenuContent,
+	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenuContent,
 	Editor,
 	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	useActions,
 } from '@tldraw/tldraw'
 import { useCallback } from 'react'
 import { assetUrls } from '../utils/assetUrls'
@@ -13,7 +16,7 @@ import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../utils/migration/LocalMigration'
 import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
-import { useFileSystem } from '../utils/useFileSystem'
+import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { LocalFileMenu } from './FileMenu'
 import { Links } from './Links'
@@ -36,6 +39,18 @@ const uiComponents: TLUiComponents = {
 			<DefaultMainMenuContent />
 		</>
 	),
+	KeyboardShortcutsDialogContent: () => {
+		const actions = useActions()
+		return (
+			<>
+				<TldrawUiMenuGroup id="shortcuts-dialog.file">
+					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
+				</TldrawUiMenuGroup>
+				<DefaultKeyboardShortcutsDialogContent />
+			</>
+		)
+	},
 }
 
 export function LocalEditor() {

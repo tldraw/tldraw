@@ -323,6 +323,12 @@ export const DefaultHelpMenu: NamedExoticComponent<object>;
 export function DefaultHelpMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export const DefaultKeyboardShortcutsDialog: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export function DefaultKeyboardShortcutsDialogContent(): JSX_2.Element;
+
+// @public (undocumented)
 export const DefaultMainMenu: NamedExoticComponent<object>;
 
 // @public (undocumented)
@@ -1407,7 +1413,7 @@ export function TldrawUiMenuCheckboxItem<TransationKey extends string = string, 
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     checked?: boolean;
     disabled?: boolean;
-}): JSX_2.Element | null;
+}): JSX_2.Element | null | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: {
@@ -1527,7 +1533,7 @@ export type TLUiCustomMenuItem = {
 // @public (undocumented)
 export interface TLUiDialog {
     // (undocumented)
-    component: (props: TLUiDialogProps) => any;
+    component: ComponentType<TLUiDialogProps>;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -1768,18 +1774,6 @@ export interface TLUiInputProps {
 }
 
 // @public (undocumented)
-export type TLUiKeyboardShortcutsSchemaContextType = TLUiMenuSchema;
-
-// @public (undocumented)
-export type TLUiKeyboardShortcutsSchemaProviderProps = {
-    overrides?: (editor: Editor, schema: TLUiKeyboardShortcutsSchemaContextType, more: {
-        tools: TLUiToolsContextType;
-        actions: TLUiActionsContextType;
-    }) => TLUiKeyboardShortcutsSchemaContextType;
-    children: any;
-};
-
-// @public (undocumented)
 export type TLUiMenuChild<TranslationKey extends string = string> = null | TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<TranslationKey>;
 
 // @public (undocumented)
@@ -1809,7 +1803,6 @@ export type TLUiMenuSchema = (TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem)
 export type TLUiOverrides = Partial<{
     actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
     toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
-    keyboardShortcutsMenu: WithDefaultHelpers<NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>>;
     tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>;
     translations: TLUiTranslationProviderProps['overrides'];
 }>;
@@ -1982,9 +1975,6 @@ export function useExportAs(): (ids: TLShapeId[], format?: TLExportType) => void
 export function useKeyboardShortcuts(): void;
 
 // @public (undocumented)
-export function useKeyboardShortcutsSchema(): TLUiKeyboardShortcutsSchemaContextType;
-
-// @public (undocumented)
 export function useLocalStorageState<T = any>(key: string, defaultValue: T): readonly [T, (setter: ((value: T) => T) | T) => void];
 
 // @public (undocumented)
@@ -2021,6 +2011,8 @@ export function useTldrawUiComponents(): Partial<{
     PageMenu: ComponentType | null;
     NavigationPanel: ComponentType | null;
     Toolbar: ComponentType | null;
+    KeyboardShortcutsDialog: ComponentType<TLUiDialogProps> | null;
+    KeyboardShortcutsDialogContent: ComponentType | null;
 }>;
 
 // @public (undocumented)

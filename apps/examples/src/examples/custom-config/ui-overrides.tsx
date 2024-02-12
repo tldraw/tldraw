@@ -1,4 +1,11 @@
-import { TLUiMenuGroup, TLUiOverrides, menuItem, toolbarItem } from '@tldraw/tldraw'
+import {
+	DefaultKeyboardShortcutsDialogContent,
+	TLUiComponents,
+	TLUiOverrides,
+	TldrawUiMenuItem,
+	toolbarItem,
+	useTools,
+} from '@tldraw/tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -22,13 +29,18 @@ export const uiOverrides: TLUiOverrides = {
 		toolbar.splice(4, 0, toolbarItem(tools.card))
 		return toolbar
 	},
-	keyboardShortcutsMenu(_app, keyboardShortcutsMenu, { tools }) {
-		// Add the tool item from the context to the keyboard shortcuts dialog.
-		const toolsGroup = keyboardShortcutsMenu.find(
-			(group) => group.id === 'shortcuts-dialog.tools'
-		) as TLUiMenuGroup
-		toolsGroup.children.push(menuItem(tools.card))
-		return keyboardShortcutsMenu
+}
+
+export const uiComponents: TLUiComponents = {
+	KeyboardShortcutsDialogContent: () => {
+		const tools = useTools()
+		return (
+			<>
+				<DefaultKeyboardShortcutsDialogContent />
+				{/* Ideally, we'd interleave this into the tools group */}
+				<TldrawUiMenuItem {...tools['card']} />
+			</>
+		)
 	},
 }
 

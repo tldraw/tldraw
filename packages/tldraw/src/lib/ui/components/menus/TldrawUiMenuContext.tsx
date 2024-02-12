@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react'
 import { TLUiEventSource } from '../../hooks/useEventsProvider'
 
 /** @public */
-export type TldrawUiMenuContextType = 'menu' | 'context-menu' | 'actions'
+export type TldrawUiMenuContextType = 'menu' | 'context-menu' | 'actions' | 'keyboard-shortcuts'
 
 const menuContext = createContext<{
 	type: TldrawUiMenuContextType

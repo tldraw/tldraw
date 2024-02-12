@@ -96,11 +96,6 @@ export {
 } from './lib/ui/hooks/useEventsProvider'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
-export {
-	useKeyboardShortcutsSchema,
-	type TLUiKeyboardShortcutsSchemaContextType,
-	type TLUiKeyboardShortcutsSchemaProviderProps,
-} from './lib/ui/hooks/useKeyboardShortcutsSchema'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
@@ -189,6 +184,8 @@ export {
 	type TLUiComponents,
 } from './lib/ui/hooks/useTldrawUiComponents'
 
+export { DefaultKeyboardShortcutsDialog } from './lib/ui/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
 export {
 	DefaultStylePanel,

@@ -2,7 +2,7 @@ import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { CardShapeTool, CardShapeUtil } from './CardShape'
 import { FilterStyleUi } from './FilterStyleUi'
-import { uiOverrides } from './ui-overrides'
+import { uiComponents, uiOverrides } from './ui-overrides'
 
 // There's a guide at the bottom of this file!
 
@@ -19,6 +19,7 @@ export default function CustomStylesExample() {
 				shapeUtils={customShapeUtils}
 				tools={customTools}
 				overrides={uiOverrides}
+				uiComponents={uiComponents}
 			>
 				<FilterStyleUi />
 			</Tldraw>

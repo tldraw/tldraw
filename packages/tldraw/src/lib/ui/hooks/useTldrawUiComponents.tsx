@@ -1,4 +1,6 @@
 import { ComponentType, createContext, useContext, useMemo } from 'react'
+import { DefaultKeyboardShortcutsDialog } from '../KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+import { DefaultKeyboardShortcutsDialogContent } from '../KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 import { DefaultNavigationPanel } from '../components/DefaultNavigationPanel/DefaultNavigationPanel'
 import { DefaultMinimap } from '../components/Minimap/DefaultMinimap'
 import { DefaultPageMenu } from '../components/PageMenu/DefaultPageMenu'
@@ -24,6 +26,7 @@ import { DefaultMainMenu } from '../components/menus/MainMenu/DefaultMainMenu'
 import { DefaultMainMenuContent } from '../components/menus/MainMenu/DefaultMainMenuContent'
 import { DefaultZoomMenu } from '../components/menus/ZoomMenu/DefaultZoomMenu'
 import { DefaultZoomMenuContent } from '../components/menus/ZoomMenu/DefaultZoomMenuContent'
+import { TLUiDialogProps } from './useDialogsProvider'
 
 export interface BaseTLUiComponents {
 	ContextMenu: ComponentType<TLUiContextMenuProps>
@@ -42,6 +45,8 @@ export interface BaseTLUiComponents {
 	PageMenu: ComponentType
 	NavigationPanel: ComponentType
 	Toolbar: ComponentType
+	KeyboardShortcutsDialog: ComponentType<TLUiDialogProps>
+	KeyboardShortcutsDialogContent: ComponentType
 }
 
 /** @public */
@@ -81,6 +86,8 @@ export function TldrawUiComponentsProvider({
 					PageMenu: DefaultPageMenu,
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
+					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
+					KeyboardShortcutsDialogContent: DefaultKeyboardShortcutsDialogContent,
 					...overrides,
 				}),
 				[overrides]

@@ -1,6 +1,8 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import classNames from 'classnames'
+import { unwrapLabel } from '../../hooks/useActions'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -14,6 +16,7 @@ export function TldrawUiMenuGroup({
 	children?: any
 }) {
 	const { type: menuType } = useTldrawUiMenuContext()
+	const msg = useTranslation()
 
 	switch (menuType) {
 		case 'menu': {
@@ -39,6 +42,16 @@ export function TldrawUiMenuGroup({
 				>
 					{children}
 				</_ContextMenu.Group>
+			)
+		}
+		case 'keyboard-shortcuts': {
+			// todo: if groups need a label, let's give em a label
+			const labelToUse = msg(unwrapLabel(id, 'keyboard-shortcuts'))
+			return (
+				<div className="tlui-shortcuts-dialog__group">
+					<h2 className="tlui-shortcuts-dialog__group__title">{labelToUse}</h2>
+					<div className="tlui-shortcuts-dialog__group__content">{children}</div>
+				</div>
 			)
 		}
 		case 'actions': {

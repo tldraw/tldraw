@@ -8,6 +8,7 @@ import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
+import { Kbd } from '../primitives/Kbd'
 import { kbdStr } from '../primitives/shared'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
@@ -102,6 +103,20 @@ export function TldrawUiMenuItem<
 					onClick={() => onSelect('actions-menu')}
 					disabled={disabled}
 				/>
+			)
+		}
+		case 'keyboard-shortcuts': {
+			if (!kbd) return null
+
+			return (
+				<div className="tlui-shortcuts-dialog__key-pair" key={id}>
+					<div className="tlui-shortcuts-dialog__key-pair__key">
+						{msg(unwrapLabel(label, 'shortcuts'))}
+					</div>
+					<div className="tlui-shortcuts-dialog__key-pair__value">
+						<Kbd>{kbd!}</Kbd>
+					</div>
+				</div>
 			)
 		}
 	}

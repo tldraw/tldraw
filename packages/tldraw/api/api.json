@@ -2666,6 +2666,71 @@
         },
         {
           "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!DefaultKeyboardShortcutsDialog:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DefaultKeyboardShortcutsDialog: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DefaultKeyboardShortcutsDialog",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DefaultKeyboardShortcutsDialogContent:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultKeyboardShortcutsDialogContent(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DefaultKeyboardShortcutsDialogContent"
+        },
+        {
+          "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!DefaultMainMenu:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -15912,7 +15977,7 @@
             },
             {
               "kind": "Content",
-              "text": " | null"
+              "text": " | null | undefined"
             },
             {
               "kind": "Content",
@@ -17255,8 +17320,13 @@
                   "text": "component: "
                 },
                 {
+                  "kind": "Reference",
+                  "text": "ComponentType",
+                  "canonicalReference": "@types/react!React.ComponentType:type"
+                },
+                {
                   "kind": "Content",
-                  "text": "(props: "
+                  "text": "<"
                 },
                 {
                   "kind": "Reference",
@@ -17265,7 +17335,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => any"
+                  "text": ">"
                 },
                 {
                   "kind": "Content",
@@ -17278,7 +17348,7 @@
               "name": "component",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 4
+                "endIndex": 5
               }
             },
             {
@@ -20038,104 +20108,6 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsSchemaContextType:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiKeyboardShortcutsSchemaContextType = "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiMenuSchema",
-              "canonicalReference": "@tldraw/tldraw!TLUiMenuSchema:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useKeyboardShortcutsSchema.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiKeyboardShortcutsSchemaContextType",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsSchemaProviderProps:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiKeyboardShortcutsSchemaProviderProps = "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    overrides?: (editor: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Editor",
-              "canonicalReference": "@tldraw/editor!Editor:class"
-            },
-            {
-              "kind": "Content",
-              "text": ", schema: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiKeyboardShortcutsSchemaContextType",
-              "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", more: {\n        tools: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolsContextType",
-              "canonicalReference": "@tldraw/tldraw!TLUiToolsContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        actions: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiActionsContextType",
-              "canonicalReference": "@tldraw/tldraw!TLUiActionsContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    }) => "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiKeyboardShortcutsSchemaContextType",
-              "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    children: any;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useKeyboardShortcutsSchema.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiKeyboardShortcutsSchemaProviderProps",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 12
-          }
-        },
-        {
-          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/tldraw!TLUiMenuChild:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -20418,33 +20390,6 @@
             },
             {
               "kind": "Content",
-              "text": "['overrides']>>;\n    keyboardShortcutsMenu: "
-            },
-            {
-              "kind": "Reference",
-              "text": "WithDefaultHelpers",
-              "canonicalReference": "@tldraw/tldraw!~WithDefaultHelpers:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "NonNullable",
-              "canonicalReference": "!NonNullable:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiKeyboardShortcutsSchemaProviderProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsSchemaProviderProps:type"
-            },
-            {
-              "kind": "Content",
               "text": "['overrides']>>;\n    tools: "
             },
             {
@@ -20493,7 +20438,7 @@
           "name": "TLUiOverrides",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 29
+            "endIndex": 23
           }
         },
         {
@@ -22022,35 +21967,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!useKeyboardShortcutsSchema:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useKeyboardShortcutsSchema(): "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiKeyboardShortcutsSchemaContextType",
-              "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useKeyboardShortcutsSchema.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "useKeyboardShortcutsSchema"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!useLocalStorageState:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -22526,6 +22442,33 @@
             },
             {
               "kind": "Content",
+              "text": " | null;\n    KeyboardShortcutsDialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    KeyboardShortcutsDialogContent: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
               "text": " | null;\n}>"
             },
             {
@@ -22536,7 +22479,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTldrawUiComponents.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 41
+            "endIndex": 47
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

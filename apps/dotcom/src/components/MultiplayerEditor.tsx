@@ -1,6 +1,7 @@
 import {
 	DefaultContextMenuContent,
 	DefaultHelpMenuContent,
+	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenuContent,
 	Editor,
 	OfflineIndicator,
@@ -8,7 +9,9 @@ import {
 	TLUiComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	lns,
+	useActions,
 } from '@tldraw/tldraw'
 import { useCallback, useEffect } from 'react'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
@@ -20,8 +23,8 @@ import { createAssetFromFile } from '../utils/createAssetFromFile'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { useSharing } from '../utils/sharing'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
-import { useCursorChat } from '../utils/useCursorChat'
-import { useFileSystem } from '../utils/useFileSystem'
+import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
+import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { CursorChatBubble } from './CursorChatBubble'
 import { EmbeddedInIFrameWarning } from './EmbeddedInIFrameWarning'
@@ -60,6 +63,21 @@ const uiComponents: TLUiComponents = {
 			<DefaultMainMenuContent />
 		</>
 	),
+	KeyboardShortcutsDialogContent: () => {
+		const actions = useActions()
+		return (
+			<>
+				<TldrawUiMenuGroup id="shortcuts-dialog.file">
+					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
+				</TldrawUiMenuGroup>
+				<DefaultKeyboardShortcutsDialogContent />
+				<TldrawUiMenuGroup id="shortcuts-dialog.collaboration">
+					<TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
+				</TldrawUiMenuGroup>
+			</>
+		)
+	},
 }
 
 export function MultiplayerEditor({

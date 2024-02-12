@@ -1,5 +1,5 @@
 import { useDialogs } from '../../../hooks/useDialogsProvider'
-import { KeyboardShortcutsDialog } from '../../KeyboardShortcutsDialog'
+import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
 import { LanguageMenu } from '../../LanguageMenu'
 import { TldrawUiMenuItem } from '../TldrawUiMenuItem'
 
@@ -14,7 +14,10 @@ export function DefaultHelpMenuContent() {
 }
 
 function KeyboardShortcutsMenuItem() {
+	const { KeyboardShortcutsDialog } = useTldrawUiComponents()
 	const { addDialog } = useDialogs()
+
+	if (!KeyboardShortcutsDialog) return null
 
 	return (
 		<TldrawUiMenuItem
