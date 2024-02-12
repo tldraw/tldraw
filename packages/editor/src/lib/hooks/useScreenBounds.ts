@@ -1,4 +1,3 @@
-import { debounce } from '@tldraw/utils'
 import throttle from 'lodash.throttle'
 import { useLayoutEffect } from 'react'
 import { Box } from '../primitives/Box'
@@ -8,7 +7,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {
-		const updateScreenBounds = () => {
+		function updateScreenBounds() {
 			const container = ref.current
 			if (!container) return null
 
@@ -24,34 +23,62 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 			)
 		}
 
+		// Set the initial bounds
+		updateScreenBounds()
+
+		// Everything else uses a debounced update...
 		const updateBounds = throttle(updateScreenBounds, 200, {
 			trailing: true,
 		})
-
-		updateScreenBounds()
 
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes.
 		const interval = setInterval(updateBounds, 1000)
 		window.addEventListener('resize', updateBounds)
 
-		const resizeObserver = new ResizeObserver(
-			debounce((entries) => {
-				if (!entries[0].contentRect) return
-				updateScreenBounds()
-			}, 250)
-		)
+		const resizeObserver = new ResizeObserver((entries) => {
+			if (!entries[0].contentRect) return
+			updateBounds()
+		})
 
 		const container = ref.current
+		let scrollingParent: HTMLElement | Document | null = null
+
 		if (container) {
+			// When the container's size changes, update the bounds
 			resizeObserver.observe(container)
+
+			// When the container's nearest scrollable parent scrolls, update the bounds
+			scrollingParent = getNearestScrollableContainer(container)
+			scrollingParent.addEventListener('scroll', updateBounds)
 		}
 
 		return () => {
 			clearInterval(interval)
 			window.removeEventListener('resize', updateBounds)
-			window.removeEventListener('scroll', updateBounds)
 			resizeObserver.disconnect()
+			scrollingParent?.removeEventListener('scroll', updateBounds)
 		}
 	}, [editor, ref])
+}
+
+// Credits: from excalidraw
+// https://github.com/excalidraw/excalidraw/blob/07ebd7c68ce6ff92ddbc22d1c3d215f2b21328d6/src/utils.ts#L542-L563
+const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Document => {
+	let parent = element.parentElement
+	while (parent) {
+		if (parent === document.body) {
+			return document
+		}
+		const { overflowY } = window.getComputedStyle(parent)
+		const hasScrollableContent = parent.scrollHeight > parent.clientHeight
+		if (
+			hasScrollableContent &&
+			(overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay')
+		) {
+			return parent
+		}
+		parent = parent.parentElement
+	}
+	return document
 }
