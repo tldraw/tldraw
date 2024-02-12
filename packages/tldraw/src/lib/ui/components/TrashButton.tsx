@@ -1,5 +1,4 @@
 import { track, useEditor } from '@tldraw/editor'
-import { useRef } from 'react'
 import { unwrapLabel, useActions } from '../hooks/useActions'
 import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -13,8 +12,6 @@ export const TrashButton = track(function TrashButton() {
 	const action = actions['delete']
 
 	const isReadonly = useReadonly()
-	const ref = useRef<HTMLButtonElement>(null)
-
 	if (isReadonly) return null
 
 	return (
@@ -29,7 +26,6 @@ export const TrashButton = track(function TrashButton() {
 			disabled={!(editor.isIn('select') && editor.getSelectedShapeIds().length > 0)}
 			title={`${msg(unwrapLabel(action.label))} ${kbdStr(action.kbd!)}`}
 			smallIcon
-			ref={ref}
 		/>
 	)
 })

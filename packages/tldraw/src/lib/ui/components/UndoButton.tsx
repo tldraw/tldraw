@@ -1,4 +1,4 @@
-import { memo, useRef } from 'react'
+import { memo } from 'react'
 import { unwrapLabel, useActions } from '../hooks/useActions'
 import { useCanUndo } from '../hooks/useCanUndo'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -9,8 +9,6 @@ export const UndoButton = memo(function UndoButton() {
 	const msg = useTranslation()
 	const canUndo = useCanUndo()
 	const actions = useActions()
-	const ref = useRef<HTMLButtonElement>(null)
-
 	const undo = actions['undo']
 
 	return (
@@ -22,7 +20,6 @@ export const UndoButton = memo(function UndoButton() {
 			disabled={!canUndo}
 			onClick={() => undo.onSelect('quick-actions')}
 			smallIcon
-			ref={ref}
 		/>
 	)
 })
