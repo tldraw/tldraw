@@ -1,5 +1,4 @@
 import {
-	Canvas,
 	Editor,
 	StoreSnapshot,
 	TLRecord,
@@ -8,11 +7,12 @@ import {
 	useLocalStore,
 } from '@tldraw/editor'
 import { ContainerProvider, useContainer } from '@tldraw/editor/src/lib/hooks/useContainer'
-import { EditorContext } from '@tldraw/editor/src/lib/hooks/useEditor'
-import React, { useLayoutEffect, useState } from 'react'
+import { EditorContext, useEditor } from '@tldraw/editor/src/lib/hooks/useEditor'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
+import { getSvgAsImage } from './utils/export/export'
 
 /** @public */
 export function TldrawImage({
@@ -104,11 +104,34 @@ function TldrawImageWithReadyStore({ store }: { store: TLStore }) {
 
 	if (!editor) return null
 
-	// editor.updateViewportScreenBounds()
-
 	return (
 		<EditorContext.Provider value={editor}>
-			<Canvas />
+			<Layout />
 		</EditorContext.Provider>
 	)
+}
+
+async function getImageUrl(editor: Editor) {
+	const shapeIds = editor.getPageShapeIds(editor.getCurrentPage().id)
+	const svg = await editor.getSvg([...shapeIds], { scale: 1, background: false })
+	if (!svg) throw new Error('Could not construct SVG.')
+	const blob = await getSvgAsImage(svg, false, { type: 'png', quality: 1, scale: 3 })
+	if (!blob) throw new Error('Could not construct image.')
+	const url = URL.createObjectURL(blob)
+	return url
+}
+
+function Layout() {
+	const editor = useEditor()
+	const [url, setUrl] = useState<string | null>(null)
+
+	useEffect(() => {
+		getImageUrl(editor).then((url) => {
+			setUrl(url)
+		})
+	}, [editor])
+
+	return url ? (
+		<img src={url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+	) : null
 }
