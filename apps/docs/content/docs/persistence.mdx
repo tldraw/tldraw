@@ -130,7 +130,7 @@ export default function () {
 
 Sometimes you won't be able to access the store's data synchronously. To handle this case, the `store` property also accepts a [TLStoreWithStatus](?).
 
-```ts
+```tsx
 export default function () {
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({
 		status: 'loading',

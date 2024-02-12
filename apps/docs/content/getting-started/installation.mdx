@@ -12,25 +12,13 @@ At the moment the `@tldraw/tldraw` package is in beta. We also ship a canary ver
 
 First, install the `@tldraw/tldraw` package using `@beta` for the latest beta release.
 
-```bash
-yarn add @tldraw/tldraw@beta
-```
-
-```bash
-npm install @tldraw/tldraw@beta
-```
+<CodeBlock code={{'yarn': 'yarn add @tldraw/tldraw@beta', 'npm': 'npm install @tldraw/tldraw@beta', 'pnpm': 'pnpm add @tldraw/tldraw@beta'}} />
 
 ## Canary
 
 To get the very latest version, use the [latest canary release](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions). Docs for the very latest version are also available at [canary.tldraw.dev](https://canary.tldraw.dev).
 
-```bash
-yarn add @tldraw/tldraw@canary
-```
-
-```bash
-npm install @tldraw/tldraw@canary
-```
+<CodeBlock code={{'yarn': 'yarn add @tldraw/tldraw@canary', 'npm': 'npm install @tldraw/tldraw@canary', 'pnpm': 'pnpm add @tldraw/tldraw@canary'}} />
 
 ## Usage
 
@@ -57,7 +45,7 @@ It's important that the [Tldraw](?) component is wrapped in a parent container t
 
 In addition to the [Tldraw](?) component itself, you should also import the `tldraw.css` file from the `@tldraw/tldraw` package.
 
-```ts
+```tsx
 import '@tldraw/tldraw/tldraw.css'
 ```
 
@@ -99,7 +87,7 @@ const Tldraw = dynamic(async () => (await import('@tldraw/tldraw')).Tldraw, { ss
 
 If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
 
-```javascript
+```tsx
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
 
 const assetUrls = getAssetUrlsByMetaUrl()
@@ -121,7 +109,7 @@ By default we serve these assets from a [public CDN called unpkg](https://unpkg.
 
 If you would like to customize some of the assets you can pass the customizations to our [Tldraw](?) component. For example, to use a custom icon for the `hand` tool you can do the following:
 
-```javascript
+```tsx
 const assetUrls = {
     icons: {
         'tool-hand': './custom-tool-hand.svg',
@@ -143,7 +131,7 @@ If you want more flexibility you can also host these assets yourself:
 
 You can use our `getAssetUrls` helper function from the `@tldraw/assets` package to generate these urls for you.
 
-```javascript
+```tsx
 import { getAssetUrls } from '@tldraw/assets/selfHosted'
 
 const assetUrls = getAssetUrls()
@@ -155,7 +143,7 @@ While these files must be available, you can overwrite the individual files: for
 
 If you use a CDN for hosting these files you can specify the base url of your assets. To recreate the above option of serving the assets from unpkg you would do the following:
 
-```javascript
+```ts
 const assetUrls = getAssetUrls({
 	baseUrl: 'https://unpkg.com/@tldraw/assets@2.0.0-alpha.12/',
 })
@@ -169,7 +157,7 @@ The [Tldraw](?) component combines two lower-level components: [TldrawEditor](?)
 
 You can customize the appearance of the tldraw editor using the [Tldraw](?) (or [TldrawEditor](?) component's `components` prop.
 
-```ts
+```tsx
 <Tldraw
 	components={{
 		Background: YourCustomBackground,
