@@ -1,3 +1,4 @@
+import { debounce } from '@tldraw/utils'
 import throttle from 'lodash.throttle'
 import { useLayoutEffect } from 'react'
 import { Box } from '../primitives/Box'
@@ -9,9 +10,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 	useLayoutEffect(() => {
 		const updateScreenBounds = () => {
 			const container = ref.current
-			if (!container) {
-				return null
-			}
+			if (!container) return null
 
 			const rect = container.getBoundingClientRect()
 
@@ -32,15 +31,27 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 		updateScreenBounds()
 
 		// Rather than running getClientRects on every frame, we'll
-		// run it once a second or when the window resizes / scrolls.
+		// run it once a second or when the window resizes.
 		const interval = setInterval(updateBounds, 1000)
 		window.addEventListener('resize', updateBounds)
-		window.addEventListener('scroll', updateBounds)
+
+		const resizeObserver = new ResizeObserver(
+			debounce((entries) => {
+				if (!entries[0].contentRect) return
+				updateScreenBounds()
+			}, 250)
+		)
+
+		const container = ref.current
+		if (container) {
+			resizeObserver.observe(container)
+		}
 
 		return () => {
 			clearInterval(interval)
 			window.removeEventListener('resize', updateBounds)
 			window.removeEventListener('scroll', updateBounds)
+			resizeObserver.disconnect()
 		}
 	}, [editor, ref])
 }
