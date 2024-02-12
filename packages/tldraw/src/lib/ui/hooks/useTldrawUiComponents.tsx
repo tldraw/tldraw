@@ -1,8 +1,8 @@
 import { ComponentType, createContext, useContext, useMemo } from 'react'
-import { DefaultKeyboardShortcutsDialog } from '../KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
-import { DefaultKeyboardShortcutsDialogContent } from '../KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
-import { DefaultNavigationPanel } from '../components/DefaultNavigationPanel/DefaultNavigationPanel'
+import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+import { DefaultKeyboardShortcutsDialogContent } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 import { DefaultMinimap } from '../components/Minimap/DefaultMinimap'
+import { DefaultNavigationPanel } from '../components/NavigationPanel/DefaultNavigationPanel'
 import { DefaultPageMenu } from '../components/PageMenu/DefaultPageMenu'
 import {
 	DefaultStylePanel,

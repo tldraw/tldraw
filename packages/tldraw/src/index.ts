@@ -184,8 +184,8 @@ export {
 	type TLUiComponents,
 } from './lib/ui/hooks/useTldrawUiComponents'
 
-export { DefaultKeyboardShortcutsDialog } from './lib/ui/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
-export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
+export { DefaultKeyboardShortcutsDialog } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
 export {
 	DefaultStylePanel,

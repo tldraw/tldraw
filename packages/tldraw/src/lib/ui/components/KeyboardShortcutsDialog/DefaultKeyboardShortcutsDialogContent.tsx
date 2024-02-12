@@ -1,7 +1,7 @@
-import { TldrawUiMenuGroup } from '../components/menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../components/menus/TldrawUiMenuItem'
-import { useActions } from '../hooks/useActions'
-import { useTools } from '../hooks/useTools'
+import { useActions } from '../../hooks/useActions'
+import { useTools } from '../../hooks/useTools'
+import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultKeyboardShortcutsDialogContent() {

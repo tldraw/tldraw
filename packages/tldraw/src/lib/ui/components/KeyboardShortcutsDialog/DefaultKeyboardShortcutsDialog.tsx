@@ -1,8 +1,8 @@
 import { memo } from 'react'
-import { TldrawUiMenuContextProvider } from '../components/menus/TldrawUiMenuContext'
-import * as Dialog from '../components/primitives/Dialog'
-import { useTldrawUiComponents } from '../hooks/useTldrawUiComponents'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { useTldrawUiComponents } from '../../hooks/useTldrawUiComponents'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import * as Dialog from '../primitives/Dialog'
 
 /** @public */
 export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShortcutsDialog() {

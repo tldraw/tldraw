@@ -2687,7 +2687,7 @@
               "text": "<object>"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DefaultKeyboardShortcutsDialog",
@@ -2719,7 +2719,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
