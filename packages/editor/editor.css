@@ -224,13 +224,6 @@ input,
 	contain: strict;
 }
 
-.tl-fixed-layer {
-	position: absolute;
-	inset: 0px;
-	contain: strict;
-	pointer-events: none;
-}
-
 .tl-shapes {
 	position: relative;
 	z-index: var(--layer-shapes);
@@ -262,6 +255,13 @@ input,
 	top: 0px;
 	left: 0px;
 	transform-origin: top left;
+}
+
+.tl-fixed-layer {
+	position: absolute;
+	inset: 0px;
+	contain: strict;
+	pointer-events: none;
 }
 
 /* ------------------- Background ------------------- */
