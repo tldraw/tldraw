@@ -12,7 +12,6 @@ import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
-import { getSvgAsImage } from './utils/export/export'
 
 /** @public */
 export function TldrawImage({
@@ -115,8 +114,8 @@ async function getImageUrl(editor: Editor) {
 	const shapeIds = editor.getPageShapeIds(editor.getCurrentPage().id)
 	const svg = await editor.getSvg([...shapeIds], { scale: 1, background: false })
 	if (!svg) throw new Error('Could not construct SVG.')
-	const blob = await getSvgAsImage(svg, false, { type: 'png', quality: 1, scale: 3 })
-	if (!blob) throw new Error('Could not construct image.')
+	const data = new XMLSerializer().serializeToString(svg)
+	const blob = new Blob([data], { type: 'image/svg+xml' })
 	const url = URL.createObjectURL(blob)
 	return url
 }
