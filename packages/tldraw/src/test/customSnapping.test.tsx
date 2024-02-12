@@ -162,12 +162,17 @@ describe('custom shape bounds snapping - translate', () => {
 describe('custom handle snapping', () => {
 	type TestShape = TLBaseShape<
 		'test',
-		{ w: number; h: number; handleGeomVertices: VecModel[] | 'default' | null }
+		{
+			w: number
+			h: number
+			handleOutline: VecModel[] | 'default' | null
+			handlePoints: 'default' | VecModel[]
+		}
 	>
 	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
 		static override type = 'test'
 		override getDefaultProps(): TestShape['props'] {
-			return { w: 100, h: 100, handleGeomVertices: 'default' }
+			return { w: 100, h: 100, handleOutline: 'default', handlePoints: 'default' }
 		}
 		override component() {
 			throw new Error('Method not implemented.')
@@ -176,14 +181,15 @@ describe('custom handle snapping', () => {
 			throw new Error('Method not implemented.')
 		}
 		override getHandleSnapGeometry(shape: TestShape) {
-			const vertices = shape.props.handleGeomVertices
+			const { handleOutline, handlePoints } = shape.props
 			return {
 				outline:
-					vertices === 'default'
+					handleOutline === 'default'
 						? undefined
-						: vertices === null
+						: handleOutline === null
 							? null
-							: new Polyline2d({ points: vertices.map(Vec.From) }),
+							: new Polyline2d({ points: handleOutline.map(Vec.From) }),
+				points: handlePoints === 'default' ? undefined : handlePoints,
 			}
 		}
 	}
@@ -220,13 +226,12 @@ describe('custom handle snapping', () => {
 		return { x: handle.x, y: handle.y }
 	}
 
-	describe('with default handleGeomVertices', () => {
+	describe('with default handleSnapGeometry.outline', () => {
 		test('snaps handles to the box of the shape', () => {
 			startDraggingHandle()
 			editor.pointerMove(215, 205, undefined, { ctrlKey: true })
 			expect(editor.snaps.getIndicators()).toHaveLength(1)
-			expect(handlePosition().x).toBe(215)
-			expect(handlePosition().y).toBe(200)
+			expect(handlePosition()).toMatchObject({ x: 215, y: 200 })
 		})
 
 		test("doesn't particularly snap to vertices", () => {
@@ -234,25 +239,23 @@ describe('custom handle snapping', () => {
 			editor.pointerMove(204, 205, undefined, { ctrlKey: true })
 			// only snapped to the nearest edge, not the vertex
 			expect(editor.snaps.getIndicators()).toHaveLength(1)
-			expect(handlePosition().x).toBe(200)
-			expect(handlePosition().y).toBe(205)
+			expect(handlePosition()).toMatchObject({ x: 200, y: 205 })
 		})
 
 		test("doesn't snap to the center", () => {
 			startDraggingHandle()
 			editor.pointerMove(251, 251, undefined, { ctrlKey: true })
 			expect(editor.snaps.getIndicators()).toHaveLength(0)
-			expect(handlePosition().x).toBe(251)
-			expect(handlePosition().y).toBe(251)
+			expect(handlePosition()).toMatchObject({ x: 251, y: 251 })
 		})
 	})
 
-	describe('with empty handleGeomVertices', () => {
+	describe('with empty handleSnapGeometry.outline', () => {
 		beforeEach(() => {
 			editor.updateShape<TestShape>({
 				id: ids.test,
 				type: 'test',
-				props: { handleGeomVertices: null },
+				props: { handleOutline: null },
 			})
 		})
 
@@ -260,19 +263,18 @@ describe('custom handle snapping', () => {
 			startDraggingHandle()
 			editor.pointerMove(215, 205, undefined, { ctrlKey: true })
 			expect(editor.snaps.getIndicators()).toHaveLength(0)
-			expect(handlePosition().x).toBe(215)
-			expect(handlePosition().y).toBe(205)
+			expect(handlePosition()).toMatchObject({ x: 215, y: 205 })
 		})
 	})
 
-	describe('with custom handleGeomVertices', () => {
+	describe('with custom handleSnapGeometry.outline', () => {
 		beforeEach(() => {
 			editor.updateShape<TestShape>({
 				id: ids.test,
 				type: 'test',
 				props: {
 					// a diagonal line from the top left to the bottom right
-					handleGeomVertices: [
+					handleOutline: [
 						{ x: 0, y: 0 },
 						{ x: 100, y: 100 },
 					],
@@ -284,16 +286,96 @@ describe('custom handle snapping', () => {
 			startDraggingHandle()
 			editor.pointerMove(235, 205, undefined, { ctrlKey: true })
 			expect(editor.snaps.getIndicators()).toHaveLength(0)
-			expect(handlePosition().x).toBe(235)
-			expect(handlePosition().y).toBe(205)
+			expect(handlePosition()).toMatchObject({ x: 235, y: 205 })
 		})
 
 		test('snaps to the custom geometry', () => {
 			startDraggingHandle()
 			editor.pointerMove(210, 214, undefined, { ctrlKey: true })
 			expect(editor.snaps.getIndicators()).toHaveLength(1)
-			expect(handlePosition().x).toBe(212)
-			expect(handlePosition().y).toBe(212)
+			expect(handlePosition()).toMatchObject({ x: 212, y: 212 })
+		})
+	})
+
+	describe('with default handleSnapGeometry.points', () => {
+		test('doesnt snap to the center', () => {
+			startDraggingHandle()
+			editor.pointerMove(251, 251, undefined, { ctrlKey: true })
+			expect(editor.snaps.getIndicators()).toHaveLength(0)
+			expect(handlePosition()).toMatchObject({ x: 251, y: 251 })
+		})
+
+		test('doesnt snap to corners', () => {
+			startDraggingHandle()
+			editor.pointerMove(203, 202, undefined, { ctrlKey: true })
+			// snaps to edge, not corner:
+			expect(editor.snaps.getIndicators()).toHaveLength(1)
+			expect(handlePosition()).toMatchObject({ x: 203, y: 200 })
+		})
+	})
+
+	describe('with custom handleSnapGeometry.points', () => {
+		beforeEach(() => {
+			editor.updateShape<TestShape>({
+				id: ids.test,
+				type: 'test',
+				props: {
+					handlePoints: [
+						{ x: 30, y: 30 },
+						{ x: 70, y: 50 },
+					],
+				},
+			})
+		})
+
+		test('snaps to the custom points', () => {
+			startDraggingHandle()
+			editor.pointerMove(235, 235, undefined, { ctrlKey: true })
+			expect(editor.snaps.getIndicators()).toHaveLength(1)
+			expect(handlePosition()).toMatchObject({ x: 230, y: 230 })
+
+			editor.snaps.clearIndicators()
+			editor.pointerMove(265, 255, undefined, { ctrlKey: true })
+			expect(editor.snaps.getIndicators()).toHaveLength(1)
+			expect(handlePosition()).toMatchObject({ x: 270, y: 250 })
+		})
+	})
+
+	describe('with custom handleSnapGeometry.points along the outline', () => {
+		beforeEach(() => {
+			editor.updateShape<TestShape>({
+				id: ids.test,
+				type: 'test',
+				props: {
+					handlePoints: editor
+						.getShapeGeometry(ids.test)
+						.bounds.cornersAndCenter.map(({ x, y }) => ({ x, y })),
+				},
+			})
+		})
+
+		test('snaps to points over outline', () => {
+			startDraggingHandle()
+			editor.pointerMove(203, 202, undefined, { ctrlKey: true })
+			// snaps to corner, not edge:
+			expect(editor.snaps.getIndicators()).toHaveLength(1)
+			expect(handlePosition()).toMatchObject({ x: 200, y: 200 })
+		})
+
+		test('can still snap to non-outline points', () => {
+			startDraggingHandle()
+			editor.pointerMove(255, 255, undefined, { ctrlKey: true })
+			// snaps to the center:
+			expect(editor.snaps.getIndicators()).toHaveLength(1)
+			expect(handlePosition()).toMatchObject({ x: 250, y: 250 })
+		})
+
+		test('can still snap to non-point outlines', () => {
+			startDraggingHandle()
+			editor.pointerMove(235, 205, undefined, { ctrlKey: true })
+			// snaps to the edge:
+			expect(editor.snaps.getIndicators()).toHaveLength(1)
+			expect(handlePosition()).toMatchObject({ x: 235, y: 200 })
 		})
 	})
 })

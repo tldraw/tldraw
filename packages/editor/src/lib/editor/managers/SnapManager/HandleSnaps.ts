@@ -1,5 +1,5 @@
 import { computed } from '@tldraw/state'
-import { TLShape } from '@tldraw/tlschema'
+import { TLShape, VecModel } from '@tldraw/tlschema'
 import { assertExists } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
@@ -12,6 +12,8 @@ import { SnapData, SnapManager } from './SnapManager'
  * Customize how handles snap to a shape by returning this from
  * {@link ShapeUtil.getHandleSnapGeometry}.
  *
+ * Any co-ordinates here should be in the shape's local space.
+ *
  * @public
  */
 export interface HandleSnapGeometry {
@@ -21,6 +23,11 @@ export interface HandleSnapGeometry {
 	 * Set this to `null` to disable handle snapping to this shape's outline.
 	 */
 	outline?: Geometry2d | null
+	/**
+	 * Key points on the shape that the handle will snap to. For example, the corners of a
+	 * rectangle, or the centroid of a triangle. By default, no points are used.
+	 */
+	points?: VecModel[]
 }
 
 export class HandleSnaps {
@@ -39,6 +46,8 @@ export class HandleSnaps {
 					snapGeometry.outline === undefined
 						? editor.getShapeGeometry(shape)
 						: snapGeometry.outline,
+
+				points: snapGeometry.points,
 			}
 		})
 	}
@@ -52,23 +61,45 @@ export class HandleSnaps {
 	}): SnapData | null {
 		const snapThreshold = this.manager.getSnapThreshold()
 
-		// Find the nearest point that is within the snap threshold
-		let minDistance = snapThreshold
-		let nearestPoint: Vec | null = null
+		// We snap to two different parts of the shape's handle snap geometry:
+		// 1. The `outline`. This describes the outline of the shape, and we just snap to the
+		//    nearest point on that outline.
+		// 2. The `points`. These are handles or other key points that we want to snap to with a
+		//    higher priority than the normal outline snapping.
+		let minDistanceForOutline = snapThreshold
+		let nearestPointOnOutline: Vec | null = null
+
+		let minDistanceForSnapPoint = snapThreshold
+		let nearestSnapPoint: Vec | null = null
 
 		for (const shapeId of this.manager.getSnappableShapes()) {
-			const handleSnapOutline = this.getSnapGeometryCache().get(shapeId)?.outline
-			if (!handleSnapOutline) continue
+			const snapGeometry = this.getSnapGeometryCache().get(shapeId)
+			if (!snapGeometry) continue
 
 			const shapePageTransform = assertExists(this.editor.getShapePageTransform(shapeId))
 			const pointInShapeSpace = this.editor.getPointInShapeSpace(shapeId, handlePoint)
-			const nearestShapePointInShapeSpace = handleSnapOutline.nearestPoint(pointInShapeSpace)
-			const nearestInPageSpace = shapePageTransform.applyToPoint(nearestShapePointInShapeSpace)
-			const distance = Vec.Dist(handlePoint, nearestInPageSpace)
 
-			if (distance < minDistance) {
-				minDistance = distance
-				nearestPoint = nearestInPageSpace
+			if (snapGeometry.outline) {
+				const nearestShapePointInShapeSpace = snapGeometry.outline.nearestPoint(pointInShapeSpace)
+				const nearestInPageSpace = shapePageTransform.applyToPoint(nearestShapePointInShapeSpace)
+				const distance = Vec.Dist(handlePoint, nearestInPageSpace)
+
+				if (distance < minDistanceForOutline) {
+					minDistanceForOutline = distance
+					nearestPointOnOutline = nearestInPageSpace
+				}
+			}
+
+			if (snapGeometry.points) {
+				for (const snapPointInShapeSpace of snapGeometry.points) {
+					const snapPointInPageSpace = shapePageTransform.applyToPoint(snapPointInShapeSpace)
+					const distance = Vec.Dist(handlePoint, snapPointInPageSpace)
+
+					if (distance < minDistanceForSnapPoint) {
+						minDistanceForSnapPoint = distance
+						nearestSnapPoint = snapPointInPageSpace
+					}
+				}
 			}
 		}
 
@@ -77,23 +108,25 @@ export class HandleSnaps {
 			const nearestOnSegment = Vec.NearestPointOnLineSegment(segment[0], segment[1], handlePoint)
 			const distance = Vec.Dist(handlePoint, nearestOnSegment)
 
-			if (distance < minDistance) {
-				minDistance = distance
-				nearestPoint = nearestOnSegment
+			if (distance < minDistanceForOutline) {
+				minDistanceForOutline = distance
+				nearestPointOnOutline = nearestOnSegment
 			}
 		}
 
+		const target = nearestSnapPoint ?? nearestPointOnOutline ?? null
+
 		// If we found a point, display snap lines, and return the nudge
-		if (nearestPoint) {
+		if (target) {
 			this.manager.setIndicators([
 				{
 					id: uniqueId(),
 					type: 'points',
-					points: [nearestPoint],
+					points: [target],
 				},
 			])
 
-			return { nudge: Vec.Sub(nearestPoint, handlePoint) }
+			return { nudge: Vec.Sub(target, handlePoint) }
 		}
 
 		return null

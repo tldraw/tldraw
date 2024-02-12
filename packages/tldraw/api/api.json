@@ -10589,6 +10589,64 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/tldraw!LineShapeUtil#getHandleSnapGeometry:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHandleSnapGeometry(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLLineShape",
+                  "canonicalReference": "@tldraw/tlschema!TLLineShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        points: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHandleSnapGeometry"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/tldraw!LineShapeUtil#getOutlineSegments:member(1)",
               "docComment": "",
               "excerptTokens": [

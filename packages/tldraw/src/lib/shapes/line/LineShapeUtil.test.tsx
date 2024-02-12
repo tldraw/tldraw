@@ -214,6 +214,28 @@ describe('Snapping', () => {
 			},
 		})
 	})
+
+	it('snaps to vertices on other line shapes', () => {
+		editor.createShapesFromJsx([
+			<TL.line
+				x={150}
+				y={150}
+				handles={{ ['a1' as IndexKey]: { x: 200, y: 0 }, ['a2' as IndexKey]: { x: 300, y: 0 } }}
+			/>,
+		])
+
+		editor.select(id)
+
+		editor
+			.pointerDown(0, 0, { target: 'handle', shape: getShape(), handle: getHandles()[0] })
+			.pointerMove(205, 1, undefined, { ctrlKey: true })
+
+		expect(editor.snaps.getIndicators()).toHaveLength(1)
+		editor.expectShapeToMatch({
+			id: id,
+			props: { handles: { a1: { x: 200, y: 0 } } },
+		})
+	})
 })
 
 describe('Misc', () => {
