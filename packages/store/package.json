@@ -43,7 +43,6 @@
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@tldraw/validate": "workspace:*",
 		"lodash.isequal": "^4.5.0",
 		"nanoid": "4.0.2"
 	},
@@ -52,6 +51,7 @@
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
+		"@tldraw/validate": "workspace:*",
 		"@types/lodash.isequal": "^4.5.6",
 		"lazyrepo": "0.0.0-alpha.27",
 		"raf": "^3.4.1"

@@ -6,5 +6,5 @@
 		"outDir": "./.tsbuild",
 		"rootDir": "src"
 	},
-	"references": [{ "path": "../utils" }, { "path": "../state" }]
+	"references": [{ "path": "../utils" }, { "path": "../state" }, { "path": "../validate" }]
 }
