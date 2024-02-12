@@ -32,7 +32,7 @@ export function Canvas({ className }: { className?: string }) {
 	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
 	const rHtmlLayer2 = React.useRef<HTMLDivElement>(null)
 
-	useScreenBounds()
+	useScreenBounds(rCanvas)
 	useDocumentEvents()
 	useCoarsePointer()
 

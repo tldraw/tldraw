@@ -1,33 +1,85 @@
 import throttle from 'lodash.throttle'
 import { useLayoutEffect } from 'react'
+import { Box } from '../primitives/Box'
 import { useEditor } from './useEditor'
 
-export function useScreenBounds() {
+export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {
-		const updateBounds = throttle(
-			() => {
-				editor.updateViewportScreenBounds()
-			},
-			200,
-			{
-				trailing: true,
-			}
-		)
+		function updateScreenBounds() {
+			const container = ref.current
+			if (!container) return null
 
-		editor.updateViewportScreenBounds()
+			const rect = container.getBoundingClientRect()
+
+			editor.updateViewportScreenBounds(
+				new Box(
+					rect.left || rect.x,
+					rect.top || rect.y,
+					Math.max(rect.width, 1),
+					Math.max(rect.height, 1)
+				)
+			)
+		}
+
+		// Set the initial bounds
+		updateScreenBounds()
+
+		// Everything else uses a debounced update...
+		const updateBounds = throttle(updateScreenBounds, 200, {
+			trailing: true,
+		})
 
 		// Rather than running getClientRects on every frame, we'll
-		// run it once a second or when the window resizes / scrolls.
+		// run it once a second or when the window resizes.
 		const interval = setInterval(updateBounds, 1000)
 		window.addEventListener('resize', updateBounds)
-		window.addEventListener('scroll', updateBounds)
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			if (!entries[0].contentRect) return
+			updateBounds()
+		})
+
+		const container = ref.current
+		let scrollingParent: HTMLElement | Document | null = null
+
+		if (container) {
+			// When the container's size changes, update the bounds
+			resizeObserver.observe(container)
+
+			// When the container's nearest scrollable parent scrolls, update the bounds
+			scrollingParent = getNearestScrollableContainer(container)
+			scrollingParent.addEventListener('scroll', updateBounds)
+		}
 
 		return () => {
 			clearInterval(interval)
 			window.removeEventListener('resize', updateBounds)
-			window.removeEventListener('scroll', updateBounds)
+			resizeObserver.disconnect()
+			scrollingParent?.removeEventListener('scroll', updateBounds)
 		}
-	}, [editor])
+	}, [editor, ref])
+}
+
+// Credits: from v1 by way of excalidraw
+// https://github.com/tldraw/tldraw-v1/blob/main/packages/core/src/hooks/useResizeObserver.ts#L8
+// https://github.com/excalidraw/excalidraw/blob/48c3465b19f10ec755b3eb84e21a01a468e96e43/packages/excalidraw/utils.ts#L600
+const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Document => {
+	let parent = element.parentElement
+	while (parent) {
+		if (parent === document.body) {
+			return document
+		}
+		const { overflowY } = window.getComputedStyle(parent)
+		const hasScrollableContent = parent.scrollHeight > parent.clientHeight
+		if (
+			hasScrollableContent &&
+			(overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay')
+		) {
+			return parent
+		}
+		parent = parent.parentElement
+	}
+	return document
 }
