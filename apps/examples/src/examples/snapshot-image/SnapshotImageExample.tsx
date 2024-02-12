@@ -1,23 +1,6 @@
-import { Tldraw } from '@tldraw/tldraw'
+import { Tldraw, TldrawImage } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useState } from 'react'
-
-function TldrawImage() {
-	return (
-		<div
-			style={{
-				width: '100%',
-				height: '100%',
-				backgroundColor: 'lightblue',
-				display: 'flex',
-				justifyContent: 'center',
-				alignItems: 'center',
-			}}
-		>
-			Placeholder
-		</div>
-	)
-}
 
 export default function SnapshotImageExample() {
 	const [showImage, setShowImage] = useState(true)

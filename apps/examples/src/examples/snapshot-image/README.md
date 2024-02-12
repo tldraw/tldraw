@@ -1,6 +1,6 @@
 ---
 title: Snapshot image
-component: ./snapshot-image.tsx
+component: ./SnapshotImageExample.tsx
 category: ui
 priority: 3
 ---

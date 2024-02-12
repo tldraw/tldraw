@@ -1289,6 +1289,9 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
+export function TldrawImage(): JSX_2.Element;
+
+// @public (undocumented)
 export type TldrawProps = TldrawEditorBaseProps & ({
     store: TLStore | TLStoreWithStatus;
 } | {
