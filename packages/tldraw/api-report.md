@@ -279,9 +279,6 @@ function CheckboxItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemP
 // @public (undocumented)
 function CloseButton(): JSX_2.Element;
 
-// @public (undocumented)
-export function compactMenuItems<T>(arr: T[]): Exclude<T, false | null | undefined>[];
-
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
@@ -533,9 +530,6 @@ export type EventsProviderProps = {
 
 // @public
 export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, opts?: Partial<TLSvgOptions>): Promise<void>;
-
-// @public (undocumented)
-export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<string>;
 
 // @public
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
@@ -978,29 +972,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     static type: "line";
 }
-
-// @public (undocumented)
-export function menuCustom(id: string, opts?: Partial<{
-    readonlyOk: boolean;
-    disabled: boolean;
-}>): {
-    id: string;
-    type: "custom";
-    disabled: boolean;
-    readonlyOk: boolean;
-};
-
-// @public (undocumented)
-export function menuGroup(id: string, ...children: (false | TLUiMenuChild)[]): null | TLUiMenuGroup;
-
-// @public (undocumented)
-export function menuItem(actionItem: TLUiActionItem | TLUiToolItem, opts?: Partial<{
-    checked: boolean;
-    disabled: boolean;
-}>): TLUiMenuItem;
-
-// @public (undocumented)
-export function menuSubmenu(id: string, label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey, ...children: (false | TLUiMenuChild)[]): null | TLUiSubMenu;
 
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
@@ -1529,14 +1500,6 @@ export interface TLUiContextMenuProps {
 }
 
 // @public (undocumented)
-export type TLUiCustomMenuItem = {
-    id: string;
-    type: 'custom';
-    disabled: boolean;
-    readonlyOk: boolean;
-};
-
-// @public (undocumented)
 export interface TLUiDialog {
     // (undocumented)
     component: ComponentType<TLUiDialogProps>;
@@ -1780,48 +1743,12 @@ export interface TLUiInputProps {
 }
 
 // @public (undocumented)
-export type TLUiMenuChild<TranslationKey extends string = string> = null | TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<TranslationKey>;
-
-// @public (undocumented)
-export type TLUiMenuGroup = {
-    id: string;
-    type: 'group';
-    checkbox: boolean;
-    disabled: boolean;
-    readonlyOk: boolean;
-    children: TLUiMenuChild[];
-};
-
-// @public (undocumented)
-export type TLUiMenuItem = {
-    id: string;
-    type: 'item';
-    readonlyOk: boolean;
-    actionItem: TLUiActionItem;
-    disabled: boolean;
-    checked: boolean;
-};
-
-// @public (undocumented)
-export type TLUiMenuSchema = (TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem)[];
-
-// @public (undocumented)
 export type TLUiOverrides = Partial<{
     actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
     toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
     tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>;
     translations: TLUiTranslationProviderProps['overrides'];
 }>;
-
-// @public (undocumented)
-export type TLUiSubMenu<TranslationKey extends string = string> = {
-    id: string;
-    type: 'submenu';
-    label: TranslationKey;
-    disabled: boolean;
-    readonlyOk: boolean;
-    children: TLUiMenuChild[];
-};
 
 // @public (undocumented)
 export interface TLUiToast {

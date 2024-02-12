@@ -54,20 +54,6 @@ export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/But
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
 export {
-	compactMenuItems,
-	findMenuItem,
-	menuCustom,
-	menuGroup,
-	menuItem,
-	menuSubmenu,
-	type TLUiCustomMenuItem,
-	type TLUiMenuChild,
-	type TLUiMenuGroup,
-	type TLUiMenuItem,
-	type TLUiMenuSchema,
-	type TLUiSubMenu,
-} from './lib/ui/hooks/menuHelpers'
-export {
 	useActions,
 	type TLUiActionItem,
 	type TLUiActionsContextType,
