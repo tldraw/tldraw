@@ -1,35 +1,60 @@
-import { Editor, TLStore, TLStoreWithStatus, useLocalStore } from '@tldraw/editor'
+import {
+	Canvas,
+	Editor,
+	StoreSnapshot,
+	TLRecord,
+	TLStore,
+	TLStoreWithStatus,
+	useLocalStore,
+} from '@tldraw/editor'
 import { ContainerProvider, useContainer } from '@tldraw/editor/src/lib/hooks/useContainer'
 import { EditorContext } from '@tldraw/editor/src/lib/hooks/useEditor'
 import React, { useLayoutEffect, useState } from 'react'
+import { defaultShapeTools } from './defaultShapeTools'
+import { defaultShapeUtils } from './defaultShapeUtils'
+import { defaultTools } from './defaultTools'
 
 /** @public */
-export function TldrawImage() {
+export function TldrawImage({
+	snapshot,
+	persistenceKey,
+}: {
+	snapshot?: StoreSnapshot<TLRecord>
+	persistenceKey?: string
+}) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
 
 	return (
 		<div
 			ref={setContainer}
 			style={{
+				position: 'relative',
 				width: '100%',
 				height: '100%',
-				backgroundColor: 'lightblue',
-				display: 'flex',
-				justifyContent: 'center',
-				alignItems: 'center',
+				outline: 'black solid 1px',
+				// display: 'flex',
+				// justifyContent: 'center',
+				// alignItems: 'center',
 			}}
 		>
 			{container && (
 				<ContainerProvider container={container}>
-					<TldrawImageWithOwnStore />
+					<TldrawImageWithOwnStore snapshot={snapshot} persistenceKey={persistenceKey} />
 				</ContainerProvider>
 			)}
 		</div>
 	)
 }
 
-function TldrawImageWithOwnStore() {
-	const store = useLocalStore({})
+function TldrawImageWithOwnStore({
+	snapshot,
+	persistenceKey,
+}: {
+	snapshot?: StoreSnapshot<TLRecord>
+	persistenceKey?: string
+}) {
+	const shapeUtils = defaultShapeUtils
+	const store = useLocalStore({ snapshot, shapeUtils, persistenceKey })
 
 	return <TldrawImageWithLoadingStore store={store} />
 }
@@ -41,7 +66,7 @@ function TldrawImageWithLoadingStore({ store }: { store: TLStoreWithStatus }) {
 		}
 		case 'loading': {
 			// const LoadingScreen = rest.components?.LoadingScreen ?? DefaultLoadingScreen
-			return <div>Placeholder loading screen</div>
+			return null
 		}
 		case 'not-synced': {
 			break
@@ -64,8 +89,8 @@ function TldrawImageWithReadyStore({ store }: { store: TLStore }) {
 	useLayoutEffect(() => {
 		const editor = new Editor({
 			store,
-			shapeUtils: [],
-			tools: [],
+			shapeUtils: defaultShapeUtils,
+			tools: [...defaultTools, ...defaultShapeTools],
 			getContainer: () => container,
 		})
 		;(window as any).app = editor
@@ -79,9 +104,11 @@ function TldrawImageWithReadyStore({ store }: { store: TLStore }) {
 
 	if (!editor) return null
 
+	// editor.updateViewportScreenBounds()
+
 	return (
 		<EditorContext.Provider value={editor}>
-			<div>Placeholder</div>
+			<Canvas />
 		</EditorContext.Provider>
 	)
 }
