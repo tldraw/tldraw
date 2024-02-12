@@ -340,18 +340,21 @@ body {
 
 .article > h1,
 .article > h2 {
-	/* margin-top: 24px; */
-	padding-top: 106px;
-	margin-top: -82px;
 	pointer-events: none;
 	font-weight: 800;
 }
 
+.article > h2 {
+	margin-top: 16px;
+}
+
+.article > p + h2 {
+	margin-top: 48px;
+}
+
 .article > h3 {
-	/* margin-top: 24px; */
 	font-size: 1.5em;
-	padding-top: 106px;
-	margin-top: -90px;
+	padding-top: 16px;
 	pointer-events: none;
 	font-weight: 700;
 }
@@ -498,6 +501,21 @@ body {
 .article ol {
 	margin: 20px 0px;
 	padding-left: 16px;
+	margin-left: 8px;
+}
+
+.article ol h3 a {
+	color: var(--color-text);
+}
+
+.article ol h3,
+.article ol li::marker {
+	font-size: 1.17em;
+	line-height: 28px;
+}
+
+.article ol ul {
+	list-style-type: disc;
 }
 
 .article ul {
@@ -581,12 +599,32 @@ body {
 	gap: 12px;
 }
 
+
+
 .article__embed > iframe {
 	width: 100%;
 	height: 100%;
 	max-width: 100%;
 	border-radius: var(--border-radius-menu);
 	border: 1px solid var(--color-tint-2);
+}
+
+.article__embed--quickstart {
+	aspect-ratio: 16 / 9;
+	min-height: 405px;
+}
+
+@media screen and (max-width: 520px) {
+	.article__embed--quickstart {
+		aspect-ratio: 1 / 1;
+		height: auto;
+		width: 100%;
+	}
+}
+
+.article__embed--quickstart > iframe {
+	height: 100%;
+	border: 0;
 }
 
 .article__caption {
@@ -1172,6 +1210,10 @@ body {
 		height: auto;
 	}
 
+	.search__keyboard kbd {
+		display: none;
+	}
+
 	.article {
 		padding: 24px 16px 16px 16px;
 	}
@@ -1211,6 +1253,8 @@ body {
 	}
 }
 
+/* --------------------- Mobile --------------------- */
+
 @media (max-width: 760px) {
 	.article__image {
 		margin: 32px -16px;
@@ -1244,6 +1288,11 @@ body {
 		height: 100%;
 		width: 100%;
 		justify-content: flex-end;
+	}
+
+	.article__embed--quickstart {
+		aspect-ratio: 16/9;
+		min-height: 280px;
 	}
 }
 
@@ -1280,6 +1329,18 @@ html[data-theme='light'] .hero__dark {
 	background-color: transparent;
 	margin: 0px;
 	padding: 0px;
+}
+
+.code-example .sandpack .sp-syntax-string {
+	color: var(--sp-syntax-color-definition);
+}
+
+.code-example .sandpack .sp-syntax-property {
+	color: var(--sp-syntax-color-keyword);
+}
+
+.code-example .sandpack .sp-syntax-static {
+	color: var(--sp-syntax-color-keyword);
 }
 
 /* ------------------- Hero images ------------------ */
