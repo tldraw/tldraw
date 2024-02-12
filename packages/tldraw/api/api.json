@@ -10994,16 +10994,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLHandle",
-                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">;\n    }"
+                  "text": "<string, {\n            index: string;\n            x: number;\n            y: number;\n        }>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -11016,7 +11007,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 14
+                "endIndex": 12
               },
               "isStatic": true,
               "isProtected": false,

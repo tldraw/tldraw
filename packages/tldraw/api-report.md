@@ -921,7 +921,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
-        handles: DictValidator<string, TLHandle>;
+        handles: DictValidator<string, {
+        index: string;
+        x: number;
+        y: number;
+        }>;
     };
     // (undocumented)
     toSvg(shape: TLLineShape): SVGGElement;

@@ -3,9 +3,9 @@ import {
 	Mat,
 	StateNode,
 	TLEventHandlers,
-	TLHandle,
 	TLInterruptEvent,
 	TLLineShape,
+	TLLineShapeHandle,
 	TLShapeId,
 	Vec,
 	createShapeId,
@@ -51,7 +51,7 @@ export class Pointing extends StateNode {
 				new Vec(this.shape.x, this.shape.y)
 			)
 
-			let nextEndHandleIndex: IndexKey, nextEndHandleId: string, nextEndHandle: TLHandle
+			let nextEndHandleIndex: IndexKey, nextEndHandleId: string, nextEndHandle: TLLineShapeHandle
 
 			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint)
 
@@ -63,7 +63,7 @@ export class Pointing extends StateNode {
 				nextEndHandleIndex = endHandle.index
 				nextEndHandleId = endHandle.id
 				nextEndHandle = {
-					...endHandle,
+					index: endHandle.index,
 					x: nextPoint.x + 0.1,
 					y: nextPoint.y + 0.1,
 				}
@@ -72,18 +72,15 @@ export class Pointing extends StateNode {
 				nextEndHandleIndex = getIndexAbove(endHandle.index)
 				nextEndHandleId = 'handle:' + nextEndHandleIndex
 				nextEndHandle = {
-					id: nextEndHandleId,
-					type: 'vertex',
 					index: nextEndHandleIndex,
 					x: nextPoint.x + 0.1,
 					y: nextPoint.y + 0.1,
-					canBind: false,
 				}
 			}
 
 			const nextHandles = structuredClone(this.shape.props.handles)
 
-			nextHandles[nextEndHandle.id] = nextEndHandle
+			nextHandles[nextEndHandleId] = nextEndHandle
 
 			this.editor.updateShapes([
 				{

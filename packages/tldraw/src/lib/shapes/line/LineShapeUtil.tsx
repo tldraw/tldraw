@@ -52,19 +52,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			spline: 'line',
 			handles: {
 				start: {
-					id: 'start',
-					type: 'vertex',
-					canBind: false,
-					canSnap: true,
 					index: 'a1' as IndexKey,
 					x: 0,
 					y: 0,
 				},
 				end: {
-					id: 'end',
-					type: 'vertex',
-					canBind: false,
-					canSnap: true,
 					index: 'a2' as IndexKey,
 					x: 0.1,
 					y: 0.1,
@@ -84,7 +76,17 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 			const spline = getGeometryForLineShape(shape)
 
-			const sortedHandles = Object.values(handles).sort(sortByIndex)
+			const sortedHandles = Object.entries(handles)
+				.map(
+					([id, handle]): TLHandle => ({
+						id,
+						...handle,
+						type: 'vertex',
+						canBind: false,
+						canSnap: true,
+					})
+				)
+				.sort(sortByIndex)
 			const results = sortedHandles.slice()
 
 			// Add "create" handles between each vertex handle
@@ -99,6 +101,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					index,
 					x: point.x,
 					y: point.y,
+					canSnap: true,
+					canBind: false,
 				})
 			}
 
@@ -118,7 +122,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 		const handles = deepCopy(shape.props.handles)
 
-		Object.values(shape.props.handles).forEach(({ id, x, y }) => {
+		Object.entries(shape.props.handles).forEach(([id, { x, y }]) => {
 			handles[id].x = x * scaleX
 			handles[id].y = y * scaleY
 		})
@@ -156,9 +160,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					}
 				} else {
 					next.props.handles[id] = {
-						id,
-						type: 'vertex',
-						canBind: false,
 						index: handle.index,
 						x: handle.x,
 						y: handle.y,

@@ -25,17 +25,11 @@ beforeEach(() => {
 				props: {
 					handles: {
 						start: {
-							id: 'start',
-							type: 'vertex',
-							canBind: false,
 							index: 'a1',
 							x: 0,
 							y: 0,
 						},
 						end: {
-							id: 'end',
-							type: 'vertex',
-							canBind: false,
 							index: 'a2',
 							x: 100,
 							y: 100,
@@ -99,9 +93,6 @@ it('create new handle', () => {
 			handles: {
 				...shape.props.handles,
 				'handle:a1V': {
-					id: 'handle:a1V',
-					type: 'vertex',
-					canBind: false,
 					index: 'a1V',
 					x: 200,
 					y: 200,

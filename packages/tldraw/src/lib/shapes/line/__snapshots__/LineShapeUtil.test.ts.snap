@@ -13,18 +13,12 @@ exports[`Misc resizes: line shape after resize 1`] = `
     "dash": "draw",
     "handles": {
       "end": {
-        "canBind": false,
-        "id": "end",
         "index": "a2",
-        "type": "vertex",
         "x": 100,
         "y": 700,
       },
       "start": {
-        "canBind": false,
-        "id": "start",
         "index": "a1",
-        "type": "vertex",
         "x": 0,
         "y": 0,
       },

@@ -2765,16 +2765,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, import(\"../misc/TLHandle\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLHandle",
-              "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n}"
+              "text": "<string, {\n        index: string;\n        x: number;\n        y: number;\n    }>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
@@ -2783,7 +2774,7 @@
           "name": "lineShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 14
+            "endIndex": 12
           }
         },
         {
@@ -8183,6 +8174,46 @@
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
           "releaseTag": "Public",
           "name": "TLLineShape",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLLineShapeHandle:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLLineShapeHandle = "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.TypeOf",
+              "canonicalReference": "@tldraw/validate!TypeOf:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "lineHandleValidator",
+              "canonicalReference": "@tldraw/tlschema!~lineHandleValidator:var"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
+          "releaseTag": "Public",
+          "name": "TLLineShapeHandle",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 5

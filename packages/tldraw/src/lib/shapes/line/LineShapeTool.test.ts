@@ -66,8 +66,8 @@ describe('When dragging the line', () => {
 			y: 0,
 			props: {
 				handles: {
-					start: { id: 'start', index: 'a1', type: 'vertex', x: 0, y: 0 },
-					end: { id: 'end', index: 'a2', type: 'vertex', x: 10, y: 10 },
+					start: { index: 'a1', x: 0, y: 0 },
+					end: { index: 'a2', x: 10, y: 10 },
 				},
 			},
 		})
