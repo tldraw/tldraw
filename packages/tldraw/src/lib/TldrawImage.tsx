@@ -12,6 +12,7 @@ import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
+import { exportToString } from './utils/export/export'
 
 /** @public */
 export function TldrawImage({
@@ -112,12 +113,9 @@ function TldrawImageWithReadyStore({ store }: { store: TLStore }) {
 
 async function getImageUrl(editor: Editor) {
 	const shapeIds = editor.getPageShapeIds(editor.getCurrentPage().id)
-	const svg = await editor.getSvg([...shapeIds], { scale: 1, background: false })
-	if (!svg) throw new Error('Could not construct SVG.')
-	const data = new XMLSerializer().serializeToString(svg)
-	const blob = new Blob([data], { type: 'image/svg+xml' })
-	const url = URL.createObjectURL(blob)
-	return url
+	const string = await exportToString(editor, [...shapeIds], 'svg', { background: false })
+	const blob = new Blob([string], { type: 'image/svg+xml' })
+	return URL.createObjectURL(blob)
 }
 
 function Layout() {
