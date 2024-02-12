@@ -50,8 +50,8 @@ export function Sidebar({ headings, links, sectionId, categoryId, articleId }: S
 		const activeLink = document.querySelector('.sidebar__nav [data-active=true]') as HTMLElement
 		if (
 			activeLink &&
-			activeLink.offsetTop < sidebarEl.scrollTop &&
-			activeLink.offsetTop > sidebarEl.scrollTop + sidebarEl.clientHeight
+			(activeLink.offsetTop < sidebarEl.scrollTop ||
+				activeLink.offsetTop > sidebarEl.scrollTop + sidebarEl.clientHeight)
 		) {
 			// The above will *mostly* work to keep the position but we have some accordions that will collapse
 			// (like in the Reference docs) and we need to scroll to the active item.
