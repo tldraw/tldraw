@@ -1,3 +1,46 @@
+# v2.0.0-beta.3 (Tue Feb 13 2024)
+
+### Release Notes
+
+#### error reporting: rm ids from msgs for better Sentry grouping ([#2738](https://github.com/tldraw/tldraw/pull/2738))
+
+- Error reporting: improve grouping for Sentry.
+
+#### dev: add test-dev command for easier testing of packages ([#2627](https://github.com/tldraw/tldraw/pull/2627))
+
+- Adds easier testing command for individual packages.
+
+---
+
+#### 🚀 Enhancement
+
+- [dx] use Biome instead of Prettier, part 2 [#2731](https://github.com/tldraw/tldraw/pull/2731) ([@si14](https://github.com/si14))
+
+#### 🐛 Bug Fix
+
+- error reporting: rm ids from msgs for better Sentry grouping [#2738](https://github.com/tldraw/tldraw/pull/2738) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix validation for local files. [#2447](https://github.com/tldraw/tldraw/pull/2447) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🏠 Internal
+
+- Unbiome [#2776](https://github.com/tldraw/tldraw/pull/2776) ([@si14](https://github.com/si14))
+- Update the project to Node 20 [#2691](https://github.com/tldraw/tldraw/pull/2691) ([@si14](https://github.com/si14))
+- dev: add test-dev command for easier testing of packages [#2627](https://github.com/tldraw/tldraw/pull/2627) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Add docs [#2470](https://github.com/tldraw/tldraw/pull/2470) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- Bump Yarn to 4.0.2 and add version constraints [#2481](https://github.com/tldraw/tldraw/pull/2481) ([@si14](https://github.com/si14))
+
+#### Authors: 4
+
+- Dan Groshev ([@si14](https://github.com/si14))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.2 (Wed Jan 10 2024)
 
 ### Release Notes
