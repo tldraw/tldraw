@@ -1,13 +1,12 @@
 import { useEditor } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
-import { unwrapLabel, useActions } from '../hooks/useActions'
-import { Button } from './primitives/Button'
+import { useActions } from '../../hooks/useActions'
+import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 export function BackToContent() {
 	const editor = useEditor()
 
 	const actions = useActions()
-	const action = actions['back-to-content']
 
 	const [showBackToContent, setShowBackToContent] = useState(false)
 
@@ -42,12 +41,10 @@ export function BackToContent() {
 	if (!showBackToContent) return null
 
 	return (
-		<Button
-			iconLeft={action.icon}
-			label={unwrapLabel(action.label)}
-			type="low"
-			onClick={() => {
-				action.onSelect('helper-buttons')
+		<TldrawUiMenuItem
+			{...actions['back-to-content']}
+			onSelect={() => {
+				actions['back-to-content'].onSelect('helper-buttons')
 				setShowBackToContent(false)
 			}}
 		/>

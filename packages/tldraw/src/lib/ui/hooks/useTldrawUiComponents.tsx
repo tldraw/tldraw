@@ -1,6 +1,10 @@
 import { useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, createContext, useContext, useMemo } from 'react'
 import {
+	DefaultHelperButtons,
+	TLUiHelperButtonsProps,
+} from '../components/HelperButtons/DefaultHelperButtons'
+import {
 	DefaultKeyboardShortcutsDialog,
 	TLUiKeyboardShortcutsDialogProps,
 } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
@@ -38,6 +42,7 @@ export interface BaseTLUiComponents {
 	Toolbar: ComponentType
 	KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps>
 	QuickActions: ComponentType<TLUiQuickActionsProps>
+	HelperButtons: ComponentType<TLUiHelperButtonsProps>
 }
 
 /** @public */
@@ -75,6 +80,7 @@ export function TldrawUiComponentsProvider({
 					Toolbar: DefaultToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
+					HelperButtons: DefaultHelperButtons,
 					..._overrides,
 				}),
 				[_overrides]

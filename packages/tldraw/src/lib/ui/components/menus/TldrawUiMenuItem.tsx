@@ -119,5 +119,15 @@ export function TldrawUiMenuItem<
 				</div>
 			)
 		}
+		case 'helper-buttons': {
+			return (
+				<Button
+					type="normal"
+					label={unwrapLabel(label, 'helper-buttons')}
+					iconLeft={icon}
+					onClick={() => onSelect('helper-buttons')}
+				/>
+			)
+		}
 	}
 }

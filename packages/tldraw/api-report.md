@@ -315,6 +315,12 @@ export { DefaultContextMenu }
 export function DefaultContextMenuContent(): JSX_2.Element | null;
 
 // @public (undocumented)
+export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultHelperButtonsContent(): JSX_2.Element;
+
+// @public (undocumented)
 export const DefaultHelpMenu: NamedExoticComponent<TLUiHelpMenuProps>;
 
 // @public (undocumented)
@@ -1691,6 +1697,11 @@ export interface TLUiEventMap {
 export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'zoom-menu';
 
 // @public (undocumented)
+export type TLUiHelperButtonsProps = {
+    children?: any;
+};
+
+// @public (undocumented)
 export type TLUiHelpMenuProps = {
     children?: any;
 };
@@ -1985,6 +1996,7 @@ export function useTldrawUiComponents(): Partial<{
     Toolbar: ComponentType | null;
     KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
     QuickActions: ComponentType<TLUiQuickActionsProps> | null;
+    HelperButtons: ComponentType<TLUiHelperButtonsProps> | null;
 }>;
 
 // @public (undocumented)

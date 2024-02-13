@@ -2546,6 +2546,90 @@
           "name": "DefaultContextMenuContent"
         },
         {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DefaultHelperButtons:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultHelperButtons({ children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelperButtonsProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiHelperButtonsProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/HelperButtons/DefaultHelperButtons.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultHelperButtons"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DefaultHelperButtonsContent:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultHelperButtonsContent(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/HelperButtons/DefaultHelperButtonsContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DefaultHelperButtonsContent"
+        },
+        {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!DefaultHelpMenu:var",
           "docComment": "/**\n * @public\n */\n",
@@ -18987,6 +19071,32 @@
         },
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiHelperButtonsProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiHelperButtonsProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    children?: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/HelperButtons/DefaultHelperButtons.tsx",
+          "releaseTag": "Public",
+          "name": "TLUiHelperButtonsProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/tldraw!TLUiHelpMenuProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -22107,6 +22217,24 @@
             },
             {
               "kind": "Content",
+              "text": "> | null;\n    HelperButtons: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelperButtonsProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiHelperButtonsProps:type"
+            },
+            {
+              "kind": "Content",
               "text": "> | null;\n}>"
             },
             {
@@ -22117,7 +22245,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTldrawUiComponents.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 43
+            "endIndex": 47
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

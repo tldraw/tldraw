@@ -4,13 +4,10 @@ import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
 import { TLUiAssetUrlOverrides } from './assetUrls'
-import { BackToContent } from './components/BackToContent'
 import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { MenuZone } from './components/MenuZone'
-import { ExitPenMode } from './components/PenModeToggle'
-import { StopFollowing } from './components/StopFollowing'
 import { ToastViewport, Toasts } from './components/Toasts'
 import { Button } from './components/primitives/Button'
 import { useActions } from './hooks/useActions'
@@ -134,7 +131,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
-	const { StylePanel, Toolbar, HelpMenu, NavigationPanel } = useTldrawUiComponents()
+	const { StylePanel, Toolbar, HelpMenu, NavigationPanel, HelperButtons } = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
@@ -165,11 +162,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 						<div className="tlui-layout__top">
 							<div className="tlui-layout__top__left">
 								<MenuZone />
-								<div className="tlui-helper-buttons">
-									<ExitPenMode />
-									<BackToContent />
-									<StopFollowing />
-								</div>
+								{HelperButtons && <HelperButtons />}
 							</div>
 							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">

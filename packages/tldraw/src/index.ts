@@ -207,8 +207,12 @@ export {
 } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
 export { DefaultZoomMenuContent } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenuContent'
 
-import * as Dialog from './lib/ui/components/primitives/Dialog'
-import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
+// Helper buttons
+export {
+	DefaultHelperButtons,
+	type TLUiHelperButtonsProps,
+} from './lib/ui/components/HelperButtons/DefaultHelperButtons'
+export { DefaultHelperButtonsContent } from './lib/ui/components/HelperButtons/DefaultHelperButtonsContent'
 
 // Keyboard shortcuts dialog
 export {
@@ -217,8 +221,11 @@ export {
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 
+export { type TLComponents } from './lib/Tldraw'
+
+import * as Dialog from './lib/ui/components/primitives/Dialog'
+import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
+
 // N.B. Preserve order of import / export here with this comment.
 // Sometimes this can cause an import problem depending on build setup downstream.
 export { Dialog, DropdownMenu }
-
-export { type TLComponents } from './lib/Tldraw'
