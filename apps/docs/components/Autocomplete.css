@@ -5,6 +5,10 @@
 	flex-direction: row;
 	border-radius: 24px;
 	padding: 0 16px;
+	border: 1px solid var(--color-tint-2);
+}
+
+.autocomplete__wrapper:focus-within {
 	background-color: var(--color-tint-1);
 }
 

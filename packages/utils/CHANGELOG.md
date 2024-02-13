@@ -1,3 +1,49 @@
+# v2.0.0-beta.3 (Tue Feb 13 2024)
+
+### Release Notes
+
+#### Split snap manager into ShapeBoundsSnaps and HandleSnaps ([#2747](https://github.com/tldraw/tldraw/pull/2747))
+
+- `SnapLine`s are now called `SnapIndicator`s
+- Snapping methods moved from `editor.snaps` to `editor.snaps.shapeBounds` and `editor.snaps.handles` depending on the type of snapping you're trying to do.
+
+#### dev: add test-dev command for easier testing of packages ([#2627](https://github.com/tldraw/tldraw/pull/2627))
+
+- Adds easier testing command for individual packages.
+
+---
+
+#### 💥 Breaking Change
+
+- Split snap manager into ShapeBoundsSnaps and HandleSnaps [#2747](https://github.com/tldraw/tldraw/pull/2747) ([@SomeHats](https://github.com/SomeHats))
+- faster image processing in default asset handler [#2441](https://github.com/tldraw/tldraw/pull/2441) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🚀 Enhancement
+
+- [dx] use Biome instead of Prettier, part 2 [#2731](https://github.com/tldraw/tldraw/pull/2731) ([@si14](https://github.com/si14))
+
+#### 🏠 Internal
+
+- Unbiome [#2776](https://github.com/tldraw/tldraw/pull/2776) ([@si14](https://github.com/si14))
+- dev: add test-dev command for easier testing of packages [#2627](https://github.com/tldraw/tldraw/pull/2627) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🧪 Tests
+
+- Bump jest to fix weird prettier bug [#2716](https://github.com/tldraw/tldraw/pull/2716) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- Bump Yarn to 4.0.2 and add version constraints [#2481](https://github.com/tldraw/tldraw/pull/2481) ([@si14](https://github.com/si14))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Dan Groshev ([@si14](https://github.com/si14))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.2 (Wed Jan 10 2024)
 
 ### Release Notes

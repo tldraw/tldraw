@@ -1,3 +1,38 @@
+# v2.0.0-beta.3 (Tue Feb 13 2024)
+
+### Release Notes
+
+#### dev: add test-dev command for easier testing of packages ([#2627](https://github.com/tldraw/tldraw/pull/2627))
+
+- Adds easier testing command for individual packages.
+
+---
+
+#### 🚀 Enhancement
+
+- [dx] use Biome instead of Prettier, part 2 [#2731](https://github.com/tldraw/tldraw/pull/2731) ([@si14](https://github.com/si14))
+
+#### 🏠 Internal
+
+- Unbiome [#2776](https://github.com/tldraw/tldraw/pull/2776) ([@si14](https://github.com/si14))
+- Update the project to Node 20 [#2691](https://github.com/tldraw/tldraw/pull/2691) ([@si14](https://github.com/si14))
+- dev: add test-dev command for easier testing of packages [#2627](https://github.com/tldraw/tldraw/pull/2627) ([@mimecuvalo](https://github.com/mimecuvalo))
+- unbrivate, dot com in [#2475](https://github.com/tldraw/tldraw/pull/2475) ([@steveruizok](https://github.com/steveruizok) [@si14](https://github.com/si14) [@SomeHats](https://github.com/SomeHats))
+- Add docs [#2470](https://github.com/tldraw/tldraw/pull/2470) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- Bump Yarn to 4.0.2 and add version constraints [#2481](https://github.com/tldraw/tldraw/pull/2481) ([@si14](https://github.com/si14))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Dan Groshev ([@si14](https://github.com/si14))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.1 (Wed Dec 20 2023)
 
 ### Release Notes
