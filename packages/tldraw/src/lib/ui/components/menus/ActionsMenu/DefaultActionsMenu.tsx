@@ -4,13 +4,20 @@ import { memo } from 'react'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../../hooks/useReadonly'
-import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { Button } from '../../primitives/Button'
 import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
+import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
 /** @public */
-export const DefaultActionsMenu = memo(function DefaultActionsMenu() {
+export type TLUiActionsMenuProps = {
+	children?: any
+}
+
+/** @public */
+export const DefaultActionsMenu = memo(function DefaultActionsMenu({
+	children,
+}: TLUiActionsMenuProps) {
 	const container = useContainer()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
@@ -29,8 +36,9 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu() {
 	// Get the actions menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
-	const { ActionsMenuContent } = useTldrawUiComponents()
-	if (!ActionsMenuContent) return null
+
+	const content = children ?? <DefaultActionsMenuContent />
+	if (!content) return null
 	if (isReadOnly && !isInAcceptableReadonlyState) return
 
 	return (
@@ -55,7 +63,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu() {
 					>
 						<div className="tlui-actions-menu tlui-buttons__grid">
 							<TldrawUiMenuContextProvider type="actions" sourceId="actions-menu">
-								<ActionsMenuContent />
+								{content}
 							</TldrawUiMenuContextProvider>
 						</div>
 					</_Popover.Content>

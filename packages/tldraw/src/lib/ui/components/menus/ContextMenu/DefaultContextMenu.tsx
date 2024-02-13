@@ -2,8 +2,8 @@ import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import { memo, useCallback } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
-import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
 import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
+import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 
 /** @public */
 export interface TLUiContextMenuProps {
@@ -61,8 +61,8 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	// Get the context menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
-	const { ContextMenuContent } = useTldrawUiComponents()
-	if (!ContextMenuContent) return children
+	const content = children ?? <DefaultContextMenuContent />
+	if (!content) return null
 
 	return (
 		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
@@ -79,7 +79,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 						onContextMenu={preventDefault}
 					>
 						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-							<ContextMenuContent />
+							{content}
 						</TldrawUiMenuContextProvider>
 					</_ContextMenu.Content>
 				</_ContextMenu.Portal>

@@ -3,21 +3,26 @@ import { ANIMATION_MEDIUM_MS, useContainer, useEditor, useValue } from '@tldraw/
 import { forwardRef, memo, useCallback } from 'react'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
-import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { Button } from '../../primitives/Button'
 import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
+import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
 /** @public */
-export const DefaultZoomMenu = memo(function DefaultZoomMenu() {
+export type TLUiZoomMenuProps = {
+	children?: any
+}
+
+/** @public */
+export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZoomMenuProps) {
 	const container = useContainer()
 	const [isOpen, onOpenChange] = useMenuIsOpen('zoom menu')
 
 	// Get the zoom menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
-	const { ZoomMenuContent } = useTldrawUiComponents()
-	if (!ZoomMenuContent) return <ZoomTriggerButton />
+	const content = children ?? <DefaultZoomMenuContent />
+	if (!content) return null
 
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -34,7 +39,7 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu() {
 					collisionPadding={4}
 				>
 					<TldrawUiMenuContextProvider type="menu" sourceId="zoom-menu">
-						<ZoomMenuContent />
+						{content}
 					</TldrawUiMenuContextProvider>
 				</_Dropdown.Content>
 			</_Dropdown.Portal>

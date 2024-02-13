@@ -1,10 +1,28 @@
-import { DefaultKeyboardShortcutsDialog, TLComponents, Tldraw } from '@tldraw/tldraw'
+import {
+	DefaultKeyboardShortcutsDialog,
+	DefaultKeyboardShortcutsDialogContent,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuItem,
+} from '@tldraw/tldraw'
+import { TLUiKeyboardShortcutsDialogProps } from '@tldraw/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import '@tldraw/tldraw/tldraw.css'
 
-function CustomKeyboardShortcutsDialog() {
+function CustomKeyboardShortcutsDialog(props: TLUiKeyboardShortcutsDialogProps) {
 	return (
 		<div style={{ transform: 'rotate(180deg)', position: 'relative' }}>
-			<DefaultKeyboardShortcutsDialog />
+			<DefaultKeyboardShortcutsDialog {...props}>
+				<DefaultKeyboardShortcutsDialogContent />
+				<TldrawUiMenuItem
+					id="about"
+					label="Like my posts"
+					icon="external-link"
+					readonlyOk
+					onSelect={() => {
+						window.open('https://x.com/tldraw', '_blank')
+					}}
+				/>
+			</DefaultKeyboardShortcutsDialog>
 		</div>
 	)
 }

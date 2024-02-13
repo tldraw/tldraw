@@ -3,6 +3,7 @@ import '@tldraw/tldraw/tldraw.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 import {
+	DefaultHelpMenu,
 	DefaultHelpMenuContent,
 	Editor,
 	ErrorBoundary,
@@ -105,13 +106,13 @@ export type TLDrawInnerProps = {
 }
 
 const components: TLComponents = {
-	HelpMenuContent: () => (
-		<>
+	HelpMenu: () => (
+		<DefaultHelpMenu>
 			<TldrawUiMenuGroup id="help">
 				<DefaultHelpMenuContent />
 			</TldrawUiMenuGroup>
 			<Links />
-		</>
+		</DefaultHelpMenu>
 	),
 }
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {

@@ -3,13 +3,18 @@ import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
-import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { Button } from '../../primitives/Button'
 import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
+import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
 
 /** @public */
-export const DefaultHelpMenu = memo(function DefaultHelpMenu() {
+export type TLUiHelpMenuProps = {
+	children?: any
+}
+
+/** @public */
+export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiHelpMenuProps) {
 	const container = useContainer()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
@@ -18,8 +23,8 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu() {
 	// Get the help menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
-	const { HelpMenuContent } = useTldrawUiComponents()
-	if (!HelpMenuContent) return null
+	const content = children ?? <DefaultHelpMenuContent />
+	if (!content) return null
 
 	if (breakpoint < 4) return null
 
@@ -45,7 +50,7 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu() {
 						collisionPadding={4}
 					>
 						<TldrawUiMenuContextProvider type="menu" sourceId="help-menu">
-							<HelpMenuContent />
+							{content}
 						</TldrawUiMenuContextProvider>
 					</_Dropdown.Content>
 				</_Dropdown.Portal>

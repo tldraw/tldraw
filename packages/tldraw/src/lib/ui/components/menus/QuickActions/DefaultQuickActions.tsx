@@ -1,14 +1,22 @@
-import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
+import { memo } from 'react'
 import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
+import { DefaultQuickActionsContent } from './DefaultQuickActionsContent'
 
 /** @public */
-export function DefaultQuickActions() {
-	const { QuickActionsContent } = useTldrawUiComponents()
-	if (!QuickActionsContent) return null
+export type TLUiQuickActionsProps = {
+	children?: any
+}
+
+/** @public */
+export const DefaultQuickActions = memo(function DefaultQuickActions({
+	children,
+}: TLUiQuickActionsProps) {
+	const content = children ?? <DefaultQuickActionsContent />
+	if (!content) return null
 
 	return (
 		<TldrawUiMenuContextProvider type="actions" sourceId="quick-actions">
-			<QuickActionsContent />
+			{children}
 		</TldrawUiMenuContextProvider>
 	)
-}
+})

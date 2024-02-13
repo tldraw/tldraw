@@ -1,56 +1,39 @@
 import { ComponentType, createContext, useContext, useMemo } from 'react'
-import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
-import { DefaultKeyboardShortcutsDialogContent } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
+import {
+	DefaultKeyboardShortcutsDialog,
+	TLUiKeyboardShortcutsDialogProps,
+} from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { DefaultMinimap } from '../components/Minimap/DefaultMinimap'
 import { DefaultNavigationPanel } from '../components/NavigationPanel/DefaultNavigationPanel'
 import { DefaultPageMenu } from '../components/PageMenu/DefaultPageMenu'
-import {
-	DefaultStylePanel,
-	type TLUiStylePanelProps,
-} from '../components/StylePanel/DefaultStylePanel'
-import {
-	DefaultStylePanelContent,
-	TLUiStylePanelContentProps,
-} from '../components/StylePanel/DefaultStylePanelContent'
+import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
-import { DefaultActionsMenu } from '../components/menus/ActionsMenu/DefaultActionsMenu'
-import { DefaultActionsMenuContent } from '../components/menus/ActionsMenu/DefaultActionsMenuContent'
+import {
+	DefaultActionsMenu,
+	TLUiActionsMenuProps,
+} from '../components/menus/ActionsMenu/DefaultActionsMenu'
 import {
 	DefaultContextMenu,
 	TLUiContextMenuProps,
 } from '../components/menus/ContextMenu/DefaultContextMenu'
-import { DefaultContextMenuContent } from '../components/menus/ContextMenu/DefaultContextMenuContent'
-import { DefaultHelpMenu } from '../components/menus/HelpMenu/DefaultHelpMenu'
-import { DefaultHelpMenuContent } from '../components/menus/HelpMenu/DefaultHelpMenuContent'
-import { DefaultMainMenu } from '../components/menus/MainMenu/DefaultMainMenu'
-import { DefaultMainMenuContent } from '../components/menus/MainMenu/DefaultMainMenuContent'
+import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/menus/HelpMenu/DefaultHelpMenu'
+import { DefaultMainMenu, TLUiMainMenuProps } from '../components/menus/MainMenu/DefaultMainMenu'
 import { DefaultQuickActions } from '../components/menus/QuickActions/DefaultQuickActions'
-import { DefaultQuickActionsContent } from '../components/menus/QuickActions/DefaultQuickActionsContent'
-import { DefaultZoomMenu } from '../components/menus/ZoomMenu/DefaultZoomMenu'
-import { DefaultZoomMenuContent } from '../components/menus/ZoomMenu/DefaultZoomMenuContent'
-import { TLUiDialogProps } from './useDialogsProvider'
+import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/menus/ZoomMenu/DefaultZoomMenu'
 
 export interface BaseTLUiComponents {
 	ContextMenu: ComponentType<TLUiContextMenuProps>
-	ContextMenuContent: ComponentType
-	ActionsMenu: ComponentType
-	ActionsMenuContent: ComponentType
-	HelpMenu: ComponentType
-	HelpMenuContent: ComponentType
-	ZoomMenu: ComponentType
-	ZoomMenuContent: ComponentType
-	MainMenu: ComponentType
-	MainMenuContent: ComponentType
+	ActionsMenu: ComponentType<TLUiActionsMenuProps>
+	HelpMenu: ComponentType<TLUiHelpMenuProps>
+	ZoomMenu: ComponentType<TLUiZoomMenuProps>
+	MainMenu: ComponentType<TLUiMainMenuProps>
 	Minimap: ComponentType
 	StylePanel: ComponentType<TLUiStylePanelProps>
-	StylePanelContent: ComponentType<TLUiStylePanelContentProps>
 	PageMenu: ComponentType
 	NavigationPanel: ComponentType
 	Toolbar: ComponentType
-	KeyboardShortcutsDialog: ComponentType<TLUiDialogProps>
-	KeyboardShortcutsDialogContent: ComponentType
-	QuickActions: ComponentType
-	QuickActionsContent: ComponentType
+	KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps>
+	QuickActions: ComponentType<TLUiContextMenuProps>
 }
 
 /** @public */
@@ -75,25 +58,17 @@ export function TldrawUiComponentsProvider({
 			value={useMemo(
 				() => ({
 					ContextMenu: DefaultContextMenu,
-					ContextMenuContent: DefaultContextMenuContent,
 					ActionsMenu: DefaultActionsMenu,
-					ActionsMenuContent: DefaultActionsMenuContent,
 					HelpMenu: DefaultHelpMenu,
-					HelpMenuContent: DefaultHelpMenuContent,
 					ZoomMenu: DefaultZoomMenu,
-					ZoomMenuContent: DefaultZoomMenuContent,
 					MainMenu: DefaultMainMenu,
-					MainMenuContent: DefaultMainMenuContent,
 					Minimap: DefaultMinimap,
 					StylePanel: DefaultStylePanel,
-					StylePanelContent: DefaultStylePanelContent,
 					PageMenu: DefaultPageMenu,
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
-					KeyboardShortcutsDialogContent: DefaultKeyboardShortcutsDialogContent,
 					QuickActions: DefaultQuickActions,
-					QuickActionsContent: DefaultQuickActionsContent,
 					...overrides,
 				}),
 				[overrides]

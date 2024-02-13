@@ -46,10 +46,6 @@ export {
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
-export {
-	DefaultContextMenu as ContextMenu,
-	type TLUiContextMenuProps,
-} from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
@@ -137,21 +133,6 @@ export {
 	type TldrawFile,
 } from './lib/utils/tldr/file'
 
-// Main menu default component
-export { DefaultMainMenuContent } from './lib/ui/components/menus/MainMenu/DefaultMainMenuContent'
-
-// Context menu default component
-export { DefaultContextMenuContent } from './lib/ui/components/menus/ContextMenu/DefaultContextMenuContent'
-
-// Help menu default component
-export { DefaultHelpMenuContent } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenuContent'
-
-// Zoom menu default component
-export { DefaultZoomMenuContent } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenuContent'
-
-// Actions menu default component
-export { DefaultActionsMenuContent } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenuContent'
-
 // Minimap default component
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 
@@ -169,9 +150,8 @@ export {
 	type TLUiComponents,
 } from './lib/ui/hooks/useTldrawUiComponents'
 
-export { DefaultKeyboardShortcutsDialog } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
-export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
+
 export {
 	DefaultStylePanel,
 	type TLUiStylePanelProps as StylePanelProps,
@@ -180,17 +160,62 @@ export {
 	DefaultStylePanelContent,
 	type TLUiStylePanelContentProps as StylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+
+// Toolbar
 export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
-export { DefaultToolbarContent } from './lib/ui/components/Toolbar/DefaultToolbarContent'
-export { DefaultActionsMenu } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
-export { DefaultContextMenu } from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
-export { DefaultHelpMenu } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'
-export { DefaultMainMenu } from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
-export { DefaultQuickActions } from './lib/ui/components/menus/QuickActions/DefaultQuickActions'
+
+// Actions menu
+export {
+	DefaultActionsMenu,
+	type TLUiActionsMenuProps,
+} from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
+export { DefaultActionsMenuContent } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenuContent'
+
+// Context menu
+export {
+	DefaultContextMenu as ContextMenu,
+	DefaultContextMenu,
+	type TLUiContextMenuProps,
+} from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
+export { DefaultContextMenuContent } from './lib/ui/components/menus/ContextMenu/DefaultContextMenuContent'
+
+// Help menu
+export {
+	DefaultHelpMenu,
+	type TLUiHelpMenuProps,
+} from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'
+export { DefaultHelpMenuContent } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenuContent'
+
+// Main menu
+export {
+	DefaultMainMenu,
+	type TLUiMainMenuProps,
+} from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
+export { DefaultMainMenuContent } from './lib/ui/components/menus/MainMenu/DefaultMainMenuContent'
+
+// Quick actions
+export {
+	DefaultQuickActions,
+	type TLUiQuickActionsProps,
+} from './lib/ui/components/menus/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/menus/QuickActions/DefaultQuickActionsContent'
-export { DefaultZoomMenu } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
+
+// Zoom menu
+export {
+	DefaultZoomMenu,
+	type TLUiZoomMenuProps,
+} from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
+export { DefaultZoomMenuContent } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenuContent'
+
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
+
+// Keyboard shortcuts dialog
+export {
+	DefaultKeyboardShortcutsDialog,
+	type TLUiKeyboardShortcutsDialogProps,
+} from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 
 // N.B. Preserve order of import / export here with this comment.
 // Sometimes this can cause an import problem depending on build setup downstream.

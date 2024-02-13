@@ -1,7 +1,11 @@
 import {
+	DefaultContextMenu,
 	DefaultContextMenuContent,
+	DefaultHelpMenu,
 	DefaultHelpMenuContent,
+	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
+	DefaultMainMenu,
 	DefaultMainMenuContent,
 	Editor,
 	OfflineIndicator,
@@ -39,30 +43,30 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	ContextMenuContent: () => (
-		<>
+	ContextMenu: () => (
+		<DefaultContextMenu>
 			<CursorChatMenuItem />
 			<DefaultContextMenuContent />
-		</>
+		</DefaultContextMenu>
 	),
-	HelpMenuContent: () => (
-		<>
+	HelpMenu: () => (
+		<DefaultHelpMenu>
 			<TldrawUiMenuGroup id="help">
 				<DefaultHelpMenuContent />
 			</TldrawUiMenuGroup>
 			<Links />
-		</>
+		</DefaultHelpMenu>
 	),
-	MainMenuContent: () => (
-		<>
+	MainMenu: () => (
+		<DefaultMainMenu>
 			<MultiplayerFileMenu />
 			<DefaultMainMenuContent />
-		</>
+		</DefaultMainMenu>
 	),
-	KeyboardShortcutsDialogContent: () => {
+	KeyboardShortcutsDialog: (props) => {
 		const actions = useActions()
 		return (
-			<>
+			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup id="shortcuts-dialog.file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
@@ -71,7 +75,7 @@ const components: TLComponents = {
 				<TldrawUiMenuGroup id="shortcuts-dialog.collaboration">
 					<TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
 				</TldrawUiMenuGroup>
-			</>
+			</DefaultKeyboardShortcutsDialog>
 		)
 	},
 }

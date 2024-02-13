@@ -2,19 +2,20 @@ import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useCallback } from 'react'
 import { useRelevantStyles } from '../../hooks/useRevelantStyles'
-import { useTldrawUiComponents } from '../../hooks/useTldrawUiComponents'
+import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 
 /** @public */
 export interface TLUiStylePanelProps {
 	isMobile?: boolean
+	children?: any
 }
 
 /** @public */
 export const DefaultStylePanel = memo(function DefaultStylePanel({
 	isMobile,
+	children,
 }: TLUiStylePanelProps) {
 	const editor = useEditor()
-	const { StylePanelContent } = useTldrawUiComponents()
 
 	const relevantStyles = useRelevantStyles()
 
@@ -25,7 +26,9 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	}, [editor, isMobile])
 
 	if (!relevantStyles) return null
-	if (!StylePanelContent) return null
+
+	const Content = children ?? DefaultStylePanelContent
+	if (!Content) return null
 
 	return (
 		<div
@@ -33,7 +36,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 			data-ismobile={isMobile}
 			onPointerLeave={handlePointerOut}
 		>
-			<StylePanelContent relevantStyles={relevantStyles} />
+			<Content relevantStyles={relevantStyles} />
 		</div>
 	)
 })

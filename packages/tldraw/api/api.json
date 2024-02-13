@@ -2413,7 +2413,16 @@
             },
             {
               "kind": "Content",
-              "text": "<object>"
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionsMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiActionsMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ActionsMenu/DefaultActionsMenu.tsx",
@@ -2422,7 +2431,7 @@
           "name": "DefaultActionsMenu",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -2556,7 +2565,16 @@
             },
             {
               "kind": "Content",
-              "text": "<object>"
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelpMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiHelpMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/HelpMenu/DefaultHelpMenu.tsx",
@@ -2565,7 +2583,7 @@
           "name": "DefaultHelpMenu",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -2621,7 +2639,16 @@
             },
             {
               "kind": "Content",
-              "text": "<object>"
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiKeyboardShortcutsDialogProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsDialogProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog.tsx",
@@ -2630,7 +2657,7 @@
           "name": "DefaultKeyboardShortcutsDialog",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -2686,7 +2713,16 @@
             },
             {
               "kind": "Content",
-              "text": "<object>"
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiMainMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiMainMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/MainMenu/DefaultMainMenu.tsx",
@@ -2695,7 +2731,7 @@
           "name": "DefaultMainMenu",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -2797,41 +2833,45 @@
           }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DefaultQuickActions:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!DefaultQuickActions:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DefaultQuickActions(): "
+              "text": "DefaultQuickActions: "
             },
             {
               "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
+              "text": "import(\"react\")."
             },
             {
               "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
             },
             {
               "kind": "Content",
-              "text": " | null"
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiQuickActionsProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiQuickActionsProps:type"
             },
             {
               "kind": "Content",
-              "text": ";"
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/QuickActions/DefaultQuickActions.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 4
-          },
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "DefaultQuickActions"
+          "name": "DefaultQuickActions",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
+          }
         },
         {
           "kind": "Function",
@@ -3105,39 +3145,6 @@
           }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DefaultToolbarContent:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function DefaultToolbarContent(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "DefaultToolbarContent"
-        },
-        {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!defaultTools:var",
           "docComment": "/**\n * @public\n */\n",
@@ -3225,7 +3232,16 @@
             },
             {
               "kind": "Content",
-              "text": "<object>"
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiZoomMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiZoomMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ZoomMenu/DefaultZoomMenu.tsx",
@@ -3234,7 +3250,7 @@
           "name": "DefaultZoomMenu",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -13328,6 +13344,34 @@
           "members": [
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!StylePanelProps#children:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "children?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!StylePanelProps#isMobile:member",
               "docComment": "",
               "excerptTokens": [
@@ -16426,6 +16470,32 @@
         },
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiActionsMenuProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiActionsMenuProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    children?: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/ActionsMenu/DefaultActionsMenu.d.ts",
+          "releaseTag": "Public",
+          "name": "TLUiActionsMenuProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/tldraw!TLUiAssetUrlOverrides:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -19011,6 +19081,32 @@
           }
         },
         {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiHelpMenuProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiHelpMenuProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    children?: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/HelpMenu/DefaultHelpMenu.d.ts",
+          "releaseTag": "Public",
+          "name": "TLUiHelpMenuProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/tldraw!TLUiIconProps:interface",
           "docComment": "/**\n * @public\n */\n",
@@ -19771,6 +19867,63 @@
         },
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsDialogProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiKeyboardShortcutsDialogProps = "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " & {\n    children?: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog.tsx",
+          "releaseTag": "Public",
+          "name": "TLUiKeyboardShortcutsDialogProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiMainMenuProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiMainMenuProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    children?: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/MainMenu/DefaultMainMenu.d.ts",
+          "releaseTag": "Public",
+          "name": "TLUiMainMenuProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/tldraw!TLUiOverrides:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -19888,6 +20041,32 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 23
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiQuickActionsProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiQuickActionsProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    children?: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/QuickActions/DefaultQuickActions.d.ts",
+          "releaseTag": "Public",
+          "name": "TLUiQuickActionsProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
           }
         },
         {
@@ -20820,6 +20999,32 @@
           }
         },
         {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiZoomMenuProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiZoomMenuProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    children?: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/ZoomMenu/DefaultZoomMenu.d.ts",
+          "releaseTag": "Public",
+          "name": "TLUiZoomMenuProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!toolbarItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
@@ -21674,7 +21879,7 @@
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    ContextMenuContent: "
+              "text": "> | null;\n    ActionsMenu: "
             },
             {
               "kind": "Reference",
@@ -21683,7 +21888,16 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n    ActionsMenu: "
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionsMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiActionsMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    HelpMenu: "
             },
             {
               "kind": "Reference",
@@ -21692,7 +21906,16 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n    ActionsMenuContent: "
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelpMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiHelpMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    ZoomMenu: "
             },
             {
               "kind": "Reference",
@@ -21701,7 +21924,16 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n    HelpMenu: "
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiZoomMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiZoomMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    MainMenu: "
             },
             {
               "kind": "Reference",
@@ -21710,52 +21942,16 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n    HelpMenuContent: "
+              "text": "<"
             },
             {
               "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "TLUiMainMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiMainMenuProps:type"
             },
             {
               "kind": "Content",
-              "text": " | null;\n    ZoomMenu: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    ZoomMenuContent: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    MainMenu: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    MainMenuContent: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    Minimap: "
+              "text": "> | null;\n    Minimap: "
             },
             {
               "kind": "Reference",
@@ -21779,24 +21975,6 @@
               "kind": "Reference",
               "text": "TLUiStylePanelProps",
               "canonicalReference": "@tldraw/tldraw!StylePanelProps:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "> | null;\n    StylePanelContent: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiStylePanelContentProps",
-              "canonicalReference": "@tldraw/tldraw!StylePanelContentProps:type"
             },
             {
               "kind": "Content",
@@ -21840,12 +22018,12 @@
             },
             {
               "kind": "Reference",
-              "text": "TLUiDialogProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDialogProps:interface"
+              "text": "TLUiKeyboardShortcutsDialogProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsDialogProps:type"
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    KeyboardShortcutsDialogContent: "
+              "text": "> | null;\n    QuickActions: "
             },
             {
               "kind": "Reference",
@@ -21854,25 +22032,16 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n    QuickActions: "
+              "text": "<"
             },
             {
               "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "TLUiContextMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiContextMenuProps:interface"
             },
             {
               "kind": "Content",
-              "text": " | null;\n    QuickActionsContent: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n}>"
+              "text": "> | null;\n}>"
             },
             {
               "kind": "Content",
@@ -21882,7 +22051,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTldrawUiComponents.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 51
+            "endIndex": 43
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

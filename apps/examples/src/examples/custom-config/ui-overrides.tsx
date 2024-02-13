@@ -1,4 +1,5 @@
 import {
+	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	TLComponents,
 	TLUiOverrides,
@@ -32,14 +33,14 @@ export const uiOverrides: TLUiOverrides = {
 }
 
 export const components: TLComponents = {
-	KeyboardShortcutsDialogContent: () => {
+	KeyboardShortcutsDialog: (props) => {
 		const tools = useTools()
 		return (
-			<>
+			<DefaultKeyboardShortcutsDialog {...props}>
 				<DefaultKeyboardShortcutsDialogContent />
 				{/* Ideally, we'd interleave this into the tools group */}
 				<TldrawUiMenuItem {...tools['card']} />
-			</>
+			</DefaultKeyboardShortcutsDialog>
 		)
 	},
 }

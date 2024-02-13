@@ -1,4 +1,5 @@
 import {
+	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	TLComponents,
 	TLUiAssetUrlOverrides,
@@ -40,13 +41,13 @@ export const customAssetUrls: TLUiAssetUrlOverrides = {
 }
 
 export const components: TLComponents = {
-	KeyboardShortcutsDialogContent: () => {
+	KeyboardShortcutsDialog: (props) => {
 		const tools = useTools()
 		return (
-			<>
+			<DefaultKeyboardShortcutsDialog {...props}>
 				<DefaultKeyboardShortcutsDialogContent />
 				<TldrawUiMenuItem {...tools['speech']} />
-			</>
+			</DefaultKeyboardShortcutsDialog>
 		)
 	},
 }

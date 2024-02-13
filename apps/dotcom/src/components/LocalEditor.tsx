@@ -1,6 +1,9 @@
 import {
+	DefaultHelpMenu,
 	DefaultHelpMenuContent,
+	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
+	DefaultMainMenu,
 	DefaultMainMenuContent,
 	Editor,
 	TLComponents,
@@ -28,30 +31,30 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenuContent: () => (
-		<>
+	HelpMenu: () => (
+		<DefaultHelpMenu>
 			<TldrawUiMenuGroup id="help">
 				<DefaultHelpMenuContent />
 			</TldrawUiMenuGroup>
 			<Links />
-		</>
+		</DefaultHelpMenu>
 	),
-	MainMenuContent: () => (
-		<>
+	MainMenu: () => (
+		<DefaultMainMenu>
 			<LocalFileMenu />
 			<DefaultMainMenuContent />
-		</>
+		</DefaultMainMenu>
 	),
-	KeyboardShortcutsDialogContent: () => {
+	KeyboardShortcutsDialog: (props) => {
 		const actions = useActions()
 		return (
-			<>
+			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup id="shortcuts-dialog.file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
-			</>
+			</DefaultKeyboardShortcutsDialog>
 		)
 	},
 }

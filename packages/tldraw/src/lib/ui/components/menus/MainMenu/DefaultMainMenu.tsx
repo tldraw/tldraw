@@ -2,13 +2,18 @@ import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
-import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { Button } from '../../primitives/Button'
 import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
+import { DefaultMainMenuContent } from './DefaultMainMenuContent'
 
 /** @public */
-export const DefaultMainMenu = memo(function DefaultMainMenu() {
+export type TLUiMainMenuProps = {
+	children?: any
+}
+
+/** @public */
+export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiMainMenuProps) {
 	const container = useContainer()
 	const [isOpen, onOpenChange] = useMenuIsOpen('main menu')
 	const msg = useTranslation()
@@ -16,8 +21,8 @@ export const DefaultMainMenu = memo(function DefaultMainMenu() {
 	// Get the main menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
-	const { MainMenuContent } = useTldrawUiComponents()
-	if (!MainMenuContent) return null
+	const content = children ?? <DefaultMainMenuContent />
+	if (!content) return null
 
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -41,7 +46,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu() {
 					sideOffset={6}
 				>
 					<TldrawUiMenuContextProvider type="menu" sourceId="menu">
-						<MainMenuContent />
+						{content}
 					</TldrawUiMenuContextProvider>
 				</_Dropdown.Content>
 			</_Dropdown.Portal>
