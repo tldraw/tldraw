@@ -78,7 +78,7 @@ function getExportName(editor: Editor, defaultName: string) {
 	if (selectedShapes.length === 0) {
 		const documentName = editor.getDocumentSettings().name
 		if (documentName === '') return defaultName
-		documentName
+		return documentName
 	}
 	return undefined
 }

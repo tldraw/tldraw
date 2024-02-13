@@ -218,7 +218,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 			editor.updateDocumentSettings({ name: trimmed })
 		}
 
-		if (state.isEditing === false) {
+		if (!state.isEditing) {
 			save()
 		}
 	}, [documentSettings.name, editor, state.isEditing, state.name, setState])

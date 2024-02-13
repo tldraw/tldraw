@@ -323,7 +323,7 @@
 .tlui-document-name__inner {
 	border-radius: calc(var(--radius-2) + var(--space-2));
 	background-color: var(--color-background);
-	padding: 0px 0px 0px 0px;
+	padding: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -346,6 +346,7 @@
 	padding: var(--space-2) var(--space-3);
 	white-space: pre;
 	line-height: 24px;
+	min-width: 60px;
 }
 
 .tlui-document-name__input {
