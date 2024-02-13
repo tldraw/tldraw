@@ -1,15 +1,8 @@
 /* eslint-disable no-inner-declarations */
 
 import {
-	Editor,
-	Group2d,
-	Rectangle2d,
-	TLArrowShape,
-	TLGeoShape,
 	TLShape,
-	TLTextShape,
 	TLUnknownShape,
-	featureFlags,
 	getPointerInfo,
 	preventDefault,
 	stopEventPropagation,
@@ -18,16 +11,6 @@ import {
 } from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
-import {
-	ARROW_LABEL_FONT_SIZES,
-	ARROW_LABEL_PADDING,
-	FONT_FAMILIES,
-	FONT_SIZES,
-	LABEL_FONT_SIZES,
-	LABEL_PADDING,
-	TEXT_PROPS,
-} from './default-shape-constants'
-import { useEmojis } from './useEmojis'
 
 export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
 	id: T['id'],
@@ -35,12 +18,8 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	text: string
 ) {
 	const editor = useEditor()
+
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const { onKeyDown: onEmojiKeyDown } = useEmojis(rInput.current, (text: string) => {
-		editor.updateShapes<TLUnknownShape & { props: { text: string } }>([
-			{ id, type, props: { text } },
-		])
-	})
 	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
 
@@ -122,14 +101,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
 
-			if (featureFlags.emojiMenu.get()) {
-				const coords = getCaretPosition(editor, e.target as HTMLTextAreaElement)
-				const isHandledByEmoji = onEmojiKeyDown(e, coords)
-				if (isHandledByEmoji) {
-					return
-				}
-			}
-
 			switch (e.key) {
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {
@@ -148,7 +119,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				}
 			}
 		},
-		[editor, isEditing, onEmojiKeyDown]
+		[editor, isEditing]
 	)
 
 	// When the text changes, update the text value.
@@ -235,47 +206,4 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		handleDoubleClick,
 		isEmpty,
 	}
-}
-
-function getCaretPosition(editor: Editor, inputEl: HTMLTextAreaElement | null) {
-	const selectedShape = editor.getOnlySelectedShape() as
-		| TLTextShape
-		| TLArrowShape
-		| TLGeoShape
-		| undefined
-	if (!selectedShape) return null
-
-	let labelX, labelY
-	if (selectedShape.type === 'text') {
-		labelX = selectedShape.x
-		labelY = selectedShape.y
-	} else {
-		const geometry = editor.getShapeGeometry(selectedShape)
-		if (!(geometry instanceof Group2d)) return null
-		const labelGeometry = geometry.getLabel() as Rectangle2d
-		const padding = selectedShape.type === 'arrow' ? ARROW_LABEL_PADDING : LABEL_PADDING
-		labelX = selectedShape.x + labelGeometry.x + padding
-		labelY = selectedShape.y + labelGeometry.y + padding
-	}
-
-	const sizeSet =
-		selectedShape.type === 'arrow'
-			? ARROW_LABEL_FONT_SIZES
-			: selectedShape.type === 'text'
-				? FONT_SIZES
-				: LABEL_FONT_SIZES
-	const substring = !inputEl ? '' : inputEl.value.substring(0, inputEl.selectionStart)
-	const { w, h } = editor.textMeasure.measureText(substring, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[selectedShape.props.font],
-		fontSize: sizeSet[selectedShape.props.size],
-		maxWidth: null,
-	})
-
-	const { x, y } = editor.pageToScreen({ x: labelX, y: labelY })
-	const zoomLevel = editor.getZoomLevel()
-	const top = y + h * zoomLevel
-	const left = x + w * zoomLevel
-
-	return { top, left }
 }
