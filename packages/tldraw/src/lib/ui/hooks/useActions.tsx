@@ -194,7 +194,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor, defaultDocumentName))
+					exportAs(editor.getSelectedShapeIds(), 'png', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -205,7 +205,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor, defaultDocumentName))
+					exportAs(editor.getSelectedShapeIds(), 'json', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
