@@ -917,7 +917,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateRenderingBounds(): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, historyOptions?: TLCommandHistoryOptions): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
-    updateViewportScreenBounds(center?: boolean): this;
+    updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, animation?: TLAnimationOptions): this;

@@ -1,6 +1,6 @@
-/* ---------------------- Lists --------------------- */
-
 import React from 'react'
+
+/* ---------------------- Lists --------------------- */
 
 export const UnorderedList = (props: any) => {
 	return <ul {...props} />
@@ -136,11 +136,11 @@ export const Video = (props: any) => {
 /* ------------------- Code Blocks ------------------ */
 
 export const Pre = (props: any) => {
-	return <pre {...props} />
-}
+	if (props.children?.props?.className.startsWith('language-')) {
+		return props.children
+	}
 
-export const Code = (props: any) => {
-	return <code {...props} />
+	return <pre {...props} />
 }
 
 export const Footnotes = (props: any) => {
