@@ -1,8 +1,9 @@
 import * as _Popover from '@radix-ui/react-popover'
-import { useContainer } from '@tldraw/editor'
+import { useContainer, useEditor, useValue } from '@tldraw/editor'
 import { memo } from 'react'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
+import { useReadonly } from '../../../hooks/useReadonly'
 import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { Button } from '../../primitives/Button'
@@ -15,11 +16,22 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu() {
 	const breakpoint = useBreakpoint()
 	const [isOpen, onOpenChange] = useMenuIsOpen('actions-menu')
 
+	const isReadOnly = useReadonly()
+
+	const editor = useEditor()
+
+	const isInAcceptableReadonlyState = useValue(
+		'should display quick actions when in readonly',
+		() => editor.isInAny('hand', 'zoom'),
+		[editor]
+	)
+
 	// Get the actions menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
 	const { ActionsMenuContent } = useTldrawUiComponents()
 	if (!ActionsMenuContent) return null
+	if (isReadOnly && !isInAcceptableReadonlyState) return
 
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>

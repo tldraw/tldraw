@@ -339,6 +339,12 @@ export function DefaultMinimap(): JSX_2.Element;
 export const DefaultPageMenu: NamedExoticComponent<object>;
 
 // @public (undocumented)
+export function DefaultQuickActions(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
+
+// @public (undocumented)
 export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
 
 // @public (undocumented)
@@ -1949,6 +1955,8 @@ export function useTldrawUiComponents(): Partial<{
     Toolbar: ComponentType | null;
     KeyboardShortcutsDialog: ComponentType<TLUiDialogProps> | null;
     KeyboardShortcutsDialogContent: ComponentType | null;
+    QuickActions: ComponentType | null;
+    QuickActionsContent: ComponentType | null;
 }>;
 
 // @public (undocumented)

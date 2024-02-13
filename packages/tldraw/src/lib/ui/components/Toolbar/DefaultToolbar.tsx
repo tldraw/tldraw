@@ -9,11 +9,7 @@ import { useTldrawUiComponents } from '../../hooks/useTldrawUiComponents'
 import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { DuplicateButton } from '../DuplicateButton'
 import { MobileStylePanel } from '../MobileStylePanel'
-import { RedoButton } from '../RedoButton'
-import { TrashButton } from '../TrashButton'
-import { UndoButton } from '../UndoButton'
 import { Button } from '../primitives/Button'
 import * as M from '../primitives/DropdownMenu'
 import { kbdStr } from '../primitives/shared'
@@ -93,7 +89,7 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 		}
 	}, [dropdownFirstItem, editor, itemsInPanel])
 
-	const { ActionsMenu } = useTldrawUiComponents()
+	const { ActionsMenu, QuickActions } = useTldrawUiComponents()
 
 	return (
 		<div className="tlui-toolbar">
@@ -101,12 +97,9 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 				<div className="tlui-toolbar__left">
 					{!isReadonly && (
 						<div className="tlui-toolbar__extras">
-							{breakpoint < 6 && !(activeToolId === 'hand' || activeToolId === 'zoom') && (
+							{breakpoint < 6 && (
 								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
-									<UndoButton />
-									<RedoButton />
-									<TrashButton />
-									<DuplicateButton />
+									{QuickActions && <QuickActions />}
 									{ActionsMenu && <ActionsMenu />}
 								</div>
 							)}

@@ -1,31 +1,22 @@
-import { track, useEditor } from '@tldraw/editor'
+import { memo } from 'react'
 import { useBreakpoint } from '../hooks/useBreakpoint'
-import { useReadonly } from '../hooks/useReadonly'
 import { useTldrawUiComponents } from '../hooks/useTldrawUiComponents'
-import { DuplicateButton } from './DuplicateButton'
-import { RedoButton } from './RedoButton'
-import { TrashButton } from './TrashButton'
-import { UndoButton } from './UndoButton'
 
-export const MenuZone = track(function MenuZone() {
-	const editor = useEditor()
-
+export const MenuZone = memo(function MenuZone() {
 	const breakpoint = useBreakpoint()
-	const isReadonly = useReadonly()
 
-	const { MainMenu, ActionsMenu, PageMenu } = useTldrawUiComponents()
+	const { MainMenu, QuickActions, ActionsMenu, PageMenu } = useTldrawUiComponents()
+
+	if (!MainMenu && !PageMenu && breakpoint < 6) return null
 
 	return (
 		<div className="tlui-menu-zone">
 			<div className="tlui-buttons__horizontal">
 				{MainMenu && <MainMenu />}
 				{PageMenu && <PageMenu />}
-				{breakpoint >= 6 && !isReadonly && !editor.isInAny('hand', 'zoom') && (
+				{breakpoint < 6 ? null : (
 					<>
-						<UndoButton />
-						<RedoButton />
-						<TrashButton />
-						<DuplicateButton />
+						{QuickActions && <QuickActions />}
 						{ActionsMenu && <ActionsMenu />}
 					</>
 				)}

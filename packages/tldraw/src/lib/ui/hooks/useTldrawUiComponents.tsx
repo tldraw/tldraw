@@ -24,6 +24,8 @@ import { DefaultHelpMenu } from '../components/menus/HelpMenu/DefaultHelpMenu'
 import { DefaultHelpMenuContent } from '../components/menus/HelpMenu/DefaultHelpMenuContent'
 import { DefaultMainMenu } from '../components/menus/MainMenu/DefaultMainMenu'
 import { DefaultMainMenuContent } from '../components/menus/MainMenu/DefaultMainMenuContent'
+import { DefaultQuickActions } from '../components/menus/QuickActions/DefaultQuickActions'
+import { DefaultQuickActionsContent } from '../components/menus/QuickActions/DefaultQuickActionsContent'
 import { DefaultZoomMenu } from '../components/menus/ZoomMenu/DefaultZoomMenu'
 import { DefaultZoomMenuContent } from '../components/menus/ZoomMenu/DefaultZoomMenuContent'
 import { TLUiDialogProps } from './useDialogsProvider'
@@ -47,6 +49,8 @@ export interface BaseTLUiComponents {
 	Toolbar: ComponentType
 	KeyboardShortcutsDialog: ComponentType<TLUiDialogProps>
 	KeyboardShortcutsDialogContent: ComponentType
+	QuickActions: ComponentType
+	QuickActionsContent: ComponentType
 }
 
 /** @public */
@@ -88,6 +92,8 @@ export function TldrawUiComponentsProvider({
 					Toolbar: DefaultToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					KeyboardShortcutsDialogContent: DefaultKeyboardShortcutsDialogContent,
+					QuickActions: DefaultQuickActions,
+					QuickActionsContent: DefaultQuickActionsContent,
 					...overrides,
 				}),
 				[overrides]

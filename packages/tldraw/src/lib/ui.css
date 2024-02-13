@@ -863,6 +863,10 @@
 	height: 48px;
 }
 
+.tlui-toolbar__extras:empty {
+	display: none;
+}
+
 .tlui-toolbar__extras__controls {
 	display: flex;
 	position: relative;

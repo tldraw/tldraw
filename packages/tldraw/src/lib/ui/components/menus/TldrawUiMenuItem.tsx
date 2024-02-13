@@ -101,6 +101,7 @@ export function TldrawUiMenuItem<
 								: ''
 					}
 					onClick={() => onSelect('actions-menu')}
+					smallIcon
 					disabled={disabled}
 				/>
 			)

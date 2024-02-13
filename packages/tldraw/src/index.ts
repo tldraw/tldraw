@@ -186,6 +186,8 @@ export { DefaultActionsMenu } from './lib/ui/components/menus/ActionsMenu/Defaul
 export { DefaultContextMenu } from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
 export { DefaultHelpMenu } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'
 export { DefaultMainMenu } from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
+export { DefaultQuickActions } from './lib/ui/components/menus/QuickActions/DefaultQuickActions'
+export { DefaultQuickActionsContent } from './lib/ui/components/menus/QuickActions/DefaultQuickActionsContent'
 export { DefaultZoomMenu } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
