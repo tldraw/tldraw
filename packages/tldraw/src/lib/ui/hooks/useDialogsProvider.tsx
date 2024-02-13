@@ -12,6 +12,8 @@ export interface TLUiDialog {
 	id: string
 	onClose?: () => void
 	component: (props: TLUiDialogProps) => any
+	isCustomDialog?: boolean
+	dialogProps?: any
 }
 
 /** @public */

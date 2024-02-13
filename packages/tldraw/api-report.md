@@ -1420,7 +1420,11 @@ export interface TLUiDialog {
     // (undocumented)
     component: (props: TLUiDialogProps) => any;
     // (undocumented)
+    dialogProps?: any;
+    // (undocumented)
     id: string;
+    // (undocumented)
+    isCustomDialog?: boolean;
     // (undocumented)
     onClose?: () => void;
 }
