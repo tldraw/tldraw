@@ -31,6 +31,7 @@ type NameState = {
 }
 
 const MAX_TITLE_WIDTH_PX = 420
+const BUTTON_WIDTH = 44
 
 export const DocumentTopZone = track(function DocumentTopZone({
 	isOffline,
@@ -125,7 +126,7 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const leftWidth = leftPanel.offsetWidth
 		const rightWidth = rightPanel.offsetWidth
 		// ignore the width of the button:
-		const selfWidth = element.offsetWidth - 44
+		const selfWidth = element.offsetWidth - BUTTON_WIDTH
 
 		let xCoordIfCentered = (totalWidth - selfWidth) / 2
 
