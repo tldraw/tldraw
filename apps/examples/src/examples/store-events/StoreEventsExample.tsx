@@ -1,5 +1,6 @@
 import { Editor, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
+import _ from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
 
 // There's a guide at the bottom of this file!
@@ -17,7 +18,7 @@ export default function StoreEventsExample() {
 		if (!editor) return
 
 		function logChangeEvent(eventName: string) {
-			setStoreEvents((events) => [eventName, ...events])
+			setStoreEvents((events) => [...events, eventName])
 		}
 
 		//[1]
@@ -25,7 +26,7 @@ export default function StoreEventsExample() {
 			// Added
 			for (const record of Object.values(change.changes.added)) {
 				if (record.typeName === 'shape') {
-					logChangeEvent(`created shape (${record.type})`)
+					logChangeEvent(`created shape (${record.type})\n`)
 				}
 			}
 
@@ -37,13 +38,29 @@ export default function StoreEventsExample() {
 					from.currentPageId !== to.currentPageId
 				) {
 					logChangeEvent(`changed page (${from.currentPageId}, ${to.currentPageId})`)
+				} else if (from.id.startsWith('shape') && to.id.startsWith('shape')) {
+					let diff = _.reduce(
+						from,
+						(result: any[], value, key: string) =>
+							_.isEqual(value, (to as any)[key]) ? result : result.concat([key, value]),
+						[]
+					)
+					if (diff?.[0] === 'props') {
+						diff = _.reduce(
+							(from as any).props,
+							(result: any[], value, key) =>
+								_.isEqual(value, (to as any).props[key]) ? result : result.concat([key, value]),
+							[]
+						)
+					}
+					logChangeEvent(`updated shape (${JSON.stringify(diff)})\n`)
 				}
 			}
 
 			// Removed
 			for (const record of Object.values(change.changes.removed)) {
 				if (record.typeName === 'shape') {
-					logChangeEvent(`deleted shape (${record.type})`)
+					logChangeEvent(`deleted shape (${record.type})\n`)
 				}
 			}
 		}
@@ -76,9 +93,7 @@ export default function StoreEventsExample() {
 					overflow: 'auto',
 				}}
 			>
-				{storeEvents.map((t, i) => (
-					<div key={i}>{t}</div>
-				))}
+				<pre>{storeEvents}</pre>
 			</div>
 		</div>
 	)

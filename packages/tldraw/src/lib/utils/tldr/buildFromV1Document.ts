@@ -588,7 +588,6 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 		editor.history.clear()
 		editor.selectNone()
-		editor.updateViewportScreenBounds()
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {

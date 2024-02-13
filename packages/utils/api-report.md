@@ -87,6 +87,9 @@ export function getOwnProperty(obj: object, key: string): unknown;
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @public
+export function invLerp(a: number, b: number, t: number): number;
+
+// @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
 // @public

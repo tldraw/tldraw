@@ -168,7 +168,7 @@ export class DraggingHandle extends StateNode {
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setHintingShapes([])
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
@@ -177,7 +177,7 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private complete() {
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 
 		const { onInteractionEnd } = this.info
 		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
@@ -192,7 +192,7 @@ export class DraggingHandle extends StateNode {
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
@@ -234,7 +234,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		// Clear any existing snaps
-		editor.snaps.clear()
+		editor.snaps.clearIndicators()
 
 		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
 			// We're snapping
@@ -256,14 +256,14 @@ export class DraggingHandle extends StateNode {
 				.map((segment) => Mat.applyToPoints(pageTransform, segment))
 				.filter((_segment, i) => i !== handleIndex - 1 && i !== handleIndex)
 
-			const snapDelta = snaps.getSnappingHandleDelta({
+			const snap = snaps.handles.snapHandle({
 				additionalSegments,
 				handlePoint: Mat.applyToPoint(pageTransform, point),
 			})
 
-			if (snapDelta) {
-				snapDelta.rot(-editor.getShapeParentTransform(shape)!.rotation())
-				point.add(snapDelta)
+			if (snap) {
+				snap.nudge.rot(-editor.getShapeParentTransform(shape)!.rotation())
+				point.add(snap.nudge)
 			}
 		}
 

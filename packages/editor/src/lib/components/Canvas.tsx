@@ -32,7 +32,7 @@ export function Canvas({ className }: { className?: string }) {
 	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
 	const rHtmlLayer2 = React.useRef<HTMLDivElement>(null)
 
-	useScreenBounds()
+	useScreenBounds(rCanvas)
 	useDocumentEvents()
 	useCoarsePointer()
 
@@ -125,7 +125,7 @@ export function Canvas({ className }: { className?: string }) {
 					<SelectedIdIndicators />
 					<HoveredShapeIndicator />
 					<HintedShapeIndicator />
-					<SnapLinesWrapper />
+					<SnapIndicatorWrapper />
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
@@ -189,18 +189,18 @@ function ZoomBrushWrapper() {
 	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
 }
 
-function SnapLinesWrapper() {
+function SnapIndicatorWrapper() {
 	const editor = useEditor()
-	const lines = useValue('snapLines', () => editor.snaps.getLines(), [editor])
+	const lines = useValue('snapLines', () => editor.snaps.getIndicators(), [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
-	const { SnapLine } = useEditorComponents()
+	const { SnapIndicator } = useEditorComponents()
 
-	if (!(SnapLine && lines.length > 0)) return null
+	if (!(SnapIndicator && lines.length > 0)) return null
 
 	return (
 		<>
 			{lines.map((line) => (
-				<SnapLine key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
+				<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
 			))}
 		</>
 	)

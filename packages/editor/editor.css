@@ -89,10 +89,7 @@
 		var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background);
 	/* own properties */
 	position: relative;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	inset: 0px;
 	overflow: clip;
 }
 
@@ -217,10 +214,7 @@ input,
 
 .tl-canvas {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	inset: 0px;
 	color: var(--color-text);
 	z-index: var(--layer-canvas);
 	cursor: var(--tl-cursor);
@@ -228,16 +222,6 @@ input,
 	content-visibility: auto;
 	touch-action: none;
 	contain: strict;
-}
-
-.tl-fixed-layer {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	contain: strict;
-	pointer-events: none;
 }
 
 .tl-shapes {
@@ -273,6 +257,13 @@ input,
 	transform-origin: top left;
 }
 
+.tl-fixed-layer {
+	position: absolute;
+	inset: 0px;
+	contain: strict;
+	pointer-events: none;
+}
+
 /* ------------------- Background ------------------- */
 
 .tl-background {
@@ -286,10 +277,7 @@ input,
 
 .tl-grid {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	inset: 0px;
 	touch-action: none;
 	pointer-events: none;
 	z-index: var(--layer-grid);
@@ -351,10 +339,7 @@ input,
 
 .tl-svg-container {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	inset: 0px;
 	pointer-events: none;
 	stroke-linecap: round;
 	stroke-linejoin: round;
@@ -364,10 +349,7 @@ input,
 
 .tl-html-container {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	inset: 0px;
 	pointer-events: none;
 	stroke-linecap: round;
 	stroke-linejoin: round;
@@ -798,10 +780,7 @@ input,
 .tl-text-input,
 .tl-text-content {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	inset: 0px;
 	min-width: 1px;
 	min-height: 1px;
 	overflow: visible;
@@ -828,7 +807,7 @@ input,
 
 /* ------------------- Snap Lines ------------------- */
 
-.tl-snap-line {
+.tl-snap-indicator {
 	stroke: var(--color-accent);
 	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
@@ -1044,10 +1023,7 @@ input,
 
 .tl-text-label__inner > .tl-text-input {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	inset: 0px;
 	padding: 16px;
 	z-index: 4;
 }
@@ -1222,10 +1198,7 @@ input,
 .tl-note__scrim {
 	position: absolute;
 	z-index: 1;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	inset: 0px;
 	background-color: var(--color-background);
 	opacity: 0.28;
 }

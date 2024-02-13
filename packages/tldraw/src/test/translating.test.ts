@@ -1,7 +1,7 @@
 import {
-	GapsSnapLine,
-	PointsSnapLine,
-	SnapLine,
+	GapsSnapIndicator,
+	PointsSnapIndicator,
+	SnapIndicator,
 	TLArrowShape,
 	TLGeoShape,
 	TLShapeId,
@@ -41,17 +41,17 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
-const getNumSnapPoints = (snap: SnapLine): number => {
+const getNumSnapPoints = (snap: SnapIndicator): number => {
 	return snap.type === 'points' ? snap.points.length : (null as any as number)
 }
 
-function assertGaps(snap: SnapLine): asserts snap is GapsSnapLine {
+function assertGaps(snap: SnapIndicator): asserts snap is GapsSnapIndicator {
 	expect(snap.type).toBe('gaps')
 }
 
-function getGapAndPointLines(snaps: SnapLine[]) {
-	const gapLines = snaps.filter((snap) => snap.type === 'gaps') as GapsSnapLine[]
-	const pointLines = snaps.filter((snap) => snap.type === 'points') as PointsSnapLine[]
+function getGapAndPointLines(snaps: SnapIndicator[]) {
+	const gapLines = snaps.filter((snap) => snap.type === 'gaps') as GapsSnapIndicator[]
+	const pointLines = snaps.filter((snap) => snap.type === 'points') as PointsSnapIndicator[]
 	return { gapLines, pointLines }
 }
 
@@ -552,9 +552,9 @@ describe('snapping with single shapes', () => {
 		//       ┼  └──────┘
 
 		editor.pointerDown(25, 5, ids.box2).pointerMove(16, 35, { ctrlKey: true })
-		expect(editor.snaps.getLines()?.length).toBe(1)
+		expect(editor.snaps.getIndicators()?.length).toBe(1)
 
-		expect(getNumSnapPoints(editor.snaps.getLines()![0])).toBe(4)
+		expect(getNumSnapPoints(editor.snaps.getIndicators()![0])).toBe(4)
 	})
 
 	it('shows all the horizonal lines + points where the bounding boxes align', () => {
@@ -565,7 +565,9 @@ describe('snapping with single shapes', () => {
 		// x─────x────────────────────x─────x
 		editor.pointerDown(25, 5, ids.box2).pointerMove(36, 5, { ctrlKey: true })
 
-		const snaps = editor.snaps.getLines()!.sort((a, b) => getNumSnapPoints(a) - getNumSnapPoints(b))
+		const snaps = editor.snaps
+			.getIndicators()!
+			.sort((a, b) => getNumSnapPoints(a) - getNumSnapPoints(b))
 		expect(snaps.length).toBe(3)
 
 		// center snap line
@@ -586,7 +588,9 @@ describe('snapping with single shapes', () => {
 		// x └─────┘ x
 		editor.pointerDown(25, 5, ids.box2).pointerMove(5, 45, { ctrlKey: true })
 
-		const snaps = editor.snaps.getLines()!.sort((a, b) => getNumSnapPoints(a) - getNumSnapPoints(b))
+		const snaps = editor.snaps
+			.getIndicators()!
+			.sort((a, b) => getNumSnapPoints(a) - getNumSnapPoints(b))
 		expect(snaps.length).toBe(3)
 
 		// center snap line
@@ -602,23 +606,23 @@ describe('snapping with single shapes', () => {
 		editor.updateShapes([{ id: ids.box1, type: 'geo', x: -20 }])
 
 		editor.pointerDown(25, 5, ids.box2).pointerMove(36, 5, { ctrlKey: true })
-		expect(editor.snaps.getLines()!.length).toBe(0)
+		expect(editor.snaps.getIndicators()!.length).toBe(0)
 
 		editor.updateShapes([{ id: ids.box1, type: 'geo', x: editor.getViewportScreenBounds().w + 10 }])
 		editor.pointerMove(33, 5, { ctrlKey: true })
 
-		expect(editor.snaps.getLines()!.length).toBe(0)
+		expect(editor.snaps.getIndicators()!.length).toBe(0)
 		editor.updateShapes([{ id: ids.box1, type: 'geo', y: -20 }])
 
 		editor.pointerMove(5, 5, { ctrlKey: true })
-		expect(editor.snaps.getLines()!.length).toBe(0)
+		expect(editor.snaps.getIndicators()!.length).toBe(0)
 
 		editor.updateShapes([
 			{ id: ids.box1, type: 'geo', x: 0, y: editor.getViewportScreenBounds().h + 10 },
 		])
 
 		editor.pointerMove(5, 5, { ctrlKey: true })
-		expect(editor.snaps.getLines()!.length).toBe(0)
+		expect(editor.snaps.getIndicators()!.length).toBe(0)
 	})
 
 	it('does not snap on the Y axis if the shift key is pressed', () => {
@@ -782,8 +786,8 @@ describe('Snap-between behavior', () => {
 		// the midpoint is 125 and c is 10 wide so it should snap to 120 if we put it at 121
 		editor.pointerDown(55, 5, ids.line1).pointerMove(126, 67, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 120, y: 62 })
-		expect(editor.snaps.getLines()?.length).toBe(1)
-		const line = editor.snaps.getLines()![0]
+		expect(editor.snaps.getIndicators()?.length).toBe(1)
+		const line = editor.snaps.getIndicators()![0]
 		assertGaps(line)
 		expect(line.gaps.length).toBe(2)
 	})
@@ -806,7 +810,7 @@ describe('Snap-between behavior', () => {
 
 		editor.pointerDown(55, 5, ids.line1).pointerMove(126, 94, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 120, y: 90 })
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(1)
 		expect(gapLines[0].gaps.length).toBe(2)
@@ -836,7 +840,7 @@ describe('Snap-between behavior', () => {
 		// the midpoint is 125 and c is 10 wide so it should snap to 120 if we put it at 121
 		editor.pointerDown(55, 5, ids.line1).pointerMove(126, 67, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 120, y: 62 })
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(1)
 
@@ -871,9 +875,9 @@ describe('Snap-between behavior', () => {
 		// the midpoint is 125 and c is 10 wide so it should snap to 120 if we put it at 121
 		editor.pointerDown(55, 155, ids.line1).pointerMove(27, 126, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 22, y: 120 })
-		expect(editor.snaps.getLines()?.length).toBe(1)
-		assertGaps(editor.snaps.getLines()![0])
-		const { gapLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		expect(editor.snaps.getIndicators()?.length).toBe(1)
+		assertGaps(editor.snaps.getIndicators()![0])
+		const { gapLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines[0].gaps.length).toBe(2)
 	})
 	it('shows vertical snap points at the same time as vertical gaps', () => {
@@ -905,7 +909,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(55, 155, ids.line1).pointerMove(6, 126, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 0, y: 120 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(1)
 		expect(gapLines[0].gaps.length).toBe(2)
@@ -941,7 +945,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(55, 155, ids.line1).pointerMove(27, 126, { ctrlKey: true })
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 22, y: 120 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -976,10 +980,10 @@ describe('Snap-between behavior', () => {
 		])
 		editor.pointerDown(5, 5, ids.boxE).pointerMove(101, 126, { ctrlKey: true })
 		expect(editor.getShape(ids.boxE)).toMatchObject({ x: 95, y: 120 })
-		expect(editor.snaps.getLines()?.length).toBe(2)
-		assertGaps(editor.snaps.getLines()![0])
-		assertGaps(editor.snaps.getLines()![1])
-		const { gapLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		expect(editor.snaps.getIndicators()?.length).toBe(2)
+		assertGaps(editor.snaps.getIndicators()![0])
+		assertGaps(editor.snaps.getIndicators()![1])
+		const { gapLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines[0].gaps.length).toBe(2)
 		expect(gapLines[1].gaps.length).toBe(2)
 	})
@@ -1021,7 +1025,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(5, 5, ids.boxX).pointerMove(46, 46, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 40 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(2)
 		expect(gapLines[0].gaps).toHaveLength(4)
 		expect(gapLines[1].gaps).toHaveLength(4)
@@ -1054,7 +1058,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(65, 25, ids.boxX).pointerMove(16, 25, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 0, y: 20 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 		expect(gapLines).toHaveLength(2)
 		expect(gapLines[0].gaps).toHaveLength(2)
 		expect(gapLines[1].gaps).toHaveLength(2)
@@ -1091,7 +1095,7 @@ describe('Snap-between behavior', () => {
 		editor.pointerDown(50, 55, ids.boxX).pointerMove(51, 66, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 1, y: 61 })
-		expect(editor.snaps.getLines()?.length).toBe(0)
+		expect(editor.snaps.getIndicators()?.length).toBe(0)
 	})
 
 	it('should work if the thing being dragged is a selection', () => {
@@ -1119,7 +1123,7 @@ describe('Snap-between behavior', () => {
 
 		expect(editor.getShape(ids.line1)).toMatchObject({ x: 200, y: 21 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(0)
@@ -1158,7 +1162,7 @@ describe('Snap-next-to behavior', () => {
 		editor.pointerDown(5, 5, ids.boxX).pointerMove(6, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 0, y: 10 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -1194,7 +1198,7 @@ describe('Snap-next-to behavior', () => {
 		editor.pointerDown(5, 5, ids.boxX).pointerMove(6, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 0, y: 10 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(4)
@@ -1221,7 +1225,7 @@ describe('Snap-next-to behavior', () => {
 		editor.pointerDown(105, 5, ids.boxX).pointerMove(106, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 100, y: 10 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -1255,7 +1259,7 @@ describe('Snap-next-to behavior', () => {
 		editor.pointerDown(205, 5, ids.boxX).pointerMove(206, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 200, y: 10 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(4)
@@ -1281,7 +1285,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 10, y: 0 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -1323,7 +1327,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 10, y: 0 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(4)
@@ -1350,7 +1354,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 10, y: 40 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(2)
@@ -1391,7 +1395,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 10, y: 80 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(gapLines[0].gaps).toHaveLength(4)
@@ -1425,7 +1429,7 @@ describe('Snap-next-to behavior', () => {
 
 		expect(editor.getShape(ids.boxD)).toMatchObject({ x: 200, y: 131 })
 
-		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getLines()!)
+		const { gapLines, pointLines } = getGapAndPointLines(editor.snaps.getIndicators()!)
 
 		expect(gapLines).toHaveLength(1)
 		expect(pointLines).toHaveLength(0)
@@ -1576,7 +1580,7 @@ describe('translating a shape with a child', () => {
 
 		editor.pointerDown(25, 25, ids.box1).pointerMove(50, 25, { ctrlKey: true })
 
-		expect(editor.snaps.getLines()?.length).toBe(0)
+		expect(editor.snaps.getIndicators()?.length).toBe(0)
 		expect(editor.getShape(ids.box1)).toMatchObject({
 			x: 25,
 			y: 0,
@@ -1618,7 +1622,7 @@ describe('translating a shape with a bound shape', () => {
 
 		editor.pointerDown(50, 50, ids.box1).pointerMove(84, 110, { ctrlKey: true })
 
-		expect(editor.snaps.getLines().length).toBe(0)
+		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 
 	it('should preserve arrow bindings', () => {

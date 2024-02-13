@@ -1,6 +1,6 @@
 'use client'
 
-import { SandpackCodeEditor, SandpackFiles, SandpackProvider } from '@codesandbox/sandpack-react'
+import { SandpackCodeViewer, SandpackFiles, SandpackProvider } from '@codesandbox/sandpack-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
@@ -43,7 +43,7 @@ export default function ExampleCodeBlock({
 				}}
 				theme={theme === 'dark' ? 'dark' : 'light'}
 			>
-				<SandpackCodeEditor readOnly />
+				<SandpackCodeViewer />
 			</SandpackProvider>
 		</div>
 	)
