@@ -17,6 +17,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
+import { useUiEvents } from '../../hooks/useEventsProvider'
 import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
@@ -78,6 +79,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 
 function useStyleChangeCallback() {
 	const editor = useEditor()
+	const trackEvent = useUiEvents()
 
 	return React.useMemo(() => {
 		return function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
@@ -88,8 +90,10 @@ function useStyleChangeCallback() {
 				editor.setStyleForNextShapes(style, value, { squashing })
 				editor.updateInstanceState({ isChangingStyle: true })
 			})
+
+			trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
 		}
-	}, [editor])
+	}, [editor, trackEvent])
 }
 
 const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
@@ -102,6 +106,7 @@ function CommonStylePickerSet({
 	opacity: SharedStyle<number>
 }) {
 	const editor = useEditor()
+	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 
 	const handleValueChange = useStyleChangeCallback()
@@ -116,8 +121,10 @@ function CommonStylePickerSet({
 				editor.setOpacityForNextShapes(item, { ephemeral })
 				editor.updateInstanceState({ isChangingStyle: true })
 			})
+
+			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })
 		},
-		[editor]
+		[editor, trackEvent]
 	)
 
 	const color = styles.get(DefaultColorStyle)
@@ -134,7 +141,7 @@ function CommonStylePickerSet({
 					minBy(tldrawSupportedOpacities, (supportedOpacity) =>
 						Math.abs(supportedOpacity - opacity.value)
 					)!
-			  )
+				)
 
 	return (
 		<>

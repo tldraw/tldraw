@@ -17372,6 +17372,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiEventMap#\"set-style\":member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "'set-style': "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        id: string;\n        value: number | string;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "\"set-style\"",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TLUiEventMap#\"stack-shapes\":member",
               "docComment": "",
               "excerptTokens": [
@@ -18167,7 +18194,7 @@
             },
             {
               "kind": "Content",
-              "text": "'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'toolbar' | 'unknown' | 'zoom-menu'"
+              "text": "'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'zoom-menu'"
             },
             {
               "kind": "Content",

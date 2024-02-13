@@ -107,7 +107,7 @@ import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SideEffectManager } from './managers/SideEffectManager'
-import { SnapManager } from './managers/SnapManager'
+import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
@@ -5759,12 +5759,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? {
 							...translateStartChanges,
 							[val]: shape[val] + localDelta[val],
-					  }
+						}
 					: {
 							id: shape.id as any,
 							type: shape.type,
 							[val]: shape[val] + localDelta[val],
-					  }
+						}
 			)
 
 			v += pageBounds[shape.id][dim] + shapeGap
@@ -7850,16 +7850,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 					newShape.props.start = mappedId
 						? { ...newShape.props.start, boundShapeId: mappedId }
 						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-						  // convert the binding to a point at the time of copying
-						  { type: 'point', x: 0, y: 0 }
+							// convert the binding to a point at the time of copying
+							{ type: 'point', x: 0, y: 0 }
 				}
 				if (newShape.props.end.type === 'binding') {
 					const mappedId = idMap.get(newShape.props.end.boundShapeId)
 					newShape.props.end = mappedId
 						? { ...newShape.props.end, boundShapeId: mappedId }
 						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-						  // convert the binding to a point at the time of copying
-						  { type: 'point', x: 0, y: 0 }
+							// convert the binding to a point at the time of copying
+							{ type: 'point', x: 0, y: 0 }
 				}
 			}
 
@@ -7886,7 +7886,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					assets[i] = result.value as TLAsset
 				} else {
 					throw Error(
-						`Could not put content:\ncould not migrate content for asset:\n${asset.id}\n${asset.type}\nreason:${result.reason}`
+						`Could not put content:\ncould not migrate content for asset:\n${asset.type}\nreason:${result.reason}`
 					)
 				}
 			}
@@ -7944,7 +7944,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				newShapes[i] = result.value as TLShape
 			} else {
 				throw Error(
-					`Could not put content:\ncould not migrate content for shape:\n${shape.id}, ${shape.type}\nreason:${result.reason}`
+					`Could not put content:\ncould not migrate content for shape:\n${shape.type}\nreason:${result.reason}`
 				)
 			}
 		}
@@ -8588,11 +8588,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (!inputs.isPinching) return
 
 							const {
+								point: { z = 1 },
 								delta: { x: dx, y: dy },
 							} = info
 
 							const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-							const { x, y, z = 1 } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
+							const { x, y } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
 
 							const { x: cx, y: cy, z: cz } = this.getCamera()
 

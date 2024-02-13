@@ -1,3 +1,4 @@
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { kbd } from './shared'
 
 /** @internal */
@@ -7,6 +8,8 @@ export interface KbdProps {
 
 /** @internal */
 export function Kbd({ children }: KbdProps) {
+	const breakpoint = useBreakpoint()
+	if (breakpoint < 4) return null
 	return (
 		<kbd className="tlui-kbd">
 			{kbd(children).map((k, i) => (

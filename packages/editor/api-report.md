@@ -12,7 +12,6 @@ import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
-import { ComputedCache } from '@tldraw/store';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
@@ -159,6 +158,18 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     getGeometry(shape: Shape): Geometry2d;
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
+}
+
+// @public (undocumented)
+export interface BoundsSnapPoint {
+    // (undocumented)
+    handle?: SelectionCorner;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
 }
 
 // @public (undocumented)
@@ -481,7 +492,7 @@ export const DefaultSelectionBackground: TLSelectionBackgroundComponent;
 export const DefaultSelectionForeground: TLSelectionForegroundComponent;
 
 // @public (undocumented)
-export const DefaultSnapLine: TLSnapLineComponent;
+export const DefaultSnapIndicator: TLSnapIndicatorComponent;
 
 // @public (undocumented)
 export const DefaultSpinner: TLSpinnerComponent;
@@ -492,7 +503,7 @@ export const DefaultSvgDefs: () => null;
 // @public (undocumented)
 export const defaultUserPreferences: Readonly<{
     name: "New User";
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     isDarkMode: false;
     edgeScrollSpeed: 1;
@@ -537,7 +548,6 @@ export class Edge2d extends Geometry2d {
     constructor(config: {
         start: Vec;
         end: Vec;
-        isSnappable?: boolean;
     });
     // (undocumented)
     d: Vec;
@@ -972,7 +982,7 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
 // @public (undocumented)
-export type GapsSnapLine = {
+export type GapsSnapIndicator = {
     id: string;
     type: 'gaps';
     direction: 'horizontal' | 'vertical';
@@ -1021,8 +1031,6 @@ export abstract class Geometry2d {
     isLabel: boolean;
     // (undocumented)
     isPointInBounds(point: Vec, margin?: number): boolean;
-    // (undocumented)
-    isSnappable: boolean;
     // (undocumented)
     abstract nearestPoint(point: Vec): Vec;
     // (undocumented)
@@ -1425,7 +1433,7 @@ export class Point2d extends Geometry2d {
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean;
 
 // @public (undocumented)
-export type PointsSnapLine = {
+export type PointsSnapIndicator = {
     id: string;
     type: 'points';
     points: VecLike[];
@@ -1711,68 +1719,29 @@ export const SIN: (x: number) => number;
 export function snapAngle(r: number, segments: number): number;
 
 // @public (undocumented)
-export type SnapLine = GapsSnapLine | PointsSnapLine;
+export type SnapIndicator = GapsSnapIndicator | PointsSnapIndicator;
 
 // @public (undocumented)
 export class SnapManager {
     constructor(editor: Editor);
     // (undocumented)
-    clear(): void;
+    clearIndicators(): void;
     // (undocumented)
     readonly editor: Editor;
     // (undocumented)
     getCurrentCommonAncestor(): TLShapeId | undefined;
     // (undocumented)
-    getLines(): SnapLine[];
+    getIndicators(): SnapIndicator[];
     // (undocumented)
-    getOutlinesInPageSpace(): Vec[][];
-    // (undocumented)
-    getSnappablePoints(): SnapPoint[];
-    // (undocumented)
-    getSnappableShapes(): GapNode[];
-    // (undocumented)
-    getSnappingHandleDelta({ handlePoint, additionalSegments, }: {
-        handlePoint: Vec;
-        additionalSegments: Vec[][];
-    }): null | Vec;
-    // (undocumented)
-    getSnapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
+    getSnappableShapes(): Set<TLShapeId>;
     // (undocumented)
     getSnapThreshold(): number;
     // (undocumented)
-    getVisibleGaps(): {
-        horizontal: Gap[];
-        vertical: Gap[];
-    };
+    readonly handles: HandleSnaps;
     // (undocumented)
-    setLines(lines: SnapLine[]): void;
+    setIndicators(indicators: SnapIndicator[]): void;
     // (undocumented)
-    snapResize({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }: {
-        initialSelectionPageBounds: Box;
-        dragDelta: Vec;
-        handle: SelectionCorner | SelectionEdge;
-        isAspectRatioLocked: boolean;
-        isResizingFromCenter: boolean;
-    }): SnapData;
-    // (undocumented)
-    snapTranslate({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: {
-        lockedAxis: 'x' | 'y' | null;
-        initialSelectionSnapPoints: SnapPoint[];
-        initialSelectionPageBounds: Box;
-        dragDelta: Vec;
-    }): SnapData;
-}
-
-// @public (undocumented)
-export interface SnapPoint {
-    // (undocumented)
-    handle?: SelectionCorner;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    x: number;
-    // (undocumented)
-    y: number;
+    readonly shapeBounds: BoundsSnaps;
 }
 
 // @public
@@ -2588,9 +2557,9 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
 export type TLShapeUtilFlag<T> = (shape: T) => boolean;
 
 // @public (undocumented)
-export type TLSnapLineComponent = React_3.ComponentType<{
+export type TLSnapIndicatorComponent = React_3.ComponentType<{
     className?: string;
-    line: SnapLine;
+    line: SnapIndicator;
     zoom: number;
 }>;
 
@@ -2865,6 +2834,8 @@ export class Vec {
     static FromAngle(r: number, length?: number): Vec;
     // (undocumented)
     static FromArray(v: number[]): Vec;
+    // (undocumented)
+    static IsNaN(A: VecLike): boolean;
     // (undocumented)
     static Len(A: VecLike): number;
     // (undocumented)

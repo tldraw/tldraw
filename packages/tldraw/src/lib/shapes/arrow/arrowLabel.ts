@@ -39,7 +39,7 @@ export function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 		? new Edge2d({
 				start: Vec.From(info.start.point),
 				end: Vec.From(info.end.point),
-		  })
+			})
 		: new Arc2d({
 				center: Vec.Cast(info.handleArc.center),
 				radius: info.handleArc.radius,
@@ -47,7 +47,7 @@ export function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 				end: Vec.Cast(info.end.point),
 				sweepFlag: info.bodyArc.sweepFlag,
 				largeArcFlag: info.bodyArc.largeArcFlag,
-		  })
+			})
 
 	if (shape.props.text.trim()) {
 		const bodyBounds = bodyGeom.bounds

@@ -2,7 +2,7 @@ dist
 .tsbuild-dev
 .tsbuild-pub
 .tsbuild
-node_modules
+node\*modules
 *.d.ts
 *.md
 **/_archive
@@ -17,7 +17,5 @@ apps/example/www/index.css
 **/dist/*
 *.cjs
 apps/docs/.next
-
-e2e/**/*.png
 
 packages/tldraw/tldraw.css

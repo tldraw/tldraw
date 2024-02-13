@@ -579,6 +579,9 @@ export const LANGUAGES: readonly [{
     readonly locale: "gl";
     readonly label: "Galego";
 }, {
+    readonly locale: "hr";
+    readonly label: "Hrvatski";
+}, {
     readonly locale: "it";
     readonly label: "Italiano";
 }, {
