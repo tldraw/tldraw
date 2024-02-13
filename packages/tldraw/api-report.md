@@ -1290,11 +1290,15 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
-export function TldrawImage({ snapshot, pageId, opts, }: {
-    snapshot?: StoreSnapshot<TLRecord>;
+export function TldrawImage(props: TldrawImageProps): JSX_2.Element;
+
+// @public (undocumented)
+export type TldrawImageProps = {
+    snapshot: StoreSnapshot<TLRecord>;
     pageId?: TLPageId;
     opts?: Partial<TLSvgOptions>;
-}): JSX_2.Element;
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+};
 
 // @public (undocumented)
 export type TldrawProps = TldrawEditorBaseProps & ({

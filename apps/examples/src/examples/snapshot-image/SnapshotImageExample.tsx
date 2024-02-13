@@ -28,6 +28,8 @@ export default function SnapshotImageExample() {
 		setEditing(false)
 	}, [editor])
 
+	if (!snapshot) return null
+
 	return (
 		<div style={{ padding: 30 }}>
 			<button

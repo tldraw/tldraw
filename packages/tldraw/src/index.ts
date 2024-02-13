@@ -3,7 +3,7 @@
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TldrawProps } from './lib/Tldraw'
-export { TldrawImage } from './lib/TldrawImage'
+export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
