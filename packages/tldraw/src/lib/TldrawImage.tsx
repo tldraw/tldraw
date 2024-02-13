@@ -2,6 +2,8 @@ import {
 	ContainerProvider,
 	Editor,
 	EditorContext,
+	ErrorScreen,
+	LoadingScreen,
 	StoreSnapshot,
 	TLRecord,
 	useContainer,
@@ -10,7 +12,9 @@ import {
 } from '@tldraw/editor'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { defaultShapeUtils } from './defaultShapeUtils'
+import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { exportToString } from './utils/export/export'
+import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
 export function TldrawImage({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }) {
@@ -53,7 +57,20 @@ function TldrawImageEditor({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> })
 		}
 	}, [container, store])
 
-	if (!editor) return null
+	const assets = useDefaultEditorAssetsWithOverrides()
+	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+
+	if (preloadingError) {
+		return <ErrorScreen>Could not load assets.</ErrorScreen>
+	}
+
+	if (!preloadingComplete) {
+		return <LoadingScreen>Loading assets...</LoadingScreen>
+	}
+
+	if (!editor) {
+		return null
+	}
 
 	return (
 		<EditorContext.Provider value={editor}>
