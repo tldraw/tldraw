@@ -111,9 +111,10 @@ export function Search() {
 			/>
 			{platform && (
 				<span className="search__keyboard">
-					{platform === 'mac' && <kbd data-platform="mac">⌘</kbd>}
-					{platform === 'nonMac' && <kbd data-platform="win">Ctrl</kbd>}
-					<kbd>K</kbd>
+					<kbd data-platform={platform === 'mac' ? 'mac' : 'win'}>
+						<span>{platform === 'mac' ? '⌘' : 'Ctrl'}</span>
+						<span>K</span>
+					</kbd>
 				</span>
 			)}
 		</div>
