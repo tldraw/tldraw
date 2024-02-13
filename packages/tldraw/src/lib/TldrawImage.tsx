@@ -1,13 +1,15 @@
 import {
+	ContainerProvider,
 	Editor,
+	EditorContext,
 	StoreSnapshot,
 	TLRecord,
 	TLStore,
 	TLStoreWithStatus,
+	useContainer,
+	useEditor,
 	useLocalStore,
 } from '@tldraw/editor'
-import { ContainerProvider, useContainer } from '@tldraw/editor/src/lib/hooks/useContainer'
-import { EditorContext, useEditor } from '@tldraw/editor/src/lib/hooks/useEditor'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'

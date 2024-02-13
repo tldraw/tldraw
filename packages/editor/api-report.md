@@ -352,6 +352,12 @@ export function clockwiseAngleDist(a0: number, a1: number): number;
 
 export { computed }
 
+// @internal (undocumented)
+export function ContainerProvider({ container, children, }: {
+    container: HTMLDivElement;
+    children: React.ReactNode;
+}): JSX_2.Element;
+
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
@@ -921,6 +927,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
+
+// @internal (undocumented)
+export const EditorContext: React_2.Context<Editor>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
