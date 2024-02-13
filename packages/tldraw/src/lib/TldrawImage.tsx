@@ -4,16 +4,12 @@ import {
 	EditorContext,
 	StoreSnapshot,
 	TLRecord,
-	TLStore,
-	TLStoreWithStatus,
 	useContainer,
 	useEditor,
-	useLocalStore,
+	useTLStore,
 } from '@tldraw/editor'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
-import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
-import { defaultTools } from './defaultTools'
 import { exportToString } from './utils/export/export'
 
 /** @public */
@@ -31,44 +27,16 @@ export function TldrawImage({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }
 		>
 			{container && (
 				<ContainerProvider container={container}>
-					<TldrawImageWithOwnStore snapshot={snapshot} />
+					<TldrawImageEditor snapshot={snapshot} />
 				</ContainerProvider>
 			)}
 		</div>
 	)
 }
 
-function TldrawImageWithOwnStore({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }) {
+function TldrawImageEditor({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }) {
 	const shapeUtils = defaultShapeUtils
-	const store = useLocalStore({ snapshot, shapeUtils })
-
-	return <TldrawImageWithLoadingStore store={store} />
-}
-
-function TldrawImageWithLoadingStore({ store }: { store: TLStoreWithStatus }) {
-	switch (store.status) {
-		case 'error': {
-			throw store.error
-		}
-		case 'loading': {
-			// const LoadingScreen = rest.components?.LoadingScreen ?? DefaultLoadingScreen
-			return null
-		}
-		case 'not-synced': {
-			break
-		}
-		case 'synced-local': {
-			break
-		}
-		case 'synced-remote': {
-			break
-		}
-	}
-
-	return <TldrawImageWithReadyStore store={store.store} />
-}
-
-function TldrawImageWithReadyStore({ store }: { store: TLStore }) {
+	const store = useTLStore({ snapshot, shapeUtils })
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
 
@@ -76,11 +44,10 @@ function TldrawImageWithReadyStore({ store }: { store: TLStore }) {
 		const editor = new Editor({
 			store,
 			shapeUtils: defaultShapeUtils,
-			tools: [...defaultTools, ...defaultShapeTools],
+			tools: [],
 			getContainer: () => container,
 		})
 		setEditor(editor)
-
 		return () => {
 			editor.dispose()
 		}
