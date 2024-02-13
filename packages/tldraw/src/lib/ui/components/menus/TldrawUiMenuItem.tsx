@@ -51,7 +51,7 @@ export function TldrawUiMenuItem<
 	const button = (
 		<Button
 			type="menu"
-			data-testid={`menu-item.${id}`}
+			data-testid={`${sourceId}.${id}`}
 			kbd={kbd}
 			label={labelStr}
 			disabled={disabled}
@@ -87,8 +87,7 @@ export function TldrawUiMenuItem<
 		case 'actions': {
 			return (
 				<Button
-					key={id}
-					data-testid={`menu-item.${id}`}
+					data-testid={`${sourceId}.${id}`}
 					icon={icon}
 					type="icon"
 					title={
@@ -110,7 +109,7 @@ export function TldrawUiMenuItem<
 			if (!kbd) return null
 
 			return (
-				<div className="tlui-shortcuts-dialog__key-pair" key={id}>
+				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
 					<div className="tlui-shortcuts-dialog__key-pair__key">
 						{msg(unwrapLabel(label, 'shortcuts'))}
 					</div>
