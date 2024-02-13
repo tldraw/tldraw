@@ -50,49 +50,59 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 		return (
 			<HTMLContainer>
-				<div
-					className="tl-bookmark__container"
-					style={{
-						boxShadow: getRotatedBoxShadow(pageRotation),
-					}}
+				<a
+					style={{ pointerEvents: 'all' }}
+					href={shape.props.url || ''}
+					target="_blank"
+					rel="noopener noreferrer"
+					onPointerDown={stopEventPropagation}
+					onPointerUp={stopEventPropagation}
+					onClick={stopEventPropagation}
 				>
-					<div className="tl-bookmark__image_container">
-						{asset?.props.image ? (
-							<img
-								className="tl-bookmark__image"
-								draggable={false}
-								src={asset?.props.image}
-								alt={asset?.props.title || ''}
-							/>
-						) : (
-							<div className="tl-bookmark__placeholder" />
-						)}
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+					<div
+						className="tl-bookmark__container"
+						style={{
+							boxShadow: getRotatedBoxShadow(pageRotation),
+						}}
+					>
+						<div className="tl-bookmark__image_container">
+							{asset?.props.image ? (
+								<img
+									className="tl-bookmark__image"
+									draggable={false}
+									src={asset?.props.image}
+									alt={asset?.props.title || ''}
+								/>
+							) : (
+								<div className="tl-bookmark__placeholder" />
+							)}
+							<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						</div>
+						<div className="tl-bookmark__copy_container">
+							{asset?.props.title && (
+								<h2 className="tl-bookmark__heading">
+									{truncateStringWithEllipsis(asset?.props.title || '', 54)}
+								</h2>
+							)}
+							{asset?.props.description && (
+								<p className="tl-bookmark__description">
+									{truncateStringWithEllipsis(asset?.props.description || '', 128)}
+								</p>
+							)}
+							<a
+								className="tl-bookmark__link"
+								href={shape.props.url || ''}
+								target="_blank"
+								rel="noopener noreferrer"
+								onPointerDown={stopEventPropagation}
+								onPointerUp={stopEventPropagation}
+								onClick={stopEventPropagation}
+							>
+								{truncateStringWithEllipsis(address, 45)}
+							</a>
+						</div>
 					</div>
-					<div className="tl-bookmark__copy_container">
-						{asset?.props.title && (
-							<h2 className="tl-bookmark__heading">
-								{truncateStringWithEllipsis(asset?.props.title || '', 54)}
-							</h2>
-						)}
-						{asset?.props.description && (
-							<p className="tl-bookmark__description">
-								{truncateStringWithEllipsis(asset?.props.description || '', 128)}
-							</p>
-						)}
-						<a
-							className="tl-bookmark__link"
-							href={shape.props.url || ''}
-							target="_blank"
-							rel="noopener noreferrer"
-							onPointerDown={stopEventPropagation}
-							onPointerUp={stopEventPropagation}
-							onClick={stopEventPropagation}
-						>
-							{truncateStringWithEllipsis(address, 45)}
-						</a>
-					</div>
-				</div>
+				</a>
 			</HTMLContainer>
 		)
 	}
