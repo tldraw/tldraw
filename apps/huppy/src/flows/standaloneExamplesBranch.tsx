@@ -5,7 +5,7 @@ import { Flow } from '../flow'
 import { withWorkingRepo } from '../repo'
 import { readJsonIfExists } from '../utils'
 
-const filesToCopyFromRoot = ['.gitignore', '.prettierrc', 'LICENSE']
+const filesToCopyFromRoot = ['.gitignore', '.prettierrc', 'LICENSE.md']
 const packageDepsToSyncFromRoot = ['typescript', '@types/react', '@types/react-dom']
 
 export const standaloneExamplesBranch = {
