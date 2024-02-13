@@ -1,23 +1,28 @@
-import { TLComponents, Tldraw } from '@tldraw/tldraw'
+import { TLUiComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-const components: TLComponents = {
-	HelpMenu: null,
-	HelpMenuContent: null,
+// The type here is include only to ensure this example contains all possible ui components,
+const components: Required<TLUiComponents> = {
 	ContextMenu: null,
 	ContextMenuContent: null,
-	MainMenu: null,
-	MainMenuContent: null,
 	ActionsMenu: null,
 	ActionsMenuContent: null,
+	HelpMenu: null,
+	HelpMenuContent: null,
 	ZoomMenu: null,
 	ZoomMenuContent: null,
-	PageMenu: null,
+	MainMenu: null,
+	MainMenuContent: null,
 	Minimap: null,
-	NavigationPanel: null,
-	// setting either Style Panel or Style Panel Content to null will hide the panel
 	StylePanel: null,
 	StylePanelContent: null,
+	PageMenu: null,
+	NavigationPanel: null,
+	Toolbar: null,
+	KeyboardShortcutsDialog: null,
+	KeyboardShortcutsDialogContent: null,
+	QuickActions: null,
+	QuickActionsContent: null,
 }
 
 export default function UiComponentsHiddenExample() {
