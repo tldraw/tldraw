@@ -1289,8 +1289,9 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
-export function TldrawImage({ snapshot }: {
+export function TldrawImage({ snapshot, opts, }: {
     snapshot?: StoreSnapshot<TLRecord>;
+    opts?: Partial<TLSvgOptions>;
 }): JSX_2.Element;
 
 // @public (undocumented)

@@ -6,6 +6,7 @@ import {
 	LoadingScreen,
 	StoreSnapshot,
 	TLRecord,
+	TLSvgOptions,
 	useContainer,
 	useEditor,
 	useTLStore,
@@ -17,7 +18,13 @@ import { exportToString } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
-export function TldrawImage({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }) {
+export function TldrawImage({
+	snapshot,
+	opts = {},
+}: {
+	snapshot?: StoreSnapshot<TLRecord>
+	opts?: Partial<TLSvgOptions>
+}) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
 
 	return (
@@ -31,14 +38,20 @@ export function TldrawImage({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }
 		>
 			{container && (
 				<ContainerProvider container={container}>
-					<TldrawImageEditor snapshot={snapshot} />
+					<TldrawImageEditor snapshot={snapshot} opts={opts} />
 				</ContainerProvider>
 			)}
 		</div>
 	)
 }
 
-function TldrawImageEditor({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }) {
+function TldrawImageEditor({
+	snapshot,
+	opts,
+}: {
+	snapshot?: StoreSnapshot<TLRecord>
+	opts: Partial<TLSvgOptions>
+}) {
 	const shapeUtils = defaultShapeUtils
 	const store = useTLStore({ snapshot, shapeUtils })
 	const container = useContainer()
@@ -55,7 +68,7 @@ function TldrawImageEditor({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> })
 		return () => {
 			editor.dispose()
 		}
-	}, [container, store])
+	}, [container, store, opts.darkMode])
 
 	const assets = useDefaultEditorAssetsWithOverrides()
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
@@ -74,29 +87,27 @@ function TldrawImageEditor({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> })
 
 	return (
 		<EditorContext.Provider value={editor}>
-			<Layout />
+			<Layout opts={opts} />
 		</EditorContext.Provider>
 	)
 }
 
-async function getImageUrl(editor: Editor) {
+async function getImageUrl(editor: Editor, opts: Partial<TLSvgOptions>) {
 	const shapeIds = editor.getPageShapeIds(editor.getCurrentPage().id)
-	const string = await exportToString(editor, [...shapeIds], 'svg', { background: false })
+	const string = await exportToString(editor, [...shapeIds], 'svg', opts)
 	const blob = new Blob([string], { type: 'image/svg+xml' })
 	return URL.createObjectURL(blob)
 }
 
-function Layout() {
+function Layout({ opts }: { opts: Partial<TLSvgOptions> }) {
 	const editor = useEditor()
 	const [url, setUrl] = useState<string | null>(null)
 
 	useEffect(() => {
-		getImageUrl(editor).then((url) => {
+		getImageUrl(editor, opts).then((url) => {
 			setUrl(url)
 		})
-	}, [editor])
+	}, [editor, opts])
 
-	return url ? (
-		<img src={url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-	) : null
+	return url ? <img src={url} style={{ width: '100%', height: '100%' }} /> : null
 }

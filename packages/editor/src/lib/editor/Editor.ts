@@ -8050,6 +8050,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} = opts
 
 		// todo: we shouldn't depend on the public theme here
+		// note: this value isn't respected by most `toSvg` functions anyway
 		const theme = getDefaultColorTheme({ isDarkMode: this.user.getIsDarkMode() })
 
 		// ---Figure out which shapes we need to include
