@@ -1,6 +1,8 @@
+import { IndexKey } from '../IndexKey'
 import { generateNKeysBetween } from './dgreensp'
 
-const generateKeyBetween = (a?: string, b?: string) => generateNKeysBetween(a, b, 1)[0]
+const generateKeyBetween = (a?: string, b?: string) =>
+	generateNKeysBetween(a as IndexKey, b as IndexKey, 1)[0]
 
 describe('get order between', () => {
 	it('passes tests', () => {
@@ -40,11 +42,11 @@ describe('get order between', () => {
 describe('generateNKeysBetween', () => {
 	it('Gets the correct orders between', () => {
 		expect(generateNKeysBetween(undefined, undefined, 5).join(' ')).toBe('a0 a1 a2 a3 a4')
-		expect(generateNKeysBetween('a4', undefined, 10).join(' ')).toBe(
+		expect(generateNKeysBetween('a4' as IndexKey, undefined, 10).join(' ')).toBe(
 			'a5 a6 a7 a8 a9 aA aB aC aD aE'
 		)
-		expect(generateNKeysBetween(undefined, 'a0', 5).join(' ')).toBe('Zv Zw Zx Zy Zz')
-		expect(generateNKeysBetween('a0', 'a2', 20).join(' ')).toBe(
+		expect(generateNKeysBetween(undefined, 'a0' as IndexKey, 5).join(' ')).toBe('Zv Zw Zx Zy Zz')
+		expect(generateNKeysBetween('a0' as IndexKey, 'a2' as IndexKey, 20).join(' ')).toBe(
 			'a04 a08 a0G a0K a0O a0V a0Z a0d a0l a0t a1 a14 a18 a1G a1O a1V a1Z a1d a1l a1t'
 		)
 	})

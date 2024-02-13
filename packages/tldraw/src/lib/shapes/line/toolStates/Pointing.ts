@@ -1,4 +1,5 @@
 import {
+	IndexKey,
 	Mat,
 	StateNode,
 	TLEventHandlers,
@@ -50,7 +51,7 @@ export class Pointing extends StateNode {
 				new Vec(this.shape.x, this.shape.y)
 			)
 
-			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
+			let nextEndHandleIndex: IndexKey, nextEndHandleId: string, nextEndHandle: TLHandle
 
 			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint)
 

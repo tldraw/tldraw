@@ -1,4 +1,4 @@
-import { TLGeoShape, TLLineShape, createShapeId, deepCopy } from '@tldraw/editor'
+import { IndexKey, TLGeoShape, TLLineShape, createShapeId, deepCopy } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 jest.mock('nanoid', () => {
@@ -85,7 +85,7 @@ it('create new handle', () => {
 		handle: {
 			id: 'mid-0',
 			type: 'create',
-			index: 'a1V',
+			index: 'a1V' as IndexKey,
 			x: 50,
 			y: 50,
 		},

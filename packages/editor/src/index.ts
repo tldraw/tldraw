@@ -357,16 +357,6 @@ export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
 export {
-	getIndexAbove,
-	getIndexBelow,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBelow,
-	getIndicesBetween,
-	sortByIndex,
-} from './lib/utils/reordering/reordering'
-export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,
 	type TLRotationSnapshot,

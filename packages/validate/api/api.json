@@ -1545,6 +1545,43 @@
             },
             {
               "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.indexKey:var",
+              "docComment": "/**\n * Validates that a value is an IndexKey.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "indexKey: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "indexKey",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              }
+            },
+            {
+              "kind": "Variable",
               "canonicalReference": "@tldraw/validate!T.integer:var",
               "docComment": "/**\n * Fails if number is not an integer\n *\n * @public\n */\n",
               "excerptTokens": [

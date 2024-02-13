@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	CubicSpline2d,
+	IndexKey,
 	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
@@ -55,7 +56,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					type: 'vertex',
 					canBind: false,
 					canSnap: true,
-					index: 'a1',
+					index: 'a1' as IndexKey,
 					x: 0,
 					y: 0,
 				},
@@ -64,7 +65,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					type: 'vertex',
 					canBind: false,
 					canSnap: true,
-					index: 'a2',
+					index: 'a2' as IndexKey,
 					x: 0.1,
 					y: 0.1,
 				},

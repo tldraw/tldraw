@@ -17,6 +17,7 @@ import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
 import { HTMLProps } from 'react';
+import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { MemoExoticComponent } from 'react';
@@ -697,7 +698,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
-    getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
+    getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
     getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
     getHoveredShape(): TLShape | undefined;
@@ -844,7 +845,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     } : TLExternalContent) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     renderingBoundsMargin: number;
-    reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
+    reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, animation?: TLAnimationOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     readonly root: RootState;
@@ -1064,27 +1065,6 @@ export function getFreshUserPreferences(): TLUserPreferences;
 
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
-
-// @public
-export function getIndexAbove(below: string): string;
-
-// @public
-export function getIndexBelow(above: string): string;
-
-// @public
-export function getIndexBetween(below: string, above?: string): string;
-
-// @public
-export function getIndices(n: number, start?: string): string[];
-
-// @public
-export function getIndicesAbove(below: string, n: number): string[];
-
-// @public
-export function getIndicesBelow(above: string, n: number): string[];
-
-// @public
-export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
 
 // @public (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
@@ -1743,11 +1723,6 @@ export class SnapManager {
     // (undocumented)
     readonly shapeBounds: BoundsSnaps;
 }
-
-// @public
-export function sortByIndex<T extends {
-    index: string;
-}>(a: T, b: T): -1 | 0 | 1;
 
 // @public (undocumented)
 export class Stadium2d extends Ellipse2d {

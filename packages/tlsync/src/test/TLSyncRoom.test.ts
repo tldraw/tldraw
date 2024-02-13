@@ -11,7 +11,7 @@ import {
 	TLShapeId,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { sortById } from '@tldraw/utils'
+import { ZERO_INDEX_KEY, sortById } from '@tldraw/utils'
 import {
 	MAX_TOMBSTONES,
 	RoomSnapshot,
@@ -24,7 +24,7 @@ const compareById = (a: { id: string }, b: { id: string }) => a.id.localeCompare
 
 const records = [
 	DocumentRecordType.create({}),
-	PageRecordType.create({ index: 'a0', name: 'page 2' }),
+	PageRecordType.create({ index: ZERO_INDEX_KEY, name: 'page 2' }),
 ].sort(compareById)
 
 const makeSnapshot = (records: TLRecord[], others: Partial<RoomSnapshot> = {}) => ({
@@ -37,7 +37,7 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 	typeName: 'shape',
 	type: 'arrow',
 	id: 'shape:old_arrow' as TLShapeId,
-	index: 'a0',
+	index: ZERO_INDEX_KEY,
 	isLocked: false,
 	parentId: PageRecordType.createId(),
 	rotation: 0,
