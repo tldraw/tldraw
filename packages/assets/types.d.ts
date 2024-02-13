@@ -206,6 +206,7 @@ export type AssetUrls = {
 		'pt-pt': string
 		ro: string
 		ru: string
+		sl: string
 		sv: string
 		te: string
 		th: string
