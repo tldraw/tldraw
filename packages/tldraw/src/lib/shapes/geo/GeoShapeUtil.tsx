@@ -299,7 +299,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: w,
 					height: h,
 					isFilled,
-					isSnappable: true,
 				})
 				break
 			}
@@ -322,23 +321,21 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						shape.props.align === 'start'
 							? 0
 							: shape.props.align === 'end'
-							  ? w - labelWidth
-							  : (w - labelWidth) / 2,
+								? w - labelWidth
+								: (w - labelWidth) / 2,
 					y:
 						shape.props.verticalAlign === 'start'
 							? 0
 							: shape.props.verticalAlign === 'end'
-							  ? h - labelHeight
-							  : (h - labelHeight) / 2,
+								? h - labelHeight
+								: (h - labelHeight) / 2,
 					width: labelWidth,
 					height: labelHeight,
 					isFilled: true,
-					isSnappable: false,
 					isLabel: true,
 				}),
 				...edges,
 			],
-			isSnappable: false,
 		})
 	}
 

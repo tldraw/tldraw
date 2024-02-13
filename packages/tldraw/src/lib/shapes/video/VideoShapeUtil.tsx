@@ -52,7 +52,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 }
 
-// Function from v1, could be improved bu explicitly using this.model.time (?)
+// Function from v1, could be improved but explicitly using this.model.time (?)
 function serializeVideo(id: string): string {
 	const splitId = id.split(':')[1]
 	const video = document.querySelector(`.tl-video-shape-${splitId}`) as HTMLVideoElement
@@ -62,7 +62,7 @@ function serializeVideo(id: string): string {
 		canvas.height = video.videoHeight
 		canvas.getContext('2d')!.drawImage(video, 0, 0)
 		return canvas.toDataURL('image/png')
-	} else throw new Error('Video with id ' + splitId + ' not found')
+	} else throw new Error('Video with not found when attempting serialization.')
 }
 
 const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {

@@ -190,6 +190,7 @@ export type AssetUrls = {
 		gl: string
 		he: string
 		'hi-in': string
+		hr: string
 		hu: string
 		it: string
 		ja: string

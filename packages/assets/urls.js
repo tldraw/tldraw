@@ -569,6 +569,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			gl: formatAssetUrl(new URL('./translations/gl.json', import.meta.url).href, opts),
 			he: formatAssetUrl(new URL('./translations/he.json', import.meta.url).href, opts),
 			'hi-in': formatAssetUrl(new URL('./translations/hi-in.json', import.meta.url).href, opts),
+			hr: formatAssetUrl(new URL('./translations/hr.json', import.meta.url).href, opts),
 			hu: formatAssetUrl(new URL('./translations/hu.json', import.meta.url).href, opts),
 			it: formatAssetUrl(new URL('./translations/it.json', import.meta.url).href, opts),
 			ja: formatAssetUrl(new URL('./translations/ja.json', import.meta.url).href, opts),

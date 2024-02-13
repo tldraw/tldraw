@@ -227,12 +227,12 @@ export class Resizing extends StateNode {
 		const dragHandle = this.info.handle as SelectionCorner | SelectionEdge
 		const scaleOriginHandle = rotateSelectionHandle(dragHandle, Math.PI)
 
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 
 		const shouldSnap = this.editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
 
 		if (shouldSnap && selectionRotation % HALF_PI === 0) {
-			const { nudge } = this.editor.snaps.snapResize({
+			const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
 				handle: rotateSelectionHandle(dragHandle, selectionRotation),
@@ -409,7 +409,7 @@ export class Resizing extends StateNode {
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 
 	_createSnapshot = () => {

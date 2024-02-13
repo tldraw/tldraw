@@ -50,6 +50,7 @@ export { Spinner } from './lib/ui/components/Spinner'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
+export { Kbd, type KbdProps } from './lib/ui/components/primitives/Kbd'
 export {
 	compactMenuItems,
 	findMenuItem,
@@ -169,7 +170,10 @@ export {
 	serializeTldrawJsonBlob,
 	type TldrawFile,
 } from './lib/utils/tldr/file'
-export { Dialog, DropdownMenu }
+
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
-export { Kbd, type KbdProps } from './lib/ui/components/primitives/Kbd'
+
+// N.B. Preserve order of import / export here with this comment.
+// Sometimes this can cause an import problem depending on build setup downstream.
+export { Dialog, DropdownMenu }

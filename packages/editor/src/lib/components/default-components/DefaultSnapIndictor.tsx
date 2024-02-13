@@ -1,13 +1,13 @@
 import classNames from 'classnames'
 import * as React from 'react'
 import {
-	type GapsSnapLine,
-	type PointsSnapLine,
-	type SnapLine,
-} from '../../editor/managers/SnapManager'
+	type GapsSnapIndicator,
+	type PointsSnapIndicator,
+	type SnapIndicator,
+} from '../../editor/managers/SnapManager/SnapManager'
 import { rangeIntersection } from '../../primitives/utils'
 
-function PointsSnapLine({ points, zoom }: { zoom: number } & PointsSnapLine) {
+function PointsSnapIndicator({ points, zoom }: { zoom: number } & PointsSnapIndicator) {
 	const l = 2.5 / zoom
 
 	const minX = points.reduce((acc, p) => Math.min(acc, p.x), Infinity)
@@ -30,7 +30,7 @@ function PointsSnapLine({ points, zoom }: { zoom: number } & PointsSnapLine) {
 	}
 
 	return (
-		<g className="tl-snap-line">
+		<g className="tl-snap-indicator" stroke="lime">
 			<line x1={firstX} y1={firstY} x2={secondX} y2={secondY} />
 			{points.map((p, i) => (
 				<g transform={`translate(${p.x},${p.y})`} key={i}>
@@ -44,7 +44,7 @@ function PointsSnapLine({ points, zoom }: { zoom: number } & PointsSnapLine) {
 	)
 }
 
-function GapsSnapLine({ gaps, direction, zoom }: { zoom: number } & GapsSnapLine) {
+function GapsSnapIndicator({ gaps, direction, zoom }: { zoom: number } & GapsSnapIndicator) {
 	const l = 3.5 / zoom
 
 	let edgeIntersection: number[] | null = [-Infinity, +Infinity]
@@ -89,7 +89,7 @@ function GapsSnapLine({ gaps, direction, zoom }: { zoom: number } & GapsSnapLine
 	const midPoint = (edgeIntersection[0] + edgeIntersection[1]) / 2
 
 	return (
-		<g className="tl-snap-line">
+		<g className="tl-snap-indicator" stroke="cyan">
 			{gaps.map(({ startEdge, endEdge }, i) => (
 				<React.Fragment key={i}>
 					{horizontal ? (
@@ -154,20 +154,20 @@ function GapsSnapLine({ gaps, direction, zoom }: { zoom: number } & GapsSnapLine
 }
 
 /** @public */
-export type TLSnapLineComponent = React.ComponentType<{
+export type TLSnapIndicatorComponent = React.ComponentType<{
 	className?: string
-	line: SnapLine
+	line: SnapIndicator
 	zoom: number
 }>
 
 /** @public */
-export const DefaultSnapLine: TLSnapLineComponent = ({ className, line, zoom }) => {
+export const DefaultSnapIndicator: TLSnapIndicatorComponent = ({ className, line, zoom }) => {
 	return (
 		<svg className={classNames('tl-overlays__item', className)}>
 			{line.type === 'points' ? (
-				<PointsSnapLine {...line} zoom={zoom} />
+				<PointsSnapIndicator {...line} zoom={zoom} />
 			) : line.type === 'gaps' ? (
-				<GapsSnapLine {...line} zoom={zoom} />
+				<GapsSnapIndicator {...line} zoom={zoom} />
 			) : null}
 		</svg>
 	)

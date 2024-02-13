@@ -188,8 +188,8 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										shareState.state === 'offline'
 											? 'share-menu.offline-note'
 											: isReadOnlyLink
-											  ? 'share-menu.copy-readonly-link-note'
-											  : 'share-menu.copy-link-note'
+												? 'share-menu.copy-readonly-link-note'
+												: 'share-menu.copy-link-note'
 									)}
 								</p>
 							</div>

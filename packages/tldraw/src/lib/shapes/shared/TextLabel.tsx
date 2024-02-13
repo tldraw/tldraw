@@ -82,7 +82,7 @@ export const TextLabel = React.memo(function TextLabel<
 							width: bounds.width,
 							height: bounds.height,
 							position: 'absolute',
-					  }
+						}
 					: {}),
 			}}
 		>

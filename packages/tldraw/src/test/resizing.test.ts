@@ -1,8 +1,8 @@
 import {
-	GapsSnapLine,
+	GapsSnapIndicator,
 	PI,
 	PI2,
-	PointsSnapLine,
+	PointsSnapIndicator,
 	RotateCorner,
 	TLGeoShape,
 	TLSelectionHandle,
@@ -935,10 +935,12 @@ describe('When resizing a shape with children', () => {
 })
 
 function getGapAndPointLines() {
-	const gapLines = editor.snaps.getLines().filter((snap) => snap.type === 'gaps') as GapsSnapLine[]
+	const gapLines = editor.snaps
+		.getIndicators()
+		.filter((snap) => snap.type === 'gaps') as GapsSnapIndicator[]
 	const pointLines = editor.snaps
-		.getLines()
-		.filter((snap) => snap.type === 'points') as PointsSnapLine[]
+		.getIndicators()
+		.filter((snap) => snap.type === 'points') as PointsSnapIndicator[]
 	return { gapLines, pointLines }
 }
 
@@ -982,12 +984,12 @@ describe('snapping while resizing', () => {
 			.pointerMove(115, 59, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 60, props: { w: 60, h: 80 } })
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 
 		// moving the mouse horizontally should not change things
 		editor.pointerMove(15, 65, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 60, props: { w: 60, h: 80 } })
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 
 		expect(getGapAndPointLines().pointLines[0].points).toHaveLength(6)
 
@@ -995,7 +997,7 @@ describe('snapping while resizing', () => {
 		editor.pointerMove(15, 43, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 40, props: { w: 60, h: 100 } })
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 
 		expect(getGapAndPointLines().pointLines[0].points).toHaveLength(4)
 	})
@@ -1012,7 +1014,7 @@ describe('snapping while resizing', () => {
 			.pointerMove(156, 115, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 80, props: { w: 80, h: 60 } })
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 
 		expect(getGapAndPointLines().pointLines[0].points).toHaveLength(6)
 
@@ -1023,7 +1025,7 @@ describe('snapping while resizing', () => {
 		// snap to left edge of B
 		editor.pointerMove(173, 280, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 80, props: { w: 100, h: 60 } })
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 		expect(getGapAndPointLines().pointLines[0].points).toHaveLength(4)
 	})
 
@@ -1038,19 +1040,19 @@ describe('snapping while resizing', () => {
 			.pointerMove(115, 159, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 80, props: { w: 60, h: 80 } })
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 
 		expect(getGapAndPointLines().pointLines[0].points).toHaveLength(6)
 
 		// changing horzontal mouse position should not change things
 		editor.pointerMove(315, 163, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 80, props: { w: 60, h: 80 } })
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 
 		// snap to top edge of C
 		editor.pointerMove(115, 183, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 80, props: { w: 60, h: 100 } })
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 
 		expect(getGapAndPointLines().pointLines[0].points).toHaveLength(4)
 	})
@@ -1067,7 +1069,7 @@ describe('snapping while resizing', () => {
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 60, y: 80, props: { w: 80, h: 60 } })
 
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 		expect(getGapAndPointLines().pointLines[0].points).toHaveLength(6)
 
 		// moving the mouse vertically should not change things
@@ -1078,7 +1080,7 @@ describe('snapping while resizing', () => {
 		editor.pointerMove(39, 280, { ctrlKey: true })
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 80, props: { w: 100, h: 60 } })
 
-		expect(editor.snaps.getLines().length).toBe(1)
+		expect(editor.snaps.getIndicators().length).toBe(1)
 		expect(getGapAndPointLines().pointLines[0].points).toHaveLength(4)
 	})
 	it('works for dragging the top left corner', () => {
@@ -3017,7 +3019,7 @@ describe('resizing a shape with a child', () => {
 			.pointerDown(0, 0, { target: 'selection', handle: 'top_left' })
 			.pointerMove(25, 25, { ctrlKey: true })
 
-		expect(editor.snaps.getLines().length).toBe(0)
+		expect(editor.snaps.getIndicators().length).toBe(0)
 		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 25, y: 25, props: { w: 25, h: 25 } })
 		expect(editor.getShape(ids.boxB)).toMatchObject({ x: 0.5, y: 0.5, props: { w: 5, h: 5 } })
 		expect(editor.getShapePageBounds(ids.boxB)).toMatchObject({

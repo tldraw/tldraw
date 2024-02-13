@@ -264,6 +264,16 @@
 	opacity: 1;
 }
 
+.tlui-layout__mobile .tlui-button__tool {
+	height: 48px;
+	width: 44px;
+}
+
+.tlui-layout__mobile .tlui-button__tool > .tlui-icon {
+	height: 16px;
+	width: 16px;
+}
+
 /* Help */
 
 .tlui-button__help {
@@ -331,26 +341,6 @@
 	width: 60px;
 	min-width: 60px;
 	text-align: center;
-}
-
-@media (max-width: 640px) {
-	.tlui-button__tool {
-		height: 48px;
-		width: 44px;
-	}
-
-	.tlui-button__tool > .tlui-icon {
-		height: 16px;
-		width: 16px;
-	}
-
-	.tlui-kbd {
-		visibility: hidden;
-	}
-
-	.tlui-menu__group .tlui-button__icon-left {
-		display: none;
-	}
 }
 
 /* --------------------- Layout --------------------- */
@@ -902,15 +892,13 @@
 	width: 40px;
 }
 
-@media (max-width: 640px) {
-	.tlui-toolbar__overflow {
-		width: 32px;
-		padding: 0px;
-	}
+.tlui-layout__mobile .tlui-toolbar__overflow {
+	width: 32px;
+	padding: 0px;
+}
 
-	.tlui-toolbar *[data-state='open']::after {
-		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
-	}
+.tlui-layout__mobile .tlui-toolbar *[data-state='open']::after {
+	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
 /* -------------------- Help Zone ------------------- */
@@ -1496,6 +1484,7 @@
 	touch-action: auto;
 }
 
+/* TODO: refactor shortcuts dialog to make it work in small inline components */
 @media (min-width: 475px) {
 	.tlui-shortcuts-dialog__body {
 		columns: 2;
@@ -1503,6 +1492,7 @@
 	}
 }
 
+/* TODO: refactor shortcuts dialog to make it work in small inline components */
 @media (min-width: 960px) {
 	.tlui-shortcuts-dialog__body {
 		columns: 3;

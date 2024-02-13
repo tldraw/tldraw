@@ -29,11 +29,11 @@ function getArrowPoints(
 					? ints[0]
 					: ints[1]
 				: info.handleArc.sweepFlag
-				  ? ints[1]
-				  : ints[0]
+					? ints[1]
+					: ints[0]
 	}
 
-	if (isNaN(P0.x) || isNaN(P0.y)) {
+	if (Vec.IsNaN(P0)) {
 		P0 = info.start.point
 	}
 

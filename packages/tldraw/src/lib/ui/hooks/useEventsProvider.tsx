@@ -19,6 +19,7 @@ export type TLUiEventSource =
 	| 'dialog'
 	| 'help-menu'
 	| 'helper-buttons'
+	| 'style-panel'
 	| 'unknown'
 
 /** @public */
@@ -73,6 +74,7 @@ export interface TLUiEventMap {
 	copy: null
 	paste: null
 	cut: null
+	'set-style': { id: string; value: string | number }
 	'toggle-transparent': null
 	'toggle-snap-mode': null
 	'toggle-tool-lock': null

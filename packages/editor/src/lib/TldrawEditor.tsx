@@ -356,9 +356,6 @@ function Layout({
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 
-	const editor = useEditor()
-	editor.updateViewportScreenBounds()
-
 	return children ?? <Canvas />
 }
 
