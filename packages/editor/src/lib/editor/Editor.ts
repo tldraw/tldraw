@@ -2530,7 +2530,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this._setCamera({
 				x: -targetViewportPage.x,
 				y: -targetViewportPage.y,
-				z: viewportPageBounds.width / targetViewportPage.width,
+				z: this.getViewportScreenBounds().width / targetViewportPage.width,
 			})
 		}
 
