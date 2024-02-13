@@ -7405,7 +7405,6 @@ __metadata:
     rimraf: "npm:^4.4.0"
     svgo: "npm:^3.0.2"
     tsx: "npm:^4.0.0"
-    tunnel-rat: "npm:^0.1.2"
     typescript: "npm:^5.2.2"
     vercel: "npm:^28.16.15"
   languageName: unknown
@@ -7502,7 +7501,6 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     lz-string: "npm:^1.4.4"
     resize-observer-polyfill: "npm:^1.5.1"
-    zustand: "npm:^4.5.0"
   peerDependencies:
     react: ^18
     react-dom: ^18
@@ -23969,15 +23967,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tunnel-rat@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "tunnel-rat@npm:0.1.2"
-  dependencies:
-    zustand: "npm:^4.3.2"
-  checksum: b0a3e06d0cb1f70e24d0da55f87127c155577b10ed65ed58a4801901c5c1df74d9185c407f724eb9c80b624f783c635d8d68f1f7b78574f574718de12e1d1871
-  languageName: node
-  linkType: hard
-
 "tunnel@npm:0.0.6, tunnel@npm:^0.0.6":
   version: 0.0.6
   resolution: "tunnel@npm:0.0.6"
@@ -24658,7 +24647,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:1.2.0, use-sync-external-store@npm:^1.2.0":
+"use-sync-external-store@npm:^1.2.0":
   version: 1.2.0
   resolution: "use-sync-external-store@npm:1.2.0"
   peerDependencies:
@@ -25955,26 +25944,6 @@ __metadata:
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 73622ca36a916f785cf528fe612a884b3e0f183dbe6b33365a7d0fc92abdbedf7804c5e2bd8df0a278e1472106d46674281397a3dd800fa9031dc3429758c6ac
-  languageName: node
-  linkType: hard
-
-"zustand@npm:^4.3.2, zustand@npm:^4.5.0":
-  version: 4.5.0
-  resolution: "zustand@npm:4.5.0"
-  dependencies:
-    use-sync-external-store: "npm:1.2.0"
-  peerDependencies:
-    "@types/react": ">=16.8"
-    immer: ">=9.0.6"
-    react: ">=16.8"
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    immer:
-      optional: true
-    react:
-      optional: true
-  checksum: 2488b904b3c8ced5feddfd30d8641d9d0c58c044b182b401035fdea8201c53ee84d89992cb425c365445ec315616016e2346cc1a07b1fe09f070c9da45564200
   languageName: node
   linkType: hard
 

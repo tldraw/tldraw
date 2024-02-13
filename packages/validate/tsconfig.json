@@ -4,9 +4,7 @@
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
-		"rootDir": "src",
-		"declaration": true,
-		"emitDeclarationOnly": true
+		"rootDir": "src"
 	},
 	"references": [{ "path": "../utils" }]
 }
