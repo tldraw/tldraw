@@ -15,7 +15,7 @@ export function TldrawUiMenuGroup({
 	small?: boolean
 	children?: any
 }) {
-	const { type: menuType } = useTldrawUiMenuContext()
+	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()
 
 	switch (menuType) {
@@ -24,7 +24,7 @@ export function TldrawUiMenuGroup({
 				<_DropdownMenu.Group
 					dir="ltr"
 					className="tlui-menu__group"
-					data-testid={`menu-group.${id}`}
+					data-testid={`${sourceId}-group.${id}`}
 					data-size={small ? 'tiny' : 'medium'}
 				>
 					{children}
@@ -38,7 +38,7 @@ export function TldrawUiMenuGroup({
 					className={classNames('tlui-menu__group', {
 						'tlui-menu__group__small': small,
 					})}
-					data-testid={`menu-item.${id}`}
+					data-testid={`${sourceId}-group.${id}`}
 				>
 					{children}
 				</_ContextMenu.Group>
@@ -48,14 +48,13 @@ export function TldrawUiMenuGroup({
 			// todo: if groups need a label, let's give em a label
 			const labelToUse = msg(unwrapLabel(id, 'keyboard-shortcuts'))
 			return (
-				<div className="tlui-shortcuts-dialog__group">
+				<div className="tlui-shortcuts-dialog__group" data-testid={`${sourceId}-group.${id}`}>
 					<h2 className="tlui-shortcuts-dialog__group__title">{labelToUse}</h2>
 					<div className="tlui-shortcuts-dialog__group__content">{children}</div>
 				</div>
 			)
 		}
-		case 'actions': {
-			// no groups in actions
+		default: {
 			return children
 		}
 	}

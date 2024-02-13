@@ -129,5 +129,8 @@ export function TldrawUiMenuItem<
 				/>
 			)
 		}
+		default: {
+			return null
+		}
 	}
 }

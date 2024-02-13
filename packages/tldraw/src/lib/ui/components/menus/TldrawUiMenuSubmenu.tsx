@@ -20,7 +20,7 @@ export function TldrawUiMenuSubmenu<TransationKey extends string = string>({
 	children: any
 }) {
 	const container = useContainer()
-	const { type: menuType } = useTldrawUiMenuContext()
+	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()
 	const labelToUse = label
 		? typeof label === 'string'
@@ -39,7 +39,7 @@ export function TldrawUiMenuSubmenu<TransationKey extends string = string>({
 						<Button
 							type="menu"
 							className="tlui-menu__submenu__trigger"
-							data-testid={`menu-item.${id}`}
+							data-testid={`${sourceId}-submenu.${id}`}
 							label={labelStr}
 							icon="chevron-right"
 						/>
@@ -64,7 +64,7 @@ export function TldrawUiMenuSubmenu<TransationKey extends string = string>({
 						<Button
 							type="menu"
 							className="tlui-menu__submenu__trigger"
-							data-testid={`menu-item.${id}`}
+							data-testid={`${sourceId}-submenu.${id}`}
 							label={labelStr}
 							icon="chevron-right"
 						/>
@@ -82,7 +82,7 @@ export function TldrawUiMenuSubmenu<TransationKey extends string = string>({
 				</_ContextMenu.Sub>
 			)
 		}
-		case 'actions': {
+		default: {
 			// no submenus in actions
 			return children
 		}
