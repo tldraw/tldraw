@@ -17,13 +17,7 @@ import { defaultTools } from './defaultTools'
 import { exportToString } from './utils/export/export'
 
 /** @public */
-export function TldrawImage({
-	snapshot,
-	persistenceKey,
-}: {
-	snapshot?: StoreSnapshot<TLRecord>
-	persistenceKey?: string
-}) {
+export function TldrawImage({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
 
 	return (
@@ -37,22 +31,16 @@ export function TldrawImage({
 		>
 			{container && (
 				<ContainerProvider container={container}>
-					<TldrawImageWithOwnStore snapshot={snapshot} persistenceKey={persistenceKey} />
+					<TldrawImageWithOwnStore snapshot={snapshot} />
 				</ContainerProvider>
 			)}
 		</div>
 	)
 }
 
-function TldrawImageWithOwnStore({
-	snapshot,
-	persistenceKey,
-}: {
-	snapshot?: StoreSnapshot<TLRecord>
-	persistenceKey?: string
-}) {
+function TldrawImageWithOwnStore({ snapshot }: { snapshot?: StoreSnapshot<TLRecord> }) {
 	const shapeUtils = defaultShapeUtils
-	const store = useLocalStore({ snapshot, shapeUtils, persistenceKey })
+	const store = useLocalStore({ snapshot, shapeUtils })
 
 	return <TldrawImageWithLoadingStore store={store} />
 }

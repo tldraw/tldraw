@@ -14543,7 +14543,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawImage({ snapshot, persistenceKey, }: "
+              "text": "export declare function TldrawImage({ snapshot }: "
             },
             {
               "kind": "Content",
@@ -14565,7 +14565,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    persistenceKey?: string;\n}"
+              "text": ">;\n}"
             },
             {
               "kind": "Content",
@@ -14594,7 +14594,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ snapshot, persistenceKey, }",
+              "parameterName": "{ snapshot }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 6

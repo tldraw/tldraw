@@ -1289,9 +1289,8 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
-export function TldrawImage({ snapshot, persistenceKey, }: {
+export function TldrawImage({ snapshot }: {
     snapshot?: StoreSnapshot<TLRecord>;
-    persistenceKey?: string;
 }): JSX_2.Element;
 
 // @public (undocumented)
