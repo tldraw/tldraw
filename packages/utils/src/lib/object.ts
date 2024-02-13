@@ -153,3 +153,21 @@ export function areObjectsShallowEqual<T extends Record<string, unknown>>(
 	}
 	return true
 }
+
+/**
+ * Equivalent to `{...initialRecord, ...partial}`, but if the result would shallow-equal
+ * `initialRecord`, we return `initialRecord` instead.
+ *
+ * @internal
+ */
+export function applyPartial<T extends object>(initialRecord: T, partial: Partial<T>): T {
+	let didChange = false
+	const result = { ...initialRecord }
+	for (const [key, newValue] of Object.entries(partial)) {
+		if (Object.is(getOwnProperty(initialRecord, key), newValue)) continue
+		;(result as any)[key] = newValue
+		didChange = true
+	}
+
+	return didChange ? result : initialRecord
+}

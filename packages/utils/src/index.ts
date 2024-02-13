@@ -26,6 +26,7 @@ export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json
 export { MediaHelpers } from './lib/media'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
+	applyPartial,
 	areObjectsShallowEqual,
 	deepCopy,
 	filterEntries,

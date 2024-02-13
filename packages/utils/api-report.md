@@ -7,6 +7,9 @@
 // @internal
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
+// @internal
+export function applyPartial<T extends object>(initialRecord: T, partial: Partial<T>): T;
+
 // @internal (undocumented)
 export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[]): boolean;
 

@@ -41,6 +41,7 @@ import {
 import {
 	JsonObject,
 	annotateError,
+	applyPartial,
 	assert,
 	compact,
 	dedupe,
@@ -1179,7 +1180,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>): this {
-		this.store.put([{ ...this.getDocumentSettings(), ...settings }])
+		this.store.put([applyPartial(this.getDocumentSettings(), settings)])
 		return this
 	}
 
@@ -1229,7 +1230,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			historyOptions?: TLCommandHistoryOptions
 		) => {
 			const prev = this.store.get(this.getInstanceState().id)!
-			const next = { ...prev, ...partial }
+			const next = applyPartial<TLInstance>(prev, partial)
 
 			return {
 				data: { prev, next },
@@ -1351,8 +1352,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCursor = (cursor: Partial<TLCursor>): this => {
+		applyPartialToShape
 		this.updateInstanceState(
-			{ cursor: { ...this.getInstanceState().cursor, ...cursor } },
+			{ cursor: applyPartial(this.getInstanceState().cursor, cursor) },
 			{ ephemeral: true }
 		)
 		return this
@@ -1424,7 +1426,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ prev, partial }) => {
-				this.store.update(prev.id, (state) => ({ ...state, ...partial }))
+				this.store.update(prev.id, (state) => applyPartial<TLInstancePageState>(state, partial))
 			},
 			undo: ({ prev }) => {
 				this.store.update(prev.id, () => prev)
@@ -3417,7 +3419,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ partial }) => {
-				this.store.update(partial.id, (page) => ({ ...page, ...partial }))
+				this.store.update(partial.id, (page) => applyPartial(page, partial))
 			},
 			undo: ({ prev, partial }) => {
 				this.store.update(partial.id, () => prev)
@@ -7368,7 +7370,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const stylesForNextShape = this.getInstanceState().stylesForNextShape
 
 		this.updateInstanceState(
-			{ stylesForNextShape: { ...stylesForNextShape, [style.id]: value } },
+			{ stylesForNextShape: applyPartial(stylesForNextShape, { [style.id]: value }) },
 			historyOptions
 		)
 

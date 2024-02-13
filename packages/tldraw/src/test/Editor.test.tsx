@@ -644,3 +644,22 @@ describe('when the user prefers light UI', () => {
 		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 })
+
+describe('setCursor', () => {
+	test('setting the same cursor doesnt produce updates', () => {
+		editor.setCursor({ type: 'default' })
+		editor.store._flushHistory()
+
+		const onStoreChange = jest.fn()
+		editor.store.listen(onStoreChange)
+
+		editor.setCursor({ type: 'default' })
+		expect(onStoreChange).not.toHaveBeenCalled()
+
+		editor.setCursor({ type: 'pointer' })
+		expect(onStoreChange).toHaveBeenCalledTimes(1)
+
+		editor.setCursor({ type: 'pointer' })
+		expect(onStoreChange).toHaveBeenCalledTimes(1)
+	})
+})
