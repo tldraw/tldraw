@@ -18,6 +18,7 @@ import { useBreakpoint } from './hooks/useBreakpoint'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useRelevantStyles } from './hooks/useRevelantStyles'
 import { TLUiComponents, useTldrawUiComponents } from './hooks/useTldrawUiComponents'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
@@ -173,7 +174,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
 								{shareZone}
-								{StylePanel && breakpoint >= 5 && !isReadonlyMode && <StylePanel />}
+								{StylePanel && breakpoint >= 5 && !isReadonlyMode && <_StylePanel />}
 							</div>
 						</div>
 						<div className="tlui-layout__bottom">
@@ -194,3 +195,11 @@ const TldrawUiContent = React.memo(function TldrawUI({
 		</ToastProvider>
 	)
 })
+
+function _StylePanel() {
+	const { StylePanel } = useTldrawUiComponents()
+	const relevantStyles = useRelevantStyles()
+
+	if (!StylePanel) return null
+	return <StylePanel relevantStyles={relevantStyles} />
+}

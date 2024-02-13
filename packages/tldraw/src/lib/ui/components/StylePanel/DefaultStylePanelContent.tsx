@@ -29,11 +29,13 @@ import { STYLES } from './styles'
 
 /** @public */
 export type TLUiStylePanelContentProps = {
-	relevantStyles: NonNullable<ReturnType<typeof useRelevantStyles>>
+	relevantStyles: ReturnType<typeof useRelevantStyles>
 }
 
 /** @public */
 export function DefaultStylePanelContent({ relevantStyles }: TLUiStylePanelContentProps) {
+	if (!relevantStyles) return null
+
 	const { styles, opacity } = relevantStyles
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)

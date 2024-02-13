@@ -1,12 +1,18 @@
-import { Button, DefaultQuickActions, TLComponents, Tldraw } from '@tldraw/tldraw'
+import {
+	Button,
+	DefaultQuickActions,
+	DefaultQuickActionsContent,
+	TLComponents,
+	Tldraw,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomQuickActions() {
 	return (
-		<>
-			<DefaultQuickActions />
+		<DefaultQuickActions>
+			<DefaultQuickActionsContent />
 			<Button type="icon" icon="code" smallIcon />
-		</>
+		</DefaultQuickActions>
 	)
 }
 

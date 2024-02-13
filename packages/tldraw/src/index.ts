@@ -154,11 +154,11 @@ export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
 
 export {
 	DefaultStylePanel,
-	type TLUiStylePanelProps as StylePanelProps,
+	type TLUiStylePanelProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanel'
 export {
 	DefaultStylePanelContent,
-	type TLUiStylePanelContentProps as StylePanelContentProps,
+	type TLUiStylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 
 // Toolbar

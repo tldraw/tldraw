@@ -4,12 +4,25 @@ import {
 	TLComponents,
 	TLUiContextMenuProps,
 	Tldraw,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomContextMenu(props: TLUiContextMenuProps) {
 	return (
 		<DefaultContextMenu {...props}>
+			<TldrawUiMenuGroup id="example">
+				<TldrawUiMenuItem
+					id="like"
+					label="Like my posts"
+					icon="external-link"
+					readonlyOk
+					onSelect={() => {
+						window.open('https://x.com/tldraw', '_blank')
+					}}
+				/>
+			</TldrawUiMenuGroup>
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	)

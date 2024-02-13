@@ -1,18 +1,29 @@
-import { TLComponents, Tldraw } from '@tldraw/tldraw'
+import {
+	DefaultHelpMenu,
+	DefaultHelpMenuContent,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomHelpMenu() {
 	return (
-		<button
-			style={{
-				position: 'absolute',
-				bottom: 8,
-				right: 8,
-				pointerEvents: 'all',
-			}}
-		>
-			halp
-		</button>
+		<DefaultHelpMenu>
+			<TldrawUiMenuGroup id="example">
+				<TldrawUiMenuItem
+					id="like"
+					label="Like my posts"
+					icon="external-link"
+					readonlyOk
+					onSelect={() => {
+						window.open('https://x.com/tldraw', '_blank')
+					}}
+				/>
+			</TldrawUiMenuGroup>
+			<DefaultHelpMenuContent />
+		</DefaultHelpMenu>
 	)
 }
 

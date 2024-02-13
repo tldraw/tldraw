@@ -1,13 +1,22 @@
-import { Button, DefaultColorStyle, TLComponents, Tldraw, useEditor } from '@tldraw/tldraw'
+import {
+	Button,
+	DefaultColorStyle,
+	DefaultStylePanel,
+	DefaultStylePanelContent,
+	TLComponents,
+	TLUiStylePanelProps,
+	Tldraw,
+	useEditor,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-function CustomStylePanel() {
+function CustomStylePanel(props: TLUiStylePanelProps) {
 	const editor = useEditor()
 
 	// Styles are complex, sorry. Check our DefaultStylePanel for an example.
 
 	return (
-		<div className="tlui-style-panel__wrapper">
+		<DefaultStylePanel {...props}>
 			<Button
 				type="menu"
 				onClick={() => {
@@ -24,7 +33,8 @@ function CustomStylePanel() {
 			>
 				Green
 			</Button>
-		</div>
+			<DefaultStylePanelContent relevantStyles={props.relevantStyles} />
+		</DefaultStylePanel>
 	)
 }
 

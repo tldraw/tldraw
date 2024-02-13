@@ -351,10 +351,10 @@ export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | 
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 
 // @public (undocumented)
-export const DefaultStylePanel: NamedExoticComponent<StylePanelProps>;
+export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
-export function DefaultStylePanelContent({ relevantStyles }: StylePanelContentProps): JSX_2.Element;
+export function DefaultStylePanelContent({ relevantStyles }: TLUiStylePanelContentProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DefaultToolbar: React_2.NamedExoticComponent<object>;
@@ -1136,19 +1136,6 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
 
 // @public (undocumented)
-export type StylePanelContentProps = {
-    relevantStyles: NonNullable<ReturnType<typeof useRelevantStyles>>;
-};
-
-// @public (undocumented)
-export interface StylePanelProps {
-    // (undocumented)
-    children?: any;
-    // (undocumented)
-    isMobile?: boolean;
-}
-
-// @public (undocumented)
 function Sub({ id, children }: {
     id: string;
     children: any;
@@ -1786,6 +1773,24 @@ export type TLUiQuickActionsProps = {
 };
 
 // @public (undocumented)
+export type TLUiStylePanelContentProps = {
+    relevantStyles: ReturnType<typeof useRelevantStyles>;
+};
+
+// @public (undocumented)
+export interface TLUiStylePanelProps {
+    // (undocumented)
+    children?: any;
+    // (undocumented)
+    isMobile?: boolean;
+    // (undocumented)
+    relevantStyles: {
+        styles: ReadonlySharedStyleMap;
+        opacity: SharedStyle<number>;
+    } | null;
+}
+
+// @public (undocumented)
 export interface TLUiToast {
     // (undocumented)
     actions?: TLUiToastAction[];
@@ -1974,7 +1979,7 @@ export function useTldrawUiComponents(): Partial<{
     ZoomMenu: ComponentType<TLUiZoomMenuProps> | null;
     MainMenu: ComponentType<TLUiMainMenuProps> | null;
     Minimap: ComponentType | null;
-    StylePanel: ComponentType<StylePanelProps> | null;
+    StylePanel: ComponentType<TLUiStylePanelProps> | null;
     PageMenu: ComponentType | null;
     NavigationPanel: ComponentType | null;
     Toolbar: ComponentType | null;

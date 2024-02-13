@@ -1,11 +1,29 @@
-import { DefaultMainMenu, TLComponents, Tldraw } from '@tldraw/tldraw'
+import {
+	DefaultMainMenu,
+	DefaultMainMenuContent,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomMainMenu() {
 	return (
-		<div style={{ transform: 'rotate(90deg)' }}>
-			<DefaultMainMenu />
-		</div>
+		<DefaultMainMenu>
+			<TldrawUiMenuGroup id="example">
+				<TldrawUiMenuItem
+					id="like"
+					label="Like my posts"
+					icon="external-link"
+					readonlyOk
+					onSelect={() => {
+						window.open('https://x.com/tldraw', '_blank')
+					}}
+				/>
+			</TldrawUiMenuGroup>
+			<DefaultMainMenuContent />
+		</DefaultMainMenu>
 	)
 }
 

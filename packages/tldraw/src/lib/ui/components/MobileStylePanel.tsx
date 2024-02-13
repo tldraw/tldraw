@@ -57,8 +57,16 @@ export function MobileStylePanel() {
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent side="top" align="end">
-				<StylePanel isMobile />
+				<_StylePanel />
 			</PopoverContent>
 		</Popover>
 	)
+}
+
+function _StylePanel() {
+	const { StylePanel } = useTldrawUiComponents()
+	const relevantStyles = useRelevantStyles()
+
+	if (!StylePanel) return null
+	return <StylePanel relevantStyles={relevantStyles} />
 }

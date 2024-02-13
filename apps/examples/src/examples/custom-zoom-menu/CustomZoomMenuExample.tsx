@@ -1,11 +1,29 @@
-import { DefaultZoomMenu, TLComponents, Tldraw } from '@tldraw/tldraw'
+import {
+	DefaultZoomMenu,
+	DefaultZoomMenuContent,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomZoomMenu() {
 	return (
-		<div style={{ transform: 'rotate(180deg)', position: 'relative' }}>
-			<DefaultZoomMenu />
-		</div>
+		<DefaultZoomMenu>
+			<TldrawUiMenuGroup id="example">
+				<TldrawUiMenuItem
+					id="like"
+					label="Like my posts"
+					icon="external-link"
+					readonlyOk
+					onSelect={() => {
+						window.open('https://x.com/tldraw', '_blank')
+					}}
+				/>
+			</TldrawUiMenuGroup>
+			<DefaultZoomMenuContent />
+		</DefaultZoomMenu>
 	)
 }
 
