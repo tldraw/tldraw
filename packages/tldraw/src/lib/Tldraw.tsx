@@ -173,11 +173,7 @@ function InsideOfEditorContext({
 	const { ContextMenu } = useTldrawUiComponents()
 	if (!ContextMenu) return <Canvas />
 
-	return (
-		<ContextMenu>
-			<Canvas />
-		</ContextMenu>
-	)
+	return <ContextMenu canvas={<Canvas />} />
 }
 
 // duped from tldraw editor

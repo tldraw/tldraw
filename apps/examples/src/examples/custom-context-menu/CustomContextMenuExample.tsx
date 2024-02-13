@@ -1,11 +1,16 @@
-import { DefaultContextMenu, TLComponents, TLUiContextMenuProps, Tldraw } from '@tldraw/tldraw'
+import {
+	DefaultContextMenu,
+	DefaultContextMenuContent,
+	TLComponents,
+	TLUiContextMenuProps,
+	Tldraw,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-function CustomContextMenu({ children }: TLUiContextMenuProps) {
+function CustomContextMenu(props: TLUiContextMenuProps) {
 	return (
-		<DefaultContextMenu>
-			{/* The context menu wraps the canvas, and is the parent to the canvas */}
-			<div style={{ opacity: 0.1 }}>{children}</div>
+		<DefaultContextMenu {...props}>
+			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	)
 }

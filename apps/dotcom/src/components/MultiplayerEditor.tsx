@@ -43,8 +43,8 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	ContextMenu: () => (
-		<DefaultContextMenu>
+	ContextMenu: (props) => (
+		<DefaultContextMenu {...props}>
 			<CursorChatMenuItem />
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>

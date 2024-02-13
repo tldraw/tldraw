@@ -16999,6 +16999,34 @@
           "members": [
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiContextMenuProps#canvas:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "canvas: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenu.tsx",
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "canvas",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TLUiContextMenuProps#children:member",
               "docComment": "",
               "excerptTokens": [
@@ -22036,8 +22064,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLUiContextMenuProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiContextMenuProps:interface"
+              "text": "TLUiQuickActionsProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiQuickActionsProps:type"
             },
             {
               "kind": "Content",

@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { createShapeId } from '@tldraw/editor'
-import { Tldraw } from '../../lib/Tldraw'
+import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { DefaultContextMenu } from '../../lib/ui/components/menus/ContextMenu/DefaultContextMenu'
 import { renderTldrawComponent } from '../testutils/renderTldrawComponent'
 
@@ -23,10 +23,10 @@ it('opens on right-click', async () => {
 })
 
 it('tunnels context menu', async () => {
-	const components = {
-		ContextMenu: () => {
+	const components: TLComponents = {
+		ContextMenu: (props) => {
 			return (
-				<DefaultContextMenu>
+				<DefaultContextMenu {...props}>
 					<button data-testid="abc123">Hello</button>
 				</DefaultContextMenu>
 			)

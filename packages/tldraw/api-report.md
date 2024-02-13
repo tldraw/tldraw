@@ -1509,6 +1509,8 @@ export type TLUiComponents = Partial<{
 // @public (undocumented)
 export interface TLUiContextMenuProps {
     // (undocumented)
+    canvas: any;
+    // (undocumented)
     children?: any;
 }
 
@@ -1977,7 +1979,7 @@ export function useTldrawUiComponents(): Partial<{
     NavigationPanel: ComponentType | null;
     Toolbar: ComponentType | null;
     KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
-    QuickActions: ComponentType<TLUiContextMenuProps> | null;
+    QuickActions: ComponentType<TLUiQuickActionsProps> | null;
 }>;
 
 // @public (undocumented)

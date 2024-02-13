@@ -7,11 +7,13 @@ import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 
 /** @public */
 export interface TLUiContextMenuProps {
+	canvas: any
 	children?: any
 }
 
 /** @public */
 export const DefaultContextMenu = memo(function DefaultContextMenu({
+	canvas,
 	children,
 }: TLUiContextMenuProps) {
 	const editor = useEditor()
@@ -67,7 +69,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	return (
 		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr">
-				{children}
+				{canvas}
 			</_ContextMenu.Trigger>
 			{isOpen && (
 				<_ContextMenu.Portal container={container}>

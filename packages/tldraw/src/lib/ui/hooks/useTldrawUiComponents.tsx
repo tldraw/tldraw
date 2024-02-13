@@ -18,7 +18,10 @@ import {
 } from '../components/menus/ContextMenu/DefaultContextMenu'
 import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/menus/HelpMenu/DefaultHelpMenu'
 import { DefaultMainMenu, TLUiMainMenuProps } from '../components/menus/MainMenu/DefaultMainMenu'
-import { DefaultQuickActions } from '../components/menus/QuickActions/DefaultQuickActions'
+import {
+	DefaultQuickActions,
+	TLUiQuickActionsProps,
+} from '../components/menus/QuickActions/DefaultQuickActions'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/menus/ZoomMenu/DefaultZoomMenu'
 
 export interface BaseTLUiComponents {
@@ -33,7 +36,7 @@ export interface BaseTLUiComponents {
 	NavigationPanel: ComponentType
 	Toolbar: ComponentType
 	KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps>
-	QuickActions: ComponentType<TLUiContextMenuProps>
+	QuickActions: ComponentType<TLUiQuickActionsProps>
 }
 
 /** @public */
