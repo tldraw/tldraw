@@ -26,7 +26,7 @@ export default function SnapshotImageExample() {
 			>
 				{editing ? '✓ Save drawing' : '✎ Edit drawing'}
 			</button>
-			<div style={{ width: 600, height: 450, paddingTop: 10, overflow: 'hidden' }}>
+			<div style={{ width: 600, height: 450, marginTop: 15, overflow: 'hidden' }}>
 				{editing ? (
 					<Tldraw snapshot={snapshot} onMount={(editor) => setEditor(editor)} />
 				) : (
