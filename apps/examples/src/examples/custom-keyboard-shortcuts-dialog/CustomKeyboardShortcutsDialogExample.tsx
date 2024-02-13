@@ -2,10 +2,10 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	TLComponents,
+	TLUiKeyboardShortcutsDialogProps,
 	Tldraw,
 	TldrawUiMenuItem,
 } from '@tldraw/tldraw'
-import { TLUiKeyboardShortcutsDialogProps } from '@tldraw/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomKeyboardShortcutsDialog(props: TLUiKeyboardShortcutsDialogProps) {
