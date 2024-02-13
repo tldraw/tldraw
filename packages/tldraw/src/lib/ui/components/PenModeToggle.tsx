@@ -1,5 +1,5 @@
 import { track, useEditor } from '@tldraw/editor'
-import { useActions } from '../hooks/useActions'
+import { unwrapLabel, useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
 export const ExitPenMode = track(function ExitPenMode() {
@@ -16,7 +16,7 @@ export const ExitPenMode = track(function ExitPenMode() {
 	return (
 		<Button
 			type="normal"
-			label={action.label as string}
+			label={unwrapLabel(action.label)}
 			iconLeft={action.icon}
 			onClick={() => action.onSelect('helper-buttons')}
 		/>

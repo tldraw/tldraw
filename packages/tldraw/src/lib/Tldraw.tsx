@@ -72,31 +72,37 @@ export function Tldraw(props: TldrawProps) {
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 		onMount,
+		components = {},
+		shapeUtils = [],
+		tools = [],
 		...rest
 	} = props
 
-	const components = useShallowObjectIdentity(rest.components ?? {})
-	const shapeUtils = useShallowArrayIdentity(rest.shapeUtils ?? [])
-	const tools = useShallowArrayIdentity(rest.tools ?? [])
+	const _components = useShallowObjectIdentity(components)
+	const componentsWithDefault = useMemo(
+		() => ({
+			Scribble: TldrawScribble,
+			CollaboratorScribble: TldrawScribble,
+			SelectionForeground: TldrawSelectionForeground,
+			SelectionBackground: TldrawSelectionBackground,
+			Handles: TldrawHandles,
+			HoveredShapeIndicator: TldrawHoveredShapeIndicator,
+			..._components,
+		}),
+		[_components]
+	)
 
-	const withDefaults = {
-		initialState: 'select',
-		...rest,
-		components: useMemo(
-			() => ({
-				Scribble: TldrawScribble,
-				CollaboratorScribble: TldrawScribble,
-				SelectionForeground: TldrawSelectionForeground,
-				SelectionBackground: TldrawSelectionBackground,
-				Handles: TldrawHandles,
-				HoveredShapeIndicator: TldrawHoveredShapeIndicator,
-				...components,
-			}),
-			[components]
-		),
-		shapeUtils: useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils]),
-		tools: useMemo(() => [...defaultTools, ...defaultShapeTools, ...tools], [tools]),
-	}
+	const _shapeUtils = useShallowArrayIdentity(shapeUtils)
+	const shapeUtilsWithDefaults = useMemo(
+		() => [...defaultShapeUtils, ..._shapeUtils],
+		[_shapeUtils]
+	)
+
+	const _tools = useShallowArrayIdentity(tools)
+	const toolsWithDefaults = useMemo(
+		() => [...defaultTools, ...defaultShapeTools, ..._tools],
+		[_tools]
+	)
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 
@@ -111,8 +117,14 @@ export function Tldraw(props: TldrawProps) {
 	}
 
 	return (
-		<TldrawEditor {...withDefaults}>
-			<TldrawUi {...withDefaults}>
+		<TldrawEditor
+			initialState="select"
+			{...rest}
+			components={componentsWithDefault}
+			shapeUtils={shapeUtilsWithDefaults}
+			tools={toolsWithDefaults}
+		>
+			<TldrawUi {...rest} components={componentsWithDefault}>
 				<InsideOfEditorContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}

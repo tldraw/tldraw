@@ -185,22 +185,6 @@ export function useSharing(): TLUiOverrides {
 				}
 				return actions
 			},
-			// menu(editor, menu, { actions }) {
-			// 	const fileMenu = findMenuItem(menu, ['menu', 'file'])
-			// 	assert(fileMenu.type === 'submenu')
-			// 	if (isMultiplayer) {
-			// 		fileMenu.children.unshift(
-			// 			menuGroup(
-			// 				'share',
-			// 				menuItem(actions[FORK_PROJECT_ACTION]),
-			// 				menuItem(actions[LEAVE_SHARED_PROJECT_ACTION])
-			// 			)!
-			// 		)
-			// 	} else {
-			// 		fileMenu.children.unshift(menuGroup('share', menuItem(actions[SHARE_PROJECT_ACTION]))!)
-			// 	}
-			// 	return menu
-			// },
 		}),
 		[handleUiEvent, navigate, uploadFileToAsset, id]
 	)

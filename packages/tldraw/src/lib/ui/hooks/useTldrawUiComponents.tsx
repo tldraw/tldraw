@@ -1,3 +1,4 @@
+import { useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, createContext, useContext, useMemo } from 'react'
 import {
 	DefaultKeyboardShortcutsDialog,
@@ -53,9 +54,11 @@ type ComponentsContextProviderProps = {
 
 /** @public */
 export function TldrawUiComponentsProvider({
-	overrides,
+	overrides = {},
 	children,
 }: ComponentsContextProviderProps) {
+	const _overrides = useShallowObjectIdentity(overrides)
+
 	return (
 		<TldrawUiComponentsContext.Provider
 			value={useMemo(
@@ -72,9 +75,9 @@ export function TldrawUiComponentsProvider({
 					Toolbar: DefaultToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
-					...overrides,
+					..._overrides,
 				}),
-				[overrides]
+				[_overrides]
 			)}
 		>
 			{children}

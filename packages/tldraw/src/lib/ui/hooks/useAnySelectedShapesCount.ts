@@ -27,6 +27,6 @@ export function useAnySelectedShapesCount(min?: number, max?: number) {
 				}
 			}
 		},
-		[editor]
+		[editor, min, max]
 	)
 }
