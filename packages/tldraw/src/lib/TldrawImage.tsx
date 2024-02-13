@@ -32,7 +32,6 @@ export type TldrawImageProps = {
 export function TldrawImage(props: TldrawImageProps) {
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
 	const shapeUtils = useShallowArrayIdentity(props.shapeUtils ?? [])
-
 	const shapeUtilsWithDefaults = useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils])
 
 	return (
