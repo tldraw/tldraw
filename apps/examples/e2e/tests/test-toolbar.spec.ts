@@ -1,43 +1,38 @@
-import test, { Locator, expect } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { setup } from '../shared-e2e'
+import test from '../tests/fixtures/fixtures'
 
 test.describe('when selecting a tool from the toolbar', () => {
 	test.beforeEach(setup)
 
-	test('tool selection behaviors', async ({ page }) => {
-		const selectTool = page.getByTestId('tools.select')
-		const drawTool = page.getByTestId('tools.draw')
-		const arrowTool = page.getByTestId('tools.arrow')
-		const toolLock = page.getByTestId('tool-lock')
-		const moreToolsButton = page.getByTestId('tools.more-button')
-		const moreToolsPopover = page.getByTestId('tools.more-content')
-		const cloudTool = page.getByTestId('tools.more.cloud')
+	test('tool selection behaviors', async ({ toolbar }) => {
+		const { select, draw, arrow, cloud } = toolbar.toolNames
+		const { popoverCloud } = toolbar.popoverToolNames
 
 		await test.step('selecting a tool changes the button color', async () => {
-			await selectTool.click()
-			await isSelected(selectTool, true)
-			await isSelected(drawTool, false)
-			await drawTool.click()
-			await isSelected(selectTool, false)
-			await isSelected(drawTool, true)
+			await select.click()
+			await toolbar.isSelected(select, true)
+			await toolbar.isSelected(draw, false)
+			await draw.click()
+			await toolbar.isSelected(select, false)
+			await toolbar.isSelected(draw, true)
 		})
 
 		await test.step('selecting certain tools exposes the tool-lock button', async () => {
-			await drawTool.click()
-			expect(await toolLock.isVisible()).toBe(false)
-			await arrowTool.click()
-			expect(await toolLock.isVisible()).toBe(true)
+			await draw.click()
+			expect(toolbar.toolLock).toBeHidden()
+			await arrow.click()
+			expect(toolbar.toolLock).toBeVisible()
 		})
 
 		await test.step('selecting a tool from the popover makes it appear on toolbar', async () => {
-			// Tools in the toolbar have the testId `tools.{tool}` and the popover items have the testId `tools.more.{tool}`
-			await expect(page.getByTestId('tools.cloud')).toBeHidden()
-			await expect(moreToolsPopover).toBeHidden()
-			await moreToolsButton.click()
-			await expect(moreToolsPopover).toBeVisible()
-			await cloudTool.click()
-			await expect(moreToolsPopover).toBeHidden()
-			await expect(page.getByTestId('tools.cloud')).toBeVisible()
+			await expect(cloud).toBeHidden()
+			await expect(toolbar.moreToolsPopover).toBeHidden()
+			await toolbar.moreToolsButton.click()
+			await expect(toolbar.moreToolsPopover).toBeVisible()
+			await popoverCloud.click()
+			await expect(toolbar.moreToolsPopover).toBeHidden()
+			await expect(cloud).toBeVisible()
 		})
 	})
 	test('the correct styles are exposed for the selected tool', async ({ isMobile, page }) => {
@@ -85,8 +80,3 @@ test.describe('when selecting a tool from the toolbar', () => {
 		}
 	})
 })
-
-async function isSelected(locator: Locator, isSelected: boolean) {
-	const expectedColor = isSelected ? 'rgb(255, 255, 255)' : 'rgb(46, 46, 46)'
-	expect(locator).toHaveCSS('color', expectedColor)
-}
