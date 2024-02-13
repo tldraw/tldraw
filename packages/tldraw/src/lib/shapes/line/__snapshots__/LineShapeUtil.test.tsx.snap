@@ -12,15 +12,13 @@ exports[`Misc resizes: line shape after resize 1`] = `
     "color": "black",
     "dash": "draw",
     "handles": {
-      "end": {
-        "index": "a2",
-        "x": 100,
-        "y": 700,
-      },
-      "start": {
-        "index": "a1",
+      "a1": {
         "x": 0,
         "y": 0,
+      },
+      "a2": {
+        "x": 100,
+        "y": 700,
       },
     },
     "size": "m",

@@ -127,7 +127,6 @@ export {
 	lineShapeMigrations,
 	lineShapeProps,
 	type TLLineShape,
-	type TLLineShapeHandle,
 } from './shapes/TLLineShape'
 export { noteShapeMigrations, noteShapeProps, type TLNoteShape } from './shapes/TLNoteShape'
 export {

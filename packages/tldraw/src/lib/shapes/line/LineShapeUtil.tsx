@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	CubicSpline2d,
-	IndexKey,
 	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
@@ -14,8 +13,10 @@ import {
 	deepCopy,
 	getDefaultColorTheme,
 	getIndexBetween,
+	getIndices,
 	lineShapeMigrations,
 	lineShapeProps,
+	objectMapEntries,
 	sortByIndex,
 } from '@tldraw/editor'
 
@@ -45,19 +46,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsBg = () => true
 
 	override getDefaultProps(): TLLineShape['props'] {
+		const [startIndex, endIndex] = getIndices(2)
 		return {
 			dash: 'draw',
 			size: 'm',
 			color: 'black',
 			spline: 'line',
 			handles: {
-				start: {
-					index: 'a1' as IndexKey,
+				[startIndex]: {
 					x: 0,
 					y: 0,
 				},
-				end: {
-					index: 'a2' as IndexKey,
+				[endIndex]: {
 					x: 0.1,
 					y: 0.1,
 				},
@@ -76,10 +76,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 			const spline = getGeometryForLineShape(shape)
 
-			const sortedHandles = Object.entries(handles)
+			const sortedHandles = objectMapEntries(handles)
 				.map(
-					([id, handle]): TLHandle => ({
-						id,
+					([index, handle]): TLHandle => ({
+						id: index,
+						index,
 						...handle,
 						type: 'vertex',
 						canBind: false,
@@ -122,9 +123,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 		const handles = deepCopy(shape.props.handles)
 
-		Object.entries(shape.props.handles).forEach(([id, { x, y }]) => {
-			handles[id].x = x * scaleX
-			handles[id].y = y * scaleY
+		objectMapEntries(shape.props.handles).forEach(([index, { x, y }]) => {
+			handles[index].x = x * scaleX
+			handles[index].y = y * scaleY
 		})
 
 		return {
@@ -135,42 +136,16 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
-		const next = deepCopy(shape)
-
-		switch (handle.id) {
-			case 'start':
-			case 'end': {
-				next.props.handles[handle.id] = {
-					...next.props.handles[handle.id],
-					x: handle.x,
-					y: handle.y,
-				}
-				break
-			}
-
-			default: {
-				const id = 'handle:' + handle.index
-				const existing = shape.props.handles[id]
-
-				if (existing) {
-					next.props.handles[id] = {
-						...existing,
-						x: handle.x,
-						y: handle.y,
-					}
-				} else {
-					next.props.handles[id] = {
-						index: handle.index,
-						x: handle.x,
-						y: handle.y,
-					}
-				}
-
-				break
-			}
+		return {
+			...shape,
+			props: {
+				...shape.props,
+				handles: {
+					...shape.props.handles,
+					[handle.index]: { x: handle.x, y: handle.y },
+				},
+			},
 		}
-
-		return next
 	}
 
 	component(shape: TLLineShape) {
@@ -410,7 +385,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 /** @public */
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
 	const { spline, handles } = shape.props
-	const handlePoints = Object.values(handles).sort(sortByIndex).map(Vec.From)
+	const handlePoints = objectMapEntries(handles)
+		.map(([index, position]) => ({ index, ...position }))
+		.sort(sortByIndex)
+		.map(Vec.From)
 
 	switch (spline) {
 		case 'cubic': {

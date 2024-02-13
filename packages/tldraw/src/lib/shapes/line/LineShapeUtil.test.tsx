@@ -26,13 +26,11 @@ beforeEach(() => {
 				y: 150,
 				props: {
 					handles: {
-						start: {
-							index: 'a1',
+						a1: {
 							x: 0,
 							y: 0,
 						},
-						end: {
-							index: 'a2',
+						a2: {
 							x: 100,
 							y: 100,
 						},
@@ -95,11 +93,7 @@ describe('Mid-point handles', () => {
 			props: {
 				handles: {
 					...shape.props.handles,
-					'handle:a1V': {
-						index: 'a1V',
-						x: 200,
-						y: 200,
-					},
+					a1V: { x: 200, y: 200 },
 				},
 			},
 		})
@@ -126,11 +120,7 @@ describe('Mid-point handles', () => {
 			props: {
 				handles: {
 					...shape.props.handles,
-					'handle:a1V': {
-						index: 'a1V',
-						x: 50,
-						y: 80,
-					},
+					a1V: { x: 50, y: 80 },
 				},
 			},
 		})
@@ -162,7 +152,7 @@ describe('Mid-point handles', () => {
 			.pointerDown(200, 200, {
 				target: 'handle',
 				shape: getShape(),
-				handle: util.getHandles(getShape()).find((h) => h.id === 'handle:a1V')!,
+				handle: util.getHandles(getShape()).find((h) => h.id === 'a1V')!,
 			})
 			.pointerMove(198, 230, undefined, { ctrlKey: true })
 
@@ -172,11 +162,7 @@ describe('Mid-point handles', () => {
 			props: {
 				handles: {
 					...getShape().props.handles,
-					'handle:a1V': {
-						index: 'a1V',
-						x: 50,
-						y: 80,
-					},
+					a1V: { x: 50, y: 80 },
 				},
 			},
 		})

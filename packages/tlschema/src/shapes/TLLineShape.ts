@@ -1,6 +1,7 @@
 import { defineMigrations } from '@tldraw/store'
-import { deepCopy, mapObjectMapValues } from '@tldraw/utils'
+import { deepCopy, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import { vecModelValidator } from '../misc/geometry-types'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -16,23 +17,13 @@ export const LineShapeSplineStyle = StyleProp.defineEnum('tldraw:spline', {
 /** @public */
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>
 
-/** @internal */
-export const lineHandleValidator = T.object({
-	index: T.string,
-	x: T.number,
-	y: T.number,
-})
-
-/** @public */
-export type TLLineShapeHandle = T.TypeOf<typeof lineHandleValidator>
-
 /** @public */
 export const lineShapeProps = {
 	color: DefaultColorStyle,
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,
-	handles: T.dict(T.string, lineHandleValidator),
+	handles: T.dict(T.indexKey, vecModelValidator),
 }
 
 /** @public */
@@ -73,28 +64,45 @@ export const lineShapeMigrations = defineMigrations({
 					...record,
 					props: {
 						...record.props,
-						handles: mapObjectMapValues(record.props.handles, (id, handle: any) => ({
-							index: handle.index,
-							x: handle.x,
-							y: handle.y,
-						})),
+						handles: objectMapFromEntries(
+							Object.values(record.props.handles).map((handle: any) => [
+								handle.index,
+								{
+									x: handle.x,
+									y: handle.y,
+								},
+							])
+						),
 					},
 				}
 			},
 			down: (record: any) => {
+				const handles = Object.entries(record.props.handles)
+					.map(([index, handle]: any) => ({ index, ...handle }))
+					.sort(sortByIndex)
+
 				return {
 					...record,
 					props: {
 						...record.props,
-						handles: mapObjectMapValues(record.props.handles, (id, handle: any) => ({
-							id,
-							type: 'vertex',
-							canBind: false,
-							canSnap: true,
-							index: handle.index,
-							x: handle.x,
-							y: handle.y,
-						})),
+						handles: Object.fromEntries(
+							handles.map((handle, i) => {
+								const id =
+									i === 0 ? 'start' : i === handles.length - 1 ? 'end' : `handle:${handle.index}`
+								return [
+									id,
+									{
+										id,
+										type: 'vertex',
+										canBind: false,
+										canSnap: true,
+										index: handle.index,
+										x: handle.x,
+										y: handle.y,
+									},
+								]
+							})
+						),
 					},
 				}
 			},

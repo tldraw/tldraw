@@ -1883,9 +1883,9 @@ describe('Remove extra handle props', () => {
 		).toEqual({
 			props: {
 				handles: {
-					start: { index: 'a1', x: 0, y: 0 },
-					end: { index: 'a2', x: 190, y: -62 },
-					'handle:a1V': { index: 'a1V', x: 76, y: 60 },
+					a1: { x: 0, y: 0 },
+					a1V: { x: 76, y: 60 },
+					a2: { x: 190, y: -62 },
 				},
 			},
 		})
@@ -1895,9 +1895,9 @@ describe('Remove extra handle props', () => {
 			down({
 				props: {
 					handles: {
-						start: { index: 'a1', x: 0, y: 0 },
-						end: { index: 'a2', x: 190, y: -62 },
-						'handle:a1V': { index: 'a1V', x: 76, y: 60 },
+						a1: { x: 0, y: 0 },
+						a1V: { x: 76, y: 60 },
+						a2: { x: 190, y: -62 },
 					},
 				},
 			})
