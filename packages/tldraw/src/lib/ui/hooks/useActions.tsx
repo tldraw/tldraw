@@ -76,9 +76,7 @@ function getExportName(editor: Editor, defaultName: string) {
 	const selectedShapes = editor.getSelectedShapes()
 	// When we don't have any shapes selected, we want to use the document name
 	if (selectedShapes.length === 0) {
-		const documentName = editor.getDocumentSettings().name
-		if (documentName === '') return defaultName
-		return documentName
+		return editor.getDocumentSettings().name || defaultName
 	}
 	return undefined
 }
