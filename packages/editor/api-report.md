@@ -1115,6 +1115,8 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     getArea(): number;
     // (undocumented)
+    getLabel(): Geometry2d;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;

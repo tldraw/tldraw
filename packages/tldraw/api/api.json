@@ -19448,7 +19448,38 @@
             },
             {
               "kind": "PropertySignature",
+<<<<<<< HEAD
               "canonicalReference": "tldraw!TLUiDialog#id:member",
+=======
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog#dialogProps:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "dialogProps?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "dialogProps",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog#id:member",
+>>>>>>> 64bb6fd1f (Revert "Revert "emojis! 🧑‍🎨 🎨 ✏️ (#2814)" (#2822)")
               "docComment": "",
               "excerptTokens": [
                 {
@@ -19475,7 +19506,38 @@
             },
             {
               "kind": "PropertySignature",
+<<<<<<< HEAD
               "canonicalReference": "tldraw!TLUiDialog#onClose:member",
+=======
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog#isCustomDialog:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isCustomDialog?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "isCustomDialog",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog#onClose:member",
+>>>>>>> 64bb6fd1f (Revert "Revert "emojis! 🧑‍🎨 🎨 ✏️ (#2814)" (#2822)")
               "docComment": "",
               "excerptTokens": [
                 {

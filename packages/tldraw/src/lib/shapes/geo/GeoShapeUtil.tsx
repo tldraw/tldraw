@@ -35,6 +35,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
+	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
@@ -62,7 +63,6 @@ import {
 } from './components/SolidStyleOval'
 import { SolidStylePolygon, SolidStylePolygonSvg } from './components/SolidStylePolygon'
 
-const LABEL_PADDING = 16
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
