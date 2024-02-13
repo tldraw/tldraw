@@ -79,8 +79,6 @@ function TldrawImageWithReadyStore({ store }: { store: TLStore }) {
 			tools: [...defaultTools, ...defaultShapeTools],
 			getContainer: () => container,
 		})
-		;(window as any).app = editor
-		;(window as any).editor = editor
 		setEditor(editor)
 
 		return () => {

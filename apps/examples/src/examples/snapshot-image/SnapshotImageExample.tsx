@@ -33,11 +33,16 @@ export default function SnapshotImageExample() {
 					Toggle snapshot image
 				</label>
 			</div>
-			<div style={{ width: 600, height: 400, border: '1px solid black', overflow: 'hidden' }}>
+			<div style={{ width: 600, height: 450, overflow: 'hidden' }}>
 				{shouldShowImage ? (
 					<TldrawImage snapshot={snapshot} />
 				) : (
-					<Tldraw snapshot={snapshot} onMount={(editor) => setEditor(editor)} />
+					<Tldraw
+						snapshot={snapshot}
+						onMount={(editor) => {
+							setEditor(editor)
+						}}
+					/>
 				)}
 			</div>
 		</div>
