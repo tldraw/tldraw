@@ -3,13 +3,7 @@ import { useContainer } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 import { TLUiDialog, useDialogs } from '../hooks/useDialogsProvider'
 
-const Dialog = ({
-	id,
-	component: ModalContent,
-	onClose,
-	isCustomDialog,
-	dialogProps,
-}: TLUiDialog) => {
+const Dialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
 
 	const container = useContainer()
@@ -29,10 +23,6 @@ const Dialog = ({
 		},
 		[id, onClose, removeDialog]
 	)
-
-	if (isCustomDialog) {
-		return <ModalContent onClose={() => handleOpenChange(false)} {...dialogProps} />
-	}
 
 	return (
 		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen>

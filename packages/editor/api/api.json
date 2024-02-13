@@ -22690,38 +22690,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Group2d#getLabel:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getLabel(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Geometry2d",
-                  "canonicalReference": "@tldraw/editor!Geometry2d:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getLabel"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Group2d#getVertices:member(1)",
               "docComment": "",
               "excerptTokens": [
