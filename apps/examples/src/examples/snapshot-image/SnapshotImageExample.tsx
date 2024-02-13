@@ -1,4 +1,4 @@
-import { Editor, StoreSnapshot, TLRecord, Tldraw, TldrawImage } from '@tldraw/tldraw'
+import { Editor, StoreSnapshot, TLPageId, TLRecord, Tldraw, TldrawImage } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useCallback, useState } from 'react'
 import initialSnapshot from './snapshot.json'
@@ -6,15 +6,25 @@ import initialSnapshot from './snapshot.json'
 export default function SnapshotImageExample() {
 	const [editor, setEditor] = useState<Editor>()
 	const [snapshot, setSnapshot] = useState<StoreSnapshot<TLRecord> | undefined>(initialSnapshot)
+	const [pageId, setPageId] = useState<TLPageId | undefined>()
 	const [editing, setEditing] = useState(false)
+
+	const handleMount = useCallback(
+		(editor: Editor) => {
+			setEditor(editor)
+			editor.updateInstanceState({ isDebugMode: false })
+			if (pageId) editor.setCurrentPage(pageId)
+		},
+		[pageId]
+	)
 
 	const editDrawing = useCallback(() => {
 		setEditing(true)
 	}, [])
 
 	const saveDrawing = useCallback(() => {
-		const snapshot = editor?.store.getSnapshot()
-		setSnapshot(snapshot)
+		setPageId(editor?.getCurrentPageId())
+		setSnapshot(editor?.store.getSnapshot())
 		setEditing(false)
 	}, [editor])
 
@@ -28,9 +38,9 @@ export default function SnapshotImageExample() {
 			</button>
 			<div style={{ width: 600, height: 450, marginTop: 15, overflow: 'hidden' }}>
 				{editing ? (
-					<Tldraw snapshot={snapshot} onMount={(editor) => setEditor(editor)} />
+					<Tldraw snapshot={snapshot} onMount={handleMount} />
 				) : (
-					<TldrawImage snapshot={snapshot} opts={{ background: false }} />
+					<TldrawImage snapshot={snapshot} pageId={pageId} opts={{ background: false }} />
 				)}
 			</div>
 		</div>

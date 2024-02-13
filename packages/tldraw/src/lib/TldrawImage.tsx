@@ -5,6 +5,7 @@ import {
 	ErrorScreen,
 	LoadingScreen,
 	StoreSnapshot,
+	TLPageId,
 	TLRecord,
 	TLSvgOptions,
 	useContainer,
@@ -20,9 +21,11 @@ import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/asset
 /** @public */
 export function TldrawImage({
 	snapshot,
+	pageId,
 	opts = {},
 }: {
 	snapshot?: StoreSnapshot<TLRecord>
+	pageId?: TLPageId
 	opts?: Partial<TLSvgOptions>
 }) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
@@ -38,7 +41,7 @@ export function TldrawImage({
 		>
 			{container && (
 				<ContainerProvider container={container}>
-					<TldrawImageEditor snapshot={snapshot} opts={opts} />
+					<TldrawImageEditor snapshot={snapshot} pageId={pageId} opts={opts} />
 				</ContainerProvider>
 			)}
 		</div>
@@ -47,9 +50,11 @@ export function TldrawImage({
 
 function TldrawImageEditor({
 	snapshot,
+	pageId,
 	opts,
 }: {
 	snapshot?: StoreSnapshot<TLRecord>
+	pageId?: TLPageId
 	opts: Partial<TLSvgOptions>
 }) {
 	const shapeUtils = defaultShapeUtils
@@ -87,27 +92,31 @@ function TldrawImageEditor({
 
 	return (
 		<EditorContext.Provider value={editor}>
-			<Layout opts={opts} />
+			<Layout pageId={pageId} opts={opts} />
 		</EditorContext.Provider>
 	)
 }
 
-async function getImageUrl(editor: Editor, opts: Partial<TLSvgOptions>) {
-	const shapeIds = editor.getPageShapeIds(editor.getCurrentPage().id)
+async function getImageUrl(
+	editor: Editor,
+	pageId: TLPageId = editor.getCurrentPageId(),
+	opts: Partial<TLSvgOptions>
+) {
+	const shapeIds = editor.getPageShapeIds(pageId)
 	const string = await exportToString(editor, [...shapeIds], 'svg', opts)
 	const blob = new Blob([string], { type: 'image/svg+xml' })
 	return URL.createObjectURL(blob)
 }
 
-function Layout({ opts }: { opts: Partial<TLSvgOptions> }) {
+function Layout({ pageId, opts }: { pageId?: TLPageId; opts: Partial<TLSvgOptions> }) {
 	const editor = useEditor()
 	const [url, setUrl] = useState<string | null>(null)
 
 	useEffect(() => {
-		getImageUrl(editor, opts).then((url) => {
+		getImageUrl(editor, pageId, opts).then((url) => {
 			setUrl(url)
 		})
-	}, [editor, opts])
+	}, [editor, opts, pageId])
 
 	return url ? <img src={url} style={{ width: '100%', height: '100%' }} /> : null
 }

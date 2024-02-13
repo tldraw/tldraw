@@ -84,6 +84,7 @@ import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
 import { TLOnTranslateHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
+import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
@@ -1289,8 +1290,9 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
-export function TldrawImage({ snapshot, opts, }: {
+export function TldrawImage({ snapshot, pageId, opts, }: {
     snapshot?: StoreSnapshot<TLRecord>;
+    pageId?: TLPageId;
     opts?: Partial<TLSvgOptions>;
 }): JSX_2.Element;
 

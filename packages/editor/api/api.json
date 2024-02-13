@@ -11134,7 +11134,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPageShapeIds:member(1)",
-              "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')\n * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getPageShapeIds('page1')\n * const idsOnPage2 = editor.getPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

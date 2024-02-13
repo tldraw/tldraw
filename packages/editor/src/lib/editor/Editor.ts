@@ -3141,8 +3141,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		for (const childId of this.getSortedChildIdsForParent(this.getCurrentPageId())) {
-			addShapeById(childId, 1, false)
+		// If we're using editor state, then we're only interested in on-screen shapes.
+		// If we're not using the editor state, then we're interested in ALL shapes, even those from other pages.
+		const pages = useEditorState ? [this.getCurrentPage()] : this.getPages()
+		for (const page of pages) {
+			for (const childId of this.getSortedChildIdsForParent(page.id)) {
+				addShapeById(childId, 1, false)
+			}
 		}
 
 		return renderingShapes
@@ -3296,8 +3301,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')
-	 * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)
+	 * const idsOnPage1 = editor.getPageShapeIds('page1')
+	 * const idsOnPage2 = editor.getPageShapeIds(myPage2)
 	 * ```
 	 *
 	 * @param page - The page (or page id) to get.
