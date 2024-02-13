@@ -3,7 +3,6 @@ import {
 	DropdownMenu,
 	Kbd,
 	OfflineIndicator,
-	TLDocument,
 	track,
 	useActions,
 	useBreakpoint,
@@ -180,14 +179,6 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 	)
 }
 
-function getName(state: NameState, document: TLDocument, defaultName: string) {
-	if (state.name) return state.name
-	if (document.name === '') {
-		return defaultName
-	}
-	return document.name
-}
-
 const DocumentNameEditor = track(function DocumentNameEditor({
 	state,
 	setState,
@@ -253,7 +244,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 		setState((prev) => ({ ...prev, isEditing: false }))
 	}, [setState])
 
-	const name = getName(state, documentSettings, defaultDocumentName)
+	const name = state.name || documentSettings.name || defaultDocumentName
 
 	return (
 		<div className="tlui-document-name__input__wrapper">
