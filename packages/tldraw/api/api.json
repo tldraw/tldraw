@@ -18366,6 +18366,60 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiEventMap#\"move-to-page\":member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "'move-to-page': "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "\"move-to-page\"",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiEventMap#\"new-page\":member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "'new-page': "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "\"new-page\"",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TLUiEventMap#\"open-cursor-chat\":member",
               "docComment": "",
               "excerptTokens": [

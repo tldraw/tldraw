@@ -3,6 +3,7 @@ import {
 	Box,
 	Editor,
 	HALF_PI,
+	PageRecordType,
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLFrameShape,
@@ -32,6 +33,7 @@ import { useInsertMedia } from './useInsertMedia'
 import { usePrint } from './usePrint'
 import { useToasts } from './useToastsProvider'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
+import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiActionItem<
@@ -74,6 +76,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts } = useToasts()
+	const msg = useTranslation()
 
 	const insertMedia = useInsertMedia()
 	const printSelectionOrPages = usePrint()
@@ -1172,6 +1175,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.toggleLock(editor.getSelectedShapeIds())
 				},
 			},
+			{
+				id: 'new-page',
+				label: 'context.pages.new-page',
+				onSelect(source) {
+					const newPageId = PageRecordType.createId()
+					const ids = editor.getSelectedShapeIds()
+					editor.batch(() => {
+						editor.mark('move_shapes_to_page')
+						editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
+						editor.moveShapesToPage(ids, newPageId)
+					})
+					trackEvent('new-page', { source })
+				},
+			},
 		]
 
 		const actions = makeActions(actionItems)
@@ -1195,6 +1212,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		clearDialogs,
 		clearToasts,
 		printSelectionOrPages,
+		msg,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

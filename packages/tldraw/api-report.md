@@ -1586,6 +1586,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'insert-media': null;
     // (undocumented)
+    'move-to-page': null;
+    // (undocumented)
+    'new-page': null;
+    // (undocumented)
     'open-cursor-chat': null;
     // (undocumented)
     'open-embed-link': null;

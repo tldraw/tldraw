@@ -26,6 +26,8 @@ export interface TLUiEventMap {
 	// Actions
 	undo: null
 	redo: null
+	'new-page': null
+	'move-to-page': null
 	'group-shapes': null
 	'ungroup-shapes': null
 	'remove-frame': null

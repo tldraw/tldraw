@@ -1,104 +1,59 @@
-import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { PageRecordType, TLPageId, track, useContainer, useEditor } from '@tldraw/editor'
+import { TLPageId, track, useEditor } from '@tldraw/editor'
+import { useActions } from '../hooks/useActions'
+import { useUiEvents } from '../hooks/useEventsProvider'
 import { useToasts } from '../hooks/useToastsProvider'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { Button } from './primitives/Button'
+import { TldrawUiMenuGroup } from './menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from './menus/TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from './menus/TldrawUiMenuSubmenu'
 
 export const MoveToPageMenu = track(function MoveToPageMenu() {
 	const editor = useEditor()
-	const container = useContainer()
 	const pages = editor.getPages()
 	const currentPageId = editor.getCurrentPageId()
-	const msg = useTranslation()
 	const { addToast } = useToasts()
+	const actions = useActions()
+	const trackEvent = useUiEvents()
 
 	return (
-		<_ContextMenu.Sub>
-			<_ContextMenu.SubTrigger dir="ltr" asChild>
-				<Button
-					type="menu"
-					label="context-menu.move-to-page"
-					data-testid="context-menu.move-to-page"
-					icon="chevron-right"
-				/>
-			</_ContextMenu.SubTrigger>
-			<_ContextMenu.Portal container={container}>
-				<_ContextMenu.SubContent className="tlui-menu" sideOffset={-4} collisionPadding={4}>
-					<_ContextMenu.Group
-						dir="ltr"
-						className={'tlui-menu__group'}
-						data-testid={`context-menu.pages`}
-						key="pages"
-					>
-						{pages.map((page) => (
-							<_ContextMenu.Item
-								key={page.id}
-								disabled={currentPageId === page.id}
-								onSelect={() => {
-									editor.mark('move_shapes_to_page')
-									editor.moveShapesToPage(editor.getSelectedShapeIds(), page.id as TLPageId)
+		<TldrawUiMenuSubmenu id="move-to-page" label="context-menu.move-to-page">
+			<TldrawUiMenuGroup id="pages">
+				{pages.map((page) => (
+					<TldrawUiMenuItem
+						id={page.id}
+						key={page.id}
+						disabled={currentPageId === page.id}
+						label={page.name}
+						onSelect={() => {
+							editor.mark('move_shapes_to_page')
+							editor.moveShapesToPage(editor.getSelectedShapeIds(), page.id as TLPageId)
 
-									const toPage = editor.getPage(page.id)
+							const toPage = editor.getPage(page.id)
 
-									if (toPage) {
-										addToast({
-											title: 'Changed Page',
-											description: `Moved to ${toPage.name}.`,
-											actions: [
-												{
-													label: 'Go Back',
-													type: 'primary',
-													onClick: () => {
-														editor.mark('change-page')
-														editor.setCurrentPage(currentPageId)
-													},
-												},
-											],
-										})
-									}
-								}}
-								asChild
-							>
-								<Button
-									type="menu"
-									title={page.name}
-									className="tlui-context-menu__move-to-page__name"
-								>
-									<span className="tlui-button__label">{page.name}</span>
-								</Button>
-							</_ContextMenu.Item>
-						))}
-					</_ContextMenu.Group>
-					<_ContextMenu.Group
-						dir="ltr"
-						className={'tlui-menu__group'}
-						data-testid={`context-menu.new-page`}
-						key="new-page"
-					>
-						<_ContextMenu.Item
-							key="new-page"
-							onSelect={() => {
-								const newPageId = PageRecordType.createId()
-								const ids = editor.getSelectedShapeIds()
-								editor.batch(() => {
-									editor.mark('move_shapes_to_page')
-									editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
-									editor.moveShapesToPage(ids, newPageId)
+							if (toPage) {
+								addToast({
+									title: 'Changed Page',
+									description: `Moved to ${toPage.name}.`,
+									actions: [
+										{
+											label: 'Go Back',
+											type: 'primary',
+											onClick: () => {
+												editor.mark('change-page')
+												editor.setCurrentPage(currentPageId)
+											},
+										},
+									],
 								})
-							}}
-							asChild
-						>
-							<Button
-								type="menu"
-								title={msg('context.pages.new-page')}
-								className="tlui-context-menu__move-to-page__name"
-							>
-								<span className="tlui-button__label">{msg('context.pages.new-page')}</span>
-							</Button>
-						</_ContextMenu.Item>
-					</_ContextMenu.Group>
-				</_ContextMenu.SubContent>
-			</_ContextMenu.Portal>
-		</_ContextMenu.Sub>
+							}
+							trackEvent('move-to-page', { source: 'context-menu' })
+						}}
+						title={page.name}
+					/>
+				))}
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="new-page">
+				<TldrawUiMenuItem {...actions['new-page']} />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
 	)
 })
