@@ -1,6 +1,7 @@
 import { atom } from '../Atom'
 import { computed } from '../Computed'
-import { react } from '../EffectScheduler'
+import { EffectScheduler, react } from '../EffectScheduler'
+import { haveParentsChanged } from '../helpers'
 import { getGlobalEpoch, transact } from '../transactions'
 import { RESET_VALUE } from '../types'
 
@@ -141,4 +142,24 @@ describe('derivations that error', () => {
 		expect(b.getDiffSince(errorEpoch)).toEqual(RESET_VALUE)
 		expect(b.getDiffSince(errorEpoch + 1)).toEqual([1])
 	})
+})
+
+test('haveParentsChanged will not throw if one of the parents is throwing', () => {
+	const a = atom('', 1)
+	const scheduler = new EffectScheduler('', () => {
+		a.get()
+		throw new Error('test')
+	})
+	expect(() => {
+		scheduler.attach()
+		scheduler.execute()
+	}).toThrowErrorMatchingInlineSnapshot(`"test"`)
+
+	expect(haveParentsChanged(scheduler)).toBe(false)
+
+	expect(() => a.set(2)).toThrowErrorMatchingInlineSnapshot(`"test"`)
+
+	// haveParentsChanged should still be false because it already
+	// executed the effect and it errored
+	expect(haveParentsChanged(scheduler)).toBe(false)
 })
