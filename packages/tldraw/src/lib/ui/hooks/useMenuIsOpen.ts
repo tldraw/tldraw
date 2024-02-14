@@ -1,6 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
-import { useUiEvents } from '../ui-context/events'
+import { useUiEvents } from '../context/events'
 
 /** @public */
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {

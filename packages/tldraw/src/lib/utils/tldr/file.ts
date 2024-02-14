@@ -19,8 +19,8 @@ import {
 	partition,
 	transact,
 } from '@tldraw/editor'
+import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
-import { TLUiToastsContextType } from '../../ui/ui-context/toasts'
 import { buildFromV1Document } from '../tldr/buildFromV1Document'
 
 /** @public */

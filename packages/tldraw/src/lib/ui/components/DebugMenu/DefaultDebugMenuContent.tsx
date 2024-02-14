@@ -12,9 +12,9 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React from 'react'
+import { useDialogs } from '../../context/dialogs'
+import { useToasts } from '../../context/toasts'
 import { untranslated } from '../../hooks/useTranslation/useTranslation'
-import { useDialogs } from '../../ui-context/dialogs'
-import { useToasts } from '../../ui-context/toasts'
 import { TldrawUiMenuCheckboxItem } from '../menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'

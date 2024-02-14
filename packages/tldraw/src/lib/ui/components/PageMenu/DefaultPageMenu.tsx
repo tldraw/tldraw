@@ -8,10 +8,10 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { useBreakpoint } from '../../ui-context/breakpoints'
 import { Button } from '../primitives/Button'
 import { Icon } from '../primitives/Icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../primitives/Popover'

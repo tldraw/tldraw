@@ -2,7 +2,7 @@ import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from 
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useToolbarItems } from '../components/Toolbar/DefaultToolbar'
-import { useActions } from '../ui-context/actions'
+import { useActions } from '../context/actions'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 

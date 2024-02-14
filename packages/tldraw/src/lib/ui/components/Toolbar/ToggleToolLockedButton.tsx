@@ -1,7 +1,7 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { useBreakpoint } from '../../ui-context/breakpoints'
 import { Button } from '../primitives/Button'
 
 interface ToggleToolLockedButtonProps {

@@ -45,6 +45,38 @@ export { Spinner } from './lib/ui/components/Spinner'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
+export {
+	TldrawUiContextProvider,
+	type TldrawUiContextProviderProps,
+} from './lib/ui/context/TldrawUiContextProvider'
+export {
+	useActions,
+	type TLUiActionItem,
+	type TLUiActionsContextType,
+} from './lib/ui/context/actions'
+export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
+export { BreakPointProvider, useBreakpoint } from './lib/ui/context/breakpoints'
+export {
+	useDialogs,
+	type TLUiDialog,
+	type TLUiDialogProps,
+	type TLUiDialogsContextType,
+} from './lib/ui/context/dialogs'
+export {
+	UiEventsProvider,
+	useUiEvents,
+	type EventsProviderProps,
+	type TLUiEventContextType,
+	type TLUiEventHandler,
+	type TLUiEventMap,
+	type TLUiEventSource,
+} from './lib/ui/context/events'
+export {
+	useToasts,
+	type TLUiToast,
+	type TLUiToastAction,
+	type TLUiToastsContextType,
+} from './lib/ui/context/toasts'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
@@ -72,38 +104,6 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export {
-	TldrawUiContextProvider,
-	type TldrawUiContextProviderProps,
-} from './lib/ui/ui-context/TldrawUiContextProvider'
-export {
-	useActions,
-	type TLUiActionItem,
-	type TLUiActionsContextType,
-} from './lib/ui/ui-context/actions'
-export { AssetUrlsProvider, useAssetUrls } from './lib/ui/ui-context/asset-urls'
-export { BreakPointProvider, useBreakpoint } from './lib/ui/ui-context/breakpoints'
-export {
-	useDialogs,
-	type TLUiDialog,
-	type TLUiDialogProps,
-	type TLUiDialogsContextType,
-} from './lib/ui/ui-context/dialogs'
-export {
-	UiEventsProvider,
-	useUiEvents,
-	type EventsProviderProps,
-	type TLUiEventContextType,
-	type TLUiEventHandler,
-	type TLUiEventMap,
-	type TLUiEventSource,
-} from './lib/ui/ui-context/events'
-export {
-	useToasts,
-	type TLUiToast,
-	type TLUiToastAction,
-	type TLUiToastsContextType,
-} from './lib/ui/ui-context/toasts'
 export {
 	DEFAULT_ACCEPTED_IMG_TYPE,
 	DEFAULT_ACCEPTED_VID_TYPE,
@@ -135,7 +135,7 @@ export {
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 
 // Helper to unwrap label from action items
-export { unwrapLabel } from './lib/ui/ui-context/actions'
+export { unwrapLabel } from './lib/ui/context/actions'
 
 // General UI components for building menus
 export {
@@ -163,7 +163,7 @@ export {
 	TldrawUiComponentsProvider,
 	useTldrawUiComponents,
 	type TLUiComponents,
-} from './lib/ui/ui-context/components'
+} from './lib/ui/context/components'
 
 // Menus / UI elements that can be customized
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'

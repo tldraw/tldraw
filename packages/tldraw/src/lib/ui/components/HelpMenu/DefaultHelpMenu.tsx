@@ -1,6 +1,6 @@
 import { memo } from 'react'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { useBreakpoint } from '../../ui-context/breakpoints'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import {
 	DropdownMenuContent,

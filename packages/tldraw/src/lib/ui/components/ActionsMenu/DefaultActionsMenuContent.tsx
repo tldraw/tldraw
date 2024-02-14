@@ -1,4 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { useActions } from '../../context/actions'
+import { useBreakpoint } from '../../context/breakpoints'
 import {
 	useAllowGroup,
 	useAllowUngroup,
@@ -6,8 +8,6 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
-import { useActions } from '../../ui-context/actions'
-import { useBreakpoint } from '../../ui-context/breakpoints'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 /** @public */
