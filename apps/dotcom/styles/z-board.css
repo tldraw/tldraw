@@ -346,7 +346,7 @@
 	padding: var(--space-2) var(--space-3);
 	white-space: pre;
 	line-height: 24px;
-	min-width: 60px;
+	min-width: 62px;
 }
 
 .tlui-document-name__input {

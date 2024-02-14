@@ -31,6 +31,7 @@ type NameState = {
 
 const MAX_TITLE_WIDTH_PX = 420
 const BUTTON_WIDTH = 44
+const MARGIN_BETWEEN_ZONES = 12
 
 export const DocumentTopZone = track(function DocumentTopZone({
 	isOffline,
@@ -134,11 +135,14 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 			xCoordIfCentered -= 0.5
 		}
 
-		const xCoordIfLeftAligned = leftWidth + 12
+		const xCoordIfLeftAligned = leftWidth + MARGIN_BETWEEN_ZONES
 
 		const left = element.offsetLeft
 		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
-		const maxWidth = Math.min(totalWidth - rightWidth - leftWidth - 16, MAX_TITLE_WIDTH_PX)
+		const maxWidth = Math.min(
+			totalWidth - rightWidth - leftWidth - 2 * MARGIN_BETWEEN_ZONES,
+			MAX_TITLE_WIDTH_PX
+		)
 
 		element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
 		element.style.setProperty('max-width', maxWidth + 'px')
@@ -202,7 +206,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 		const save = () => {
 			if (state.name === null) return
 			const trimmed = state.name.trim()
-			if (!trimmed || trimmed === documentSettings.name.trim()) {
+			if (trimmed === documentSettings.name.trim()) {
 				if (!state.isEditing) setState((prev) => ({ ...prev, name: null }))
 				return
 			}
