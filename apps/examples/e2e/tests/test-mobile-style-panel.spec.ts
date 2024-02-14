@@ -1,23 +1,28 @@
-import test, { expect } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { setup } from '../shared-e2e'
+import test from '../tests/fixtures/fixtures'
 
 test.describe('mobile ui', () => {
 	test.beforeEach(setup)
-	test('style panel opens and closes as expected', async ({ isMobile, page }) => {
+	test('style panel opens and closes as expected', async ({
+		isMobile,
+		page,
+		toolbar,
+		stylePanel,
+	}) => {
 		test.skip(!isMobile, 'only run on mobile')
-		const mobileStylesButton = page.getByTestId('mobile-styles.button')
-		const stylePanel = page.getByTestId('style.panel')
-		await expect(stylePanel).toBeHidden()
-		await mobileStylesButton.click()
-		await expect(stylePanel).toBeVisible()
+
+		await expect(stylePanel.getElement()).toBeHidden()
+		await toolbar.mobileStylesButton.click()
+		await expect(stylePanel.getElement()).toBeVisible()
 		// clicking off the style panel should close it
 		page.mouse.click(200, 200)
-		await expect(stylePanel).toBeHidden()
+		await expect(stylePanel.getElement()).toBeHidden()
 	})
-	test('style menu button is disabled for the eraser tool', async ({ isMobile, page }) => {
+	test('style menu button is disabled for the eraser tool', async ({ isMobile, page, toolbar }) => {
 		test.skip(!isMobile, 'only run on mobile')
-		const eraserTool = page.getByTestId('tools.eraser')
-		await eraserTool.click()
+		const { eraser } = toolbar.tools
+		await eraser.click()
 		const mobileStylesButton = page.getByTestId('mobile-styles.button')
 		await expect(mobileStylesButton).toBeDisabled()
 	})

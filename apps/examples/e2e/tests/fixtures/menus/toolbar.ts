@@ -5,7 +5,7 @@ export class Toolbar {
 	readonly moreToolsButton: Locator
 	readonly moreToolsPopover: Locator
 	readonly mobileStylesButton: Locator
-	readonly toolNames: { [key: string]: Locator }
+	readonly tools: { [key: string]: Locator }
 	readonly popoverToolNames: { [key: string]: Locator }
 
 	constructor(public readonly page: Page) {
@@ -14,11 +14,12 @@ export class Toolbar {
 		this.moreToolsButton = this.page.locator('[data-testid="tools.more-button"]')
 		this.moreToolsPopover = this.page.locator('[data-testid="tools.more-content"]')
 		this.mobileStylesButton = this.page.locator('[data-testid="mobile-styles.button"]')
-		this.toolNames = {
+		this.tools = {
 			select: this.page.locator('[data-testid="tools.select"]'),
 			draw: this.page.locator('[data-testid="tools.draw"]'),
 			arrow: this.page.locator('[data-testid="tools.arrow"]'),
 			cloud: this.page.locator('[data-testid="tools.cloud"]'),
+			eraser: this.page.locator('[data-testid="tools.eraser"]'),
 		}
 		this.popoverToolNames = {
 			popoverCloud: this.page.locator('[data-testid="tools.more.cloud"]'),

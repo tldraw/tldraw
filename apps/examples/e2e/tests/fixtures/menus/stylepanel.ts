@@ -15,4 +15,7 @@ export class StylePanel {
 			'style.align',
 		]
 	}
+	getElement() {
+		return this.page.locator('[data-testid="style.panel"]')
+	}
 }
