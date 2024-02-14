@@ -35,33 +35,30 @@ test.describe('when selecting a tool from the toolbar', () => {
 			await expect(cloud).toBeVisible()
 		})
 	})
-	test.only('the correct styles are exposed for the selected tool', async ({
+	test('the correct styles are exposed for the selected tool', async ({
 		isMobile,
 		page,
 		toolbar,
 		stylePanel,
 	}) => {
-		const { select, popoverFrame, text } = toolbar.toolNames
 		const toolsStylesArr = [
 			{
-				name: 'select',
-				locator: select,
+				name: 'tools.select',
 				styles: ['style.color', 'style.opacity', 'style.fill', 'style.dash', 'style.size'],
 			},
-			{ name: 'frame', locator: popoverFrame, styles: ['style.opacity'] },
+			{ name: 'tools.more.frame', styles: ['style.opacity'] },
 			{
-				name: 'text',
-				locator: text,
+				name: 'tools.text',
 				styles: ['style.size', 'style.color', 'style.opacity', 'style.font', 'style.align'],
 			},
 		]
 
 		for (const tool of toolsStylesArr) {
 			await test.step(`Check tool ${tool.name}`, async () => {
-				if (tool.name === 'frame') {
+				if (tool.name === 'tools.more.frame') {
 					await toolbar.moreToolsButton.click()
 				}
-				await tool.locator.click()
+				await page.getByTestId(tool.name).click()
 
 				if (isMobile) {
 					await toolbar.mobileStylesButton.click()
@@ -70,7 +67,8 @@ test.describe('when selecting a tool from the toolbar', () => {
 				for (const style of stylePanel.stylesArray) {
 					const styleElement = page.getByTestId(style)
 					const isVisible = await styleElement.isVisible()
-					expect(isVisible).toBe(tool.styles.includes(style))
+					const isExpected = tool.styles.includes(style)
+					expect(isVisible).toBe(isExpected)
 				}
 			})
 		}
