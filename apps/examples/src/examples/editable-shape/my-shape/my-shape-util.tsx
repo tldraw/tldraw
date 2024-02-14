@@ -64,7 +64,9 @@ export class MyShapeUtil extends ShapeUtil<IMyShape> {
 	// [6]
 	component(shape: IMyShape) {
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
-
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isEditing = useIsEditing(shape.id)
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const [animal, setAnimal] = useState<boolean>(true)
 		//[a]
 
@@ -74,15 +76,27 @@ export class MyShapeUtil extends ShapeUtil<IMyShape> {
 				style={{
 					border: '1px solid black',
 					display: 'flex',
+					borderRadius: '50%',
 					flexDirection: 'column',
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
-					backgroundColor: theme[shape.props.color].semi,
-					color: theme[shape.props.color].solid,
+					backgroundColor: 'hsl(180, 34%, 86%)',
 				}}
 			>
 				<button
+					style={{
+						display: isEditing ? 'block' : 'none',
+						border: 'none',
+						cursor: 'pointer',
+						padding: '8px 8px',
+						borderRadius: '4px',
+						backgroundColor: 'hsl(120, 54%, 46%)',
+						color: '#fff',
+						textDecoration: 'none',
+						boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.04)',
+					}}
+					disabled={!isEditing}
 					onPointerDown={(e) => e.stopPropagation()}
 					onClick={() => setAnimal((prev) => !prev)}
 				>
