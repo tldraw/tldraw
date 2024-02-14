@@ -1,6 +1,6 @@
-import test, { expect } from '@playwright/test'
+import test, { Page, expect } from '@playwright/test'
 import { BoxModel, Editor } from '@tldraw/tldraw'
-import { setup } from '../shared-e2e'
+import { setupPage } from '../shared-e2e'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -53,11 +53,15 @@ function formatLines(spans: { box: BoxModel; text: string }[]) {
 }
 
 declare const editor: Editor
+let page: Page
 
 test.describe('text measurement', () => {
-	test.beforeEach(setup)
+	test.beforeAll(async ({ browser }) => {
+		page = await browser.newPage()
+		await setupPage(page)
+	})
 
-	test('measures text', async ({ page }) => {
+	test('measures text', async () => {
 		const { w, h } = await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(
 			async (options) => editor.textMeasure.measureText('testing', options),
 			measureTextOptions
@@ -79,7 +83,7 @@ test.describe('text measurement', () => {
 	// these with visual regression tests for text SVG exports, but we don't
 	// have a way of doing visual regression testing right now.
 
-	test('should get a single text span', async ({ page }) => {
+	test('should get a single text span', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -91,7 +95,7 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['testing']])
 	})
 
-	test('should wrap a word when it has to', async ({ page }) => {
+	test('should wrap a word when it has to', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -103,7 +107,7 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['tes'], ['ting']])
 	})
 
-	test('should preserve whitespace at line breaks', async ({ page }) => {
+	test('should preserve whitespace at line breaks', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -115,7 +119,7 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['testing', '   '], ['testing']])
 	})
 
-	test('should preserve whitespace at the end of wrapped lines', async ({ page }) => {
+	test('should preserve whitespace at the end of wrapped lines', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -130,7 +134,7 @@ test.describe('text measurement', () => {
 		])
 	})
 
-	test('preserves whitespace at the end of unwrapped lines', async ({ page }) => {
+	test('preserves whitespace at the end of unwrapped lines', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -143,7 +147,7 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['testing', ' ', 'testing', '   ']])
 	})
 
-	test('preserves whitespace at the start of an unwrapped line', async ({ page }) => {
+	test('preserves whitespace at the start of an unwrapped line', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -156,7 +160,7 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['  ', 'testing', ' ', 'testing']])
 	})
 
-	test('should place starting whitespace on its own line if it has to', async ({ page }) => {
+	test('should place starting whitespace on its own line if it has to', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -168,7 +172,7 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['  '], ['testing', ' '], ['testing']])
 	})
 
-	test('should handle multiline text', async ({ page }) => {
+	test('should handle multiline text', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -186,7 +190,7 @@ test.describe('text measurement', () => {
 		])
 	})
 
-	test('should break long strings of text', async ({ page }) => {
+	test('should break long strings of text', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -206,7 +210,7 @@ test.describe('text measurement', () => {
 		])
 	})
 
-	test('should return an empty array if the text is empty', async ({ page }) => {
+	test('should return an empty array if the text is empty', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -215,7 +219,7 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([])
 	})
 
-	test('should handle trailing newlines', async ({ page }) => {
+	test('should handle trailing newlines', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
@@ -227,7 +231,7 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['hi', '\n'], [' \n'], [' \n'], [' ']])
 	})
 
-	test('should handle only newlines', async ({ page }) => {
+	test('should handle only newlines', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
 			typeof measureTextSpansOptions
