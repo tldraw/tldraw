@@ -42,7 +42,11 @@ export default function SnapshotImageExample() {
 				{editing ? (
 					<Tldraw snapshot={snapshot} onMount={handleMount} />
 				) : (
-					<TldrawImage snapshot={snapshot} pageId={pageId} opts={{ background: false }} />
+					<TldrawImage
+						snapshot={snapshot}
+						pageId={pageId}
+						opts={{ background: false, darkMode: true }}
+					/>
 				)}
 			</div>
 		</div>

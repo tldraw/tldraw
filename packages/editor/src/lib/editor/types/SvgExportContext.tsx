@@ -11,4 +11,9 @@ export interface SvgExportContext {
 	 * key. If multiple defs come with the same key, only one will be added.
 	 */
 	addExportDef(def: SvgExportDef): void
+
+	/**
+	 * Whether the export should be in dark mode.
+	 */
+	readonly darkMode: boolean
 }

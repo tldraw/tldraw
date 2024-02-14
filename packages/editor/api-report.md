@@ -1866,6 +1866,7 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 // @public (undocumented)
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
+    readonly darkMode: boolean;
 }
 
 // @public (undocumented)

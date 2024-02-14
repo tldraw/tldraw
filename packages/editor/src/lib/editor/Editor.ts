@@ -8054,9 +8054,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			preserveAspectRatio = false,
 		} = opts
 
-		// todo: we shouldn't depend on the public theme here
-		// note: this value isn't respected by most `toSvg` functions anyway
-		const theme = getDefaultColorTheme({ isDarkMode: this.user.getIsDarkMode() })
+		const isDarkMode = opts.darkMode ?? this.user.getIsDarkMode()
+		const theme = getDefaultColorTheme({ isDarkMode })
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
@@ -8149,6 +8148,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})()
 				exportDefPromisesById.set(def.key, promise)
 			},
+			darkMode: isDarkMode,
 		}
 
 		const unorderedShapeElements = (
