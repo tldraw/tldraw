@@ -1,8 +1,7 @@
-import * as _ContextMenu from '@radix-ui/react-context-menu'
-import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
-import classNames from 'classnames'
 import { unwrapLabel } from '../../hooks/useActions'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { ContextMenuGroup } from '../primitives/ContextMenu'
+import { DropdownMenuGroup } from '../primitives/DropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -27,27 +26,19 @@ export function TldrawUiMenuGroup({ id, small = false, children }: TLUiMenuGroup
 		}
 		case 'menu': {
 			return (
-				<_DropdownMenu.Group
-					dir="ltr"
-					className="tlui-menu__group"
+				<DropdownMenuGroup
 					data-testid={`${sourceId}-group.${id}`}
 					data-size={small ? 'tiny' : 'medium'}
 				>
 					{children}
-				</_DropdownMenu.Group>
+				</DropdownMenuGroup>
 			)
 		}
 		case 'context-menu': {
 			return (
-				<_ContextMenu.Group
-					dir="ltr"
-					className={classNames('tlui-menu__group', {
-						'tlui-menu__group__small': small,
-					})}
-					data-testid={`${sourceId}-group.${id}`}
-				>
+				<ContextMenuGroup size={small ? 'tiny' : 'medium'} data-testid={`${sourceId}-group.${id}`}>
 					{children}
-				</_ContextMenu.Group>
+				</ContextMenuGroup>
 			)
 		}
 		case 'keyboard-shortcuts': {

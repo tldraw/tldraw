@@ -3,7 +3,11 @@ import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import { Button } from '../primitives/Button'
-import { Dropdown, DropdownContent, DropdownTrigger } from '../primitives/DropdownMenu'
+import {
+	DropdownMenuContent,
+	DropdownMenuRoot,
+	DropdownMenuTrigger,
+} from '../primitives/DropdownMenu'
 import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
 
 /** @public */
@@ -25,16 +29,16 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 
 	return (
 		<div className="tlui-help-menu">
-			<Dropdown id="help menu">
-				<DropdownTrigger>
+			<DropdownMenuRoot id="help menu">
+				<DropdownMenuTrigger>
 					<Button type="help" smallIcon title={msg('help-menu.title')} icon="question-mark" />
-				</DropdownTrigger>
-				<DropdownContent side="top" align="end" alignOffset={0} sideOffset={8}>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent side="top" align="end" alignOffset={0} sideOffset={8}>
 					<TldrawUiMenuContextProvider type="menu" sourceId="help-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
-				</DropdownContent>
-			</Dropdown>
+				</DropdownMenuContent>
+			</DropdownMenuRoot>
 		</div>
 	)
 })

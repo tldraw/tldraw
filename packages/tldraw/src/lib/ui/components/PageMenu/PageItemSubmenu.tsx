@@ -1,9 +1,14 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { MAX_PAGES, PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
-import * as M from '../primitives/DropdownMenu'
+import {
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuRoot,
+	DropdownMenuTrigger,
+} from '../primitives/DropdownMenu'
 import { onMovePage } from './edit-pages-shared'
 
 export interface PageItemSubmenuProps {
@@ -43,44 +48,44 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [editor, item])
 
 	return (
-		<M.Dropdown id={`page item submenu ${index}`}>
-			<M.DropdownTrigger>
+		<DropdownMenuRoot id={`page item submenu ${index}`}>
+			<DropdownMenuTrigger>
 				<Button type="icon" title={msg('page-menu.submenu.title')} icon="dots-vertical" />
-			</M.DropdownTrigger>
-			<M.DropdownContent alignOffset={0}>
-				<M.DropdownGroup>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent alignOffset={0}>
+				<DropdownMenuGroup>
 					{onRename && (
-						<DropdownMenu.Item dir="ltr" onSelect={onRename} asChild>
+						<_DropdownMenu.Item dir="ltr" onSelect={onRename} asChild>
 							<Button type="menu" label="page-menu.submenu.rename" />
-						</DropdownMenu.Item>
+						</_DropdownMenu.Item>
 					)}
-					<DropdownMenu.Item
+					<_DropdownMenu.Item
 						dir="ltr"
 						onSelect={onDuplicate}
 						disabled={pages.length >= MAX_PAGES}
 						asChild
 					>
 						<Button type="menu" label="page-menu.submenu.duplicate-page" />
-					</DropdownMenu.Item>
+					</_DropdownMenu.Item>
 					{index > 0 && (
-						<DropdownMenu.Item dir="ltr" onSelect={onMoveUp} asChild>
+						<_DropdownMenu.Item dir="ltr" onSelect={onMoveUp} asChild>
 							<Button type="menu" label="page-menu.submenu.move-up" />
-						</DropdownMenu.Item>
+						</_DropdownMenu.Item>
 					)}
 					{index < listSize - 1 && (
-						<DropdownMenu.Item dir="ltr" onSelect={onMoveDown} asChild>
+						<_DropdownMenu.Item dir="ltr" onSelect={onMoveDown} asChild>
 							<Button type="menu" label="page-menu.submenu.move-down" />
-						</DropdownMenu.Item>
+						</_DropdownMenu.Item>
 					)}
-				</M.DropdownGroup>
+				</DropdownMenuGroup>
 				{listSize > 1 && (
-					<M.DropdownGroup>
-						<DropdownMenu.Item dir="ltr" onSelect={onDelete} asChild>
+					<DropdownMenuGroup>
+						<_DropdownMenu.Item dir="ltr" onSelect={onDelete} asChild>
 							<Button type="menu" label="page-menu.submenu.delete" />
-						</DropdownMenu.Item>
-					</M.DropdownGroup>
+						</_DropdownMenu.Item>
+					</DropdownMenuGroup>
 				)}
-			</M.DropdownContent>
-		</M.Dropdown>
+			</DropdownMenuContent>
+		</DropdownMenuRoot>
 	)
 })

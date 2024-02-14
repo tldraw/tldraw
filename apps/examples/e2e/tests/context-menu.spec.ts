@@ -18,7 +18,7 @@ test.describe('Context menu', async () => {
 		// distribute horizontal
 		await page.keyboard.press('Control+a')
 		await page.mouse.click(200, 200, { button: 'right' })
-		await page.getByTestId('context-menu-submenu.arrange').click()
+		await page.getByTestId('context-menu-sub.arrange').click()
 		await page.getByTestId('context-menu.distribute-horizontal').click()
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'distribute-shapes',
@@ -30,7 +30,7 @@ test.describe('Context menu', async () => {
 		// distribute vertical — Shift+Alt+V
 		await page.keyboard.press('Control+a')
 		await page.mouse.click(200, 200, { button: 'right' })
-		await page.getByTestId('context-menu-submenu.arrange').click()
+		await page.getByTestId('context-menu-sub.arrange').click()
 		await page.getByTestId('context-menu.distribute-vertical').click()
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'distribute-shapes',

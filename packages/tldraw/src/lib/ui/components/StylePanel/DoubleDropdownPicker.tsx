@@ -5,7 +5,7 @@ import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKe
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
-import { Dropdown, DropdownContent, DropdownItem } from '../primitives/DropdownMenu'
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuRoot } from '../primitives/DropdownMenu'
 import { StyleValuesForUi } from './styles'
 
 interface DoubleDropdownPickerProps<T extends string> {
@@ -60,7 +60,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 				{msg(label)}
 			</div>
 			<div className="tlui-buttons__horizontal">
-				<Dropdown id={`style panel ${uiTypeA} A`}>
+				<DropdownMenuRoot id={`style panel ${uiTypeA} A`}>
 					<Trigger
 						asChild
 						// Firefox fix: Stop the dropdown immediately closing after touch
@@ -81,11 +81,11 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 							smallIcon
 						/>
 					</Trigger>
-					<DropdownContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsA.map((item) => {
 								return (
-									<DropdownItem
+									<DropdownMenuItem
 										type="icon"
 										title={
 											msg(labelA) +
@@ -101,9 +101,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 								)
 							})}
 						</div>
-					</DropdownContent>
-				</Dropdown>
-				<Dropdown id={`style panel ${uiTypeB}`}>
+					</DropdownMenuContent>
+				</DropdownMenuRoot>
+				<DropdownMenuRoot id={`style panel ${uiTypeB}`}>
 					<Trigger
 						asChild
 						// Firefox fix: Stop the dropdown immediately closing after touch
@@ -123,11 +123,11 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 							smallIcon
 						/>
 					</Trigger>
-					<DropdownContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {
 								return (
-									<DropdownItem
+									<DropdownMenuItem
 										type="icon"
 										title={
 											msg(labelB) +
@@ -142,8 +142,8 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 								)
 							})}
 						</div>
-					</DropdownContent>
-				</Dropdown>
+					</DropdownMenuContent>
+				</DropdownMenuRoot>
 			</div>
 		</div>
 	)

@@ -4759,68 +4759,17 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!Dropdown:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuCheckboxItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function Dropdown({ id, children, modal, debugOpen }: "
+              "text": "export declare function DropdownMenuCheckboxItem({ id, children, onSelect, ...rest }: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiDropdownProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ id, children, modal, debugOpen }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "Dropdown"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownCheckboxItem:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function DropdownCheckboxItem({ id, children, onSelect, ...rest }: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDropdownCheckboxItemProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownCheckboxItemProps:interface"
+              "text": "TLUiDropdownMenuCheckboxItemProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps:interface"
             },
             {
               "kind": "Content",
@@ -4857,21 +4806,21 @@
               "isOptional": false
             }
           ],
-          "name": "DropdownCheckboxItem"
+          "name": "DropdownMenuCheckboxItem"
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownContent:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuContent:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownContent({ id, side, align, sideOffset, alignOffset, children, }: "
+              "text": "export declare function DropdownMenuContent({ id, side, align, sideOffset, alignOffset, children, }: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiDropdownContentProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownContentProps:type"
+              "text": "TLUiDropdownMenuContentProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuContentProps:type"
             },
             {
               "kind": "Content",
@@ -4908,21 +4857,21 @@
               "isOptional": false
             }
           ],
-          "name": "DropdownContent"
+          "name": "DropdownMenuContent"
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownGroup:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuGroup:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownGroup({ id, children, size }: "
+              "text": "export declare function DropdownMenuGroup({ id, children, size }: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiDropdownGroupProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownGroupProps:type"
+              "text": "TLUiDropdownMenuGroupProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuGroupProps:type"
             },
             {
               "kind": "Content",
@@ -4959,16 +4908,16 @@
               "isOptional": false
             }
           ],
-          "name": "DropdownGroup"
+          "name": "DropdownMenuGroup"
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownIndicator:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuIndicator:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownIndicator(): "
+              "text": "export declare function DropdownMenuIndicator(): "
             },
             {
               "kind": "Content",
@@ -4992,21 +4941,21 @@
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [],
-          "name": "DropdownIndicator"
+          "name": "DropdownMenuIndicator"
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownItem:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownItem({ id, noClose, ...props }: "
+              "text": "export declare function DropdownMenuItem({ id, noClose, ...props }: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiDropdownItemProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownItemProps:interface"
+              "text": "TLUiDropdownMenuItemProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuItemProps:interface"
             },
             {
               "kind": "Content",
@@ -5043,21 +4992,21 @@
               "isOptional": false
             }
           ],
-          "name": "DropdownItem"
+          "name": "DropdownMenuItem"
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownRadioItem:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuRadioItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownRadioItem({ children, ...rest }: "
+              "text": "export declare function DropdownMenuRadioItem({ children, ...rest }: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiDropdownRadioItemProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownRadioItemProps:interface"
+              "text": "TLUiDropdownMenuRadioItemProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRadioItemProps:interface"
             },
             {
               "kind": "Content",
@@ -5094,21 +5043,72 @@
               "isOptional": false
             }
           ],
-          "name": "DropdownRadioItem"
+          "name": "DropdownMenuRadioItem"
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownSub:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuRoot:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownSub({ id, children }: "
+              "text": "export declare function DropdownMenuRoot({ id, children, modal, debugOpen, }: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiDropdownSubProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownSubProps:type"
+              "text": "TLUiDropdownMenuRootProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRootProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ id, children, modal, debugOpen, }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DropdownMenuRoot"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuSub:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DropdownMenuSub({ id, children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDropdownMenuSubProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuSubProps:type"
             },
             {
               "kind": "Content",
@@ -5145,21 +5145,21 @@
               "isOptional": false
             }
           ],
-          "name": "DropdownSub"
+          "name": "DropdownMenuSub"
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownSubTrigger:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuSubTrigger:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownSubTrigger({ label, id, 'data-direction': dataDirection, }: "
+              "text": "export declare function DropdownMenuSubTrigger({ id, label, disabled, 'data-direction': dataDirection, }: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiDropdownSubTriggerProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownSubTriggerProps:type"
+              "text": "TLUiDropdownMenuSubTriggerProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuSubTriggerProps:type"
             },
             {
               "kind": "Content",
@@ -5188,7 +5188,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ label, id, 'data-direction': dataDirection, }",
+              "parameterName": "{ id, label, disabled, 'data-direction': dataDirection, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5196,21 +5196,21 @@
               "isOptional": false
             }
           ],
-          "name": "DropdownSubTrigger"
+          "name": "DropdownMenuSubTrigger"
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DropdownTrigger:function(1)",
+          "canonicalReference": "@tldraw/tldraw!DropdownMenuTrigger:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownTrigger({ id, children }: "
+              "text": "export declare function DropdownMenuTrigger({ id, children }: "
             },
             {
               "kind": "Reference",
-              "text": "TLUiDropdownTriggerProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownTriggerProps:type"
+              "text": "TLUiDropdownMenuTriggerProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuTriggerProps:type"
             },
             {
               "kind": "Content",
@@ -5247,7 +5247,7 @@
               "isOptional": false
             }
           ],
-          "name": "DropdownTrigger"
+          "name": "DropdownMenuTrigger"
         },
         {
           "kind": "Class",
@@ -17161,22 +17161,22 @@
         },
         {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownCheckboxItemProps:interface",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps:interface",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TLUiDropdownCheckboxItemProps "
+              "text": "export interface TLUiDropdownMenuCheckboxItemProps "
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
           "releaseTag": "Public",
-          "name": "TLUiDropdownCheckboxItemProps",
+          "name": "TLUiDropdownMenuCheckboxItemProps",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownCheckboxItemProps#checked:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps#checked:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17203,7 +17203,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownCheckboxItemProps#children:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps#children:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17230,7 +17230,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownCheckboxItemProps#disabled:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps#disabled:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17257,7 +17257,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownCheckboxItemProps#id:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps#id:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17284,7 +17284,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownCheckboxItemProps#onSelect:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps#onSelect:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17320,7 +17320,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownCheckboxItemProps#title:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps#title:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17350,12 +17350,12 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownContentProps:type",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuContentProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLUiDropdownContentProps = "
+              "text": "export type TLUiDropdownMenuContentProps = "
             },
             {
               "kind": "Content",
@@ -17368,7 +17368,7 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
           "releaseTag": "Public",
-          "name": "TLUiDropdownContentProps",
+          "name": "TLUiDropdownMenuContentProps",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -17376,12 +17376,12 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownGroupProps:type",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuGroupProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLUiDropdownGroupProps = "
+              "text": "export type TLUiDropdownMenuGroupProps = "
             },
             {
               "kind": "Content",
@@ -17394,7 +17394,7 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
           "releaseTag": "Public",
-          "name": "TLUiDropdownGroupProps",
+          "name": "TLUiDropdownMenuGroupProps",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -17402,12 +17402,12 @@
         },
         {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownItemProps:interface",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuItemProps:interface",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TLUiDropdownItemProps extends "
+              "text": "export interface TLUiDropdownMenuItemProps extends "
             },
             {
               "kind": "Reference",
@@ -17421,12 +17421,12 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
           "releaseTag": "Public",
-          "name": "TLUiDropdownItemProps",
+          "name": "TLUiDropdownMenuItemProps",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownItemProps#id:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuItemProps#id:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17453,7 +17453,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownItemProps#noClose:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuItemProps#noClose:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17487,49 +17487,23 @@
           ]
         },
         {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownProps:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiDropdownProps = "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    id: string;\n    children: any;\n    modal?: boolean;\n    debugOpen?: boolean;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiDropdownProps",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownRadioItemProps:interface",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRadioItemProps:interface",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TLUiDropdownRadioItemProps "
+              "text": "export interface TLUiDropdownMenuRadioItemProps "
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
           "releaseTag": "Public",
-          "name": "TLUiDropdownRadioItemProps",
+          "name": "TLUiDropdownMenuRadioItemProps",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownRadioItemProps#checked:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRadioItemProps#checked:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17556,7 +17530,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownRadioItemProps#children:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRadioItemProps#children:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17583,7 +17557,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownRadioItemProps#disabled:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRadioItemProps#disabled:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17610,7 +17584,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownRadioItemProps#onSelect:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRadioItemProps#onSelect:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17646,7 +17620,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownRadioItemProps#title:member",
+              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRadioItemProps#title:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -17676,12 +17650,38 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownSubProps:type",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuRootProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLUiDropdownSubProps = "
+              "text": "export type TLUiDropdownMenuRootProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    id: string;\n    children: any;\n    modal?: boolean;\n    debugOpen?: boolean;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
+          "releaseTag": "Public",
+          "name": "TLUiDropdownMenuRootProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuSubProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiDropdownMenuSubProps = "
             },
             {
               "kind": "Content",
@@ -17694,7 +17694,7 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
           "releaseTag": "Public",
-          "name": "TLUiDropdownSubProps",
+          "name": "TLUiDropdownMenuSubProps",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -17702,12 +17702,12 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownSubTriggerProps:type",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuSubTriggerProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLUiDropdownSubTriggerProps = "
+              "text": "export type TLUiDropdownMenuSubTriggerProps = "
             },
             {
               "kind": "Content",
@@ -17738,7 +17738,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    id?: string;\n    'data-direction'?: 'left' | 'right';\n}"
+              "text": ";\n    id?: string;\n    disabled?: boolean;\n    'data-direction'?: 'left' | 'right';\n}"
             },
             {
               "kind": "Content",
@@ -17747,7 +17747,7 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
           "releaseTag": "Public",
-          "name": "TLUiDropdownSubTriggerProps",
+          "name": "TLUiDropdownMenuSubTriggerProps",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 8
@@ -17755,12 +17755,12 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TLUiDropdownTriggerProps:type",
+          "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuTriggerProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLUiDropdownTriggerProps = "
+              "text": "export type TLUiDropdownMenuTriggerProps = "
             },
             {
               "kind": "Content",
@@ -17773,7 +17773,7 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/DropdownMenu.tsx",
           "releaseTag": "Public",
-          "name": "TLUiDropdownTriggerProps",
+          "name": "TLUiDropdownMenuTriggerProps",
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 2

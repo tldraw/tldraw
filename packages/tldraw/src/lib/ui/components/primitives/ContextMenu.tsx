@@ -1,4 +1,4 @@
-import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
+import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -6,7 +6,7 @@ import { Button, TLUiButtonProps } from './Button'
 import { Icon } from './Icon'
 
 /** @public */
-export type TLUiDropdownMenuRootProps = {
+export type TLUiContextMenuProps = {
 	id: string
 	children: any
 	modal?: boolean
@@ -14,49 +14,39 @@ export type TLUiDropdownMenuRootProps = {
 }
 
 /** @public */
-export function DropdownMenuRoot({
-	id,
-	children,
-	modal = false,
-	debugOpen = false,
-}: TLUiDropdownMenuRootProps) {
-	const [open, onOpenChange] = useMenuIsOpen(id)
+export function ContextMenu({ id, children, modal = false }: TLUiContextMenuProps) {
+	const [_, onOpenChange] = useMenuIsOpen(id)
 
 	return (
-		<_DropdownMenu.Root
-			open={debugOpen || open}
-			dir="ltr"
-			modal={modal}
-			onOpenChange={onOpenChange}
-		>
+		<_ContextMenu.Root dir="ltr" modal={modal} onOpenChange={onOpenChange}>
 			{children}
-		</_DropdownMenu.Root>
+		</_ContextMenu.Root>
 	)
 }
 
 /** @public */
-export type TLUiDropdownMenuTriggerProps = {
+export type TLUiContextMenuTriggerProps = {
 	id?: string
 	children: any
 }
 
 /** @public */
-export function DropdownMenuTrigger({ id, children }: TLUiDropdownMenuTriggerProps) {
+export function ContextMenuTrigger({ id, children }: TLUiContextMenuTriggerProps) {
 	return (
-		<_DropdownMenu.Trigger
+		<_ContextMenu.Trigger
 			dir="ltr"
 			data-testid={id}
 			asChild
-			// Firefox fix: Stop the dropdown immediately closing after touch
+			// Firefox fix: Stop the ContextMenu immediately closing after touch
 			onTouchEnd={(e) => preventDefault(e)}
 		>
 			{children}
-		</_DropdownMenu.Trigger>
+		</_ContextMenu.Trigger>
 	)
 }
 
 /** @public */
-export type TLUiDropdownMenuContentProps = {
+export type TLUiContextMenuContentProps = {
 	id?: string
 	children: any
 	alignOffset?: number
@@ -66,49 +56,43 @@ export type TLUiDropdownMenuContentProps = {
 }
 
 /** @public */
-export function DropdownMenuContent({
+export function ContextMenuContent({
 	id,
-	side = 'bottom',
-	align = 'start',
-	sideOffset = 8,
-	alignOffset = 8,
+	alignOffset = -4,
 	children,
-}: TLUiDropdownMenuContentProps) {
+}: TLUiContextMenuContentProps) {
 	const container = useContainer()
 
 	return (
-		<_DropdownMenu.Portal container={container}>
-			<_DropdownMenu.Content
+		<_ContextMenu.Portal container={container}>
+			<_ContextMenu.Content
 				data-testid={id}
 				className="tlui-menu"
-				side={side}
-				sideOffset={sideOffset}
-				align={align}
 				alignOffset={alignOffset}
 				collisionPadding={4}
 			>
 				{children}
-			</_DropdownMenu.Content>
-		</_DropdownMenu.Portal>
+			</_ContextMenu.Content>
+		</_ContextMenu.Portal>
 	)
 }
 
 /** @public */
-export type TLUiDropdownMenuSubProps = { id: string; children: any }
+export type TLUiContextMenuSubProps = { id: string; children: any }
 
 /** @public */
-export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps) {
+export function ContextMenuSub({ id, children }: TLUiContextMenuSubProps) {
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
-		<_DropdownMenu.Sub open={open} onOpenChange={onOpenChange}>
+		<_ContextMenu.Sub open={open} onOpenChange={onOpenChange}>
 			{children}
-		</_DropdownMenu.Sub>
+		</_ContextMenu.Sub>
 	)
 }
 
 /** @public */
-export type TLUiDropdownMenuSubTriggerProps = {
+export type TLUiContextMenuSubTriggerProps = {
 	label: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	id?: string
 	disabled?: boolean
@@ -116,14 +100,14 @@ export type TLUiDropdownMenuSubTriggerProps = {
 }
 
 /** @public */
-export function DropdownMenuSubTrigger({
-	id,
+export function ContextMenuSubTrigger({
 	label,
+	id,
 	disabled,
 	'data-direction': dataDirection,
-}: TLUiDropdownMenuSubTriggerProps) {
+}: TLUiContextMenuSubTriggerProps) {
 	return (
-		<_DropdownMenu.SubTrigger
+		<_ContextMenu.SubTrigger
 			dir="ltr"
 			disabled={disabled}
 			data-direction={dataDirection}
@@ -136,12 +120,12 @@ export function DropdownMenuSubTrigger({
 				label={label}
 				icon="chevron-right"
 			/>
-		</_DropdownMenu.SubTrigger>
+		</_ContextMenu.SubTrigger>
 	)
 }
 
 /** @public */
-export type TLUiDropdownMenuSubContentProps = {
+export type TLUiContextMenuSubContentProps = {
 	id?: string
 	alignOffset?: number
 	sideOffset?: number
@@ -149,16 +133,16 @@ export type TLUiDropdownMenuSubContentProps = {
 }
 
 /** @public */
-export function DropdownMenuSubContent({
+export function ContextMenuSubContent({
 	id,
-	alignOffset = -1,
-	sideOffset = -4,
+	sideOffset = 4,
+	alignOffset = 1,
 	children,
-}: TLUiDropdownMenuSubContentProps) {
+}: TLUiContextMenuSubContentProps) {
 	const container = useContainer()
 	return (
-		<_DropdownMenu.Portal container={container}>
-			<_DropdownMenu.SubContent
+		<_ContextMenu.Portal container={container}>
+			<_ContextMenu.SubContent
 				data-testid={id}
 				className="tlui-menu tlui-menu__submenu__content"
 				alignOffset={alignOffset}
@@ -166,58 +150,58 @@ export function DropdownMenuSubContent({
 				collisionPadding={4}
 			>
 				{children}
-			</_DropdownMenu.SubContent>
-		</_DropdownMenu.Portal>
+			</_ContextMenu.SubContent>
+		</_ContextMenu.Portal>
 	)
 }
 
 /** @public */
-export type TLUiDropdownMenuGroupProps = {
+export type TLUiContextMenuGroupProps = {
 	id?: string
 	children: any
 	size?: 'tiny' | 'small' | 'medium' | 'wide'
 }
 
 /** @public */
-export function DropdownMenuGroup({ id, children, size = 'medium' }: TLUiDropdownMenuGroupProps) {
+export function ContextMenuGroup({ id, children, size = 'medium' }: TLUiContextMenuGroupProps) {
 	return (
-		<_DropdownMenu.Group dir="ltr" className="tlui-menu__group" data-size={size} data-testid={id}>
+		<_ContextMenu.Group dir="ltr" className="tlui-menu__group" data-size={size} data-testid={id}>
 			{children}
-		</_DropdownMenu.Group>
+		</_ContextMenu.Group>
 	)
 }
 
 /** @public */
-export function DropdownMenuIndicator() {
+export function ContextMenuIndicator() {
 	return (
-		<_DropdownMenu.ItemIndicator dir="ltr" asChild>
+		<_ContextMenu.ItemIndicator dir="ltr" asChild>
 			<Icon icon="check" />
-		</_DropdownMenu.ItemIndicator>
+		</_ContextMenu.ItemIndicator>
 	)
 }
 
 /** @public */
-export interface TLUiDropdownMenuItemProps extends TLUiButtonProps {
+export interface TLUiContextMenuItemProps extends TLUiButtonProps {
 	id?: string
 	noClose?: boolean
 }
 
 /** @public */
-export function DropdownMenuItem({ id, noClose, ...props }: TLUiDropdownMenuItemProps) {
+export function ContextMenuItem({ id, noClose, ...props }: TLUiContextMenuItemProps) {
 	return (
-		<_DropdownMenu.Item
+		<_ContextMenu.Item
 			dir="ltr"
 			asChild
 			data-testid={id}
 			onClick={noClose || props.isChecked !== undefined ? preventDefault : undefined}
 		>
-			<Button {...props} />
-		</_DropdownMenu.Item>
+			<Button {...props} data-testid={id} />
+		</_ContextMenu.Item>
 	)
 }
 
 /** @public */
-export interface TLUiDropdownMenuCheckboxItemProps {
+export interface TLUiContextMenuCheckboxItemProps {
 	id?: string
 	checked?: boolean
 	onSelect?: (e: Event) => void
@@ -227,14 +211,14 @@ export interface TLUiDropdownMenuCheckboxItemProps {
 }
 
 /** @public */
-export function DropdownMenuCheckboxItem({
+export function ContextMenuCheckboxItem({
 	id,
 	children,
 	onSelect,
 	...rest
-}: TLUiDropdownMenuCheckboxItemProps) {
+}: TLUiContextMenuCheckboxItemProps) {
 	return (
-		<_DropdownMenu.CheckboxItem
+		<_ContextMenu.CheckboxItem
 			dir="ltr"
 			data-testid={id}
 			className="tlui-button tlui-button__menu tlui-button__checkbox"
@@ -245,17 +229,17 @@ export function DropdownMenuCheckboxItem({
 			{...rest}
 		>
 			<div className="tlui-button__checkbox__indicator">
-				<_DropdownMenu.ItemIndicator dir="ltr">
+				<_ContextMenu.ItemIndicator dir="ltr">
 					<Icon icon="check" small />
-				</_DropdownMenu.ItemIndicator>
+				</_ContextMenu.ItemIndicator>
 			</div>
 			{children}
-		</_DropdownMenu.CheckboxItem>
+		</_ContextMenu.CheckboxItem>
 	)
 }
 
 /** @public */
-export interface TLUiDropdownMenuRadioItemProps {
+export interface TLUiContextMenuRadioItemProps {
 	checked?: boolean
 	onSelect?: (e: Event) => void
 	disabled?: boolean
@@ -264,9 +248,9 @@ export interface TLUiDropdownMenuRadioItemProps {
 }
 
 /** @public */
-export function DropdownMenuRadioItem({ children, ...rest }: TLUiDropdownMenuRadioItemProps) {
+export function ContextMenuRadioItem({ children, ...rest }: TLUiContextMenuRadioItemProps) {
 	return (
-		<_DropdownMenu.CheckboxItem
+		<_ContextMenu.CheckboxItem
 			dir="ltr"
 			className="tlui-button tlui-button__menu tlui-button__checkbox"
 			{...rest}
@@ -276,11 +260,11 @@ export function DropdownMenuRadioItem({ children, ...rest }: TLUiDropdownMenuRad
 			}}
 		>
 			<div className="tlui-button__checkbox__indicator">
-				<_DropdownMenu.ItemIndicator dir="ltr">
+				<_ContextMenu.ItemIndicator dir="ltr">
 					<Icon icon="check" small />
-				</_DropdownMenu.ItemIndicator>
+				</_ContextMenu.ItemIndicator>
 			</div>
 			{children}
-		</_DropdownMenu.CheckboxItem>
+		</_ContextMenu.CheckboxItem>
 	)
 }

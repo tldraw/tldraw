@@ -1,10 +1,15 @@
-import * as _ContextMenu from '@radix-ui/react-context-menu'
-import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { useContainer } from '@tldraw/editor'
-import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Button } from '../primitives/Button'
+import {
+	ContextMenuSub,
+	ContextMenuSubContent,
+	ContextMenuSubTrigger,
+} from '../primitives/ContextMenu'
+import {
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+} from '../primitives/DropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -22,7 +27,6 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	label,
 	children,
 }: TLUiMenuSubmenuProps<Translation>) {
-	const container = useContainer()
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()
 	const labelToUse = label
@@ -32,57 +36,33 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 		: undefined
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
-	const [_, onOpenChange] = useMenuIsOpen(`context menu sub`)
-
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<_DropdownMenu.Sub onOpenChange={onOpenChange}>
-					<_DropdownMenu.SubTrigger dir="ltr" disabled={disabled} asChild>
-						<Button
-							type="menu"
-							className="tlui-menu__submenu__trigger"
-							data-testid={`${sourceId}-submenu.${id}`}
-							label={labelStr}
-							icon="chevron-right"
-						/>
-					</_DropdownMenu.SubTrigger>
-					<_DropdownMenu.Portal container={container}>
-						<_DropdownMenu.SubContent
-							className="tlui-menu"
-							sideOffset={-4}
-							alignOffset={-1}
-							collisionPadding={4}
-						>
-							{children}
-						</_DropdownMenu.SubContent>
-					</_DropdownMenu.Portal>
-				</_DropdownMenu.Sub>
+				<DropdownMenuSub id={`${sourceId}-sub`}>
+					<DropdownMenuSubTrigger
+						id={`${sourceId}-sub.${id}`}
+						disabled={disabled}
+						label={labelStr!}
+					/>
+					<DropdownMenuSubContent id={`${sourceId}-sub-content.${id}`}>
+						{children}
+					</DropdownMenuSubContent>
+				</DropdownMenuSub>
 			)
 		}
 		case 'context-menu': {
 			return (
-				<_ContextMenu.Sub onOpenChange={onOpenChange}>
-					<_ContextMenu.SubTrigger dir="ltr" disabled={disabled} asChild>
-						<Button
-							type="menu"
-							className="tlui-menu__submenu__trigger"
-							data-testid={`${sourceId}-submenu.${id}`}
-							label={labelStr}
-							icon="chevron-right"
-						/>
-					</_ContextMenu.SubTrigger>
-					<_ContextMenu.Portal container={container}>
-						<_ContextMenu.SubContent
-							className="tlui-menu"
-							sideOffset={-4}
-							alignOffset={-1}
-							collisionPadding={4}
-						>
-							{children}
-						</_ContextMenu.SubContent>
-					</_ContextMenu.Portal>
-				</_ContextMenu.Sub>
+				<ContextMenuSub id={`${sourceId}-sub`}>
+					<ContextMenuSubTrigger
+						id={`${sourceId}-sub-trigger.${id}`}
+						label={labelStr!}
+						disabled={disabled}
+					/>
+					<ContextMenuSubContent id={`${sourceId}-sub-content.${id}`}>
+						{children}
+					</ContextMenuSubContent>
+				</ContextMenuSub>
 			)
 		}
 		default: {

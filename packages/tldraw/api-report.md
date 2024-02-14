@@ -444,34 +444,34 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 }
 
 // @public (undocumented)
-export function Dropdown({ id, children, modal, debugOpen }: TLUiDropdownProps): JSX_2.Element;
+export function DropdownMenuCheckboxItem({ id, children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownCheckboxItem({ id, children, onSelect, ...rest }: TLUiDropdownCheckboxItemProps): JSX_2.Element;
+export function DropdownMenuContent({ id, side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownContent({ id, side, align, sideOffset, alignOffset, children, }: TLUiDropdownContentProps): JSX_2.Element;
+export function DropdownMenuGroup({ id, children, size }: TLUiDropdownMenuGroupProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownGroup({ id, children, size }: TLUiDropdownGroupProps): JSX_2.Element;
+export function DropdownMenuIndicator(): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownIndicator(): JSX_2.Element;
+export function DropdownMenuItem({ id, noClose, ...props }: TLUiDropdownMenuItemProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownItem({ id, noClose, ...props }: TLUiDropdownItemProps): JSX_2.Element;
+export function DropdownMenuRadioItem({ children, ...rest }: TLUiDropdownMenuRadioItemProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownRadioItem({ children, ...rest }: TLUiDropdownRadioItemProps): JSX_2.Element;
+export function DropdownMenuRoot({ id, children, modal, debugOpen, }: TLUiDropdownMenuRootProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownSub({ id, children }: TLUiDropdownSubProps): JSX_2.Element;
+export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownSubTrigger({ label, id, 'data-direction': dataDirection, }: TLUiDropdownSubTriggerProps): JSX_2.Element;
+export function DropdownMenuSubTrigger({ id, label, disabled, 'data-direction': dataDirection, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownTrigger({ id, children }: TLUiDropdownTriggerProps): JSX_2.Element;
+export function DropdownMenuTrigger({ id, children }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -1452,7 +1452,7 @@ export type TLUiDialogsContextType = {
 };
 
 // @public (undocumented)
-export interface TLUiDropdownCheckboxItemProps {
+export interface TLUiDropdownMenuCheckboxItemProps {
     // (undocumented)
     checked?: boolean;
     // (undocumented)
@@ -1468,7 +1468,7 @@ export interface TLUiDropdownCheckboxItemProps {
 }
 
 // @public (undocumented)
-export type TLUiDropdownContentProps = {
+export type TLUiDropdownMenuContentProps = {
     id?: string;
     children: any;
     alignOffset?: number;
@@ -1478,14 +1478,14 @@ export type TLUiDropdownContentProps = {
 };
 
 // @public (undocumented)
-export type TLUiDropdownGroupProps = {
+export type TLUiDropdownMenuGroupProps = {
     id?: string;
     children: any;
     size?: 'medium' | 'small' | 'tiny' | 'wide';
 };
 
 // @public (undocumented)
-export interface TLUiDropdownItemProps extends TLUiButtonProps {
+export interface TLUiDropdownMenuItemProps extends TLUiButtonProps {
     // (undocumented)
     id?: string;
     // (undocumented)
@@ -1493,15 +1493,7 @@ export interface TLUiDropdownItemProps extends TLUiButtonProps {
 }
 
 // @public (undocumented)
-export type TLUiDropdownProps = {
-    id: string;
-    children: any;
-    modal?: boolean;
-    debugOpen?: boolean;
-};
-
-// @public (undocumented)
-export interface TLUiDropdownRadioItemProps {
+export interface TLUiDropdownMenuRadioItemProps {
     // (undocumented)
     checked?: boolean;
     // (undocumented)
@@ -1515,20 +1507,29 @@ export interface TLUiDropdownRadioItemProps {
 }
 
 // @public (undocumented)
-export type TLUiDropdownSubProps = {
+export type TLUiDropdownMenuRootProps = {
+    id: string;
+    children: any;
+    modal?: boolean;
+    debugOpen?: boolean;
+};
+
+// @public (undocumented)
+export type TLUiDropdownMenuSubProps = {
     id: string;
     children: any;
 };
 
 // @public (undocumented)
-export type TLUiDropdownSubTriggerProps = {
+export type TLUiDropdownMenuSubTriggerProps = {
     label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     id?: string;
+    disabled?: boolean;
     'data-direction'?: 'left' | 'right';
 };
 
 // @public (undocumented)
-export type TLUiDropdownTriggerProps = {
+export type TLUiDropdownMenuTriggerProps = {
     id?: string;
     children: any;
 };

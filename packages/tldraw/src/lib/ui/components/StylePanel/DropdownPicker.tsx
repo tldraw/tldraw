@@ -37,7 +37,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 	)
 
 	return (
-		<DropdownMenu.Dropdown id={`style panel ${id}`}>
+		<DropdownMenu.DropdownMenuRoot id={`style panel ${id}`}>
 			<Trigger
 				asChild
 				// Firefox fix: Stop the dropdown immediately closing after touch
@@ -55,11 +55,11 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 					icon={(icon as TLUiIconType) ?? 'mixed'}
 				/>
 			</Trigger>
-			<DropdownMenu.DropdownContent side="left" align="center" alignOffset={0}>
+			<DropdownMenu.DropdownMenuContent side="left" align="center" alignOffset={0}>
 				<div className="tlui-buttons__grid">
 					{items.map((item) => {
 						return (
-							<DropdownMenu.DropdownItem
+							<DropdownMenu.DropdownMenuItem
 								type="icon"
 								data-testid={`style.${uiType}.${item.value}`}
 								title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
@@ -70,7 +70,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 						)
 					})}
 				</div>
-			</DropdownMenu.DropdownContent>
-		</DropdownMenu.Dropdown>
+			</DropdownMenu.DropdownMenuContent>
+		</DropdownMenu.DropdownMenuRoot>
 	)
 })
