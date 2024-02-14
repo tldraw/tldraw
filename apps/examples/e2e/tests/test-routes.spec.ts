@@ -67,7 +67,7 @@ test.describe('Routes', () => {
 	})
 
 	test('persistence', async ({ page }) => {
-		await page.goto('http://localhost:5420/persistence/full')
+		await page.goto('http://localhost:5420/local-storage/full')
 		await page.waitForSelector('.tl-canvas')
 	})
 

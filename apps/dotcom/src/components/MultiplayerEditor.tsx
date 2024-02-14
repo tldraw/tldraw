@@ -128,6 +128,7 @@ export function MultiplayerEditor({
 				assetUrls={assetUrls}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
+				initialState={isReadOnly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
 				topZone={isOffline && <OfflineIndicator />}

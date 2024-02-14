@@ -1028,7 +1028,7 @@ body {
 	height: 100%;
 	padding: 0px;
 	top: 0px;
-	right: 0px;
+	right: 3px;
 	z-index: 2;
 	color: var(--color-tint-5);
 	pointer-events: none;

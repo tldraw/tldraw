@@ -1009,7 +1009,7 @@ input,
 	min-height: auto;
 }
 
-.tl-text-label__inner > .tl-text {
+.tl-text-label__inner > .tl-text-content {
 	position: relative;
 	top: 0px;
 	left: 0px;
