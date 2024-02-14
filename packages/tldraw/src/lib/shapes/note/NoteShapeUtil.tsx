@@ -115,8 +115,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 
-		console.log(bounds)
-
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const adjustedColor = shape.props.color === 'black' ? 'yellow' : shape.props.color

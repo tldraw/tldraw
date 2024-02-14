@@ -64,8 +64,6 @@ export const TextLabel = React.memo(function TextLabel<
 		return null
 	}
 
-	console.log(bounds)
-
 	return (
 		<div
 			className="tl-text-label"
