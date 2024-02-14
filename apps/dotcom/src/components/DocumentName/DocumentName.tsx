@@ -267,14 +267,14 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 					inert=""
 					aria-hidden
 				>
-					{addRealSpaceForWhitespace(name) || ' '}
+					{addRealSpaceForWhitespace(name)}
 				</div>
 			) : (
 				<div
 					className="tlui-document-name__text"
 					onDoubleClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
 				>
-					{addRealSpaceForWhitespace(name) || ' '}
+					{addRealSpaceForWhitespace(name)}
 				</div>
 			)}
 		</div>
