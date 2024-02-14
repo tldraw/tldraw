@@ -23,10 +23,9 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	const breakpoint = useBreakpoint()
 	const [isOpen, onOpenChange] = useMenuIsOpen('actions-menu')
 
-	const isReadOnly = useReadonly()
+	const isReadonlyMode = useReadonly()
 
 	const editor = useEditor()
-
 	const isInAcceptableReadonlyState = useValue(
 		'should display quick actions when in readonly',
 		() => editor.isInAny('hand', 'zoom'),
@@ -39,7 +38,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 
 	const content = children ?? <DefaultActionsMenuContent />
 	if (!content) return null
-	if (isReadOnly && !isInAcceptableReadonlyState) return
+	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>

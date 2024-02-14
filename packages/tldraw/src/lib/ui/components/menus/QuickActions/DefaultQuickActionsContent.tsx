@@ -16,7 +16,7 @@ export function DefaultQuickActionsContent() {
 	const canRedo = useCanRedo()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 
-	const isReadOnly = useReadonly()
+	const isReadonlyMode = useReadonly()
 
 	const isInAcceptableReadonlyState = useValue(
 		'should display quick actions',
@@ -24,7 +24,7 @@ export function DefaultQuickActionsContent() {
 		[editor]
 	)
 
-	if (isReadOnly && !isInAcceptableReadonlyState) return
+	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
 		<>

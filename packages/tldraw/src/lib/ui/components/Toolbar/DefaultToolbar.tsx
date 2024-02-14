@@ -23,7 +23,7 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 
 	const rMostRecentlyActiveDropdownItem = React.useRef<TLUiToolbarItem | undefined>(undefined)
 
-	const isReadonly = useReadonly()
+	const isReadonlyMode = useReadonly()
 	const toolbarItems = useToolbarSchema()
 
 	const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
@@ -95,7 +95,7 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 		<div className="tlui-toolbar">
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
-					{!isReadonly && (
+					{!isReadonlyMode && (
 						<div className="tlui-toolbar__extras">
 							{breakpoint < 6 && (
 								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
@@ -155,7 +155,7 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 						) : null}
 					</div>
 				</div>
-				{breakpoint < 5 && !isReadonly && (
+				{breakpoint < 5 && !isReadonlyMode && (
 					<div className="tlui-toolbar__tools">
 						<MobileStylePanel />
 					</div>

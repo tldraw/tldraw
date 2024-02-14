@@ -34,10 +34,11 @@ export function TldrawUiMenuCheckboxItem<
 	disabled?: boolean
 }) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
-	const isReadOnly = useReadonly()
+	const isReadonlyMode = useReadonly()
 	const msg = useTranslation()
 
-	if (isReadOnly && !readonlyOk) return null
+	// If the editor is in readonly mode and the item is not marked as readonlyok, return null
+	if (isReadonlyMode && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined

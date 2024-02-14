@@ -42,8 +42,8 @@ export function TldrawUiMenuItem<
 
 	const [disableClicks, setDisableClicks] = useState(false)
 
-	const isReadOnly = useReadonly()
-	if (isReadOnly && !readonlyOk) return null
+	const isReadonlyMode = useReadonly()
+	if (isReadonlyMode && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
