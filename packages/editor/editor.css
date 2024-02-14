@@ -1026,6 +1026,9 @@ input,
 	inset: 0px;
 	padding: 16px;
 	z-index: 4;
+	/* angry fist cascade */
+	height: unset;
+	width: unset;
 }
 
 .tl-text-label[data-textwrap='true'] > .tl-text-label__inner {
