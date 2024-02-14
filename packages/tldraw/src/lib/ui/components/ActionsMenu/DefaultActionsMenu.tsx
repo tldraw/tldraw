@@ -1,4 +1,3 @@
-import { PopoverContent } from '@radix-ui/react-popover'
 import { useEditor, useValue } from '@tldraw/editor'
 import { memo } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
@@ -6,7 +5,7 @@ import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import { Button } from '../primitives/Button'
-import { Popover, PopoverTrigger } from '../primitives/Popover'
+import { Popover, PopoverContent, PopoverTrigger } from '../primitives/Popover'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
 /** @public */
@@ -49,7 +48,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 					smallIcon
 				/>
 			</PopoverTrigger>
-			<PopoverContent side={breakpoint >= 6 ? 'bottom' : 'top'} dir="ltr" sideOffset={6}>
+			<PopoverContent side={breakpoint >= 6 ? 'bottom' : 'top'} sideOffset={6}>
 				<div className="tlui-actions-menu tlui-buttons__grid">
 					<TldrawUiMenuContextProvider type="actions" sourceId="actions-menu">
 						{content}
