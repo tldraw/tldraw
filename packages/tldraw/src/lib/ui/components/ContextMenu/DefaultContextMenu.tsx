@@ -64,7 +64,6 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
 	const content = children ?? <DefaultContextMenuContent />
-	if (!content) return null
 
 	return (
 		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>

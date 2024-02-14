@@ -12,7 +12,6 @@ export const DefaultQuickActions = memo(function DefaultQuickActions({
 	children,
 }: TLUiQuickActionsProps) {
 	const content = children ?? <DefaultQuickActionsContent />
-	if (!content) return null
 
 	return (
 		<TldrawUiMenuContextProvider type="actions" sourceId="quick-actions">

@@ -274,22 +274,10 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 export const Button: React_3.ForwardRefExoticComponent<TLUiButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-function CheckboxItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX_2.Element;
-
-// @public (undocumented)
 function CloseButton(): JSX_2.Element;
 
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
-
-// @public (undocumented)
-function Content({ side, align, sideOffset, alignOffset, children, }: {
-    children: any;
-    alignOffset?: number;
-    sideOffset?: number;
-    align?: 'center' | 'end' | 'start';
-    side?: 'bottom' | 'left' | 'right' | 'top';
-}): JSX_2.Element;
 
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
@@ -313,6 +301,12 @@ export { DefaultContextMenu }
 
 // @public (undocumented)
 export function DefaultContextMenuContent(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultDebugMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
 export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX_2.Element;
@@ -449,44 +443,35 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     static type: "draw";
 }
 
-declare namespace DropdownMenu {
-    export {
-        Root,
-        Trigger,
-        Content,
-        Sub,
-        SubTrigger,
-        SubContent,
-        Group,
-        Indicator,
-        Item,
-        CheckboxItem,
-        RadioItem,
-        DropdownMenuItemProps,
-        DropdownMenuCheckboxItemProps
-    }
-}
-export { DropdownMenu }
+// @public (undocumented)
+export function Dropdown({ id, children, modal, debugOpen }: TLUiDropdownProps): JSX_2.Element;
 
 // @public (undocumented)
-interface DropdownMenuCheckboxItemProps {
-    // (undocumented)
-    checked?: boolean;
-    // (undocumented)
-    children: any;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    onSelect?: (e: Event) => void;
-    // (undocumented)
-    title: string;
-}
+export function DropdownCheckboxItem({ id, children, onSelect, ...rest }: TLUiDropdownCheckboxItemProps): JSX_2.Element;
 
 // @public (undocumented)
-interface DropdownMenuItemProps extends TLUiButtonProps {
-    // (undocumented)
-    noClose?: boolean;
-}
+export function DropdownContent({ id, side, align, sideOffset, alignOffset, children, }: TLUiDropdownContentProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownGroup({ id, children, size }: TLUiDropdownGroupProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownIndicator(): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownItem({ id, noClose, ...props }: TLUiDropdownItemProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownRadioItem({ children, ...rest }: TLUiDropdownRadioItemProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownSub({ id, children }: TLUiDropdownSubProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownSubTrigger({ label, id, 'data-direction': dataDirection, }: TLUiDropdownSubTriggerProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownTrigger({ id, children }: TLUiDropdownTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -768,12 +753,6 @@ export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
 }): Promise<Blob | null>;
 
 // @public (undocumented)
-function Group({ children, size, }: {
-    children: any;
-    size?: 'medium' | 'small' | 'tiny' | 'wide';
-}): JSX_2.Element;
-
-// @public (undocumented)
 export class HandTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Dragging | typeof Idle_8 | typeof Pointing_7)[];
@@ -892,16 +871,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 }
 
 // @public (undocumented)
-function Indicator(): JSX_2.Element;
-
-// @public (undocumented)
 export const Input: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
 export function isGifAnimated(file: Blob): Promise<boolean>;
-
-// @public (undocumented)
-function Item({ noClose, ...props }: DropdownMenuItemProps): JSX_2.Element;
 
 // @public (undocumented)
 export class LaserTool extends StateNode {
@@ -1097,18 +1070,16 @@ export function parseTldrawJsonFile({ json, schema, }: {
 }): Result<TLStore, TldrawFileParseError>;
 
 // @public (undocumented)
-function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX_2.Element;
+export function Popover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
+
+// @public (undocumented)
+export function PopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
+
+// @public (undocumented)
+export function PopoverTrigger({ children, disabled, 'data-testid': testId, }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
-
-// @public (undocumented)
-function Root({ id, children, modal, debugOpen, }: {
-    id: string;
-    children: any;
-    modal?: boolean;
-    debugOpen?: boolean;
-}): JSX_2.Element;
 
 // @public (undocumented)
 export class SelectTool extends StateNode {
@@ -1140,26 +1111,6 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
 // @internal (undocumented)
 export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
-
-// @public (undocumented)
-function Sub({ id, children }: {
-    id: string;
-    children: any;
-}): JSX_2.Element;
-
-// @public (undocumented)
-function SubContent({ alignOffset, sideOffset, children, }: {
-    alignOffset?: number;
-    sideOffset?: number;
-    children: any;
-}): JSX_2.Element;
-
-// @public (undocumented)
-function SubTrigger({ label, 'data-testid': testId, 'data-direction': dataDirection, }: {
-    label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
-    'data-testid'?: string;
-    'data-direction'?: 'left' | 'right';
-}): JSX_2.Element;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
@@ -1469,6 +1420,11 @@ export interface TLUiContextMenuProps {
 }
 
 // @public (undocumented)
+export type TLUiDebugMenuProps = {
+    children?: any;
+};
+
+// @public (undocumented)
 export interface TLUiDialog {
     // (undocumented)
     component: ComponentType<TLUiDialogProps>;
@@ -1493,6 +1449,88 @@ export type TLUiDialogsContextType = {
     updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
     clearDialogs: () => void;
     dialogs: TLUiDialog[];
+};
+
+// @public (undocumented)
+export interface TLUiDropdownCheckboxItemProps {
+    // (undocumented)
+    checked?: boolean;
+    // (undocumented)
+    children: any;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    onSelect?: (e: Event) => void;
+    // (undocumented)
+    title: string;
+}
+
+// @public (undocumented)
+export type TLUiDropdownContentProps = {
+    id?: string;
+    children: any;
+    alignOffset?: number;
+    sideOffset?: number;
+    align?: 'center' | 'end' | 'start';
+    side?: 'bottom' | 'left' | 'right' | 'top';
+};
+
+// @public (undocumented)
+export type TLUiDropdownGroupProps = {
+    id?: string;
+    children: any;
+    size?: 'medium' | 'small' | 'tiny' | 'wide';
+};
+
+// @public (undocumented)
+export interface TLUiDropdownItemProps extends TLUiButtonProps {
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    noClose?: boolean;
+}
+
+// @public (undocumented)
+export type TLUiDropdownProps = {
+    id: string;
+    children: any;
+    modal?: boolean;
+    debugOpen?: boolean;
+};
+
+// @public (undocumented)
+export interface TLUiDropdownRadioItemProps {
+    // (undocumented)
+    checked?: boolean;
+    // (undocumented)
+    children: any;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    onSelect?: (e: Event) => void;
+    // (undocumented)
+    title: string;
+}
+
+// @public (undocumented)
+export type TLUiDropdownSubProps = {
+    id: string;
+    children: any;
+};
+
+// @public (undocumented)
+export type TLUiDropdownSubTriggerProps = {
+    label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    id?: string;
+    'data-direction'?: 'left' | 'right';
+};
+
+// @public (undocumented)
+export type TLUiDropdownTriggerProps = {
+    id?: string;
+    children: any;
 };
 
 // @public (undocumented)
@@ -1795,6 +1833,31 @@ export type TLUiOverrides = Partial<{
 }>;
 
 // @public (undocumented)
+export type TLUiPopoverContentProps = {
+    children: React_2.ReactNode;
+    side: 'bottom' | 'left' | 'right' | 'top';
+    align?: 'center' | 'end' | 'start';
+    alignOffset?: number;
+    sideOffset?: number;
+};
+
+// @public (undocumented)
+export type TLUiPopoverProps = {
+    id: string;
+    open?: boolean;
+    children: React_2.ReactNode;
+    onOpenChange?: (isOpen: boolean) => void;
+};
+
+// @public (undocumented)
+export type TLUiPopoverTriggerProps = {
+    children: React_2.ReactNode;
+    disabled?: boolean;
+    className?: string;
+    'data-testid'?: string;
+};
+
+// @public (undocumented)
 export type TLUiQuickActionsProps = {
     children?: any;
 };
@@ -1921,12 +1984,6 @@ export type TLUiZoomMenuProps = {
 export function toolbarItem(toolItem: TLUiToolItem): TLUiToolbarItem;
 
 // @public (undocumented)
-function Trigger({ children, 'data-testid': testId, }: {
-    children: any;
-    'data-testid'?: string;
-}): JSX_2.Element;
-
-// @public (undocumented)
 export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
 
 // @public (undocumented)
@@ -2013,6 +2070,7 @@ export function useTldrawUiComponents(): Partial<{
     KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
     QuickActions: ComponentType<TLUiQuickActionsProps> | null;
     HelperButtons: ComponentType<TLUiHelperButtonsProps> | null;
+    DebugMenu: ComponentType | null;
 }>;
 
 // @public (undocumented)

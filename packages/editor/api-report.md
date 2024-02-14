@@ -423,22 +423,7 @@ export function dataUrlToFile(url: string, filename: string, mimeType: string): 
 export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
 
 // @internal (undocumented)
-export const debugFlags: {
-    preventDefaultLogging: DebugFlag<boolean>;
-    pointerCaptureLogging: DebugFlag<boolean>;
-    pointerCaptureTracking: DebugFlag<boolean>;
-    pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
-    elementRemovalLogging: DebugFlag<boolean>;
-    debugSvg: DebugFlag<boolean>;
-    showFps: DebugFlag<boolean>;
-    throwToBlob: DebugFlag<boolean>;
-    logMessages: DebugFlag<any[]>;
-    resetConnectionEveryPing: DebugFlag<boolean>;
-    debugCursors: DebugFlag<boolean>;
-    forceSrgb: DebugFlag<boolean>;
-    debugGeometry: DebugFlag<boolean>;
-    hideShapes: DebugFlag<boolean>;
-};
+export const debugFlags: Record<string, DebugFlag<boolean>>;
 
 // @internal (undocumented)
 export const DEFAULT_ANIMATION_OPTIONS: {

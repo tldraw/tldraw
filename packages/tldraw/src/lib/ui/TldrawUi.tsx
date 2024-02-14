@@ -117,11 +117,7 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	)
 })
 
-const TldrawUiContent = React.memo(function TldrawUI({
-	shareZone,
-	topZone,
-	renderDebugMenuItems,
-}: TldrawUiContentProps) {
+const TldrawUiContent = React.memo(function TldrawUI({ shareZone, topZone }: TldrawUiContentProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
@@ -176,7 +172,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 								{Toolbar && <Toolbar />}
 								{HelpMenu && <HelpMenu />}
 							</div>
-							{isDebugMode && <DebugPanel renderDebugMenuItems={renderDebugMenuItems ?? null} />}
+							{isDebugMode && <DebugPanel />}
 						</div>
 					</>
 				)}

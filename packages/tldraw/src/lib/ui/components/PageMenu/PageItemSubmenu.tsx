@@ -43,12 +43,12 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [editor, item])
 
 	return (
-		<M.Root id={`page item submenu ${index}`}>
-			<M.Trigger>
+		<M.Dropdown id={`page item submenu ${index}`}>
+			<M.DropdownTrigger>
 				<Button type="icon" title={msg('page-menu.submenu.title')} icon="dots-vertical" />
-			</M.Trigger>
-			<M.Content alignOffset={0}>
-				<M.Group>
+			</M.DropdownTrigger>
+			<M.DropdownContent alignOffset={0}>
+				<M.DropdownGroup>
 					{onRename && (
 						<DropdownMenu.Item dir="ltr" onSelect={onRename} asChild>
 							<Button type="menu" label="page-menu.submenu.rename" />
@@ -72,15 +72,15 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 							<Button type="menu" label="page-menu.submenu.move-down" />
 						</DropdownMenu.Item>
 					)}
-				</M.Group>
+				</M.DropdownGroup>
 				{listSize > 1 && (
-					<M.Group>
+					<M.DropdownGroup>
 						<DropdownMenu.Item dir="ltr" onSelect={onDelete} asChild>
 							<Button type="menu" label="page-menu.submenu.delete" />
 						</DropdownMenu.Item>
-					</M.Group>
+					</M.DropdownGroup>
 				)}
-			</M.Content>
-		</M.Root>
+			</M.DropdownContent>
+		</M.Dropdown>
 	)
 })

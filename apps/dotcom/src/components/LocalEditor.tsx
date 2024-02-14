@@ -1,4 +1,6 @@
 import {
+	DefaultDebugMenu,
+	DefaultDebugMenuContent,
 	DefaultHelpMenu,
 	DefaultHelpMenuContent,
 	DefaultKeyboardShortcutsDialog,
@@ -57,6 +59,14 @@ const components: TLComponents = {
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},
+	DebugMenu: () => {
+		return (
+			<DefaultDebugMenu>
+				<DefaultDebugMenuContent />
+				<DebugMenuItems />
+			</DefaultDebugMenu>
+		)
+	},
 }
 
 export function LocalEditor() {
@@ -83,7 +93,6 @@ export function LocalEditor() {
 						<ShareMenu />
 					</div>
 				}
-				renderDebugMenuItems={() => <DebugMenuItems />}
 				inferDarkMode
 			>
 				<LocalMigration />

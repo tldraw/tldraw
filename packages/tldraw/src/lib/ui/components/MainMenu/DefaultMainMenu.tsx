@@ -22,7 +22,6 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
 	const content = children ?? <DefaultMainMenuContent />
-	if (!content) return null
 
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>

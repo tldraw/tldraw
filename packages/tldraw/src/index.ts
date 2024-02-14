@@ -228,13 +228,48 @@ export {
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 
+export {
+	DefaultDebugMenu,
+	type TLUiDebugMenuProps,
+} from './lib/ui/components/DebugMenu/DefaultDebugMenu'
+export { DefaultDebugMenuContent } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
+
 export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 
 export { type TLComponents } from './lib/Tldraw'
 
+export {
+	Dropdown,
+	DropdownCheckboxItem,
+	DropdownContent,
+	DropdownGroup,
+	DropdownIndicator,
+	DropdownItem,
+	DropdownRadioItem,
+	DropdownSub,
+	DropdownSubTrigger,
+	DropdownTrigger,
+	type TLUiDropdownCheckboxItemProps,
+	type TLUiDropdownContentProps,
+	type TLUiDropdownGroupProps,
+	type TLUiDropdownItemProps,
+	type TLUiDropdownProps,
+	type TLUiDropdownRadioItemProps,
+	type TLUiDropdownSubProps,
+	type TLUiDropdownSubTriggerProps,
+	type TLUiDropdownTriggerProps,
+} from './lib/ui/components/primitives/DropdownMenu'
+export {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+	type TLUiPopoverContentProps,
+	type TLUiPopoverProps,
+	type TLUiPopoverTriggerProps,
+} from './lib/ui/components/primitives/Popover'
+
 // General dialogs / dropdowns
 // todo: consider removing now that we have the above components
 import * as Dialog from './lib/ui/components/primitives/Dialog'
-import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
 // N.B. Preserve order of import / export here with this comment.
-export { Dialog, DropdownMenu }
+export { Dialog }

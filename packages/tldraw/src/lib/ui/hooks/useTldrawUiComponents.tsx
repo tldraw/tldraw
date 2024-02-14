@@ -8,6 +8,7 @@ import {
 	DefaultContextMenu,
 	TLUiContextMenuProps,
 } from '../components/ContextMenu/DefaultContextMenu'
+import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
 import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
 import {
 	DefaultHelperButtons,
@@ -43,6 +44,7 @@ export interface BaseTLUiComponents {
 	KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps>
 	QuickActions: ComponentType<TLUiQuickActionsProps>
 	HelperButtons: ComponentType<TLUiHelperButtonsProps>
+	DebugMenu: ComponentType
 }
 
 /** @public */
@@ -81,6 +83,7 @@ export function TldrawUiComponentsProvider({
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,
+					DebugMenu: DefaultDebugMenu,
 					..._overrides,
 				}),
 				[_overrides]

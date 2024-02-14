@@ -30,7 +30,6 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	if (!relevantStyles) return null
 
 	const content = children ?? <DefaultStylePanelContent relevantStyles={relevantStyles} />
-	if (!content) return null
 
 	return (
 		<div

@@ -17,7 +17,6 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 	const msg = useTranslation()
 
 	const content = children ?? <DefaultKeyboardShortcutsDialogContent />
-	if (!content) return null
 
 	return (
 		<>

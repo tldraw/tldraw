@@ -16,6 +16,7 @@ const components: Required<TLUiComponents> = {
 	KeyboardShortcutsDialog: null,
 	QuickActions: null,
 	HelperButtons: null,
+	DebugMenu: null,
 }
 
 export default function UiComponentsHiddenExample() {

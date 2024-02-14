@@ -11,7 +11,12 @@ import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MobileStylePanel } from '../MobileStylePanel'
 import { Button } from '../primitives/Button'
-import * as M from '../primitives/DropdownMenu'
+import {
+	Dropdown,
+	DropdownContent,
+	DropdownItem,
+	DropdownTrigger,
+} from '../primitives/DropdownMenu'
 import { kbdStr } from '../primitives/shared'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
@@ -137,8 +142,8 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 									)}
 								/>
 								{/* The dropdown to select everything else */}
-								<M.Root id="toolbar overflow" modal={false}>
-									<M.Trigger>
+								<Dropdown id="toolbar overflow" modal={false}>
+									<DropdownTrigger>
 										<Button
 											className="tlui-toolbar__overflow"
 											icon="chevron-up"
@@ -146,11 +151,11 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 											data-testid="tools.more"
 											title={msg('tool-panel.more')}
 										/>
-									</M.Trigger>
-									<M.Content side="top" align="center">
+									</DropdownTrigger>
+									<DropdownContent side="top" align="center">
 										<OverflowToolsContent toolbarItems={itemsInDropdown} />
-									</M.Content>
-								</M.Root>
+									</DropdownContent>
+								</Dropdown>
 							</>
 						) : null}
 					</div>
@@ -176,7 +181,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 		<div className="tlui-buttons__grid">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
 				return (
-					<M.Item
+					<DropdownItem
 						key={id}
 						type="icon"
 						className="tlui-button-grid__button"
