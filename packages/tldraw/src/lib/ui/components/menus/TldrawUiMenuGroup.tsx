@@ -57,7 +57,7 @@ export function TldrawUiMenuGroup({ id, label, small = false, children }: TLUiMe
 			// todo: if groups need a label, let's give em a label
 			return (
 				<div className="tlui-shortcuts-dialog__group" data-testid={`${sourceId}-group.${id}`}>
-					<h2 className="tlui-shortcuts-dialog__group__title">{labelToUse}</h2>
+					<h2 className="tlui-shortcuts-dialog__group__title">{labelStr}</h2>
 					<div className="tlui-shortcuts-dialog__group__content">{children}</div>
 				</div>
 			)
