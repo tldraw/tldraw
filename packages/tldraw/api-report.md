@@ -1379,46 +1379,19 @@ export interface TldrawUiContextProviderProps {
 }
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem<TransationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: {
-    icon?: IconType;
-    id: string;
-    kbd?: string;
-    title?: string;
-    label?: {
-        [key: string]: TransationKey;
-    } | TransationKey;
-    readonlyOk: boolean;
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
-    checked?: boolean;
-    disabled?: boolean;
-}): JSX_2.Element | null | undefined;
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuContextProvider({ type, sourceId, children, }: {
-    type: TldrawUiMenuContextType;
-    sourceId: TLUiEventSource;
-    children: React.ReactNode;
-}): JSX_2.Element;
+export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiMenuGroup({ id, small, children, }: {
-    id: string;
-    small?: boolean;
-    children?: any;
-}): any;
+export function TldrawUiMenuGroup({ id, small, children }: TLUiMenuGroupProps): any;
 
 // @public (undocumented)
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<TransationKey extends string = string>({ id, disabled, label, children, }: {
-    id: string;
-    label?: {
-        [key: string]: TransationKey;
-    } | TransationKey;
-    disabled?: boolean;
-    children: any;
-}): any;
+export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, children, }: TLUiMenuSubmenuProps<Translation>): any;
 
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
@@ -1756,6 +1729,60 @@ export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 // @public (undocumented)
 export type TLUiMainMenuProps = {
     children?: any;
+};
+
+// @public (undocumented)
+export type TLUiMenuCheckboxItemProps<TranslationKey extends string = string, IconType extends string = string> = {
+    icon?: IconType;
+    id: string;
+    kbd?: string;
+    title?: string;
+    label?: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
+    readonlyOk: boolean;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    checked?: boolean;
+    disabled?: boolean;
+};
+
+// @public (undocumented)
+export type TLUiMenuContextProviderProps = {
+    type: TldrawUiMenuContextType;
+    sourceId: TLUiEventSource;
+    children: React.ReactNode;
+};
+
+// @public (undocumented)
+export type TLUiMenuGroupProps = {
+    id: string;
+    small?: boolean;
+    children?: any;
+};
+
+// @public (undocumented)
+export type TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> = {
+    id: string;
+    icon?: IconType;
+    kbd?: string;
+    title?: string;
+    label?: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
+    readonlyOk: boolean;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    disabled?: boolean;
+    noClose?: boolean;
+};
+
+// @public (undocumented)
+export type TLUiMenuSubmenuProps<Translation extends string = string> = {
+    id: string;
+    label?: {
+        [key: string]: Translation;
+    } | Translation;
+    disabled?: boolean;
+    children: any;
 };
 
 // @public (undocumented)

@@ -6,15 +6,14 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export function TldrawUiMenuGroup({
-	id,
-	small = false,
-	children,
-}: {
+export type TLUiMenuGroupProps = {
 	id: string
 	small?: boolean
 	children?: any
-}) {
+}
+
+/** @public */
+export function TldrawUiMenuGroup({ id, small = false, children }: TLUiMenuGroupProps) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()
 

@@ -8,17 +8,20 @@ import { Button } from '../primitives/Button'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export function TldrawUiMenuSubmenu<TransationKey extends string = string>({
+export type TLUiMenuSubmenuProps<Translation extends string = string> = {
+	id: string
+	label?: Translation | { [key: string]: Translation }
+	disabled?: boolean
+	children: any
+}
+
+/** @public */
+export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	id,
 	disabled = false,
 	label,
 	children,
-}: {
-	id: string
-	label?: TransationKey | { [key: string]: TransationKey }
-	disabled?: boolean
-	children: any
-}) {
+}: TLUiMenuSubmenuProps<Translation>) {
 	const container = useContainer()
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()

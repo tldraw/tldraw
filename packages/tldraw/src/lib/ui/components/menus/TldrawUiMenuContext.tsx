@@ -20,14 +20,17 @@ export function useTldrawUiMenuContext() {
 }
 
 /** @public */
+export type TLUiMenuContextProviderProps = {
+	type: TldrawUiMenuContextType
+	sourceId: TLUiEventSource
+	children: React.ReactNode
+}
+
+/** @public */
 export function TldrawUiMenuContextProvider({
 	type,
 	sourceId,
 	children,
-}: {
-	type: TldrawUiMenuContextType
-	sourceId: TLUiEventSource
-	children: React.ReactNode
-}) {
+}: TLUiMenuContextProviderProps) {
 	return <menuContext.Provider value={{ type, sourceId }}>{children}</menuContext.Provider>
 }

@@ -11,8 +11,24 @@ import { Kbd } from '../primitives/Kbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
+export type TLUiMenuCheckboxItemProps<
+	TranslationKey extends string = string,
+	IconType extends string = string,
+> = {
+	icon?: IconType
+	id: string
+	kbd?: string
+	title?: string
+	label?: TranslationKey | { [key: string]: TranslationKey }
+	readonlyOk: boolean
+	onSelect: (source: TLUiEventSource) => Promise<void> | void
+	checked?: boolean
+	disabled?: boolean
+}
+
+/** @public */
 export function TldrawUiMenuCheckboxItem<
-	TransationKey extends string = string,
+	TranslationKey extends string = string,
 	IconType extends string = string,
 >({
 	id,
@@ -22,17 +38,7 @@ export function TldrawUiMenuCheckboxItem<
 	onSelect,
 	disabled = false,
 	checked = false,
-}: {
-	icon?: IconType
-	id: string
-	kbd?: string
-	title?: string
-	label?: TransationKey | { [key: string]: TransationKey }
-	readonlyOk: boolean
-	onSelect: (source: TLUiEventSource) => Promise<void> | void
-	checked?: boolean
-	disabled?: boolean
-}) {
+}: TLUiMenuCheckboxItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const isReadonlyMode = useReadonly()
 	const msg = useTranslation()

@@ -136,13 +136,30 @@ export {
 // Minimap default component
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 
-// General UI components for building menus
-export { TldrawUiMenuCheckboxItem } from './lib/ui/components/menus/TldrawUiMenuCheckboxItem'
-export { TldrawUiMenuContextProvider } from './lib/ui/components/menus/TldrawUiMenuContext'
-export { TldrawUiMenuGroup } from './lib/ui/components/menus/TldrawUiMenuGroup'
-export { TldrawUiMenuItem } from './lib/ui/components/menus/TldrawUiMenuItem'
-export { TldrawUiMenuSubmenu } from './lib/ui/components/menus/TldrawUiMenuSubmenu'
+// Helper to unwrap label from action items
 export { unwrapLabel } from './lib/ui/hooks/useActions'
+
+// General UI components for building menus
+export {
+	TldrawUiMenuCheckboxItem,
+	type TLUiMenuCheckboxItemProps,
+} from './lib/ui/components/menus/TldrawUiMenuCheckboxItem'
+export {
+	TldrawUiMenuContextProvider,
+	type TLUiMenuContextProviderProps,
+} from './lib/ui/components/menus/TldrawUiMenuContext'
+export {
+	TldrawUiMenuGroup,
+	type TLUiMenuGroupProps,
+} from './lib/ui/components/menus/TldrawUiMenuGroup'
+export {
+	TldrawUiMenuItem,
+	type TLUiMenuItemProps,
+} from './lib/ui/components/menus/TldrawUiMenuItem'
+export {
+	TldrawUiMenuSubmenu,
+	type TLUiMenuSubmenuProps,
+} from './lib/ui/components/menus/TldrawUiMenuSubmenu'
 
 export {
 	TldrawUiComponentsProvider,
@@ -150,6 +167,7 @@ export {
 	type TLUiComponents,
 } from './lib/ui/hooks/useTldrawUiComponents'
 
+// Menus / UI elements that can be customized
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
 
 export {
@@ -161,17 +179,14 @@ export {
 	type TLUiStylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 
-// Toolbar
 export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 
-// Actions menu
 export {
 	DefaultActionsMenu,
 	type TLUiActionsMenuProps,
 } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
 export { DefaultActionsMenuContent } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenuContent'
 
-// Context menu
 export {
 	DefaultContextMenu as ContextMenu,
 	DefaultContextMenu,
@@ -179,42 +194,36 @@ export {
 } from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
 export { DefaultContextMenuContent } from './lib/ui/components/menus/ContextMenu/DefaultContextMenuContent'
 
-// Help menu
 export {
 	DefaultHelpMenu,
 	type TLUiHelpMenuProps,
 } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'
 export { DefaultHelpMenuContent } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenuContent'
 
-// Main menu
 export {
 	DefaultMainMenu,
 	type TLUiMainMenuProps,
 } from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
 export { DefaultMainMenuContent } from './lib/ui/components/menus/MainMenu/DefaultMainMenuContent'
 
-// Quick actions
 export {
 	DefaultQuickActions,
 	type TLUiQuickActionsProps,
 } from './lib/ui/components/menus/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/menus/QuickActions/DefaultQuickActionsContent'
 
-// Zoom menu
 export {
 	DefaultZoomMenu,
 	type TLUiZoomMenuProps,
 } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
 export { DefaultZoomMenuContent } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenuContent'
 
-// Helper buttons
 export {
 	DefaultHelperButtons,
 	type TLUiHelperButtonsProps,
 } from './lib/ui/components/HelperButtons/DefaultHelperButtons'
 export { DefaultHelperButtonsContent } from './lib/ui/components/HelperButtons/DefaultHelperButtonsContent'
 
-// Keyboard shortcuts dialog
 export {
 	DefaultKeyboardShortcutsDialog,
 	type TLUiKeyboardShortcutsDialogProps,
@@ -223,9 +232,9 @@ export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/Keybo
 
 export { type TLComponents } from './lib/Tldraw'
 
+// General dialogs / dropdowns
+// todo: consider removing now that we have the above components
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
-
 // N.B. Preserve order of import / export here with this comment.
-// Sometimes this can cause an import problem depending on build setup downstream.
 export { Dialog, DropdownMenu }
