@@ -165,8 +165,10 @@ export function DefaultDebugMenuContent() {
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
 				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
 			</TldrawUiMenuGroup>
-			<DebugFlags />
-			<FeatureFlags />
+			<TldrawUiMenuGroup id="flags">
+				<DebugFlags />
+				<FeatureFlags />
+			</TldrawUiMenuGroup>
 
 			{/* {...children} */}
 		</>

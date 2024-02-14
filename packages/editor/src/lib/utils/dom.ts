@@ -51,8 +51,8 @@ export function setPointerCapture(
 	if (debugFlags.pointerCaptureTracking.get()) {
 		const trackingObj = pointerCaptureTrackingObject.get()
 		trackingObj.set(element, (trackingObj.get(element) ?? 0) + 1)
+		console.warn('setPointerCapture called on element:', element, event)
 	}
-	console.warn('setPointerCapture called on element:', element, event)
 }
 
 /** @public */
