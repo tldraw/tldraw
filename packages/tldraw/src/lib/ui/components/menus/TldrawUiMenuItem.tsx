@@ -141,7 +141,8 @@ export function TldrawUiMenuItem<
 				/>
 			)
 		}
-		case 'actions': {
+		case 'small-icons':
+		case 'icons': {
 			return (
 				<Button
 					data-testid={`${sourceId}.${id}`}
@@ -149,8 +150,8 @@ export function TldrawUiMenuItem<
 					type="icon"
 					title={label ? (kbd ? `${labelStr} ${kbdStr}` : `${labelStr}`) : kbd ? `${kbdStr}` : ''}
 					onClick={() => onSelect(sourceId)}
-					smallIcon
 					disabled={disabled}
+					smallIcon={menuType === 'small-icons'}
 				/>
 			)
 		}

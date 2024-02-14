@@ -195,7 +195,7 @@ export function DropdownMenuItem({ noClose, ...props }: TLUiDropdownMenuItemProp
 			asChild
 			onClick={noClose || props.isChecked !== undefined ? preventDefault : undefined}
 		>
-			<Button {...props} type="menu" />
+			<Button {...props} />
 		</_DropdownMenu.Item>
 	)
 }

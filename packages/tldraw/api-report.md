@@ -1076,7 +1076,7 @@ export function Popover({ id, children, onOpenChange, open }: TLUiPopoverProps):
 export function PopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
 
 // @public (undocumented)
-export function PopoverTrigger({ children, disabled, 'data-testid': testId, }: TLUiPopoverTriggerProps): JSX_2.Element;
+export function PopoverTrigger({ children, ...rest }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
@@ -1330,7 +1330,7 @@ export interface TldrawUiContextProviderProps {
 }
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null | undefined;
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
@@ -1846,12 +1846,10 @@ export type TLUiPopoverProps = {
 };
 
 // @public (undocumented)
-export type TLUiPopoverTriggerProps = {
-    children: React_2.ReactNode;
-    disabled?: boolean;
-    className?: string;
-    'data-testid'?: string;
-};
+export interface TLUiPopoverTriggerProps extends TLUiButtonProps {
+    // (undocumented)
+    children?: React_2.ReactNode;
+}
 
 // @public (undocumented)
 export type TLUiQuickActionsProps = {

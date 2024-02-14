@@ -9,7 +9,6 @@ import { useCallback } from 'react'
 import { useRelevantStyles } from '../hooks/useRevelantStyles'
 import { useTldrawUiComponents } from '../hooks/useTldrawUiComponents'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { Button } from './primitives/Button'
 import { Icon } from './primitives/Icon'
 import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'
 
@@ -44,17 +43,16 @@ export function MobileStylePanel() {
 
 	return (
 		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
-			<PopoverTrigger disabled={disableStylePanel}>
-				<Button
-					type="tool"
-					data-testid="mobile.styles"
-					style={{
-						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
-					}}
-					title={msg('style-panel.title')}
-				>
-					<Icon icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'} />
-				</Button>
+			<PopoverTrigger
+				disabled={disableStylePanel}
+				type="tool"
+				data-testid="mobile.styles"
+				style={{
+					color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
+				}}
+				title={msg('style-panel.title')}
+			>
+				<Icon icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'} />
 			</PopoverTrigger>
 			<PopoverContent side="top" align="end">
 				<_StylePanel />

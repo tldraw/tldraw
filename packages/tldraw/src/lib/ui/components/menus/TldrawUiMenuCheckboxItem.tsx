@@ -97,7 +97,7 @@ export function TldrawUiMenuCheckboxItem<
 				</_ContextMenu.CheckboxItem>
 			)
 		}
-		case 'actions': {
+		default: {
 			// no checkbox items in actions menu
 			return null
 		}

@@ -255,16 +255,14 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	return (
 		<Popover id="pages" onOpenChange={onOpenChange} open={isOpen}>
-			<PopoverTrigger>
-				<Button
-					className="tlui-page-menu__trigger tlui-menu__trigger"
-					data-testid="main.page-menu"
-					icon="chevron-down"
-					type="menu"
-					title={currentPage.name}
-				>
-					<div className="tlui-page-menu__name">{currentPage.name}</div>
-				</Button>
+			<PopoverTrigger
+				className="tlui-page-menu__trigger tlui-menu__trigger"
+				data-testid="main.page-menu"
+				icon="chevron-down"
+				type="menu"
+				title={currentPage.name}
+			>
+				<div className="tlui-page-menu__name">{currentPage.name}</div>
 			</PopoverTrigger>
 			<PopoverContent side="bottom" align="start" sideOffset={6}>
 				<div className="tlui-page-menu__wrapper">

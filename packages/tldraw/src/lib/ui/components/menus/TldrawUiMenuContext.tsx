@@ -5,8 +5,9 @@ import { TLUiEventSource } from '../../hooks/useEventsProvider'
 export type TldrawUiMenuContextType =
 	| 'panel'
 	| 'menu'
+	| 'small-icons'
 	| 'context-menu'
-	| 'actions'
+	| 'icons'
 	| 'keyboard-shortcuts'
 	| 'helper-buttons'
 

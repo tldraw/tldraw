@@ -14,7 +14,7 @@ export const DefaultQuickActions = memo(function DefaultQuickActions({
 	const content = children ?? <DefaultQuickActionsContent />
 
 	return (
-		<TldrawUiMenuContextProvider type="actions" sourceId="quick-actions">
+		<TldrawUiMenuContextProvider type="small-icons" sourceId="quick-actions">
 			{content}
 		</TldrawUiMenuContextProvider>
 	)

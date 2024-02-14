@@ -2,6 +2,7 @@ import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
 import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { Button, TLUiButtonProps } from './Button'
 
 /** @public */
 export type TLUiPopoverProps = {
@@ -26,22 +27,15 @@ export function Popover({ id, children, onOpenChange, open }: TLUiPopoverProps) 
 }
 
 /** @public */
-export type TLUiPopoverTriggerProps = {
-	children: React.ReactNode
-	disabled?: boolean
-	className?: string
-	'data-testid'?: string
+export interface TLUiPopoverTriggerProps extends TLUiButtonProps {
+	children?: React.ReactNode
 }
 
 /** @public */
-export function PopoverTrigger({
-	children,
-	disabled,
-	'data-testid': testId,
-}: TLUiPopoverTriggerProps) {
+export function PopoverTrigger({ children, ...rest }: TLUiPopoverTriggerProps) {
 	return (
-		<PopoverPrimitive.Trigger data-testid={testId} disabled={disabled} asChild dir="ltr">
-			{children}
+		<PopoverPrimitive.Trigger asChild dir="ltr">
+			<Button {...rest}>{children}</Button>
 		</PopoverPrimitive.Trigger>
 	)
 }
