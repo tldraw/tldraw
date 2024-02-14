@@ -1,11 +1,8 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../../hooks/useActions'
-import { useCanRedo } from '../../../hooks/useCanRedo'
-import { useCanUndo } from '../../../hooks/useCanUndo'
-import { LanguageMenu } from '../../LanguageMenu'
-import { TldrawUiMenuGroup } from '../TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../TldrawUiMenuItem'
-import { TldrawUiMenuSubmenu } from '../TldrawUiMenuSubmenu'
+import { useActions } from '../../hooks/useActions'
+import { useCanRedo } from '../../hooks/useCanRedo'
+import { useCanUndo } from '../../hooks/useCanUndo'
+import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
@@ -33,6 +30,9 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from '../menu-items'
+import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from '../menus/TldrawUiMenuSubmenu'
 
 /** @public */
 export function DefaultMainMenuContent() {

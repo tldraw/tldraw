@@ -2425,7 +2425,7 @@
               "text": ">"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ActionsMenu/DefaultActionsMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ActionsMenu/DefaultActionsMenu.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DefaultActionsMenu",
@@ -2457,7 +2457,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ActionsMenu/DefaultActionsMenuContent.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ActionsMenu/DefaultActionsMenuContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
@@ -2499,7 +2499,7 @@
               "text": ">"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/DefaultContextMenu.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DefaultContextMenu",
@@ -2535,7 +2535,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenuContent.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/DefaultContextMenuContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 4
@@ -2661,7 +2661,7 @@
               "text": ">"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/HelpMenu/DefaultHelpMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/HelpMenu/DefaultHelpMenu.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DefaultHelpMenu",
@@ -2693,7 +2693,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/HelpMenu/DefaultHelpMenuContent.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/HelpMenu/DefaultHelpMenuContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
@@ -2809,7 +2809,7 @@
               "text": ">"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/MainMenu/DefaultMainMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenu.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DefaultMainMenu",
@@ -2841,7 +2841,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/MainMenu/DefaultMainMenuContent.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
@@ -2948,7 +2948,7 @@
               "text": ">"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/QuickActions/DefaultQuickActions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/QuickActions/DefaultQuickActions.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DefaultQuickActions",
@@ -2984,7 +2984,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/QuickActions/DefaultQuickActionsContent.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/QuickActions/DefaultQuickActionsContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 4
@@ -3332,7 +3332,7 @@
               "text": ">"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ZoomMenu/DefaultZoomMenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ZoomMenu/DefaultZoomMenu.tsx",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DefaultZoomMenu",
@@ -3364,7 +3364,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ZoomMenu/DefaultZoomMenuContent.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ZoomMenu/DefaultZoomMenuContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
@@ -16401,7 +16401,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/ActionsMenu/DefaultActionsMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ActionsMenu/DefaultActionsMenu.d.ts",
           "releaseTag": "Public",
           "name": "TLUiActionsMenuProps",
           "typeTokenRange": {
@@ -16907,7 +16907,7 @@
               "text": "export interface TLUiContextMenuProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/ContextMenu/DefaultContextMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ContextMenu/DefaultContextMenu.d.ts",
           "releaseTag": "Public",
           "name": "TLUiContextMenuProps",
           "preserveMemberOrder": false,
@@ -16930,7 +16930,7 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenu.tsx",
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/DefaultContextMenu.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
@@ -16958,7 +16958,7 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/ContextMenu/DefaultContextMenu.tsx",
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/DefaultContextMenu.tsx",
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
@@ -19067,7 +19067,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/HelpMenu/DefaultHelpMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/HelpMenu/DefaultHelpMenu.d.ts",
           "releaseTag": "Public",
           "name": "TLUiHelpMenuProps",
           "typeTokenRange": {
@@ -19883,7 +19883,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/MainMenu/DefaultMainMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/MainMenu/DefaultMainMenu.d.ts",
           "releaseTag": "Public",
           "name": "TLUiMainMenuProps",
           "typeTokenRange": {
@@ -20364,7 +20364,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/QuickActions/DefaultQuickActions.d.ts",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/QuickActions/DefaultQuickActions.d.ts",
           "releaseTag": "Public",
           "name": "TLUiQuickActionsProps",
           "typeTokenRange": {
@@ -21480,7 +21480,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/menus/ZoomMenu/DefaultZoomMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ZoomMenu/DefaultZoomMenu.d.ts",
           "releaseTag": "Public",
           "name": "TLUiZoomMenuProps",
           "typeTokenRange": {

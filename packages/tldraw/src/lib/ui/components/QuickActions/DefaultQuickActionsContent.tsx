@@ -1,10 +1,10 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../../hooks/useActions'
-import { useCanRedo } from '../../../hooks/useCanRedo'
-import { useCanUndo } from '../../../hooks/useCanUndo'
-import { useReadonly } from '../../../hooks/useReadonly'
-import { useUnlockedSelectedShapesCount } from '../../../hooks/useUnlockedSelectedShapesCount'
-import { TldrawUiMenuItem } from '../TldrawUiMenuItem'
+import { useActions } from '../../hooks/useActions'
+import { useCanRedo } from '../../hooks/useCanRedo'
+import { useCanUndo } from '../../hooks/useCanUndo'
+import { useReadonly } from '../../hooks/useReadonly'
+import { useUnlockedSelectedShapesCount } from '../../hooks/useUnlockedSelectedShapesCount'
+import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultQuickActionsContent() {

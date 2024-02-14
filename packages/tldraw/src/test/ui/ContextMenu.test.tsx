@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { createShapeId } from '@tldraw/editor'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
-import { DefaultContextMenu } from '../../lib/ui/components/menus/ContextMenu/DefaultContextMenu'
+import { DefaultContextMenu } from '../../lib/ui/components/ContextMenu/DefaultContextMenu'
 import { renderTldrawComponent } from '../testutils/renderTldrawComponent'
 
 it('opens on right-click', async () => {

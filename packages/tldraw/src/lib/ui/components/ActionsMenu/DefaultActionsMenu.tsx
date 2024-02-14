@@ -1,12 +1,12 @@
 import * as _Popover from '@radix-ui/react-popover'
 import { useContainer, useEditor, useValue } from '@tldraw/editor'
 import { memo } from 'react'
-import { useBreakpoint } from '../../../hooks/useBreakpoint'
-import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
-import { useReadonly } from '../../../hooks/useReadonly'
-import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { Button } from '../../primitives/Button'
-import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useReadonly } from '../../hooks/useReadonly'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import { Button } from '../primitives/Button'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
 /** @public */

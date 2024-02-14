@@ -1,7 +1,7 @@
-import { useDialogs } from '../../../hooks/useDialogsProvider'
-import { useTldrawUiComponents } from '../../../hooks/useTldrawUiComponents'
-import { LanguageMenu } from '../../LanguageMenu'
-import { TldrawUiMenuItem } from '../TldrawUiMenuItem'
+import { useDialogs } from '../../hooks/useDialogsProvider'
+import { useTldrawUiComponents } from '../../hooks/useTldrawUiComponents'
+import { LanguageMenu } from '../LanguageMenu'
+import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultHelpMenuContent() {

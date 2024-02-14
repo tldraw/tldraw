@@ -182,39 +182,39 @@ export {
 export {
 	DefaultActionsMenu,
 	type TLUiActionsMenuProps,
-} from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenu'
-export { DefaultActionsMenuContent } from './lib/ui/components/menus/ActionsMenu/DefaultActionsMenuContent'
+} from './lib/ui/components/ActionsMenu/DefaultActionsMenu'
+export { DefaultActionsMenuContent } from './lib/ui/components/ActionsMenu/DefaultActionsMenuContent'
 
 export {
 	DefaultContextMenu as ContextMenu,
 	DefaultContextMenu,
 	type TLUiContextMenuProps,
-} from './lib/ui/components/menus/ContextMenu/DefaultContextMenu'
-export { DefaultContextMenuContent } from './lib/ui/components/menus/ContextMenu/DefaultContextMenuContent'
+} from './lib/ui/components/ContextMenu/DefaultContextMenu'
+export { DefaultContextMenuContent } from './lib/ui/components/ContextMenu/DefaultContextMenuContent'
 
 export {
 	DefaultHelpMenu,
 	type TLUiHelpMenuProps,
-} from './lib/ui/components/menus/HelpMenu/DefaultHelpMenu'
-export { DefaultHelpMenuContent } from './lib/ui/components/menus/HelpMenu/DefaultHelpMenuContent'
+} from './lib/ui/components/HelpMenu/DefaultHelpMenu'
+export { DefaultHelpMenuContent } from './lib/ui/components/HelpMenu/DefaultHelpMenuContent'
 
 export {
 	DefaultMainMenu,
 	type TLUiMainMenuProps,
-} from './lib/ui/components/menus/MainMenu/DefaultMainMenu'
-export { DefaultMainMenuContent } from './lib/ui/components/menus/MainMenu/DefaultMainMenuContent'
+} from './lib/ui/components/MainMenu/DefaultMainMenu'
+export { DefaultMainMenuContent } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
 
 export {
 	DefaultQuickActions,
 	type TLUiQuickActionsProps,
-} from './lib/ui/components/menus/QuickActions/DefaultQuickActions'
-export { DefaultQuickActionsContent } from './lib/ui/components/menus/QuickActions/DefaultQuickActionsContent'
+} from './lib/ui/components/QuickActions/DefaultQuickActions'
+export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
 
 export {
 	DefaultZoomMenu,
 	type TLUiZoomMenuProps,
-} from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenu'
-export { DefaultZoomMenuContent } from './lib/ui/components/menus/ZoomMenu/DefaultZoomMenuContent'
+} from './lib/ui/components/ZoomMenu/DefaultZoomMenu'
+export { DefaultZoomMenuContent } from './lib/ui/components/ZoomMenu/DefaultZoomMenuContent'
 
 export {
 	DefaultHelperButtons,

@@ -1,6 +1,15 @@
 import { useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, createContext, useContext, useMemo } from 'react'
 import {
+	DefaultActionsMenu,
+	TLUiActionsMenuProps,
+} from '../components/ActionsMenu/DefaultActionsMenu'
+import {
+	DefaultContextMenu,
+	TLUiContextMenuProps,
+} from '../components/ContextMenu/DefaultContextMenu'
+import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
+import {
 	DefaultHelperButtons,
 	TLUiHelperButtonsProps,
 } from '../components/HelperButtons/DefaultHelperButtons'
@@ -8,26 +17,17 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	TLUiKeyboardShortcutsDialogProps,
 } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+import { DefaultMainMenu, TLUiMainMenuProps } from '../components/MainMenu/DefaultMainMenu'
 import { DefaultMinimap } from '../components/Minimap/DefaultMinimap'
 import { DefaultNavigationPanel } from '../components/NavigationPanel/DefaultNavigationPanel'
 import { DefaultPageMenu } from '../components/PageMenu/DefaultPageMenu'
-import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
-import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
-import {
-	DefaultActionsMenu,
-	TLUiActionsMenuProps,
-} from '../components/menus/ActionsMenu/DefaultActionsMenu'
-import {
-	DefaultContextMenu,
-	TLUiContextMenuProps,
-} from '../components/menus/ContextMenu/DefaultContextMenu'
-import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/menus/HelpMenu/DefaultHelpMenu'
-import { DefaultMainMenu, TLUiMainMenuProps } from '../components/menus/MainMenu/DefaultMainMenu'
 import {
 	DefaultQuickActions,
 	TLUiQuickActionsProps,
-} from '../components/menus/QuickActions/DefaultQuickActions'
-import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/menus/ZoomMenu/DefaultZoomMenu'
+} from '../components/QuickActions/DefaultQuickActions'
+import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
+import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
+import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
 
 export interface BaseTLUiComponents {
 	ContextMenu: ComponentType<TLUiContextMenuProps>

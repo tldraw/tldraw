@@ -1,11 +1,11 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { ANIMATION_MEDIUM_MS, useContainer, useEditor, useValue } from '@tldraw/editor'
 import { forwardRef, memo, useCallback } from 'react'
-import { useBreakpoint } from '../../../hooks/useBreakpoint'
-import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
-import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { Button } from '../../primitives/Button'
-import { TldrawUiMenuContextProvider } from '../TldrawUiMenuContext'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import { Button } from '../primitives/Button'
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
 /** @public */
