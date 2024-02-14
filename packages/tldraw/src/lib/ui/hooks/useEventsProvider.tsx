@@ -26,6 +26,7 @@ export interface TLUiEventMap {
 	// Actions
 	undo: null
 	redo: null
+	'change-language': { locale: string }
 	'new-page': null
 	'move-to-page': null
 	'group-shapes': null

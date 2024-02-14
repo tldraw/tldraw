@@ -1544,6 +1544,10 @@ export interface TLUiEventMap {
         operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top';
     };
     // (undocumented)
+    'change-language': {
+        locale: string;
+    };
+    // (undocumented)
     'close-menu': {
         id: string;
     };

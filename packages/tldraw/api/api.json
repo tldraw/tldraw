@@ -17934,6 +17934,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiEventMap#\"change-language\":member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "'change-language': "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        locale: string;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "\"change-language\"",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TLUiEventMap#\"close-menu\":member",
               "docComment": "",
               "excerptTokens": [
