@@ -34,7 +34,7 @@
 	],
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest --watch",
+		"test": "yarn run -T jest",
 		"benchmark": "yarn run -T tsx ./scripts/benchmark.ts",
 		"test-coverage": "lazy inherit",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",

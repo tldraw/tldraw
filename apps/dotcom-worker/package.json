@@ -16,7 +16,7 @@
 		"dev-wrangler": "yarn run -T tsx ./scripts/dev-wrap.ts",
 		"report-size": "node scripts/report-size.js",
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest --watch",
+		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},

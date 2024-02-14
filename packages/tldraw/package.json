@@ -29,7 +29,7 @@
 	"types": "./.tsbuild/index.d.ts",
 	"scripts": {
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest --watch",
+		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../{editor/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs'",

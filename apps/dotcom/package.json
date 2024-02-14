@@ -16,7 +16,7 @@
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest --watch"
+		"test": "yarn run -T jest"
 	},
 	"dependencies": {
 		"@radix-ui/react-popover": "^1.0.7",
