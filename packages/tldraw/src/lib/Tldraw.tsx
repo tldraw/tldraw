@@ -31,8 +31,8 @@ import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
-import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
+import { TLUiComponents, useTldrawUiComponents } from './ui/ui-context/components'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /**@public */

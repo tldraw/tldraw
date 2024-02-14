@@ -1,9 +1,9 @@
 import { memo, useCallback } from 'react'
-import { unwrapLabel, useActions } from '../../context/actions'
-import { useBreakpoint } from '../../context/breakpoints'
-import { useTldrawUiComponents } from '../../context/components'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { unwrapLabel, useActions } from '../../ui-context/actions'
+import { useBreakpoint } from '../../ui-context/breakpoints'
+import { useTldrawUiComponents } from '../../ui-context/components'
 import { Button } from '../primitives/Button'
 import { kbdStr } from '../primitives/shared'
 

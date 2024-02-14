@@ -17,9 +17,9 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React from 'react'
-import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useUiEvents } from '../../ui-context/events'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
 import { Slider } from '../primitives/Slider'

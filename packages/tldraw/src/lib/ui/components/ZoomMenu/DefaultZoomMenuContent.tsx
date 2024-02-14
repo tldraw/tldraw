@@ -1,4 +1,4 @@
-import { useActions } from '../../context/actions'
+import { useActions } from '../../ui-context/actions'
 import { ZoomTo100MenuItem, ZoomToFitMenuItem, ZoomToSelectionMenuItem } from '../menu-items'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 

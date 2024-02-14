@@ -1,12 +1,12 @@
 import { Editor, objectMapEntries } from '@tldraw/editor'
 import { useMemo } from 'react'
-import { ActionsProviderProps } from './context/actions'
-import { useBreakpoint } from './context/breakpoints'
-import { useDialogs } from './context/dialogs'
-import { useToasts } from './context/toasts'
 import { TLUiToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
 import { TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
+import { ActionsProviderProps } from './ui-context/actions'
+import { useBreakpoint } from './ui-context/breakpoints'
+import { useDialogs } from './ui-context/dialogs'
+import { useToasts } from './ui-context/toasts'
 
 /** @public */
 export function useDefaultHelpers() {

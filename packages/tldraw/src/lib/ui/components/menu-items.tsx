@@ -1,6 +1,5 @@
 import { TLBookmarkShape, TLEmbedShape, TLFrameShape, useEditor, useValue } from '@tldraw/editor'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
-import { useActions } from '../context/actions'
 import {
 	showMenuPaste,
 	useAllowGroup,
@@ -12,6 +11,7 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../hooks/menu-hooks'
+import { useActions } from '../ui-context/actions'
 import { MoveToPageMenu as _MoveToPageMenu } from './MoveToPageMenu'
 import { TldrawUiMenuCheckboxItem } from './menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from './menus/TldrawUiMenuGroup'

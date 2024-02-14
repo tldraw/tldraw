@@ -1,6 +1,6 @@
 import { track, useEditor } from '@tldraw/editor'
 import * as React from 'react'
-import { useAssetUrls } from '../../context/asset-urls'
+import { useAssetUrls } from '../../ui-context/asset-urls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { TLUiTranslation, fetchTranslation } from './translations'

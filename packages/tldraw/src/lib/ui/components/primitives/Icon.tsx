@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { memo, useLayoutEffect, useRef } from 'react'
-import { useAssetUrls } from '../../context/asset-urls'
 import { TLUiIconType } from '../../icon-types'
+import { useAssetUrls } from '../../ui-context/asset-urls'
 
 /** @public */
 export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {

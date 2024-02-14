@@ -14,7 +14,7 @@ import {
 } from '@tldraw/editor'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
-import { TLUiEventSource, useUiEvents } from '../context/events'
+import { TLUiEventSource, useUiEvents } from '../ui-context/events'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'

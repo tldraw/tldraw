@@ -2090,7 +2090,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/breakpoints.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/breakpoints.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -6038,7 +6038,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/events.tsx",
           "releaseTag": "Public",
           "name": "EventsProviderProps",
           "typeTokenRange": {
@@ -15229,7 +15229,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/components.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -15280,7 +15280,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/TldrawUiContextProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/TldrawUiContextProvider.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -15309,7 +15309,7 @@
               "text": "export interface TldrawUiContextProviderProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/TldrawUiContextProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/TldrawUiContextProvider.tsx",
           "releaseTag": "Public",
           "name": "TldrawUiContextProviderProps",
           "preserveMemberOrder": false,
@@ -15993,7 +15993,7 @@
               "text": "> "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/actions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/actions.tsx",
           "releaseTag": "Public",
           "typeParameters": [
             {
@@ -16291,7 +16291,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/actions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/actions.tsx",
           "releaseTag": "Public",
           "name": "TLUiActionsContextType",
           "typeTokenRange": {
@@ -16805,7 +16805,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/components.tsx",
           "releaseTag": "Public",
           "name": "TLUiComponents",
           "typeTokenRange": {
@@ -16923,7 +16923,7 @@
               "text": "export interface TLUiDialog "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/dialogs.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/dialogs.tsx",
           "releaseTag": "Public",
           "name": "TLUiDialog",
           "preserveMemberOrder": false,
@@ -17123,7 +17123,7 @@
               "text": "export interface TLUiDialogProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/dialogs.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/dialogs.tsx",
           "releaseTag": "Public",
           "name": "TLUiDialogProps",
           "preserveMemberOrder": false,
@@ -17221,7 +17221,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/dialogs.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/dialogs.tsx",
           "releaseTag": "Public",
           "name": "TLUiDialogsContextType",
           "typeTokenRange": {
@@ -17886,7 +17886,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/events.tsx",
           "releaseTag": "Public",
           "name": "TLUiEventContextType",
           "typeTokenRange": {
@@ -17965,7 +17965,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/events.tsx",
           "releaseTag": "Public",
           "name": "TLUiEventHandler",
           "typeParameters": [
@@ -17996,7 +17996,7 @@
               "text": "export interface TLUiEventMap "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/events.tsx",
           "releaseTag": "Public",
           "name": "TLUiEventMap",
           "preserveMemberOrder": false,
@@ -19750,7 +19750,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/events.tsx",
           "releaseTag": "Public",
           "name": "TLUiEventSource",
           "typeTokenRange": {
@@ -21437,7 +21437,7 @@
               "text": "export interface TLUiToast "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/toasts.tsx",
           "releaseTag": "Public",
           "name": "TLUiToast",
           "preserveMemberOrder": false,
@@ -21650,7 +21650,7 @@
               "text": "export interface TLUiToastAction "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/toasts.tsx",
           "releaseTag": "Public",
           "name": "TLUiToastAction",
           "preserveMemberOrder": false,
@@ -21793,7 +21793,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/toasts.tsx",
           "releaseTag": "Public",
           "name": "TLUiToastsContextType",
           "typeTokenRange": {
@@ -22484,7 +22484,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/events.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -22542,7 +22542,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/actions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/actions.tsx",
           "returnTypeTokenRange": {
             "startIndex": 6,
             "endIndex": 7
@@ -22588,7 +22588,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/actions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/actions.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -22616,7 +22616,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/breakpoints.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/breakpoints.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -22692,7 +22692,7 @@
             },
             {
               "kind": "Content",
-              "text": "<import(\"./context/toasts\")."
+              "text": "<import(\"./ui-context/toasts\")."
             },
             {
               "kind": "Reference",
@@ -22710,7 +22710,7 @@
             },
             {
               "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
+              "text": "<import(\"./ui-context/dialogs\")."
             },
             {
               "kind": "Reference",
@@ -22728,7 +22728,7 @@
             },
             {
               "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
+              "text": "<import(\"./ui-context/dialogs\")."
             },
             {
               "kind": "Reference",
@@ -22773,7 +22773,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/dialogs.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/dialogs.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -23377,7 +23377,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/components.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 49
@@ -23406,7 +23406,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/toasts.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -23539,7 +23539,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/ui-context/events.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2

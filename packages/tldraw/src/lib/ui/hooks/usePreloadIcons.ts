@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useAssetUrls } from '../context/asset-urls'
 import { iconTypes } from '../icon-types'
+import { useAssetUrls } from '../ui-context/asset-urls'
 
 /** @internal */
 export function usePreloadIcons(): boolean {

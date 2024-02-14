@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
 import { useEffect } from 'react'
-import { useToasts } from '../context/toasts'
+import { useToasts } from '../ui-context/toasts'
 
 /** @internal */
 export function useEditorEvents() {

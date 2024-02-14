@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { useBreakpoint } from '../context/breakpoints'
-import { useTldrawUiComponents } from '../context/components'
+import { useBreakpoint } from '../ui-context/breakpoints'
+import { useTldrawUiComponents } from '../ui-context/components'
 
 export const MenuZone = memo(function MenuZone() {
 	const breakpoint = useBreakpoint()

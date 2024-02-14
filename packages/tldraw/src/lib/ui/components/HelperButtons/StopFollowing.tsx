@@ -1,5 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../context/actions'
+import { useActions } from '../../ui-context/actions'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 export function StopFollowing() {

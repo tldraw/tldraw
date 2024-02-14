@@ -9,18 +9,18 @@ import { FollowingIndicator } from './components/FollowingIndicator'
 import { MenuZone } from './components/MenuZone'
 import { ToastViewport, Toasts } from './components/Toasts'
 import { Button } from './components/primitives/Button'
-import {
-	TldrawUiContextProvider,
-	TldrawUiContextProviderProps,
-} from './context/TldrawUiContextProvider'
-import { useActions } from './context/actions'
-import { useBreakpoint } from './context/breakpoints'
-import { TLUiComponents, useTldrawUiComponents } from './context/components'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useRelevantStyles } from './hooks/useRevelantStyles'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
+import {
+	TldrawUiContextProvider,
+	TldrawUiContextProviderProps,
+} from './ui-context/TldrawUiContextProvider'
+import { useActions } from './ui-context/actions'
+import { useBreakpoint } from './ui-context/breakpoints'
+import { TLUiComponents, useTldrawUiComponents } from './ui-context/components'
 
 /**
  * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.

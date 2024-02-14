@@ -1,9 +1,9 @@
 import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { useDialogs } from '../context/dialogs'
-import { TLUiEventSource, useUiEvents } from '../context/events'
 import { TLUiIconType } from '../icon-types'
+import { useDialogs } from '../ui-context/dialogs'
+import { TLUiEventSource, useUiEvents } from '../ui-context/events'
 import { useInsertMedia } from './useInsertMedia'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 

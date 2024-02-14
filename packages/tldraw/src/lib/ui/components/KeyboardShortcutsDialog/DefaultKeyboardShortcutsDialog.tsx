@@ -1,7 +1,7 @@
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { memo } from 'react'
-import { TLUiDialogProps } from '../../context/dialogs'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TLUiDialogProps } from '../../ui-context/dialogs'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import { DialogBody, DialogCloseButton, DialogHeader } from '../primitives/Dialog'
 import { DefaultKeyboardShortcutsDialogContent } from './DefaultKeyboardShortcutsDialogContent'

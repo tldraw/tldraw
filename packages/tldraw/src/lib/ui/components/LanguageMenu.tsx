@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
-import { useUiEvents } from '../context/events'
 import { useLanguages } from '../hooks/useTranslation/useLanguages'
+import { useUiEvents } from '../ui-context/events'
 import { TldrawUiMenuCheckboxItem } from './menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from './menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './menus/TldrawUiMenuSubmenu'
