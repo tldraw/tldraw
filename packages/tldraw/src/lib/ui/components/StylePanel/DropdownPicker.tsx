@@ -1,11 +1,15 @@
-import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
 import { SharedStyle, StyleProp } from '@tldraw/editor'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
-import { Button, TLUiButtonProps } from '../primitives/Button'
-import { DropdownMenuContent, DropdownMenuItem, DropdownMenuRoot } from '../primitives/DropdownMenu'
+import { TLUiButtonProps } from '../primitives/Button'
+import {
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuRoot,
+	DropdownMenuTrigger,
+} from '../primitives/DropdownMenu'
 import { StyleValuesForUi } from './styles'
 
 interface DropdownPickerProps<T extends string> {
@@ -38,19 +42,17 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 
 	return (
 		<DropdownMenuRoot id={`style panel ${id}`}>
-			<DropdownMenuTrigger>
-				<Button
-					type={type}
-					data-testid={`style.${uiType}`}
-					title={
-						value.type === 'mixed'
-							? msg('style-panel.mixed')
-							: msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
-					}
-					label={label}
-					icon={(icon as TLUiIconType) ?? 'mixed'}
-				/>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				type={type}
+				data-testid={`style.${uiType}`}
+				title={
+					value.type === 'mixed'
+						? msg('style-panel.mixed')
+						: msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+				}
+				label={label}
+				icon={(icon as TLUiIconType) ?? 'mixed'}
+			/>
 			<DropdownMenuContent side="left" align="center" alignOffset={0}>
 				<div className="tlui-buttons__grid">
 					{items.map((item) => {

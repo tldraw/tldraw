@@ -471,7 +471,7 @@ export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX
 export function DropdownMenuSubTrigger({ label, disabled, 'data-direction': dataDirection, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuTrigger({ children }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
+export function DropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -1524,9 +1524,10 @@ export type TLUiDropdownMenuSubTriggerProps = {
 };
 
 // @public (undocumented)
-export type TLUiDropdownMenuTriggerProps = {
-    children: any;
-};
+export interface TLUiDropdownMenuTriggerProps extends TLUiButtonProps {
+    // (undocumented)
+    children?: any;
+}
 
 // @public (undocumented)
 export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>;

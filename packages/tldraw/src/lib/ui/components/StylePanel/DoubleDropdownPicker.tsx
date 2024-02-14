@@ -3,7 +3,6 @@ import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
-import { Button } from '../primitives/Button'
 import {
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -65,22 +64,20 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 			</div>
 			<div className="tlui-buttons__horizontal">
 				<DropdownMenuRoot id={`style panel ${uiTypeA} A`}>
-					<DropdownMenuTrigger>
-						<Button
-							type="icon"
-							data-testid={`style.${uiTypeA}`}
-							title={
-								msg(labelA) +
-								' — ' +
-								(valueA === null || valueA.type === 'mixed'
-									? msg('style-panel.mixed')
-									: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
-							}
-							icon={iconA as any}
-							invertIcon
-							smallIcon
-						/>
-					</DropdownMenuTrigger>
+					<DropdownMenuTrigger
+						type="icon"
+						data-testid={`style.${uiTypeA}`}
+						title={
+							msg(labelA) +
+							' — ' +
+							(valueA === null || valueA.type === 'mixed'
+								? msg('style-panel.mixed')
+								: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
+						}
+						icon={iconA as any}
+						invertIcon
+						smallIcon
+					/>
 					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsA.map((item) => {
@@ -104,21 +101,19 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 					</DropdownMenuContent>
 				</DropdownMenuRoot>
 				<DropdownMenuRoot id={`style panel ${uiTypeB}`}>
-					<DropdownMenuTrigger>
-						<Button
-							type="icon"
-							data-testid={`style.${uiTypeB}`}
-							title={
-								msg(labelB) +
-								' — ' +
-								(valueB === null || valueB.type === 'mixed'
-									? msg('style-panel.mixed')
-									: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
-							}
-							icon={iconB as any}
-							smallIcon
-						/>
-					</DropdownMenuTrigger>
+					<DropdownMenuTrigger
+						type="icon"
+						data-testid={`style.${uiTypeB}`}
+						title={
+							msg(labelB) +
+							' — ' +
+							(valueB === null || valueB.type === 'mixed'
+								? msg('style-panel.mixed')
+								: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
+						}
+						icon={iconB as any}
+						smallIcon
+					/>
 					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {

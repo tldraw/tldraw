@@ -143,15 +143,13 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 								/>
 								{/* The dropdown to select everything else */}
 								<DropdownMenuRoot id="toolbar overflow" modal={false}>
-									<DropdownMenuTrigger>
-										<Button
-											className="tlui-toolbar__overflow"
-											icon="chevron-up"
-											type="tool"
-											data-testid="tools.more"
-											title={msg('tool-panel.more')}
-										/>
-									</DropdownMenuTrigger>
+									<DropdownMenuTrigger
+										className="tlui-toolbar__overflow"
+										icon="chevron-up"
+										type="tool"
+										data-testid="tools.more"
+										title={msg('tool-panel.more')}
+									/>
 									<DropdownMenuContent side="top" align="center">
 										<OverflowToolsContent toolbarItems={itemsInDropdown} />
 									</DropdownMenuContent>

@@ -2,7 +2,6 @@ import { memo } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
-import { Button } from '../primitives/Button'
 import {
 	DropdownMenuContent,
 	DropdownMenuRoot,
@@ -30,9 +29,12 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 	return (
 		<div className="tlui-help-menu">
 			<DropdownMenuRoot id="help menu">
-				<DropdownMenuTrigger>
-					<Button type="help" smallIcon title={msg('help-menu.title')} icon="question-mark" />
-				</DropdownMenuTrigger>
+				<DropdownMenuTrigger
+					type="help"
+					smallIcon
+					title={msg('help-menu.title')}
+					icon="question-mark"
+				/>
 				<DropdownMenuContent side="top" align="end" alignOffset={0} sideOffset={8}>
 					<TldrawUiMenuContextProvider type="menu" sourceId="help-menu">
 						{content}
