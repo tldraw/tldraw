@@ -1,5 +1,6 @@
 import { Editor, useEditor } from '@tldraw/editor'
 import * as React from 'react'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useMenuSchema } from '../hooks/useMenuSchema'
@@ -64,7 +65,8 @@ function MenuContent() {
 						size={
 							depth <= 1
 								? 'medium'
-								: breakpoint < 3 || (parent?.type === 'submenu' && depth > 2)
+								: breakpoint < PORTRAIT_BREAKPOINT.MOBILE_SM ||
+									  (parent?.type === 'submenu' && depth > 2)
 									? 'tiny'
 									: 'medium'
 						}

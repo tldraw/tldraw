@@ -17,6 +17,7 @@ import { StylePanel } from './components/StylePanel/StylePanel'
 import { ToastViewport, Toasts } from './components/Toasts'
 import { Toolbar } from './components/Toolbar/Toolbar'
 import { Button } from './components/primitives/Button'
+import { PORTRAIT_BREAKPOINT } from './constants'
 import { useActions } from './hooks/useActions'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
@@ -140,7 +141,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 		<ToastProvider>
 			<div
 				className={classNames('tlui-layout', {
-					'tlui-layout__mobile': breakpoint < 5,
+					'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
 				data-breakpoint={breakpoint}
 			>
@@ -168,7 +169,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
 								{shareZone}
-								{breakpoint >= 5 && !isReadonlyMode && (
+								{breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
 									<div className="tlui-style-panel__wrapper">
 										<StylePanel />
 									</div>
@@ -179,7 +180,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 							<div className="tlui-layout__bottom__main">
 								<NavigationZone />
 								<Toolbar />
-								{breakpoint >= 4 && <HelpMenu />}
+								{breakpoint >= PORTRAIT_BREAKPOINT.MOBILE && <HelpMenu />}
 							</div>
 							{isDebugMode && <DebugPanel renderDebugMenuItems={renderDebugMenuItems ?? null} />}
 						</div>

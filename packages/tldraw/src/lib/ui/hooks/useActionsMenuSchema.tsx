@@ -1,5 +1,6 @@
 import { Editor, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import {
 	TLUiMenuSchema,
 	menuItem,
@@ -72,7 +73,7 @@ export const ActionsMenuSchemaProvider = ({
 			menuItem(actions['send-backward'], { disabled: !oneSelected }),
 			menuItem(actions['bring-forward'], { disabled: !oneSelected }),
 			menuItem(actions['bring-to-front'], { disabled: !oneSelected }),
-			breakpoint < 5
+			breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 				? menuItem(actions['zoom-to-100'], { disabled: !!isZoomedTo100 })
 				: menuItem(actions['rotate-ccw'], { disabled: !oneSelected }),
 			menuItem(actions['rotate-cw'], { disabled: !oneSelected }),

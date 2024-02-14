@@ -2,6 +2,7 @@ import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { Editor, preventDefault, useContainer, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { forwardRef, useCallback, useState } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
@@ -202,7 +203,11 @@ const ContextMenuContent = forwardRef(function ContextMenuContent() {
 							kbd={kbd}
 							label={labelToUse as TLUiTranslationKey}
 							disabled={item.disabled}
-							iconLeft={breakpoint < 3 && depth > 2 ? (icon as TLUiIconType) : undefined}
+							iconLeft={
+								breakpoint < PORTRAIT_BREAKPOINT.MOBILE_SM && depth > 2
+									? (icon as TLUiIconType)
+									: undefined
+							}
 							onClick={() => {
 								if (disableClicks) {
 									setDisableClicks(false)

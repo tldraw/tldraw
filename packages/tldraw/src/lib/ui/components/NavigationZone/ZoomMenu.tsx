@@ -1,5 +1,6 @@
 import { ANIMATION_MEDIUM_MS, track, useEditor } from '@tldraw/editor'
 import * as React from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useActions } from '../../hooks/useActions'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -27,11 +28,15 @@ export const ZoomMenu = track(function ZoomMenu() {
 					type="icon"
 					title={`${msg('navigation-zone.zoom')}`}
 					data-testid="minimap.zoom-menu"
-					className={breakpoint < 5 ? 'tlui-zoom-menu__button' : 'tlui-zoom-menu__button__pct'}
+					className={
+						breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
+							? 'tlui-zoom-menu__button'
+							: 'tlui-zoom-menu__button__pct'
+					}
 					onDoubleClick={handleDoubleClick}
-					icon={breakpoint < 4 ? 'zoom-in' : undefined}
+					icon={breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? 'zoom-in' : undefined}
 				>
-					{breakpoint < 4 ? null : (
+					{breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? null : (
 						<span style={{ flexGrow: 0, textAlign: 'center' }}>{Math.floor(zoom * 100)}%</span>
 					)}
 				</Button>

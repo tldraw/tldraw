@@ -1,6 +1,7 @@
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
 import { useBreakpoint } from '../hooks/useBreakpoint'
@@ -63,7 +64,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 			<PopoverPrimitive.Portal container={container}>
 				<PopoverPrimitive.Content
 					className="tlui-popover__content"
-					side={breakpoint >= 6 ? 'bottom' : 'top'}
+					side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
 					dir="ltr"
 					sideOffset={6}
 				>

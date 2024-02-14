@@ -1,4 +1,5 @@
 import { track, useEditor } from '@tldraw/editor'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useReadonly } from '../hooks/useReadonly'
 import { ActionsMenu } from './ActionsMenu'
@@ -20,15 +21,17 @@ export const MenuZone = track(function MenuZone() {
 			<div className="tlui-buttons__horizontal">
 				<Menu />
 				<PageMenu />
-				{breakpoint >= 6 && !isReadonly && !editor.isInAny('hand', 'zoom') && (
-					<>
-						<UndoButton />
-						<RedoButton />
-						<TrashButton />
-						<DuplicateButton />
-						<ActionsMenu />
-					</>
-				)}
+				{breakpoint >= PORTRAIT_BREAKPOINT.TABLET &&
+					!isReadonly &&
+					!editor.isInAny('hand', 'zoom') && (
+						<>
+							<UndoButton />
+							<RedoButton />
+							<TrashButton />
+							<DuplicateButton />
+							<ActionsMenu />
+						</>
+					)}
 			</div>
 		</div>
 	)

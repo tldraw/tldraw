@@ -1,6 +1,7 @@
 import { Editor, TLBookmarkShape, TLEmbedShape, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import {
 	TLUiMenuSchema,
 	compactMenuItems,
@@ -47,7 +48,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const actions = useActions()
 
 	const breakpoint = useBreakpoint()
-	const isMobile = breakpoint < 5
+	const isMobile = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE
 
 	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
 	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])

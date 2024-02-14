@@ -1,4 +1,5 @@
 import { memo, useCallback } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useActions } from '../../hooks/useActions'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
@@ -20,14 +21,14 @@ export const NavigationZone = memo(function NavigationZone() {
 		setCollapsed((s) => !s)
 	}, [setCollapsed])
 
-	if (breakpoint < 4) {
+	if (breakpoint < PORTRAIT_BREAKPOINT.MOBILE) {
 		return null
 	}
 
 	return (
 		<div className="tlui-navigation-zone">
 			<div className="tlui-buttons__horizontal">
-				{breakpoint < 6 ? (
+				{breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : collapsed ? (
 					<>
@@ -69,7 +70,7 @@ export const NavigationZone = memo(function NavigationZone() {
 					</>
 				)}
 			</div>
-			{breakpoint >= 6 && !collapsed && (
+			{breakpoint >= PORTRAIT_BREAKPOINT.TABLET && !collapsed && (
 				<Minimap
 					viewportFill="--color-muted-1"
 					selectFill="--color-selected"

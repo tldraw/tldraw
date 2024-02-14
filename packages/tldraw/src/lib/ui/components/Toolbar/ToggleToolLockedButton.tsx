@@ -1,5 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
@@ -35,7 +36,7 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 			type="normal"
 			title={msg('action.toggle-tool-lock')}
 			className={classNames('tlui-toolbar__lock-button', {
-				'tlui-toolbar__lock-button__mobile': breakpoint < 5,
+				'tlui-toolbar__lock-button__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 			})}
 			icon={isToolLocked ? 'lock' : 'unlock'}
 			onClick={() => editor.updateInstanceState({ isToolLocked: !isToolLocked })}

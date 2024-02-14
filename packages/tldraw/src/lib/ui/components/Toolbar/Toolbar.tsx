@@ -2,6 +2,7 @@ import { GeoShapeGeoStyle, preventDefault, track, useEditor, useValue } from '@t
 import classNames from 'classnames'
 import hotkeys from 'hotkeys-js'
 import React, { memo, useEffect, useMemo } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -99,21 +100,22 @@ export const Toolbar = memo(function Toolbar() {
 				<div className="tlui-toolbar__left">
 					{!isReadonly && (
 						<div className="tlui-toolbar__extras">
-							{breakpoint < 6 && !(activeToolId === 'hand' || activeToolId === 'zoom') && (
-								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
-									<UndoButton />
-									<RedoButton />
-									<TrashButton />
-									<DuplicateButton />
-									<ActionsMenu />
-								</div>
-							)}
+							{breakpoint < PORTRAIT_BREAKPOINT.TABLET &&
+								!(activeToolId === 'hand' || activeToolId === 'zoom') && (
+									<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
+										<UndoButton />
+										<RedoButton />
+										<TrashButton />
+										<DuplicateButton />
+										<ActionsMenu />
+									</div>
+								)}
 							<ToggleToolLockedButton activeToolId={activeToolId} />
 						</div>
 					)}
 					<div
 						className={classNames('tlui-toolbar__tools', {
-							'tlui-toolbar__tools__mobile': breakpoint < 5,
+							'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 						})}
 					>
 						{/* Main panel items */}
@@ -160,7 +162,7 @@ export const Toolbar = memo(function Toolbar() {
 						) : null}
 					</div>
 				</div>
-				{breakpoint < 5 && !isReadonly && (
+				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonly && (
 					<div className="tlui-toolbar__tools">
 						<MobileStylePanel />
 					</div>
