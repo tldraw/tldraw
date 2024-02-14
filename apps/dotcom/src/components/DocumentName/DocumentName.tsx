@@ -58,7 +58,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 	return (
 		<div className="tlui-document-name__inner">
 			<DocumentNameEditor state={state} setState={setState} />
-			<DropdownMenu.Root id="document name">
+			<DropdownMenu.Root id="document-name">
 				<DropdownMenu.Trigger>
 					<Button
 						type="icon"
