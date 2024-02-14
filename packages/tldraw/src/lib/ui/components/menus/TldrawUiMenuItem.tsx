@@ -1,3 +1,4 @@
+import { ContextMenuItem } from '@radix-ui/react-context-menu'
 import { preventDefault } from '@tldraw/editor'
 import { useState } from 'react'
 import { unwrapLabel } from '../../context/actions'
@@ -6,7 +7,6 @@ import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
-import { ContextMenuItem } from '../primitives/ContextMenu'
 import { DropdownMenuItem } from '../primitives/DropdownMenu'
 import { Kbd } from '../primitives/Kbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
@@ -107,24 +107,26 @@ export function TldrawUiMenuItem<
 		}
 		case 'context-menu': {
 			return (
-				<ContextMenuItem
-					type="menu"
-					data-testid={`${sourceId}.${id}`}
-					kbd={kbd}
-					label={labelStr}
-					disabled={disabled}
-					spinner={spinner}
-					onClick={(e) => {
-						if (noClose) {
-							preventDefault(e)
-						}
-						if (disableClicks) {
-							setDisableClicks(false)
-						} else {
-							onSelect(sourceId)
-						}
-					}}
-				/>
+				<ContextMenuItem dir="ltr" asChild onClick={noClose ? preventDefault : undefined}>
+					<Button
+						type="menu"
+						data-testid={`${sourceId}.${id}`}
+						kbd={kbd}
+						label={labelStr}
+						disabled={disabled}
+						spinner={spinner}
+						onClick={(e) => {
+							if (noClose) {
+								preventDefault(e)
+							}
+							if (disableClicks) {
+								setDisableClicks(false)
+							} else {
+								onSelect(sourceId)
+							}
+						}}
+					/>
+				</ContextMenuItem>
 			)
 		}
 		case 'panel': {

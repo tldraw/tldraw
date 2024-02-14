@@ -1,10 +1,14 @@
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import {
+	ContextMenuPortal,
 	ContextMenuSub,
 	ContextMenuSubContent,
 	ContextMenuSubTrigger,
-} from '../primitives/ContextMenu'
+} from '@radix-ui/react-context-menu'
+import { useContainer } from '@tldraw/editor'
+import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { Button } from '../primitives/Button'
 import {
 	DropdownMenuSub,
 	DropdownMenuSubContent,
@@ -28,6 +32,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	children,
 }: TLUiMenuSubmenuProps<Translation>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
+	const container = useContainer()
 	const msg = useTranslation()
 	const labelToUse = label
 		? typeof label === 'string'
@@ -53,16 +58,32 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 		}
 		case 'context-menu': {
 			return (
-				<ContextMenuSub id={`${sourceId}-sub.${id}`}>
+				<ContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
 					<ContextMenuSubTrigger
-						id={`${sourceId}-sub-trigger.${id}`}
-						label={labelStr!}
+						dir="ltr"
 						disabled={disabled}
-					/>
-					<ContextMenuSubContent id={`${sourceId}-sub-content.${id}`}>
-						{children}
-					</ContextMenuSubContent>
-				</ContextMenuSub>
+						data-testid={`${sourceId}-sub-trigger.${id}`}
+						asChild
+					>
+						<Button
+							type="menu"
+							className="tlui-menu__submenu__trigger"
+							label={labelStr}
+							icon="chevron-right"
+						/>
+					</ContextMenuSubTrigger>
+					<ContextMenuPortal container={container}>
+						<ContextMenuSubContent
+							data-testid={`${sourceId}-sub-content.${id}`}
+							className="tlui-menu tlui-menu__submenu__content"
+							alignOffset={1}
+							sideOffset={4}
+							collisionPadding={4}
+						>
+							{children}
+						</ContextMenuSubContent>
+					</ContextMenuPortal>
+				</ContextMenuSubWithMenu>
 			)
 		}
 		default: {
@@ -70,4 +91,18 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 			return children
 		}
 	}
+}
+
+/** @private */
+export type TLUiContextMenuSubProps = { id: string; children: any }
+
+/** @private */
+export function ContextMenuSubWithMenu({ id, children }: TLUiContextMenuSubProps) {
+	const [open, onOpenChange] = useMenuIsOpen(id)
+
+	return (
+		<ContextMenuSub open={open} onOpenChange={onOpenChange}>
+			{children}
+		</ContextMenuSub>
+	)
 }

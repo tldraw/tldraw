@@ -1,6 +1,6 @@
+import { ContextMenuGroup } from '@radix-ui/react-context-menu'
 import { unwrapLabel } from '../../context/actions'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { ContextMenuGroup } from '../primitives/ContextMenu'
 import { DropdownMenuGroup } from '../primitives/DropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
@@ -36,7 +36,12 @@ export function TldrawUiMenuGroup({ id, small = false, children }: TLUiMenuGroup
 		}
 		case 'context-menu': {
 			return (
-				<ContextMenuGroup size={small ? 'tiny' : 'medium'} data-testid={`${sourceId}-group.${id}`}>
+				<ContextMenuGroup
+					dir="ltr"
+					className="tlui-menu__group"
+					data-size={small ? 'tiny' : 'medium'}
+					data-testid={`${sourceId}-group.${id}`}
+				>
 					{children}
 				</ContextMenuGroup>
 			)
