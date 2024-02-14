@@ -1408,19 +1408,7 @@ export function TldrawUiMenuGroup({ id, small, children, }: {
 }): any;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TransationKey extends string = string, IconType extends string = string>({ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }: {
-    icon?: IconType;
-    id: string;
-    kbd?: string;
-    title?: string;
-    label?: {
-        [key: string]: TransationKey;
-    } | TransationKey;
-    readonlyOk: boolean;
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
-    disabled?: boolean;
-    noClose?: boolean;
-}): JSX_2.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<TransationKey extends string = string>({ id, disabled, label, children, }: {

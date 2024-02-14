@@ -13,8 +13,48 @@ import { kbdStr } from '../primitives/shared'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
+export type TLUiMenuItemProps<
+	TranslationKey extends string = string,
+	IconType extends string = string,
+> = {
+	id: string
+	/**
+	 * The icon to display on the item.
+	 */
+	icon?: IconType
+	/**
+	 * The keyboard shortcut to display on the item.
+	 */
+	kbd?: string
+	/**
+	 * The title to display on the item.
+	 */
+	title?: string
+	/**
+	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.
+	 */
+	label?: TranslationKey | { [key: string]: TranslationKey }
+	/**
+	 * If the editor is in readonly mode and the item is not marked as readonlyok, it will not be rendered.
+	 */
+	readonlyOk: boolean
+	/**
+	 * The function to call when the item is clicked.
+	 */
+	onSelect: (source: TLUiEventSource) => Promise<void> | void
+	/**
+	 * Whether this item should be disabled.
+	 */
+	disabled?: boolean
+	/**
+	 * Prevent the menu from closing when the item is clicked
+	 */
+	noClose?: boolean
+}
+
+/** @public */
 export function TldrawUiMenuItem<
-	TransationKey extends string = string,
+	TranslationKey extends string = string,
 	IconType extends string = string,
 >({
 	disabled = false,
@@ -25,17 +65,7 @@ export function TldrawUiMenuItem<
 	readonlyOk,
 	onSelect,
 	noClose,
-}: {
-	icon?: IconType
-	id: string
-	kbd?: string
-	title?: string
-	label?: TransationKey | { [key: string]: TransationKey }
-	readonlyOk: boolean
-	onSelect: (source: TLUiEventSource) => Promise<void> | void
-	disabled?: boolean
-	noClose?: boolean
-}) {
+}: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
 	const msg = useTranslation()

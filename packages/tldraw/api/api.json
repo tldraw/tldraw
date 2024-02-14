@@ -15850,7 +15850,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiMenuItem<TransationKey extends "
+              "text": "export declare function TldrawUiMenuItem<TranslationKey extends "
             },
             {
               "kind": "Content",
@@ -15885,26 +15885,13 @@
               "text": ">({ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }: "
             },
             {
-              "kind": "Content",
-              "text": "{\n    icon?: IconType;\n    id: string;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TransationKey;\n    } | TransationKey;\n    readonlyOk: boolean;\n    onSelect: (source: "
-            },
-            {
               "kind": "Reference",
-              "text": "TLUiEventSource",
-              "canonicalReference": "@tldraw/tldraw!TLUiEventSource:type"
+              "text": "TLUiMenuItemProps",
+              "canonicalReference": "@tldraw/tldraw!~TLUiMenuItemProps:type"
             },
             {
               "kind": "Content",
-              "text": ") => "
-            },
-            {
-              "kind": "Reference",
-              "text": "Promise",
-              "canonicalReference": "!Promise:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<void> | void;\n    disabled?: boolean;\n    noClose?: boolean;\n}"
+              "text": "<TranslationKey, IconType>"
             },
             {
               "kind": "Content",
@@ -15930,8 +15917,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuItem.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 15,
-            "endIndex": 18
+            "startIndex": 12,
+            "endIndex": 15
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -15940,14 +15927,14 @@
               "parameterName": "{ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }",
               "parameterTypeTokenRange": {
                 "startIndex": 9,
-                "endIndex": 14
+                "endIndex": 11
               },
               "isOptional": false
             }
           ],
           "typeParameters": [
             {
-              "typeParameterName": "TransationKey",
+              "typeParameterName": "TranslationKey",
               "constraintTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

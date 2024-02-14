@@ -235,9 +235,9 @@ const isActiveTLUiToolItem = (
 export function useToolbarItems() {
 	const breakpoint = useBreakpoint()
 	const allToolbarItems = useToolbarSchema()
-	const isReadonly = useReadonly()
+	const isReadonlyMode = useReadonly()
 	return useMemo(() => {
-		const visibleItems = allToolbarItems.filter((item) => !isReadonly || item.readonlyOk)
+		const visibleItems = allToolbarItems.filter((item) => !isReadonlyMode || item.readonlyOk)
 		const overflowIndex = Math.min(8, 5 + breakpoint)
 
 		const itemsInPanel = visibleItems.slice(0, overflowIndex)
@@ -251,5 +251,5 @@ export function useToolbarItems() {
 		}
 
 		return { itemsInPanel, itemsInDropdown }
-	}, [allToolbarItems, breakpoint, isReadonly])
+	}, [allToolbarItems, breakpoint, isReadonlyMode])
 }

@@ -1,5 +1,5 @@
 import { TldrawUiMenuGroup, TldrawUiMenuItem } from '@tldraw/tldraw'
-import { openUrl } from './utils/openUrl'
+import { openUrl } from './utils/url'
 
 export function Links() {
 	return (
@@ -37,7 +37,7 @@ export function Links() {
 				icon="external-link"
 				readonlyOk
 				onSelect={() => {
-					openUrl('https://www.tldraw.dev')
+					openUrl('https://tldraw.dev')
 				}}
 			/>
 		</TldrawUiMenuGroup>
