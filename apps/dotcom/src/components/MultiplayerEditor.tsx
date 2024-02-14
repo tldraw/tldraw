@@ -67,6 +67,7 @@ export function MultiplayerEditor({
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}
+				initialState={isReadOnly ? 'hand' : 'select'}
 				overrides={[
 					sharingUiOverrides,
 					fileSystemUiOverrides,
