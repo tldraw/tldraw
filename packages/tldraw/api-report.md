@@ -1388,7 +1388,7 @@ export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiM
 export function TldrawUiMenuGroup({ id, small, children }: TLUiMenuGroupProps): any;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, children, }: TLUiMenuSubmenuProps<Translation>): any;
@@ -1413,7 +1413,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     // (undocumented)
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
-    readonlyOk: boolean;
+    readonlyOk?: boolean;
     // (undocumented)
     title?: string;
 }
@@ -1740,7 +1740,7 @@ export type TLUiMenuCheckboxItemProps<TranslationKey extends string = string, Ic
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
-    readonlyOk: boolean;
+    readonlyOk?: boolean;
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     checked?: boolean;
     disabled?: boolean;
@@ -1769,10 +1769,11 @@ export type TLUiMenuItemProps<TranslationKey extends string = string, IconType e
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
-    readonlyOk: boolean;
+    readonlyOk?: boolean;
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     disabled?: boolean;
     noClose?: boolean;
+    spinner?: boolean;
 };
 
 // @public (undocumented)
@@ -1858,7 +1859,7 @@ export type TLUiToastsContextType = {
 export type TLUiToolbarItem = {
     id: string;
     type: 'item';
-    readonlyOk: boolean;
+    readonlyOk?: boolean;
     toolItem: TLUiToolItem;
 };
 
@@ -1882,7 +1883,7 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     // (undocumented)
     onSelect: (source: TLUiEventSource) => void;
     // (undocumented)
-    readonlyOk: boolean;
+    readonlyOk?: boolean;
     // (undocumented)
     shortcutsLabel?: TranslationKey;
 }

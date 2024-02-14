@@ -1,5 +1,14 @@
 import * as Popover from '@radix-ui/react-popover'
-import { Button, lns, unwrapLabel, useActions, useContainer, useTranslation } from '@tldraw/tldraw'
+import {
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	lns,
+	unwrapLabel,
+	useActions,
+	useContainer,
+	useTranslation,
+} from '@tldraw/tldraw'
 import React, { useEffect, useState } from 'react'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { createQRCodeImageDataString } from '../utils/qrcode'
@@ -105,114 +114,118 @@ export const ShareMenu = React.memo(function ShareMenu() {
 					sideOffset={2}
 					alignOffset={4}
 				>
-					{shareState.state === 'shared' || shareState.state === 'readonly' ? (
-						<>
-							<button
-								className="tlui-share-zone__qr-code"
-								style={{ backgroundImage: `url(${currentQrCodeUrl})` }}
-								title={msg(
-									isReadOnlyLink ? 'share-menu.copy-readonly-link' : 'share-menu.copy-link'
-								)}
-								onClick={() => {
-									setDidCopy(true)
-									setTimeout(() => setDidCopy(false), 1000)
-									navigator.clipboard.writeText(currentShareLinkUrl)
-								}}
-							/>
-							<div className="tlui-menu__group">
-								<Button
-									type="menu"
-									icon={didCopy ? 'clipboard-copied' : 'clipboard-copy'}
-									label={isReadOnlyLink ? 'share-menu.copy-readonly-link' : 'share-menu.copy-link'}
+					<TldrawUiMenuContextProvider type="panel" sourceId="share-menu">
+						{shareState.state === 'shared' || shareState.state === 'readonly' ? (
+							<>
+								<button
+									className="tlui-share-zone__qr-code"
+									style={{ backgroundImage: `url(${currentQrCodeUrl})` }}
+									title={msg(
+										isReadOnlyLink ? 'share-menu.copy-readonly-link' : 'share-menu.copy-link'
+									)}
 									onClick={() => {
 										setDidCopy(true)
-										setTimeout(() => setDidCopy(false), 750)
+										setTimeout(() => setDidCopy(false), 1000)
 										navigator.clipboard.writeText(currentShareLinkUrl)
 									}}
 								/>
-								{shareState.state === 'shared' && (
-									<Button
-										type="menu"
-										label="share-menu.readonly-link"
-										icon={isReadOnlyLink ? 'check' : 'checkbox-empty'}
-										onClick={async () => {
-											setIsReadOnlyLink(() => !isReadOnlyLink)
+								<TldrawUiMenuGroup id="copy">
+									<TldrawUiMenuItem
+										id="copy-to-clipboard"
+										readonlyOk
+										icon={didCopy ? 'clipboard-copied' : 'clipboard-copy'}
+										label={
+											isReadOnlyLink ? 'share-menu.copy-readonly-link' : 'share-menu.copy-link'
+										}
+										onSelect={() => {
+											setDidCopy(true)
+											setTimeout(() => setDidCopy(false), 750)
+											navigator.clipboard.writeText(currentShareLinkUrl)
 										}}
 									/>
-								)}
-								<p className="tlui-menu__group tlui-share-zone__details">
-									{msg(
-										isReadOnlyLink
-											? 'share-menu.copy-readonly-link-note'
-											: 'share-menu.copy-link-note'
+									{shareState.state === 'shared' && (
+										<TldrawUiMenuItem
+											id="toggle-read-only"
+											label="share-menu.readonly-link"
+											icon={isReadOnlyLink ? 'check' : 'checkbox-empty'}
+											onSelect={async () => {
+												setIsReadOnlyLink(() => !isReadOnlyLink)
+											}}
+										/>
 									)}
-								</p>
-							</div>
-
-							<div className="tlui-menu__group">
-								<Button
-									type="menu"
-									icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
-									label={unwrapLabel(shareSnapshot.label)}
-									onClick={async () => {
-										setIsUploadingSnapshot(true)
-										await shareSnapshot.onSelect('share-menu')
-										setIsUploadingSnapshot(false)
-										setDidCopySnapshotLink(true)
-										setTimeout(() => setDidCopySnapshotLink(false), 1000)
-									}}
-									spinner={isUploadingSnapshot}
-								/>
-								<p className="tlui-menu__group tlui-share-zone__details">
-									{msg('share-menu.snapshot-link-note')}
-								</p>
-							</div>
-						</>
-					) : (
-						<>
-							<div className="tlui-menu__group">
-								<Button
-									type="menu"
-									label="share-menu.share-project"
-									icon="share-1"
-									onClick={async () => {
-										if (isUploading) return
-										setIsUploading(true)
-										await shareProject.onSelect('menu')
-										setIsUploading(false)
-									}}
-									spinner={isUploading}
-								/>
-								<p className="tlui-menu__group tlui-share-zone__details">
-									{msg(
-										shareState.state === 'offline'
-											? 'share-menu.offline-note'
-											: isReadOnlyLink
+									<p className="tlui-menu__group tlui-share-zone__details">
+										{msg(
+											isReadOnlyLink
 												? 'share-menu.copy-readonly-link-note'
 												: 'share-menu.copy-link-note'
-									)}
-								</p>
-							</div>
-							<div className="tlui-menu__group">
-								<Button
-									type="menu"
-									icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
-									label={unwrapLabel(shareSnapshot.label)}
-									onClick={async () => {
-										setIsUploadingSnapshot(true)
-										await shareSnapshot.onSelect('share-menu')
-										setIsUploadingSnapshot(false)
-										setDidCopySnapshotLink(true)
-										setTimeout(() => setDidCopySnapshotLink(false), 1000)
-									}}
-									spinner={isUploadingSnapshot}
-								/>
-								<p className="tlui-menu__group tlui-share-zone__details">
-									{msg('share-menu.snapshot-link-note')}
-								</p>
-							</div>
-						</>
-					)}
+										)}
+									</p>
+								</TldrawUiMenuGroup>
+
+								<TldrawUiMenuGroup id="snapshot">
+									<TldrawUiMenuItem
+										{...shareSnapshot}
+										icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
+										onSelect={async () => {
+											setIsUploadingSnapshot(true)
+											await shareSnapshot.onSelect('share-menu')
+											setIsUploadingSnapshot(false)
+											setDidCopySnapshotLink(true)
+											setTimeout(() => setDidCopySnapshotLink(false), 1000)
+										}}
+										spinner={isUploadingSnapshot}
+									/>
+									<p className="tlui-menu__group tlui-share-zone__details">
+										{msg('share-menu.snapshot-link-note')}
+									</p>
+								</TldrawUiMenuGroup>
+							</>
+						) : (
+							<>
+								<TldrawUiMenuGroup id="share">
+									<TldrawUiMenuItem
+										id="share-project"
+										label="share-menu.share-project"
+										icon="share-1"
+										onSelect={async () => {
+											if (isUploading) return
+											setIsUploading(true)
+											await shareProject.onSelect('menu')
+											setIsUploading(false)
+										}}
+										spinner={isUploading}
+									/>
+									<p className="tlui-menu__group tlui-share-zone__details">
+										{msg(
+											shareState.state === 'offline'
+												? 'share-menu.offline-note'
+												: isReadOnlyLink
+													? 'share-menu.copy-readonly-link-note'
+													: 'share-menu.copy-link-note'
+										)}
+									</p>
+								</TldrawUiMenuGroup>
+								<TldrawUiMenuGroup id="copy-snapshot-link">
+									<TldrawUiMenuItem
+										id="copy-snapshot-link"
+										icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
+										label={unwrapLabel(shareSnapshot.label)}
+										onSelect={async () => {
+											setIsUploadingSnapshot(true)
+											await shareSnapshot.onSelect('share-menu')
+											setIsUploadingSnapshot(false)
+											setDidCopySnapshotLink(true)
+											setTimeout(() => setDidCopySnapshotLink(false), 1000)
+										}}
+										spinner={isUploadingSnapshot}
+									/>
+									<p className="tlui-menu__group tlui-share-zone__details">
+										{msg('share-menu.snapshot-link-note')}
+									</p>
+								</TldrawUiMenuGroup>
+							</>
+						)}
+					</TldrawUiMenuContextProvider>
 				</Popover.Content>
 			</Popover.Portal>
 		</Popover.Root>

@@ -15844,7 +15844,7 @@
             },
             {
               "kind": "Content",
-              "text": ">({ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }: "
+              "text": ">({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: "
             },
             {
               "kind": "Reference",
@@ -15886,7 +15886,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ disabled, id, kbd, label, icon, readonlyOk, onSelect, noClose, }",
+              "parameterName": "{ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }",
               "parameterTypeTokenRange": {
                 "startIndex": 9,
                 "endIndex": 11
@@ -16293,7 +16293,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "readonlyOk: "
+                  "text": "readonlyOk?: "
                 },
                 {
                   "kind": "Content",
@@ -16305,7 +16305,7 @@
                 }
               ],
               "isReadonly": false,
-              "isOptional": false,
+              "isOptional": true,
               "releaseTag": "Public",
               "name": "readonlyOk",
               "propertyTypeTokenRange": {
@@ -19934,7 +19934,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    icon?: IconType;\n    id: string;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk: boolean;\n    onSelect: (source: "
+              "text": "{\n    icon?: IconType;\n    id: string;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
@@ -20113,7 +20113,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk: boolean;\n    onSelect: (source: "
+              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
@@ -20131,7 +20131,7 @@
             },
             {
               "kind": "Content",
-              "text": "<void> | void;\n    disabled?: boolean;\n    noClose?: boolean;\n}"
+              "text": "<void> | void;\n    disabled?: boolean;\n    noClose?: boolean;\n    spinner?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -20918,7 +20918,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    type: 'item';\n    readonlyOk: boolean;\n    toolItem: "
+              "text": "{\n    id: string;\n    type: 'item';\n    readonlyOk?: boolean;\n    toolItem: "
             },
             {
               "kind": "Reference",
@@ -21222,7 +21222,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "readonlyOk: "
+                  "text": "readonlyOk?: "
                 },
                 {
                   "kind": "Content",
@@ -21234,7 +21234,7 @@
                 }
               ],
               "isReadonly": false,
-              "isOptional": false,
+              "isOptional": true,
               "releaseTag": "Public",
               "name": "readonlyOk",
               "propertyTypeTokenRange": {

@@ -18,7 +18,6 @@ export const uiOverrides: TLUiOverrides = {
 			icon: 'color',
 			label: 'Card',
 			kbd: 'c',
-			readonlyOk: false,
 			onSelect: () => {
 				editor.setCurrentTool('card')
 			},

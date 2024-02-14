@@ -20,7 +20,7 @@ export type TLUiMenuCheckboxItemProps<
 	kbd?: string
 	title?: string
 	label?: TranslationKey | { [key: string]: TranslationKey }
-	readonlyOk: boolean
+	readonlyOk?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
 	checked?: boolean
 	disabled?: boolean

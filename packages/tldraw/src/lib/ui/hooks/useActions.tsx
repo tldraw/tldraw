@@ -43,7 +43,7 @@ export interface TLUiActionItem<
 	kbd?: string
 	title?: string
 	label?: TransationKey | { [key: string]: TransationKey }
-	readonlyOk: boolean
+	readonlyOk?: boolean
 	checkbox?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
 }
@@ -105,7 +105,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'edit-link',
 				label: 'action.edit-link',
 				icon: 'link',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -118,7 +117,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-embed',
 				label: 'action.insert-embed',
-				readonlyOk: false,
 				kbd: '$i',
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
@@ -129,7 +127,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'insert-media',
 				label: 'action.insert-media',
 				kbd: '$u',
-				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('insert-media', { source })
 					insertMedia()
@@ -140,7 +137,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.undo',
 				icon: 'undo',
 				kbd: '$z',
-				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('undo', { source })
 					editor.undo()
@@ -151,7 +147,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.redo',
 				icon: 'redo',
 				kbd: '$!z',
-				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('redo', { source })
 					editor.redo()
@@ -239,7 +234,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-auto-size',
 				label: 'action.toggle-auto-size',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -307,7 +301,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -351,7 +344,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-embed',
 				label: 'action.convert-to-embed',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -409,7 +401,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$d',
 				label: 'action.duplicate',
 				icon: 'duplicate',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -455,7 +446,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.ungroup',
 				kbd: '$!g',
 				icon: 'ungroup',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -470,7 +460,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.group',
 				kbd: '$g',
 				icon: 'group',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -490,7 +479,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'remove-frame',
 				label: 'action.remove-frame',
 				kbd: '$!f',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -511,7 +499,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'fit-frame-to-content',
 				label: 'action.fit-frame-to-content',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -528,7 +515,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-left',
 				kbd: '?A',
 				icon: 'align-left',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -546,7 +532,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: '?H',
 				icon: 'align-center-horizontal',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -561,7 +546,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-right',
 				kbd: '?D',
 				icon: 'align-right',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -579,7 +563,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: '?V',
 				icon: 'align-center-vertical',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -594,7 +577,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-top',
 				icon: 'align-top',
 				kbd: '?W',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -609,7 +591,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-bottom',
 				icon: 'align-bottom',
 				kbd: '?S',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -627,7 +608,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'distribute-horizontal',
 				kbd: '?!h',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -645,7 +625,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'distribute-vertical',
 				kbd: '?!V',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -662,7 +641,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stretch-horizontal.short',
 				},
 				icon: 'stretch-horizontal',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -679,7 +657,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stretch-vertical.short',
 				},
 				icon: 'stretch-vertical',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -696,7 +673,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.flip-horizontal.short',
 				},
 				kbd: '!h',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -710,7 +686,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'flip-vertical',
 				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
 				kbd: '!v',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -724,7 +699,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'pack',
 				label: 'action.pack',
 				icon: 'pack',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -741,7 +715,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stack-vertical.short',
 				},
 				icon: 'stack-vertical',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -758,7 +731,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stack-horizontal.short',
 				},
 				icon: 'stack-horizontal',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -773,7 +745,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.bring-to-front',
 				kbd: ']',
 				icon: 'bring-to-front',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -788,7 +759,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.bring-forward',
 				icon: 'bring-forward',
 				kbd: '?]',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -803,7 +773,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.send-backward',
 				icon: 'send-backward',
 				kbd: '?[',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -818,7 +787,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.send-to-back',
 				icon: 'send-to-back',
 				kbd: '[',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -832,7 +800,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'cut',
 				label: 'action.cut',
 				kbd: '$x',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -857,7 +824,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'paste',
 				label: 'action.paste',
 				kbd: '$v',
-				readonlyOk: false,
 				onSelect(source) {
 					navigator.clipboard?.read().then((clipboardItems) => {
 						paste(
@@ -902,7 +868,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.delete',
 				kbd: '⌫,del,backspace',
 				icon: 'trash',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -916,7 +881,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-cw',
 				label: 'action.rotate-cw',
 				icon: 'rotate-cw',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -935,7 +899,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-ccw',
 				label: 'action.rotate-ccw',
 				icon: 'rotate-ccw',
-				readonlyOk: false,
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1010,7 +973,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-snap-mode',
 					menu: 'action.toggle-snap-mode.menu',
 				},
-				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
 					editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
@@ -1086,7 +1048,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-tool-lock',
 					menu: 'action.toggle-tool-lock.menu',
 				},
-				readonlyOk: false,
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
@@ -1097,7 +1058,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'unlock-all',
 				label: 'action.unlock-all',
-				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
 					const updates = [] as TLShapePartial[]
@@ -1205,7 +1165,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-lock',
 				label: 'action.toggle-lock',
-				readonlyOk: false,
 				kbd: '!l',
 				onSelect(source) {
 					editor.mark('locking')

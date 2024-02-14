@@ -179,8 +179,6 @@ export {
 	type TLUiStylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 
-export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
-
 export {
 	DefaultActionsMenu,
 	type TLUiActionsMenuProps,
@@ -229,6 +227,8 @@ export {
 	type TLUiKeyboardShortcutsDialogProps,
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
+
+export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 
 export { type TLComponents } from './lib/Tldraw'
 

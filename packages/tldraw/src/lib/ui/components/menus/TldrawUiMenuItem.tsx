@@ -9,7 +9,6 @@ import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKe
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { Kbd } from '../primitives/Kbd'
-import { kbdStr } from '../primitives/shared'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -37,7 +36,7 @@ export type TLUiMenuItemProps<
 	/**
 	 * If the editor is in readonly mode and the item is not marked as readonlyok, it will not be rendered.
 	 */
-	readonlyOk: boolean
+	readonlyOk?: boolean
 	/**
 	 * The function to call when the item is clicked.
 	 */
@@ -50,6 +49,10 @@ export type TLUiMenuItemProps<
 	 * Prevent the menu from closing when the item is clicked
 	 */
 	noClose?: boolean
+	/**
+	 * Whether to show a spinner on the item.
+	 */
+	spinner?: boolean
 }
 
 /** @public */
@@ -58,11 +61,12 @@ export function TldrawUiMenuItem<
 	IconType extends string = string,
 >({
 	disabled = false,
+	spinner = false,
+	readonlyOk = false,
 	id,
 	kbd,
 	label,
 	icon,
-	readonlyOk,
 	onSelect,
 	noClose,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
@@ -77,41 +81,68 @@ export function TldrawUiMenuItem<
 
 	const labelToUse = unwrapLabel(label, menuType)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
-
-	const button = (
-		<Button
-			type="menu"
-			data-testid={`${sourceId}.${id}`}
-			kbd={kbd}
-			label={labelStr}
-			disabled={disabled}
-			iconLeft={undefined}
-			onClick={(e) => {
-				if (noClose) {
-					preventDefault(e)
-				}
-				if (disableClicks) {
-					setDisableClicks(false)
-				} else {
-					onSelect(sourceId)
-				}
-			}}
-		/>
-	)
+	const kbdStr = kbd ? msg(kbd) : undefined
 
 	switch (menuType) {
 		case 'menu': {
 			return (
 				<_DropdownMenu.Item dir="ltr" asChild>
-					{button}
+					<Button
+						type="menu"
+						data-testid={`${sourceId}.${id}`}
+						kbd={kbd}
+						label={labelStr}
+						disabled={disabled}
+						onClick={(e) => {
+							if (noClose) {
+								preventDefault(e)
+							}
+							if (disableClicks) {
+								setDisableClicks(false)
+							} else {
+								onSelect(sourceId)
+							}
+						}}
+					/>
 				</_DropdownMenu.Item>
 			)
 		}
 		case 'context-menu': {
 			return (
 				<_ContextMenu.Item dir="ltr" asChild>
-					{button}
+					<Button
+						type="menu"
+						data-testid={`${sourceId}.${id}`}
+						kbd={kbd}
+						label={labelStr}
+						disabled={disabled}
+						spinner={spinner}
+						onClick={(e) => {
+							if (noClose) {
+								preventDefault(e)
+							}
+							if (disableClicks) {
+								setDisableClicks(false)
+							} else {
+								onSelect(sourceId)
+							}
+						}}
+					/>
 				</_ContextMenu.Item>
+			)
+		}
+		case 'panel': {
+			return (
+				<Button
+					data-testid={`${sourceId}.${id}`}
+					icon={icon}
+					type="menu"
+					label={labelStr}
+					title={label ? (kbd ? `${labelStr} ${kbdStr}` : `${labelStr}`) : kbd ? `${kbdStr}` : ''}
+					onClick={() => onSelect(sourceId)}
+					smallIcon
+					disabled={disabled}
+				/>
 			)
 		}
 		case 'actions': {
@@ -120,16 +151,8 @@ export function TldrawUiMenuItem<
 					data-testid={`${sourceId}.${id}`}
 					icon={icon}
 					type="icon"
-					title={
-						label
-							? kbd
-								? `${msg(unwrapLabel(label))} ${kbdStr(kbd)}`
-								: `${msg(unwrapLabel(label))}`
-							: kbd
-								? `${kbdStr(kbd)}`
-								: ''
-					}
-					onClick={() => onSelect('actions-menu')}
+					title={label ? (kbd ? `${labelStr} ${kbdStr}` : `${labelStr}`) : kbd ? `${kbdStr}` : ''}
+					onClick={() => onSelect(sourceId)}
 					smallIcon
 					disabled={disabled}
 				/>
@@ -140,9 +163,7 @@ export function TldrawUiMenuItem<
 
 			return (
 				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
-					<div className="tlui-shortcuts-dialog__key-pair__key">
-						{msg(unwrapLabel(label, 'shortcuts'))}
-					</div>
+					<div className="tlui-shortcuts-dialog__key-pair__key">{labelStr}</div>
 					<div className="tlui-shortcuts-dialog__key-pair__value">
 						<Kbd>{kbd!}</Kbd>
 					</div>
@@ -151,12 +172,7 @@ export function TldrawUiMenuItem<
 		}
 		case 'helper-buttons': {
 			return (
-				<Button
-					type="normal"
-					label={unwrapLabel(label, 'helper-buttons')}
-					iconLeft={icon}
-					onClick={() => onSelect('helper-buttons')}
-				/>
+				<Button type="low" label={labelStr} iconLeft={icon} onClick={() => onSelect(sourceId)} />
 			)
 		}
 		default: {

@@ -3,6 +3,7 @@ import { TLUiEventSource } from '../../hooks/useEventsProvider'
 
 /** @public */
 export type TldrawUiMenuContextType =
+	| 'panel'
 	| 'menu'
 	| 'context-menu'
 	| 'actions'

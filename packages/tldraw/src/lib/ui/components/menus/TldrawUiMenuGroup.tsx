@@ -18,6 +18,13 @@ export function TldrawUiMenuGroup({ id, small = false, children }: TLUiMenuGroup
 	const msg = useTranslation()
 
 	switch (menuType) {
+		case 'panel': {
+			return (
+				<div className="tlui-menu__group" data-testid={`${sourceId}-group.${id}`}>
+					{children}
+				</div>
+			)
+		}
 		case 'menu': {
 			return (
 				<_DropdownMenu.Group

@@ -19,7 +19,6 @@ export const uiOverrides: TLUiOverrides = {
 			icon: 'speech-bubble',
 			label: 'Speech Bubble',
 			kbd: 's',
-			readonlyOk: false,
 			onSelect: () => {
 				editor.setCurrentTool('speech-bubble')
 			},
