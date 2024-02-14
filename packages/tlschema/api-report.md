@@ -6,6 +6,7 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
+import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
@@ -820,7 +821,7 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 // @public (undocumented)
 export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     isLocked: boolean;
     // (undocumented)
@@ -968,7 +969,7 @@ export interface TLHandle {
     canSnap?: boolean;
     id: string;
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     type: TLHandleType;
     // (undocumented)
@@ -1152,7 +1153,7 @@ export type TLOpacityType = number;
 // @public
 export interface TLPage extends BaseRecord<'page', TLPageId> {
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)

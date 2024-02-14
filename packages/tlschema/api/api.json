@@ -4322,8 +4322,9 @@
                   "text": "index: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",
@@ -6064,8 +6065,9 @@
                   "text": "index: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",
@@ -8299,8 +8301,9 @@
                   "text": "index: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",

@@ -1,8 +1,10 @@
 // Adapted from https://observablehq.com/@dgreensp/implementing-fractional-indexing
 // by @dgreensp (twitter @DavidLG)
 
+import { IndexKey } from '../IndexKey'
+
 const DIGITS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-const INTEGER_ZERO = 'a0'
+export const INTEGER_ZERO = 'a0' as IndexKey
 const SMALLEST_INTEGER = 'A00000000000000000000000000'
 
 /**
@@ -161,7 +163,7 @@ function getIntegerPart(index: string): string {
  *
  * @param x - The index to validate.
  */
-function validateOrder(index: string): asserts index is string {
+export function validateOrder(index: string): asserts index is string {
 	if (index === SMALLEST_INTEGER) {
 		throw new Error('invalid index: ' + index)
 	}
@@ -176,18 +178,12 @@ function validateOrder(index: string): asserts index is string {
 }
 
 /**
- * A string made up of an integer part followed by a fraction part. The fraction point consists of
- * zero or more digits with no trailing zeros.
- */
-type OrderKey = string
-
-/**
  * Generate an index key at the midpoint between a start and end.
  *
  * @param a - The start index key string.
  * @param b - The end index key string, greater than A.
  */
-function generateKeyBetween(a: OrderKey | undefined, b: OrderKey | undefined): OrderKey {
+function generateKeyBetween(a: IndexKey | undefined, b: IndexKey | undefined): IndexKey {
 	if (a !== undefined) validateOrder(a)
 	if (b !== undefined) validateOrder(b)
 	if (a !== undefined && b !== undefined && a >= b) {
@@ -201,31 +197,31 @@ function generateKeyBetween(a: OrderKey | undefined, b: OrderKey | undefined): O
 		const ib = getIntegerPart(b)
 		const fb = b.slice(ib.length)
 		if (ib === SMALLEST_INTEGER) {
-			return ib + midpoint('', fb)
+			return (ib + midpoint('', fb)) as IndexKey
 		}
 		if (ib < b) {
-			return ib
+			return ib as IndexKey
 		}
 		const ibl = decrementInteger(ib)
 		isNotUndefined(ibl)
-		return ibl
+		return ibl as IndexKey
 	}
 	if (b === undefined) {
 		const ia = getIntegerPart(a)
 		const fa = a.slice(ia.length)
 		const i = incrementInteger(ia)
-		return i === undefined ? ia + midpoint(fa, undefined) : i
+		return (i === undefined ? ia + midpoint(fa, undefined) : i) as IndexKey
 	}
 	const ia = getIntegerPart(a)
 	const fa = a.slice(ia.length)
 	const ib = getIntegerPart(b)
 	const fb = b.slice(ib.length)
 	if (ia === ib) {
-		return ia + midpoint(fa, fb)
+		return (ia + midpoint(fa, fb)) as IndexKey
 	}
 	const i = incrementInteger(ia)
 	isNotUndefined(i)
-	return i < b ? i : ia + midpoint(fa, undefined)
+	return (i < b ? i : ia + midpoint(fa, undefined)) as IndexKey
 }
 
 /**
@@ -236,10 +232,10 @@ function generateKeyBetween(a: OrderKey | undefined, b: OrderKey | undefined): O
  * @param n - The number of index keys to generate.
  */
 export function generateNKeysBetween(
-	a: string | undefined,
-	b: string | undefined,
+	a: IndexKey | undefined,
+	b: IndexKey | undefined,
 	n: number
-): string[] {
+): IndexKey[] {
 	if (n === 0) return []
 	if (n === 1) return [generateKeyBetween(a, b)]
 	if (b === undefined) {
