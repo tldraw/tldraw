@@ -1,5 +1,5 @@
 import { BackToContent } from './BackToContent'
-import { ExitPenMode } from './PenModeToggle'
+import { ExitPenMode } from './ExitPenMode'
 import { StopFollowing } from './StopFollowing'
 
 /** @public */

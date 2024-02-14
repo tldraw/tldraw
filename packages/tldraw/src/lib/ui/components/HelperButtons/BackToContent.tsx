@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
-import { useActions } from '../../hooks/useActions'
+import { useActions } from '../../context/actions'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 export function BackToContent() {

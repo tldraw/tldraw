@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { TLUiDialogProps } from '../../hooks/useDialogsProvider'
+import { TLUiDialogProps } from '../../context/dialogs'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import * as Dialog from '../primitives/Dialog'

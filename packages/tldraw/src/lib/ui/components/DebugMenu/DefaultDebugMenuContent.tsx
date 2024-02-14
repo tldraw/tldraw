@@ -11,8 +11,8 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React from 'react'
-import { useDialogs } from '../../hooks/useDialogsProvider'
-import { useToasts } from '../../hooks/useToastsProvider'
+import { useDialogs } from '../../context/dialogs'
+import { useToasts } from '../../context/toasts'
 import { untranslated } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuCheckboxItem } from '../menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'

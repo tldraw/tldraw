@@ -1,6 +1,6 @@
 import { T, TLBaseShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { TLUiDialogProps } from '../hooks/useDialogsProvider'
+import { TLUiDialogProps } from '../context/dialogs'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 import * as Dialog from './primitives/Dialog'

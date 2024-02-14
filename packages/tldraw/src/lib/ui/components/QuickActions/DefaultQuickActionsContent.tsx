@@ -1,9 +1,7 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../hooks/useActions'
-import { useCanRedo } from '../../hooks/useCanRedo'
-import { useCanUndo } from '../../hooks/useCanUndo'
+import { useActions } from '../../context/actions'
+import { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from '../../hooks/menu-hooks'
 import { useReadonly } from '../../hooks/useReadonly'
-import { useUnlockedSelectedShapesCount } from '../../hooks/useUnlockedSelectedShapesCount'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 /** @public */

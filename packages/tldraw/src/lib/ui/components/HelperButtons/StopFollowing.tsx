@@ -1,14 +1,17 @@
-import { track, useEditor } from '@tldraw/editor'
-import { useActions } from '../../hooks/useActions'
+import { useEditor, useValue } from '@tldraw/editor'
+import { useActions } from '../../context/actions'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
-export const StopFollowing = track(function StopFollowing() {
+export function StopFollowing() {
 	const editor = useEditor()
 	const actions = useActions()
 
-	if (!editor.getInstanceState().followingUserId) {
-		return null
-	}
+	const followingUser = useValue(
+		'is following user',
+		() => !!editor.getInstanceState().followingUserId,
+		[editor]
+	)
+	if (!followingUser) return null
 
 	return <TldrawUiMenuItem {...actions['stop-following']} />
-})
+}

@@ -6,8 +6,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { useTldrawUiComponents } from '../context/components'
 import { useRelevantStyles } from '../hooks/useRevelantStyles'
-import { useTldrawUiComponents } from '../hooks/useTldrawUiComponents'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Icon } from './primitives/Icon'
 import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'

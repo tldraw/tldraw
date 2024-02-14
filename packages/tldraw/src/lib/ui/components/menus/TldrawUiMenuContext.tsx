@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import { TLUiEventSource } from '../../hooks/useEventsProvider'
+import { TLUiEventSource } from '../../context/events'
 
 /** @public */
 export type TldrawUiMenuContextType =

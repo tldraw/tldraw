@@ -1,17 +1,17 @@
 import { TLBookmarkShape, TLEmbedShape, TLFrameShape, useEditor, useValue } from '@tldraw/editor'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
+import { useActions } from '../context/actions'
 import {
 	showMenuPaste,
 	useAllowGroup,
 	useAllowUngroup,
+	useAnySelectedShapesCount,
+	useHasLinkShapeSelected,
+	useOnlyFlippableShape,
+	useShowAutoSizeToggle,
 	useThreeStackableItems,
-} from '../hooks/menuHelpers'
-import { useActions } from '../hooks/useActions'
-import { useAnySelectedShapesCount } from '../hooks/useAnySelectedShapesCount'
-import { useHasLinkShapeSelected } from '../hooks/useHasLinkShapeSelected'
-import { useOnlyFlippableShape } from '../hooks/useOnlyFlippableShape'
-import { useShowAutoSizeToggle } from '../hooks/useShowAutoSizeToggle'
-import { useUnlockedSelectedShapesCount } from '../hooks/useUnlockedSelectedShapesCount'
+	useUnlockedSelectedShapesCount,
+} from '../hooks/menu-hooks'
 import { MoveToPageMenu as _MoveToPageMenu } from './MoveToPageMenu'
 import { TldrawUiMenuCheckboxItem } from './menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from './menus/TldrawUiMenuGroup'

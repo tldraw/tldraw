@@ -1,6 +1,6 @@
 import { debugFlags, track, useEditor, useValue, Vec } from '@tldraw/editor'
 import { memo, useEffect, useRef, useState } from 'react'
-import { useTldrawUiComponents } from '../hooks/useTldrawUiComponents'
+import { useTldrawUiComponents } from '../context/components'
 
 /** @internal */
 export const DebugPanel = memo(function DebugPanel() {

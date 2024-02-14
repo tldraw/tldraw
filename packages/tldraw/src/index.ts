@@ -53,19 +53,14 @@ export {
 	useActions,
 	type TLUiActionItem,
 	type TLUiActionsContextType,
-} from './lib/ui/hooks/useActions'
-export { AssetUrlsProvider, useAssetUrls } from './lib/ui/hooks/useAssetUrls'
-export { BreakPointProvider, useBreakpoint } from './lib/ui/hooks/useBreakpoint'
-export { useCanRedo } from './lib/ui/hooks/useCanRedo'
-export { useCanUndo } from './lib/ui/hooks/useCanUndo'
-export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
-export { useCopyAs } from './lib/ui/hooks/useCopyAs'
+} from './lib/ui/context/actions'
+export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
 export {
 	useDialogs,
 	type TLUiDialog,
 	type TLUiDialogProps,
 	type TLUiDialogsContextType,
-} from './lib/ui/hooks/useDialogsProvider'
+} from './lib/ui/context/dialogs'
 export {
 	UiEventsProvider,
 	useUiEvents,
@@ -74,18 +69,21 @@ export {
 	type TLUiEventHandler,
 	type TLUiEventMap,
 	type TLUiEventSource,
-} from './lib/ui/hooks/useEventsProvider'
-export { useExportAs } from './lib/ui/hooks/useExportAs'
-export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
-export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
-export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
-export { useReadonly } from './lib/ui/hooks/useReadonly'
+} from './lib/ui/context/events'
 export {
 	useToasts,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
-} from './lib/ui/hooks/useToastsProvider'
+} from './lib/ui/context/toasts'
+export { BreakPointProvider, useBreakpoint } from './lib/ui/hooks/useBreakpoint'
+export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export { useCopyAs } from './lib/ui/hooks/useCopyAs'
+export { useExportAs } from './lib/ui/hooks/useExportAs'
+export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
+export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
+export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
+export { useReadonly } from './lib/ui/hooks/useReadonly'
 export {
 	toolbarItem,
 	useToolbarSchema,
@@ -137,7 +135,7 @@ export {
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 
 // Helper to unwrap label from action items
-export { unwrapLabel } from './lib/ui/hooks/useActions'
+export { unwrapLabel } from './lib/ui/context/actions'
 
 // General UI components for building menus
 export {
@@ -165,7 +163,7 @@ export {
 	TldrawUiComponentsProvider,
 	useTldrawUiComponents,
 	type TLUiComponents,
-} from './lib/ui/hooks/useTldrawUiComponents'
+} from './lib/ui/context/components'
 
 // Menus / UI elements that can be customized
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'

@@ -1,5 +1,5 @@
-import { useDialogs } from '../../hooks/useDialogsProvider'
-import { useTldrawUiComponents } from '../../hooks/useTldrawUiComponents'
+import { useTldrawUiComponents } from '../../context/components'
+import { useDialogs } from '../../context/dialogs'
 import { LanguageMenu } from '../LanguageMenu'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 

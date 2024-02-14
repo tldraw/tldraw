@@ -1,7 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../hooks/useActions'
-import { useCanRedo } from '../../hooks/useCanRedo'
-import { useCanUndo } from '../../hooks/useCanUndo'
+import { useActions } from '../../context/actions'
+import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,

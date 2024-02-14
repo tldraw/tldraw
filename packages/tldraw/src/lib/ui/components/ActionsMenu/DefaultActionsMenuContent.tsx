@@ -1,9 +1,13 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useAllowGroup, useAllowUngroup, useThreeStackableItems } from '../../hooks/menuHelpers'
-import { useActions } from '../../hooks/useActions'
+import { useActions } from '../../context/actions'
+import {
+	useAllowGroup,
+	useAllowUngroup,
+	useHasLinkShapeSelected,
+	useThreeStackableItems,
+	useUnlockedSelectedShapesCount,
+} from '../../hooks/menu-hooks'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
-import { useHasLinkShapeSelected } from '../../hooks/useHasLinkShapeSelected'
-import { useUnlockedSelectedShapesCount } from '../../hooks/useUnlockedSelectedShapesCount'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 
 /** @public */

@@ -1,4 +1,4 @@
-import { unwrapLabel } from '../../hooks/useActions'
+import { unwrapLabel } from '../../context/actions'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { ContextMenuGroup } from '../primitives/ContextMenu'
 import { DropdownMenuGroup } from '../primitives/DropdownMenu'

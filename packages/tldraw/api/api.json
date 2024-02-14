@@ -6055,7 +6055,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useEventsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
           "releaseTag": "Public",
           "name": "EventsProviderProps",
           "typeTokenRange": {
@@ -15246,7 +15246,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTldrawUiComponents.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -16010,7 +16010,7 @@
               "text": "> "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useActions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/actions.tsx",
           "releaseTag": "Public",
           "typeParameters": [
             {
@@ -16308,7 +16308,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useActions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/actions.tsx",
           "releaseTag": "Public",
           "name": "TLUiActionsContextType",
           "typeTokenRange": {
@@ -16822,7 +16822,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTldrawUiComponents.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
           "releaseTag": "Public",
           "name": "TLUiComponents",
           "typeTokenRange": {
@@ -16940,7 +16940,7 @@
               "text": "export interface TLUiDialog "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useDialogsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/dialogs.tsx",
           "releaseTag": "Public",
           "name": "TLUiDialog",
           "preserveMemberOrder": false,
@@ -17053,7 +17053,7 @@
               "text": "export interface TLUiDialogProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useDialogsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/dialogs.tsx",
           "releaseTag": "Public",
           "name": "TLUiDialogProps",
           "preserveMemberOrder": false,
@@ -17151,7 +17151,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useDialogsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/dialogs.tsx",
           "releaseTag": "Public",
           "name": "TLUiDialogsContextType",
           "typeTokenRange": {
@@ -17790,7 +17790,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useEventsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
           "releaseTag": "Public",
           "name": "TLUiEventContextType",
           "typeTokenRange": {
@@ -17869,7 +17869,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useEventsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
           "releaseTag": "Public",
           "name": "TLUiEventHandler",
           "typeParameters": [
@@ -17900,7 +17900,7 @@
               "text": "export interface TLUiEventMap "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useEventsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
           "releaseTag": "Public",
           "name": "TLUiEventMap",
           "preserveMemberOrder": false,
@@ -19654,7 +19654,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useEventsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
           "releaseTag": "Public",
           "name": "TLUiEventSource",
           "typeTokenRange": {
@@ -21312,7 +21312,7 @@
               "text": "export interface TLUiToast "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToastsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
           "releaseTag": "Public",
           "name": "TLUiToast",
           "preserveMemberOrder": false,
@@ -21525,7 +21525,7 @@
               "text": "export interface TLUiToastAction "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToastsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
           "releaseTag": "Public",
           "name": "TLUiToastAction",
           "preserveMemberOrder": false,
@@ -21668,7 +21668,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToastsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
           "releaseTag": "Public",
           "name": "TLUiToastsContextType",
           "typeTokenRange": {
@@ -22359,7 +22359,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useEventsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -22417,7 +22417,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useActions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/actions.tsx",
           "returnTypeTokenRange": {
             "startIndex": 6,
             "endIndex": 7
@@ -22463,7 +22463,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useActions.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/actions.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -22500,62 +22500,6 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useBreakpoint"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!useCanRedo:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useCanRedo(): "
-            },
-            {
-              "kind": "Content",
-              "text": "boolean"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useCanRedo.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "useCanRedo"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!useCanUndo:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useCanUndo(): "
-            },
-            {
-              "kind": "Content",
-              "text": "boolean"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useCanUndo.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "useCanUndo"
         },
         {
           "kind": "Function",
@@ -22623,7 +22567,7 @@
             },
             {
               "kind": "Content",
-              "text": "<import(\"./hooks/useToastsProvider\")."
+              "text": "<import(\"./context/toasts\")."
             },
             {
               "kind": "Reference",
@@ -22641,7 +22585,7 @@
             },
             {
               "kind": "Content",
-              "text": "<import(\"./hooks/useDialogsProvider\")."
+              "text": "<import(\"./context/dialogs\")."
             },
             {
               "kind": "Reference",
@@ -22659,7 +22603,7 @@
             },
             {
               "kind": "Content",
-              "text": "<import(\"./hooks/useDialogsProvider\")."
+              "text": "<import(\"./context/dialogs\")."
             },
             {
               "kind": "Reference",
@@ -22704,7 +22648,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useDialogsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/dialogs.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -23308,7 +23252,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTldrawUiComponents.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 49
@@ -23337,7 +23281,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToastsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
@@ -23470,7 +23414,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useEventsProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/events.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
