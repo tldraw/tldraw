@@ -21,6 +21,7 @@ import { EmbedDefinition } from '@tldraw/editor';
 import { EnumStyleProp } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
+import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
@@ -633,7 +634,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -663,7 +664,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -680,7 +681,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -695,7 +696,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -988,7 +989,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -1012,7 +1013,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -1133,7 +1134,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         y: number;
         type: "text";
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -1167,7 +1168,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         };
         type: "text";
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;

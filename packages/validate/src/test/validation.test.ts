@@ -122,3 +122,18 @@ describe('T.refine', () => {
 describe('T.check', () => {
 	it.todo('Adds a check to a validator.')
 })
+
+describe('T.indexKey', () => {
+	it('validates index keys', () => {
+		expect(T.indexKey.validate('a0')).toBe('a0')
+		expect(T.indexKey.validate('a1J')).toBe('a1J')
+	})
+	it('rejects invalid index keys', () => {
+		expect(() => T.indexKey.validate('a')).toThrowErrorMatchingInlineSnapshot(
+			`"At null: Expected an index key, got "a""`
+		)
+		expect(() => T.indexKey.validate('')).toThrowErrorMatchingInlineSnapshot(
+			`"At null: Expected an index key, got """`
+		)
+	})
+})

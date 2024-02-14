@@ -1,3 +1,4 @@
+import { IndexKey } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 
@@ -24,7 +25,7 @@ export interface TLHandle {
 	type: TLHandleType
 	canBind?: boolean
 	canSnap?: boolean
-	index: string
+	index: IndexKey
 	x: number
 	y: number
 }
@@ -35,7 +36,7 @@ export const handleValidator: T.Validator<TLHandle> = T.object({
 	type: T.setEnum(TL_HANDLE_TYPES),
 	canBind: T.boolean.optional(),
 	canSnap: T.boolean.optional(),
-	index: T.string,
+	index: T.indexKey,
 	x: T.number,
 	y: T.number,
 })
