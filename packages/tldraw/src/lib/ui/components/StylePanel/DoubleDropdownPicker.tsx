@@ -1,11 +1,15 @@
-import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { SharedStyle, StyleProp, preventDefault } from '@tldraw/editor'
+import { SharedStyle, StyleProp } from '@tldraw/editor'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
-import { DropdownMenuContent, DropdownMenuItem, DropdownMenuRoot } from '../primitives/DropdownMenu'
+import {
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuRoot,
+	DropdownMenuTrigger,
+} from '../primitives/DropdownMenu'
 import { StyleValuesForUi } from './styles'
 
 interface DoubleDropdownPickerProps<T extends string> {
@@ -61,11 +65,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 			</div>
 			<div className="tlui-buttons__horizontal">
 				<DropdownMenuRoot id={`style panel ${uiTypeA} A`}>
-					<Trigger
-						asChild
-						// Firefox fix: Stop the dropdown immediately closing after touch
-						onTouchEnd={(e) => preventDefault(e)}
-					>
+					<DropdownMenuTrigger>
 						<Button
 							type="icon"
 							data-testid={`style.${uiTypeA}`}
@@ -80,7 +80,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 							invertIcon
 							smallIcon
 						/>
-					</Trigger>
+					</DropdownMenuTrigger>
 					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsA.map((item) => {
@@ -104,11 +104,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 					</DropdownMenuContent>
 				</DropdownMenuRoot>
 				<DropdownMenuRoot id={`style panel ${uiTypeB}`}>
-					<Trigger
-						asChild
-						// Firefox fix: Stop the dropdown immediately closing after touch
-						onTouchEnd={(e) => preventDefault(e)}
-					>
+					<DropdownMenuTrigger>
 						<Button
 							type="icon"
 							data-testid={`style.${uiTypeB}`}
@@ -122,7 +118,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 							icon={iconB as any}
 							smallIcon
 						/>
-					</Trigger>
+					</DropdownMenuTrigger>
 					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {

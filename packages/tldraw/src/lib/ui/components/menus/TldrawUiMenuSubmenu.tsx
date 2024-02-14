@@ -39,7 +39,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<DropdownMenuSub id={`${sourceId}-sub`}>
+				<DropdownMenuSub id={`${sourceId}-sub.${id}`}>
 					<DropdownMenuSubTrigger
 						id={`${sourceId}-sub.${id}`}
 						disabled={disabled}
@@ -53,7 +53,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 		}
 		case 'context-menu': {
 			return (
-				<ContextMenuSub id={`${sourceId}-sub`}>
+				<ContextMenuSub id={`${sourceId}-sub.${id}`}>
 					<ContextMenuSubTrigger
 						id={`${sourceId}-sub-trigger.${id}`}
 						label={labelStr!}

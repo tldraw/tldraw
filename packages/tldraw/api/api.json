@@ -4764,7 +4764,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownMenuCheckboxItem({ id, children, onSelect, ...rest }: "
+              "text": "export declare function DropdownMenuCheckboxItem({ children, onSelect, ...rest }: "
             },
             {
               "kind": "Reference",
@@ -4798,7 +4798,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, children, onSelect, ...rest }",
+              "parameterName": "{ children, onSelect, ...rest }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -4815,7 +4815,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownMenuContent({ id, side, align, sideOffset, alignOffset, children, }: "
+              "text": "export declare function DropdownMenuContent({ side, align, sideOffset, alignOffset, children, }: "
             },
             {
               "kind": "Reference",
@@ -4849,7 +4849,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, side, align, sideOffset, alignOffset, children, }",
+              "parameterName": "{ side, align, sideOffset, alignOffset, children, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -4866,7 +4866,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownMenuGroup({ id, children, size }: "
+              "text": "export declare function DropdownMenuGroup({ children, size }: "
             },
             {
               "kind": "Reference",
@@ -4900,7 +4900,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, children, size }",
+              "parameterName": "{ children, size }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -4950,7 +4950,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownMenuItem({ id, noClose, ...props }: "
+              "text": "export declare function DropdownMenuItem({ noClose, ...props }: "
             },
             {
               "kind": "Reference",
@@ -4984,7 +4984,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, noClose, ...props }",
+              "parameterName": "{ noClose, ...props }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5154,7 +5154,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownMenuSubTrigger({ id, label, disabled, 'data-direction': dataDirection, }: "
+              "text": "export declare function DropdownMenuSubTrigger({ label, disabled, 'data-direction': dataDirection, }: "
             },
             {
               "kind": "Reference",
@@ -5188,7 +5188,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, label, disabled, 'data-direction': dataDirection, }",
+              "parameterName": "{ label, disabled, 'data-direction': dataDirection, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5205,7 +5205,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DropdownMenuTrigger({ id, children }: "
+              "text": "export declare function DropdownMenuTrigger({ children }: "
             },
             {
               "kind": "Reference",
@@ -5239,7 +5239,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, children }",
+              "parameterName": "{ children }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -17257,33 +17257,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps#id:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "id?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "id",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuCheckboxItemProps#onSelect:member",
               "docComment": "",
               "excerptTokens": [
@@ -17385,7 +17358,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id?: string;\n    children: any;\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
+              "text": "{\n    children: any;\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
             },
             {
               "kind": "Content",
@@ -17424,33 +17397,6 @@
           "name": "TLUiDropdownMenuItemProps",
           "preserveMemberOrder": false,
           "members": [
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuItemProps#id:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "id?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "id",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TLUiDropdownMenuItemProps#noClose:member",
@@ -17764,7 +17710,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id?: string;\n    children: any;\n}"
+              "text": "{\n    children: any;\n}"
             },
             {
               "kind": "Content",

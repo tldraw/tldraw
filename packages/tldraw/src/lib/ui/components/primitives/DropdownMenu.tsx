@@ -36,16 +36,14 @@ export function DropdownMenuRoot({
 
 /** @public */
 export type TLUiDropdownMenuTriggerProps = {
-	id?: string
 	children: any
 }
 
 /** @public */
-export function DropdownMenuTrigger({ id, children }: TLUiDropdownMenuTriggerProps) {
+export function DropdownMenuTrigger({ children }: TLUiDropdownMenuTriggerProps) {
 	return (
 		<_DropdownMenu.Trigger
 			dir="ltr"
-			data-testid={id}
 			asChild
 			// Firefox fix: Stop the dropdown immediately closing after touch
 			onTouchEnd={(e) => preventDefault(e)}
@@ -67,7 +65,6 @@ export type TLUiDropdownMenuContentProps = {
 
 /** @public */
 export function DropdownMenuContent({
-	id,
 	side = 'bottom',
 	align = 'start',
 	sideOffset = 8,
@@ -79,7 +76,6 @@ export function DropdownMenuContent({
 	return (
 		<_DropdownMenu.Portal container={container}>
 			<_DropdownMenu.Content
-				data-testid={id}
 				className="tlui-menu"
 				side={side}
 				sideOffset={sideOffset}
@@ -117,19 +113,12 @@ export type TLUiDropdownMenuSubTriggerProps = {
 
 /** @public */
 export function DropdownMenuSubTrigger({
-	id,
 	label,
 	disabled,
 	'data-direction': dataDirection,
 }: TLUiDropdownMenuSubTriggerProps) {
 	return (
-		<_DropdownMenu.SubTrigger
-			dir="ltr"
-			disabled={disabled}
-			data-direction={dataDirection}
-			data-testid={id}
-			asChild
-		>
+		<_DropdownMenu.SubTrigger dir="ltr" disabled={disabled} data-direction={dataDirection} asChild>
 			<Button
 				type="menu"
 				className="tlui-menu__submenu__trigger"
@@ -150,7 +139,6 @@ export type TLUiDropdownMenuSubContentProps = {
 
 /** @public */
 export function DropdownMenuSubContent({
-	id,
 	alignOffset = -1,
 	sideOffset = -4,
 	children,
@@ -159,7 +147,6 @@ export function DropdownMenuSubContent({
 	return (
 		<_DropdownMenu.Portal container={container}>
 			<_DropdownMenu.SubContent
-				data-testid={id}
 				className="tlui-menu tlui-menu__submenu__content"
 				alignOffset={alignOffset}
 				sideOffset={sideOffset}
@@ -173,15 +160,14 @@ export function DropdownMenuSubContent({
 
 /** @public */
 export type TLUiDropdownMenuGroupProps = {
-	id?: string
 	children: any
 	size?: 'tiny' | 'small' | 'medium' | 'wide'
 }
 
 /** @public */
-export function DropdownMenuGroup({ id, children, size = 'medium' }: TLUiDropdownMenuGroupProps) {
+export function DropdownMenuGroup({ children, size = 'medium' }: TLUiDropdownMenuGroupProps) {
 	return (
-		<_DropdownMenu.Group dir="ltr" className="tlui-menu__group" data-size={size} data-testid={id}>
+		<_DropdownMenu.Group dir="ltr" className="tlui-menu__group" data-size={size}>
 			{children}
 		</_DropdownMenu.Group>
 	)
@@ -198,27 +184,24 @@ export function DropdownMenuIndicator() {
 
 /** @public */
 export interface TLUiDropdownMenuItemProps extends TLUiButtonProps {
-	id?: string
 	noClose?: boolean
 }
 
 /** @public */
-export function DropdownMenuItem({ id, noClose, ...props }: TLUiDropdownMenuItemProps) {
+export function DropdownMenuItem({ noClose, ...props }: TLUiDropdownMenuItemProps) {
 	return (
 		<_DropdownMenu.Item
 			dir="ltr"
 			asChild
-			data-testid={id}
 			onClick={noClose || props.isChecked !== undefined ? preventDefault : undefined}
 		>
-			<Button {...props} />
+			<Button {...props} type="menu" />
 		</_DropdownMenu.Item>
 	)
 }
 
 /** @public */
 export interface TLUiDropdownMenuCheckboxItemProps {
-	id?: string
 	checked?: boolean
 	onSelect?: (e: Event) => void
 	disabled?: boolean
@@ -228,7 +211,6 @@ export interface TLUiDropdownMenuCheckboxItemProps {
 
 /** @public */
 export function DropdownMenuCheckboxItem({
-	id,
 	children,
 	onSelect,
 	...rest
@@ -236,7 +218,6 @@ export function DropdownMenuCheckboxItem({
 	return (
 		<_DropdownMenu.CheckboxItem
 			dir="ltr"
-			data-testid={id}
 			className="tlui-button tlui-button__menu tlui-button__checkbox"
 			onSelect={(e) => {
 				onSelect?.(e)

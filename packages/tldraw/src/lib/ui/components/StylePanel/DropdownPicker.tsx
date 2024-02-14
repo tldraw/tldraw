@@ -1,11 +1,11 @@
-import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { SharedStyle, StyleProp, preventDefault } from '@tldraw/editor'
+import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
+import { SharedStyle, StyleProp } from '@tldraw/editor'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button, TLUiButtonProps } from '../primitives/Button'
-import * as DropdownMenu from '../primitives/DropdownMenu'
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuRoot } from '../primitives/DropdownMenu'
 import { StyleValuesForUi } from './styles'
 
 interface DropdownPickerProps<T extends string> {
@@ -37,12 +37,8 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 	)
 
 	return (
-		<DropdownMenu.DropdownMenuRoot id={`style panel ${id}`}>
-			<Trigger
-				asChild
-				// Firefox fix: Stop the dropdown immediately closing after touch
-				onTouchEnd={(e) => preventDefault(e)}
-			>
+		<DropdownMenuRoot id={`style panel ${id}`}>
+			<DropdownMenuTrigger>
 				<Button
 					type={type}
 					data-testid={`style.${uiType}`}
@@ -54,12 +50,12 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 					label={label}
 					icon={(icon as TLUiIconType) ?? 'mixed'}
 				/>
-			</Trigger>
-			<DropdownMenu.DropdownMenuContent side="left" align="center" alignOffset={0}>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent side="left" align="center" alignOffset={0}>
 				<div className="tlui-buttons__grid">
 					{items.map((item) => {
 						return (
-							<DropdownMenu.DropdownMenuItem
+							<DropdownMenuItem
 								type="icon"
 								data-testid={`style.${uiType}.${item.value}`}
 								title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
@@ -70,7 +66,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 						)
 					})}
 				</div>
-			</DropdownMenu.DropdownMenuContent>
-		</DropdownMenu.DropdownMenuRoot>
+			</DropdownMenuContent>
+		</DropdownMenuRoot>
 	)
 })

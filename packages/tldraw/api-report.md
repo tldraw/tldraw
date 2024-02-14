@@ -444,19 +444,19 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 }
 
 // @public (undocumented)
-export function DropdownMenuCheckboxItem({ id, children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
+export function DropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuContent({ id, side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
+export function DropdownMenuContent({ side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuGroup({ id, children, size }: TLUiDropdownMenuGroupProps): JSX_2.Element;
+export function DropdownMenuGroup({ children, size }: TLUiDropdownMenuGroupProps): JSX_2.Element;
 
 // @public (undocumented)
 export function DropdownMenuIndicator(): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuItem({ id, noClose, ...props }: TLUiDropdownMenuItemProps): JSX_2.Element;
+export function DropdownMenuItem({ noClose, ...props }: TLUiDropdownMenuItemProps): JSX_2.Element;
 
 // @public (undocumented)
 export function DropdownMenuRadioItem({ children, ...rest }: TLUiDropdownMenuRadioItemProps): JSX_2.Element;
@@ -468,10 +468,10 @@ export function DropdownMenuRoot({ id, children, modal, debugOpen, }: TLUiDropdo
 export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuSubTrigger({ id, label, disabled, 'data-direction': dataDirection, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
+export function DropdownMenuSubTrigger({ label, disabled, 'data-direction': dataDirection, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuTrigger({ id, children }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
+export function DropdownMenuTrigger({ children }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -1460,8 +1460,6 @@ export interface TLUiDropdownMenuCheckboxItemProps {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    id?: string;
-    // (undocumented)
     onSelect?: (e: Event) => void;
     // (undocumented)
     title: string;
@@ -1479,15 +1477,12 @@ export type TLUiDropdownMenuContentProps = {
 
 // @public (undocumented)
 export type TLUiDropdownMenuGroupProps = {
-    id?: string;
     children: any;
     size?: 'medium' | 'small' | 'tiny' | 'wide';
 };
 
 // @public (undocumented)
 export interface TLUiDropdownMenuItemProps extends TLUiButtonProps {
-    // (undocumented)
-    id?: string;
     // (undocumented)
     noClose?: boolean;
 }
@@ -1530,7 +1525,6 @@ export type TLUiDropdownMenuSubTriggerProps = {
 
 // @public (undocumented)
 export type TLUiDropdownMenuTriggerProps = {
-    id?: string;
     children: any;
 };
 
