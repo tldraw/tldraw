@@ -1312,7 +1312,7 @@ export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string,
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiMenuGroup({ id, small, children }: TLUiMenuGroupProps): any;
+export function TldrawUiMenuGroup({ id, label, small, children }: TLUiMenuGroupProps): any;
 
 // @public (undocumented)
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
@@ -1797,8 +1797,11 @@ export type TLUiMenuContextProviderProps = {
 };
 
 // @public (undocumented)
-export type TLUiMenuGroupProps = {
+export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
     id: string;
+    label?: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
     small?: boolean;
     children?: any;
 };

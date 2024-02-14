@@ -9,7 +9,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 	const tools = useTools()
 	return (
 		<>
-			<TldrawUiMenuGroup id="shortcuts-dialog.tools">
+			<TldrawUiMenuGroup label="shortcuts-dialog.tools" id="tools">
 				<TldrawUiMenuItem {...actions['toggle-tool-lock']} />
 				<TldrawUiMenuItem {...tools['select']} />
 				<TldrawUiMenuItem {...tools['draw']} />
@@ -24,16 +24,16 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...tools['note']} />
 				<TldrawUiMenuItem {...tools['laser']} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="shortcuts-dialog.file">
+			<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
 				<TldrawUiMenuItem {...actions['insert-media']} />
 				<TldrawUiMenuItem {...actions['print']} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="shortcuts-dialog.preferences">
+			<TldrawUiMenuGroup label="shortcuts-dialog.preferences" id="preferences">
 				<TldrawUiMenuItem {...actions['toggle-dark-mode']} />
 				<TldrawUiMenuItem {...actions['toggle-focus-mode']} />
 				<TldrawUiMenuItem {...actions['toggle-grid']} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="shortcuts-dialog.edit">
+			<TldrawUiMenuGroup label="shortcuts-dialog.edit" id="edit">
 				<TldrawUiMenuItem {...actions['undo']} />
 				<TldrawUiMenuItem {...actions['redo']} />
 				<TldrawUiMenuItem {...actions['cut']} />
@@ -45,14 +45,14 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...actions['export-as-svg']} />
 				<TldrawUiMenuItem {...actions['export-as-png']} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="shortcuts-dialog.view">
+			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
 				<TldrawUiMenuItem {...actions['zoom-in']} />
 				<TldrawUiMenuItem {...actions['zoom-out']} />
 				<TldrawUiMenuItem {...actions['zoom-to-100']} />
 				<TldrawUiMenuItem {...actions['zoom-to-fit']} />
 				<TldrawUiMenuItem {...actions['zoom-to-selection']} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="shortcuts-dialog.transform">
+			<TldrawUiMenuGroup label="shortcuts-dialog.transform" id="transform">
 				<TldrawUiMenuItem {...actions['bring-to-front']} />
 				<TldrawUiMenuItem {...actions['bring-forward']} />
 				<TldrawUiMenuItem {...actions['send-backward']} />
