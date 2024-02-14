@@ -1,4 +1,13 @@
-import { Button, Dialog, TLUiDialogsContextType, useTranslation } from '@tldraw/tldraw'
+import {
+	Button,
+	DialogBody,
+	DialogCloseButton,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	TLUiDialogsContextType,
+	useTranslation,
+} from '@tldraw/tldraw'
 import { useState } from 'react'
 import { userPreferences } from './userPreferences'
 
@@ -40,14 +49,14 @@ function ConfirmOpenDialog({
 	const [dontShowAgain, setDontShowAgain] = useState(false)
 	return (
 		<>
-			<Dialog.Header>
-				<Dialog.Title>{msg('file-system.confirm-open.title')}</Dialog.Title>
-				<Dialog.CloseButton />
-			</Dialog.Header>
-			<Dialog.Body style={{ maxWidth: 350 }}>
+			<DialogHeader>
+				<DialogTitle>{msg('file-system.confirm-open.title')}</DialogTitle>
+				<DialogCloseButton />
+			</DialogHeader>
+			<DialogBody style={{ maxWidth: 350 }}>
 				{msg('file-system.confirm-open.description')}
-			</Dialog.Body>
-			<Dialog.Footer className="tlui-dialog__footer__actions">
+			</DialogBody>
+			<DialogFooter className="tlui-dialog__footer__actions">
 				<Button
 					type="normal"
 					onClick={() => setDontShowAgain(!dontShowAgain)}
@@ -70,7 +79,7 @@ function ConfirmOpenDialog({
 				>
 					{msg('file-system.confirm-open.open')}
 				</Button>
-			</Dialog.Footer>
+			</DialogFooter>
 		</>
 	)
 }

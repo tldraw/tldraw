@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import {

@@ -39,10 +39,6 @@ export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
-export {
-	TldrawUiContextProvider,
-	type TldrawUiContextProviderProps,
-} from './lib/ui/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
@@ -50,11 +46,16 @@ export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/But
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
 export {
+	TldrawUiContextProvider,
+	type TldrawUiContextProviderProps,
+} from './lib/ui/context/TldrawUiContextProvider'
+export {
 	useActions,
 	type TLUiActionItem,
 	type TLUiActionsContextType,
 } from './lib/ui/context/actions'
 export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
+export { BreakPointProvider, useBreakpoint } from './lib/ui/context/breakpoints'
 export {
 	useDialogs,
 	type TLUiDialog,
@@ -76,7 +77,6 @@ export {
 	type TLUiToastAction,
 	type TLUiToastsContextType,
 } from './lib/ui/context/toasts'
-export { BreakPointProvider, useBreakpoint } from './lib/ui/hooks/useBreakpoint'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
@@ -237,6 +237,18 @@ export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 export { type TLComponents } from './lib/Tldraw'
 
 export {
+	DialogBody,
+	DialogCloseButton,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	type TLUiDialogBodyProps,
+	type TLUiDialogFooterProps,
+	type TLUiDialogHeaderProps,
+	type TLUiDialogTitleProps,
+} from './lib/ui/components/primitives/Dialog'
+
+export {
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
 	DropdownMenuGroup,
@@ -257,6 +269,7 @@ export {
 	type TLUiDropdownMenuSubTriggerProps,
 	type TLUiDropdownMenuTriggerProps,
 } from './lib/ui/components/primitives/DropdownMenu'
+
 export {
 	Popover,
 	PopoverContent,
@@ -265,9 +278,3 @@ export {
 	type TLUiPopoverProps,
 	type TLUiPopoverTriggerProps,
 } from './lib/ui/components/primitives/Popover'
-
-// General dialogs / dropdowns
-// todo: consider removing now that we have the above components
-import * as Dialog from './lib/ui/components/primitives/Dialog'
-// N.B. Preserve order of import / export here with this comment.
-export { Dialog }

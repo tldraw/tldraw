@@ -1,3 +1,4 @@
+import { DialogTitle } from '@radix-ui/react-dialog'
 import { EMBED_DEFINITIONS, EmbedDefinition, track, useEditor } from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
@@ -5,7 +6,7 @@ import { useAssetUrls } from '../context/asset-urls'
 import { TLUiDialogProps } from '../context/dialogs'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
-import * as Dialog from './primitives/Dialog'
+import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from './primitives/Dialog'
 import { Icon } from './primitives/Icon'
 import { Input } from './primitives/Input'
 
@@ -29,20 +30,20 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 
 	return (
 		<>
-			<Dialog.Header>
-				<Dialog.Title>
+			<DialogHeader>
+				<DialogTitle>
 					{embedDefinition
-						? `${msg('embed-dialog.title')} — ${embedDefinition.title}`
-						: msg('embed-dialog.title')}
-				</Dialog.Title>
-				<Dialog.CloseButton />
-			</Dialog.Header>
+						? `${msg('embed-title')} — ${embedDefinition.title}`
+						: msg('embed-title')}
+				</DialogTitle>
+				<DialogCloseButton />
+			</DialogHeader>
 			{embedDefinition ? (
 				<>
-					<Dialog.Body className="tlui-embed-dialog__enter">
+					<DialogBody className="tlui-embed-dialog__enter">
 						<Input
 							className="tlui-embed-dialog__input"
-							label="embed-dialog.url"
+							label="embed-url"
 							placeholder="http://example.com"
 							autofocus
 							onValueChange={(value) => {
@@ -67,7 +68,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 						/>
 						{url === '' ? (
 							<div className="tlui-embed-dialog__instruction">
-								<span>{msg('embed-dialog.instruction')}</span>{' '}
+								<span>{msg('embed-instruction')}</span>{' '}
 								{embedDefinition.instructionLink && (
 									<a
 										target="_blank"
@@ -82,11 +83,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							</div>
 						) : (
 							<div className="tlui-embed-dialog__warning">
-								{showError ? msg('embed-dialog.invalid-url') : '\xa0'}
+								{showError ? msg('embed-invalid-url') : '\xa0'}
 							</div>
 						)}
-					</Dialog.Body>
-					<Dialog.Footer className="tlui-dialog__footer__actions">
+					</DialogBody>
+					<DialogFooter className="tlui-dialog__footer__actions">
 						<Button
 							type="normal"
 							onClick={() => {
@@ -94,14 +95,14 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								setEmbedInfoForUrl(null)
 								setUrl('')
 							}}
-							label="embed-dialog.back"
+							label="embed-back"
 						/>
 						<div className="tlui-embed__spacer" />
-						<Button type="normal" label="embed-dialog.cancel" onClick={onClose} />
+						<Button type="normal" label="embed-cancel" onClick={onClose} />
 						<Button
 							type="primary"
 							disabled={!embedInfoForUrl}
-							label="embed-dialog.create"
+							label="embed-create"
 							onClick={() => {
 								if (!embedInfoForUrl) return
 
@@ -115,11 +116,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								onClose()
 							}}
 						/>
-					</Dialog.Footer>
+					</DialogFooter>
 				</>
 			) : (
 				<>
-					<Dialog.Body className="tlui-embed-dialog__list">
+					<DialogBody className="tlui-embed-dialog__list">
 						{EMBED_DEFINITIONS.map((def) => {
 							return (
 								<Button
@@ -135,7 +136,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								</Button>
 							)
 						})}
-					</Dialog.Body>
+					</DialogBody>
 				</>
 			)}
 		</>

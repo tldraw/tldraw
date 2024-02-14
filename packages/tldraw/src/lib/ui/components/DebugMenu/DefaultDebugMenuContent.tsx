@@ -1,3 +1,4 @@
+import { DialogTitle } from '@radix-ui/react-dialog'
 import {
 	DebugFlag,
 	Editor,
@@ -19,7 +20,7 @@ import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../menus/TldrawUiMenuSubmenu'
 import { Button } from '../primitives/Button'
-import * as Dialog from '../primitives/Dialog'
+import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from '../primitives/Dialog'
 
 /** @public */
 export function DefaultDebugMenuContent() {
@@ -224,12 +225,12 @@ function ExampleDialog({
 
 	return (
 		<>
-			<Dialog.Header>
-				<Dialog.Title>{title}</Dialog.Title>
-				<Dialog.CloseButton />
-			</Dialog.Header>
-			<Dialog.Body style={{ maxWidth: 350 }}>{body}</Dialog.Body>
-			<Dialog.Footer className="tlui-dialog__footer__actions">
+			<DialogHeader>
+				<DialogTitle>{title}</DialogTitle>
+				<DialogCloseButton />
+			</DialogHeader>
+			<DialogBody style={{ maxWidth: 350 }}>{body}</DialogBody>
+			<DialogFooter className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
 					<Button
 						type="normal"
@@ -246,7 +247,7 @@ function ExampleDialog({
 				<Button type="primary" onClick={async () => onContinue()}>
 					{confirm}
 				</Button>
-			</Dialog.Footer>
+			</DialogFooter>
 		</>
 	)
 }

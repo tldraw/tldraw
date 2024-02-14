@@ -2090,7 +2090,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useBreakpoint.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/breakpoints.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -3459,258 +3459,241 @@
           "name": "DefaultZoomMenuContent"
         },
         {
-          "kind": "Namespace",
-          "canonicalReference": "@tldraw/tldraw!Dialog:namespace",
-          "docComment": "",
-          "excerptTokens": [],
-          "fileUrlPath": "packages/tldraw/src/index.ts",
-          "releaseTag": "None",
-          "name": "Dialog",
-          "preserveMemberOrder": false,
-          "members": [
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DialogBody:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
             {
-              "kind": "Function",
-              "canonicalReference": "@tldraw/tldraw!Dialog.Body:function(1)",
-              "docComment": "/**\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "export declare function Body({ className, children, style, }: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n    className?: string;\n    children: any;\n    style?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "React.CSSProperties",
-                  "canonicalReference": "@types/react!React.CSSProperties:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n}"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"react/jsx-runtime\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JSX.Element",
-                  "canonicalReference": "@types/react!JSX.Element:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 7
-              },
-              "releaseTag": "Public",
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "{ className, children, style, }",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                }
-              ],
-              "name": "Body"
+              "kind": "Content",
+              "text": "export declare function DialogBody({ className, children, style }: "
             },
             {
-              "kind": "Function",
-              "canonicalReference": "@tldraw/tldraw!Dialog.CloseButton:function(1)",
-              "docComment": "/**\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "export declare function CloseButton(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"react/jsx-runtime\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JSX.Element",
-                  "canonicalReference": "@types/react!JSX.Element:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "releaseTag": "Public",
-              "overloadIndex": 1,
-              "parameters": [],
-              "name": "CloseButton"
+              "kind": "Reference",
+              "text": "TLUiDialogBodyProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogBodyProps:type"
             },
             {
-              "kind": "Function",
-              "canonicalReference": "@tldraw/tldraw!Dialog.Footer:function(1)",
-              "docComment": "/**\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "export declare function Footer({ className, children }: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n    className?: string;\n    children: any;\n}"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"react/jsx-runtime\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JSX.Element",
-                  "canonicalReference": "@types/react!JSX.Element:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "{ className, children }",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "name": "Footer"
+              "kind": "Content",
+              "text": "): "
             },
             {
-              "kind": "Function",
-              "canonicalReference": "@tldraw/tldraw!Dialog.Header:function(1)",
-              "docComment": "/**\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "export declare function Header({ className, children }: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n    className?: string;\n    children: any;\n}"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"react/jsx-runtime\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JSX.Element",
-                  "canonicalReference": "@types/react!JSX.Element:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/primitives/Dialog.d.ts",
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "{ className, children }",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "name": "Header"
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
             },
             {
-              "kind": "Function",
-              "canonicalReference": "@tldraw/tldraw!Dialog.Title:function(1)",
-              "docComment": "/**\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "export declare function Title({ className, children }: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n    className?: string;\n    children: any;\n}"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"react/jsx-runtime\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JSX.Element",
-                  "canonicalReference": "@types/react!JSX.Element:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "{ className, children }",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "name": "Title"
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
-          ]
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, children, style }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DialogBody"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DialogCloseButton:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DialogCloseButton(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DialogCloseButton"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DialogFooter:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DialogFooter({ className, children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogFooterProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogFooterProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DialogFooter"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DialogHeader:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DialogHeader({ className, children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogHeaderProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogHeaderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DialogHeader"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DialogTitle:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DialogTitle({ className, children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogTitleProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogTitleProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DialogTitle"
         },
         {
           "kind": "Function",
@@ -15297,7 +15280,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/TldrawUiContextProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/TldrawUiContextProvider.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -15326,7 +15309,7 @@
               "text": "export interface TldrawUiContextProviderProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/TldrawUiContextProvider.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/TldrawUiContextProvider.tsx",
           "releaseTag": "Public",
           "name": "TldrawUiContextProviderProps",
           "preserveMemberOrder": false,
@@ -17044,6 +17027,93 @@
           "extendsTokenRanges": []
         },
         {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiDialogBodyProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiDialogBodyProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    className?: string;\n    children: any;\n    style?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.CSSProperties",
+              "canonicalReference": "@types/react!React.CSSProperties:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
+          "releaseTag": "Public",
+          "name": "TLUiDialogBodyProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiDialogFooterProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiDialogFooterProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    className?: string;\n    children: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
+          "releaseTag": "Public",
+          "name": "TLUiDialogFooterProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiDialogHeaderProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiDialogHeaderProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    className?: string;\n    children: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/primitives/Dialog.d.ts",
+          "releaseTag": "Public",
+          "name": "TLUiDialogHeaderProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/tldraw!TLUiDialogProps:interface",
           "docComment": "/**\n * @public\n */\n",
@@ -17157,6 +17227,32 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 12
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TLUiDialogTitleProps:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLUiDialogTitleProps = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    className?: string;\n    children: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/Dialog.tsx",
+          "releaseTag": "Public",
+          "name": "TLUiDialogTitleProps",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
           }
         },
         {
@@ -22491,7 +22587,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useBreakpoint.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/breakpoints.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2

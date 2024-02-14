@@ -1,6 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { memo } from 'react'
-import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'

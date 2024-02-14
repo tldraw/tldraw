@@ -8,7 +8,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'

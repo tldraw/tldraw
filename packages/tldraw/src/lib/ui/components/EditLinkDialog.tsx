@@ -1,9 +1,10 @@
+import { DialogTitle } from '@radix-ui/react-dialog'
 import { T, TLBaseShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiDialogProps } from '../context/dialogs'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
-import * as Dialog from './primitives/Dialog'
+import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from './primitives/Dialog'
 import { Input } from './primitives/Input'
 
 // A url can either be invalid, or valid with a protocol, or valid without a protocol.
@@ -133,36 +134,32 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 
 	return (
 		<>
-			<Dialog.Header>
-				<Dialog.Title>{msg('edit-link-dialog.title')}</Dialog.Title>
-				<Dialog.CloseButton />
-			</Dialog.Header>
-			<Dialog.Body>
+			<DialogHeader>
+				<DialogTitle>{msg('edit-link-title')}</DialogTitle>
+				<DialogCloseButton />
+			</DialogHeader>
+			<DialogBody>
 				<div className="tlui-edit-link-dialog">
 					<Input
 						ref={rInput}
 						className="tlui-edit-link-dialog__input"
-						label="edit-link-dialog.url"
+						label="edit-link-url"
 						autofocus
 						value={urlInputState.actual}
 						onValueChange={handleChange}
 						onComplete={handleComplete}
 						onCancel={handleCancel}
 					/>
-					<div>
-						{urlInputState.valid
-							? msg('edit-link-dialog.detail')
-							: msg('edit-link-dialog.invalid-url')}
-					</div>
+					<div>{urlInputState.valid ? msg('edit-link-detail') : msg('edit-link-invalid-url')}</div>
 				</div>
-			</Dialog.Body>
-			<Dialog.Footer className="tlui-dialog__footer__actions">
+			</DialogBody>
+			<DialogFooter className="tlui-dialog__footer__actions">
 				<Button type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
-					{msg('edit-link-dialog.cancel')}
+					{msg('edit-link-cancel')}
 				</Button>
 				{isRemoving ? (
 					<Button type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
-						{msg('edit-link-dialog.clear')}
+						{msg('edit-link-clear')}
 					</Button>
 				) : (
 					<Button
@@ -171,10 +168,10 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						onTouchEnd={handleComplete}
 						onClick={handleComplete}
 					>
-						{msg('edit-link-dialog.save')}
+						{msg('edit-link-save')}
 					</Button>
 				)}
-			</Dialog.Footer>
+			</DialogFooter>
 		</>
 	)
 })

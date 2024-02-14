@@ -226,13 +226,6 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
 }): JSX_2.Element;
 
 // @public (undocumented)
-function Body_2({ className, children, style, }: {
-    className?: string;
-    children: any;
-    style?: React.CSSProperties;
-}): JSX_2.Element;
-
-// @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
@@ -272,9 +265,6 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 // @public (undocumented)
 export const Button: React_3.ForwardRefExoticComponent<TLUiButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
-
-// @public (undocumented)
-function CloseButton(): JSX_2.Element;
 
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
@@ -368,16 +358,20 @@ export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
 // @public (undocumented)
 export function DefaultZoomMenuContent(): JSX_2.Element;
 
-declare namespace Dialog {
-    export {
-        Header,
-        Title,
-        CloseButton,
-        Body_2 as Body,
-        Footer
-    }
-}
-export { Dialog }
+// @public (undocumented)
+export function DialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogCloseButton(): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogFooter({ className, children }: TLUiDialogFooterProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogHeader({ className, children }: TLUiDialogHeaderProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogTitle({ className, children }: TLUiDialogTitleProps): JSX_2.Element;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
@@ -532,12 +526,6 @@ export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
     padding: number;
 }): void;
-
-// @public (undocumented)
-function Footer({ className, children }: {
-    className?: string;
-    children: any;
-}): JSX_2.Element;
 
 // @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
@@ -767,12 +755,6 @@ export class HandTool extends StateNode {
     // (undocumented)
     onTripleClick: TLClickEvent;
 }
-
-// @public (undocumented)
-function Header({ className, children }: {
-    className?: string;
-    children: any;
-}): JSX_2.Element;
 
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
@@ -1231,12 +1213,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-function Title({ className, children }: {
-    className?: string;
-    children: any;
-}): JSX_2.Element;
-
-// @public (undocumented)
 export type TLComponents = TLEditorComponents & TLUiComponents;
 
 // @public (undocumented)
@@ -1435,6 +1411,25 @@ export interface TLUiDialog {
 }
 
 // @public (undocumented)
+export type TLUiDialogBodyProps = {
+    className?: string;
+    children: any;
+    style?: React.CSSProperties;
+};
+
+// @public (undocumented)
+export type TLUiDialogFooterProps = {
+    className?: string;
+    children: any;
+};
+
+// @public (undocumented)
+export type TLUiDialogHeaderProps = {
+    className?: string;
+    children: any;
+};
+
+// @public (undocumented)
 export interface TLUiDialogProps {
     // (undocumented)
     onClose: () => void;
@@ -1449,6 +1444,12 @@ export type TLUiDialogsContextType = {
     updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
     clearDialogs: () => void;
     dialogs: TLUiDialog[];
+};
+
+// @public (undocumented)
+export type TLUiDialogTitleProps = {
+    className?: string;
+    children: any;
 };
 
 // @public (undocumented)
