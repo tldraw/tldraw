@@ -122,11 +122,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 									<TldrawUiDropdownMenuItem key={item.value}>
 										<TldrawUiButton
 											type="icon"
-											title={
-												msg(labelB) +
-												' — ' +
-												msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)
-											}
+											title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
 											data-testid={`style.${uiTypeB}.${item.value}`}
 											onClick={() => onValueChange(styleB, item.value, false)}
 										>

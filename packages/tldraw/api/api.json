@@ -15421,7 +15421,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiDropdownMenuTrigger({ children }: "
+              "text": "export declare function TldrawUiDropdownMenuTrigger({ children, ...rest }: "
             },
             {
               "kind": "Reference",
@@ -15455,7 +15455,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ children }",
+              "parameterName": "{ children, ...rest }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

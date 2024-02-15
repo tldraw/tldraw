@@ -41,13 +41,14 @@ export interface TLUiDropdownMenuTriggerProps {
 }
 
 /** @public */
-export function TldrawUiDropdownMenuTrigger({ children }: TLUiDropdownMenuTriggerProps) {
+export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps) {
 	return (
 		<_DropdownMenu.Trigger
 			dir="ltr"
 			asChild
 			// Firefox fix: Stop the dropdown immediately closing after touch
 			onTouchEnd={(e) => preventDefault(e)}
+			{...rest}
 		>
 			{children}
 		</_DropdownMenu.Trigger>
