@@ -115,7 +115,6 @@ export function TldrawUiMenuItem<
 					dir="ltr"
 					title={labelStr}
 					draggable={false}
-					disabled={disabled}
 					className="tlui-button tlui-button__menu"
 					data-testid={`${sourceId}.${id}`}
 					onSelect={(e) => {

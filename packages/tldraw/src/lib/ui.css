@@ -35,14 +35,12 @@
 	color: var(--color-text-1);
 }
 
-.tlui-button:disabled,
-.tlui-button[data-disabled] {
+.tlui-button:disabled {
 	color: var(--color-text-3);
 	text-shadow: none;
 }
 
-.tlui-button:disabled .tlui-kbd,
-.tlui-button[data-disabled] .tlui-kbd {
+.tlui-button:disabled .tlui-kbd {
 	color: var(--color-text-3);
 }
 
