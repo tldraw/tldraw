@@ -52,58 +52,67 @@ export class HandleSnaps {
 		})
 	}
 
-	snapHandle({
+	private getHandleSnapPosition({
 		handlePoint,
 		additionalSegments,
 	}: {
 		handlePoint: Vec
 		additionalSegments: Vec[][]
-	}): SnapData | null {
+	}): Vec | null {
 		const snapThreshold = this.manager.getSnapThreshold()
 
 		// We snap to two different parts of the shape's handle snap geometry:
-		// 1. The `outline`. This describes the outline of the shape, and we just snap to the
-		//    nearest point on that outline.
-		// 2. The `points`. These are handles or other key points that we want to snap to with a
+		// 1. The `points`. These are handles or other key points that we want to snap to with a
 		//    higher priority than the normal outline snapping.
-		let minDistanceForOutline = snapThreshold
-		let nearestPointOnOutline: Vec | null = null
+		// 2. The `outline`. This describes the outline of the shape, and we just snap to the
+		//    nearest point on that outline.
 
+		// Start with the points:
 		let minDistanceForSnapPoint = snapThreshold
 		let nearestSnapPoint: Vec | null = null
-
 		for (const shapeId of this.manager.getSnappableShapes()) {
-			const snapGeometry = this.getSnapGeometryCache().get(shapeId)
-			if (!snapGeometry) continue
+			const snapPoints = this.getSnapGeometryCache().get(shapeId)?.points
+			if (!snapPoints) continue
 
 			const shapePageTransform = assertExists(this.editor.getShapePageTransform(shapeId))
-			const pointInShapeSpace = this.editor.getPointInShapeSpace(shapeId, handlePoint)
 
-			if (snapGeometry.outline) {
-				const nearestShapePointInShapeSpace = snapGeometry.outline.nearestPoint(pointInShapeSpace)
-				const nearestInPageSpace = shapePageTransform.applyToPoint(nearestShapePointInShapeSpace)
-				const distance = Vec.Dist(handlePoint, nearestInPageSpace)
+			for (const snapPointInShapeSpace of snapPoints) {
+				const snapPointInPageSpace = shapePageTransform.applyToPoint(snapPointInShapeSpace)
+				const distance = Vec.Dist(handlePoint, snapPointInPageSpace)
 
-				if (distance < minDistanceForOutline) {
-					minDistanceForOutline = distance
-					nearestPointOnOutline = nearestInPageSpace
-				}
-			}
-
-			if (snapGeometry.points) {
-				for (const snapPointInShapeSpace of snapGeometry.points) {
-					const snapPointInPageSpace = shapePageTransform.applyToPoint(snapPointInShapeSpace)
-					const distance = Vec.Dist(handlePoint, snapPointInPageSpace)
-
-					if (distance < minDistanceForSnapPoint) {
-						minDistanceForSnapPoint = distance
-						nearestSnapPoint = snapPointInPageSpace
-					}
+				if (distance < minDistanceForSnapPoint) {
+					minDistanceForSnapPoint = distance
+					nearestSnapPoint = snapPointInPageSpace
 				}
 			}
 		}
 
-		// handle additional segments:
+		// if we found a snap point, return it - we don't need to check the outlines because points
+		// have a higher priority
+		if (nearestSnapPoint) return nearestSnapPoint
+
+		let minDistanceForOutline = snapThreshold
+		let nearestPointOnOutline: Vec | null = null
+
+		for (const shapeId of this.manager.getSnappableShapes()) {
+			const snapOutline = this.getSnapGeometryCache().get(shapeId)?.outline
+			if (!snapOutline) continue
+
+			const shapePageTransform = assertExists(this.editor.getShapePageTransform(shapeId))
+			const pointInShapeSpace = this.editor.getPointInShapeSpace(shapeId, handlePoint)
+
+			const nearestShapePointInShapeSpace = snapOutline.nearestPoint(pointInShapeSpace)
+			const nearestInPageSpace = shapePageTransform.applyToPoint(nearestShapePointInShapeSpace)
+			const distance = Vec.Dist(handlePoint, nearestInPageSpace)
+
+			if (distance < minDistanceForOutline) {
+				minDistanceForOutline = distance
+				nearestPointOnOutline = nearestInPageSpace
+			}
+		}
+
+		// We also allow passing "additionSegments" for self-snapping.
+		// TODO(alex): replace this with a proper self-snapping solution
 		for (const segment of additionalSegments) {
 			const nearestOnSegment = Vec.NearestPointOnLineSegment(segment[0], segment[1], handlePoint)
 			const distance = Vec.Dist(handlePoint, nearestOnSegment)
@@ -114,19 +123,27 @@ export class HandleSnaps {
 			}
 		}
 
-		const target = nearestSnapPoint ?? nearestPointOnOutline ?? null
+		// if we found a point on the outline, return it
+		if (nearestPointOnOutline) return nearestPointOnOutline
+
+		// if not, there's no nearby snap point
+		return null
+	}
+
+	snapHandle(opts: { handlePoint: Vec; additionalSegments: Vec[][] }): SnapData | null {
+		const snapPosition = this.getHandleSnapPosition(opts)
 
 		// If we found a point, display snap lines, and return the nudge
-		if (target) {
+		if (snapPosition) {
 			this.manager.setIndicators([
 				{
 					id: uniqueId(),
 					type: 'points',
-					points: [target],
+					points: [snapPosition],
 				},
 			])
 
-			return { nudge: Vec.Sub(target, handlePoint) }
+			return { nudge: Vec.Sub(snapPosition, opts.handlePoint) }
 		}
 
 		return null
