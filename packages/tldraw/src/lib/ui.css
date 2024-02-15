@@ -507,7 +507,6 @@
 	grid-auto-flow: column;
 	grid-template-columns: auto;
 	grid-auto-columns: minmax(1em, auto);
-	gap: 1px;
 	align-self: bottom;
 	color: var(--color-text-1);
 	margin-left: var(--space-4);
