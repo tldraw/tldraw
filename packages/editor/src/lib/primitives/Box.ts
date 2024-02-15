@@ -134,7 +134,7 @@ export class Box {
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
-	get snapPoints() {
+	get cornersAndCenter() {
 		return [
 			new Vec(this.minX, this.minY),
 			new Vec(this.maxX, this.minY),

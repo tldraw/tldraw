@@ -159,6 +159,11 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     onResize: TLOnResizeHandler<any>;
 }
 
+// @public
+export interface BoundsSnapGeometry {
+    points?: VecModel[];
+}
+
 // @public (undocumented)
 export interface BoundsSnapPoint {
     // (undocumented)
@@ -197,6 +202,8 @@ export class Box {
     containsPoint(V: VecLike, margin?: number): boolean;
     // (undocumented)
     get corners(): Vec[];
+    // (undocumented)
+    get cornersAndCenter(): Vec[];
     // (undocumented)
     static Equals(a: Box | BoxModel, b: Box | BoxModel): boolean;
     // (undocumented)
@@ -263,8 +270,6 @@ export class Box {
     get sides(): Array<[Vec, Vec]>;
     // (undocumented)
     get size(): Vec;
-    // (undocumented)
-    get snapPoints(): Vec[];
     // (undocumented)
     snapToGrid(size: number): void;
     // (undocumented)
@@ -982,11 +987,7 @@ export abstract class Geometry2d {
     // (undocumented)
     get area(): number;
     // (undocumented)
-    _area: number | undefined;
-    // (undocumented)
     get bounds(): Box;
-    // (undocumented)
-    _bounds: Box | undefined;
     // (undocumented)
     get center(): Vec;
     // (undocumented)
@@ -1020,15 +1021,9 @@ export abstract class Geometry2d {
     // (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
-    get snapPoints(): Vec[];
-    // (undocumented)
-    _snapPoints: undefined | Vec[];
-    // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
     get vertices(): Vec[];
-    // (undocumented)
-    _vertices: undefined | Vec[];
 }
 
 // @public
@@ -1142,6 +1137,11 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 // @public (undocumented)
 export const HALF_PI: number;
+
+// @public
+export interface HandleSnapGeometry {
+    outline?: Geometry2d | null;
+}
 
 // @public
 export function hardReset({ shouldReload }?: {
@@ -1600,10 +1600,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
+    getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
+    getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     getOutlineSegments(shape: Shape): Vec[][];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
