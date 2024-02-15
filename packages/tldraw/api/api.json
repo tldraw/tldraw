@@ -3405,243 +3405,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DialogBody:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function TldrawUiDialogBody({ className, children, style }: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialogBodyProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDialogBodyProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ className, children, style }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "DialogBody"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DialogCloseButton:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function TldrawUiDialogCloseButton(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "DialogCloseButton"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DialogFooter:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function TldrawUiDialogFooter({ className, children }: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialogFooterProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDialogFooterProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ className, children }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "DialogFooter"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DialogHeader:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function TldrawUiDialogHeader({ className, children }: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialogHeaderProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDialogHeaderProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ className, children }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "DialogHeader"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DialogTitle:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function TldrawUiDialogTitle({ className, children }: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialogTitleProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiDialogTitleProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ className, children }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "DialogTitle"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!downsizeImage:function(1)",
           "docComment": "/**\n * Resize an image Blob to be smaller than it is currently.\n *\n * @param image - The image Blob.\n *\n * @param width - The desired width.\n *\n * @param height - The desired height.\n *\n * @param opts - Options for the image.\n *\n * @example\n * ```ts\n * const image = await (await fetch('/image.jpg')).blob()\n * const size = await getImageSize(image)\n * const resizedImage = await downsizeImage(image, size.w / 2, size.h / 2, { type: \"image/jpeg\", quality: 0.92 })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -14663,6 +14426,56 @@
           "name": "TldrawUiButtonLabel"
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!TldrawUiButtonPicker:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TldrawUiButtonPicker: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "MemoExoticComponent",
+              "canonicalReference": "@types/react!React.MemoExoticComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<(<T extends string>(props: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiButtonPickerProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<T>) => import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ")>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiButtonPicker.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TldrawUiButtonPicker",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 8
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!TldrawUiComponentsProvider:function(1)",
           "docComment": "/**\n * @public\n */\n",
@@ -14973,6 +14786,243 @@
             }
           ],
           "extendsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawUiDialogBody:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TldrawUiDialogBody({ className, children, style }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogBodyProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogBodyProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, children, style }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawUiDialogBody"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawUiDialogCloseButton:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TldrawUiDialogCloseButton(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "TldrawUiDialogCloseButton"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawUiDialogFooter:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TldrawUiDialogFooter({ className, children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogFooterProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogFooterProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawUiDialogFooter"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawUiDialogHeader:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TldrawUiDialogHeader({ className, children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogHeaderProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogHeaderProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawUiDialogHeader"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawUiDialogTitle:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TldrawUiDialogTitle({ className, children }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogTitleProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogTitleProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawUiDialogTitle"
         },
         {
           "kind": "Function",
@@ -15638,7 +15688,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuCheckboxItem.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem.tsx",
           "returnTypeTokenRange": {
             "startIndex": 12,
             "endIndex": 15
@@ -15713,7 +15763,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuContext.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuContext.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -15759,7 +15809,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuGroup.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuGroup.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 4
@@ -15850,7 +15900,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuItem.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuItem.tsx",
           "returnTypeTokenRange": {
             "startIndex": 12,
             "endIndex": 15
@@ -15940,7 +15990,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuSubmenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuSubmenu.tsx",
           "returnTypeTokenRange": {
             "startIndex": 8,
             "endIndex": 9
@@ -16652,6 +16702,231 @@
             "startIndex": 1,
             "endIndex": 2
           }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface TLUiButtonPickerProps<T extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "> "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiButtonPicker.tsx",
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "TLUiButtonPickerProps",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps#items:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "items: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StyleValuesForUi",
+                  "canonicalReference": "@tldraw/tldraw!~StyleValuesForUi:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "items",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps#onValueChange:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onValueChange: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(style: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StyleProp",
+                  "canonicalReference": "@tldraw/tlschema!StyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>, value: T, squashing: boolean) => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onValueChange",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps#style:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "style: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StyleProp",
+                  "canonicalReference": "@tldraw/tlschema!StyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "style",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps#title:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "title: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "title",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps#uiType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "uiType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "uiType",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps#value:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "value: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SharedStyle",
+                  "canonicalReference": "@tldraw/editor!SharedStyle:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "value",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            }
+          ],
+          "extendsTokenRanges": []
         },
         {
           "kind": "Interface",
@@ -20537,7 +20812,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuCheckboxItem.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem.tsx",
           "releaseTag": "Public",
           "name": "TLUiMenuCheckboxItemProps",
           "typeParameters": [
@@ -20614,7 +20889,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuContext.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuContext.tsx",
           "releaseTag": "Public",
           "name": "TLUiMenuContextProviderProps",
           "typeTokenRange": {
@@ -20656,7 +20931,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuGroup.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuGroup.tsx",
           "releaseTag": "Public",
           "name": "TLUiMenuGroupProps",
           "typeParameters": [
@@ -20745,7 +21020,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuItem.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuItem.tsx",
           "releaseTag": "Public",
           "name": "TLUiMenuItemProps",
           "typeParameters": [
@@ -20811,7 +21086,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menus/TldrawUiMenuSubmenu.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuSubmenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiMenuSubmenuProps",
           "typeParameters": [

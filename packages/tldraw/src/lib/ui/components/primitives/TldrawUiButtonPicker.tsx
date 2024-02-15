@@ -25,6 +25,7 @@ export interface TLUiButtonPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
+/** @public */
 export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends string>(
 	props: TLUiButtonPickerProps<T>
 ) {

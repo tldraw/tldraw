@@ -1,13 +1,13 @@
 import {
-	DialogBody,
-	DialogCloseButton,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
 	TLUiDialogsContextType,
 	TldrawUiButton,
 	TldrawUiButtonCheck,
 	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 	useLocalStorageState,
 	useTranslation,
 } from '@tldraw/tldraw'
@@ -52,12 +52,14 @@ function ConfirmLeaveDialog({
 
 	return (
 		<>
-			<DialogHeader>
-				<DialogTitle>{msg('sharing.confirm-leave.title')}</DialogTitle>
-				<DialogCloseButton />
-			</DialogHeader>
-			<DialogBody style={{ maxWidth: 350 }}>{msg('sharing.confirm-leave.description')}</DialogBody>
-			<DialogFooter className="tlui-dialog__footer__actions">
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg('sharing.confirm-leave.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				{msg('sharing.confirm-leave.description')}
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton
 					type="normal"
 					style={{ marginRight: 'auto' }}
@@ -80,7 +82,7 @@ function ConfirmLeaveDialog({
 				>
 					<TldrawUiButtonLabel>{msg('sharing.confirm-leave.leave')}</TldrawUiButtonLabel>
 				</TldrawUiButton>
-			</DialogFooter>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

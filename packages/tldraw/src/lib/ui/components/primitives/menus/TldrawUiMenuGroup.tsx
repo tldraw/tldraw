@@ -1,8 +1,8 @@
 import { ContextMenuGroup } from '@radix-ui/react-context-menu'
-import { unwrapLabel } from '../../context/actions'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiDropdownMenuGroup } from '../primitives/TldrawUiDropdownMenu'
+import { unwrapLabel } from '../../../context/actions'
+import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */

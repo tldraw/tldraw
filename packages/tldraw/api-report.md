@@ -27,6 +27,7 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
 import { Mat } from '@tldraw/editor';
 import { MatModel } from '@tldraw/editor';
+import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -48,6 +49,7 @@ import { ShapeUtil } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StoreSnapshot } from '@tldraw/editor';
+import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { T } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
@@ -355,21 +357,6 @@ export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
 
 // @public (undocumented)
 export function DefaultZoomMenuContent(): JSX_2.Element;
-
-// @public (undocumented)
-export function DialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DialogCloseButton(): JSX_2.Element;
-
-// @public (undocumented)
-export function DialogFooter({ className, children }: TLUiDialogFooterProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DialogHeader({ className, children }: TLUiDialogHeaderProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DialogTitle({ className, children }: TLUiDialogTitleProps): JSX_2.Element;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
@@ -1252,6 +1239,9 @@ export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconPr
 export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.Element;
 
 // @public (undocumented)
+export const TldrawUiButtonPicker: MemoExoticComponent<(<T extends string>(props: TLUiButtonPickerProps<T>) => JSX_2.Element)>;
+
+// @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children, }: ComponentsContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -1266,6 +1256,21 @@ export interface TldrawUiContextProviderProps {
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
+
+// @public (undocumented)
+export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDialogCloseButton(): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDialogFooter({ className, children }: TLUiDialogFooterProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
@@ -1330,6 +1335,9 @@ export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): J
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
 
+// @internal (undocumented)
+export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
+
 // @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
@@ -1379,6 +1387,22 @@ export type TLUiButtonIconProps = {
 export type TLUiButtonLabelProps = {
     children?: any;
 };
+
+// @public (undocumented)
+export interface TLUiButtonPickerProps<T extends string> {
+    // (undocumented)
+    items: StyleValuesForUi<T>;
+    // (undocumented)
+    onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void;
+    // (undocumented)
+    style: StyleProp<T>;
+    // (undocumented)
+    title: string;
+    // (undocumented)
+    uiType: string;
+    // (undocumented)
+    value: SharedStyle<T>;
+}
 
 // @public (undocumented)
 export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
@@ -1868,6 +1892,22 @@ export interface TLUiPopoverTriggerProps {
 export type TLUiQuickActionsProps = {
     children?: any;
 };
+
+// @internal (undocumented)
+export interface TLUiSliderProps {
+    // (undocumented)
+    'data-testid'?: string;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    onValueChange: (value: number, emphemeral: boolean) => void;
+    // (undocumented)
+    steps: number;
+    // (undocumented)
+    title: string;
+    // (undocumented)
+    value: null | number;
+}
 
 // @public (undocumented)
 export type TLUiStylePanelContentProps = {

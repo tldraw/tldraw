@@ -1,13 +1,13 @@
 import {
-	DialogBody,
-	DialogCloseButton,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
 	TLUiDialogsContextType,
 	TldrawUiButton,
 	TldrawUiButtonCheck,
 	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 	useTranslation,
 } from '@tldraw/tldraw'
 import { useState } from 'react'
@@ -51,14 +51,14 @@ function ConfirmClearDialog({
 	const [dontShowAgain, setDontShowAgain] = useState(false)
 	return (
 		<>
-			<DialogHeader>
-				<DialogTitle>{msg('file-system.confirm-clear.title')}</DialogTitle>
-				<DialogCloseButton />
-			</DialogHeader>
-			<DialogBody style={{ maxWidth: 350 }}>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg('file-system.confirm-clear.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				{msg('file-system.confirm-clear.description')}
-			</DialogBody>
-			<DialogFooter className="tlui-dialog__footer__actions">
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton
 					type="normal"
 					onClick={() => setDontShowAgain(!dontShowAgain)}
@@ -83,7 +83,7 @@ function ConfirmClearDialog({
 				>
 					<TldrawUiButtonLabel>{msg('file-system.confirm-clear.continue')}</TldrawUiButtonLabel>
 				</TldrawUiButton>
-			</DialogFooter>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

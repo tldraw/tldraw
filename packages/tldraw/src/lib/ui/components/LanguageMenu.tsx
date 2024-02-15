@@ -1,9 +1,9 @@
 import { useEditor } from '@tldraw/editor'
 import { useUiEvents } from '../context/events'
 import { useLanguages } from '../hooks/useTranslation/useLanguages'
-import { TldrawUiMenuCheckboxItem } from './menus/TldrawUiMenuCheckboxItem'
-import { TldrawUiMenuGroup } from './menus/TldrawUiMenuGroup'
-import { TldrawUiMenuSubmenu } from './menus/TldrawUiMenuSubmenu'
+import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckboxItem'
+import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
 export function LanguageMenu() {
 	const editor = useEditor()

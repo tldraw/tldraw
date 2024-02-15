@@ -4,8 +4,8 @@ import { forwardRef, memo, useCallback } from 'react'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
 /** @public */

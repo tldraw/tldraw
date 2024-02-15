@@ -2,7 +2,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
 import { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from '../../hooks/menu-hooks'
 import { useReadonly } from '../../hooks/useReadonly'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultQuickActionsContent() {

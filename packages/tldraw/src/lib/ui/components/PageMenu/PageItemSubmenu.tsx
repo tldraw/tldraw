@@ -1,9 +1,6 @@
 import { MAX_PAGES, PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
-import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
@@ -11,6 +8,9 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { onMovePage } from './edit-pages-shared'
 
 export interface PageItemSubmenuProps {

@@ -5,17 +5,17 @@ import {
 	ContextMenuSubTrigger,
 } from '@radix-ui/react-context-menu'
 import { useContainer } from '@tldraw/editor'
-import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
+import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { TldrawUiButton } from '../Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
+import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
 import {
 	TldrawUiDropdownMenuSub,
 	TldrawUiDropdownMenuSubContent,
 	TldrawUiDropdownMenuSubTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
+} from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
