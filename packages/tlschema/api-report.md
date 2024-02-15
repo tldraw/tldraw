@@ -607,6 +607,9 @@ export const LANGUAGES: readonly [{
     readonly locale: "ru";
     readonly label: "Russian";
 }, {
+    readonly locale: "sl";
+    readonly label: "Slovenščina";
+}, {
     readonly locale: "fi";
     readonly label: "Suomi";
 }, {

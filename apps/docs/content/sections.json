@@ -18,7 +18,7 @@
 		"title": "Community",
 		"description": "Guides for contributing to tldraw's open source project.",
 		"categories": [],
-		"sidebar_behavior": "hidden"
+		"sidebar_behavior": "show-links"
 	},
 	{
 		"id": "reference",

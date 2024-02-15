@@ -2529,7 +2529,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this._setCamera({
 				x: -targetViewportPage.x,
 				y: -targetViewportPage.y,
-				z: viewportPageBounds.width / targetViewportPage.width,
+				z: this.getViewportScreenBounds().width / targetViewportPage.width,
 			})
 		}
 
@@ -2708,17 +2708,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(center = false): this {
-		const container = this.getContainer()
-		if (!container) return this
-
-		const rect = container.getBoundingClientRect()
-		const screenBounds = new Box(
-			rect.left || rect.x,
-			rect.top || rect.y,
-			Math.max(rect.width, 1),
-			Math.max(rect.height, 1)
-		)
+	updateViewportScreenBounds(screenBounds: Box, center = false): this {
+		screenBounds.width = Math.max(screenBounds.width, 1)
+		screenBounds.height = Math.max(screenBounds.height, 1)
 
 		const insets = [
 			// top
