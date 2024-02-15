@@ -15,5 +15,5 @@ export interface SvgExportContext {
 	/**
 	 * Whether the export should be in dark mode.
 	 */
-	readonly darkMode: boolean
+	readonly isDarkMode: boolean
 }

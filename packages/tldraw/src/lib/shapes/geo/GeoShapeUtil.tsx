@@ -583,7 +583,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const { id, props } = shape
 		const strokeWidth = STROKE_SIZES[props.size]
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		let svgElm: SVGElement

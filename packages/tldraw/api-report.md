@@ -549,7 +549,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
-    toSvg(shape: TLFrameShape): Promise<SVGElement> | SVGElement;
+    toSvg(shape: TLFrameShape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
     // (undocumented)
     static type: "frame";
 }
@@ -789,7 +789,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     toBackgroundSvg(shape: TLHighlightShape): SVGPathElement;
     // (undocumented)
-    toSvg(shape: TLHighlightShape): SVGPathElement;
+    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): SVGPathElement;
     // (undocumented)
     static type: "highlight";
 }
@@ -924,7 +924,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         handles: DictValidator<string, TLHandle>;
     };
     // (undocumented)
-    toSvg(shape: TLLineShape): SVGGElement;
+    toSvg(shape: TLLineShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "line";
 }

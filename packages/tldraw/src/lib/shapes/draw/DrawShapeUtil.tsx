@@ -187,7 +187,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.darkMode })
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const { color } = shape.props

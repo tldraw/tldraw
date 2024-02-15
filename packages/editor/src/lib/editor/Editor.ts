@@ -8133,6 +8133,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const exportDefPromisesById = new Map<string, Promise<void>>()
 		const exportContext: SvgExportContext = {
+			isDarkMode,
 			addExportDef: (def: SvgExportDef) => {
 				if (exportDefPromisesById.has(def.key)) return
 				const promise = (async () => {
@@ -8148,7 +8149,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})()
 				exportDefPromisesById.set(def.key, promise)
 			},
-			darkMode: isDarkMode,
 		}
 
 		const unorderedShapeElements = (

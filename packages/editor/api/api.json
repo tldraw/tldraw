@@ -34650,12 +34650,12 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!SvgExportContext#darkMode:member",
+              "canonicalReference": "@tldraw/editor!SvgExportContext#isDarkMode:member",
               "docComment": "/**\n * Whether the export should be in dark mode.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "readonly darkMode: "
+                  "text": "readonly isDarkMode: "
                 },
                 {
                   "kind": "Content",
@@ -34669,7 +34669,7 @@
               "isReadonly": true,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "darkMode",
+              "name": "isDarkMode",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
