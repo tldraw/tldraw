@@ -166,7 +166,9 @@ describe('custom handle snapping', () => {
 			w: number
 			h: number
 			handleOutline: VecModel[] | 'default' | null
-			handlePoints: 'default' | VecModel[]
+			handlePoints: VecModel[] | 'default'
+			selfSnapOutline: VecModel[] | 'default'
+			selfSnapPoints: VecModel[] | 'default'
 		}
 	>
 	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
@@ -378,4 +380,6 @@ describe('custom handle snapping', () => {
 			expect(handlePosition()).toMatchObject({ x: 235, y: 200 })
 		})
 	})
+
+	describe('self snapping', () => {})
 })
