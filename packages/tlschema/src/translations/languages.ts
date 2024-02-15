@@ -20,6 +20,7 @@ export const LANGUAGES = [
 	{ locale: 'pt-pt', label: 'Português - Europeu' },
 	{ locale: 'ro', label: 'Română' },
 	{ locale: 'ru', label: 'Russian' },
+	{ locale: 'sl', label: 'Slovenščina' },
 	{ locale: 'fi', label: 'Suomi' },
 	{ locale: 'sv', label: 'Svenska' },
 	{ locale: 'vi', label: 'Tiếng Việt' },

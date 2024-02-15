@@ -39,15 +39,22 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	IndexKey,
 	JsonObject,
 	annotateError,
 	assert,
 	compact,
 	dedupe,
 	deepCopy,
+	getIndexAbove,
+	getIndexBetween,
+	getIndices,
+	getIndicesAbove,
+	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
 	sortById,
+	sortByIndex,
 	structuredClone,
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
@@ -89,14 +96,6 @@ import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
-import {
-	getIndexAbove,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBetween,
-	sortByIndex,
-} from '../utils/reordering/reordering'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
@@ -324,7 +323,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return
 			}
 
-			let finalIndex: string
+			let finalIndex: IndexKey
 
 			const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
 				.map((id) => this.getShape(id)!)
@@ -4780,7 +4779,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: string) {
+	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: IndexKey) {
 		const ids =
 			typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : shapes.map((s) => (s as TLShape).id)
 		if (ids.length === 0) return this
@@ -4793,7 +4792,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const parentPageRotation = parentTransform.rotation()
 
-		let indices: string[] = []
+		let indices: IndexKey[] = []
 
 		const sibs = compact(this.getSortedChildIdsForParent(parentId).map((id) => this.getShape(id)))
 
@@ -4882,12 +4881,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getHighestIndexForParent(parent: TLParentId | TLPage | TLShape): string {
+	getHighestIndexForParent(parent: TLParentId | TLPage | TLShape): IndexKey {
 		const parentId = typeof parent === 'string' ? parent : parent.id
 		const children = this._parentIdsToChildIds.get()[parentId]
 
 		if (!children || children.length === 0) {
-			return 'a1'
+			return 'a1' as IndexKey
 		}
 		const shape = this.getShape(children[children.length - 1])!
 		return getIndexAbove(shape.index)
@@ -6589,7 +6588,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Get the highest index among the parents of each of the
 				// the shapes being created; we'll increment from there.
 
-				const parentIndices = new Map<string, string>()
+				const parentIndices = new Map<TLParentId, IndexKey>()
 
 				const shapeRecordsToCreate: TLShape[] = []
 

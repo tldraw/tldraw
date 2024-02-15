@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { memo, useLayoutEffect, useRef } from 'react'
-import { useAssetUrls } from '../../hooks/useAssetUrls'
+import { useAssetUrls } from '../../context/asset-urls'
 import { TLUiIconType } from '../../icon-types'
 
 /** @public */

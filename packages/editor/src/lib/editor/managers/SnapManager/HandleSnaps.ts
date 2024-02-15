@@ -38,7 +38,6 @@ export class HandleSnaps {
 		let minDistance = snapThreshold
 		let nearestPoint: Vec | null = null
 		let C: VecModel, D: VecModel, nearest: Vec, distance: number
-
 		const allSegments = [...outlinesInPageSpace, ...additionalSegments]
 		for (const outline of allSegments) {
 			for (let i = 0; i < outline.length - 1; i++) {

@@ -1,3 +1,182 @@
+# v2.0.0-beta.3 (Tue Feb 13 2024)
+
+### Release Notes
+
+#### Fix camera. ([#2818](https://github.com/tldraw/tldraw/pull/2818))
+
+- Fixes an issue with the camera and zooming.
+
+#### Use canvas bounds for viewport bounds ([#2798](https://github.com/tldraw/tldraw/pull/2798))
+
+- Changes the source of truth for the viewport page bounds to be the canvas instead.
+
+#### error reporting: rm ids from msgs for better Sentry grouping ([#2738](https://github.com/tldraw/tldraw/pull/2738))
+
+- Error reporting: improve grouping for Sentry.
+
+#### i18n: add HR 🇭🇷 ([#2778](https://github.com/tldraw/tldraw/pull/2778))
+
+- i18n: add Croatian / Hrvatski.
+
+#### arrows: account for another NaN ([#2753](https://github.com/tldraw/tldraw/pull/2753))
+
+- Fixes zero-width arrow NaN computation when moving the label.
+
+#### Split snap manager into ShapeBoundsSnaps and HandleSnaps ([#2747](https://github.com/tldraw/tldraw/pull/2747))
+
+- `SnapLine`s are now called `SnapIndicator`s
+- Snapping methods moved from `editor.snaps` to `editor.snaps.shapeBounds` and `editor.snaps.handles` depending on the type of snapping you're trying to do.
+
+#### arrows: update cursor only when in Select mode ([#2742](https://github.com/tldraw/tldraw/pull/2742))
+
+- Cursor tweak for arrow labels.
+
+#### Fix pinch zooming ([#2748](https://github.com/tldraw/tldraw/pull/2748))
+
+- None: Fixes an unreleased bug.
+
+#### [Fix] Camera coordinate issues ([#2719](https://github.com/tldraw/tldraw/pull/2719))
+
+- Fixed bugs with `getViewportScreenCenter` that could effect zooming and pinching on editors that aren't full screen
+
+#### arrows: separate out handle behavior from labels ([#2621](https://github.com/tldraw/tldraw/pull/2621))
+
+- Arrow labels: provide more polish on label placement
+
+#### dev: add test-dev command for easier testing of packages ([#2627](https://github.com/tldraw/tldraw/pull/2627))
+
+- Adds easier testing command for individual packages.
+
+#### [Fix] Overlapping non-adjacent handles ([#2663](https://github.com/tldraw/tldraw/pull/2663))
+
+- Fixed a bug with virtual / create handle visibility.
+
+#### [Fix] Missing bend handles on curved arrows ([#2661](https://github.com/tldraw/tldraw/pull/2661))
+
+- Fixed a bug where the bend handle on arrows with a large curve could sometimes be hidden.
+
+#### [Fix] Wheel bug ([#2657](https://github.com/tldraw/tldraw/pull/2657))
+
+- Fixed a bug with the mouse wheel effecting the pointer location when the editor was not full screen
+
+#### Fix nudge bug ([#2634](https://github.com/tldraw/tldraw/pull/2634))
+
+- Fixes a bug with keyboard nudging.
+
+#### debug: add FPS counter ([#2558](https://github.com/tldraw/tldraw/pull/2558))
+
+- Adds FPS counter to debug panel.
+
+#### arrows: add ability to change label placement ([#2557](https://github.com/tldraw/tldraw/pull/2557))
+
+- Adds ability to change label position on arrows.
+
+#### Export TLCommandHistoryOptions type ([#2598](https://github.com/tldraw/tldraw/pull/2598))
+
+- Added TLCommandHistoryOptions to the exported types.
+
+#### [improvement] better comma control for pointer ([#2568](https://github.com/tldraw/tldraw/pull/2568))
+
+- Improve comma key as a replacement for pointer down / pointer up.
+
+#### Allow snapping of shapes to the frame when dragging inside the frame. ([#2520](https://github.com/tldraw/tldraw/pull/2520))
+
+- Adds snapping to frames when dragging shapes inside a frame.
+
+#### Prevent overlay content disappearing at some browser zoom levels ([#2483](https://github.com/tldraw/tldraw/pull/2483))
+
+- removes the internal `useDprMultiple` hook
+
+#### fix typo in hideRotateHandle method ([#2473](https://github.com/tldraw/tldraw/pull/2473))
+
+- fix typo in hideRotateHandle method
+
+#### Maintain bindings whilst translating arrows ([#2424](https://github.com/tldraw/tldraw/pull/2424))
+
+- You can now move arrows without them becoming unattached the shapes they're pointing to
+
+#### [improvement] update dark mode ([#2468](https://github.com/tldraw/tldraw/pull/2468))
+
+- Updated dark mode colors.
+
+#### [improvement] account for coarse pointers / insets in edge scrolling ([#2401](https://github.com/tldraw/tldraw/pull/2401))
+
+- Add `instanceState.insets` to track which edges of the component are inset from the edges of the document body.
+- Improve behavior around edge scrolling
+
+---
+
+#### 💥 Breaking Change
+
+- Use canvas bounds for viewport bounds [#2798](https://github.com/tldraw/tldraw/pull/2798) ([@steveruizok](https://github.com/steveruizok))
+- Remove Geometry2d.isSnappable [#2768](https://github.com/tldraw/tldraw/pull/2768) ([@SomeHats](https://github.com/SomeHats))
+- Split snap manager into ShapeBoundsSnaps and HandleSnaps [#2747](https://github.com/tldraw/tldraw/pull/2747) ([@SomeHats](https://github.com/SomeHats))
+- [Fix] Camera coordinate issues [#2719](https://github.com/tldraw/tldraw/pull/2719) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🚀 Enhancement
+
+- [dx] use Biome instead of Prettier, part 2 [#2731](https://github.com/tldraw/tldraw/pull/2731) ([@si14](https://github.com/si14))
+- debug: add FPS counter [#2558](https://github.com/tldraw/tldraw/pull/2558) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- arrows: add ability to change label placement [#2557](https://github.com/tldraw/tldraw/pull/2557) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
+- [improvement] better comma control for pointer [#2568](https://github.com/tldraw/tldraw/pull/2568) ([@steveruizok](https://github.com/steveruizok))
+- Allow snapping of shapes to the frame when dragging inside the frame. [#2520](https://github.com/tldraw/tldraw/pull/2520) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Maintain bindings whilst translating arrows [#2424](https://github.com/tldraw/tldraw/pull/2424) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- [improvement] update dark mode [#2468](https://github.com/tldraw/tldraw/pull/2468) ([@steveruizok](https://github.com/steveruizok))
+- [improvement] account for coarse pointers / insets in edge scrolling [#2401](https://github.com/tldraw/tldraw/pull/2401) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Fix camera. [#2818](https://github.com/tldraw/tldraw/pull/2818) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [fix] overlays, custom brush example [#2806](https://github.com/tldraw/tldraw/pull/2806) ([@steveruizok](https://github.com/steveruizok))
+- error reporting: rm ids from msgs for better Sentry grouping [#2738](https://github.com/tldraw/tldraw/pull/2738) ([@mimecuvalo](https://github.com/mimecuvalo))
+- i18n: add HR 🇭🇷 [#2778](https://github.com/tldraw/tldraw/pull/2778) ([@mimecuvalo](https://github.com/mimecuvalo))
+- arrows: account for another NaN [#2753](https://github.com/tldraw/tldraw/pull/2753) ([@mimecuvalo](https://github.com/mimecuvalo))
+- arrows: update cursor only when in Select mode [#2742](https://github.com/tldraw/tldraw/pull/2742) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix pinch zooming [#2748](https://github.com/tldraw/tldraw/pull/2748) ([@TodePond](https://github.com/TodePond))
+- arrows: separate out handle behavior from labels [#2621](https://github.com/tldraw/tldraw/pull/2621) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- [Improvement] Text measurement tweaks [#2670](https://github.com/tldraw/tldraw/pull/2670) ([@steveruizok](https://github.com/steveruizok))
+- [Fix] Overlapping non-adjacent handles [#2663](https://github.com/tldraw/tldraw/pull/2663) ([@steveruizok](https://github.com/steveruizok))
+- [Fix] Missing bend handles on curved arrows [#2661](https://github.com/tldraw/tldraw/pull/2661) ([@steveruizok](https://github.com/steveruizok))
+- [Fix] Wheel bug [#2657](https://github.com/tldraw/tldraw/pull/2657) ([@steveruizok](https://github.com/steveruizok))
+- Fix nudge bug [#2634](https://github.com/tldraw/tldraw/pull/2634) ([@steveruizok](https://github.com/steveruizok))
+- Export TLCommandHistoryOptions type [#2598](https://github.com/tldraw/tldraw/pull/2598) ([@steveruizok](https://github.com/steveruizok))
+- Make sure correct dark mode colours get used in exports [#2492](https://github.com/tldraw/tldraw/pull/2492) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Prevent overlay content disappearing at some browser zoom levels [#2483](https://github.com/tldraw/tldraw/pull/2483) ([@ds300](https://github.com/ds300))
+- [tweak] dark mode colors [#2469](https://github.com/tldraw/tldraw/pull/2469) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🏠 Internal
+
+- Unbiome [#2776](https://github.com/tldraw/tldraw/pull/2776) ([@si14](https://github.com/si14))
+- Update the project to Node 20 [#2691](https://github.com/tldraw/tldraw/pull/2691) ([@si14](https://github.com/si14))
+- dev: add test-dev command for easier testing of packages [#2627](https://github.com/tldraw/tldraw/pull/2627) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Add docs [#2470](https://github.com/tldraw/tldraw/pull/2470) ([@steveruizok](https://github.com/steveruizok))
+
+#### 📝 Documentation
+
+- fix typo in hideRotateHandle method [#2473](https://github.com/tldraw/tldraw/pull/2473) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+#### 🧪 Tests
+
+- Bump jest to fix weird prettier bug [#2716](https://github.com/tldraw/tldraw/pull/2716) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- Bump Yarn to 4.0.2 and add version constraints [#2481](https://github.com/tldraw/tldraw/pull/2481) ([@si14](https://github.com/si14))
+
+#### Authors: 9
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Dan Groshev ([@si14](https://github.com/si14))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.0.0-beta.2 (Wed Jan 10 2024)
 
 ### Release Notes

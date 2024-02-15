@@ -20,7 +20,7 @@ const expectedScripts = {
 // packages (in packages/) should have these scripts
 const expectedPackageScripts = {
 	...expectedScripts,
-	test: () => 'lazy inherit',
+	'test-ci': () => 'lazy inherit',
 }
 
 // published packages should have these scripts
@@ -45,7 +45,7 @@ const perPackageExceptions: Record<string, Record<string, () => string | undefin
 		lint: () => 'lazy lint',
 	},
 	'@tldraw/assets': {
-		test: () => undefined,
+		'test-ci': () => undefined,
 		build: () => undefined,
 		'build-api': () => undefined,
 		prepack: () => undefined,

@@ -41,7 +41,6 @@ export {
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
-export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { ShapeIndicator, type TLShapeIndicatorComponent } from './lib/components/ShapeIndicator'
 export {
@@ -356,16 +355,6 @@ export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
-export {
-	getIndexAbove,
-	getIndexBelow,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBelow,
-	getIndicesBetween,
-	sortByIndex,
-} from './lib/utils/reordering/reordering'
 export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,

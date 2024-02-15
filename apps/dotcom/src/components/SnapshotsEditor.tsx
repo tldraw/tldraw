@@ -1,14 +1,60 @@
-import { SerializedSchema, TLRecord, Tldraw } from '@tldraw/tldraw'
+import {
+	DefaultHelpMenu,
+	DefaultHelpMenuContent,
+	DefaultKeyboardShortcutsDialog,
+	DefaultKeyboardShortcutsDialogContent,
+	DefaultMainMenu,
+	DefaultMainMenuContent,
+	SerializedSchema,
+	TLComponents,
+	TLRecord,
+	Tldraw,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	useActions,
+} from '@tldraw/tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { StoreErrorScreen } from '../components/StoreErrorScreen'
 import { useLocalStore } from '../hooks/useLocalStore'
 import { assetUrls } from '../utils/assetUrls'
-import { linksUiOverrides } from '../utils/links'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
-import { useFileSystem } from '../utils/useFileSystem'
+import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
+import { MultiplayerFileMenu } from './FileMenu'
+import { Links } from './Links'
+
+const components: TLComponents = {
+	ErrorFallback: ({ error }) => {
+		throw error
+	},
+	HelpMenu: () => (
+		<DefaultHelpMenu>
+			<TldrawUiMenuGroup id="help">
+				<DefaultHelpMenuContent />
+			</TldrawUiMenuGroup>
+			<Links />
+		</DefaultHelpMenu>
+	),
+	MainMenu: () => (
+		<DefaultMainMenu>
+			<MultiplayerFileMenu />
+			<DefaultMainMenuContent />
+		</DefaultMainMenu>
+	),
+	KeyboardShortcutsDialog: (props) => {
+		const actions = useActions()
+		return (
+			<DefaultKeyboardShortcutsDialog {...props}>
+				<TldrawUiMenuGroup id="shortcuts-dialog.file">
+					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+				</TldrawUiMenuGroup>
+				<DefaultKeyboardShortcutsDialogContent />
+			</DefaultKeyboardShortcutsDialog>
+		)
+	},
+}
 
 type SnapshotEditorProps = {
 	schema: SerializedSchema
@@ -17,7 +63,7 @@ type SnapshotEditorProps = {
 
 export function SnapshotsEditor(props: SnapshotEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing({ isMultiplayer: true })
+	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const storeResult = useLocalStore(props.records, props.schema)
 	if (!storeResult?.ok) return <StoreErrorScreen error={new Error(storeResult?.error)} />
@@ -27,16 +73,12 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 			<Tldraw
 				assetUrls={assetUrls}
 				store={storeResult.value}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides, linksUiOverrides]}
+				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
 					editor.updateInstanceState({ isReadonly: true })
 				}}
-				components={{
-					ErrorFallback: ({ error }) => {
-						throw error
-					},
-				}}
+				components={components}
 				shareZone={
 					<div className="tlui-share-zone" draggable={false}>
 						<ExportMenu />
