@@ -5,8 +5,6 @@ category: ui
 priority: 3
 ---
 
-...
-
 ---
 
 The `Tldraw` component can be used inline with a set height and width.

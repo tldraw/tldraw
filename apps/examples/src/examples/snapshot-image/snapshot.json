@@ -29,8 +29,8 @@
 			"typeName": "asset"
 		},
 		"shape:EHeAIsYe4xu1-kGxK-Tl_": {
-			"x": 169.77753183749454,
-			"y": 156.82611425957418,
+			"x": 108.01190683749454,
+			"y": 138.58783300957418,
 			"rotation": 0,
 			"isLocked": false,
 			"opacity": 1,
@@ -192,8 +192,8 @@
 			"typeName": "shape"
 		},
 		"shape:v0c3Ac-kUqB5C8cLsyT_E": {
-			"x": 387.48046875,
-			"y": 184.18359375,
+			"x": 325.71484375,
+			"y": 165.9453125,
 			"rotation": 0,
 			"isLocked": false,
 			"opacity": 1,
@@ -202,7 +202,7 @@
 			"props": {
 				"color": "black",
 				"size": "m",
-				"w": 137.45041986071632,
+				"w": 139.38919029117903,
 				"text": "hey hey hey",
 				"font": "draw",
 				"align": "middle",

@@ -25,6 +25,7 @@ export default function SnapshotImageExample() {
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			setEditor(editor)
+			editor.updateInstanceState({ isDebugMode: false })
 			if (pageId) editor.setCurrentPage(pageId)
 		},
 		[pageId]
@@ -38,7 +39,7 @@ export default function SnapshotImageExample() {
 			>
 				{editing ? '✓ Save drawing' : '✎ Edit drawing'}
 			</button>
-			<div style={{ width: 600, height: 450, marginTop: 15 }}>
+			<div style={{ width: 600, height: 400, marginTop: 15 }}>
 				{editing ? (
 					<Tldraw snapshot={snapshot} onMount={handleMount} />
 				) : (
