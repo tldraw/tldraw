@@ -9,7 +9,6 @@ import {
 	TLPageId,
 	TLRecord,
 	TLSvgOptions,
-	useContainer,
 	useEditor,
 	useShallowArrayIdentity,
 	useTLStore,
@@ -22,45 +21,44 @@ import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/asset
 
 /** @public */
 export type TldrawImageProps = {
+	/**
+	 * The snapshot to display.
+	 */
 	snapshot: StoreSnapshot<TLRecord>
+
+	/**
+	 * The page to display. Defaults to the first page.
+	 */
 	pageId?: TLPageId
+
+	/**
+	 * Options for the displayed image.
+	 */
 	opts?: Partial<TLSvgOptions>
+
+	/**
+	 * Additional shape utils to use.
+	 */
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
 }
 
 /** @public */
 export function TldrawImage(props: TldrawImageProps) {
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
-	const shapeUtils = useShallowArrayIdentity(props.shapeUtils ?? [])
-	const shapeUtilsWithDefaults = useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils])
-
-	return (
-		<div
-			ref={setContainer}
-			style={{
-				position: 'relative',
-				width: '100%',
-				height: '100%',
-			}}
-		>
-			{container && (
-				<ContainerProvider container={container}>
-					<TldrawImageEditor shapeUtils={shapeUtilsWithDefaults} {...props} />
-				</ContainerProvider>
-			)}
-		</div>
-	)
-}
-
-function TldrawImageEditor({ snapshot, shapeUtils, ...rest }: TldrawImageProps) {
-	const store = useTLStore({ snapshot, shapeUtils })
-	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
 
+	const shapeUtils = useShallowArrayIdentity(props.shapeUtils ?? [])
+	const shapeUtilsWithDefaults = useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils])
+	const store = useTLStore({ snapshot: props.snapshot, shapeUtils: shapeUtilsWithDefaults })
+
+	const assets = useDefaultEditorAssetsWithOverrides()
+	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+
 	useLayoutEffect(() => {
+		if (!container) return
 		const editor = new Editor({
 			store,
-			shapeUtils: shapeUtils ?? [],
+			shapeUtils: shapeUtilsWithDefaults ?? [],
 			tools: [],
 			getContainer: () => container,
 		})
@@ -68,10 +66,7 @@ function TldrawImageEditor({ snapshot, shapeUtils, ...rest }: TldrawImageProps) 
 		return () => {
 			editor.dispose()
 		}
-	}, [container, store, shapeUtils])
-
-	const assets = useDefaultEditorAssetsWithOverrides()
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+	}, [container, store, shapeUtilsWithDefaults])
 
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets.</ErrorScreen>
@@ -81,18 +76,22 @@ function TldrawImageEditor({ snapshot, shapeUtils, ...rest }: TldrawImageProps) 
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
-	if (!editor) {
-		return null
-	}
-
 	return (
-		<EditorContext.Provider value={editor}>
-			<Layout {...rest} />
-		</EditorContext.Provider>
+		<div ref={setContainer} style={{ position: 'relative', width: '100%', height: '100%' }}>
+			{container && (
+				<ContainerProvider container={container}>
+					{editor && (
+						<EditorContext.Provider value={editor}>
+							<TldrawImageSvg pageId={props.pageId} opts={props.opts} />
+						</EditorContext.Provider>
+					)}
+				</ContainerProvider>
+			)}
+		</div>
 	)
 }
 
-function Layout({ pageId, opts }: { pageId?: TLPageId; opts?: Partial<TLSvgOptions> }) {
+function TldrawImageSvg({ pageId, opts }: { pageId?: TLPageId; opts?: Partial<TLSvgOptions> }) {
 	const editor = useEditor()
 	const [url, setUrl] = useState<string | null>(null)
 
