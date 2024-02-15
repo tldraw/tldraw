@@ -9,7 +9,8 @@ import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 import { useRelevantStyles } from '../hooks/useRevelantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { Icon } from './primitives/Icon'
+import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
 import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'
 
 export function MobileStylePanel() {
@@ -43,16 +44,18 @@ export function MobileStylePanel() {
 
 	return (
 		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
-			<PopoverTrigger
-				disabled={disableStylePanel}
-				type="tool"
-				data-testid="mobile.styles"
-				style={{
-					color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
-				}}
-				title={msg('style-panel.title')}
-			>
-				<Icon icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'} />
+			<PopoverTrigger>
+				<TldrawUiButton
+					type="tool"
+					title={msg('style-panel.title')}
+					data-testid="mobile.styles"
+					disabled={disableStylePanel}
+					style={{ color: disableStylePanel ? 'var(--color-muted-1)' : currentColor }}
+				>
+					<TldrawUiButtonIcon
+						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
+					/>
+				</TldrawUiButton>
 			</PopoverTrigger>
 			<PopoverContent side="top" align="end">
 				<_StylePanel />

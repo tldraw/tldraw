@@ -1,7 +1,9 @@
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { Button, TLUiButtonProps } from './Button'
+import { TldrawUiButton } from './Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
+import { TldrawUiButtonLabel } from './Button/TldrawUiButtonLabel'
 import { Icon } from './Icon'
 
 /** @public */
@@ -34,12 +36,12 @@ export function DropdownMenuRoot({
 }
 
 /** @public */
-export interface TLUiDropdownMenuTriggerProps extends TLUiButtonProps {
+export interface TLUiDropdownMenuTriggerProps {
 	children?: any
 }
 
 /** @public */
-export function DropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps) {
+export function DropdownMenuTrigger({ children }: TLUiDropdownMenuTriggerProps) {
 	return (
 		<_DropdownMenu.Trigger
 			dir="ltr"
@@ -47,7 +49,7 @@ export function DropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTrigg
 			// Firefox fix: Stop the dropdown immediately closing after touch
 			onTouchEnd={(e) => preventDefault(e)}
 		>
-			<Button {...rest}>{children}</Button>
+			{children}
 		</_DropdownMenu.Trigger>
 	)
 }
@@ -118,14 +120,15 @@ export function DropdownMenuSubTrigger({
 }: TLUiDropdownMenuSubTriggerProps) {
 	return (
 		<_DropdownMenu.SubTrigger dir="ltr" asChild>
-			<Button
+			<TldrawUiButton
 				type="menu"
 				className="tlui-menu__submenu__trigger"
 				disabled={disabled}
 				title={title}
-				label={label}
-				icon="chevron-right"
-			/>
+			>
+				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+				<TldrawUiButtonIcon icon="chevron-right" small />
+			</TldrawUiButton>
 		</_DropdownMenu.SubTrigger>
 	)
 }
@@ -184,19 +187,16 @@ export function DropdownMenuIndicator() {
 }
 
 /** @public */
-export interface TLUiDropdownMenuItemProps extends TLUiButtonProps {
+export interface TLUiDropdownMenuItemProps {
 	noClose?: boolean
+	children: any
 }
 
 /** @public */
-export function DropdownMenuItem({ noClose, ...props }: TLUiDropdownMenuItemProps) {
+export function DropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps) {
 	return (
-		<_DropdownMenu.Item
-			dir="ltr"
-			asChild
-			onClick={noClose || props.isChecked !== undefined ? preventDefault : undefined}
-		>
-			<Button {...props} />
+		<_DropdownMenu.Item dir="ltr" asChild onClick={noClose ? preventDefault : undefined}>
+			{children}
 		</_DropdownMenu.Item>
 	)
 }

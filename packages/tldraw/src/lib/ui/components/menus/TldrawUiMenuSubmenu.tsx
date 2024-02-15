@@ -8,7 +8,9 @@ import { useContainer } from '@tldraw/editor'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Button } from '../primitives/Button'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import {
 	DropdownMenuSub,
 	DropdownMenuSubContent,
@@ -68,12 +70,10 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 						data-testid={`${sourceId}-sub-trigger.${id}`}
 						asChild
 					>
-						<Button
-							type="menu"
-							className="tlui-menu__submenu__trigger"
-							label={labelStr}
-							icon="chevron-right"
-						/>
+						<TldrawUiButton type="menu" className="tlui-menu__submenu__trigger">
+							<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+							<TldrawUiButtonIcon icon="chevron-right" small />
+						</TldrawUiButton>
 					</ContextMenuSubTrigger>
 					<ContextMenuPortal container={container}>
 						<ContextMenuSubContent

@@ -264,9 +264,6 @@ export function BreakPointProvider({ forceMobile, children, }: {
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;
 
-// @public (undocumented)
-export const Button: React_3.ForwardRefExoticComponent<TLUiButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
-
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
@@ -451,7 +448,7 @@ export function DropdownMenuGroup({ children, size }: TLUiDropdownMenuGroupProps
 export function DropdownMenuIndicator(): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuItem({ noClose, ...props }: TLUiDropdownMenuItemProps): JSX_2.Element;
+export function DropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps): JSX_2.Element;
 
 // @public (undocumented)
 export function DropdownMenuRadioItem({ children, ...rest }: TLUiDropdownMenuRadioItemProps): JSX_2.Element;
@@ -466,7 +463,7 @@ export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX
 export function DropdownMenuSubTrigger({ label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
+export function DropdownMenuTrigger({ children }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -1059,7 +1056,7 @@ export function Popover({ id, children, onOpenChange, open }: TLUiPopoverProps):
 export function PopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
 
 // @public (undocumented)
-export function PopoverTrigger({ children, ...rest }: TLUiPopoverTriggerProps): JSX_2.Element;
+export function PopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
@@ -1291,6 +1288,21 @@ export interface TldrawUiBaseProps {
 }
 
 // @public (undocumented)
+export const TldrawUiButton: React_3.ForwardRefExoticComponent<TLUiButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
+
+// @public (undocumented)
+export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiButtonKbd({ kbd }: TLUiButtonKbdProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.Element;
+
+// @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children, }: ComponentsContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -1358,27 +1370,31 @@ export type TLUiActionsMenuProps = {
 export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 
 // @public (undocumented)
+export type TLUiButtonCheckProps = {
+    checked: boolean;
+};
+
+// @public (undocumented)
+export type TLUiButtonIconProps = {
+    icon: string;
+    small?: boolean;
+    invertIcon?: boolean;
+};
+
+// @public (undocumented)
+export type TLUiButtonKbdProps = {
+    kbd: string;
+};
+
+// @public (undocumented)
+export type TLUiButtonLabelProps = {
+    children?: any;
+};
+
+// @public (undocumented)
 export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     disabled?: boolean;
-    // (undocumented)
-    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
-    // (undocumented)
-    iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
-    // (undocumented)
-    invertIcon?: boolean;
-    // (undocumented)
-    isChecked?: boolean;
-    // (undocumented)
-    kbd?: string;
-    // (undocumented)
-    label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
-    // (undocumented)
-    loading?: boolean;
-    // (undocumented)
-    smallIcon?: boolean;
-    // (undocumented)
-    spinner?: boolean;
     // (undocumented)
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
@@ -1484,7 +1500,9 @@ export type TLUiDropdownMenuGroupProps = {
 };
 
 // @public (undocumented)
-export interface TLUiDropdownMenuItemProps extends TLUiButtonProps {
+export interface TLUiDropdownMenuItemProps {
+    // (undocumented)
+    children: any;
     // (undocumented)
     noClose?: boolean;
 }
@@ -1526,7 +1544,7 @@ export type TLUiDropdownMenuSubTriggerProps = {
 };
 
 // @public (undocumented)
-export interface TLUiDropdownMenuTriggerProps extends TLUiButtonProps {
+export interface TLUiDropdownMenuTriggerProps {
     // (undocumented)
     children?: any;
 }
@@ -1860,7 +1878,7 @@ export type TLUiPopoverProps = {
 };
 
 // @public (undocumented)
-export interface TLUiPopoverTriggerProps extends TLUiButtonProps {
+export interface TLUiPopoverTriggerProps {
     // (undocumented)
     children?: React_2.ReactNode;
 }

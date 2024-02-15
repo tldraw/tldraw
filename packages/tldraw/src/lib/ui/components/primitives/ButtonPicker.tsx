@@ -12,9 +12,9 @@ import * as React from 'react'
 import { useRef } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TLUiIconType } from '../../icon-types'
 import { StyleValuesForUi } from '../StylePanel/styles'
-import { Button } from './Button'
+import { TldrawUiButton } from './Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 
 /** @internal */
 export interface ButtonPickerProps<T extends string> {
@@ -99,7 +99,7 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 	return (
 		<div className={classNames('tlui-buttons__grid')}>
 			{items.map((item) => (
-				<Button
+				<TldrawUiButton
 					type="icon"
 					key={item.value}
 					data-id={item.value}
@@ -117,8 +117,9 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 					onPointerDown={handleButtonPointerDown}
 					onPointerUp={handleButtonPointerUp}
 					onClick={handleButtonClick}
-					icon={item.icon as TLUiIconType}
-				/>
+				>
+					<TldrawUiButtonIcon icon={item.icon} />
+				</TldrawUiButton>
 			))}
 		</div>
 	)

@@ -3,7 +3,8 @@ import * as React from 'react'
 import { TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
-import { Button } from './primitives/Button'
+import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import { Icon } from './primitives/Icon'
 
 function Toast({ toast }: { toast: TLUiToast }) {
@@ -40,22 +41,28 @@ function Toast({ toast }: { toast: TLUiToast }) {
 					<div className="tlui-toast__actions">
 						{toast.actions.map((action, i) => (
 							<T.Action key={i} altText={action.label} asChild onClick={action.onClick}>
-								<Button type={action.type}>{action.label}</Button>
+								<TldrawUiButton type={action.type}>
+									<TldrawUiButtonLabel>{action.label}</TldrawUiButtonLabel>
+								</TldrawUiButton>
 							</T.Action>
 						))}
 						<T.Close asChild>
-							<Button type="normal" className="tlui-toast__close" style={{ marginLeft: 'auto' }}>
-								{toast.closeLabel ?? msg('toast.close')}
-							</Button>
+							<TldrawUiButton
+								type="normal"
+								className="tlui-toast__close"
+								style={{ marginLeft: 'auto' }}
+							>
+								<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
+							</TldrawUiButton>
 						</T.Close>
 					</div>
 				)}
 			</div>
 			{!hasActions && (
 				<T.Close asChild>
-					<Button type="normal" className="tlui-toast__close">
-						{toast.closeLabel ?? msg('toast.close')}
-					</Button>
+					<TldrawUiButton type="normal" className="tlui-toast__close">
+						<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				</T.Close>
 			)}
 		</T.Root>

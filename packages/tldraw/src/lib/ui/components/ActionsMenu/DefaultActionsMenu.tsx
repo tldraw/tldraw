@@ -4,6 +4,8 @@ import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { Popover, PopoverContent, PopoverTrigger } from '../primitives/Popover'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
@@ -37,14 +39,15 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 
 	return (
 		<Popover id="actions-menu">
-			<PopoverTrigger
-				className="tlui-menu__trigger"
-				data-testid="main.action-menu"
-				icon="dots-vertical"
-				title={msg('actions-menu.title')}
-				type="icon" // needs to be here because the trigger also passes down type="button"
-				smallIcon
-			/>
+			<PopoverTrigger>
+				<TldrawUiButton
+					type="icon"
+					data-testid="main.action-menu"
+					title={msg('actions-menu.title')}
+				>
+					<TldrawUiButtonIcon icon="dots-vertical" small />
+				</TldrawUiButton>
+			</PopoverTrigger>
 			<PopoverContent side={breakpoint >= 6 ? 'bottom' : 'top'} sideOffset={6}>
 				<div className="tlui-actions-menu tlui-buttons__grid">
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">

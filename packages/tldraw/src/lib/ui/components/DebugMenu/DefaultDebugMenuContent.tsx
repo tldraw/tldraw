@@ -1,4 +1,3 @@
-import { DialogTitle } from '@radix-ui/react-dialog'
 import {
 	DebugFlag,
 	Editor,
@@ -19,8 +18,16 @@ import { TldrawUiMenuCheckboxItem } from '../menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../menus/TldrawUiMenuSubmenu'
-import { Button } from '../primitives/Button'
-import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from '../primitives/Dialog'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
+import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import {
+	DialogBody,
+	DialogCloseButton,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '../primitives/Dialog'
 
 /** @public */
 export function DefaultDebugMenuContent() {
@@ -232,21 +239,21 @@ function ExampleDialog({
 			<DialogBody style={{ maxWidth: 350 }}>{body}</DialogBody>
 			<DialogFooter className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
-					<Button
+					<TldrawUiButton
 						type="normal"
 						onClick={() => setDontShowAgain(!dontShowAgain)}
-						iconLeft={dontShowAgain ? 'check' : 'checkbox-empty'}
 						style={{ marginRight: 'auto' }}
 					>
-						{`Don't show again`}
-					</Button>
+						<TldrawUiButtonCheck checked={dontShowAgain} />
+						<TldrawUiButtonLabel>Don't show again</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				)}
-				<Button type="normal" onClick={onCancel}>
-					{cancel}
-				</Button>
-				<Button type="primary" onClick={async () => onContinue()}>
-					{confirm}
-				</Button>
+				<TldrawUiButton type="normal" onClick={onCancel}>
+					<TldrawUiButtonLabel>{cancel}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
+					<TldrawUiButtonLabel>{confirm}</TldrawUiButtonLabel>
+				</TldrawUiButton>
 			</DialogFooter>
 		</>
 	)

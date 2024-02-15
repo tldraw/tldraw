@@ -1,6 +1,8 @@
 import * as Popover from '@radix-ui/react-popover'
 import {
-	Button,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
 	track,
 	useContainer,
 	useEditor,
@@ -73,13 +75,16 @@ export const PeopleMenu = track(function PeopleMenu({
 						)}
 						{!hideShareMenu && (
 							<div className="tlui-people-menu__section">
-								<Button
+								<TldrawUiButton
 									type="menu"
-									data-wd="people-menu.invite"
-									label={'people-menu.invite'}
-									icon="plus"
+									data-testid="people-menu.invite"
 									onClick={() => editor.addOpenMenu('share menu')}
-								/>
+								>
+									<TldrawUiButtonLabel>
+										{msg('people-menu.invite')}
+										<TldrawUiButtonIcon icon="plus" />
+									</TldrawUiButtonLabel>
+								</TldrawUiButton>
 							</div>
 						)}
 					</div>

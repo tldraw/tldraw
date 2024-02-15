@@ -10,7 +10,8 @@ import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MobileStylePanel } from '../MobileStylePanel'
-import { Button } from '../primitives/Button'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -143,13 +144,15 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 								/>
 								{/* The dropdown to select everything else */}
 								<DropdownMenuRoot id="toolbar overflow" modal={false}>
-									<DropdownMenuTrigger
-										className="tlui-toolbar__overflow"
-										icon="chevron-up"
-										type="tool"
-										data-testid="tools.more"
-										title={msg('tool-panel.more')}
-									/>
+									<DropdownMenuTrigger data-testid="tools.more">
+										<TldrawUiButton
+											title={msg('tool-panel.more')}
+											type="tool"
+											className="tlui-toolbar__overflow"
+										>
+											<TldrawUiButtonIcon icon="chevron-up" />
+										</TldrawUiButton>
+									</DropdownMenuTrigger>
 									<DropdownMenuContent side="top" align="center">
 										<OverflowToolsContent toolbarItems={itemsInDropdown} />
 									</DropdownMenuContent>
@@ -181,16 +184,20 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 				return (
 					<DropdownMenuItem
 						key={id}
-						type="icon"
-						className="tlui-button-grid__button"
 						data-testid={`tools.more.${id}`}
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}
-						onClick={() => onSelect('toolbar')}
-						title={label ? `${msg(label)} ${kbd ? kbdStr(kbd) : ''}` : ''}
-						icon={icon}
-					/>
+					>
+						<TldrawUiButton
+							type="icon"
+							className="tlui-button-grid__button"
+							onClick={() => onSelect('toolbar')}
+							title={label ? `${msg(label)} ${kbd ? kbdStr(kbd) : ''}` : ''}
+						>
+							<TldrawUiButtonIcon icon={icon} />
+						</TldrawUiButton>
+					</DropdownMenuItem>
 				)
 			})}
 		</div>
@@ -207,21 +214,22 @@ function ToolbarButton({
 	isSelected: boolean
 }) {
 	return (
-		<Button
+		<TldrawUiButton
 			type="tool"
 			data-testid={`tools.${item.id}`}
 			data-tool={item.id}
 			data-geo={item.meta?.geo ?? ''}
 			aria-label={item.label}
-			title={title}
-			icon={item.icon}
 			data-state={isSelected ? 'selected' : undefined}
 			onClick={() => item.onSelect('toolbar')}
+			title={title}
 			onTouchStart={(e) => {
 				preventDefault(e)
 				item.onSelect('toolbar')
 			}}
-		/>
+		>
+			<TldrawUiButtonIcon icon={item.icon} />
+		</TldrawUiButton>
 	)
 }
 

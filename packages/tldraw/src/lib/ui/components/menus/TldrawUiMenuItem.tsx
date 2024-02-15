@@ -7,7 +7,10 @@ import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Spinner } from '../Spinner'
-import { Button } from '../primitives/Button'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiButtonKbd } from '../primitives/Button/TldrawUiButtonKbd'
+import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import { DropdownMenuItem } from '../primitives/DropdownMenu'
 import { Kbd } from '../primitives/Kbd'
 import { kbdStr } from '../primitives/shared'
@@ -90,24 +93,27 @@ export function TldrawUiMenuItem<
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<DropdownMenuItem
-					type="menu"
-					data-testid={`${sourceId}.${id}`}
-					kbd={kbd}
-					label={labelStr}
-					disabled={disabled}
-					title={titleStr}
-					onClick={(e) => {
-						if (noClose) {
-							preventDefault(e)
-						}
-						if (disableClicks) {
-							setDisableClicks(false)
-						} else {
-							onSelect(sourceId)
-						}
-					}}
-				/>
+				<DropdownMenuItem>
+					<TldrawUiButton
+						type="menu"
+						data-testid={`${sourceId}.${id}`}
+						disabled={disabled}
+						title={titleStr}
+						onClick={(e) => {
+							if (noClose) {
+								preventDefault(e)
+							}
+							if (disableClicks) {
+								setDisableClicks(false)
+							} else {
+								onSelect(sourceId)
+							}
+						}}
+					>
+						<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+						{kbd && <TldrawUiButtonKbd kbd={kbd} />}
+					</TldrawUiButton>
+				</DropdownMenuItem>
 			)
 		}
 		case 'context-menu': {
@@ -140,30 +146,30 @@ export function TldrawUiMenuItem<
 		}
 		case 'panel': {
 			return (
-				<Button
+				<TldrawUiButton
 					data-testid={`${sourceId}.${id}`}
-					icon={icon}
 					type="menu"
-					label={labelStr}
 					title={titleStr}
-					onClick={() => onSelect(sourceId)}
-					smallIcon
 					disabled={disabled}
-				/>
+					onClick={() => onSelect(sourceId)}
+				>
+					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+					{icon && <TldrawUiButtonIcon icon={icon} />}
+				</TldrawUiButton>
 			)
 		}
 		case 'small-icons':
 		case 'icons': {
 			return (
-				<Button
+				<TldrawUiButton
 					data-testid={`${sourceId}.${id}`}
-					icon={icon}
 					type="icon"
 					title={titleStr}
-					onClick={() => onSelect(sourceId)}
 					disabled={disabled}
-					smallIcon={menuType === 'small-icons'}
-				/>
+					onClick={() => onSelect(sourceId)}
+				>
+					<TldrawUiButtonIcon icon={icon!} small={menuType === 'small-icons'} />
+				</TldrawUiButton>
 			)
 		}
 		case 'keyboard-shortcuts': {
@@ -180,7 +186,10 @@ export function TldrawUiMenuItem<
 		}
 		case 'helper-buttons': {
 			return (
-				<Button type="low" label={labelStr} iconLeft={icon} onClick={() => onSelect(sourceId)} />
+				<TldrawUiButton type="low" onClick={() => onSelect(sourceId)}>
+					<TldrawUiButtonIcon icon={icon!} />
+					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+				</TldrawUiButton>
 			)
 		}
 		default: {

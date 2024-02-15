@@ -4,7 +4,8 @@ import { memo } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
-import { Button } from '../primitives/Button'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { DefaultMainMenuContent } from './DefaultMainMenuContent'
 
 /** @public */
@@ -26,14 +27,9 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<_Dropdown.Trigger asChild dir="ltr">
-				<Button
-					type="icon"
-					className="tlui-menu__trigger"
-					data-testid="main.menu"
-					title={msg('menu.title')}
-					icon="menu"
-					smallIcon
-				/>
+				<TldrawUiButton type="icon" data-testid="main.menu" title={msg('menu.title')}>
+					<TldrawUiButtonIcon icon="menu" small />
+				</TldrawUiButton>
 			</_Dropdown.Trigger>
 			<_Dropdown.Portal container={container}>
 				<_Dropdown.Content

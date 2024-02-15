@@ -4,6 +4,8 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
 	DropdownMenuContent,
 	DropdownMenuRoot,
@@ -49,11 +51,11 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 
 	return (
 		<DropdownMenuRoot id={`page item submenu ${index}`}>
-			<DropdownMenuTrigger
-				type="icon"
-				title={msg('page-menu.submenu.title')}
-				icon="dots-vertical"
-			/>
+			<DropdownMenuTrigger>
+				<TldrawUiButton type="icon" title={msg('page-menu.submenu.title')}>
+					<TldrawUiButtonIcon icon="dots-vertical" />
+				</TldrawUiButton>
+			</DropdownMenuTrigger>
 			<DropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">

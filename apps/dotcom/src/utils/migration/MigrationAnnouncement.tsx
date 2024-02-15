@@ -1,4 +1,10 @@
-import { Button, LegacyTldrawDocument, useEditor, useValue } from '@tldraw/tldraw'
+import {
+	LegacyTldrawDocument,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	useEditor,
+	useValue,
+} from '@tldraw/tldraw'
 
 export function MigrationAnnouncement({
 	onClose,
@@ -107,16 +113,16 @@ export function MigrationAnnouncement({
 						marginTop: 8,
 					}}
 				>
-					<Button
+					<TldrawUiButton
 						type="normal"
 						style={{ fontSize: 14, marginRight: 'auto' }}
 						onClick={downloadFile}
 					>
-						Download original
-					</Button>
-					<Button style={{ fontSize: 14 }} type="primary" onClick={onClose}>
-						Continue
-					</Button>
+						<TldrawUiButtonLabel>Download original</TldrawUiButtonLabel>
+					</TldrawUiButton>
+					<TldrawUiButton style={{ fontSize: 14 }} type="primary" onClick={onClose}>
+						<TldrawUiButtonLabel>Continue</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				</div>
 			</div>
 		</div>

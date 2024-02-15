@@ -3,7 +3,8 @@ import { T, TLBaseShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiDialogProps } from '../context/dialogs'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { Button } from './primitives/Button'
+import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from './primitives/Dialog'
 import { Input } from './primitives/Input'
 
@@ -154,22 +155,22 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 				</div>
 			</DialogBody>
 			<DialogFooter className="tlui-dialog__footer__actions">
-				<Button type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
-					{msg('edit-link-cancel')}
-				</Button>
+				<TldrawUiButton type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
+					<TldrawUiButtonLabel>{msg('edit-link-cancel')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
 				{isRemoving ? (
-					<Button type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
-						{msg('edit-link-clear')}
-					</Button>
+					<TldrawUiButton type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
+						<TldrawUiButtonLabel>{msg('edit-link-clear')}</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				) : (
-					<Button
+					<TldrawUiButton
 						type="primary"
 						disabled={!urlInputState.valid}
 						onTouchEnd={handleComplete}
 						onClick={handleComplete}
 					>
-						{msg('edit-link-save')}
-					</Button>
+						<TldrawUiButtonLabel>{msg('edit-link-save')}</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				)}
 			</DialogFooter>
 		</>

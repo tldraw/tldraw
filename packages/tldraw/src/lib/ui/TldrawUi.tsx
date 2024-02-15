@@ -8,7 +8,8 @@ import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { MenuZone } from './components/MenuZone'
 import { ToastViewport, Toasts } from './components/Toasts'
-import { Button } from './components/primitives/Button'
+import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
 import {
 	TldrawUiContextProvider,
 	TldrawUiContextProviderProps,
@@ -148,13 +149,14 @@ const TldrawUiContent = React.memo(function TldrawUI({ shareZone, topZone }: Tld
 			>
 				{isFocusMode ? (
 					<div className="tlui-layout__top">
-						<Button
+						<TldrawUiButton
 							type="icon"
 							className="tlui-focus-button"
-							title={`${msg('focus-mode.toggle-focus-mode')}`}
-							icon="dot"
+							title={msg('focus-mode.toggle-focus-mode')}
 							onClick={() => toggleFocus.onSelect('menu')}
-						/>
+						>
+							<TldrawUiButtonIcon icon="dot" />
+						</TldrawUiButton>
 					</div>
 				) : (
 					<>

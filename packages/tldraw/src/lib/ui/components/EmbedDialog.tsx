@@ -5,7 +5,8 @@ import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../context/asset-urls'
 import { TLUiDialogProps } from '../context/dialogs'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
-import { Button } from './primitives/Button'
+import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from './primitives/Dialog'
 import { Icon } from './primitives/Icon'
 import { Input } from './primitives/Input'
@@ -88,21 +89,23 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 						)}
 					</DialogBody>
 					<DialogFooter className="tlui-dialog__footer__actions">
-						<Button
+						<TldrawUiButton
 							type="normal"
 							onClick={() => {
 								setEmbedDefinition(null)
 								setEmbedInfoForUrl(null)
 								setUrl('')
 							}}
-							label="embed-back"
-						/>
+						>
+							<TldrawUiButtonLabel>{msg('embed-back')}</TldrawUiButtonLabel>
+						</TldrawUiButton>
 						<div className="tlui-embed__spacer" />
-						<Button type="normal" label="embed-cancel" onClick={onClose} />
-						<Button
+						<TldrawUiButton type="normal" onClick={onClose}>
+							<TldrawUiButtonLabel>{msg('embed-cancel')}</TldrawUiButtonLabel>
+						</TldrawUiButton>
+						<TldrawUiButton
 							type="primary"
 							disabled={!embedInfoForUrl}
-							label="embed-create"
 							onClick={() => {
 								if (!embedInfoForUrl) return
 
@@ -115,7 +118,9 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 
 								onClose()
 							}}
-						/>
+						>
+							<TldrawUiButtonLabel>{msg('embed-create')}</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</DialogFooter>
 				</>
 			) : (
@@ -123,17 +128,13 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 					<DialogBody className="tlui-embed-dialog__list">
 						{EMBED_DEFINITIONS.map((def) => {
 							return (
-								<Button
-									type="menu"
-									key={def.type}
-									onClick={() => setEmbedDefinition(def)}
-									label={untranslated(def.title)}
-								>
+								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
+									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
 									<div
 										className="tlui-embed-dialog__item__image"
 										style={{ backgroundImage: `url(${assetUrls.embedIcons[def.type]})` }}
 									/>
-								</Button>
+								</TldrawUiButton>
 							)
 						})}
 					</DialogBody>
