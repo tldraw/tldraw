@@ -1844,6 +1844,99 @@ describe('Add duplicate props to instance', () => {
 	})
 })
 
+describe('Remove extra handle props', () => {
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.RemoveExtraHandleProps]
+	it('up works as expected', () => {
+		expect(
+			up({
+				props: {
+					handles: {
+						start: {
+							id: 'start',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a1',
+							x: 0,
+							y: 0,
+						},
+						end: {
+							id: 'end',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a2',
+							x: 190,
+							y: -62,
+						},
+						'handle:a1V': {
+							id: 'handle:a1V',
+							type: 'vertex',
+							canBind: false,
+							index: 'a1V',
+							x: 76,
+							y: 60,
+						},
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					a1: { x: 0, y: 0 },
+					a1V: { x: 76, y: 60 },
+					a2: { x: 190, y: -62 },
+				},
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					handles: {
+						a1: { x: 0, y: 0 },
+						a1V: { x: 76, y: 60 },
+						a2: { x: 190, y: -62 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					start: {
+						id: 'start',
+						type: 'vertex',
+						canBind: false,
+						canSnap: true,
+						index: 'a1',
+						x: 0,
+						y: 0,
+					},
+					end: {
+						id: 'end',
+						type: 'vertex',
+						canBind: false,
+						canSnap: true,
+						index: 'a2',
+						x: 190,
+						y: -62,
+					},
+					'handle:a1V': {
+						id: 'handle:a1V',
+						type: 'vertex',
+						canBind: false,
+						canSnap: true,
+						index: 'a1V',
+						x: 76,
+						y: 60,
+					},
+				},
+			},
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

@@ -6,7 +6,7 @@ import { TLUiToolItem, TLUiToolsContextType, useTools } from './useTools'
 export type TLUiToolbarItem = {
 	id: string
 	type: 'item'
-	readonlyOk: boolean
+	readonlyOk?: boolean
 	toolItem: TLUiToolItem
 }
 

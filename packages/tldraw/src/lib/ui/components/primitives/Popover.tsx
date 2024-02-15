@@ -1,16 +1,19 @@
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
-import React, { FC } from 'react'
+import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { Button, TLUiButtonProps } from './Button'
 
-type PopoverProps = {
+/** @public */
+export type TLUiPopoverProps = {
 	id: string
 	open?: boolean
 	children: React.ReactNode
 	onOpenChange?: (isOpen: boolean) => void
 }
 
-export const Popover: FC<PopoverProps> = ({ id, children, onOpenChange, open }) => {
+/** @public */
+export function Popover({ id, children, onOpenChange, open }: TLUiPopoverProps) {
 	const [isOpen, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
 
 	return (
@@ -23,25 +26,37 @@ export const Popover: FC<PopoverProps> = ({ id, children, onOpenChange, open }) 
 	)
 }
 
-export const PopoverTrigger: FC<{
-	children: React.ReactNode
-	disabled?: boolean
-	className?: string
-	'data-testid'?: string
-}> = ({ children, disabled, 'data-testid': testId }) => {
+/** @public */
+export interface TLUiPopoverTriggerProps extends TLUiButtonProps {
+	children?: React.ReactNode
+}
+
+/** @public */
+export function PopoverTrigger({ children, ...rest }: TLUiPopoverTriggerProps) {
 	return (
-		<PopoverPrimitive.Trigger data-testid={testId} disabled={disabled} asChild dir="ltr">
-			{children}
+		<PopoverPrimitive.Trigger asChild dir="ltr">
+			<Button {...rest}>{children}</Button>
 		</PopoverPrimitive.Trigger>
 	)
 }
-export const PopoverContent: FC<{
+
+/** @public */
+export type TLUiPopoverContentProps = {
 	children: React.ReactNode
 	side: 'top' | 'bottom' | 'left' | 'right'
 	align?: 'start' | 'center' | 'end'
 	alignOffset?: number
 	sideOffset?: number
-}> = ({ side, children, align = 'center', sideOffset = 8, alignOffset = 0 }) => {
+}
+
+/** @public */
+export function PopoverContent({
+	side,
+	children,
+	align = 'center',
+	sideOffset = 8,
+	alignOffset = 0,
+}: TLUiPopoverContentProps) {
 	const container = useContainer()
 	return (
 		<PopoverPrimitive.Portal container={container}>

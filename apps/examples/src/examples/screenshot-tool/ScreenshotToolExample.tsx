@@ -26,7 +26,6 @@ const customUiOverrides: TLUiOverrides = {
 			screenshot: {
 				id: 'screenshot',
 				label: 'Screenshot',
-				readonlyOk: false,
 				icon: 'tool-screenshot',
 				kbd: 'j',
 				onSelect() {

@@ -1,6 +1,10 @@
 import {
 	Button,
-	Dialog,
+	DialogBody,
+	DialogCloseButton,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 	TLUiDialogsContextType,
 	useLocalStorageState,
 	useTranslation,
@@ -46,14 +50,12 @@ function ConfirmLeaveDialog({
 
 	return (
 		<>
-			<Dialog.Header>
-				<Dialog.Title>{msg('sharing.confirm-leave.title')}</Dialog.Title>
-				<Dialog.CloseButton />
-			</Dialog.Header>
-			<Dialog.Body style={{ maxWidth: 350 }}>
-				{msg('sharing.confirm-leave.description')}
-			</Dialog.Body>
-			<Dialog.Footer className="tlui-dialog__footer__actions">
+			<DialogHeader>
+				<DialogTitle>{msg('sharing.confirm-leave.title')}</DialogTitle>
+				<DialogCloseButton />
+			</DialogHeader>
+			<DialogBody style={{ maxWidth: 350 }}>{msg('sharing.confirm-leave.description')}</DialogBody>
+			<DialogFooter className="tlui-dialog__footer__actions">
 				<Button
 					type="normal"
 					onClick={() => setDontShowAgain(!dontShowAgain)}
@@ -76,7 +78,7 @@ function ConfirmLeaveDialog({
 				>
 					{msg('sharing.confirm-leave.leave')}
 				</Button>
-			</Dialog.Footer>
+			</DialogFooter>
 		</>
 	)
 }

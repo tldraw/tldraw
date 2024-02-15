@@ -155,33 +155,35 @@ The [Tldraw](?) component combines two lower-level components: [TldrawEditor](?)
 
 ### Customize the default components
 
-You can customize the appearance of the tldraw editor using the [Tldraw](?) (or [TldrawEditor](?) component's `components` prop.
+You can customize the appearance of the tldraw editor and ui using the [Tldraw](?) (or [TldrawEditor](?)) component's `components` prop.
 
 ```tsx
-<Tldraw
-	components={{
-		Background: YourCustomBackground,
-		SvgDefs: YourCustomSvgDefs,
-		Brush: YourCustomBrush,
-		ZoomBrush: YourCustomBrush,
-		CollaboratorBrush: YourCustomBrush,
-		Cursor: YourCustomCursor,
-		CollaboratorCursor: YourCustomCursor,
-		CollaboratorHint: YourCustomCollaboratorHint,
-		CollaboratorShapeIndicator: YourCustomdicator,
-		Grid: YourCustomGrid,
-		Scribble: YourCustomScribble,
-		SnapLine: YourCustomSnapLine,
-		Handles: YourCustomHandles,
-		Handle: YourCustomHandle,
-		CollaboratorScribble: YourCustomScribble,
-		ErrorFallback: YourCustomErrorFallback,
-		ShapeErrorFallback: YourCustomShapeErrorFallback,
-		ShapeIndicatorErrorFallback: YourCustomShapeIndicatorErrorFallback,
-		Spinner: YourCustomSpinner,
-		SelectionBackground: YourCustomSelectionBackground,
-		SelectionForeground: YourCustomSelectionForeground,
-		HoveredShapeIndicator: YourCustomHoveredShapeIndicator,
-	}}
-/>
+
+const components: TLComponents = {
+	Background: YourCustomBackground,
+	SvgDefs: YourCustomSvgDefs,
+	Brush: YourCustomBrush,
+	ZoomBrush: YourCustomBrush,
+	CollaboratorBrush: YourCustomBrush,
+	Cursor: YourCustomCursor,
+	CollaboratorCursor: YourCustomCursor,
+	CollaboratorHint: YourCustomCollaboratorHint,
+	CollaboratorShapeIndicator: YourCustomdicator,
+	Grid: YourCustomGrid,
+	Scribble: YourCustomScribble,
+	SnapLine: YourCustomSnapLine,
+	Handles: YourCustomHandles,
+	Handle: YourCustomHandle,
+	CollaboratorScribble: YourCustomScribble,
+	ErrorFallback: YourCustomErrorFallback,
+	ShapeErrorFallback: YourCustomShapeErrorFallback,
+	ShapeIndicatorErrorFallback: YourCustomShapeIndicatorErrorFallback,
+	Spinner: YourCustomSpinner,
+	SelectionBackground: YourCustomSelectionBackground,
+	SelectionForeground: YourCustomSelectionForeground,
+	HoveredShapeIndicator: YourCustomHoveredShapeIndicator,
+	// ...
+}
+
+<Tldraw components={components}/>
 ```
