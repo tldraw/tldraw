@@ -185,7 +185,6 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 				return (
 					<TldrawUiDropdownMenuItem
 						key={id}
-						data-testid={`tools.more.${id}`}
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}
@@ -194,6 +193,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 							type="icon"
 							className="tlui-button-grid__button"
 							onClick={() => onSelect('toolbar')}
+							data-testid={`tools.more.${id}`}
 							title={label ? `${msg(label)} ${kbd ? kbdStr(kbd) : ''}` : ''}
 						>
 							<TldrawUiButtonIcon icon={icon} />

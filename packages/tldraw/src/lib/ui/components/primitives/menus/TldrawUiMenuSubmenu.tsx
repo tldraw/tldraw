@@ -62,15 +62,16 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 			)
 		}
 		case 'context-menu': {
+			if (disabled) return null
+
 			return (
 				<ContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
-					<ContextMenuSubTrigger
-						dir="ltr"
-						disabled={disabled}
-						data-testid={`${sourceId}-sub-trigger.${id}`}
-						asChild
-					>
-						<TldrawUiButton type="menu" className="tlui-menu__submenu__trigger">
+					<ContextMenuSubTrigger dir="ltr" disabled={disabled} asChild>
+						<TldrawUiButton
+							data-testid={`${sourceId}-sub-trigger.${id}`}
+							type="menu"
+							className="tlui-menu__submenu__trigger"
+						>
 							<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 							<TldrawUiButtonIcon icon="chevron-right" small />
 						</TldrawUiButton>

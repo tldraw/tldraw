@@ -60,12 +60,10 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 				<div className="tlui-buttons__grid">
 					{items.map((item) => {
 						return (
-							<TldrawUiDropdownMenuItem
-								key={item.value}
-								data-testid={`style.${uiType}.${item.value}`}
-							>
+							<TldrawUiDropdownMenuItem key={item.value}>
 								<TldrawUiButton
 									type="icon"
+									data-testid={`style.${uiType}.${item.value}`}
 									title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
 									onClick={() => onValueChange(style, item.value, false)}
 								>
