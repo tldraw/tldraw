@@ -910,6 +910,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
+    getHandleSnapGeometry(shape: TLLineShape): {
+        points: VecModel[];
+    };
+    // (undocumented)
     getOutlineSegments(shape: TLLineShape): Vec[][];
     // (undocumented)
     hideResizeHandles: () => boolean;

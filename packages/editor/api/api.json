@@ -1276,6 +1276,55 @@
               "name": "getGeometry"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!BaseBoxShapeUtil#getHandleSnapGeometry:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHandleSnapGeometry(shape: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Shape"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HandleSnapGeometry",
+                  "canonicalReference": "@tldraw/editor!HandleSnapGeometry:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHandleSnapGeometry"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!BaseBoxShapeUtil#onResize:member",
               "docComment": "",
@@ -22959,7 +23008,7 @@
         {
           "kind": "Interface",
           "canonicalReference": "@tldraw/editor!HandleSnapGeometry:interface",
-          "docComment": "/**\n * When dragging a handle, users can snap the handle to key geometry on other nearby shapes. Customize how handles snap to a shape by returning this from {@link ShapeUtil.getHandleSnapGeometry}.\n *\n * @public\n */\n",
+          "docComment": "/**\n * When dragging a handle, users can snap the handle to key geometry on other nearby shapes. Customize how handles snap to a shape by returning this from {@link ShapeUtil.getHandleSnapGeometry}.\n *\n * Any co-ordinates here should be in the shape's local space.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -22998,6 +23047,38 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "outline",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!HandleSnapGeometry#points:member",
+              "docComment": "/**\n * Key points on the shape that the handle will snap to. For example, the corners of a rectangle, or the centroid of a triangle. By default, no points are used.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "points?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "points",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3

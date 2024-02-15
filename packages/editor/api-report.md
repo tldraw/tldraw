@@ -156,6 +156,8 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     // (undocumented)
     getGeometry(shape: Shape): Geometry2d;
     // (undocumented)
+    getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
+    // (undocumented)
     onResize: TLOnResizeHandler<any>;
 }
 
@@ -1141,6 +1143,7 @@ export const HALF_PI: number;
 // @public
 export interface HandleSnapGeometry {
     outline?: Geometry2d | null;
+    points?: VecModel[];
 }
 
 // @public
