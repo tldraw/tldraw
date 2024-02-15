@@ -1,4 +1,5 @@
 import { memo, useCallback } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { unwrapLabel, useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
@@ -21,14 +22,14 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 
 	const { ZoomMenu, Minimap } = useTldrawUiComponents()
 
-	if (breakpoint < 4) {
+	if (breakpoint < PORTRAIT_BREAKPOINT.MOBILE) {
 		return null
 	}
 
 	return (
 		<div className="tlui-navigation-panel">
 			<div className="tlui-buttons__horizontal">
-				{ZoomMenu && breakpoint < 6 ? (
+				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : collapsed ? (
 					<>
@@ -74,7 +75,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 					</>
 				)}
 			</div>
-			{Minimap && breakpoint >= 6 && !collapsed && <Minimap />}
+			{Minimap && breakpoint >= PORTRAIT_BREAKPOINT.TABLET && !collapsed && <Minimap />}
 		</div>
 	)
 })

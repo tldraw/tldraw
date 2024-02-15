@@ -1,5 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { memo } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -45,7 +46,10 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				type="icon" // needs to be here because the trigger also passes down type="button"
 				smallIcon
 			/>
-			<PopoverContent side={breakpoint >= 6 ? 'bottom' : 'top'} sideOffset={6}>
+			<PopoverContent
+				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
+				sideOffset={6}
+			>
 				<div className="tlui-actions-menu tlui-buttons__grid">
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}

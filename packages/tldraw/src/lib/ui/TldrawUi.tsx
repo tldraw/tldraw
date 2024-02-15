@@ -9,6 +9,7 @@ import { FollowingIndicator } from './components/FollowingIndicator'
 import { MenuZone } from './components/MenuZone'
 import { ToastViewport, Toasts } from './components/Toasts'
 import { Button } from './components/primitives/Button'
+import { PORTRAIT_BREAKPOINT } from './constants'
 import {
 	TldrawUiContextProvider,
 	TldrawUiContextProviderProps,
@@ -142,7 +143,7 @@ const TldrawUiContent = React.memo(function TldrawUI({ shareZone, topZone }: Tld
 		<ToastProvider>
 			<div
 				className={classNames('tlui-layout', {
-					'tlui-layout__mobile': breakpoint < 5,
+					'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
 				data-breakpoint={breakpoint}
 			>
@@ -166,7 +167,9 @@ const TldrawUiContent = React.memo(function TldrawUI({ shareZone, topZone }: Tld
 							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
 								{shareZone}
-								{StylePanel && breakpoint >= 5 && !isReadonlyMode && <_StylePanel />}
+								{StylePanel && breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
+									<_StylePanel />
+								)}
 							</div>
 						</div>
 						<div className="tlui-layout__bottom">
