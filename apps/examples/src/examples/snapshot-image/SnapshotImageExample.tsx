@@ -3,6 +3,8 @@ import '@tldraw/tldraw/tldraw.css'
 import { useCallback, useState } from 'react'
 import initialSnapshot from './snapshot.json'
 
+// There's a guide at the bottom of this file!
+
 export default function SnapshotImageExample() {
 	const [editor, setEditor] = useState<Editor>()
 	const [snapshot, setSnapshot] = useState<StoreSnapshot<TLRecord>>(initialSnapshot)
@@ -41,8 +43,11 @@ export default function SnapshotImageExample() {
 					<Tldraw snapshot={snapshot} onMount={handleMount} />
 				) : (
 					<TldrawImage
+						//[1]
 						snapshot={snapshot}
+						// [2]
 						pageId={pageId}
+						// [3]
 						opts={{ background: false, darkMode: false }}
 					/>
 				)}
@@ -50,3 +55,19 @@ export default function SnapshotImageExample() {
 		</div>
 	)
 }
+
+/*
+This example shows how to use the `TldrawImage` component to display a snapshot
+as an image. The example also allows you to toggle between editing the snapshot
+and viewing it.
+
+[1] Pass your snapshot to the `snapshot` prop of the `TldrawImage` component.
+
+[2] You can specify which page to display by using the `pageId` prop. By
+    default, the first page is shown.
+	
+[3] You can customize the appearance of the image by passing options to the
+    `opts` prop. Try changing the `background` and `darkMode` options to see
+    their effects.
+
+ */
