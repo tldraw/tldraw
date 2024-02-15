@@ -16,11 +16,9 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
-import { HTMLProps } from 'react';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
-import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { PointerEventHandler } from 'react';
@@ -433,22 +431,7 @@ export function dataUrlToFile(url: string, filename: string, mimeType: string): 
 export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
 
 // @internal (undocumented)
-export const debugFlags: {
-    preventDefaultLogging: DebugFlag<boolean>;
-    pointerCaptureLogging: DebugFlag<boolean>;
-    pointerCaptureTracking: DebugFlag<boolean>;
-    pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
-    elementRemovalLogging: DebugFlag<boolean>;
-    debugSvg: DebugFlag<boolean>;
-    showFps: DebugFlag<boolean>;
-    throwToBlob: DebugFlag<boolean>;
-    logMessages: DebugFlag<any[]>;
-    resetConnectionEveryPing: DebugFlag<boolean>;
-    debugCursors: DebugFlag<boolean>;
-    forceSrgb: DebugFlag<boolean>;
-    debugGeometry: DebugFlag<boolean>;
-    hideShapes: DebugFlag<boolean>;
-};
+export const debugFlags: Record<string, DebugFlag<boolean>>;
 
 // @internal (undocumented)
 export const DEFAULT_ANIMATION_OPTIONS: {
@@ -1454,13 +1437,6 @@ export class Polyline2d extends Geometry2d {
     // (undocumented)
     _segments?: Edge2d[];
 }
-
-// @public (undocumented)
-export const PositionedOnCanvas: MemoExoticComponent<({ x: offsetX, y: offsetY, rotation, ...rest }: {
-x?: number | undefined;
-y?: number | undefined;
-rotation?: number | undefined;
-} & HTMLProps<HTMLDivElement>) => JSX_2.Element>;
 
 // @public (undocumented)
 export function precise(A: VecLike): string;

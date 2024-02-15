@@ -1,11 +1,4 @@
-import {
-	TLUiActionsContextType,
-	TLUiMenuGroup,
-	TLUiOverrides,
-	TLUiToolsContextType,
-	Tldraw,
-	menuItem,
-} from '@tldraw/tldraw'
+import { TLUiActionsContextType, TLUiOverrides, TLUiToolsContextType, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import jsonSnapshot from './snapshot.json'
 
@@ -15,7 +8,6 @@ import jsonSnapshot from './snapshot.json'
 const overrides: TLUiOverrides = {
 	//[a]
 	actions(_editor, actions): TLUiActionsContextType {
-		actions['copy-as-png'].kbd = '$1'
 		actions['toggle-grid'].kbd = 'x'
 		return actions
 	},
@@ -23,15 +15,6 @@ const overrides: TLUiOverrides = {
 	tools(_editor, tools): TLUiToolsContextType {
 		tools['draw'].kbd = 'p'
 		return tools
-	},
-	//[c]
-	keyboardShortcutsMenu(_editor, shortcutsMenu, { actions }) {
-		const editGroup = shortcutsMenu.find(
-			(group) => group.id === 'shortcuts-dialog.edit'
-		) as TLUiMenuGroup
-
-		editGroup.children.push(menuItem(actions['copy-as-png']))
-		return shortcutsMenu
 	},
 }
 
@@ -74,15 +57,6 @@ add a new shortcut to the keyboard shortcuts dialog [c].
 [b] tools
 	We're overriding the draw tool's shortcut to 'p', maybe we want to rename it to the pen
 	tool or something.
-
-[c] keyboardShortcutsMenu
-	This function takes 3 arguments, the editor instance (which we don't need), the menu
-	schema, and the ui context. The shortcutsMenu is an array, so we'll need to use the 
-	find method to return the edit group and add our new menu item to it. Check out the 
-	useKeyboardShortcutsSchema.tsx file in the tldraw repo to see the full list of groups
-	and the menu items they contain. menuItem() is a helper function that creates a new menu 
-	item for us, we just need to pass it an action or tool. We'll use the copy-as-png action 
-	that we modified in [a], we can grab it from the ui context's actions object.
 
 [2]
 Finally, we pass our overrides object into the Tldraw component's overrides prop. Now when
