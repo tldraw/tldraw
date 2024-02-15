@@ -1,8 +1,8 @@
 import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
-import { useToolbarItems } from '../components/Toolbar/Toolbar'
-import { useActions } from './useActions'
+import { useToolbarItems } from '../components/Toolbar/DefaultToolbar'
+import { useActions } from '../context/actions'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -19,7 +19,7 @@ const SKIP_KBDS = [
 export function useKeyboardShortcuts() {
 	const editor = useEditor()
 
-	const isReadonly = useReadonly()
+	const isReadonlyMode = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
@@ -48,7 +48,7 @@ export function useKeyboardShortcuts() {
 		// Except those that in SKIP_KBDS!
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
-			if (isReadonly && !action.readonlyOk) continue
+			if (isReadonlyMode && !action.readonlyOk) continue
 			if (SKIP_KBDS.includes(action.id)) continue
 
 			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
@@ -127,7 +127,7 @@ export function useKeyboardShortcuts() {
 		return () => {
 			hotkeys.deleteScope(editor.store.id)
 		}
-	}, [actions, tools, isReadonly, editor, isFocused, toolbarItemsInPanel])
+	}, [actions, tools, isReadonlyMode, editor, isFocused, toolbarItemsInPanel])
 }
 
 function getHotkeysStringFromKbd(kbd: string) {
