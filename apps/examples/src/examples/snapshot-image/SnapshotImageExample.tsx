@@ -45,7 +45,7 @@ export default function SnapshotImageExample() {
 					<TldrawImage
 						snapshot={snapshot}
 						pageId={pageId}
-						opts={{ background: false, darkMode: true }}
+						opts={{ background: false, darkMode: false }}
 					/>
 				)}
 			</div>
