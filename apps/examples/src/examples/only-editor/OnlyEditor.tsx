@@ -1,6 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
-import { Editor, PositionedOnCanvas, TldrawEditor, createShapeId, track } from '@tldraw/editor'
+import { Editor, TldrawEditor, createShapeId } from '@tldraw/editor'
 import { MiniBoxShapeUtil } from './MiniBoxShape'
 import { MiniSelectTool } from './MiniSelectTool'
 
@@ -32,23 +32,27 @@ export default function OnlyEditorExample() {
 						])
 				}}
 				components={{
-					Background: BackgroundComponent,
+					// [3]
+					OnTheCanvas: () => {
+						return (
+							<div
+								style={{
+									position: 'absolute',
+									transform: `translate(16px, 16px)`,
+									width: '320px',
+								}}
+							>
+								<p>Double click to create or delete shapes.</p>
+								<p>Click or Shift+Click to select shapes.</p>
+								<p>Click and drag to move shapes.</p>
+							</div>
+						)
+					},
 				}}
 			/>
 		</div>
 	)
 }
-
-// [3]
-const BackgroundComponent = track(() => {
-	return (
-		<PositionedOnCanvas x={16} y={16}>
-			<p>Double click to create or delete shapes.</p>
-			<p>Click or Shift+Click to select shapes.</p>
-			<p>Click and drag to move shapes.</p>
-		</PositionedOnCanvas>
-	)
-})
 
 /* 
 This example shows how to use the TldrawEditor component on its own. This is useful if you want to

@@ -166,12 +166,19 @@ My browser: ${navigator.userAgent}`
 							<a href="https://discord.gg/Cq6cPsTfNy">ask for help on Discord</a>.
 						</p>
 						{shouldShowError && (
-							<div className="tl-error-boundary__content__error">
-								<pre>
-									<code>{errorStack ?? errorMessage}</code>
-								</pre>
-								<button onClick={copyError}>{didCopy ? 'Copied!' : 'Copy'}</button>
-							</div>
+							<>
+								Message:
+								<h4>
+									<code>{errorMessage}</code>
+								</h4>
+								Stack trace:
+								<div className="tl-error-boundary__content__error">
+									<pre>
+										<code>{errorStack ?? errorMessage}</code>
+									</pre>
+									<button onClick={copyError}>{didCopy ? 'Copied!' : 'Copy'}</button>
+								</div>
+							</>
 						)}
 						<div className="tl-error-boundary__content__actions">
 							<button onClick={() => setShouldShowError(!shouldShowError)}>

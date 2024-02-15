@@ -1,6 +1,6 @@
 import * as T from '@radix-ui/react-toast'
 import * as React from 'react'
-import { TLUiToast, useToasts } from '../hooks/useToastsProvider'
+import { TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { Button } from './primitives/Button'

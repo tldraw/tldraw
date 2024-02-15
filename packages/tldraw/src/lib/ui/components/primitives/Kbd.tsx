@@ -1,4 +1,4 @@
-import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useBreakpoint } from '../../context/breakpoints'
 import { kbd } from './shared'
 
 /** @internal */
