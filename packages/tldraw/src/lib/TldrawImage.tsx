@@ -42,7 +42,25 @@ export type TldrawImageProps = {
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
 }
 
-/** @public */
+/**
+ * A renderered SVG image of a Tldraw snapshot.
+ *
+ * @example
+ * ```tsx
+ * <TldrawImage snapshot={snapshot} />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <TldrawImage
+ * 	snapshot={snapshot}
+ * 	pageId={pageId}
+ * 	opts={{ background: false, darkMode: true }}
+ * />
+ * ```
+ *
+ * @public
+ */
 export function TldrawImage(props: TldrawImageProps) {
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
 	const [editor, setEditor] = useState<Editor | null>(null)

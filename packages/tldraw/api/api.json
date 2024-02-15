@@ -14590,7 +14590,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!TldrawImage:function(1)",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * A renderered SVG image of a Tldraw snapshot.\n *\n * @example\n * ```tsx\n * <TldrawImage snapshot={snapshot} />\n * ```\n *\n * @example\n * ```tsx\n * <TldrawImage\n * \tsnapshot={snapshot}\n * \tpageId={pageId}\n * \topts={{ background: false, darkMode: true }}\n * />\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

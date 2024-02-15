@@ -1289,7 +1289,7 @@ export const TldrawHandles: TLHandlesComponent;
 // @public (undocumented)
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
-// @public (undocumented)
+// @public
 export function TldrawImage(props: TldrawImageProps): JSX_2.Element;
 
 // @public (undocumented)
