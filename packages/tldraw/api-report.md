@@ -21,6 +21,7 @@ import { EmbedDefinition } from '@tldraw/editor';
 import { EnumStyleProp } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
+import { HandleSnapGeometry } from '@tldraw/editor';
 import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
@@ -607,7 +608,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getDefaultProps(): TLGeoShape['props'];
     // (undocumented)
-    getGeometry(shape: TLGeoShape): Geometry2d;
+    getGeometry(shape: TLGeoShape): Group2d;
+    // (undocumented)
+    getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
