@@ -118,9 +118,14 @@ function TldrawImageSvg({ pageId, opts }: { pageId?: TLPageId; opts?: Partial<TL
 	const [url, setUrl] = useState<string | null>(null)
 
 	useEffect(() => {
+		let isCancelled = false
 		getImageUrl(editor, pageId, opts).then((url) => {
+			if (isCancelled) return
 			setUrl(url)
 		})
+		return () => {
+			isCancelled = true
+		}
 	}, [editor, opts, pageId])
 
 	return url ? <img src={url} style={{ width: '100%', height: '100%' }} /> : null
