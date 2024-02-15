@@ -1292,7 +1292,7 @@ export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 // @public
 export function TldrawImage(props: TldrawImageProps): JSX_2.Element;
 
-// @public (undocumented)
+// @public
 export type TldrawImageProps = {
     snapshot: StoreSnapshot<TLRecord>;
     pageId?: TLPageId;

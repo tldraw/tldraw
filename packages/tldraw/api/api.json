@@ -14641,7 +14641,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/tldraw!TldrawImageProps:type",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * Props for the {@link @tldraw/tldraw#TldrawImage} component.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

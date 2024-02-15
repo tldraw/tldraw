@@ -19,7 +19,11 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { exportToString } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
-/** @public */
+/**
+ * Props for the {@link @tldraw/tldraw#TldrawImage} component.
+ *
+ * @public
+ **/
 export type TldrawImageProps = {
 	/**
 	 * The snapshot to display.
