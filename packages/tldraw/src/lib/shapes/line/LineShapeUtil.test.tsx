@@ -1,5 +1,7 @@
 import { IndexKey, TLGeoShape, TLLineShape, createShapeId, deepCopy } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
+import { TL } from '../../../test/test-jsx'
+import { LineShapeUtil } from './LineShapeUtil'
 
 jest.mock('nanoid', () => {
 	let i = 0
@@ -24,19 +26,11 @@ beforeEach(() => {
 				y: 150,
 				props: {
 					handles: {
-						start: {
-							id: 'start',
-							type: 'vertex',
-							canBind: false,
-							index: 'a1',
+						a1: {
 							x: 0,
 							y: 0,
 						},
-						end: {
-							id: 'end',
-							type: 'vertex',
-							canBind: false,
-							index: 'a2',
+						a2: {
 							x: 100,
 							y: 100,
 						},
@@ -75,39 +69,103 @@ describe('Translating', () => {
 	})
 })
 
-it('create new handle', () => {
-	editor.select(id)
+describe('Mid-point handles', () => {
+	it('create new handle', () => {
+		editor.select(id)
 
-	const shape = editor.getShape<TLLineShape>(id)!
-	editor.pointerDown(200, 200, {
-		target: 'handle',
-		shape,
-		handle: {
-			id: 'mid-0',
-			type: 'create',
-			index: 'a1V' as IndexKey,
-			x: 50,
-			y: 50,
-		},
-	})
-	editor.pointerMove(349, 349).pointerMove(350, 350) // Move handle by 150, 150
-	editor.pointerUp()
+		const shape = editor.getShape<TLLineShape>(id)!
+		editor.pointerDown(200, 200, {
+			target: 'handle',
+			shape,
+			handle: {
+				id: 'mid-0',
+				type: 'create',
+				index: 'a1V' as IndexKey,
+				x: 50,
+				y: 50,
+			},
+		})
+		editor.pointerMove(349, 349).pointerMove(350, 350) // Move handle by 150, 150
+		editor.pointerUp()
 
-	editor.expectShapeToMatch({
-		id: id,
-		props: {
-			handles: {
-				...shape.props.handles,
-				'handle:a1V': {
-					id: 'handle:a1V',
-					type: 'vertex',
-					canBind: false,
-					index: 'a1V',
-					x: 200,
-					y: 200,
+		editor.expectShapeToMatch({
+			id: id,
+			props: {
+				handles: {
+					...shape.props.handles,
+					a1V: { x: 200, y: 200 },
 				},
 			},
-		},
+		})
+	})
+
+	it('allows snapping with mid-point handles', () => {
+		editor.createShapesFromJsx([<TL.geo x={200} y={200} w={100} h={100} />])
+
+		editor.select(id)
+
+		const shape = editor.getShape<TLLineShape>(id)!
+		const util = editor.getShapeUtil('line') as LineShapeUtil
+		editor
+			.pointerDown(200, 200, {
+				target: 'handle',
+				shape,
+				handle: util.getHandles(shape).find((h) => h.id === 'mid-0')!,
+			})
+			.pointerMove(198, 230, undefined, { ctrlKey: true })
+
+		expect(editor.snaps.getIndicators()).toHaveLength(1)
+		editor.expectShapeToMatch({
+			id: id,
+			props: {
+				handles: {
+					...shape.props.handles,
+					a1V: { x: 50, y: 80 },
+				},
+			},
+		})
+	})
+
+	it('allows snapping with created mid-point handles', () => {
+		editor.createShapesFromJsx([<TL.geo x={200} y={200} w={100} h={100} />])
+		editor.select(id)
+
+		const getShape = () => editor.getShape<TLLineShape>(id)!
+		const util = editor.getShapeUtil('line') as LineShapeUtil
+
+		// use a mid-point handle to create a new handle
+		editor
+			.pointerDown(200, 200, {
+				target: 'handle',
+				shape: getShape(),
+				handle: util.getHandles(getShape()).find((h) => h.id === 'mid-0')!,
+			})
+			.pointerMove(230, 200)
+			.pointerMove(200, 200)
+			.pointerUp()
+
+		// 3 actual points, plus 2 mid-points:
+		expect(util.getHandles(getShape())).toHaveLength(5)
+
+		// now, try dragging the newly created handle. it should still snap:
+		editor
+			.pointerDown(200, 200, {
+				target: 'handle',
+				shape: getShape(),
+				handle: util.getHandles(getShape()).find((h) => h.id === 'a1V')!,
+			})
+			.pointerMove(198, 230, undefined, { ctrlKey: true })
+
+		expect(editor.snaps.getIndicators()).toHaveLength(1)
+		editor.expectShapeToMatch({
+			id: id,
+			props: {
+				handles: {
+					...getShape().props.handles,
+					a1V: { x: 50, y: 80 },
+				},
+			},
+		})
 	})
 })
 
