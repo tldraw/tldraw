@@ -58,6 +58,7 @@ export default function SnapshotImageExample() {
 }
 
 /*
+
 This example shows how to use the `TldrawImage` component to display a snapshot
 as an image. The example also allows you to toggle between editing the snapshot
 and viewing it.
