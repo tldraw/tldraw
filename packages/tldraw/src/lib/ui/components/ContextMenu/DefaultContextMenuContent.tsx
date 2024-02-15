@@ -1,5 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import {
+	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
 	DeleteGroup,
@@ -8,8 +9,9 @@ import {
 	EmbedsGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
-	ModifyMenuGroup,
+	MoveToPageMenu,
 	RemoveFrameMenuItem,
+	ReorderMenuSubmenu,
 	SetSelectionGroup,
 	ToggleAutoSizeMenuItem,
 	ToggleLockMenuItem,
@@ -31,28 +33,26 @@ export function DefaultContextMenuContent() {
 
 	return (
 		<>
-			<SelectionMenuGroup />
+			<TldrawUiMenuGroup id="selection">
+				<ToggleAutoSizeMenuItem />
+				<EditLinkMenuItem />
+				<DuplicateMenuItem />
+				<GroupMenuItem />
+				<UngroupMenuItem />
+				<RemoveFrameMenuItem />
+				<FitFrameToContentMenuItem />
+				<ToggleLockMenuItem />
+			</TldrawUiMenuGroup>
 			<EmbedsGroup />
-			<ModifyMenuGroup />
+			<TldrawUiMenuGroup id="modify">
+				<ArrangeMenuSubmenu />
+				<ReorderMenuSubmenu />
+				<MoveToPageMenu />
+			</TldrawUiMenuGroup>
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
 			<SetSelectionGroup />
 			<DeleteGroup />
 		</>
-	)
-}
-
-function SelectionMenuGroup() {
-	return (
-		<TldrawUiMenuGroup id="selection">
-			<ToggleAutoSizeMenuItem />
-			<EditLinkMenuItem />
-			<DuplicateMenuItem />
-			<GroupMenuItem />
-			<UngroupMenuItem />
-			<RemoveFrameMenuItem />
-			<FitFrameToContentMenuItem />
-			<ToggleLockMenuItem />
-		</TldrawUiMenuGroup>
 	)
 }

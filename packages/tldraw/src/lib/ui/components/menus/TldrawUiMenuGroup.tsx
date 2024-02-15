@@ -33,10 +33,7 @@ export function TldrawUiMenuGroup({ id, label, small = false, children }: TLUiMe
 		}
 		case 'menu': {
 			return (
-				<DropdownMenuGroup
-					data-testid={`${sourceId}-group.${id}`}
-					data-size={small ? 'tiny' : 'medium'}
-				>
+				<DropdownMenuGroup data-testid={`${sourceId}-group.${id}`} size={small ? 'tiny' : 'medium'}>
 					{children}
 				</DropdownMenuGroup>
 			)

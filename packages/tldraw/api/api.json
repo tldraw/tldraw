@@ -15940,7 +15940,7 @@
             },
             {
               "kind": "Content",
-              "text": ">({ id, disabled, label, children, }: "
+              "text": ">({ id, disabled, label, size, children, }: "
             },
             {
               "kind": "Reference",
@@ -15973,7 +15973,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, disabled, label, children, }",
+              "parameterName": "{ id, disabled, label, size, children, }",
               "parameterTypeTokenRange": {
                 "startIndex": 5,
                 "endIndex": 7
@@ -21042,7 +21042,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: any;\n}"
+              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: any;\n    size?: 'large' | 'medium' | 'small' | 'tiny';\n}"
             },
             {
               "kind": "Content",

@@ -6,6 +6,7 @@ import { TLUiEventSource } from '../../context/events'
 import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { Spinner } from '../Spinner'
 import { Button } from '../primitives/Button'
 import { DropdownMenuItem } from '../primitives/DropdownMenu'
 import { Kbd } from '../primitives/Kbd'
@@ -106,26 +107,31 @@ export function TldrawUiMenuItem<
 			)
 		}
 		case 'context-menu': {
+			// Hide disabled context menu items
+			if (disabled) return null
+
 			return (
-				<ContextMenuItem dir="ltr" asChild onClick={noClose ? preventDefault : undefined}>
-					<Button
-						type="menu"
-						data-testid={`${sourceId}.${id}`}
-						kbd={kbd}
-						label={labelStr}
-						disabled={disabled}
-						spinner={spinner}
-						onClick={(e) => {
-							if (noClose) {
-								preventDefault(e)
-							}
-							if (disableClicks) {
-								setDisableClicks(false)
-							} else {
-								onSelect(sourceId)
-							}
-						}}
-					/>
+				<ContextMenuItem
+					dir="ltr"
+					title={labelStr}
+					draggable={false}
+					disabled={disabled}
+					className="tlui-button tlui-button__menu"
+					data-testid={`${sourceId}.${id}`}
+					onSelect={(e) => {
+						if (noClose) preventDefault(e)
+						if (disableClicks) {
+							setDisableClicks(false)
+						} else {
+							onSelect(sourceId)
+						}
+					}}
+				>
+					<span className="tlui-button__label" draggable={false}>
+						{labelStr}
+					</span>
+					{kbd && <Kbd>{kbd}</Kbd>}
+					{spinner && <Spinner />}
 				</ContextMenuItem>
 			)
 		}

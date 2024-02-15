@@ -1319,7 +1319,7 @@ export function TldrawUiMenuGroup({ id, label, small, children }: TLUiMenuGroupP
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, children, }: TLUiMenuSubmenuProps<Translation>): any;
+export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): any;
 
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
@@ -1831,6 +1831,7 @@ export type TLUiMenuSubmenuProps<Translation extends string = string> = {
     } | Translation;
     disabled?: boolean;
     children: any;
+    size?: 'large' | 'medium' | 'small' | 'tiny';
 };
 
 // @public (undocumented)
