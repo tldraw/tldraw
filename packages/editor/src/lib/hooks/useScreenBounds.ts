@@ -62,9 +62,11 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 	}, [editor, ref])
 }
 
-// Credits: from v1 by way of excalidraw
-// https://github.com/tldraw/tldraw-v1/blob/main/packages/core/src/hooks/useResizeObserver.ts#L8
-// https://github.com/excalidraw/excalidraw/blob/48c3465b19f10ec755b3eb84e21a01a468e96e43/packages/excalidraw/utils.ts#L600
+/*!
+ * Author: excalidraw
+ * MIT License: https://github.com/excalidraw/excalidraw/blob/master/LICENSE
+ * https://github.com/excalidraw/excalidraw/blob/48c3465b19f10ec755b3eb84e21a01a468e96e43/packages/excalidraw/utils.ts#L600
+ */
 const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Document => {
 	let parent = element.parentElement
 	while (parent) {
