@@ -11371,12 +11371,21 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, "
+                  "text": "<import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLHandle",
-                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
                 },
                 {
                   "kind": "Content",
@@ -11393,7 +11402,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 14
+                "endIndex": 16
               },
               "isStatic": true,
               "isProtected": false,
