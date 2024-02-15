@@ -1,5 +1,5 @@
 import { computed } from '@tldraw/state'
-import { TLShape, VecModel } from '@tldraw/tlschema'
+import { TLHandle, TLShape, VecModel } from '@tldraw/tlschema'
 import { assertExists } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
@@ -28,6 +28,20 @@ export interface HandleSnapGeometry {
 	 * rectangle, or the centroid of a triangle. By default, no points are used.
 	 */
 	points?: VecModel[]
+	/**
+	 * By default, handles can't snap to their own shape because moving the handle might change the
+	 * snapping location which can cause feedback loops. You can override this by returning a
+	 * version of `outline` that won't be affected by the current handle's position to use for
+	 * self-snapping.
+	 */
+	getSelfSnapOutline?(handle: TLHandle): Geometry2d | null
+	/**
+	 * By default, handles can't snap to their own shape because moving the handle might change the
+	 * snapping location which can cause feedback loops. You can override this by returning a
+	 * version of `points` that won't be affected by the current handle's position to use for
+	 * self-snapping.
+	 */
+	getSelfSnapPoints?(handle: TLHandle): VecModel[]
 }
 
 export class HandleSnaps {
