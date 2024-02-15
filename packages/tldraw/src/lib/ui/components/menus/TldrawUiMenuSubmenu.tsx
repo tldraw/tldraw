@@ -12,10 +12,10 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import {
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
-} from '../primitives/DropdownMenu'
+	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubContent,
+	TldrawUiDropdownMenuSubTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -48,17 +48,17 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<DropdownMenuSub id={`${sourceId}-sub.${id}`}>
-					<DropdownMenuSubTrigger
+				<TldrawUiDropdownMenuSub id={`${sourceId}-sub.${id}`}>
+					<TldrawUiDropdownMenuSubTrigger
 						id={`${sourceId}-sub.${id}`}
 						disabled={disabled}
 						label={labelStr!}
 						title={labelStr!}
 					/>
-					<DropdownMenuSubContent id={`${sourceId}-sub-content.${id}`} data-size={size}>
+					<TldrawUiDropdownMenuSubContent id={`${sourceId}-sub-content.${id}`} data-size={size}>
 						{children}
-					</DropdownMenuSubContent>
-				</DropdownMenuSub>
+					</TldrawUiDropdownMenuSubContent>
+				</TldrawUiDropdownMenuSub>
 			)
 		}
 		case 'context-menu': {

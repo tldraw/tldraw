@@ -7,11 +7,11 @@ import { TLUiButtonProps, TldrawUiButton } from '../primitives/Button/TldrawUiBu
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import {
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuRoot,
-	DropdownMenuTrigger,
-} from '../primitives/DropdownMenu'
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
 import { StyleValuesForUi } from './styles'
 
 interface DropdownPickerProps<T extends string> {
@@ -49,18 +49,21 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 	const labelStr = label ? msg(label) : ''
 
 	return (
-		<DropdownMenuRoot id={`style panel ${id}`}>
-			<DropdownMenuTrigger>
+		<TldrawUiDropdownMenuRoot id={`style panel ${id}`}>
+			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton type={type} data-testid={`style.${uiType}`} title={titleStr}>
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 					<TldrawUiButtonIcon icon={(icon as TLUiIconType) ?? 'mixed'} />
 				</TldrawUiButton>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent side="left" align="center" alignOffset={0}>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent side="left" align="center" alignOffset={0}>
 				<div className="tlui-buttons__grid">
 					{items.map((item) => {
 						return (
-							<DropdownMenuItem key={item.value} data-testid={`style.${uiType}.${item.value}`}>
+							<TldrawUiDropdownMenuItem
+								key={item.value}
+								data-testid={`style.${uiType}.${item.value}`}
+							>
 								<TldrawUiButton
 									type="icon"
 									title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
@@ -68,11 +71,11 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 								>
 									<TldrawUiButtonIcon icon={item.icon} />
 								</TldrawUiButton>
-							</DropdownMenuItem>
+							</TldrawUiDropdownMenuItem>
 						)
 					})}
 				</div>
-			</DropdownMenuContent>
-		</DropdownMenuRoot>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 })

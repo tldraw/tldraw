@@ -1,7 +1,7 @@
 import {
-	Input,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
+	TldrawUiInput,
 	useEditor,
 	useTranslation,
 	useUiEvents,
@@ -44,7 +44,7 @@ export function UserPresenceEditor() {
 		<div className="tlui-people-menu__user">
 			<UserPresenceColorPicker />
 			{isEditingName ? (
-				<Input
+				<TldrawUiInput
 					className="tlui-people-menu__user__input"
 					defaultValue={userName}
 					onValueChange={handleValueChange}

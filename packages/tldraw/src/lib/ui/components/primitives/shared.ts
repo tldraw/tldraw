@@ -26,15 +26,5 @@ export function kbd(str: string) {
 
 /** @internal */
 export function kbdStr(str: string) {
-	return (
-		'— ' +
-		str
-			.split(',')[0]
-			.split('')
-			.map((sub) => {
-				const subStr = sub.replace(/\$/g, cmdKey).replace(/\?/g, altKey).replace(/!/g, '⇧')
-				return subStr[0].toUpperCase() + subStr.slice(1)
-			})
-			.join(' ')
-	)
+	return '— ' + kbd(str).join(' ')
 }

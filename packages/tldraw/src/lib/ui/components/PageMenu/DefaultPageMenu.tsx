@@ -16,7 +16,11 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
-import { Popover, PopoverContent, PopoverTrigger } from '../primitives/Popover'
+import {
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from '../primitives/TldrawUiPopover'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 import { onMovePage } from './edit-pages-shared'
@@ -256,18 +260,14 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [editor, msg, isReadonlyMode])
 
 	return (
-		<Popover id="pages" onOpenChange={onOpenChange} open={isOpen}>
-			<PopoverTrigger data-testid="main.page-menu">
-				<TldrawUiButton
-					type="menu"
-					title={currentPage.name}
-					className="tlui-page-menu__trigger tlui-menu__trigger"
-				>
-					<TldrawUiButtonIcon icon="chevron-down" small />
+		<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
+			<TldrawUiPopoverTrigger data-testid="main.page-menu">
+				<TldrawUiButton type="menu" title={currentPage.name} className="tlui-page-menu__trigger">
 					<div className="tlui-page-menu__name">{currentPage.name}</div>
+					<TldrawUiButtonIcon icon="chevron-down" small />
 				</TldrawUiButton>
-			</PopoverTrigger>
-			<PopoverContent side="bottom" align="start" sideOffset={6}>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={6}>
 				<div className="tlui-page-menu__wrapper">
 					<div className="tlui-page-menu__header">
 						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
@@ -411,7 +411,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						})}
 					</div>
 				</div>
-			</PopoverContent>
-		</Popover>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 })

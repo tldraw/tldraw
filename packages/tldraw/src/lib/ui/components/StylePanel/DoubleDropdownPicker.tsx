@@ -5,11 +5,11 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuRoot,
-	DropdownMenuTrigger,
-} from '../primitives/DropdownMenu'
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
 import { StyleValuesForUi } from './styles'
 
 interface DoubleDropdownPickerProps<T extends string> {
@@ -64,8 +64,8 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 				{msg(label)}
 			</div>
 			<div className="tlui-buttons__horizontal">
-				<DropdownMenuRoot id={`style panel ${uiTypeA} A`}>
-					<DropdownMenuTrigger>
+				<TldrawUiDropdownMenuRoot id={`style panel ${uiTypeA} A`}>
+					<TldrawUiDropdownMenuTrigger>
 						<TldrawUiButton
 							type="icon"
 							data-testid={`style.${uiTypeA}`}
@@ -79,12 +79,12 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 						>
 							<TldrawUiButtonIcon icon={iconA} small invertIcon />
 						</TldrawUiButton>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsA.map((item) => {
 								return (
-									<DropdownMenuItem data-testid={`style.${uiTypeA}.${item.value}`}>
+									<TldrawUiDropdownMenuItem data-testid={`style.${uiTypeA}.${item.value}`}>
 										<TldrawUiButton
 											type="icon"
 											key={item.value}
@@ -93,14 +93,14 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 										>
 											<TldrawUiButtonIcon icon={item.icon} invertIcon />
 										</TldrawUiButton>
-									</DropdownMenuItem>
+									</TldrawUiDropdownMenuItem>
 								)
 							})}
 						</div>
-					</DropdownMenuContent>
-				</DropdownMenuRoot>
-				<DropdownMenuRoot id={`style panel ${uiTypeB}`}>
-					<DropdownMenuTrigger>
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
+				<TldrawUiDropdownMenuRoot id={`style panel ${uiTypeB}`}>
+					<TldrawUiDropdownMenuTrigger>
 						<TldrawUiButton
 							type="icon"
 							data-testid={`style.${uiTypeB}`}
@@ -114,12 +114,12 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 						>
 							<TldrawUiButtonIcon icon={iconB} small />
 						</TldrawUiButton>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {
 								return (
-									<DropdownMenuItem key={item.value}>
+									<TldrawUiDropdownMenuItem key={item.value}>
 										<TldrawUiButton
 											type="icon"
 											title={
@@ -132,12 +132,12 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 										>
 											<TldrawUiButtonIcon icon={item.icon} />
 										</TldrawUiButton>
-									</DropdownMenuItem>
+									</TldrawUiDropdownMenuItem>
 								)
 							})}
 						</div>
-					</DropdownMenuContent>
-				</DropdownMenuRoot>
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
 			</div>
 		</div>
 	)

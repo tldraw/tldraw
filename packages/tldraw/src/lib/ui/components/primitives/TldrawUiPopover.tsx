@@ -12,7 +12,7 @@ export type TLUiPopoverProps = {
 }
 
 /** @public */
-export function Popover({ id, children, onOpenChange, open }: TLUiPopoverProps) {
+export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps) {
 	const [isOpen, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
 
 	return (
@@ -31,7 +31,7 @@ export interface TLUiPopoverTriggerProps {
 }
 
 /** @public */
-export function PopoverTrigger({ children }: TLUiPopoverTriggerProps) {
+export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps) {
 	return (
 		<PopoverPrimitive.Trigger asChild dir="ltr">
 			{children}
@@ -49,7 +49,7 @@ export type TLUiPopoverContentProps = {
 }
 
 /** @public */
-export function PopoverContent({
+export function TldrawUiPopoverContent({
 	side,
 	children,
 	align = 'center',

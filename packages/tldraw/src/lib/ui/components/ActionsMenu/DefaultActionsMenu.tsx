@@ -6,7 +6,11 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { Popover, PopoverContent, PopoverTrigger } from '../primitives/Popover'
+import {
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from '../primitives/TldrawUiPopover'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
 /** @public */
@@ -38,8 +42,8 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
-		<Popover id="actions-menu">
-			<PopoverTrigger>
+		<TldrawUiPopover id="actions-menu">
+			<TldrawUiPopoverTrigger>
 				<TldrawUiButton
 					type="icon"
 					data-testid="main.action-menu"
@@ -47,14 +51,14 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				>
 					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
-			</PopoverTrigger>
-			<PopoverContent side={breakpoint >= 6 ? 'bottom' : 'top'} sideOffset={6}>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side={breakpoint >= 6 ? 'bottom' : 'top'} sideOffset={6}>
 				<div className="tlui-actions-menu tlui-buttons__grid">
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
 				</div>
-			</PopoverContent>
-		</Popover>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 })

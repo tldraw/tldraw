@@ -7,9 +7,14 @@ import { TLUiDialogProps } from '../context/dialogs'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
-import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from './primitives/Dialog'
-import { Icon } from './primitives/Icon'
-import { Input } from './primitives/Input'
+import {
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+} from './primitives/TldrawUiDialog'
+import { TldrawUiIcon } from './primitives/TldrawUiIcon'
+import { TldrawUiInput } from './primitives/TldrawUiInput'
 
 export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogProps) {
 	const editor = useEditor()
@@ -31,18 +36,18 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 
 	return (
 		<>
-			<DialogHeader>
+			<TldrawUiDialogHeader>
 				<DialogTitle>
 					{embedDefinition
 						? `${msg('embed-title')} — ${embedDefinition.title}`
 						: msg('embed-title')}
 				</DialogTitle>
-				<DialogCloseButton />
-			</DialogHeader>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
 			{embedDefinition ? (
 				<>
-					<DialogBody className="tlui-embed-dialog__enter">
-						<Input
+					<TldrawUiDialogBody className="tlui-embed-dialog__enter">
+						<TldrawUiInput
 							className="tlui-embed-dialog__input"
 							label="embed-url"
 							placeholder="http://example.com"
@@ -78,7 +83,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 										className="tlui-embed-dialog__instruction__link"
 									>
 										Learn more.
-										<Icon icon="external-link" small />
+										<TldrawUiIcon icon="external-link" small />
 									</a>
 								)}
 							</div>
@@ -87,8 +92,8 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								{showError ? msg('embed-invalid-url') : '\xa0'}
 							</div>
 						)}
-					</DialogBody>
-					<DialogFooter className="tlui-dialog__footer__actions">
+					</TldrawUiDialogBody>
+					<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 						<TldrawUiButton
 							type="normal"
 							onClick={() => {
@@ -121,11 +126,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 						>
 							<TldrawUiButtonLabel>{msg('embed-create')}</TldrawUiButtonLabel>
 						</TldrawUiButton>
-					</DialogFooter>
+					</TldrawUiDialogFooter>
 				</>
 			) : (
 				<>
-					<DialogBody className="tlui-embed-dialog__list">
+					<TldrawUiDialogBody className="tlui-embed-dialog__list">
 						{EMBED_DEFINITIONS.map((def) => {
 							return (
 								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
@@ -137,7 +142,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								</TldrawUiButton>
 							)
 						})}
-					</DialogBody>
+					</TldrawUiDialogBody>
 				</>
 			)}
 		</>

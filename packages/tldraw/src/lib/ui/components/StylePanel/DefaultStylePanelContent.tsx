@@ -22,8 +22,8 @@ import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { ButtonPicker } from '../primitives/ButtonPicker'
-import { Slider } from '../primitives/Slider'
+import { TldrawUiButtonPicker } from '../primitives/TldrawUiButtonPicker'
+import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 import { STYLES } from './styles'
@@ -138,7 +138,7 @@ function CommonStylePickerSet({
 				aria-label="style panel styles"
 			>
 				{color === undefined ? null : (
-					<ButtonPicker
+					<TldrawUiButtonPicker
 						title={msg('style-panel.color')}
 						uiType="color"
 						style={DefaultColorStyle}
@@ -148,7 +148,7 @@ function CommonStylePickerSet({
 					/>
 				)}
 				{opacity === undefined ? null : (
-					<Slider
+					<TldrawUiSlider
 						data-testid="style.opacity"
 						value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
 						label={
@@ -163,7 +163,7 @@ function CommonStylePickerSet({
 			{showPickers && (
 				<div className="tlui-style-panel__section" aria-label="style panel styles">
 					{fill === undefined ? null : (
-						<ButtonPicker
+						<TldrawUiButtonPicker
 							title={msg('style-panel.fill')}
 							uiType="fill"
 							style={DefaultFillStyle}
@@ -173,7 +173,7 @@ function CommonStylePickerSet({
 						/>
 					)}
 					{dash === undefined ? null : (
-						<ButtonPicker
+						<TldrawUiButtonPicker
 							title={msg('style-panel.dash')}
 							uiType="dash"
 							style={DefaultDashStyle}
@@ -183,7 +183,7 @@ function CommonStylePickerSet({
 						/>
 					)}
 					{size === undefined ? null : (
-						<ButtonPicker
+						<TldrawUiButtonPicker
 							title={msg('style-panel.size')}
 							uiType="size"
 							style={DefaultSizeStyle}
@@ -212,7 +212,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	return (
 		<div className="tlui-style-panel__section" aria-label="style panel text">
 			{font === undefined ? null : (
-				<ButtonPicker
+				<TldrawUiButtonPicker
 					title={msg('style-panel.font')}
 					uiType="font"
 					style={DefaultFontStyle}
@@ -224,7 +224,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 
 			{align === undefined ? null : (
 				<div className="tlui-style-panel__row">
-					<ButtonPicker
+					<TldrawUiButtonPicker
 						title={msg('style-panel.align')}
 						uiType="align"
 						style={DefaultHorizontalAlignStyle}

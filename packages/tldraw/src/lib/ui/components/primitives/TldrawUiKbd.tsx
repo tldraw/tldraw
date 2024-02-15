@@ -1,13 +1,13 @@
 import { useBreakpoint } from '../../context/breakpoints'
 import { kbd } from './shared'
 
-/** @internal */
-export interface KbdProps {
+/** @public */
+export interface TLUiKbdProps {
 	children: string
 }
 
-/** @internal */
-export function Kbd({ children }: KbdProps) {
+/** @public */
+export function TldrawUiKbd({ children }: TLUiKbdProps) {
 	const breakpoint = useBreakpoint()
 	if (breakpoint < 4) return null
 	return (

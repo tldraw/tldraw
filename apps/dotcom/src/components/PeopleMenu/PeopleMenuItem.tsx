@@ -1,7 +1,7 @@
 import {
-	Icon,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
+	TldrawUiIcon,
 	track,
 	useEditor,
 	usePresence,
@@ -41,7 +41,7 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 				onClick={() => editor.animateToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
-				<Icon icon="color" color={presence.color} />
+				<TldrawUiIcon icon="color" color={presence.color} />
 				<div className="tlui-people-menu__name">{presence.userName ?? 'New User'}</div>
 			</TldrawUiButton>
 			<TldrawUiButton

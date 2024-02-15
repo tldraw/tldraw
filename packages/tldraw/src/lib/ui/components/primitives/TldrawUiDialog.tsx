@@ -10,7 +10,7 @@ export type TLUiDialogHeaderProps = {
 }
 
 /** @public */
-export function DialogHeader({ className, children }: TLUiDialogHeaderProps) {
+export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderProps) {
 	return <div className={classNames('tlui-dialog__header', className)}>{children}</div>
 }
 
@@ -21,7 +21,7 @@ export type TLUiDialogTitleProps = {
 }
 
 /** @public */
-export function DialogTitle({ className, children }: TLUiDialogTitleProps) {
+export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProps) {
 	return (
 		<_Dialog.DialogTitle dir="ltr" className={classNames('tlui-dialog__header__title', className)}>
 			{children}
@@ -30,7 +30,7 @@ export function DialogTitle({ className, children }: TLUiDialogTitleProps) {
 }
 
 /** @public */
-export function DialogCloseButton() {
+export function TldrawUiDialogCloseButton() {
 	return (
 		<div className="tlui-dialog__header__close">
 			<_Dialog.DialogClose data-testid="dialog.close" dir="ltr" asChild>
@@ -54,7 +54,7 @@ export type TLUiDialogBodyProps = {
 }
 
 /** @public */
-export function DialogBody({ className, children, style }: TLUiDialogBodyProps) {
+export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps) {
 	return (
 		<div className={classNames('tlui-dialog__body', className)} style={style}>
 			{children}
@@ -69,6 +69,6 @@ export type TLUiDialogFooterProps = {
 }
 
 /** @public */
-export function DialogFooter({ className, children }: TLUiDialogFooterProps) {
+export function TldrawUiDialogFooter({ className, children }: TLUiDialogFooterProps) {
 	return <div className={classNames('tlui-dialog__footer', className)}>{children}</div>
 }

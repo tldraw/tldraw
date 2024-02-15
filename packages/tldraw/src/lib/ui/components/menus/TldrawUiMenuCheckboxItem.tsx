@@ -6,8 +6,8 @@ import { TLUiEventSource } from '../../context/events'
 import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Icon } from '../primitives/Icon'
-import { Kbd } from '../primitives/Kbd'
+import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
+import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -63,13 +63,13 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<Icon small icon={checked ? 'check' : 'checkbox-empty'} />
+					<TldrawUiIcon small icon={checked ? 'check' : 'checkbox-empty'} />
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}
 						</span>
 					)}
-					{kbd && <Kbd>{kbd}</Kbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</_DropdownMenu.CheckboxItem>
 			)
 		}
@@ -87,13 +87,13 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<Icon small icon={checked ? 'check' : 'checkbox-empty'} />
+					<TldrawUiIcon small icon={checked ? 'check' : 'checkbox-empty'} />
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}
 						</span>
 					)}
-					{kbd && <Kbd>{kbd}</Kbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</_ContextMenu.CheckboxItem>
 			)
 		}

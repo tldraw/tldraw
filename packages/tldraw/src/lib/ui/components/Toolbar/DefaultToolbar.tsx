@@ -13,11 +13,11 @@ import { MobileStylePanel } from '../MobileStylePanel'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuRoot,
-	DropdownMenuTrigger,
-} from '../primitives/DropdownMenu'
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
 import { kbdStr } from '../primitives/shared'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
@@ -143,8 +143,8 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 									)}
 								/>
 								{/* The dropdown to select everything else */}
-								<DropdownMenuRoot id="toolbar overflow" modal={false}>
-									<DropdownMenuTrigger data-testid="tools.more">
+								<TldrawUiDropdownMenuRoot id="toolbar overflow" modal={false}>
+									<TldrawUiDropdownMenuTrigger data-testid="tools.more">
 										<TldrawUiButton
 											title={msg('tool-panel.more')}
 											type="tool"
@@ -152,11 +152,11 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 										>
 											<TldrawUiButtonIcon icon="chevron-up" />
 										</TldrawUiButton>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent side="top" align="center">
+									</TldrawUiDropdownMenuTrigger>
+									<TldrawUiDropdownMenuContent side="top" align="center">
 										<OverflowToolsContent toolbarItems={itemsInDropdown} />
-									</DropdownMenuContent>
-								</DropdownMenuRoot>
+									</TldrawUiDropdownMenuContent>
+								</TldrawUiDropdownMenuRoot>
 							</>
 						) : null}
 					</div>
@@ -182,7 +182,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 		<div className="tlui-buttons__grid">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
 				return (
-					<DropdownMenuItem
+					<TldrawUiDropdownMenuItem
 						key={id}
 						data-testid={`tools.more.${id}`}
 						data-tool={id}
@@ -197,7 +197,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 						>
 							<TldrawUiButtonIcon icon={icon} />
 						</TldrawUiButton>
-					</DropdownMenuItem>
+					</TldrawUiDropdownMenuItem>
 				)
 			})}
 		</div>

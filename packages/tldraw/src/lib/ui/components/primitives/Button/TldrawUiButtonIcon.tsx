@@ -1,4 +1,4 @@
-import { Icon } from '../Icon'
+import { TldrawUiIcon } from '../TldrawUiIcon'
 
 /** @public */
 export type TLUiButtonIconProps = {
@@ -9,5 +9,7 @@ export type TLUiButtonIconProps = {
 
 /** @public */
 export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconProps) {
-	return <Icon className="tlui-button__icon" icon={icon} small={small} invertIcon={invertIcon} />
+	return (
+		<TldrawUiIcon className="tlui-button__icon" icon={icon} small={small} invertIcon={invertIcon} />
+	)
 }

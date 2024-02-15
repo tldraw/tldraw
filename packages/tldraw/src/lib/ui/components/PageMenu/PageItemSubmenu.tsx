@@ -7,10 +7,10 @@ import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	DropdownMenuContent,
-	DropdownMenuRoot,
-	DropdownMenuTrigger,
-} from '../primitives/DropdownMenu'
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
 import { onMovePage } from './edit-pages-shared'
 
 export interface PageItemSubmenuProps {
@@ -50,13 +50,13 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [editor, item])
 
 	return (
-		<DropdownMenuRoot id={`page item submenu ${index}`}>
-			<DropdownMenuTrigger>
+		<TldrawUiDropdownMenuRoot id={`page item submenu ${index}`}>
+			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton type="icon" title={msg('page-menu.submenu.title')}>
 					<TldrawUiButtonIcon icon="dots-vertical" />
 				</TldrawUiButton>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (
@@ -89,7 +89,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 						</TldrawUiMenuGroup>
 					)}
 				</TldrawUiMenuContextProvider>
-			</DropdownMenuContent>
-		</DropdownMenuRoot>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 })

@@ -5,7 +5,7 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
-import { Icon } from './primitives/Icon'
+import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 
 function Toast({ toast }: { toast: TLUiToast }) {
 	const { removeToast } = useToasts()
@@ -27,7 +27,7 @@ function Toast({ toast }: { toast: TLUiToast }) {
 		>
 			{toast.icon && (
 				<div className="tlui-toast__icon">
-					<Icon icon={toast.icon as TLUiIconType} />
+					<TldrawUiIcon icon={toast.icon as TLUiIconType} />
 				</div>
 			)}
 			<div className="tlui-toast__main">

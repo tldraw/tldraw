@@ -1,9 +1,11 @@
-import { Icon } from '../Icon'
+import { TldrawUiIcon } from '../TldrawUiIcon'
 
 /** @public */
 export type TLUiButtonCheckProps = { checked: boolean }
 
 /** @public */
 export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps) {
-	return <Icon icon={checked ? 'check' : 'checkbox-empty'} className="tlui-button__icon" small />
+	return (
+		<TldrawUiIcon icon={checked ? 'check' : 'checkbox-empty'} className="tlui-button__icon" small />
+	)
 }

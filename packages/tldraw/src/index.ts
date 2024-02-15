@@ -42,8 +42,7 @@ export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/T
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
-export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
-export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
+export { TldrawUiIcon, type TLUiIconProps } from './lib/ui/components/primitives/TldrawUiIcon'
 export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
@@ -98,7 +97,7 @@ export {
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
 export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
-	useTranslation as useTranslation,
+	useTranslation,
 	type TLUiTranslationContextType,
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
@@ -237,49 +236,47 @@ export { type TLComponents } from './lib/Tldraw'
 
 // Dialog
 export {
-	DialogBody,
-	DialogCloseButton,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
+	TldrawUiDialogBody as DialogBody,
+	TldrawUiDialogCloseButton as DialogCloseButton,
+	TldrawUiDialogFooter as DialogFooter,
+	TldrawUiDialogHeader as DialogHeader,
+	TldrawUiDialogTitle as DialogTitle,
 	type TLUiDialogBodyProps,
 	type TLUiDialogFooterProps,
 	type TLUiDialogHeaderProps,
 	type TLUiDialogTitleProps,
-} from './lib/ui/components/primitives/Dialog'
+} from './lib/ui/components/primitives/TldrawUiDialog'
 
 // Dropdown Menu
 export {
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuIndicator,
-	DropdownMenuItem,
-	DropdownMenuRadioItem,
-	DropdownMenuRoot,
-	DropdownMenuSub,
-	DropdownMenuSubTrigger,
-	DropdownMenuTrigger,
+	TldrawUiDropdownMenuCheckboxItem,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuIndicator,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubTrigger,
+	TldrawUiDropdownMenuTrigger,
 	type TLUiDropdownMenuCheckboxItemProps,
 	type TLUiDropdownMenuContentProps,
 	type TLUiDropdownMenuGroupProps,
 	type TLUiDropdownMenuItemProps,
-	type TLUiDropdownMenuRadioItemProps,
 	type TLUiDropdownMenuRootProps,
 	type TLUiDropdownMenuSubProps,
 	type TLUiDropdownMenuSubTriggerProps,
 	type TLUiDropdownMenuTriggerProps,
-} from './lib/ui/components/primitives/DropdownMenu'
+} from './lib/ui/components/primitives/TldrawUiDropdownMenu'
 
 // Popover
 export {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
 	type TLUiPopoverContentProps,
 	type TLUiPopoverProps,
 	type TLUiPopoverTriggerProps,
-} from './lib/ui/components/primitives/Popover'
+} from './lib/ui/components/primitives/TldrawUiPopover'
 
 // Button
 export {
@@ -295,10 +292,12 @@ export {
 	type TLUiButtonIconProps,
 } from './lib/ui/components/primitives/Button/TldrawUiButtonIcon'
 export {
-	TldrawUiButtonKbd,
-	type TLUiButtonKbdProps,
-} from './lib/ui/components/primitives/Button/TldrawUiButtonKbd'
-export {
 	TldrawUiButtonLabel,
 	type TLUiButtonLabelProps,
 } from './lib/ui/components/primitives/Button/TldrawUiButtonLabel'
+
+// Kbd
+export { TldrawUiKbd, type TLUiKbdProps } from './lib/ui/components/primitives/TldrawUiKbd'
+
+// Input
+export { TldrawUiInput, type TLUiInputProps } from './lib/ui/components/primitives/TldrawUiInput'

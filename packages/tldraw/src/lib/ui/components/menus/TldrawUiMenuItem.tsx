@@ -9,10 +9,9 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Spinner } from '../Spinner'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiButtonKbd } from '../primitives/Button/TldrawUiButtonKbd'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
-import { DropdownMenuItem } from '../primitives/DropdownMenu'
-import { Kbd } from '../primitives/Kbd'
+import { TldrawUiDropdownMenuItem } from '../primitives/TldrawUiDropdownMenu'
+import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { kbdStr } from '../primitives/shared'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
@@ -93,7 +92,7 @@ export function TldrawUiMenuItem<
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<DropdownMenuItem>
+				<TldrawUiDropdownMenuItem>
 					<TldrawUiButton
 						type="menu"
 						data-testid={`${sourceId}.${id}`}
@@ -111,9 +110,9 @@ export function TldrawUiMenuItem<
 						}}
 					>
 						<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-						{kbd && <TldrawUiButtonKbd kbd={kbd} />}
+						{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					</TldrawUiButton>
-				</DropdownMenuItem>
+				</TldrawUiDropdownMenuItem>
 			)
 		}
 		case 'context-menu': {
@@ -139,7 +138,7 @@ export function TldrawUiMenuItem<
 					<span className="tlui-button__label" draggable={false}>
 						{labelStr}
 					</span>
-					{kbd && <Kbd>{kbd}</Kbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					{spinner && <Spinner />}
 				</ContextMenuItem>
 			)
@@ -179,7 +178,7 @@ export function TldrawUiMenuItem<
 				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
 					<div className="tlui-shortcuts-dialog__key-pair__key">{labelStr}</div>
 					<div className="tlui-shortcuts-dialog__key-pair__value">
-						<Kbd>{kbd!}</Kbd>
+						<TldrawUiKbd>{kbd!}</TldrawUiKbd>
 					</div>
 				</div>
 			)

@@ -11,7 +11,11 @@ import { useRelevantStyles } from '../hooks/useRevelantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
-import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'
+import {
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from './primitives/TldrawUiPopover'
 
 export function MobileStylePanel() {
 	const editor = useEditor()
@@ -43,8 +47,8 @@ export function MobileStylePanel() {
 	if (!StylePanel) return null
 
 	return (
-		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
-			<PopoverTrigger>
+		<TldrawUiPopover id="style menu" onOpenChange={handleStylesOpenChange}>
+			<TldrawUiPopoverTrigger>
 				<TldrawUiButton
 					type="tool"
 					title={msg('style-panel.title')}
@@ -56,11 +60,11 @@ export function MobileStylePanel() {
 						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
 					/>
 				</TldrawUiButton>
-			</PopoverTrigger>
-			<PopoverContent side="top" align="end">
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side="top" align="end">
 				<_StylePanel />
-			</PopoverContent>
-		</Popover>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 }
 

@@ -436,36 +436,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 }
 
 // @public (undocumented)
-export function DropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuContent({ side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuGroup({ children, size }: TLUiDropdownMenuGroupProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuIndicator(): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuRadioItem({ children, ...rest }: TLUiDropdownMenuRadioItemProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuRoot({ id, children, modal, debugOpen, }: TLUiDropdownMenuRootProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuSubTrigger({ label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
-
-// @public (undocumented)
-export function DropdownMenuTrigger({ children }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
-
-// @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canEdit: TLShapeUtilFlag<TLEmbedShape>;
@@ -810,9 +780,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 }
 
 // @public (undocumented)
-export const Icon: NamedExoticComponent<TLUiIconProps>;
-
-// @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
@@ -849,9 +816,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static type: "image";
 }
-
-// @public (undocumented)
-export const Input: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
 export function isGifAnimated(file: Blob): Promise<boolean>;
@@ -1048,15 +1012,6 @@ export function parseTldrawJsonFile({ json, schema, }: {
     schema: TLSchema;
     json: string;
 }): Result<TLStore, TldrawFileParseError>;
-
-// @public (undocumented)
-export function Popover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
-
-// @public (undocumented)
-export function PopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
-
-// @public (undocumented)
-export function PopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
@@ -1282,9 +1237,6 @@ export interface TldrawUiBaseProps {
     components?: TLUiComponents;
     hideUi?: boolean;
     renderDebugMenuItems?: () => React_2.ReactNode;
-    shareZone?: ReactNode;
-    // @internal
-    topZone?: ReactNode;
 }
 
 // @public (undocumented)
@@ -1295,9 +1247,6 @@ export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps): JSX_2.El
 
 // @public (undocumented)
 export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconProps): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiButtonKbd({ kbd }: TLUiButtonKbdProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.Element;
@@ -1319,6 +1268,42 @@ export interface TldrawUiContextProviderProps {
 }
 
 // @public (undocumented)
+export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDropdownMenuContent({ side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDropdownMenuGroup({ children, size, }: TLUiDropdownMenuGroupProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDropdownMenuIndicator(): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDropdownMenuRoot({ id, children, modal, debugOpen, }: TLUiDropdownMenuRootProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDropdownMenuSubTrigger({ label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiDropdownMenuTrigger({ children }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
+
+// @public (undocumented)
+export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
+
+// @public (undocumented)
+export const TldrawUiInput: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
+
+// @public (undocumented)
+export function TldrawUiKbd({ children }: TLUiKbdProps): JSX_2.Element | null;
+
+// @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -1332,6 +1317,15 @@ export function TldrawUiMenuItem<TranslationKey extends string = string, IconTyp
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): any;
+
+// @public (undocumented)
+export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
@@ -1379,11 +1373,6 @@ export type TLUiButtonIconProps = {
     icon: string;
     small?: boolean;
     invertIcon?: boolean;
-};
-
-// @public (undocumented)
-export type TLUiButtonKbdProps = {
-    kbd: string;
 };
 
 // @public (undocumented)
@@ -1505,20 +1494,6 @@ export interface TLUiDropdownMenuItemProps {
     children: any;
     // (undocumented)
     noClose?: boolean;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuRadioItemProps {
-    // (undocumented)
-    checked?: boolean;
-    // (undocumented)
-    children: any;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    onSelect?: (e: Event) => void;
-    // (undocumented)
-    title: string;
 }
 
 // @public (undocumented)
@@ -1781,6 +1756,12 @@ export interface TLUiInputProps {
     shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
     // (undocumented)
     value?: string;
+}
+
+// @public (undocumented)
+export interface TLUiKbdProps {
+    // (undocumented)
+    children: string;
 }
 
 // @public (undocumented)
@@ -2091,6 +2072,9 @@ export function useTldrawUiComponents(): Partial<{
     QuickActions: ComponentType<TLUiQuickActionsProps> | null;
     HelperButtons: ComponentType<TLUiHelperButtonsProps> | null;
     DebugMenu: ComponentType | null;
+    MenuPanel: ComponentType | null;
+    TopPanel: ComponentType | null;
+    SharePanel: ComponentType | null;
 }>;
 
 // @public (undocumented)

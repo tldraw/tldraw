@@ -19,6 +19,7 @@ import {
 	TLUiKeyboardShortcutsDialogProps,
 } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { DefaultMainMenu, TLUiMainMenuProps } from '../components/MainMenu/DefaultMainMenu'
+import { DefaultMenuPanel } from '../components/MenuPanel'
 import { DefaultMinimap } from '../components/Minimap/DefaultMinimap'
 import { DefaultNavigationPanel } from '../components/NavigationPanel/DefaultNavigationPanel'
 import { DefaultPageMenu } from '../components/PageMenu/DefaultPageMenu'
@@ -45,6 +46,9 @@ export interface BaseTLUiComponents {
 	QuickActions: ComponentType<TLUiQuickActionsProps>
 	HelperButtons: ComponentType<TLUiHelperButtonsProps>
 	DebugMenu: ComponentType
+	MenuPanel: ComponentType
+	TopPanel: ComponentType
+	SharePanel: ComponentType
 }
 
 /** @public */
@@ -84,6 +88,7 @@ export function TldrawUiComponentsProvider({
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,
 					DebugMenu: DefaultDebugMenu,
+					MenuPanel: DefaultMenuPanel,
 					..._overrides,
 				}),
 				[_overrides]

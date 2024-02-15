@@ -22,12 +22,12 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import {
-	DialogBody,
-	DialogCloseButton,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '../primitives/Dialog'
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+} from '../primitives/TldrawUiDialog'
 
 /** @public */
 export function DefaultDebugMenuContent() {
@@ -232,12 +232,12 @@ function ExampleDialog({
 
 	return (
 		<>
-			<DialogHeader>
-				<DialogTitle>{title}</DialogTitle>
-				<DialogCloseButton />
-			</DialogHeader>
-			<DialogBody style={{ maxWidth: 350 }}>{body}</DialogBody>
-			<DialogFooter className="tlui-dialog__footer__actions">
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>{body}</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
 					<TldrawUiButton
 						type="normal"
@@ -254,7 +254,7 @@ function ExampleDialog({
 				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
 					<TldrawUiButtonLabel>{confirm}</TldrawUiButtonLabel>
 				</TldrawUiButton>
-			</DialogFooter>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }
