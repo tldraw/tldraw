@@ -10,6 +10,7 @@ import { Spinner } from '../Spinner'
 import { Button } from '../primitives/Button'
 import { DropdownMenuItem } from '../primitives/DropdownMenu'
 import { Kbd } from '../primitives/Kbd'
+import { kbdStr } from '../primitives/shared'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -81,8 +82,10 @@ export function TldrawUiMenuItem<
 	if (isReadonlyMode && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)
+	const kbdTouse = kbd ? kbdStr(kbd) : undefined
+
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
-	const kbdStr = kbd ? msg(kbd) : undefined
+	const titleStr = labelStr && kbdTouse ? `${labelStr} ${kbdTouse}` : labelStr
 
 	switch (menuType) {
 		case 'menu': {
@@ -93,6 +96,7 @@ export function TldrawUiMenuItem<
 					kbd={kbd}
 					label={labelStr}
 					disabled={disabled}
+					title={titleStr}
 					onClick={(e) => {
 						if (noClose) {
 							preventDefault(e)
@@ -113,7 +117,7 @@ export function TldrawUiMenuItem<
 			return (
 				<ContextMenuItem
 					dir="ltr"
-					title={labelStr}
+					title={titleStr}
 					draggable={false}
 					className="tlui-button tlui-button__menu"
 					data-testid={`${sourceId}.${id}`}
@@ -141,7 +145,7 @@ export function TldrawUiMenuItem<
 					icon={icon}
 					type="menu"
 					label={labelStr}
-					title={label ? (kbd ? `${labelStr} ${kbdStr}` : `${labelStr}`) : kbd ? `${kbdStr}` : ''}
+					title={titleStr}
 					onClick={() => onSelect(sourceId)}
 					smallIcon
 					disabled={disabled}
@@ -155,7 +159,7 @@ export function TldrawUiMenuItem<
 					data-testid={`${sourceId}.${id}`}
 					icon={icon}
 					type="icon"
-					title={label ? (kbd ? `${labelStr} ${kbdStr}` : `${labelStr}`) : kbd ? `${kbdStr}` : ''}
+					title={titleStr}
 					onClick={() => onSelect(sourceId)}
 					disabled={disabled}
 					smallIcon={menuType === 'small-icons'}

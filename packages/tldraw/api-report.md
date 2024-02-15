@@ -463,7 +463,7 @@ export function DropdownMenuRoot({ id, children, modal, debugOpen, }: TLUiDropdo
 export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DropdownMenuSubTrigger({ label, disabled, 'data-direction': dataDirection, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
+export function DropdownMenuSubTrigger({ label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
 export function DropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
@@ -1519,10 +1519,10 @@ export type TLUiDropdownMenuSubProps = {
 
 // @public (undocumented)
 export type TLUiDropdownMenuSubTriggerProps = {
-    label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    label: string;
     id?: string;
+    title?: string;
     disabled?: boolean;
-    'data-direction'?: 'left' | 'right';
 };
 
 // @public (undocumented)

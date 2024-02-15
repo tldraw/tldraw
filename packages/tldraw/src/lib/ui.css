@@ -38,6 +38,7 @@
 .tlui-button:disabled {
 	color: var(--color-text-3);
 	text-shadow: none;
+	cursor: default;
 }
 
 .tlui-button:disabled .tlui-kbd {

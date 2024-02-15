@@ -1,7 +1,6 @@
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { Button, TLUiButtonProps } from './Button'
 import { Icon } from './Icon'
 
@@ -105,23 +104,25 @@ export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps) {
 
 /** @public */
 export type TLUiDropdownMenuSubTriggerProps = {
-	label: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
+	label: string
 	id?: string
+	title?: string
 	disabled?: boolean
-	'data-direction'?: 'left' | 'right'
 }
 
 /** @public */
 export function DropdownMenuSubTrigger({
 	label,
+	title,
 	disabled,
-	'data-direction': dataDirection,
 }: TLUiDropdownMenuSubTriggerProps) {
 	return (
-		<_DropdownMenu.SubTrigger dir="ltr" disabled={disabled} data-direction={dataDirection} asChild>
+		<_DropdownMenu.SubTrigger dir="ltr" asChild>
 			<Button
 				type="menu"
 				className="tlui-menu__submenu__trigger"
+				disabled={disabled}
+				title={title}
 				label={label}
 				icon="chevron-right"
 			/>
