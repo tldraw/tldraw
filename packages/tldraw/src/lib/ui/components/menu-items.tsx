@@ -367,11 +367,6 @@ export function MoveToPageMenu() {
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 	if (!oneSelected) return null
 
-	console.log(
-		currentPageId,
-		pages.map((p) => p.id)
-	)
-
 	return (
 		<TldrawUiMenuSubmenu id="move-to-page" label="context-menu.move-to-page" size="small">
 			<TldrawUiMenuGroup id="pages">

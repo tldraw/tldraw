@@ -69,8 +69,6 @@ export const useAllowGroup = () => {
 		},
 		[editor]
 	)
-
-	// return useValue('allowGroup', () => shapesWithArrowsBoundToThem(editor).length > 1, [editor])
 }
 
 /** @internal */
