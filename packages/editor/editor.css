@@ -727,7 +727,7 @@ input,
 .tl-text {
 	/* remove overflow from textarea on windows */
 	margin: 0px;
-	padding: 0px;
+	padding: 0px 4px;
 	border: 0px;
 	color: inherit;
 	caret-color: var(--color-text);

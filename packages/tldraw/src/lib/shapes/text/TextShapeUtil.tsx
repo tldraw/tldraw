@@ -384,6 +384,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
+		padding: '0px 4px',
 		maxWidth: cw,
 	})
 
