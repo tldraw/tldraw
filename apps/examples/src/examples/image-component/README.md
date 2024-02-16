@@ -1,6 +1,6 @@
 ---
-title: Snapshot image
-component: ./SnapshotImageExample.tsx
+title: Tldraw image component
+component: ./TldrawImageExample.tsx
 category: ui
 priority: 3
 ---

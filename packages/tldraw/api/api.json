@@ -13984,7 +13984,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!TldrawImage:var",
-          "docComment": "/**\n * A renderered SVG image of a Tldraw snapshot.\n *\n * @example\n * ```tsx\n * <TldrawImage snapshot={snapshot} />\n * \tsnapshot={snapshot}\n * \tpageId={pageId}\n * \tbackground={false}\n *  darkMode={true}\n *  bounds={new Box(0,0,600,400)}\n *  scale={1}\n *  preserveAspectRatio=\"\"\n *\n * />\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * A renderered SVG image of a Tldraw snapshot.\n *\n * @example\n * ```tsx\n * <TldrawImage snapshot={snapshot} />\n * \tsnapshot={snapshot}\n * \tpageId={pageId}\n * \tbackground={false}\n *  darkMode={true}\n *  bounds={new Box(0,0,600,400)}\n *  scale={1}\n * />\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

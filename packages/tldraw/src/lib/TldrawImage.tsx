@@ -53,8 +53,6 @@ export type TldrawImageProps = Expand<
  *  darkMode={true}
  *  bounds={new Box(0,0,600,400)}
  *  scale={1}
- *  preserveAspectRatio=""
- *
  * />
  * ```
  *
