@@ -1,4 +1,11 @@
-import { JsonValue, exhaustiveSwitchError, getOwnProperty, hasOwnProperty } from '@tldraw/utils'
+import {
+	IndexKey,
+	JsonValue,
+	exhaustiveSwitchError,
+	getOwnProperty,
+	hasOwnProperty,
+	validateIndexKey,
+} from '@tldraw/utils'
 
 /** @public */
 export type ValidatorFn<T> = (value: unknown) => T
@@ -666,5 +673,18 @@ export const srcUrl = string.check((value) => {
 		throw new ValidationError(
 			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
 		)
+	}
+})
+
+/**
+ * Validates that a value is an IndexKey.
+ * @public
+ */
+export const indexKey = string.refine<IndexKey>((key) => {
+	try {
+		validateIndexKey(key)
+		return key
+	} catch {
+		throw new ValidationError(`Expected an index key, got ${JSON.stringify(key)}`)
 	}
 })

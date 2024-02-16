@@ -1,4 +1,12 @@
-import { Button, Input, useEditor, useTranslation, useUiEvents, useValue } from '@tldraw/tldraw'
+import {
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiInput,
+	useEditor,
+	useTranslation,
+	useUiEvents,
+	useValue,
+} from '@tldraw/tldraw'
 import { useCallback, useRef, useState } from 'react'
 import { UI_OVERRIDE_TODO_EVENT } from '../../utils/useHandleUiEvent'
 import { UserPresenceColorPicker } from './UserPresenceColorPicker'
@@ -36,7 +44,7 @@ export function UserPresenceEditor() {
 		<div className="tlui-people-menu__user">
 			<UserPresenceColorPicker />
 			{isEditingName ? (
-				<Input
+				<TldrawUiInput
 					className="tlui-people-menu__user__input"
 					defaultValue={userName}
 					onValueChange={handleValueChange}
@@ -62,14 +70,15 @@ export function UserPresenceEditor() {
 					) : null}
 				</>
 			)}
-			<Button
+			<TldrawUiButton
 				type="icon"
 				className="tlui-people-menu__user__edit"
-				data-wd="people-menu.change-name"
+				data-testid="people-menu.change-name"
 				title={msg('people-menu.change-name')}
-				icon={isEditingName ? 'check' : 'edit'}
 				onClick={toggleEditingName}
-			/>
+			>
+				<TldrawUiButtonIcon icon={isEditingName ? 'check' : 'edit'} />
+			</TldrawUiButton>
 		</div>
 	)
 }

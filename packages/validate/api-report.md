@@ -4,6 +4,7 @@
 
 ```ts
 
+import { IndexKey } from '@tldraw/utils';
 import { JsonValue } from '@tldraw/utils';
 
 // @public
@@ -43,6 +44,9 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
     // (undocumented)
     readonly valueValidator: Validatable<Value>;
 }
+
+// @public
+const indexKey: Validator<IndexKey>;
 
 // @public
 const integer: Validator<number>;
@@ -155,7 +159,8 @@ declare namespace T {
         unknownObject,
         jsonValue,
         linkUrl,
-        srcUrl
+        srcUrl,
+        indexKey
     }
 }
 export { T }
