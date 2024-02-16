@@ -4,6 +4,7 @@ import {
 	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLHandle,
 	TLLineShape,
 	TLOnHandleDragHandler,
@@ -306,8 +307,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return <path d={path} />
 	}
 
-	override toSvg(shape: TLLineShape) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+	override toSvg(shape: TLLineShape, ctx: SvgExportContext) {
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const color = theme[shape.props.color].solid
 		const spline = getGeometryForLineShape(shape)
 		const strokeWidth = STROKE_SIZES[shape.props.size]

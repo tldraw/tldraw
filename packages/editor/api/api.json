@@ -11234,7 +11234,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPageShapeIds:member(1)",
-              "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')\n * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getPageShapeIds('page1')\n * const idsOnPage2 = editor.getPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19171,7 +19171,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToBounds:member(1)",
-              "docComment": "/**\n * Zoom the camera to fit a bounding box (in the current page space).\n *\n * @param bounds - The bounding box.\n *\n * @param targetZoom - The desired zoom level. Defaults to 0.1.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds, 1)\n * editor.zoomToBounds(myBounds, 1, { duration: 100 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera to fit a bounding box (in the current page space).\n *\n * @param bounds - The bounding box.\n *\n * @param options - The options for an animation, target zoom, or custom inset amount.\n *\n * @example\n * ```ts\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds, { duration: 100 })\n * editor.zoomToBounds(myBounds, { inset: 0, targetZoom: 1 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19184,15 +19184,11 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", targetZoom?: "
+                  "text": ", opts?: "
                 },
                 {
                   "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", animation?: "
+                  "text": "{\n        targetZoom?: number;\n        inset?: number;\n    } & "
                 },
                 {
                   "kind": "Reference",
@@ -19214,8 +19210,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 7,
-                "endIndex": 8
+                "startIndex": 6,
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -19230,18 +19226,10 @@
                   "isOptional": false
                 },
                 {
-                  "parameterName": "targetZoom",
+                  "parameterName": "opts",
                   "parameterTypeTokenRange": {
                     "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": true
-                },
-                {
-                  "parameterName": "animation",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 5,
-                    "endIndex": 6
+                    "endIndex": 5
                   },
                   "isOptional": true
                 }
@@ -34180,6 +34168,33 @@
                 }
               ],
               "name": "addExportDef"
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!SvgExportContext#isDarkMode:member",
+              "docComment": "/**\n * Whether the export should be in dark mode.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly isDarkMode: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isDarkMode",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
             }
           ],
           "extendsTokenRanges": []

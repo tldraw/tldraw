@@ -19,6 +19,7 @@ import { Editor } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { EmbedDefinition } from '@tldraw/editor';
 import { EnumStyleProp } from '@tldraw/editor';
+import { Expand } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -91,6 +92,7 @@ import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
 import { TLOnTranslateHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
+import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
@@ -534,7 +536,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
-    toSvg(shape: TLFrameShape): Promise<SVGElement> | SVGElement;
+    toSvg(shape: TLFrameShape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
     // (undocumented)
     static type: "frame";
 }
@@ -699,6 +701,9 @@ export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
 }): Promise<Blob | null>;
 
 // @public (undocumented)
+export function getSvgAsString(svg: SVGElement): Promise<string>;
+
+// @public (undocumented)
 export class HandTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Dragging | typeof Idle_8 | typeof Pointing_7)[];
@@ -764,7 +769,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     toBackgroundSvg(shape: TLHighlightShape): SVGPathElement;
     // (undocumented)
-    toSvg(shape: TLHighlightShape): SVGPathElement;
+    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): SVGPathElement;
     // (undocumented)
     static type: "highlight";
 }
@@ -891,7 +896,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         handles: DictValidator<IndexKey, VecModel>;
     };
     // (undocumented)
-    toSvg(shape: TLLineShape): SVGGElement;
+    toSvg(shape: TLLineShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "line";
 }
@@ -1198,6 +1203,28 @@ export const TldrawHandles: TLHandlesComponent;
 
 // @public (undocumented)
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
+
+// @public
+export const TldrawImage: NamedExoticComponent<    {
+snapshot: StoreSnapshot<TLRecord>;
+format?: "png" | "svg" | undefined;
+pageId?: TLPageId | undefined;
+shapeUtils?: readonly TLAnyShapeUtilConstructor[] | undefined;
+bounds?: Box | undefined;
+scale?: number | undefined;
+background?: boolean | undefined;
+padding?: number | undefined;
+darkMode?: boolean | undefined;
+preserveAspectRatio?: string | undefined;
+}>;
+
+// @public
+export type TldrawImageProps = Expand<{
+    snapshot: StoreSnapshot<TLRecord>;
+    format?: 'png' | 'svg';
+    pageId?: TLPageId;
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+} & Partial<TLSvgOptions>>;
 
 // @public (undocumented)
 export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {

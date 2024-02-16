@@ -358,6 +358,12 @@ export function clockwiseAngleDist(a0: number, a1: number): number;
 
 export { computed }
 
+// @internal (undocumented)
+export function ContainerProvider({ container, children, }: {
+    container: HTMLDivElement;
+    children: React.ReactNode;
+}): JSX_2.Element;
+
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
@@ -907,11 +913,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, animation?: TLAnimationOptions): this;
     zoomOut(point?: Vec, animation?: TLAnimationOptions): this;
-    zoomToBounds(bounds: Box, targetZoom?: number, animation?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box, opts?: {
+        targetZoom?: number;
+        inset?: number;
+    } & TLAnimationOptions): this;
     zoomToContent(): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
+
+// @internal (undocumented)
+export const EditorContext: React_2.Context<Editor>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -1813,6 +1825,7 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 // @public (undocumented)
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
+    readonly isDarkMode: boolean;
 }
 
 // @public (undocumented)
