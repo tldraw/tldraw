@@ -45,6 +45,7 @@ export function DefaultMainMenuContent() {
 		<>
 			<FileSubmenu />
 			<EditSubmenu />
+			<ObjectSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
@@ -94,12 +95,26 @@ export function EditSubmenu() {
 		[editor]
 	)
 
-	if (!selectToolActive) return null
-
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="menu.edit">
+		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/** @public */
+export function ObjectSubmenu() {
+	const editor = useEditor()
+
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuSubmenu id="object" label="menu.object" disabled={!selectToolActive}>
 			<ConversionsMenuGroup />
 			<SetSelectionGroup />
 			<SelectionMenuGroup />

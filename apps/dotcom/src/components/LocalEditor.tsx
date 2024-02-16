@@ -10,6 +10,7 @@ import {
 	Editor,
 	ExtrasGroup,
 	OPEN_FILE_ACTION,
+	ObjectSubmenu,
 	PreferencesGroup,
 	SAVE_FILE_COPY_ACTION,
 	TLComponents,
@@ -50,6 +51,7 @@ const components: TLComponents = {
 		<DefaultMainMenu>
 			<LocalFileMenu />
 			<EditSubmenu />
+			<ObjectSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />

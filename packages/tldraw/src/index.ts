@@ -214,6 +214,7 @@ export {
 	EditSubmenu,
 	ExtrasGroup,
 	FileSubmenu,
+	ObjectSubmenu,
 	PreferencesGroup,
 	ViewSubmenu,
 } from './lib/ui/components/MainMenu/DefaultMainMenuContent'

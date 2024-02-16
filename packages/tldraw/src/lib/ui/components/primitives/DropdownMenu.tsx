@@ -117,7 +117,7 @@ export function DropdownMenuSubTrigger({
 	disabled,
 }: TLUiDropdownMenuSubTriggerProps) {
 	return (
-		<_DropdownMenu.SubTrigger dir="ltr" asChild>
+		<_DropdownMenu.SubTrigger dir="ltr" asChild disabled={disabled}>
 			<Button
 				type="menu"
 				className="tlui-menu__submenu__trigger"
