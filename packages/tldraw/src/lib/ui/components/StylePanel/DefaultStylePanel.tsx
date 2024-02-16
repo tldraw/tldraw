@@ -37,7 +37,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 			data-ismobile={isMobile}
 			onPointerLeave={handlePointerOut}
 		>
-			{content}
+			<div className="tlui-style-panel">{content}</div>
 		</div>
 	)
 })
