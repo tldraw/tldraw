@@ -14914,34 +14914,12 @@
             },
             {
               "kind": "Content",
-              "text": "import(\"react\")."
+              "text": "typeof "
             },
             {
               "kind": "Reference",
-              "text": "MemoExoticComponent",
-              "canonicalReference": "@types/react!React.MemoExoticComponent:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<(<T extends string>(props: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiButtonPickerProps",
-              "canonicalReference": "@tldraw/tldraw!TLUiButtonPickerProps:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<T>) => import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ")>"
+              "text": "_TldrawUiButtonPicker",
+              "canonicalReference": "@tldraw/tldraw!~_TldrawUiButtonPicker:function"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiButtonPicker.tsx",
@@ -14950,7 +14928,7 @@
           "name": "TldrawUiButtonPicker",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 8
+            "endIndex": 3
           }
         },
         {
