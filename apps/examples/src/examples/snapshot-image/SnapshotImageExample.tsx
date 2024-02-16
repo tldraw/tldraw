@@ -45,9 +45,9 @@ export default function TldrawImageExample() {
 							if (currentPageId) {
 								editor.setCurrentPage(currentPageId)
 							}
-							// if (viewportPageBounds) {
-							// 	editor.zoomToBounds(viewportPageBounds, { targetZ})
-							// }
+							if (viewportPageBounds) {
+								editor.zoomToBounds(viewportPageBounds, { inset: 0 })
+							}
 						}}
 					/>
 				) : (

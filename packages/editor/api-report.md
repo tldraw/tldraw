@@ -913,7 +913,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, animation?: TLAnimationOptions): this;
     zoomOut(point?: Vec, animation?: TLAnimationOptions): this;
-    zoomToBounds(bounds: Box, targetZoom?: number, animation?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box, opts?: {
+        targetZoom?: number;
+        inset?: number;
+    } & TLAnimationOptions): this;
     zoomToContent(): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;

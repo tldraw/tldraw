@@ -2176,7 +2176,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
 
 		if (bounds) {
-			this.zoomToBounds(bounds, Math.min(1, this.getZoomLevel()), { duration: 220 })
+			this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), duration: 220 })
 		}
 
 		return this
@@ -2202,7 +2202,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 
 		const pageBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-		this.zoomToBounds(pageBounds, undefined, animation)
+		this.zoomToBounds(pageBounds, animation)
 		return this
 	}
 
@@ -2333,7 +2333,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (!selectionPageBounds) return this
 
-		this.zoomToBounds(selectionPageBounds, Math.max(1, this.getZoomLevel()), animation)
+		this.zoomToBounds(selectionPageBounds, {
+			targetZoom: Math.max(1, this.getZoomLevel()),
+			...animation,
+		})
 
 		return this
 	}
@@ -2355,7 +2358,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const viewportPageBounds = this.getViewportPageBounds()
 
 		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
-			this.zoomToBounds(selectionBounds, this.getCamera().z, animation)
+			this.zoomToBounds(selectionBounds, { targetZoom: this.getCamera().z, ...animation })
 
 			return this
 		} else {
@@ -2398,22 +2401,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.zoomToBounds(myBounds)
-	 * editor.zoomToBounds(myBounds, 1)
-	 * editor.zoomToBounds(myBounds, 1, { duration: 100 })
+	 * editor.zoomToBounds(myBounds)
+	 * editor.zoomToBounds(myBounds, { duration: 100 })
+	 * editor.zoomToBounds(myBounds, { inset: 0, targetZoom: 1 })
 	 * ```
 	 *
 	 * @param bounds - The bounding box.
-	 * @param targetZoom - The desired zoom level. Defaults to 0.1.
-	 * @param animation - The options for an animation.
+	 * @param options - The options for an animation, target zoom, or custom inset amount.
 	 *
 	 * @public
 	 */
-	zoomToBounds(bounds: Box, targetZoom?: number, animation?: TLAnimationOptions): this {
+	zoomToBounds(
+		bounds: Box,
+		opts?: { targetZoom?: number; inset?: number } & TLAnimationOptions
+	): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
-		const inset = Math.min(256, viewportScreenBounds.width * 0.28)
+		const inset = opts?.inset ?? Math.min(256, viewportScreenBounds.width * 0.28)
 
 		let zoom = clamp(
 			Math.min(
@@ -2424,8 +2430,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			MAX_ZOOM
 		)
 
-		if (targetZoom !== undefined) {
-			zoom = Math.min(targetZoom, zoom)
+		if (opts?.targetZoom !== undefined) {
+			zoom = Math.min(opts.targetZoom, zoom)
 		}
 
 		this.setCamera(
@@ -2434,7 +2440,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				y: -bounds.minY + (viewportScreenBounds.height - bounds.height * zoom) / 2 / zoom,
 				z: zoom,
 			},
-			animation
+			opts
 		)
 
 		return this
