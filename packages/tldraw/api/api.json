@@ -1360,6 +1360,15 @@
                 },
                 {
                   "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
                   "text": "<{\n                type: \"binding\";\n                boundShapeId: import(\"@tldraw/editor\")."
                 },
                 {
@@ -1378,7 +1387,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }>;\n            point: import(\"@tldraw/editor\")."
+                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }, \"boundShapeId\" | \"isExact\" | \"isPrecise\" | \"normalizedAnchor\" | \"type\"> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n                type: \"binding\";\n                boundShapeId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n                normalizedAnchor: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }>>;\n            point: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1387,7 +1423,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }, \"type\" | \"x\" | \"y\"> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1405,6 +1459,15 @@
                 },
                 {
                   "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
                   "text": "<{\n                type: \"binding\";\n                boundShapeId: import(\"@tldraw/editor\")."
                 },
                 {
@@ -1423,7 +1486,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }>;\n            point: import(\"@tldraw/editor\")."
+                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }, \"boundShapeId\" | \"isExact\" | \"isPrecise\" | \"normalizedAnchor\" | \"type\"> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n                type: \"binding\";\n                boundShapeId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n                normalizedAnchor: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }>>;\n            point: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1432,7 +1522,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }, \"type\" | \"x\" | \"y\"> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1472,7 +1580,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 44
+                "endIndex": 68
               },
               "isStatic": true,
               "isProtected": false,
@@ -4289,6 +4397,15 @@
                 },
                 {
                   "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
                   "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
                 },
                 {
@@ -4298,7 +4415,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "[];\n        }, \"points\" | \"type\"> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        }>>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -4338,7 +4473,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 20
+                "endIndex": 26
               },
               "isStatic": true,
               "isProtected": false,
@@ -8780,6 +8915,15 @@
                 },
                 {
                   "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
                   "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
                 },
                 {
@@ -8789,7 +8933,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "[];\n        }, \"points\" | \"type\"> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        }>>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8820,7 +8982,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 14
+                "endIndex": 20
               },
               "isStatic": true,
               "isProtected": false,
@@ -9418,6 +9580,15 @@
                 },
                 {
                   "kind": "Content",
+                  "text": "<("
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
                   "text": "<{\n            topLeft: import(\"@tldraw/editor\")."
                 },
                 {
@@ -9436,7 +9607,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        } | null>;\n    }"
+                  "text": ";\n        }, \"bottomRight\" | \"topLeft\"> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n            topLeft: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n            bottomRight: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        }>) | null>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -9449,7 +9647,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 20
+                "endIndex": 28
               },
               "isStatic": true,
               "isProtected": false,

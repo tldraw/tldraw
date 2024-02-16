@@ -32,6 +32,7 @@ import { Signal } from '@tldraw/state';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
+import { StylePropValue } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
@@ -864,7 +865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setOpacityForSelectedShapes(opacity: number, historyOptions?: TLCommandHistoryOptions): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[], historyOptions?: TLCommandHistoryOptions): this;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLCommandHistoryOptions): this;
-    setStyleForSelectedShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLCommandHistoryOptions): this;
+    setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>, historyOptions?: TLCommandHistoryOptions): this;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -884,7 +885,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     stretchShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
     styleProps: {
-        [key: string]: Map<StyleProp<unknown>, string>;
+        [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
@@ -1462,10 +1463,10 @@ export { react }
 // @public
 export class ReadonlySharedStyleMap {
     // (undocumented)
-    [Symbol.iterator](): IterableIterator<[StyleProp<unknown>, SharedStyle<unknown>]>;
+    [Symbol.iterator](): IterableIterator<[StyleProp<any>, SharedStyle<unknown>]>;
     constructor(entries?: Iterable<[StyleProp<unknown>, SharedStyle<unknown>]>);
     // (undocumented)
-    entries(): IterableIterator<[StyleProp<unknown>, SharedStyle<unknown>]>;
+    entries(): IterableIterator<[StyleProp<any>, SharedStyle<unknown>]>;
     // (undocumented)
     equals(other: ReadonlySharedStyleMap): boolean;
     // (undocumented)
@@ -1473,9 +1474,9 @@ export class ReadonlySharedStyleMap {
     // (undocumented)
     getAsKnownValue<T>(prop: StyleProp<T>): T | undefined;
     // (undocumented)
-    keys(): IterableIterator<StyleProp<unknown>>;
+    keys(): IterableIterator<StyleProp<any>>;
     // @internal (undocumented)
-    protected map: Map<StyleProp<unknown>, SharedStyle<unknown>>;
+    protected map: Map<StyleProp<any>, SharedStyle<unknown>>;
     // (undocumented)
     get size(): number;
     // (undocumented)

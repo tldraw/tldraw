@@ -39,32 +39,52 @@ export const arrowShapeProps: {
     arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     start: T.UnionValidator<"type", {
-        binding: T.ObjectValidator<{
+        binding: T.ObjectValidator<Pick<{
             type: "binding";
             boundShapeId: TLShapeId;
             normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
-        }>;
-        point: T.ObjectValidator<{
+        }, "boundShapeId" | "isExact" | "isPrecise" | "normalizedAnchor" | "type"> & Partial<{
+            type: "binding";
+            boundShapeId: TLShapeId;
+            normalizedAnchor: VecModel;
+            isExact: boolean;
+            isPrecise: boolean;
+        }>>;
+        point: T.ObjectValidator<Pick<{
             type: "point";
             x: number;
             y: number;
-        }>;
+        }, "type" | "x" | "y"> & Partial<{
+            type: "point";
+            x: number;
+            y: number;
+        }>>;
     }, never>;
     end: T.UnionValidator<"type", {
-        binding: T.ObjectValidator<{
+        binding: T.ObjectValidator<Pick<{
             type: "binding";
             boundShapeId: TLShapeId;
             normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
-        }>;
-        point: T.ObjectValidator<{
+        }, "boundShapeId" | "isExact" | "isPrecise" | "normalizedAnchor" | "type"> & Partial<{
+            type: "binding";
+            boundShapeId: TLShapeId;
+            normalizedAnchor: VecModel;
+            isExact: boolean;
+            isPrecise: boolean;
+        }>>;
+        point: T.ObjectValidator<Pick<{
             type: "point";
             x: number;
             y: number;
-        }>;
+        }, "type" | "x" | "y"> & Partial<{
+            type: "point";
+            x: number;
+            y: number;
+        }>>;
     }, never>;
     bend: T.Validator<number>;
     text: T.Validator<string>;
@@ -116,13 +136,19 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Pick<{
     id: TLAssetId;
     typeName: 'asset';
     type: Type;
     props: Props;
     meta: JsonObject;
-}>;
+}, "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")> & Partial<{
+    id: TLAssetId;
+    typeName: 'asset';
+    type: Type;
+    props: Props;
+    meta: JsonObject;
+}>>;
 
 // @public (undocumented)
 export const createPresenceStateDerivation: ($user: Signal<{
@@ -139,7 +165,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<TLBaseShape<Type, Props>>;
+}): T.ObjectValidator<Pick<TLBaseShape<Type, Props>, "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")> & Partial<TLBaseShape<Type, Props>>>;
 
 // @public
 export function createTLSchema({ shapes }: {
@@ -193,10 +219,13 @@ export const drawShapeProps: {
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    segments: T.ArrayOfValidator<{
+    segments: T.ArrayOfValidator<Pick<{
         type: "free" | "straight";
         points: VecModel[];
-    }>;
+    }, "points" | "type"> & Partial<{
+        type: "free" | "straight";
+        points: VecModel[];
+    }>>;
     isComplete: T.Validator<boolean>;
     isClosed: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -512,10 +541,13 @@ export const highlightShapeMigrations: Migrations;
 export const highlightShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    segments: T.ArrayOfValidator<{
+    segments: T.ArrayOfValidator<Pick<{
         type: "free" | "straight";
         points: VecModel[];
-    }>;
+    }, "points" | "type"> & Partial<{
+        type: "free" | "straight";
+        points: VecModel[];
+    }>>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
 };
@@ -533,10 +565,13 @@ export const imageShapeProps: {
     playing: T.Validator<boolean>;
     url: T.Validator<string>;
     assetId: T.Validator<TLAssetId | null>;
-    crop: T.Validator<{
+    crop: T.Validator<(Pick<{
         topLeft: VecModel;
         bottomRight: VecModel;
-    } | null>;
+    }, "bottomRight" | "topLeft"> & Partial<{
+        topLeft: VecModel;
+        bottomRight: VecModel;
+    }>) | null>;
 };
 
 // @public (undocumented)
@@ -716,12 +751,8 @@ export const rootShapeMigrations: Migrations;
 // @public (undocumented)
 export type SchemaShapeInfo = {
     migrations?: Migrations;
-    props?: Record<string, {
-        validate: (prop: any) => any;
-    }>;
-    meta?: Record<string, {
-        validate: (prop: any) => any;
-    }>;
+    props?: Record<string, AnyValidator>;
+    meta?: Record<string, AnyValidator>;
 };
 
 // @internal (undocumented)
@@ -755,7 +786,12 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     readonly type: T.Validatable<Type>;
     // (undocumented)
     validate(value: unknown): Type;
+    // (undocumented)
+    validateUsingKnownGoodVersion(prevValue: Type, newValue: unknown): Type;
 }
+
+// @public (undocumented)
+export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
 
 // @internal (undocumented)
 export const textShapeMigrations: Migrations;

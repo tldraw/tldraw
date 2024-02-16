@@ -9,9 +9,26 @@ import {
 
 /** @public */
 export type ValidatorFn<T> = (value: unknown) => T
+/** @public */
+export type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (
+	knownGoodValue: In,
+	value: unknown
+) => Out
 
 /** @public */
-export type Validatable<T> = { validate: (value: unknown) => T }
+export type Validatable<T> = {
+	validate: (value: unknown) => T
+	/**
+	 * This is a performance optimizing version of validate that can use a previous
+	 * version of the value to avoid revalidating every part of the new value if
+	 * any part of it has not changed since the last validation.
+	 *
+	 * If the value has not changed but is not referentially equal, the function
+	 * should return the previous value.
+	 * @returns
+	 */
+	validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T
+}
 
 function formatPath(path: ReadonlyArray<number | string>): string | null {
 	if (!path.length) {
@@ -92,11 +109,14 @@ function typeToString(value: unknown): string {
 }
 
 /** @public */
-export type TypeOf<V extends Validatable<unknown>> = V extends Validatable<infer T> ? T : never
+export type TypeOf<V extends Validatable<any>> = V extends Validatable<infer T> ? T : never
 
 /** @public */
 export class Validator<T> implements Validatable<T> {
-	constructor(readonly validationFn: ValidatorFn<T>) {}
+	constructor(
+		readonly validationFn: ValidatorFn<T>,
+		readonly validateUsingKnownGoodVersionFn?: ValidatorUsingKnownGoodVersionFn<T>
+	) {}
 
 	/**
 	 * Asserts that the passed value is of the correct type and returns it. The returned value is
@@ -108,6 +128,18 @@ export class Validator<T> implements Validatable<T> {
 			throw new ValidationError('Validator functions must return the same value they were passed')
 		}
 		return validated
+	}
+
+	validateUsingKnownGoodVersion(knownGoodValue: T, newValue: unknown): T {
+		if (Object.is(knownGoodValue, newValue)) {
+			return newValue as T
+		}
+
+		if (this.validateUsingKnownGoodVersionFn) {
+			return this.validateUsingKnownGoodVersionFn(knownGoodValue, newValue)
+		}
+
+		return this.validate(newValue)
 	}
 
 	/** Checks that the passed value is of the correct type. */
@@ -141,9 +173,17 @@ export class Validator<T> implements Validatable<T> {
 	 * if the value can't be converted to the new type, or return the new type otherwise.
 	 */
 	refine<U>(otherValidationFn: (value: T) => U): Validator<U> {
-		return new Validator((value) => {
-			return otherValidationFn(this.validate(value))
-		})
+		// TODO: is this OK? that it doesn't use the knownGoodVersion function?
+		return new Validator(
+			(value) => {
+				return otherValidationFn(this.validate(value))
+			},
+			(knownGoodValue, newValue) => {
+				return otherValidationFn(
+					this.validateUsingKnownGoodVersion(knownGoodValue as any, newValue)
+				)
+			}
+		)
 	}
 
 	/**
@@ -179,13 +219,40 @@ export class Validator<T> implements Validatable<T> {
 /** @public */
 export class ArrayOfValidator<T> extends Validator<T[]> {
 	constructor(readonly itemValidator: Validatable<T>) {
-		super((value) => {
-			const arr = array.validate(value)
-			for (let i = 0; i < arr.length; i++) {
-				prefixError(i, () => itemValidator.validate(arr[i]))
+		super(
+			(value) => {
+				const arr = array.validate(value)
+				for (let i = 0; i < arr.length; i++) {
+					prefixError(i, () => itemValidator.validate(arr[i]))
+				}
+				return arr as T[]
+			},
+			(knownGoodValue, newValue) => {
+				if (!itemValidator.validateUsingKnownGoodVersion) return this.validate(newValue)
+				const arr = array.validate(newValue)
+				let isDifferent = false
+				for (let i = 0; i < arr.length; i++) {
+					const item = arr[i]
+					if (i >= knownGoodValue.length) {
+						isDifferent = true
+						prefixError(i, () => itemValidator.validate(item))
+						continue
+					}
+					// sneaky quick check here to avoid the prefix + validator overhead
+					if (Object.is(knownGoodValue[i], item)) {
+						continue
+					}
+					const checkedItem = prefixError(i, () =>
+						itemValidator.validateUsingKnownGoodVersion!(knownGoodValue[i], arr[i])
+					)
+					if (!Object.is(checkedItem, knownGoodValue[i])) {
+						isDifferent = true
+					}
+				}
+
+				return isDifferent ? (arr as T[]) : knownGoodValue
 			}
-			return arr as T[]
-		})
+		)
 	}
 
 	nonEmpty() {
@@ -213,27 +280,61 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 		},
 		private readonly shouldAllowUnknownProperties = false
 	) {
-		super((object) => {
-			if (typeof object !== 'object' || object === null) {
-				throw new ValidationError(`Expected object, got ${typeToString(object)}`)
-			}
+		super(
+			(object) => {
+				if (typeof object !== 'object' || object === null) {
+					throw new ValidationError(`Expected object, got ${typeToString(object)}`)
+				}
 
-			for (const [key, validator] of Object.entries(config)) {
-				prefixError(key, () => {
-					;(validator as Validator<unknown>).validate(getOwnProperty(object, key))
-				})
-			}
+				for (const [key, validator] of Object.entries(config)) {
+					prefixError(key, () => {
+						;(validator as Validator<unknown>).validate(getOwnProperty(object, key))
+					})
+				}
 
-			if (!shouldAllowUnknownProperties) {
-				for (const key of Object.keys(object)) {
-					if (!hasOwnProperty(config, key)) {
-						throw new ValidationError(`Unexpected property`, [key])
+				if (!shouldAllowUnknownProperties) {
+					for (const key of Object.keys(object)) {
+						if (!hasOwnProperty(config, key)) {
+							throw new ValidationError(`Unexpected property`, [key])
+						}
 					}
 				}
-			}
 
-			return object as Shape
-		})
+				return object as Shape
+			},
+			(knownGoodValue, newValue) => {
+				if (typeof newValue !== 'object' || newValue === null) {
+					throw new ValidationError(`Expected object, got ${typeToString(newValue)}`)
+				}
+
+				let isDifferent = false
+
+				for (const [key, validator] of Object.entries(config)) {
+					const prev = getOwnProperty(knownGoodValue, key)
+					const next = getOwnProperty(newValue, key)
+					// sneaky quick check here to avoid the prefix + validator overhead
+					if (Object.is(prev, next)) {
+						continue
+					}
+					const checked = prefixError(key, () => {
+						return (validator as Validator<unknown>).validateUsingKnownGoodVersion(prev, next)
+					})
+					if (!Object.is(checked, prev)) {
+						isDifferent = true
+					}
+				}
+
+				if (!shouldAllowUnknownProperties) {
+					for (const key of Object.keys(newValue)) {
+						if (!hasOwnProperty(config, key)) {
+							throw new ValidationError(`Unexpected property`, [key])
+						}
+					}
+				}
+
+				return isDifferent ? (newValue as Shape) : knownGoodValue
+			}
+		)
 	}
 
 	allowUnknownProperties() {
@@ -257,7 +358,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	extend<Extension extends Record<string, unknown>>(extension: {
 		readonly [K in keyof Extension]: Validatable<Extension[K]>
 	}): ObjectValidator<Shape & Extension> {
-		return new ObjectValidator({ ...this.config, ...extension }) as ObjectValidator<
+		return new ObjectValidator({ ...this.config, ...extension }) as any as ObjectValidator<
 			Shape & Extension
 		>
 	}
@@ -280,25 +381,55 @@ export class UnionValidator<
 		private readonly config: Config,
 		private readonly unknownValueValidation: (value: object, variant: string) => UnknownValue
 	) {
-		super((input) => {
-			if (typeof input !== 'object' || input === null) {
-				throw new ValidationError(`Expected an object, got ${typeToString(input)}`, [])
-			}
+		super(
+			(input) => {
+				this.expectObject(input)
 
-			const variant = getOwnProperty(input, key) as keyof Config | undefined
-			if (typeof variant !== 'string') {
-				throw new ValidationError(
-					`Expected a string for key "${key}", got ${typeToString(variant)}`
-				)
-			}
+				const { matchingSchema, variant } = this.getMatchingSchemaAndVariant(input)
+				if (matchingSchema === undefined) {
+					return this.unknownValueValidation(input, variant)
+				}
 
-			const matchingSchema = hasOwnProperty(config, variant) ? config[variant] : undefined
-			if (matchingSchema === undefined) {
-				return this.unknownValueValidation(input, variant)
-			}
+				return prefixError(`(${key} = ${variant})`, () => matchingSchema.validate(input))
+			},
+			(prevValue, newValue) => {
+				this.expectObject(newValue)
 
-			return prefixError(`(${key} = ${variant})`, () => matchingSchema.validate(input))
-		})
+				const { matchingSchema, variant } = this.getMatchingSchemaAndVariant(newValue)
+				if (matchingSchema === undefined) {
+					return this.unknownValueValidation(newValue, variant)
+				}
+
+				return prefixError(`(${key} = ${variant})`, () => {
+					if (matchingSchema.validateUsingKnownGoodVersion) {
+						return matchingSchema.validateUsingKnownGoodVersion(prevValue, newValue)
+					} else {
+						return matchingSchema.validate(newValue)
+					}
+				})
+			}
+		)
+	}
+
+	private expectObject(value: unknown): asserts value is object {
+		if (typeof value !== 'object' || value === null) {
+			throw new ValidationError(`Expected an object, got ${typeToString(value)}`, [])
+		}
+	}
+
+	private getMatchingSchemaAndVariant(object: object): {
+		matchingSchema: Validatable<any> | undefined
+		variant: string
+	} {
+		const variant = getOwnProperty(object, this.key) as keyof Config | undefined
+		if (typeof variant !== 'string') {
+			throw new ValidationError(
+				`Expected a string for key "${this.key}", got ${typeToString(variant)}`
+			)
+		}
+
+		const matchingSchema = hasOwnProperty(this.config, variant) ? this.config[variant] : undefined
+		return { matchingSchema, variant }
 	}
 
 	validateUnknownVariants<Unknown>(
@@ -314,20 +445,65 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 		public readonly keyValidator: Validatable<Key>,
 		public readonly valueValidator: Validatable<Value>
 	) {
-		super((object) => {
-			if (typeof object !== 'object' || object === null) {
-				throw new ValidationError(`Expected object, got ${typeToString(object)}`)
-			}
+		super(
+			(object) => {
+				if (typeof object !== 'object' || object === null) {
+					throw new ValidationError(`Expected object, got ${typeToString(object)}`)
+				}
 
-			for (const [key, value] of Object.entries(object)) {
-				prefixError(key, () => {
-					keyValidator.validate(key)
-					valueValidator.validate(value)
-				})
-			}
+				for (const [key, value] of Object.entries(object)) {
+					prefixError(key, () => {
+						keyValidator.validate(key)
+						valueValidator.validate(value)
+					})
+				}
 
-			return object as Record<Key, Value>
-		})
+				return object as Record<Key, Value>
+			},
+			(knownGoodValue, newValue) => {
+				if (typeof newValue !== 'object' || newValue === null) {
+					throw new ValidationError(`Expected object, got ${typeToString(newValue)}`)
+				}
+
+				let isDifferent = false
+
+				for (const [key, value] of Object.entries(newValue)) {
+					if (!hasOwnProperty(knownGoodValue, key)) {
+						isDifferent = true
+						prefixError(key, () => {
+							keyValidator.validate(key)
+							valueValidator.validate(value)
+						})
+						continue
+					}
+					const prev = getOwnProperty(knownGoodValue, key)
+					const next = value
+					// sneaky quick check here to avoid the prefix + validator overhead
+					if (Object.is(prev, next)) {
+						continue
+					}
+					const checked = prefixError(key, () => {
+						if (valueValidator.validateUsingKnownGoodVersion) {
+							return valueValidator.validateUsingKnownGoodVersion(prev as any, next)
+						} else {
+							return valueValidator.validate(next)
+						}
+					})
+					if (!Object.is(checked, prev)) {
+						isDifferent = true
+					}
+				}
+
+				for (const key of Object.keys(knownGoodValue)) {
+					if (!hasOwnProperty(newValue, key)) {
+						isDifferent = true
+						break
+					}
+				}
+
+				return isDifferent ? (newValue as Record<Key, Value>) : knownGoodValue
+			}
+		)
 	}
 }
 
@@ -477,6 +653,12 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
 	return value as Record<string, unknown>
 })
 
+type ExtractRequiredKeys<T extends object> = {
+	[K in keyof T]: undefined extends T[K] ? never : K
+}[keyof T]
+
+type MakeUndefinedOptional<T extends object> = Pick<T, ExtractRequiredKeys<T>> & Partial<T>
+
 /**
  * Validate an object has a particular shape.
  *
@@ -484,8 +666,8 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
  */
 export function object<Shape extends object>(config: {
 	readonly [K in keyof Shape]: Validatable<Shape[K]>
-}): ObjectValidator<Shape> {
-	return new ObjectValidator(config)
+}): ObjectValidator<MakeUndefinedOptional<Shape>> {
+	return new ObjectValidator(config) as any
 }
 
 function isValidJson(value: any): value is JsonValue {
@@ -581,14 +763,25 @@ export function model<T extends { readonly id: string }>(
 	name: string,
 	validator: Validatable<T>
 ): Validator<T> {
-	return new Validator((value) => {
-		const prefix =
-			value && typeof value === 'object' && 'id' in value && typeof value.id === 'string'
-				? `${name}(id = ${value.id})`
-				: name
-
-		return prefixError(prefix, () => validator.validate(value))
-	})
+	const getPrefix = (value: unknown) => {
+		return value && typeof value === 'object' && 'id' in value && typeof value.id === 'string'
+			? `${name}(id = ${value.id})`
+			: name
+	}
+	return new Validator(
+		(value) => {
+			return prefixError(getPrefix(value), () => validator.validate(value))
+		},
+		(prevValue, newValue) => {
+			return prefixError(getPrefix(newValue), () => {
+				if (validator.validateUsingKnownGoodVersion) {
+					return validator.validateUsingKnownGoodVersion(prevValue, newValue)
+				} else {
+					return validator.validate(newValue)
+				}
+			})
+		}
+	)
 }
 
 /** @public */

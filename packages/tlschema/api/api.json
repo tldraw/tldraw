@@ -337,6 +337,15 @@
             },
             {
               "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
               "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
             },
             {
@@ -355,7 +364,34 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }, \"boundShapeId\" | \"isExact\" | \"isPrecise\" | \"normalizedAnchor\" | \"type\"> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n            normalizedAnchor: import(\"../misc/geometry-types\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -364,7 +400,25 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }>;\n    }, never>;\n    end: "
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }, \"type\" | \"x\" | \"y\"> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }>>;\n    }, never>;\n    end: "
             },
             {
               "kind": "Reference",
@@ -382,6 +436,15 @@
             },
             {
               "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
               "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
             },
             {
@@ -400,7 +463,34 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }, \"boundShapeId\" | \"isExact\" | \"isPrecise\" | \"normalizedAnchor\" | \"type\"> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n            normalizedAnchor: import(\"../misc/geometry-types\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -409,7 +499,25 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }>;\n    }, never>;\n    bend: "
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }, \"type\" | \"x\" | \"y\"> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }>>;\n    }, never>;\n    bend: "
             },
             {
               "kind": "Reference",
@@ -445,7 +553,7 @@
           "name": "arrowShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 44
+            "endIndex": 68
           }
         },
         {
@@ -880,6 +988,15 @@
             },
             {
               "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
               "text": "<{\n    id: "
             },
             {
@@ -898,7 +1015,34 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}>"
+              "text": ";\n}, \"id\" | \"meta\" | \"typeName\" | (undefined extends Props ? never : \"props\") | (undefined extends Type ? never : \"type\")> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLAssetId",
+              "canonicalReference": "@tldraw/tlschema!TLAssetId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    typeName: 'asset';\n    type: Type;\n    props: Props;\n    meta: "
+            },
+            {
+              "kind": "Reference",
+              "text": "JsonObject",
+              "canonicalReference": "@tldraw/utils!JsonObject:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}>>"
             },
             {
               "kind": "Content",
@@ -908,7 +1052,7 @@
           "fileUrlPath": "packages/tlschema/src/assets/TLBaseAsset.ts",
           "returnTypeTokenRange": {
             "startIndex": 10,
-            "endIndex": 16
+            "endIndex": 24
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -1158,12 +1302,39 @@
             },
             {
               "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLBaseShape",
               "canonicalReference": "@tldraw/tlschema!TLBaseShape:interface"
             },
             {
               "kind": "Content",
-              "text": "<Type, Props>>"
+              "text": "<Type, Props>, \"id\" | \"index\" | \"isLocked\" | \"meta\" | \"opacity\" | \"parentId\" | \"rotation\" | \"typeName\" | \"x\" | \"y\" | (undefined extends Props ? never : \"props\") | (undefined extends Type ? never : \"type\")> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBaseShape",
+              "canonicalReference": "@tldraw/tlschema!TLBaseShape:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<Type, Props>>>"
             },
             {
               "kind": "Content",
@@ -1173,7 +1344,7 @@
           "fileUrlPath": "packages/tlschema/src/shapes/TLBaseShape.ts",
           "returnTypeTokenRange": {
             "startIndex": 17,
-            "endIndex": 21
+            "endIndex": 27
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -1689,6 +1860,15 @@
             },
             {
               "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
               "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"../misc/geometry-types\")."
             },
             {
@@ -1698,7 +1878,25 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    }>;\n    isComplete: "
+              "text": "[];\n    }, \"points\" | \"type\"> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"../misc/geometry-types\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    }>>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -1734,7 +1932,7 @@
           "name": "drawShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 20
+            "endIndex": 26
           }
         },
         {
@@ -2295,6 +2493,15 @@
             },
             {
               "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
               "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"..\")."
             },
             {
@@ -2304,7 +2511,25 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    }>;\n    isComplete: "
+              "text": "[];\n    }, \"points\" | \"type\"> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    }>>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2331,7 +2556,7 @@
           "name": "highlightShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 14
+            "endIndex": 20
           }
         },
         {
@@ -2408,6 +2633,15 @@
             },
             {
               "kind": "Content",
+              "text": "<("
+            },
+            {
+              "kind": "Reference",
+              "text": "Pick",
+              "canonicalReference": "!Pick:type"
+            },
+            {
+              "kind": "Content",
               "text": "<{\n        topLeft: import(\"../misc/geometry-types\")."
             },
             {
@@ -2426,7 +2660,34 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    } | null>;\n}"
+              "text": ";\n    }, \"bottomRight\" | \"topLeft\"> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        topLeft: import(\"../misc/geometry-types\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        bottomRight: import(\"../misc/geometry-types\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    }>) | null>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLImageShape.ts",
@@ -2435,7 +2696,7 @@
           "name": "imageShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 20
+            "endIndex": 28
           }
         },
         {
@@ -3061,7 +3322,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        validate: (prop: any) => any;\n    }>;\n    meta?: "
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "AnyValidator",
+              "canonicalReference": "@tldraw/tlschema!~AnyValidator:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n    meta?: "
             },
             {
               "kind": "Reference",
@@ -3070,7 +3340,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        validate: (prop: any) => any;\n    }>;\n}"
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "AnyValidator",
+              "canonicalReference": "@tldraw/tlschema!~AnyValidator:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n}"
             },
             {
               "kind": "Content",
@@ -3082,7 +3361,7 @@
           "name": "SchemaShapeInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 8
+            "endIndex": 12
           }
         },
         {
@@ -3548,6 +3827,70 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "validate"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/tlschema!StyleProp#validateUsingKnownGoodVersion:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "validateUsingKnownGoodVersion(prevValue: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", newValue: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "unknown"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "prevValue",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "newValue",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "validateUsingKnownGoodVersion"
             }
           ],
           "implementsTokenRanges": [
@@ -3556,6 +3899,67 @@
               "endIndex": 3
             }
           ]
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!StylePropValue:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type StylePropValue<T extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StyleProp",
+              "canonicalReference": "@tldraw/tlschema!StyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<any>"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "T extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StyleProp",
+              "canonicalReference": "@tldraw/tlschema!StyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<infer U> ? U : never"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/styles/StyleProp.ts",
+          "releaseTag": "Public",
+          "name": "StylePropValue",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 4,
+            "endIndex": 7
+          }
         },
         {
           "kind": "Variable",
