@@ -97,7 +97,7 @@ test.describe('Shape Tools', () => {
 		}
 	})
 
-	test('creates shapes clickable tools', async ({ page }) => {
+	test('creates shapes clickable tools', async ({ page, toolbar }) => {
 		await page.keyboard.press('v')
 		await page.keyboard.press('Control+a')
 		await page.keyboard.press('Backspace')
@@ -106,9 +106,9 @@ test.describe('Shape Tools', () => {
 		for (const { tool, shape } of clickableShapeCreators) {
 			// Find and click the button
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
-				await page.getByTestId('tools.more-button').click()
+				await toolbar.moreToolsButton.click()
 				await page.getByTestId(`tools.more.${tool}`).click()
-				await page.getByTestId('tools.more-button').click()
+				await toolbar.moreToolsButton.click()
 			}
 			await page.getByTestId(`tools.${tool}`).click()
 
@@ -136,7 +136,7 @@ test.describe('Shape Tools', () => {
 		expect(await getAllShapeTypes(page)).toEqual([])
 	})
 
-	test('creates shapes with draggable tools', async ({ page }) => {
+	test('creates shapes with draggable tools', async ({ page, toolbar }) => {
 		await page.keyboard.press('Control+a')
 		await page.keyboard.press('Backspace')
 		expect(await getAllShapeTypes(page)).toEqual([])
@@ -144,9 +144,9 @@ test.describe('Shape Tools', () => {
 		for (const { tool, shape } of draggableShapeCreators) {
 			// Find and click the button
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
-				await page.getByTestId('tools.more-button').click()
+				await toolbar.moreToolsButton.click()
 				await page.getByTestId(`tools.more.${tool}`).click()
-				await page.getByTestId('tools.more-button').click()
+				await toolbar.moreToolsButton.click()
 			}
 
 			await page.getByTestId(`tools.${tool}`).click()

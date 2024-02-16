@@ -19,11 +19,10 @@ test.describe('mobile ui', () => {
 		page.mouse.click(200, 200)
 		await expect(stylePanel.getElement()).toBeHidden()
 	})
-	test('style menu button is disabled for the eraser tool', async ({ isMobile, page, toolbar }) => {
+	test('style menu button is disabled for the eraser tool', async ({ isMobile, toolbar }) => {
 		test.skip(!isMobile, 'only run on mobile')
 		const { eraser } = toolbar.tools
 		await eraser.click()
-		const mobileStylesButton = page.getByTestId('mobile-styles.button')
-		await expect(mobileStylesButton).toBeDisabled()
+		await expect(toolbar.mobileStylesButton).toBeDisabled()
 	})
 })
