@@ -325,6 +325,9 @@ export const DefaultMainMenu: NamedExoticComponent<TLUiMainMenuProps>;
 export function DefaultMainMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export function DefaultMainMenuFileContent(): JSX_2.Element;
+
+// @public (undocumented)
 export function DefaultMinimap(): JSX_2.Element;
 
 // @public (undocumented)
@@ -470,6 +473,9 @@ export function DropdownMenuSubTrigger({ label, title, disabled, }: TLUiDropdown
 export function DropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
+export function EditSubmenu(): JSX_2.Element | null;
+
+// @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canEdit: TLShapeUtilFlag<TLEmbedShape>;
@@ -523,6 +529,12 @@ export type EventsProviderProps = {
 
 // @public
 export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, opts?: Partial<TLSvgOptions>): Promise<void>;
+
+// @public (undocumented)
+export function ExtrasGroup(): JSX_2.Element;
+
+// @public (undocumented)
+export function FileSubmenu(): JSX_2.Element;
 
 // @public
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
@@ -738,6 +750,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
+export function getSaveFileCopyAction(editor: Editor): TLUiActionItem;
+
+// @public (undocumented)
 export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
     quality: number;
@@ -949,6 +964,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 }
 
 // @public (undocumented)
+export const NEW_PROJECT_ACTION = "new-file";
+
+// @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_5 | typeof Pointing_4)[];
@@ -1050,6 +1068,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
+// @public (undocumented)
+export const OPEN_FILE_ACTION = "open-file";
+
 // @internal (undocumented)
 export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
@@ -1068,8 +1089,14 @@ export function PopoverContent({ side, children, align, sideOffset, alignOffset,
 // @public (undocumented)
 export function PopoverTrigger({ children, ...rest }: TLUiPopoverTriggerProps): JSX_2.Element;
 
+// @public (undocumented)
+export function PreferencesGroup(): JSX_2.Element;
+
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
+
+// @public (undocumented)
+export const SAVE_FILE_COPY_ACTION = "save-file-copy";
 
 // @public (undocumented)
 export class SelectTool extends StateNode {
@@ -1098,6 +1125,9 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
+
+// @public (undocumented)
+export function shouldOverrideDocument(addDialog: TLUiDialogsContextType['addDialog']): Promise<boolean>;
 
 // @internal (undocumented)
 export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
@@ -2043,6 +2073,11 @@ export function useDialogs(): TLUiDialogsContextType;
 export function useExportAs(): (ids: TLShapeId[], format?: TLExportType) => void;
 
 // @public (undocumented)
+export function useFileSystem({ isMultiplayer }: {
+    isMultiplayer: boolean;
+}): TLUiOverrides;
+
+// @public (undocumented)
 export function useKeyboardShortcuts(): void;
 
 // @public (undocumented)
@@ -2125,6 +2160,9 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static type: "video";
 }
+
+// @public (undocumented)
+export function ViewSubmenu(): JSX_2.Element;
 
 // @public (undocumented)
 export class ZoomTool extends StateNode {

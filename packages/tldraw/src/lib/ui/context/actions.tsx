@@ -34,6 +34,7 @@ import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './dialogs'
 import { TLUiEventSource, useUiEvents } from './events'
 import { useToasts } from './toasts'
+import { getFileSystemActions } from './useFileSystem'
 
 /** @public */
 export interface TLUiActionItem<
@@ -75,7 +76,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
 
 	const { addDialog, clearDialogs } = useDialogs()
-	const { clearToasts } = useToasts()
+	const { addToast, clearToasts } = useToasts()
 	const msg = useTranslation()
 
 	const insertMedia = useInsertMedia()
@@ -1189,6 +1190,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('new-page', { source })
 				},
 			},
+			...(Object.values(
+				getFileSystemActions(false /* multiplayer */, editor, addToast, msg, addDialog)
+			) as TLUiActionItem<TLUiTranslationKey, TLUiIconType>[]),
 		]
 
 		const actions = makeActions(actionItems)
@@ -1210,6 +1214,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		copy,
 		paste,
 		clearDialogs,
+		addToast,
 		clearToasts,
 		printSelectionOrPages,
 		msg,

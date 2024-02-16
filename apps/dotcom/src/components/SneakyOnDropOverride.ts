@@ -1,6 +1,10 @@
-import { parseAndLoadDocument, useDefaultHelpers, useEditor } from '@tldraw/tldraw'
+import {
+	parseAndLoadDocument,
+	shouldOverrideDocument,
+	useDefaultHelpers,
+	useEditor,
+} from '@tldraw/tldraw'
 import { useEffect } from 'react'
-import { shouldOverrideDocument } from '../utils/shouldOverrideDocument'
 
 export function SneakyOnDropOverride({ isMultiplayer }: { isMultiplayer: boolean }) {
 	const editor = useEditor()

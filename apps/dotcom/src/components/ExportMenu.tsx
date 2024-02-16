@@ -3,6 +3,7 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	getSaveFileCopyAction,
 	unwrapLabel,
 	useActions,
 	useContainer,
@@ -12,8 +13,6 @@ import {
 import React, { useState } from 'react'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
-import { getSaveFileCopyAction } from '../utils/useFileSystem'
-import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ShareButton } from './ShareButton'
 
 export const ExportMenu = React.memo(function ExportMenu() {
@@ -21,9 +20,8 @@ export const ExportMenu = React.memo(function ExportMenu() {
 		useActions()
 	const container = useContainer()
 	const msg = useTranslation()
-	const handleUiEvent = useHandleUiEvents()
 	const editor = useEditor()
-	const saveFileCopyAction = getSaveFileCopyAction(editor, handleUiEvent)
+	const saveFileCopyAction = getSaveFileCopyAction(editor)
 	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
 	const [isUploadingSnapshot, setIsUploadingSnapshot] = useState(false)
 

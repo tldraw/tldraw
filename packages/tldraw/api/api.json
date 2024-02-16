@@ -2937,6 +2937,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!DefaultMainMenuFileContent:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultMainMenuFileContent(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DefaultMainMenuFileContent"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!DefaultMinimap:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -5233,6 +5266,43 @@
           "name": "DropdownMenuTrigger"
         },
         {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!EditSubmenu:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function EditSubmenu(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "EditSubmenu"
+        },
+        {
           "kind": "Class",
           "canonicalReference": "@tldraw/tldraw!EmbedShapeUtil:class",
           "docComment": "/**\n * @public\n */\n",
@@ -6164,6 +6234,72 @@
             }
           ],
           "name": "exportAs"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!ExtrasGroup:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ExtrasGroup(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ExtrasGroup"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!FileSubmenu:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function FileSubmenu(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "FileSubmenu"
         },
         {
           "kind": "Function",
@@ -8412,6 +8548,53 @@
             }
           ],
           "name": "getEmbedInfo"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!getSaveFileCopyAction:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function getSaveFileCopyAction(editor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionItem",
+              "canonicalReference": "@tldraw/tldraw!TLUiActionItem:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/useFileSystem.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "editor",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "getSaveFileCopyAction"
         },
         {
           "kind": "Function",
@@ -11604,6 +11787,33 @@
           "implementsTokenRanges": []
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!NEW_PROJECT_ACTION:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "NEW_PROJECT_ACTION = "
+            },
+            {
+              "kind": "Content",
+              "text": "\"new-file\""
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/useFileSystem.tsx",
+          "initializerTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "NEW_PROJECT_ACTION",
+          "variableTypeTokenRange": {
+            "startIndex": 0,
+            "endIndex": 0
+          }
+        },
+        {
           "kind": "Class",
           "canonicalReference": "@tldraw/tldraw!NoteShapeTool:class",
           "docComment": "/**\n * @public\n */\n",
@@ -12622,6 +12832,33 @@
           "name": "OfflineIndicator"
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!OPEN_FILE_ACTION:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "OPEN_FILE_ACTION = "
+            },
+            {
+              "kind": "Content",
+              "text": "\"open-file\""
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/useFileSystem.tsx",
+          "initializerTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "OPEN_FILE_ACTION",
+          "variableTypeTokenRange": {
+            "startIndex": 0,
+            "endIndex": 0
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!parseTldrawJsonFile:function(1)",
           "docComment": "/**\n * @public\n */\n",
@@ -12853,6 +13090,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!PreferencesGroup:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function PreferencesGroup(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "PreferencesGroup"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!removeFrame:function(1)",
           "docComment": "/**\n * Remove a frame.\n *\n * @param editor - tlraw editor instance.\n *\n * @param ids - Ids of the frames you wish to remove.\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -12917,6 +13187,33 @@
             }
           ],
           "name": "removeFrame"
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!SAVE_FILE_COPY_ACTION:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "SAVE_FILE_COPY_ACTION = "
+            },
+            {
+              "kind": "Content",
+              "text": "\"save-file-copy\""
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/useFileSystem.tsx",
+          "initializerTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "SAVE_FILE_COPY_ACTION",
+          "variableTypeTokenRange": {
+            "startIndex": 0,
+            "endIndex": 0
+          }
         },
         {
           "kind": "Class",
@@ -13448,6 +13745,61 @@
             }
           ],
           "name": "setDefaultEditorAssetUrls"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!shouldOverrideDocument:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function shouldOverrideDocument(addDialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialogsContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialogsContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "['addDialog']"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<boolean>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/shouldOverrideDocument.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 4,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "addDialog",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "shouldOverrideDocument"
         },
         {
           "kind": "Class",
@@ -22993,6 +23345,52 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!useFileSystem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useFileSystem({ isMultiplayer }: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    isMultiplayer: boolean;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiOverrides",
+              "canonicalReference": "@tldraw/tldraw!TLUiOverrides:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/useFileSystem.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ isMultiplayer }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "useFileSystem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!useKeyboardShortcuts:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -24167,6 +24565,39 @@
             "endIndex": 5
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!ViewSubmenu:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ViewSubmenu(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ViewSubmenu"
         },
         {
           "kind": "Class",

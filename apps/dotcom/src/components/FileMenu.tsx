@@ -1,4 +1,6 @@
 import {
+	DefaultMainMenuFileContent,
+	SAVE_FILE_COPY_ACTION,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
@@ -9,18 +11,13 @@ import {
 	LEAVE_SHARED_PROJECT_ACTION,
 	SHARE_PROJECT_ACTION,
 } from '../utils/sharing'
-import { NEW_PROJECT_ACTION, OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION } from '../utils/useFileSystem'
 
 export function LocalFileMenu() {
 	const actions = useActions()
 
 	return (
 		<TldrawUiMenuSubmenu id="file" label="menu.file">
-			<TldrawUiMenuGroup id="file-actions">
-				<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-				<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
-				<TldrawUiMenuItem {...actions[NEW_PROJECT_ACTION]} />
-			</TldrawUiMenuGroup>
+			<DefaultMainMenuFileContent />
 			<TldrawUiMenuGroup id="share">
 				<TldrawUiMenuItem {...actions[SHARE_PROJECT_ACTION]} />
 			</TldrawUiMenuGroup>

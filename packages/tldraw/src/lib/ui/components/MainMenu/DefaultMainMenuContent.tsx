@@ -1,5 +1,10 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
+import {
+	NEW_PROJECT_ACTION,
+	OPEN_FILE_ACTION,
+	SAVE_FILE_COPY_ACTION,
+} from '../../context/useFileSystem'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { LanguageMenu } from '../LanguageMenu'
 import {
@@ -23,6 +28,7 @@ import {
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
+	ToggleTransparentBgMenuItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
 	ZoomTo100MenuItem,
@@ -37,6 +43,7 @@ import { TldrawUiMenuSubmenu } from '../menus/TldrawUiMenuSubmenu'
 export function DefaultMainMenuContent() {
 	return (
 		<>
+			<FileSubmenu />
 			<EditSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
@@ -45,7 +52,40 @@ export function DefaultMainMenuContent() {
 	)
 }
 
-function EditSubmenu() {
+/** @public */
+export function FileSubmenu() {
+	return (
+		<TldrawUiMenuSubmenu id="file" label="menu.file">
+			<DefaultMainMenuFileContent />
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/** @public */
+export function DefaultMainMenuFileContent() {
+	const actions = useActions()
+
+	return (
+		<TldrawUiMenuGroup id="file-actions">
+			<TldrawUiMenuItem {...actions[NEW_PROJECT_ACTION]} />
+			<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
+			<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+			<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
+				<TldrawUiMenuGroup id="export-as-group">
+					<TldrawUiMenuItem {...actions['export-as-svg']} />
+					<TldrawUiMenuItem {...actions['export-as-png']} />
+					<TldrawUiMenuItem {...actions['export-as-json']} />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="export-as-bg">
+					<ToggleTransparentBgMenuItem />
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuSubmenu>
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function EditSubmenu() {
 	const editor = useEditor()
 
 	const selectToolActive = useValue(
@@ -69,7 +109,8 @@ function EditSubmenu() {
 	)
 }
 
-function SelectionMenuGroup() {
+/** @public */
+export function SelectionMenuGroup() {
 	return (
 		<TldrawUiMenuGroup id="selection">
 			<ToggleAutoSizeMenuItem />
@@ -85,7 +126,8 @@ function SelectionMenuGroup() {
 	)
 }
 
-function UndoRedoGroup() {
+/** @public */
+export function UndoRedoGroup() {
 	const actions = useActions()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
@@ -97,7 +139,8 @@ function UndoRedoGroup() {
 	)
 }
 
-function ViewSubmenu() {
+/** @public */
+export function ViewSubmenu() {
 	const actions = useActions()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
@@ -112,7 +155,8 @@ function ViewSubmenu() {
 	)
 }
 
-function ExtrasGroup() {
+/** @public */
+export function ExtrasGroup() {
 	const actions = useActions()
 	return (
 		<TldrawUiMenuGroup id="extras">
@@ -124,7 +168,8 @@ function ExtrasGroup() {
 
 /* ------------------- Preferences ------------------ */
 
-function PreferencesGroup() {
+/** @public */
+export function PreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">

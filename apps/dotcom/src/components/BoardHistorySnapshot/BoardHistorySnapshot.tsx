@@ -1,9 +1,8 @@
-import { Tldraw, createTLStore, defaultShapeUtils } from '@tldraw/tldraw'
+import { Tldraw, createTLStore, defaultShapeUtils, useFileSystem } from '@tldraw/tldraw'
 import { RoomSnapshot } from '@tldraw/tlsync'
 import { useCallback, useState } from 'react'
 import '../../../styles/core.css'
 import { assetUrls } from '../../utils/assetUrls'
-import { useFileSystem } from '../../utils/useFileSystem'
 
 export function BoardHistorySnapshot({
 	data,

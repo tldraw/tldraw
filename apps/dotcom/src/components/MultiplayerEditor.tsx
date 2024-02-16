@@ -8,13 +8,16 @@ import {
 	DefaultMainMenu,
 	DefaultMainMenuContent,
 	Editor,
+	OPEN_FILE_ACTION,
 	OfflineIndicator,
+	SAVE_FILE_COPY_ACTION,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	lns,
 	useActions,
+	useFileSystem,
 } from '@tldraw/tldraw'
 import { useCallback, useEffect } from 'react'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
@@ -27,7 +30,6 @@ import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { useSharing } from '../utils/sharing'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
-import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { CursorChatBubble } from './CursorChatBubble'
 import { EmbeddedInIFrameWarning } from './EmbeddedInIFrameWarning'

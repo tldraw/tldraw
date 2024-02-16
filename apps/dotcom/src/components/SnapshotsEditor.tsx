@@ -5,6 +5,7 @@ import {
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
 	DefaultMainMenuContent,
+	SAVE_FILE_COPY_ACTION,
 	SerializedSchema,
 	TLComponents,
 	TLRecord,
@@ -12,6 +13,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	useActions,
+	useFileSystem,
 } from '@tldraw/tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { StoreErrorScreen } from '../components/StoreErrorScreen'
@@ -19,7 +21,6 @@ import { useLocalStore } from '../hooks/useLocalStore'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
-import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
 import { MultiplayerFileMenu } from './FileMenu'

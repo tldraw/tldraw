@@ -6,13 +6,19 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	DefaultMainMenuContent,
+	EditSubmenu,
 	Editor,
+	ExtrasGroup,
+	OPEN_FILE_ACTION,
+	PreferencesGroup,
+	SAVE_FILE_COPY_ACTION,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	ViewSubmenu,
 	useActions,
+	useFileSystem,
 } from '@tldraw/tldraw'
 import { useCallback } from 'react'
 import { assetUrls } from '../utils/assetUrls'
@@ -21,7 +27,6 @@ import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../utils/migration/LocalMigration'
 import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
-import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { LocalFileMenu } from './FileMenu'
 import { Links } from './Links'
@@ -44,7 +49,10 @@ const components: TLComponents = {
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<LocalFileMenu />
-			<DefaultMainMenuContent />
+			<EditSubmenu />
+			<ViewSubmenu />
+			<ExtrasGroup />
+			<PreferencesGroup />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
