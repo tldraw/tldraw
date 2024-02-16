@@ -162,7 +162,6 @@ export async function exportToBlob(
 	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json',
 	opts = {} as Partial<TLSvgOptions>
 ): Promise<Blob> {
-	console.log(editor, ids, format, opts)
 	switch (format) {
 		case 'svg':
 			return new Blob([await exportToString(editor, ids, 'svg', opts)], { type: 'text/plain' })
