@@ -8,19 +8,19 @@ export async function addContentToDb(
 	content: GeneratedContent
 ) {
 	const sectionInsert = await db.prepare(
-		`REPLACE INTO sections (id, idx, title, description, path, sidebar_behavior) VALUES (?, ?, ?, ?, ?, ?)`
+		`INSERT INTO sections (id, idx, title, description, path, sidebar_behavior) VALUES (?, ?, ?, ?, ?, ?)`
 	)
 
 	const categoryInsert = await db.prepare(
-		`REPLACE INTO categories (id, title, description, sectionId, sectionIndex, path) VALUES (?, ?, ?, ?, ?, ?)`
+		`INSERT INTO categories (id, title, description, sectionId, sectionIndex, path) VALUES (?, ?, ?, ?, ?, ?)`
 	)
 
 	const headingsInsert = await db.prepare(
-		`REPLACE INTO headings (idx, articleId, level, title, slug, isCode, path) VALUES (?, ?, ?, ?, ?, ?, ?)`
+		`INSERT INTO headings (idx, articleId, level, title, slug, isCode, path) VALUES (?, ?, ?, ?, ?, ?, ?)`
 	)
 
 	const articleInsert = await db.prepare(
-		`REPLACE INTO articles (
+		`INSERT INTO articles (
       id,
       groupIndex,
       categoryIndex,
@@ -79,27 +79,32 @@ export async function addContentToDb(
 			throw Error(`hey, article ${article.id} has no id`)
 		}
 
-		await articleInsert.run(
-			article.id,
-			article.groupIndex,
-			article.categoryIndex,
-			article.sectionIndex,
-			article.groupId,
-			article.categoryId,
-			article.sectionId,
-			article.author,
-			article.title,
-			article.description,
-			article.hero,
-			article.status,
-			article.date,
-			article.sourceUrl,
-			article.componentCode,
-			article.componentCodeFiles,
-			article.keywords.join(', '),
-			article.content,
-			article.path
-		)
+		try {
+			await articleInsert.run(
+				article.id,
+				article.groupIndex,
+				article.categoryIndex,
+				article.sectionIndex,
+				article.groupId,
+				article.categoryId,
+				article.sectionId,
+				article.author,
+				article.title,
+				article.description,
+				article.hero,
+				article.status,
+				article.date,
+				article.sourceUrl,
+				article.componentCode,
+				article.componentCodeFiles,
+				article.keywords.join(', '),
+				article.content,
+				article.path
+			)
+		} catch (e: any) {
+			console.error(`ERROR: Could not add article with id '${article.id}'`)
+			throw e
+		}
 
 		await db.run(`DELETE FROM headings WHERE articleId = ?`, article.id)
 

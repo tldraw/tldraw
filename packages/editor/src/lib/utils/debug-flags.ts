@@ -12,26 +12,25 @@ export const featureFlags: Record<string, DebugFlag<boolean>> = {
 }
 
 /** @internal */
-export const debugFlags = {
+export const pointerCaptureTrackingObject = createDebugValue(
+	'pointerCaptureTrackingObject',
+	// ideally we wouldn't store this mutable value in an atom but it's not
+	// a big deal for debug values
+	{
+		defaults: { all: new Map<Element, number>() },
+		shouldStoreForSession: false,
+	}
+)
+
+/** @internal */
+export const debugFlags: Record<string, DebugFlag<boolean>> = {
 	// --- DEBUG VALUES ---
 	preventDefaultLogging: createDebugValue('preventDefaultLogging', {
-		defaults: { all: false },
-	}),
-	pointerCaptureLogging: createDebugValue('pointerCaptureLogging', {
 		defaults: { all: false },
 	}),
 	pointerCaptureTracking: createDebugValue('pointerCaptureTracking', {
 		defaults: { all: false },
 	}),
-	pointerCaptureTrackingObject: createDebugValue(
-		'pointerCaptureTrackingObject',
-		// ideally we wouldn't store this mutable value in an atom but it's not
-		// a big deal for debug values
-		{
-			defaults: { all: new Map<Element, number>() },
-			shouldStoreForSession: false,
-		}
-	),
 	elementRemovalLogging: createDebugValue('elementRemovalLogging', {
 		defaults: { all: false },
 	}),
@@ -44,7 +43,6 @@ export const debugFlags = {
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),
-	logMessages: createDebugValue('uiLog', { defaults: { all: [] as any[] } }),
 	resetConnectionEveryPing: createDebugValue('resetConnectionEveryPing', {
 		defaults: { all: false },
 	}),
@@ -59,12 +57,6 @@ export const debugFlags = {
 declare global {
 	interface Window {
 		tldrawLog: (message: any) => void
-	}
-}
-
-if (typeof window !== 'undefined') {
-	window.tldrawLog = (message: any) => {
-		debugFlags.logMessages.set(debugFlags.logMessages.get().concat(message))
 	}
 }
 

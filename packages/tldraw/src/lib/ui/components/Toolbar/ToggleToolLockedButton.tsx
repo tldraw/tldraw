@@ -1,6 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 

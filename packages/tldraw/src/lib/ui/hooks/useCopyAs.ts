@@ -1,7 +1,7 @@
 import { TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { TLCopyType, copyAs } from '../../utils/export/copyAs'
-import { useToasts } from './useToastsProvider'
+import { useToasts } from '../context/toasts'
 import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */

@@ -11,6 +11,7 @@ import {
 } from '@tldraw/store'
 import { DocumentRecordType, PageRecordType, TLDOCUMENT_ID } from '@tldraw/tlschema'
 import {
+	IndexKey,
 	Result,
 	assertExists,
 	exhaustiveSwitchError,
@@ -234,7 +235,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						lastChangedClock: 0,
 					},
 					{
-						state: PageRecordType.create({ name: 'Page 1', index: 'a1' }),
+						state: PageRecordType.create({ name: 'Page 1', index: 'a1' as IndexKey }),
 						lastChangedClock: 0,
 					},
 				],
