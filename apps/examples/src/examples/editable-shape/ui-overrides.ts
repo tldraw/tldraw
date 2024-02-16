@@ -5,21 +5,21 @@ import { TLUiMenuGroup, TLUiOverrides, menuItem, toolbarItem } from '@tldraw/tld
 export const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		// Create a tool item in the ui's context.
-		tools.myshape = {
-			id: 'myshape',
+		tools.catdog = {
+			id: 'catdog',
 			icon: 'color',
-			label: 'MyShape',
+			label: 'catdog',
 			kbd: 'm',
 			readonlyOk: false,
 			onSelect: () => {
-				editor.setCurrentTool('myshape')
+				editor.setCurrentTool('catdog')
 			},
 		}
 		return tools
 	},
 	toolbar(_app, toolbar, { tools }) {
 		// Add the tool item from the context to the toolbar.
-		toolbar.splice(4, 0, toolbarItem(tools.myshape))
+		toolbar.splice(4, 0, toolbarItem(tools.catdog))
 		return toolbar
 	},
 	keyboardShortcutsMenu(_app, keyboardShortcutsMenu, { tools }) {
@@ -27,7 +27,7 @@ export const uiOverrides: TLUiOverrides = {
 		const toolsGroup = keyboardShortcutsMenu.find(
 			(group) => group.id === 'shortcuts-dialog.tools'
 		) as TLUiMenuGroup
-		toolsGroup.children.push(menuItem(tools.myshape))
+		toolsGroup.children.push(menuItem(tools.catdog))
 		return keyboardShortcutsMenu
 	},
 }

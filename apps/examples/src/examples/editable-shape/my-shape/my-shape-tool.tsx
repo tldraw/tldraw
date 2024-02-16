@@ -1,8 +1,8 @@
 import { BaseBoxShapeTool, TLClickEvent } from '@tldraw/tldraw'
-export class MyShapeTool extends BaseBoxShapeTool {
-	static override id = 'myshape'
+export class CatDogTool extends BaseBoxShapeTool {
+	static override id = 'catdog'
 	static override initial = 'idle'
-	override shapeType = 'myshape'
+	override shapeType = 'catdog'
 
 	override onDoubleClick: TLClickEvent = (_info) => {
 		// you can handle events in handlers like this one;
@@ -11,7 +11,7 @@ export class MyShapeTool extends BaseBoxShapeTool {
 }
 
 /*
-This file contains our custom tool. The tool is a StateNode with the `id` "myShape".
+This file contains our custom tool. The tool is a StateNode with the `id` "catdog".
 
 We get a lot of functionality for free by extending the BaseBoxShapeTool. but we can
 handle events in out own way by overriding methods like onDoubleClick. For an example 

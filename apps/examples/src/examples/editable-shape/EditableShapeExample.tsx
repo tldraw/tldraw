@@ -1,12 +1,12 @@
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { MyShapeTool } from './my-shape/my-shape-tool'
-import { MyShapeUtil } from './my-shape/my-shape-util'
+import { CatDogTool } from './my-shape/my-shape-tool'
+import { CatDogUtil } from './my-shape/my-shape-util'
 import { uiOverrides } from './ui-overrides'
 
 // [1]
-const customShapeUtils = [MyShapeUtil]
-const customTools = [MyShapeTool]
+const customShapeUtils = [CatDogUtil]
+const customTools = [CatDogTool]
 
 //[2]
 export default function EditableShapeExample() {
@@ -27,8 +27,8 @@ export default function EditableShapeExample() {
 /*
 Introduction:
 In Tldraw shapes can exist in an editing state. When shapes are in the editing state
-they are focused and can't be dragged, resized or rotated. Shapes are edited when they
-are double-clicked, so users can still drag and resize shapes without accidentally 
+they are focused and can't be dragged, resized or rotated. Shapes enter this state 
+when they are double-clicked, users can drag and resize shapes without accidentally 
 entering the editing state. In our default shapes we mostly use this for editing text, 
 but it's also used in our video shape. In this example we'll create a shape that you 
 could use for a game of Go, but instead of black and white stones, we'll use cats and 
