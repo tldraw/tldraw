@@ -1,6 +1,7 @@
 import { TLBaseShape } from '@tldraw/tlschema'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Rectangle2d } from '../../primitives/geometry/Rectangle2d'
+import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'
 
@@ -19,5 +20,11 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 
 	override onResize: TLOnResizeHandler<any> = (shape, info) => {
 		return resizeBox(shape, info)
+	}
+
+	override getHandleSnapGeometry(shape: Shape): HandleSnapGeometry {
+		return {
+			points: this.getGeometry(shape).bounds.cornersAndCenter,
+		}
 	}
 }

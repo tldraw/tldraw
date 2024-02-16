@@ -1,5 +1,5 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
-import { JsonObject } from '@tldraw/utils'
+import { IndexKey, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 
@@ -10,7 +10,7 @@ import { idValidator } from '../misc/id-validator'
  */
 export interface TLPage extends BaseRecord<'page', TLPageId> {
 	name: string
-	index: string
+	index: IndexKey
 	meta: JsonObject
 }
 
@@ -27,7 +27,7 @@ export const pageValidator: T.Validator<TLPage> = T.model(
 		typeName: T.literal('page'),
 		id: pageIdValidator,
 		name: T.string,
-		index: T.string,
+		index: T.indexKey,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )

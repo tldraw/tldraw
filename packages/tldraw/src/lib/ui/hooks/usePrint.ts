@@ -12,6 +12,7 @@ export function usePrint() {
 			const el = document.createElement('div')
 			const style = document.createElement('style')
 
+			// todo: why are these using a ref? this seems like it could be a function rather than a hook
 			const clearElements = (printEl: HTMLDivElement | null, styleEl: HTMLStyleElement | null) => {
 				if (printEl) printEl.innerHTML = ''
 				if (styleEl && document.head.contains(styleEl)) document.head.removeChild(styleEl)

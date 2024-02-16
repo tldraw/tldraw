@@ -6,12 +6,16 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { useTldrawUiComponents } from '../context/components'
 import { useRelevantStyles } from '../hooks/useRevelantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { StylePanel } from './StylePanel/StylePanel'
-import { Button } from './primitives/Button'
-import { Icon } from './primitives/Icon'
-import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'
+import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
+import {
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from './primitives/TldrawUiPopover'
 
 export function MobileStylePanel() {
 	const editor = useEditor()
@@ -39,23 +43,37 @@ export function MobileStylePanel() {
 		[editor]
 	)
 
+	const { StylePanel } = useTldrawUiComponents()
+	if (!StylePanel) return null
+
 	return (
-		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
-			<PopoverTrigger disabled={disableStylePanel}>
-				<Button
+		<TldrawUiPopover id="mobile style menu" onOpenChange={handleStylesOpenChange}>
+			<TldrawUiPopoverTrigger>
+				<TldrawUiButton
 					type="tool"
 					data-testid="mobile-styles.button"
 					style={{
 						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
 					}}
 					title={msg('style-panel.title')}
+					disabled={disableStylePanel}
 				>
-					<Icon icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'} />
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent side="top" align="end">
-				<StylePanel isMobile />
-			</PopoverContent>
-		</Popover>
+					<TldrawUiButtonIcon
+						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
+					/>
+				</TldrawUiButton>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side="top" align="end">
+				<_StylePanel />
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
+}
+
+function _StylePanel() {
+	const { StylePanel } = useTldrawUiComponents()
+	const relevantStyles = useRelevantStyles()
+
+	if (!StylePanel) return null
+	return <StylePanel relevantStyles={relevantStyles} isMobile />
 }
