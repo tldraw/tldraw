@@ -8,8 +8,6 @@ import {
 	TLBaseShape,
 	TLDefaultColorStyle,
 	TLOnResizeHandler,
-	getDefaultColorTheme,
-	resizeBox,
 	useIsEditing,
 } from '@tldraw/tldraw'
 import { useState } from 'react'
@@ -46,8 +44,8 @@ export class MyShapeUtil extends ShapeUtil<IMyShape> {
 	// [4]
 	getDefaultProps(): IMyShape['props'] {
 		return {
-			w: 300,
-			h: 300,
+			w: 170,
+			h: 170,
 			color: 'black',
 		}
 	}
@@ -63,7 +61,6 @@ export class MyShapeUtil extends ShapeUtil<IMyShape> {
 
 	// [6]
 	component(shape: IMyShape) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -81,13 +78,17 @@ export class MyShapeUtil extends ShapeUtil<IMyShape> {
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
-					backgroundColor: 'hsl(180, 34%, 86%)',
+					backgroundColor: animal ? 'hsl(180, 34%, 86%)' : 'hsl(10, 34%, 86%)',
+					position: 'relative',
 				}}
 			>
 				<button
 					style={{
 						display: isEditing ? 'block' : 'none',
 						border: 'none',
+						position: 'absolute',
+						top: 0,
+						left: 40,
 						cursor: 'pointer',
 						padding: '8px 8px',
 						borderRadius: '4px',
@@ -116,7 +117,7 @@ export class MyShapeUtil extends ShapeUtil<IMyShape> {
 
 	// [8]
 	override onResize: TLOnResizeHandler<IMyShape> = (shape, info) => {
-		return resizeBox(shape, info)
+		return shape
 	}
 }
 
