@@ -8,6 +8,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -331,7 +332,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									>
 										<TldrawUiButtonIcon icon="drag-handle-dots" />
 									</TldrawUiButton>
-									{breakpoint < 5 && isCoarsePointer ? (
+									{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer ? (
 										// sigh, this is a workaround for iOS Safari
 										// because the device and the radix popover seem
 										// to be fighting over scroll position. Nothing

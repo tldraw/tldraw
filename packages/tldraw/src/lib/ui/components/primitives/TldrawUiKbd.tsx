@@ -1,3 +1,4 @@
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { kbd } from '../../kbd-utils'
 
@@ -9,7 +10,7 @@ export interface TLUiKbdProps {
 /** @public */
 export function TldrawUiKbd({ children }: TLUiKbdProps) {
 	const breakpoint = useBreakpoint()
-	if (breakpoint < 4) return null
+	if (breakpoint < PORTRAIT_BREAKPOINT.MOBILE) return null
 	return (
 		<kbd className="tlui-kbd">
 			{kbd(children).map((k, i) => (

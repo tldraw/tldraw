@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -26,7 +27,7 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 	// so skip rendering the menu.
 	const content = children ?? <DefaultHelpMenuContent />
 
-	if (breakpoint < 4) return null
+	if (breakpoint < PORTRAIT_BREAKPOINT.MOBILE) return null
 
 	return (
 		<div className="tlui-help-menu">
