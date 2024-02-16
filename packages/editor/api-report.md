@@ -1616,6 +1616,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     hideSelectionBoundsFg: TLShapeUtilFlag<Shape>;
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
+    isOverLabelTest: (shape: Shape, pointInShapeSpace: Vec) => boolean;
     // (undocumented)
     static migrations?: Migrations;
     onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;

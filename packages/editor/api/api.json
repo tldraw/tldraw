@@ -30804,6 +30804,45 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#isOverLabelTest:member",
+              "docComment": "/**\n * Whether the pointer is over the label of the shape, if any.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isOverLabelTest: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(shape: Shape, pointInShapeSpace: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec",
+                  "canonicalReference": "@tldraw/editor!Vec:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isOverLabelTest",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil.migrations:member",
               "docComment": "",
               "excerptTokens": [

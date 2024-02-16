@@ -499,7 +499,7 @@ export class Idle extends StateNode {
 		// todo: Extract into general hit test for arrows
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
 			const arrowShapeUtil = this.editor.getShapeUtil(shape) as ArrowShapeUtil
-			return arrowShapeUtil.isOverArrowLabelTest(shape, pointInShapeSpace)
+			return arrowShapeUtil.isOverLabelTest(shape, pointInShapeSpace)
 		}
 
 		return false

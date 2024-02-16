@@ -939,13 +939,17 @@
               "name": "indicator"
             },
             {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#isOverArrowLabelTest:member(1)",
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#isOverLabelTest:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "isOverArrowLabelTest(arrow: "
+                  "text": "isOverLabelTest: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(arrow: "
                 },
                 {
                   "kind": "Reference",
@@ -963,46 +967,24 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
+                  "text": ") => boolean"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isOverLabelTest",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
                 "endIndex": 6
               },
-              "releaseTag": "Public",
+              "isStatic": false,
               "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "arrow",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "pointInShapeSpace",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "isOverArrowLabelTest"
+              "isAbstract": false
             },
             {
               "kind": "Property",

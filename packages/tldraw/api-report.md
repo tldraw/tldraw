@@ -160,7 +160,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     indicator(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
-    isOverArrowLabelTest(arrow: TLArrowShape, pointInShapeSpace: Vec): boolean;
+    isOverLabelTest: (arrow: TLArrowShape, pointInShapeSpace: Vec) => boolean;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)

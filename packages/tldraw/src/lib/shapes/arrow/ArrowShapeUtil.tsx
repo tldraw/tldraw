@@ -1018,7 +1018,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return [getFillDefForCanvas()]
 	}
 
-	isOverArrowLabelTest(arrow: TLArrowShape, pointInShapeSpace: Vec) {
+	override isOverLabelTest = (arrow: TLArrowShape, pointInShapeSpace: Vec) => {
 		// How should we handle multiple labels? Do shapes ever have multiple labels?
 		const labelGeometry = this.getGeometry(arrow).children[1]
 		// Knowing what we know about arrows... if the shape has no text in its label,

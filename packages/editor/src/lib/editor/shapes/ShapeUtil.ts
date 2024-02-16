@@ -180,6 +180,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	isAspectRatioLocked: TLShapeUtilFlag<Shape> = () => false
 
 	/**
+	 * Whether the pointer is over the label of the shape, if any.
+	 *
+	 * @public
+	 */
+	isOverLabelTest: (shape: Shape, pointInShapeSpace: Vec) => boolean = () => false
+
+	/**
 	 * Get a JSX element for the shape (as an HTML element) to be rendered as part of the canvas background - behind any other shape content.
 	 *
 	 * @param shape - The shape.
