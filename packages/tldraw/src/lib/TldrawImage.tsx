@@ -92,11 +92,15 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 
 		let isCancelled = false
 
+		const tempElm = document.createElement('div')
+		container.appendChild(tempElm)
+		container.classList.add('tl-container', 'tl-theme__light')
+
 		const editor = new Editor({
 			store,
 			shapeUtils: shapeUtilsWithDefaults ?? [],
 			tools: [],
-			getContainer: () => container,
+			getContainer: () => tempElm,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
