@@ -417,8 +417,6 @@ const HintedShapeIndicator = track(function HintedShapeIndicator() {
 
 	if (!ids.length) return null
 
-	console.log(ids)
-
 	return (
 		<>
 			{ids.map((id) => (
