@@ -701,6 +701,9 @@ export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
 }): Promise<Blob | null>;
 
 // @public (undocumented)
+export function getSvgAsString(svg: SVGElement): Promise<string>;
+
+// @public (undocumented)
 export class HandTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Dragging | typeof Idle_8 | typeof Pointing_7)[];
@@ -1204,6 +1207,7 @@ export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 // @public
 export const TldrawImage: NamedExoticComponent<    {
 snapshot: StoreSnapshot<TLRecord>;
+format?: "png" | "svg" | undefined;
 pageId?: TLPageId | undefined;
 shapeUtils?: readonly TLAnyShapeUtilConstructor[] | undefined;
 bounds?: Box | undefined;
@@ -1217,6 +1221,7 @@ preserveAspectRatio?: string | undefined;
 // @public
 export type TldrawImageProps = Expand<{
     snapshot: StoreSnapshot<TLRecord>;
+    format?: 'png' | 'svg';
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } & Partial<TLSvgOptions>>;

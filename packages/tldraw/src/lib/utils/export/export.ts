@@ -91,7 +91,8 @@ export async function getSvgAsImage(
 	})
 }
 
-async function getSvgAsString(svg: SVGElement) {
+/** @public */
+export async function getSvgAsString(svg: SVGElement) {
 	const clone = svg.cloneNode(true) as SVGGraphicsElement
 
 	svg.setAttribute('width', +svg.getAttribute('width')! + '')
@@ -161,6 +162,7 @@ export async function exportToBlob(
 	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json',
 	opts = {} as Partial<TLSvgOptions>
 ): Promise<Blob> {
+	console.log(editor, ids, format, opts)
 	switch (format) {
 		case 'svg':
 			return new Blob([await exportToString(editor, ids, 'svg', opts)], { type: 'text/plain' })
