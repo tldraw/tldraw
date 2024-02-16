@@ -330,30 +330,6 @@ input,
 	contain: size layout;
 }
 
-.tl-canvas-recent-paste-event .tl-shape-indicator path {
-	animation: puff 0.2s ease-in forwards;
-}
-
-@keyframes puff {
-  0% {
-		transform-origin: 25% 25%;
-    transform: scale(1, 1);
-    filter: blur(0px);
-  }
-
-  50% {
-		transform-origin: 25% 25%;
-    transform: scale(1.05, 1.05);
-    filter: blur(3px);
-  }
-
-  100% {
-		transform-origin: 25% 25%;
-    transform: scale(1, 1);
-    filter: blur(0px);
-  }
-}
-
 .tl-shape__culled {
 	position: relative;
 	background-color: var(--color-culled);
@@ -426,20 +402,6 @@ input,
 	z-index: 100;
 }
 
-.tl-user-indicator__hint {
-	z-index: 110;
-	stroke-width: calc(2.5px * var(--tl-scale));
-}
-
-/* behind collaborator cursor */
-.tl-collaborator__cursor-hint {
-	z-index: 120;
-}
-
-.tl-collaborator__cursor {
-	z-index: 130;
-}
-
 .tl-cursor {
 	overflow: visible;
 }
@@ -451,6 +413,25 @@ input,
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
 	contain: size;
+}
+
+.tl-user-indicator__hint {
+	z-index: 75;
+}
+
+.tl-user-indicator__hint > .tl-shape-indicator {
+	stroke-width: calc(2.5px * var(--tl-scale));
+}
+
+/* ------------------ Collaborator ------------------ */
+
+/* behind collaborator cursor */
+.tl-collaborator__cursor-hint {
+	z-index: 120;
+}
+
+.tl-collaborator__cursor {
+	z-index: 130;
 }
 
 /* ------------------ SelectionBox ------------------ */

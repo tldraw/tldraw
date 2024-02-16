@@ -16,5 +16,10 @@ export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?:
 		point: p,
 		select: true,
 	})
+	const shapeIds = editor.getSelectedShapeIds()
+	editor.setHintingShapes(shapeIds)
+	setTimeout(() => {
+		editor.setHintingShapes([])
+	}, 150)
 	editor.emit('event', { type: 'misc', name: 'paste' })
 }
