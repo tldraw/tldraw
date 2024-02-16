@@ -1,5 +1,5 @@
 import { useBreakpoint } from '../../context/breakpoints'
-import { kbd } from '../../shared'
+import { kbd } from '../../kbd-utils'
 
 /** @public */
 export interface TLUiKbdProps {
