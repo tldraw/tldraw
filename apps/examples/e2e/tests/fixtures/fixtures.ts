@@ -1,6 +1,6 @@
 import { test as base } from '@playwright/test'
-import { Toolbar } from './menus/dwdwqdwq'
-import { StylePanel } from './menus/sdwdtylepanel'
+import { StylePanel } from './menus/StylePanel'
+import { Toolbar } from './menus/Toolbar'
 
 type Fixtures = {
 	toolbar: Toolbar
