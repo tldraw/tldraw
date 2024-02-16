@@ -154,7 +154,11 @@ export type {
 	TLBeforeCreateHandler,
 	TLBeforeDeleteHandler,
 } from './lib/editor/managers/SideEffectManager'
-export { type BoundsSnapPoint } from './lib/editor/managers/SnapManager/BoundsSnaps'
+export {
+	type BoundsSnapGeometry,
+	type BoundsSnapPoint,
+} from './lib/editor/managers/SnapManager/BoundsSnaps'
+export { type HandleSnapGeometry } from './lib/editor/managers/SnapManager/HandleSnaps'
 export {
 	SnapManager,
 	type GapsSnapIndicator,

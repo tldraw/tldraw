@@ -1,11 +1,13 @@
 import {
-	Button,
-	DialogBody,
-	DialogCloseButton,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
 	TLUiDialogsContextType,
+	TldrawUiButton,
+	TldrawUiButtonCheck,
+	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 	useTranslation,
 } from '@tldraw/tldraw'
 import { useState } from 'react'
@@ -49,26 +51,28 @@ function ConfirmOpenDialog({
 	const [dontShowAgain, setDontShowAgain] = useState(false)
 	return (
 		<>
-			<DialogHeader>
-				<DialogTitle>{msg('file-system.confirm-open.title')}</DialogTitle>
-				<DialogCloseButton />
-			</DialogHeader>
-			<DialogBody style={{ maxWidth: 350 }}>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg('file-system.confirm-open.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				{msg('file-system.confirm-open.description')}
-			</DialogBody>
-			<DialogFooter className="tlui-dialog__footer__actions">
-				<Button
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton
 					type="normal"
 					onClick={() => setDontShowAgain(!dontShowAgain)}
-					iconLeft={dontShowAgain ? 'checkbox-checked' : 'checkbox-empty'}
 					style={{ marginRight: 'auto' }}
 				>
-					{msg('file-system.confirm-open.dont-show-again')}
-				</Button>
-				<Button type="normal" onClick={onCancel}>
-					{msg('file-system.confirm-open.cancel')}
-				</Button>
-				<Button
+					<TldrawUiButtonCheck checked={dontShowAgain} />
+					<TldrawUiButtonLabel>
+						{msg('file-system.confirm-open.dont-show-again')}
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={onCancel}>
+					<TldrawUiButtonLabel>{msg('file-system.confirm-open.cancel')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton
 					type="primary"
 					onClick={async () => {
 						if (dontShowAgain) {
@@ -77,9 +81,9 @@ function ConfirmOpenDialog({
 						onContinue()
 					}}
 				>
-					{msg('file-system.confirm-open.open')}
-				</Button>
-			</DialogFooter>
+					<TldrawUiButtonLabel>{msg('file-system.confirm-open.open')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

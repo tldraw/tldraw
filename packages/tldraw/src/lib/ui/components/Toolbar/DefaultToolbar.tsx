@@ -2,6 +2,7 @@ import { GeoShapeGeoStyle, preventDefault, track, useEditor, useValue } from '@t
 import classNames from 'classnames'
 import hotkeys from 'hotkeys-js'
 import React, { memo, useEffect, useMemo } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
@@ -9,15 +10,16 @@ import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { kbdStr } from '../../kbd-utils'
 import { MobileStylePanel } from '../MobileStylePanel'
-import { Button } from '../primitives/Button'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuRoot,
-	DropdownMenuTrigger,
-} from '../primitives/DropdownMenu'
-import { kbdStr } from '../primitives/shared'
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
 /** @public */
@@ -102,7 +104,7 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 				<div className="tlui-toolbar__left">
 					{!isReadonlyMode && (
 						<div className="tlui-toolbar__extras">
-							{breakpoint < 6 && (
+							{breakpoint < PORTRAIT_BREAKPOINT.TABLET && (
 								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
 									{QuickActions && <QuickActions />}
 									{ActionsMenu && <ActionsMenu />}
@@ -113,7 +115,7 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 					)}
 					<div
 						className={classNames('tlui-toolbar__tools', {
-							'tlui-toolbar__tools__mobile': breakpoint < 5,
+							'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 						})}
 					>
 						{/* Main panel items */}
@@ -142,23 +144,26 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 									)}
 								/>
 								{/* The dropdown to select everything else */}
-								<DropdownMenuRoot id="toolbar overflow" modal={false}>
-									<DropdownMenuTrigger
-										className="tlui-toolbar__overflow"
-										icon="chevron-up"
-										type="tool"
-										data-testid="tools.more"
-										title={msg('tool-panel.more')}
-									/>
-									<DropdownMenuContent side="top" align="center">
+								<TldrawUiDropdownMenuRoot id="toolbar overflow" modal={false}>
+									<TldrawUiDropdownMenuTrigger>
+										<TldrawUiButton
+											title={msg('tool-panel.more')}
+											type="tool"
+											className="tlui-toolbar__overflow"
+											data-testid="tools.more"
+										>
+											<TldrawUiButtonIcon icon="chevron-up" />
+										</TldrawUiButton>
+									</TldrawUiDropdownMenuTrigger>
+									<TldrawUiDropdownMenuContent side="top" align="center">
 										<OverflowToolsContent toolbarItems={itemsInDropdown} />
-									</DropdownMenuContent>
-								</DropdownMenuRoot>
+									</TldrawUiDropdownMenuContent>
+								</TldrawUiDropdownMenuRoot>
 							</>
 						) : null}
 					</div>
 				</div>
-				{breakpoint < 5 && !isReadonlyMode && (
+				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
 					<div className="tlui-toolbar__tools">
 						<MobileStylePanel />
 					</div>
@@ -179,18 +184,22 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 		<div className="tlui-buttons__grid">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
 				return (
-					<DropdownMenuItem
+					<TldrawUiDropdownMenuItem
 						key={id}
-						type="icon"
-						className="tlui-button-grid__button"
-						data-testid={`tools.more.${id}`}
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}
-						onClick={() => onSelect('toolbar')}
-						title={label ? `${msg(label)} ${kbd ? kbdStr(kbd) : ''}` : ''}
-						icon={icon}
-					/>
+					>
+						<TldrawUiButton
+							type="icon"
+							className="tlui-button-grid__button"
+							onClick={() => onSelect('toolbar')}
+							data-testid={`tools.more.${id}`}
+							title={label ? `${msg(label)} ${kbd ? kbdStr(kbd) : ''}` : ''}
+						>
+							<TldrawUiButtonIcon icon={icon} />
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuItem>
 				)
 			})}
 		</div>
@@ -207,21 +216,22 @@ function ToolbarButton({
 	isSelected: boolean
 }) {
 	return (
-		<Button
+		<TldrawUiButton
 			type="tool"
 			data-testid={`tools.${item.id}`}
 			data-tool={item.id}
 			data-geo={item.meta?.geo ?? ''}
 			aria-label={item.label}
-			title={title}
-			icon={item.icon}
 			data-state={isSelected ? 'selected' : undefined}
 			onClick={() => item.onSelect('toolbar')}
+			title={title}
 			onTouchStart={(e) => {
 				preventDefault(e)
 				item.onSelect('toolbar')
 			}}
-		/>
+		>
+			<TldrawUiButtonIcon icon={item.icon} />
+		</TldrawUiButton>
 	)
 }
 

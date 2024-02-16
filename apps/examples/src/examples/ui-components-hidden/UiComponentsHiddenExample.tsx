@@ -17,6 +17,9 @@ const components: Required<TLUiComponents> = {
 	QuickActions: null,
 	HelperButtons: null,
 	DebugMenu: null,
+	SharePanel: null,
+	MenuPanel: null,
+	TopPanel: null,
 }
 
 export default function UiComponentsHiddenExample() {

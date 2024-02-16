@@ -1,5 +1,6 @@
 import { Editor, objectMapEntries } from '@tldraw/editor'
 import { useMemo } from 'react'
+import { PORTRAIT_BREAKPOINT } from './constants'
 import { ActionsProviderProps } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
 import { useDialogs } from './context/dialogs'
@@ -13,7 +14,7 @@ export function useDefaultHelpers() {
 	const { addToast, removeToast, clearToasts } = useToasts()
 	const { addDialog, clearDialogs, removeDialog, updateDialog } = useDialogs()
 	const breakpoint = useBreakpoint()
-	const isMobile = breakpoint < 5
+	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const msg = useTranslation()
 	return useMemo(
 		() => ({

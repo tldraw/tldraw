@@ -6,9 +6,10 @@ import { TLUiAssetUrlOverrides } from './assetUrls'
 import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
-import { MenuZone } from './components/MenuZone'
 import { ToastViewport, Toasts } from './components/Toasts'
-import { Button } from './components/primitives/Button'
+import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
+import { PORTRAIT_BREAKPOINT } from './constants'
 import {
 	TldrawUiContextProvider,
 	TldrawUiContextProviderProps,
@@ -19,6 +20,7 @@ import { TLUiComponents, useTldrawUiComponents } from './context/components'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useReadonly } from './hooks/useReadonly'
 import { useRelevantStyles } from './hooks/useRevelantStyles'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
@@ -51,17 +53,6 @@ export interface TldrawUiBaseProps {
 	components?: TLUiComponents
 
 	/**
-	 * A component to use for the share zone (will be deprecated)
-	 */
-	shareZone?: ReactNode
-
-	/**
-	 * A component to use for the top zone (will be deprecated)
-	 * @internal
-	 */
-	topZone?: ReactNode
-
-	/**
 	 * Additional items to add to the debug menu (will be deprecated)
 	 */
 	renderDebugMenuItems?: () => React.ReactNode
@@ -74,8 +65,6 @@ export interface TldrawUiBaseProps {
  * @public
  */
 export const TldrawUi = React.memo(function TldrawUi({
-	shareZone,
-	topZone,
 	renderDebugMenuItems,
 	children,
 	hideUi,
@@ -84,12 +73,7 @@ export const TldrawUi = React.memo(function TldrawUi({
 }: TldrawUiProps) {
 	return (
 		<TldrawUiContextProvider {...rest} components={components}>
-			<TldrawUiInner
-				hideUi={hideUi}
-				shareZone={shareZone}
-				topZone={topZone}
-				renderDebugMenuItems={renderDebugMenuItems}
-			>
+			<TldrawUiInner hideUi={hideUi} renderDebugMenuItems={renderDebugMenuItems}>
 				{children}
 			</TldrawUiInner>
 		</TldrawUiContextProvider>
@@ -120,17 +104,24 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	)
 })
 
-const TldrawUiContent = React.memo(function TldrawUI({ shareZone, topZone }: TldrawUiContentProps) {
+const TldrawUiContent = React.memo(function TldrawUI() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadonlyMode', () => editor.getInstanceState().isReadonly, [
-		editor,
-	])
+	const isReadonlyMode = useReadonly()
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
-	const { StylePanel, Toolbar, HelpMenu, NavigationPanel, HelperButtons } = useTldrawUiComponents()
+	const {
+		SharePanel,
+		TopPanel,
+		MenuPanel,
+		StylePanel,
+		Toolbar,
+		HelpMenu,
+		NavigationPanel,
+		HelperButtons,
+	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
@@ -142,31 +133,34 @@ const TldrawUiContent = React.memo(function TldrawUI({ shareZone, topZone }: Tld
 		<ToastProvider>
 			<div
 				className={classNames('tlui-layout', {
-					'tlui-layout__mobile': breakpoint < 5,
+					'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
 				data-breakpoint={breakpoint}
 			>
 				{isFocusMode ? (
 					<div className="tlui-layout__top">
-						<Button
+						<TldrawUiButton
 							type="icon"
 							className="tlui-focus-button"
-							title={`${msg('focus-mode.toggle-focus-mode')}`}
-							icon="dot"
+							title={msg('focus-mode.toggle-focus-mode')}
 							onClick={() => toggleFocus.onSelect('menu')}
-						/>
+						>
+							<TldrawUiButtonIcon icon="dot" />
+						</TldrawUiButton>
 					</div>
 				) : (
 					<>
 						<div className="tlui-layout__top">
 							<div className="tlui-layout__top__left">
-								<MenuZone />
+								{MenuPanel && <MenuPanel />}
 								{HelperButtons && <HelperButtons />}
 							</div>
-							<div className="tlui-layout__top__center">{topZone}</div>
+							<div className="tlui-layout__top__center">{TopPanel && <TopPanel />}</div>
 							<div className="tlui-layout__top__right">
-								{shareZone}
-								{StylePanel && breakpoint >= 5 && !isReadonlyMode && <_StylePanel />}
+								{SharePanel && <SharePanel />}
+								{StylePanel && breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
+									<_StylePanel />
+								)}
 							</div>
 						</div>
 						<div className="tlui-layout__bottom">

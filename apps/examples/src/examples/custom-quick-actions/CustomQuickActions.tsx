@@ -1,9 +1,9 @@
 import {
-	Button,
 	DefaultQuickActions,
 	DefaultQuickActionsContent,
 	TLComponents,
 	Tldraw,
+	TldrawUiMenuItem,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
@@ -11,7 +11,7 @@ function CustomQuickActions() {
 	return (
 		<DefaultQuickActions>
 			<DefaultQuickActionsContent />
-			<Button type="icon" icon="code" smallIcon />
+			<TldrawUiMenuItem id="code" icon="code" onSelect={() => window.alert('code')} />
 		</DefaultQuickActions>
 	)
 }

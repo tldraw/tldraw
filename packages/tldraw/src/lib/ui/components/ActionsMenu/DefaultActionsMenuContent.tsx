@@ -1,4 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import {
@@ -8,7 +9,7 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultActionsMenuContent() {
@@ -84,7 +85,7 @@ function ReorderMenuItems() {
 
 function ZoomOrRotateMenuItem() {
 	const breakpoint = useBreakpoint()
-	return breakpoint < 5 ? <ZoomTo100MenuItem /> : <RotateCCWMenuItem />
+	return breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM ? <ZoomTo100MenuItem /> : <RotateCCWMenuItem />
 }
 
 function ZoomTo100MenuItem() {

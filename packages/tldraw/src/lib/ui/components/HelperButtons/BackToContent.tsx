@@ -1,7 +1,7 @@
 import { useEditor } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 import { useActions } from '../../context/actions'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 export function BackToContent() {
 	const editor = useEditor()

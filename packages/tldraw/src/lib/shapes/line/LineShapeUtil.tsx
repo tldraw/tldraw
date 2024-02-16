@@ -381,6 +381,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			}
 		}
 	}
+
+	override getHandleSnapGeometry(shape: TLLineShape) {
+		return {
+			points: Object.values(shape.props.handles),
+		}
+	}
 }
 
 /** @public */

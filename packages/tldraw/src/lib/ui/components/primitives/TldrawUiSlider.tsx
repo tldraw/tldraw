@@ -5,7 +5,7 @@ import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKe
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
 /** @internal */
-export interface SliderProps {
+export interface TLUiSliderProps {
 	steps: number
 	value: number | null
 	label: string
@@ -15,7 +15,7 @@ export interface SliderProps {
 }
 
 /** @internal */
-export const Slider = memo(function Slider(props: SliderProps) {
+export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 	const { title, steps, value, label, onValueChange } = props
 	const editor = useEditor()
 	const msg = useTranslation()
