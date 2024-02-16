@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test'
 import { getAllShapeTypes, setup } from '../shared-e2e'
-import test from '../tests/fixtures/fixtures'
+import test from './fixtures/fixtures'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))

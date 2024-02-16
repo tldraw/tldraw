@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test'
 import { setup } from '../shared-e2e'
-import test from '../tests/fixtures/fixtures'
+import test from './fixtures/fixtures'
 
 test.describe('mobile ui', () => {
 	test.beforeEach(setup)
