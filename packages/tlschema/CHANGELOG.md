@@ -1,3 +1,96 @@
+# v2.0.0-beta.3 (Tue Feb 13 2024)
+
+### Release Notes
+
+#### i18n: add HR 🇭🇷 ([#2778](https://github.com/tldraw/tldraw/pull/2778))
+
+- i18n: add Croatian / Hrvatski.
+
+#### arrows: separate out handle behavior from labels ([#2621](https://github.com/tldraw/tldraw/pull/2621))
+
+- Arrow labels: provide more polish on label placement
+
+#### dev: add test-dev command for easier testing of packages ([#2627](https://github.com/tldraw/tldraw/pull/2627))
+
+- Adds easier testing command for individual packages.
+
+#### Improved duplication ([#2480](https://github.com/tldraw/tldraw/pull/2480))
+
+- Add a brief release note for your PR here.
+
+#### i18n: sort languages by name, not by locale code ([#2625](https://github.com/tldraw/tldraw/pull/2625))
+
+- Sorts the locale list by locale name, not code.
+
+#### arrows: add ability to change label placement ([#2557](https://github.com/tldraw/tldraw/pull/2557))
+
+- Adds ability to change label position on arrows.
+
+#### [hot take] Make dark mode colours pop more ([#2478](https://github.com/tldraw/tldraw/pull/2478))
+
+- Tweaked dark mode colour styles to make them pop more.
+
+#### [fix] disable vertical edge resizing for text on mobile ([#2456](https://github.com/tldraw/tldraw/pull/2456))
+
+- Add a brief release note for your PR here.
+
+#### [Minor] change Simplified Chinese label to Chinese ([#2434](https://github.com/tldraw/tldraw/pull/2434))
+
+- Changed the label for the Simplified Chinese language from `Chinese - Simplified` to `简体中文`, following the convention of other languages.
+- Updated the API and relevant documentation through build scripts.
+
+#### [improvement] account for coarse pointers / insets in edge scrolling ([#2401](https://github.com/tldraw/tldraw/pull/2401))
+
+- Add `instanceState.insets` to track which edges of the component are inset from the edges of the document body.
+- Improve behavior around edge scrolling
+
+---
+
+#### 🚀 Enhancement
+
+- [dx] use Biome instead of Prettier, part 2 [#2731](https://github.com/tldraw/tldraw/pull/2731) ([@si14](https://github.com/si14))
+- [dx] use Biome instead of Prettier, part 1 [#2729](https://github.com/tldraw/tldraw/pull/2729) ([@si14](https://github.com/si14))
+- Improved duplication [#2480](https://github.com/tldraw/tldraw/pull/2480) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@MitjaBezensek](https://github.com/MitjaBezensek) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+- arrows: add ability to change label placement [#2557](https://github.com/tldraw/tldraw/pull/2557) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
+- [improvement] account for coarse pointers / insets in edge scrolling [#2401](https://github.com/tldraw/tldraw/pull/2401) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- i18n: add HR 🇭🇷 [#2778](https://github.com/tldraw/tldraw/pull/2778) ([@mimecuvalo](https://github.com/mimecuvalo))
+- arrows: separate out handle behavior from labels [#2621](https://github.com/tldraw/tldraw/pull/2621) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- i18n: sort languages by name, not by locale code [#2625](https://github.com/tldraw/tldraw/pull/2625) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Make sure correct dark mode colours get used in exports [#2492](https://github.com/tldraw/tldraw/pull/2492) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- [hot take] Make dark mode colours pop more [#2478](https://github.com/tldraw/tldraw/pull/2478) ([@TodePond](https://github.com/TodePond) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- [fix] disable vertical edge resizing for text on mobile [#2456](https://github.com/tldraw/tldraw/pull/2456) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [Minor] change Simplified Chinese label to Chinese [#2434](https://github.com/tldraw/tldraw/pull/2434) ([@peilingjiang](https://github.com/peilingjiang))
+
+#### 🏠 Internal
+
+- Unbiome [#2776](https://github.com/tldraw/tldraw/pull/2776) ([@si14](https://github.com/si14))
+- Update the project to Node 20 [#2691](https://github.com/tldraw/tldraw/pull/2691) ([@si14](https://github.com/si14))
+- make CI check for yarn install warnings and fix the peer deps ones we have [#2683](https://github.com/tldraw/tldraw/pull/2683) ([@si14](https://github.com/si14))
+- dev: add test-dev command for easier testing of packages [#2627](https://github.com/tldraw/tldraw/pull/2627) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Add docs [#2470](https://github.com/tldraw/tldraw/pull/2470) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- Bump Yarn to 4.0.2 and add version constraints [#2481](https://github.com/tldraw/tldraw/pull/2481) ([@si14](https://github.com/si14))
+
+#### Authors: 10
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Dan Groshev ([@si14](https://github.com/si14))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Peiling Jiang ([@peilingjiang](https://github.com/peilingjiang))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.0.0-beta.2 (Wed Jan 10 2024)
 
 ### Release Notes

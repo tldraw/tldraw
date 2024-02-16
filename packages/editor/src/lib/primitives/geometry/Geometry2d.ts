@@ -6,7 +6,6 @@ export interface Geometry2dOptions {
 	isFilled: boolean
 	isClosed: boolean
 	isLabel?: boolean
-	isSnappable?: boolean
 	debugColor?: string
 	ignore?: boolean
 }
@@ -16,14 +15,12 @@ export abstract class Geometry2d {
 	isFilled = false
 	isClosed = true
 	isLabel = false
-	isSnappable = true
 	debugColor?: string
 	ignore?: boolean
 
 	constructor(opts: Geometry2dOptions) {
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
-		this.isSnappable = opts.isSnappable ?? false
 		this.isLabel = opts.isLabel ?? false
 		this.debugColor = opts.debugColor
 		this.ignore = opts.ignore
@@ -82,7 +79,7 @@ export abstract class Geometry2d {
 		)
 	}
 
-	_vertices: Vec[] | undefined
+	private _vertices: Vec[] | undefined
 
 	// eslint-disable-next-line no-restricted-syntax
 	get vertices(): Vec[] {
@@ -97,7 +94,7 @@ export abstract class Geometry2d {
 		return Box.FromPoints(this.vertices)
 	}
 
-	_bounds: Box | undefined
+	private _bounds: Box | undefined
 
 	// eslint-disable-next-line no-restricted-syntax
 	get bounds(): Box {
@@ -107,22 +104,12 @@ export abstract class Geometry2d {
 		return this._bounds
 	}
 
-	_snapPoints: Vec[] | undefined
-
-	// eslint-disable-next-line no-restricted-syntax
-	get snapPoints() {
-		if (!this._snapPoints) {
-			this._snapPoints = this.bounds.snapPoints
-		}
-		return this._snapPoints
-	}
-
 	// eslint-disable-next-line no-restricted-syntax
 	get center() {
 		return this.bounds.center
 	}
 
-	_area: number | undefined
+	private _area: number | undefined
 
 	// eslint-disable-next-line no-restricted-syntax
 	get area() {

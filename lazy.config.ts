@@ -53,7 +53,7 @@ const config = {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
 			},
 		},
-		test: {
+		'test-ci': {
 			baseCommand: 'yarn run -T jest',
 			runsAfter: { 'refresh-assets': {} },
 			cache: {

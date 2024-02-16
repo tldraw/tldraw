@@ -1,11 +1,14 @@
-import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { SharedStyle, StyleProp, preventDefault } from '@tldraw/editor'
+import { SharedStyle, StyleProp } from '@tldraw/editor'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
-import { Button } from '../primitives/Button'
-import * as DropdownMenu from '../primitives/DropdownMenu'
+import {
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuRoot,
+	DropdownMenuTrigger,
+} from '../primitives/DropdownMenu'
 import { StyleValuesForUi } from './styles'
 
 interface DoubleDropdownPickerProps<T extends string> {
@@ -60,32 +63,26 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 				{msg(label)}
 			</div>
 			<div className="tlui-buttons__horizontal">
-				<DropdownMenu.Root id={`style panel ${uiTypeA} A`}>
-					<Trigger
-						asChild
-						// Firefox fix: Stop the dropdown immediately closing after touch
-						onTouchEnd={(e) => preventDefault(e)}
-					>
-						<Button
-							type="icon"
-							data-testid={`style.${uiTypeA}`}
-							title={
-								msg(labelA) +
-								' — ' +
-								(valueA === null || valueA.type === 'mixed'
-									? msg('style-panel.mixed')
-									: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
-							}
-							icon={iconA as any}
-							invertIcon
-							smallIcon
-						/>
-					</Trigger>
-					<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+				<DropdownMenuRoot id={`style panel ${uiTypeA} A`}>
+					<DropdownMenuTrigger
+						type="icon"
+						data-testid={`style.${uiTypeA}`}
+						title={
+							msg(labelA) +
+							' — ' +
+							(valueA === null || valueA.type === 'mixed'
+								? msg('style-panel.mixed')
+								: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
+						}
+						icon={iconA as any}
+						invertIcon
+						smallIcon
+					/>
+					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsA.map((item) => {
 								return (
-									<DropdownMenu.Item
+									<DropdownMenuItem
 										type="icon"
 										title={
 											msg(labelA) +
@@ -101,33 +98,27 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 								)
 							})}
 						</div>
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
-				<DropdownMenu.Root id={`style panel ${uiTypeB}`}>
-					<Trigger
-						asChild
-						// Firefox fix: Stop the dropdown immediately closing after touch
-						onTouchEnd={(e) => preventDefault(e)}
-					>
-						<Button
-							type="icon"
-							data-testid={`style.${uiTypeB}`}
-							title={
-								msg(labelB) +
-								' — ' +
-								(valueB === null || valueB.type === 'mixed'
-									? msg('style-panel.mixed')
-									: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
-							}
-							icon={iconB as any}
-							smallIcon
-						/>
-					</Trigger>
-					<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					</DropdownMenuContent>
+				</DropdownMenuRoot>
+				<DropdownMenuRoot id={`style panel ${uiTypeB}`}>
+					<DropdownMenuTrigger
+						type="icon"
+						data-testid={`style.${uiTypeB}`}
+						title={
+							msg(labelB) +
+							' — ' +
+							(valueB === null || valueB.type === 'mixed'
+								? msg('style-panel.mixed')
+								: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
+						}
+						icon={iconB as any}
+						smallIcon
+					/>
+					<DropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {
 								return (
-									<DropdownMenu.Item
+									<DropdownMenuItem
 										type="icon"
 										title={
 											msg(labelB) +
@@ -142,8 +133,8 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 								)
 							})}
 						</div>
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
+					</DropdownMenuContent>
+				</DropdownMenuRoot>
 			</div>
 		</div>
 	)

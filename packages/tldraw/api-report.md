@@ -12,6 +12,7 @@ import { BaseBoxShapeUtil } from '@tldraw/editor';
 import { BoundsSnapPoint } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
+import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { DictValidator } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
@@ -20,6 +21,8 @@ import { EmbedDefinition } from '@tldraw/editor';
 import { EnumStyleProp } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
+import { HandleSnapGeometry } from '@tldraw/editor';
+import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
@@ -34,6 +37,7 @@ import { Polyline2d } from '@tldraw/editor';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactNode } from 'react';
+import { ReadonlySharedStyleMap } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
 import { Result } from '@tldraw/editor';
@@ -42,6 +46,7 @@ import { SelectionEdge } from '@tldraw/editor';
 import { SelectionHandle } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
+import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StoreSnapshot } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
@@ -58,6 +63,7 @@ import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
+import { TLEditorComponents } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEnterEventHandler } from '@tldraw/editor';
 import { TLEventHandlers } from '@tldraw/editor';
@@ -72,7 +78,6 @@ import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
-import { TLLanguage } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLOnBeforeCreateHandler } from '@tldraw/editor';
@@ -225,13 +230,6 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
 }): JSX_2.Element;
 
 // @public (undocumented)
-function Body_2({ className, children, style, }: {
-    className?: string;
-    children: any;
-    style?: React.CSSProperties;
-}): JSX_2.Element;
-
-// @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
@@ -272,31 +270,8 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 // @public (undocumented)
 export const Button: React_3.ForwardRefExoticComponent<TLUiButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
-// @public (undocumented)
-function CheckboxItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX_2.Element;
-
-// @public (undocumented)
-function CloseButton(): JSX_2.Element;
-
-// @public (undocumented)
-export function compactMenuItems<T>(arr: T[]): Exclude<T, false | null | undefined>[];
-
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
-
-// @public (undocumented)
-function Content({ side, align, sideOffset, alignOffset, children, }: {
-    children: any;
-    alignOffset?: number;
-    sideOffset?: number;
-    align?: 'center' | 'end' | 'start';
-    side?: 'bottom' | 'left' | 'right' | 'top';
-}): JSX_2.Element;
-
-// @public (undocumented)
-export const ContextMenu: ({ children }: {
-    children: any;
-}) => JSX_2.Element;
 
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
@@ -308,24 +283,99 @@ export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
 export const DEFAULT_ACCEPTED_VID_TYPE: string[];
 
 // @public (undocumented)
+export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
+
+// @public (undocumented)
+export function DefaultActionsMenuContent(): JSX_2.Element;
+
+// @public (undocumented)
+const DefaultContextMenu: NamedExoticComponent<TLUiContextMenuProps>;
+export { DefaultContextMenu as ContextMenu }
+export { DefaultContextMenu }
+
+// @public (undocumented)
+export function DefaultContextMenuContent(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultDebugMenuContent(): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultHelperButtonsContent(): JSX_2.Element;
+
+// @public (undocumented)
+export const DefaultHelpMenu: NamedExoticComponent<TLUiHelpMenuProps>;
+
+// @public (undocumented)
+export function DefaultHelpMenuContent(): JSX_2.Element;
+
+// @public (undocumented)
+export const DefaultKeyboardShortcutsDialog: NamedExoticComponent<TLUiKeyboardShortcutsDialogProps>;
+
+// @public (undocumented)
+export function DefaultKeyboardShortcutsDialogContent(): JSX_2.Element;
+
+// @public (undocumented)
+export const DefaultMainMenu: NamedExoticComponent<TLUiMainMenuProps>;
+
+// @public (undocumented)
+export function DefaultMainMenuContent(): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultMinimap(): JSX_2.Element;
+
+// @public (undocumented)
+export const DefaultPageMenu: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
+
+// @public (undocumented)
+export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
+
+// @public (undocumented)
 export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 
 // @public (undocumented)
+export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
+
+// @public (undocumented)
+export function DefaultStylePanelContent({ relevantStyles }: TLUiStylePanelContentProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export const DefaultToolbar: React_2.NamedExoticComponent<object>;
+
+// @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof LaserTool | typeof SelectTool | typeof ZoomTool)[];
 
-declare namespace Dialog {
-    export {
-        Header,
-        Title,
-        CloseButton,
-        Body_2 as Body,
-        Footer
-    }
-}
-export { Dialog }
+// @public (undocumented)
+export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
+
+// @public (undocumented)
+export function DefaultZoomMenuContent(): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogCloseButton(): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogFooter({ className, children }: TLUiDialogFooterProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogHeader({ className, children }: TLUiDialogHeaderProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DialogTitle({ className, children }: TLUiDialogTitleProps): JSX_2.Element;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
@@ -391,44 +441,35 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     static type: "draw";
 }
 
-declare namespace DropdownMenu {
-    export {
-        Root,
-        Trigger,
-        Content,
-        Sub,
-        SubTrigger,
-        SubContent,
-        Group,
-        Indicator,
-        Item,
-        CheckboxItem,
-        RadioItem,
-        DropdownMenuItemProps,
-        DropdownMenuCheckboxItemProps
-    }
-}
-export { DropdownMenu }
+// @public (undocumented)
+export function DropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
 
 // @public (undocumented)
-interface DropdownMenuCheckboxItemProps {
-    // (undocumented)
-    checked?: boolean;
-    // (undocumented)
-    children: any;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    onSelect?: (e: Event) => void;
-    // (undocumented)
-    title: string;
-}
+export function DropdownMenuContent({ side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
 
 // @public (undocumented)
-interface DropdownMenuItemProps extends TLUiButtonProps {
-    // (undocumented)
-    noClose?: boolean;
-}
+export function DropdownMenuGroup({ children, size }: TLUiDropdownMenuGroupProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownMenuIndicator(): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownMenuItem({ noClose, ...props }: TLUiDropdownMenuItemProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownMenuRadioItem({ children, ...rest }: TLUiDropdownMenuRadioItemProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownMenuRoot({ id, children, modal, debugOpen, }: TLUiDropdownMenuRootProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownMenuSubTrigger({ label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -485,19 +526,10 @@ export type EventsProviderProps = {
 // @public
 export function exportAs(editor: Editor, ids: TLShapeId[], format?: TLExportType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
-// @public (undocumented)
-export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<string>;
-
 // @public
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
     padding: number;
 }): void;
-
-// @public (undocumented)
-function Footer({ className, children }: {
-    className?: string;
-    children: any;
-}): JSX_2.Element;
 
 // @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
@@ -578,7 +610,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getDefaultProps(): TLGeoShape['props'];
     // (undocumented)
-    getGeometry(shape: TLGeoShape): Geometry2d;
+    getGeometry(shape: TLGeoShape): Group2d;
+    // (undocumented)
+    getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -605,7 +639,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -635,7 +669,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -652,7 +686,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -667,7 +701,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -713,12 +747,6 @@ export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
 }): Promise<Blob | null>;
 
 // @public (undocumented)
-function Group({ children, size, }: {
-    children: any;
-    size?: 'medium' | 'small' | 'tiny' | 'wide';
-}): JSX_2.Element;
-
-// @public (undocumented)
 export class HandTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Dragging | typeof Idle_8 | typeof Pointing_7)[];
@@ -733,12 +761,6 @@ export class HandTool extends StateNode {
     // (undocumented)
     onTripleClick: TLClickEvent;
 }
-
-// @public (undocumented)
-function Header({ className, children }: {
-    className?: string;
-    children: any;
-}): JSX_2.Element;
 
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
@@ -837,16 +859,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 }
 
 // @public (undocumented)
-function Indicator(): JSX_2.Element;
-
-// @public (undocumented)
 export const Input: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
 export function isGifAnimated(file: Blob): Promise<boolean>;
-
-// @public (undocumented)
-function Item({ noClose, ...props }: DropdownMenuItemProps): JSX_2.Element;
 
 // @public (undocumented)
 export class LaserTool extends StateNode {
@@ -899,6 +915,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
+    getHandleSnapGeometry(shape: TLLineShape): {
+        points: VecModel[];
+    };
+    // (undocumented)
     getOutlineSegments(shape: TLLineShape): Vec[][];
     // (undocumented)
     hideResizeHandles: () => boolean;
@@ -922,36 +942,13 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
-        handles: DictValidator<string, TLHandle>;
+        handles: DictValidator<IndexKey, VecModel>;
     };
     // (undocumented)
     toSvg(shape: TLLineShape): SVGGElement;
     // (undocumented)
     static type: "line";
 }
-
-// @public (undocumented)
-export function menuCustom(id: string, opts?: Partial<{
-    readonlyOk: boolean;
-    disabled: boolean;
-}>): {
-    id: string;
-    type: "custom";
-    disabled: boolean;
-    readonlyOk: boolean;
-};
-
-// @public (undocumented)
-export function menuGroup(id: string, ...children: (false | TLUiMenuChild)[]): null | TLUiMenuGroup;
-
-// @public (undocumented)
-export function menuItem(actionItem: TLUiActionItem | TLUiToolItem, opts?: Partial<{
-    checked: boolean;
-    disabled: boolean;
-}>): TLUiMenuItem;
-
-// @public (undocumented)
-export function menuSubmenu(id: string, label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey, ...children: (false | TLUiMenuChild)[]): null | TLUiSubMenu;
 
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
@@ -1001,7 +998,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -1025,7 +1022,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         x: number;
         y: number;
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -1065,18 +1062,16 @@ export function parseTldrawJsonFile({ json, schema, }: {
 }): Result<TLStore, TldrawFileParseError>;
 
 // @public (undocumented)
-function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX_2.Element;
+export function Popover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
+
+// @public (undocumented)
+export function PopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
+
+// @public (undocumented)
+export function PopoverTrigger({ children, ...rest }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
-
-// @public (undocumented)
-function Root({ id, children, modal, debugOpen, }: {
-    id: string;
-    children: any;
-    modal?: boolean;
-    debugOpen?: boolean;
-}): JSX_2.Element;
 
 // @public (undocumented)
 export class SelectTool extends StateNode {
@@ -1108,26 +1103,6 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
 // @internal (undocumented)
 export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
-
-// @public (undocumented)
-function Sub({ id, children }: {
-    id: string;
-    children: any;
-}): JSX_2.Element;
-
-// @public (undocumented)
-function SubContent({ alignOffset, sideOffset, children, }: {
-    alignOffset?: number;
-    sideOffset?: number;
-    children: any;
-}): JSX_2.Element;
-
-// @public (undocumented)
-function SubTrigger({ label, 'data-testid': testId, 'data-direction': dataDirection, }: {
-    label: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
-    'data-testid'?: string;
-    'data-direction'?: 'left' | 'right';
-}): JSX_2.Element;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
@@ -1168,7 +1143,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         y: number;
         type: "text";
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -1202,7 +1177,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         };
         type: "text";
         rotation: number;
-        index: string;
+        index: IndexKey;
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
@@ -1248,10 +1223,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-function Title({ className, children }: {
-    className?: string;
-    children: any;
-}): JSX_2.Element;
+export type TLComponents = TLEditorComponents & TLUiComponents;
 
 // @public (undocumented)
 export function Tldraw(props: TldrawProps): JSX_2.Element;
@@ -1291,7 +1263,9 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
-export type TldrawProps = TldrawEditorBaseProps & ({
+export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
+    components?: TLComponents;
+}) & Partial<TLExternalContentProps> & ({
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
@@ -1299,7 +1273,7 @@ export type TldrawProps = TldrawEditorBaseProps & ({
     sessionId?: string;
     defaultName?: string;
     snapshot?: StoreSnapshot<TLRecord>;
-}) & TldrawUiProps & Partial<TLExternalContentProps>;
+});
 
 // @public (undocumented)
 export const TldrawScribble: TLScribbleComponent;
@@ -1317,6 +1291,7 @@ export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;
 export interface TldrawUiBaseProps {
     assetUrls?: TLUiAssetUrlOverrides;
     children?: ReactNode;
+    components?: TLUiComponents;
     hideUi?: boolean;
     renderDebugMenuItems?: () => React_2.ReactNode;
     shareZone?: ReactNode;
@@ -1325,16 +1300,35 @@ export interface TldrawUiBaseProps {
 }
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
+export function TldrawUiComponentsProvider({ overrides, children, }: ComponentsContextProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
 
 // @public
 export interface TldrawUiContextProviderProps {
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
     children?: any;
+    components?: TLUiComponents;
     forceMobile?: boolean;
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
+
+// @public (undocumented)
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+
+// @public (undocumented)
+export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export function TldrawUiMenuGroup({ id, label, small, children }: TLUiMenuGroupProps): any;
+
+// @public (undocumented)
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+
+// @public (undocumented)
+export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): any;
 
 // @public
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
@@ -1344,23 +1338,19 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     // (undocumented)
     checkbox?: boolean;
     // (undocumented)
-    contextMenuLabel?: TransationKey;
-    // (undocumented)
     icon?: IconType;
     // (undocumented)
     id: string;
     // (undocumented)
     kbd?: string;
     // (undocumented)
-    label?: TransationKey;
-    // (undocumented)
-    menuLabel?: TransationKey;
+    label?: {
+        [key: string]: TransationKey;
+    } | TransationKey;
     // (undocumented)
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
-    readonlyOk: boolean;
-    // (undocumented)
-    shortcutsLabel?: TransationKey;
+    readonlyOk?: boolean;
     // (undocumented)
     title?: string;
 }
@@ -1369,7 +1359,9 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
 export type TLUiActionsContextType = Record<string, TLUiActionItem>;
 
 // @public (undocumented)
-export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema;
+export type TLUiActionsMenuProps = {
+    children?: any;
+};
 
 // @public (undocumented)
 export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
@@ -1401,31 +1393,51 @@ export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElemen
 }
 
 // @public (undocumented)
+export type TLUiComponents = Partial<{
+    [K in keyof BaseTLUiComponents]: BaseTLUiComponents[K] | null;
+}>;
+
+// @public (undocumented)
 export interface TLUiContextMenuProps {
     // (undocumented)
-    children: any;
+    canvas: any;
+    // (undocumented)
+    children?: any;
 }
 
 // @public (undocumented)
-export type TLUiContextTTLUiMenuSchemaContextType = TLUiMenuSchema;
-
-// @public (undocumented)
-export type TLUiCustomMenuItem = {
-    id: string;
-    type: 'custom';
-    disabled: boolean;
-    readonlyOk: boolean;
+export type TLUiDebugMenuProps = {
+    children?: any;
 };
 
 // @public (undocumented)
 export interface TLUiDialog {
     // (undocumented)
-    component: (props: TLUiDialogProps) => any;
+    component: ComponentType<TLUiDialogProps>;
     // (undocumented)
     id: string;
     // (undocumented)
     onClose?: () => void;
 }
+
+// @public (undocumented)
+export type TLUiDialogBodyProps = {
+    className?: string;
+    children: any;
+    style?: React.CSSProperties;
+};
+
+// @public (undocumented)
+export type TLUiDialogFooterProps = {
+    className?: string;
+    children: any;
+};
+
+// @public (undocumented)
+export type TLUiDialogHeaderProps = {
+    className?: string;
+    children: any;
+};
 
 // @public (undocumented)
 export interface TLUiDialogProps {
@@ -1445,6 +1457,90 @@ export type TLUiDialogsContextType = {
 };
 
 // @public (undocumented)
+export type TLUiDialogTitleProps = {
+    className?: string;
+    children: any;
+};
+
+// @public (undocumented)
+export interface TLUiDropdownMenuCheckboxItemProps {
+    // (undocumented)
+    checked?: boolean;
+    // (undocumented)
+    children: any;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    onSelect?: (e: Event) => void;
+    // (undocumented)
+    title: string;
+}
+
+// @public (undocumented)
+export type TLUiDropdownMenuContentProps = {
+    id?: string;
+    children: any;
+    alignOffset?: number;
+    sideOffset?: number;
+    align?: 'center' | 'end' | 'start';
+    side?: 'bottom' | 'left' | 'right' | 'top';
+};
+
+// @public (undocumented)
+export type TLUiDropdownMenuGroupProps = {
+    children: any;
+    size?: 'medium' | 'small' | 'tiny' | 'wide';
+};
+
+// @public (undocumented)
+export interface TLUiDropdownMenuItemProps extends TLUiButtonProps {
+    // (undocumented)
+    noClose?: boolean;
+}
+
+// @public (undocumented)
+export interface TLUiDropdownMenuRadioItemProps {
+    // (undocumented)
+    checked?: boolean;
+    // (undocumented)
+    children: any;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    onSelect?: (e: Event) => void;
+    // (undocumented)
+    title: string;
+}
+
+// @public (undocumented)
+export type TLUiDropdownMenuRootProps = {
+    id: string;
+    children: any;
+    modal?: boolean;
+    debugOpen?: boolean;
+};
+
+// @public (undocumented)
+export type TLUiDropdownMenuSubProps = {
+    id: string;
+    children: any;
+};
+
+// @public (undocumented)
+export type TLUiDropdownMenuSubTriggerProps = {
+    label: string;
+    id?: string;
+    title?: string;
+    disabled?: boolean;
+};
+
+// @public (undocumented)
+export interface TLUiDropdownMenuTriggerProps extends TLUiButtonProps {
+    // (undocumented)
+    children?: any;
+}
+
+// @public (undocumented)
 export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
@@ -1457,6 +1553,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'align-shapes': {
         operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top';
+    };
+    // (undocumented)
+    'change-language': {
+        locale: string;
     };
     // (undocumented)
     'close-menu': {
@@ -1501,6 +1601,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'insert-media': null;
     // (undocumented)
+    'move-to-page': null;
+    // (undocumented)
+    'new-page': null;
+    // (undocumented)
     'open-cursor-chat': null;
     // (undocumented)
     'open-embed-link': null;
@@ -1533,6 +1637,11 @@ export interface TLUiEventMap {
     // (undocumented)
     'select-tool': {
         id: string;
+    };
+    // (undocumented)
+    'set-style': {
+        id: string;
+        value: number | string;
     };
     // (undocumented)
     'stack-shapes': {
@@ -1599,10 +1708,17 @@ export interface TLUiEventMap {
 }
 
 // @public (undocumented)
-export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'toolbar' | 'unknown' | 'zoom-menu';
+export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'zoom-menu';
 
 // @public (undocumented)
-export type TLUiHelpMenuSchemaContextType = TLUiMenuSchema;
+export type TLUiHelperButtonsProps = {
+    children?: any;
+};
+
+// @public (undocumented)
+export type TLUiHelpMenuProps = {
+    children?: any;
+};
 
 // @public (undocumented)
 export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
@@ -1659,80 +1775,127 @@ export interface TLUiInputProps {
 }
 
 // @public (undocumented)
-export type TLUiKeyboardShortcutsSchemaContextType = TLUiMenuSchema;
-
-// @public (undocumented)
-export type TLUiKeyboardShortcutsSchemaProviderProps = {
-    overrides?: (editor: Editor, schema: TLUiKeyboardShortcutsSchemaContextType, more: {
-        tools: TLUiToolsContextType;
-        actions: TLUiActionsContextType;
-    }) => TLUiKeyboardShortcutsSchemaContextType;
-    children: any;
+export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
+    children?: any;
 };
 
 // @public (undocumented)
-export type TLUiMenuChild<TranslationKey extends string = string> = null | TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem | TLUiSubMenu<TranslationKey>;
+export type TLUiMainMenuProps = {
+    children?: any;
+};
 
 // @public (undocumented)
-export type TLUiMenuGroup = {
+export type TLUiMenuCheckboxItemProps<TranslationKey extends string = string, IconType extends string = string> = {
+    icon?: IconType;
     id: string;
-    type: 'group';
-    checkbox: boolean;
-    disabled: boolean;
-    readonlyOk: boolean;
-    children: TLUiMenuChild[];
+    kbd?: string;
+    title?: string;
+    label?: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
+    readonlyOk?: boolean;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    checked?: boolean;
+    disabled?: boolean;
 };
 
 // @public (undocumented)
-export type TLUiMenuItem = {
+export type TLUiMenuContextProviderProps = {
+    type: TldrawUiMenuContextType;
+    sourceId: TLUiEventSource;
+    children: React.ReactNode;
+};
+
+// @public (undocumented)
+export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
     id: string;
-    type: 'item';
-    readonlyOk: boolean;
-    actionItem: TLUiActionItem;
-    disabled: boolean;
-    checked: boolean;
+    label?: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
+    small?: boolean;
+    children?: any;
 };
 
 // @public (undocumented)
-export type TLUiMenuSchema = (TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem)[];
+export type TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> = {
+    id: string;
+    icon?: IconType;
+    kbd?: string;
+    title?: string;
+    label?: {
+        [key: string]: TranslationKey;
+    } | TranslationKey;
+    readonlyOk?: boolean;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    disabled?: boolean;
+    noClose?: boolean;
+    spinner?: boolean;
+};
 
 // @public (undocumented)
-export type TLUiMenuSchemaContextType = TLUiMenuSchema;
-
-// @public (undocumented)
-export type TLUiMenuSchemaProviderProps = {
-    overrides?: (editor: Editor, schema: TLUiMenuSchemaContextType, helpers: {
-        actions: ReturnType<typeof useActions>;
-        noneSelected: boolean;
-        oneSelected: boolean;
-        twoSelected: boolean;
-        threeSelected: boolean;
-    }) => TLUiMenuSchemaContextType;
+export type TLUiMenuSubmenuProps<Translation extends string = string> = {
+    id: string;
+    label?: {
+        [key: string]: Translation;
+    } | Translation;
+    disabled?: boolean;
     children: any;
+    size?: 'large' | 'medium' | 'small' | 'tiny';
 };
 
 // @public (undocumented)
 export type TLUiOverrides = Partial<{
-    actionsMenu: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>;
     actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
-    contextMenu: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>;
-    helpMenu: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>;
-    menu: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>;
     toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
-    keyboardShortcutsMenu: WithDefaultHelpers<NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>>;
     tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>;
     translations: TLUiTranslationProviderProps['overrides'];
 }>;
 
 // @public (undocumented)
-export type TLUiSubMenu<TranslationKey extends string = string> = {
-    id: string;
-    type: 'submenu';
-    label: TranslationKey;
-    disabled: boolean;
-    readonlyOk: boolean;
-    children: TLUiMenuChild[];
+export type TLUiPopoverContentProps = {
+    children: React_2.ReactNode;
+    side: 'bottom' | 'left' | 'right' | 'top';
+    align?: 'center' | 'end' | 'start';
+    alignOffset?: number;
+    sideOffset?: number;
 };
+
+// @public (undocumented)
+export type TLUiPopoverProps = {
+    id: string;
+    open?: boolean;
+    children: React_2.ReactNode;
+    onOpenChange?: (isOpen: boolean) => void;
+};
+
+// @public (undocumented)
+export interface TLUiPopoverTriggerProps extends TLUiButtonProps {
+    // (undocumented)
+    children?: React_2.ReactNode;
+}
+
+// @public (undocumented)
+export type TLUiQuickActionsProps = {
+    children?: any;
+};
+
+// @public (undocumented)
+export type TLUiStylePanelContentProps = {
+    relevantStyles: ReturnType<typeof useRelevantStyles>;
+};
+
+// @public (undocumented)
+export interface TLUiStylePanelProps {
+    // (undocumented)
+    children?: any;
+    // (undocumented)
+    isMobile?: boolean;
+    // (undocumented)
+    relevantStyles: {
+        styles: ReadonlySharedStyleMap;
+        opacity: SharedStyle<number>;
+    } | null;
+}
 
 // @public (undocumented)
 export interface TLUiToast {
@@ -1776,7 +1939,7 @@ export type TLUiToastsContextType = {
 export type TLUiToolbarItem = {
     id: string;
     type: 'item';
-    readonlyOk: boolean;
+    readonlyOk?: boolean;
     toolItem: TLUiToolItem;
 };
 
@@ -1800,7 +1963,7 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     // (undocumented)
     onSelect: (source: TLUiEventSource) => void;
     // (undocumented)
-    readonlyOk: boolean;
+    readonlyOk?: boolean;
     // (undocumented)
     shortcutsLabel?: TranslationKey;
 }
@@ -1830,13 +1993,12 @@ export type TLUiTranslationContextType = TLUiTranslation;
 export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-as-json.short' | 'action.export-as-json' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.pack' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-lock' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'debug-panel.more' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'edit-pages-dialog.move-down' | 'edit-pages-dialog.move-up' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.keyboard-shortcuts' | 'help-menu.title' | 'help-menu.twitter' | 'home-project-dialog.description' | 'home-project-dialog.ok' | 'home-project-dialog.title' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.language' | 'menu.preferences' | 'menu.title' | 'menu.view' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'rename-project-dialog.cancel' | 'rename-project-dialog.rename' | 'rename-project-dialog.title' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.default-project-name' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.readonly-link' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'status.online' | 'style-panel.align' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'tool-panel.drawing' | 'tool-panel.more' | 'tool-panel.shapes' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.asset' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.frame' | 'tool.hand' | 'tool.hexagon' | 'tool.highlight' | 'tool.laser' | 'tool.line' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.rectangle' | 'tool.rhombus' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
 
 // @public (undocumented)
-export function toolbarItem(toolItem: TLUiToolItem): TLUiToolbarItem;
+export type TLUiZoomMenuProps = {
+    children?: any;
+};
 
 // @public (undocumented)
-function Trigger({ children, 'data-testid': testId, }: {
-    children: any;
-    'data-testid'?: string;
-}): JSX_2.Element;
+export function toolbarItem(toolItem: TLUiToolItem): TLUiToolbarItem;
 
 // @public (undocumented)
 export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
@@ -1845,25 +2007,16 @@ export const truncateStringWithEllipsis: (str: string, maxLength: number) => str
 export function UiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function useActions(): TLUiActionsContextType;
+export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
 
 // @public (undocumented)
-export function useActionsMenuSchema(): TLUiMenuSchema;
+export function useActions(): TLUiActionsContextType;
 
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
 
 // @public (undocumented)
 export function useBreakpoint(): number;
-
-// @public (undocumented)
-export function useCanRedo(): boolean;
-
-// @public (undocumented)
-export function useCanUndo(): boolean;
-
-// @public (undocumented)
-export function useContextMenuSchema(): TLUiMenuSchema;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
@@ -1881,7 +2034,7 @@ export function useDefaultHelpers(): {
     clearDialogs: () => void;
     removeDialog: (id: string) => string;
     updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-    msg: (id: string) => string;
+    msg: (id?: string | undefined) => string;
     isMobile: boolean;
 };
 
@@ -1892,13 +2045,7 @@ export function useDialogs(): TLUiDialogsContextType;
 export function useExportAs(): (ids: TLShapeId[], format?: TLExportType) => void;
 
 // @public (undocumented)
-export function useHelpMenuSchema(): TLUiMenuSchema;
-
-// @public (undocumented)
 export function useKeyboardShortcuts(): void;
-
-// @public (undocumented)
-export function useKeyboardShortcutsSchema(): TLUiKeyboardShortcutsSchemaContextType;
 
 // @public (undocumented)
 export function useLocalStorageState<T = any>(key: string, defaultValue: T): readonly [T, (setter: ((value: T) => T) | T) => void];
@@ -1914,13 +2061,28 @@ export function useMenuClipboardEvents(): {
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
 
 // @public (undocumented)
-export function useMenuSchema(): TLUiMenuSchema;
-
-// @public (undocumented)
 export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
 export function useReadonly(): boolean;
+
+// @public (undocumented)
+export function useTldrawUiComponents(): Partial<{
+    ContextMenu: ComponentType<TLUiContextMenuProps> | null;
+    ActionsMenu: ComponentType<TLUiActionsMenuProps> | null;
+    HelpMenu: ComponentType<TLUiHelpMenuProps> | null;
+    ZoomMenu: ComponentType<TLUiZoomMenuProps> | null;
+    MainMenu: ComponentType<TLUiMainMenuProps> | null;
+    Minimap: ComponentType | null;
+    StylePanel: ComponentType<TLUiStylePanelProps> | null;
+    PageMenu: ComponentType | null;
+    NavigationPanel: ComponentType | null;
+    Toolbar: ComponentType | null;
+    KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
+    QuickActions: ComponentType<TLUiQuickActionsProps> | null;
+    HelperButtons: ComponentType<TLUiHelperButtonsProps> | null;
+    DebugMenu: ComponentType | null;
+}>;
 
 // @public (undocumented)
 export function useToasts(): TLUiToastsContextType;
@@ -1932,7 +2094,7 @@ export function useToolbarSchema(): TLUiToolbarSchemaContextType;
 export function useTools(): TLUiToolsContextType;
 
 // @public
-export function useTranslation(): (id: Exclude<string, TLUiTranslationKey> | string) => string;
+export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
 export function useUiEvents(): TLUiEventContextType;

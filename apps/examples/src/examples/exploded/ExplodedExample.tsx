@@ -1,6 +1,7 @@
 import {
 	Canvas,
 	ContextMenu,
+	DefaultContextMenuContent,
 	TldrawEditor,
 	TldrawHandles,
 	TldrawHoveredShapeIndicator,
@@ -38,8 +39,8 @@ export default function ExplodedExample() {
 				persistenceKey="exploded-example"
 			>
 				<TldrawUi>
-					<ContextMenu>
-						<Canvas />
+					<ContextMenu canvas={<Canvas />}>
+						<DefaultContextMenuContent />
 					</ContextMenu>
 				</TldrawUi>
 			</TldrawEditor>

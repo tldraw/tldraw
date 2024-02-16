@@ -4,12 +4,24 @@ import { Button } from './Button'
 import { Icon } from './Icon'
 
 /** @public */
-export function Header({ className, children }: { className?: string; children: any }) {
+export type TLUiDialogHeaderProps = {
+	className?: string
+	children: any
+}
+
+/** @public */
+export function DialogHeader({ className, children }: TLUiDialogHeaderProps) {
 	return <div className={classNames('tlui-dialog__header', className)}>{children}</div>
 }
 
 /** @public */
-export function Title({ className, children }: { className?: string; children: any }) {
+export type TLUiDialogTitleProps = {
+	className?: string
+	children: any
+}
+
+/** @public */
+export function DialogTitle({ className, children }: TLUiDialogTitleProps) {
 	return (
 		<_Dialog.DialogTitle dir="ltr" className={classNames('tlui-dialog__header__title', className)}>
 			{children}
@@ -18,7 +30,7 @@ export function Title({ className, children }: { className?: string; children: a
 }
 
 /** @public */
-export function CloseButton() {
+export function DialogCloseButton() {
 	return (
 		<div className="tlui-dialog__header__close">
 			<_Dialog.DialogClose data-testid="dialog.close" dir="ltr" asChild>
@@ -35,15 +47,14 @@ export function CloseButton() {
 }
 
 /** @public */
-export function Body({
-	className,
-	children,
-	style,
-}: {
+export type TLUiDialogBodyProps = {
 	className?: string
 	children: any
 	style?: React.CSSProperties
-}) {
+}
+
+/** @public */
+export function DialogBody({ className, children, style }: TLUiDialogBodyProps) {
 	return (
 		<div className={classNames('tlui-dialog__body', className)} style={style}>
 			{children}
@@ -52,6 +63,12 @@ export function Body({
 }
 
 /** @public */
-export function Footer({ className, children }: { className?: string; children: any }) {
+export type TLUiDialogFooterProps = {
+	className?: string
+	children: any
+}
+
+/** @public */
+export function DialogFooter({ className, children }: TLUiDialogFooterProps) {
 	return <div className={classNames('tlui-dialog__footer', className)}>{children}</div>
 }

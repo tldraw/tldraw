@@ -131,7 +131,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		return new Group2d({
 			children: [...(labelGeom ? [bodyGeom, labelGeom] : [bodyGeom]), ...debugGeom],
-			isSnappable: false,
 		})
 	}
 
