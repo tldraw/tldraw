@@ -1,50 +1,49 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
-	DefaultColorStyle,
 	HTMLContainer,
 	Rectangle2d,
 	ShapeProps,
 	ShapeUtil,
 	T,
 	TLBaseShape,
-	TLDefaultColorStyle,
-	TLOnResizeHandler,
 	useIsEditing,
 } from '@tldraw/tldraw'
 import { useState } from 'react'
 
 // There's a guide at the bottom of this file!
+
+// [1]
 type ICatDog = TLBaseShape<
-	'card',
+	'catdog',
 	{
 		w: number
 		h: number
-		color: TLDefaultColorStyle
 	}
 >
-
 export class CatDogUtil extends ShapeUtil<ICatDog> {
+	// [2]
 	static override type = 'catdog' as const
-
 	static override props: ShapeProps<ICatDog> = {
 		w: T.number,
 		h: T.number,
-		color: DefaultColorStyle,
 	}
 
+	// [3]
 	override isAspectRatioLocked = (_shape: ICatDog) => false
-	override canResize = (_shape: ICatDog) => true
+	override canResize = (_shape: ICatDog) => false
 	override canBind = (_shape: ICatDog) => true
-
+	// [4]
 	override canEdit = () => true
 
+	// [5]
 	getDefaultProps(): ICatDog['props'] {
 		return {
 			w: 170,
 			h: 165,
-			color: 'black',
 		}
 	}
 
+	// [6]
 	getGeometry(shape: ICatDog) {
 		return new Rectangle2d({
 			width: shape.props.w,
@@ -53,12 +52,14 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 		})
 	}
 
+	// [7]
 	component(shape: ICatDog) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
+		// [a]
 		const isEditing = useIsEditing(shape.id)
-		// eslint-disable-next-line react-hooks/rules-of-hooks
+
 		const [animal, setAnimal] = useState<boolean>(true)
 
+		// [b]
 		return (
 			<HTMLContainer id={shape.id}>
 				<div
@@ -102,14 +103,11 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 		)
 	}
 
+	// [8]
 	indicator(shape: ICatDog) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
 		return <rect stroke={isEditing ? 'red' : 'blue'} width={shape.props.w} height={shape.props.h} />
-	}
-
-	override onResize: TLOnResizeHandler<ICatDog> = (shape) => {
-		return shape
 	}
 }
 
@@ -118,39 +116,37 @@ This is a utility class for the catdog shape. This is where you define the shape
 how it renders (its component and indicator), and how it handles different events.
 
 [1]
-A validation schema for the shape's props (optional)
-Check out catdog-shape-props.ts for more info.
+We define the shape's type and its props. The type is a string that uniquely identifies the
+shape. The props are the shape's properties, in this case, the width and height.
 
 [2]
-Migrations for upgrading shapes (optional)
-Check out e-shape-migrations.ts for more info.
+We define the type of the shape. This is a string that uniquely identifies the shape. We also
+define the shape's properties. In this case, the width and height.
 
 [3]
-Letting the editor know if the shape's aspect ratio is locked, and whether it 
-can be resized or bound to other shapes. 
+We override the isAspectRatioLocked, canResize, and canBind methods. The isAspectRatioLocked
+method returns a boolean that determines if the aspect ratio of the shape is locked. The
+canResize method returns a boolean that determines if the shape can be resized. The canBind
+method returns a boolean that determines if the shape can be bound.
 
 [4]
-The default props the shape will be rendered with when click-creating one.
+We override the canEdit method. This method returns a boolean that determines if the shape can
+be edited.
 
 [5]
-We use this to calculate the shape's geometry for hit-testing, bindings and
-doing other geometric calculations. 
+We define the getDefaultProps method. This method returns the default properties of the shape.
 
 [6]
-Render method — the React component that will be rendered for the shape. It takes the 
-shape as an argument. HTMLContainer is just a div that's being used to wrap our text 
-and button. We can get the shape's bounds using our own getGeometry method.
-	
-- [a] Check it out! We can do normal React stuff here like using setState.
-   Annoying: eslint sometimes thinks this is a class component, but it's not.
-
-- [b] You need to stop the pointer down event on buttons, otherwise the editor will
-	   think you're trying to select drag the shape.
+We define the getGeometry method. This method returns the geometry of the shape. In this case,
+a Rectangle2d object.
 
 [7]
-Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
+We define the component method. This method returns the component of the shape. The component
+is the visual representation of the shape. In this case, a div with a button and a paragraph
+element.
 
 [8]
-Resize handler — called when the shape is resized. Sometimes you'll want to do some 
-custom logic here, but for our purposes, this is fine.
+We define the indicator method. This method returns the indicator of the shape. The indicator is
+a visual representation of the shape that is used to indicate that the shape is selected or
+focused. In this case, a rectangle.
 */
