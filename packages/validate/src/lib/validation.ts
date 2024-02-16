@@ -132,7 +132,7 @@ export class Validator<T> implements Validatable<T> {
 
 	validateUsingKnownGoodVersion(knownGoodValue: T, newValue: unknown): T {
 		if (Object.is(knownGoodValue, newValue)) {
-			return newValue as T
+			return knownGoodValue as T
 		}
 
 		if (this.validateUsingKnownGoodVersionFn) {
@@ -230,7 +230,7 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 			(knownGoodValue, newValue) => {
 				if (!itemValidator.validateUsingKnownGoodVersion) return this.validate(newValue)
 				const arr = array.validate(newValue)
-				let isDifferent = false
+				let isDifferent = knownGoodValue.length !== arr.length
 				for (let i = 0; i < arr.length; i++) {
 					const item = arr[i]
 					if (i >= knownGoodValue.length) {
@@ -243,7 +243,7 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 						continue
 					}
 					const checkedItem = prefixError(i, () =>
-						itemValidator.validateUsingKnownGoodVersion!(knownGoodValue[i], arr[i])
+						itemValidator.validateUsingKnownGoodVersion!(knownGoodValue[i], item)
 					)
 					if (!Object.is(checkedItem, knownGoodValue[i])) {
 						isDifferent = true
@@ -329,6 +329,13 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 						if (!hasOwnProperty(config, key)) {
 							throw new ValidationError(`Unexpected property`, [key])
 						}
+					}
+				}
+
+				for (const key of Object.keys(knownGoodValue)) {
+					if (!hasOwnProperty(newValue, key)) {
+						isDifferent = true
+						break
 					}
 				}
 
