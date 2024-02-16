@@ -13982,68 +13982,26 @@
           }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!TldrawImage:function(1)",
-          "docComment": "/**\n * A renderered SVG image of a Tldraw snapshot.\n *\n * @example\n * ```tsx\n * <TldrawImage snapshot={snapshot} />\n * ```\n *\n * @example\n * ```tsx\n * <TldrawImage\n * \tsnapshot={snapshot}\n * \tpageId={pageId}\n * \topts={{ background: false, darkMode: true }}\n * />\n * ```\n *\n * @public\n */\n",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!TldrawImage:var",
+          "docComment": "/**\n * A renderered SVG image of a Tldraw snapshot.\n *\n * @example\n * ```tsx\n * <TldrawImage snapshot={snapshot} />\n * \tsnapshot={snapshot}\n * \tpageId={pageId}\n * \tbackground={false}\n *  darkMode={true}\n *  bounds={new Box(0,0,600,400)}\n *  scale={1}\n *  preserveAspectRatio=\"\"\n *\n * />\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawImage(props: "
+              "text": "TldrawImage: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
             },
             {
               "kind": "Reference",
-              "text": "TldrawImageProps",
-              "canonicalReference": "@tldraw/tldraw!TldrawImageProps:type"
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
             },
             {
               "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/TldrawImage.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "props",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "TldrawImage"
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/tldraw!TldrawImageProps:type",
-          "docComment": "/**\n * Props for the {@link @tldraw/tldraw#TldrawImage} component.\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TldrawImageProps = "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    snapshot: "
+              "text": "<{\n    snapshot: "
             },
             {
               "kind": "Reference",
@@ -14070,7 +14028,89 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    opts?: "
+              "text": " | undefined;\n    shapeUtils?: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLAnyShapeUtilConstructor",
+              "canonicalReference": "@tldraw/editor!TLAnyShapeUtilConstructor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[] | undefined;\n    bounds?: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | undefined;\n    scale?: number | undefined;\n    background?: boolean | undefined;\n    padding?: number | undefined;\n    darkMode?: boolean | undefined;\n    preserveAspectRatio?: string | undefined;\n}>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/TldrawImage.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TldrawImage",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 14
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tldraw!TldrawImageProps:type",
+          "docComment": "/**\n * Props for the {@link @tldraw/tldraw#TldrawImage} component.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TldrawImageProps = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Expand",
+              "canonicalReference": "@tldraw/utils!Expand:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    snapshot: "
+            },
+            {
+              "kind": "Reference",
+              "text": "StoreSnapshot",
+              "canonicalReference": "@tldraw/store!StoreSnapshot:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLRecord",
+              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n    pageId?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLPageId",
+              "canonicalReference": "@tldraw/tlschema!TLPageId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    shapeUtils?: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLAnyShapeUtilConstructor",
+              "canonicalReference": "@tldraw/editor!TLAnyShapeUtilConstructor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n} & "
             },
             {
               "kind": "Reference",
@@ -14088,16 +14128,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    shapeUtils?: readonly "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLAnyShapeUtilConstructor",
-              "canonicalReference": "@tldraw/editor!TLAnyShapeUtilConstructor:type"
-            },
-            {
-              "kind": "Content",
-              "text": "[];\n}"
+              "text": ">>"
             },
             {
               "kind": "Content",
@@ -14109,7 +14140,7 @@
           "name": "TldrawImageProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 14
+            "endIndex": 15
           }
         },
         {

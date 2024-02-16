@@ -1,55 +1,67 @@
-import { Editor, StoreSnapshot, TLPageId, TLRecord, Tldraw, TldrawImage } from '@tldraw/tldraw'
+import { Box, Editor, StoreSnapshot, TLPageId, TLRecord, Tldraw, TldrawImage } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import initialSnapshot from './snapshot.json'
 
 // There's a guide at the bottom of this file!
 
-export default function SnapshotImageExample() {
+export default function TldrawImageExample() {
 	const [editor, setEditor] = useState<Editor>()
 	const [snapshot, setSnapshot] = useState<StoreSnapshot<TLRecord>>(initialSnapshot)
-	const [pageId, setPageId] = useState<TLPageId | undefined>()
-	const [editing, setEditing] = useState(false)
-
-	const editDrawing = useCallback(() => {
-		setEditing(true)
-	}, [])
-
-	const saveDrawing = useCallback(() => {
-		if (!editor) return
-		setPageId(editor.getCurrentPageId())
-		setSnapshot(editor.store.getSnapshot())
-		setEditing(false)
-	}, [editor])
-
-	const handleMount = useCallback(
-		(editor: Editor) => {
-			setEditor(editor)
-			editor.updateInstanceState({ isDebugMode: false })
-			if (pageId) editor.setCurrentPage(pageId)
-		},
-		[pageId]
-	)
+	const [currentPageId, setCurrentPageId] = useState<TLPageId | undefined>()
+	const [showBackground, setShowBackground] = useState(true)
+	const [isDarkMode, setIsDarkMode] = useState(false)
+	const [viewportPageBounds, setViewportPageBounds] = useState(new Box(0, 0, 600, 400))
+	const [isEditing, setIsEditing] = useState(false)
 
 	return (
 		<div style={{ padding: 30 }}>
 			<button
 				style={{ cursor: 'pointer', fontSize: 18 }}
-				onClick={editing ? saveDrawing : editDrawing}
+				onClick={() => {
+					if (isEditing) {
+						if (!editor) return
+						setIsDarkMode(editor.user.getIsDarkMode())
+						setShowBackground(editor.getInstanceState().exportBackground)
+						setViewportPageBounds(editor.getViewportPageBounds())
+						setCurrentPageId(editor.getCurrentPageId())
+						setSnapshot(editor.store.getSnapshot())
+						setIsEditing(false)
+					} else {
+						setIsEditing(true)
+					}
+				}}
 			>
-				{editing ? '✓ Save drawing' : '✎ Edit drawing'}
+				{isEditing ? '✓ Save drawing' : '✎ Edit drawing'}
 			</button>
 			<div style={{ width: 600, height: 400, marginTop: 15 }}>
-				{editing ? (
-					<Tldraw snapshot={snapshot} onMount={handleMount} />
+				{isEditing ? (
+					<Tldraw
+						snapshot={snapshot}
+						onMount={(editor: Editor) => {
+							setEditor(editor)
+							editor.updateInstanceState({ isDebugMode: false })
+							editor.user.updateUserPreferences({ isDarkMode })
+							if (currentPageId) {
+								editor.setCurrentPage(currentPageId)
+							}
+							// if (viewportPageBounds) {
+							// 	editor.zoomToBounds(viewportPageBounds, { targetZ})
+							// }
+						}}
+					/>
 				) : (
 					<TldrawImage
 						//[1]
 						snapshot={snapshot}
 						// [2]
-						pageId={pageId}
+						pageId={currentPageId}
 						// [3]
-						opts={{ background: false, darkMode: false }}
+						background={showBackground}
+						darkMode={isDarkMode}
+						bounds={viewportPageBounds}
+						padding={0}
+						scale={1}
 					/>
 				)}
 			</div>
@@ -68,8 +80,7 @@ and viewing it.
 [2] You can specify which page to display by using the `pageId` prop. By
     default, the first page is shown.
 	
-[3] You can customize the appearance of the image by passing options to the
-    `opts` prop. Try changing the `background` and `darkMode` options to see
-    their effects.
-
+[3] You can customize the appearance of the image by passing other props to the
+		`TldrawImage` component. For example, you can toggle the background, set the
+		dark mode, and specify the viewport bounds.
  */

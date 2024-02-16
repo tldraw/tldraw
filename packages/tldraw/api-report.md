@@ -19,6 +19,7 @@ import { Editor } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { EmbedDefinition } from '@tldraw/editor';
 import { EnumStyleProp } from '@tldraw/editor';
+import { Expand } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -1201,15 +1202,24 @@ export const TldrawHandles: TLHandlesComponent;
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public
-export function TldrawImage(props: TldrawImageProps): JSX_2.Element;
+export const TldrawImage: NamedExoticComponent<    {
+snapshot: StoreSnapshot<TLRecord>;
+pageId?: TLPageId | undefined;
+shapeUtils?: readonly TLAnyShapeUtilConstructor[] | undefined;
+bounds?: Box | undefined;
+scale?: number | undefined;
+background?: boolean | undefined;
+padding?: number | undefined;
+darkMode?: boolean | undefined;
+preserveAspectRatio?: string | undefined;
+}>;
 
 // @public
-export type TldrawImageProps = {
+export type TldrawImageProps = Expand<{
     snapshot: StoreSnapshot<TLRecord>;
     pageId?: TLPageId;
-    opts?: Partial<TLSvgOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
-};
+} & Partial<TLSvgOptions>>;
 
 // @public (undocumented)
 export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
