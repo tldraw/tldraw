@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultQuickActionsContent } from './DefaultQuickActionsContent'
 
 /** @public */

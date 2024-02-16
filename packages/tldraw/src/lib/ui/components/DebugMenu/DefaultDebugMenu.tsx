@@ -1,10 +1,12 @@
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	DropdownMenuContent,
-	DropdownMenuRoot,
-	DropdownMenuTrigger,
-} from '../primitives/DropdownMenu'
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultDebugMenuContent } from './DefaultDebugMenuContent'
 
 /** @public */
@@ -18,13 +20,17 @@ export function DefaultDebugMenu({ children }: TLUiDebugMenuProps) {
 	const content = children ?? <DefaultDebugMenuContent />
 
 	return (
-		<DropdownMenuRoot id="debug">
-			<DropdownMenuTrigger type="icon" icon="dots-horizontal" title={msg('debug-panel.more')} />
-			<DropdownMenuContent side="top" align="end" alignOffset={0}>
+		<TldrawUiDropdownMenuRoot id="debug">
+			<TldrawUiDropdownMenuTrigger>
+				<TldrawUiButton type="icon" title={msg('debug-menu.title')}>
+					<TldrawUiButtonIcon icon="dots-horizontal" />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent side="top" align="end" alignOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="debug-panel">
 					{content}
 				</TldrawUiMenuContextProvider>
-			</DropdownMenuContent>
-		</DropdownMenuRoot>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 }

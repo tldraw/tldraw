@@ -1,14 +1,14 @@
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
-import { kbd } from './shared'
+import { kbd } from '../../kbd-utils'
 
-/** @internal */
-export interface KbdProps {
+/** @public */
+export interface TLUiKbdProps {
 	children: string
 }
 
-/** @internal */
-export function Kbd({ children }: KbdProps) {
+/** @public */
+export function TldrawUiKbd({ children }: TLUiKbdProps) {
 	const breakpoint = useBreakpoint()
 	if (breakpoint < PORTRAIT_BREAKPOINT.MOBILE) return null
 	return (

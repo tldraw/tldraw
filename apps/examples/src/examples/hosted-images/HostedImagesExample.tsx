@@ -95,7 +95,7 @@ handler. Check out the API example for more details.
 	for more. 
 
 	[b]
-	After uploading the file to our server, we create an asset fror it. We'll 
+	After uploading the file to our server, we create an asset for it. We'll 
 	need to create a record for the asset, which is an object that contains 
 	the asset's id, type, and props. We'll start by creating the id with the 
 	AssetRecordType.createId method.

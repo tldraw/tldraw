@@ -1,14 +1,16 @@
 import { MAX_PAGES, PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
-import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	DropdownMenuContent,
-	DropdownMenuRoot,
-	DropdownMenuTrigger,
-} from '../primitives/DropdownMenu'
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { onMovePage } from './edit-pages-shared'
 
 export interface PageItemSubmenuProps {
@@ -48,13 +50,13 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [editor, item])
 
 	return (
-		<DropdownMenuRoot id={`page item submenu ${index}`}>
-			<DropdownMenuTrigger
-				type="icon"
-				title={msg('page-menu.submenu.title')}
-				icon="dots-vertical"
-			/>
-			<DropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
+		<TldrawUiDropdownMenuRoot id={`page item submenu ${index}`}>
+			<TldrawUiDropdownMenuTrigger>
+				<TldrawUiButton type="icon" title={msg('page-menu.submenu.title')}>
+					<TldrawUiButtonIcon icon="dots-vertical" />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (
@@ -87,7 +89,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 						</TldrawUiMenuGroup>
 					)}
 				</TldrawUiMenuContextProvider>
-			</DropdownMenuContent>
-		</DropdownMenuRoot>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 })

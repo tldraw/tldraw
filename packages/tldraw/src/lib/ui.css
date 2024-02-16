@@ -75,6 +75,10 @@
 	opacity: 1;
 }
 
+.tlui-button__icon + .tlui-button__label {
+	margin-left: var(--space-2);
+}
+
 @media (hover: hover) {
 	.tlui-button::after {
 		background-color: var(--color-muted-2);
@@ -125,46 +129,6 @@
 
 .tlui-button__panel {
 	position: relative;
-}
-
-/* Icon button */
-
-.tlui-button__icon {
-	height: 40px;
-	width: 40px;
-	min-height: 40px;
-	min-width: 40px;
-	padding: 0px;
-}
-
-.tlui-button__icon-left {
-	margin-right: var(--space-2);
-}
-
-/* Hinted */
-
-.tlui-button__icon[data-state='hinted']::after {
-	background: var(--color-hint);
-	opacity: 1;
-	/* box-shadow: inset 0 0 0 1px var(--color-muted-1); */
-}
-
-.tlui-button__icon[data-state='hinted']:not(:disabled, :focus-visible):active::after {
-	background: var(--color-hint);
-	opacity: 1;
-	/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
-}
-
-@media (hover: hover) {
-	.tlui-button__icon::after {
-		inset: 4px;
-		border-radius: var(--radius-2);
-	}
-
-	.tlui-button__icon[data-state='hinted']:not(:disabled, :focus-visible):hover::after {
-		background: var(--color-hint);
-		/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
-	}
 }
 
 /* Menu button */
@@ -1225,11 +1189,6 @@
 	width: 128px;
 }
 
-.tlui-page-menu__trigger > span {
-	flex-grow: 2;
-	margin-right: var(--space-4);
-}
-
 .tlui-page-menu__header {
 	display: flex;
 	flex-direction: row;
@@ -1373,17 +1332,29 @@
 
 .tlui-page_menu__item__submenu[data-isediting='true'] {
 	display: block;
+	opacity: 1;
+}
+
+.tlui-page_menu__item__submenu > .tlui-button {
+	opacity: 0;
+}
+
+.tlui-page-menu__item__button .tlui-button__icon {
+	margin-right: 4px;
 }
 
 @media (hover: hover) {
 	.tlui-page_menu__item__submenu {
-		opacity: 0;
 		display: block;
 	}
 
-	.tlui-page_menu__item__submenu:hover,
-	.tlui-page-menu__item:focus-within > .tlui-page_menu__item__submenu,
-	.tlui-page_menu__item__sortable:focus-within > .tlui-page_menu__item__submenu {
+	.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button {
+		opacity: 0;
+	}
+
+	.tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
+	.tlui-page_menu__item__submenu:hover > .tlui-button,
+	.tlui-page_menu__item__sortable:focus-within > .tlui-page_menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
 }

@@ -17,7 +17,7 @@ import {
 	ToggleLockMenuItem,
 	UngroupMenuItem,
 } from '../menu-items'
-import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 
 /** @public */
 export function DefaultContextMenuContent() {

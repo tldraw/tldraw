@@ -3,6 +3,7 @@ export type StyleValuesForUi<T> = readonly {
 	readonly icon: string
 }[]
 
+// todo: default styles prop?
 export const STYLES = {
 	color: [
 		{ value: 'black', icon: 'color' },

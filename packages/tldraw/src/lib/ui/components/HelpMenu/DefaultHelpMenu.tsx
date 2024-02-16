@@ -2,12 +2,14 @@ import { memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
-	DropdownMenuContent,
-	DropdownMenuRoot,
-	DropdownMenuTrigger,
-} from '../primitives/DropdownMenu'
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
 
 /** @public */
@@ -29,19 +31,18 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 
 	return (
 		<div className="tlui-help-menu">
-			<DropdownMenuRoot id="help menu">
-				<DropdownMenuTrigger
-					type="help"
-					smallIcon
-					title={msg('help-menu.title')}
-					icon="question-mark"
-				/>
-				<DropdownMenuContent side="top" align="end" alignOffset={0} sideOffset={8}>
+			<TldrawUiDropdownMenuRoot id="help menu">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="help" title={msg('help-menu.title')}>
+						<TldrawUiButtonIcon icon="question-mark" small />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="top" align="end" alignOffset={0} sideOffset={8}>
 					<TldrawUiMenuContextProvider type="menu" sourceId="help-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
-				</DropdownMenuContent>
-			</DropdownMenuRoot>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiDropdownMenuRoot>
 		</div>
 	)
 })
