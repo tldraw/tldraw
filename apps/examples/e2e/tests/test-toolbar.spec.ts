@@ -7,7 +7,7 @@ test.describe('when selecting a tool from the toolbar', () => {
 
 	test('tool selection behaviors', async ({ toolbar }) => {
 		const { select, draw, arrow, cloud } = toolbar.tools
-		const { popoverCloud } = toolbar.popoverToolNames
+		const { popoverCloud } = toolbar.popOverTools
 
 		await test.step('selecting a tool changes the button color', async () => {
 			await select.click()
