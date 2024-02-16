@@ -5,7 +5,7 @@ import test from './fixtures/fixtures'
 test.describe('when selecting a tool from the toolbar', () => {
 	test.beforeEach(setup)
 
-	test.only('tool selection behaviors', async ({ toolbar }) => {
+	test('tool selection behaviors', async ({ toolbar }) => {
 		const { select, draw, arrow, cloud } = toolbar.tools
 		const { popoverCloud } = toolbar.popOverTools
 
