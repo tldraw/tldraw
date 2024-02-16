@@ -51,10 +51,12 @@ export function MobileStylePanel() {
 			<TldrawUiPopoverTrigger>
 				<TldrawUiButton
 					type="tool"
+					data-testid="mobile-styles.button"
+					style={{
+						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
+					}}
 					title={msg('style-panel.title')}
-					data-testid="mobile.styles"
 					disabled={disableStylePanel}
-					style={{ color: disableStylePanel ? 'var(--color-muted-1)' : currentColor }}
 				>
 					<TldrawUiButtonIcon
 						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}

@@ -136,6 +136,7 @@ function CommonStylePickerSet({
 				tabIndex={-1}
 				className="tlui-style-panel__section__common"
 				aria-label="style panel styles"
+				data-testid="style.panel"
 			>
 				{color === undefined ? null : (
 					<TldrawUiButtonPicker
