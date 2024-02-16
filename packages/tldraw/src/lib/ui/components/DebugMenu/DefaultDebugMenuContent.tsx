@@ -1,4 +1,3 @@
-import { DialogTitle } from '@radix-ui/react-dialog'
 import {
 	DebugFlag,
 	Editor,
@@ -15,12 +14,20 @@ import React from 'react'
 import { useDialogs } from '../../context/dialogs'
 import { useToasts } from '../../context/toasts'
 import { untranslated } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiMenuCheckboxItem } from '../menus/TldrawUiMenuCheckboxItem'
-import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
-import { TldrawUiMenuSubmenu } from '../menus/TldrawUiMenuSubmenu'
-import { Button } from '../primitives/Button'
-import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from '../primitives/Dialog'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
+import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import {
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+} from '../primitives/TldrawUiDialog'
+import { TldrawUiMenuCheckboxItem } from '../primitives/menus/TldrawUiMenuCheckboxItem'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
 /** @public */
 export function DefaultDebugMenuContent() {
@@ -225,29 +232,29 @@ function ExampleDialog({
 
 	return (
 		<>
-			<DialogHeader>
-				<DialogTitle>{title}</DialogTitle>
-				<DialogCloseButton />
-			</DialogHeader>
-			<DialogBody style={{ maxWidth: 350 }}>{body}</DialogBody>
-			<DialogFooter className="tlui-dialog__footer__actions">
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>{body}</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
-					<Button
+					<TldrawUiButton
 						type="normal"
 						onClick={() => setDontShowAgain(!dontShowAgain)}
-						iconLeft={dontShowAgain ? 'check' : 'checkbox-empty'}
 						style={{ marginRight: 'auto' }}
 					>
-						{`Don't show again`}
-					</Button>
+						<TldrawUiButtonCheck checked={dontShowAgain} />
+						<TldrawUiButtonLabel>Don't show again</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				)}
-				<Button type="normal" onClick={onCancel}>
-					{cancel}
-				</Button>
-				<Button type="primary" onClick={async () => onContinue()}>
-					{confirm}
-				</Button>
-			</DialogFooter>
+				<TldrawUiButton type="normal" onClick={onCancel}>
+					<TldrawUiButtonLabel>{cancel}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
+					<TldrawUiButtonLabel>{confirm}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

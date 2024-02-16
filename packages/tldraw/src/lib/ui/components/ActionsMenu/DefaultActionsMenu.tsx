@@ -4,8 +4,14 @@ import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
-import { Popover, PopoverContent, PopoverTrigger } from '../primitives/Popover'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import {
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from '../primitives/TldrawUiPopover'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
 /** @public */
@@ -37,16 +43,17 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
-		<Popover id="actions-menu">
-			<PopoverTrigger
-				className="tlui-menu__trigger"
-				data-testid="main.action-menu"
-				icon="dots-vertical"
-				title={msg('actions-menu.title')}
-				type="icon" // needs to be here because the trigger also passes down type="button"
-				smallIcon
-			/>
-			<PopoverContent
+		<TldrawUiPopover id="actions-menu">
+			<TldrawUiPopoverTrigger>
+				<TldrawUiButton
+					type="icon"
+					data-testid="main.action-menu"
+					title={msg('actions-menu.title')}
+				>
+					<TldrawUiButtonIcon icon="dots-vertical" small />
+				</TldrawUiButton>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent
 				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
 				sideOffset={6}
 			>
@@ -55,7 +62,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 						{content}
 					</TldrawUiMenuContextProvider>
 				</div>
-			</PopoverContent>
-		</Popover>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 })

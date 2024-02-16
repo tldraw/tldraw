@@ -5,8 +5,8 @@ import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
-import { Button } from '../primitives/Button'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
 /** @public */
@@ -59,7 +59,7 @@ const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
 		}, [editor])
 
 		return (
-			<Button
+			<TldrawUiButton
 				ref={ref}
 				{...props}
 				type="icon"
@@ -76,7 +76,7 @@ const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
 				{breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? null : (
 					<span style={{ flexGrow: 0, textAlign: 'center' }}>{Math.floor(zoom * 100)}%</span>
 				)}
-			</Button>
+			</TldrawUiButton>
 		)
 	}
 )

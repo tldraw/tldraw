@@ -1,8 +1,8 @@
 import { ContextMenuGroup } from '@radix-ui/react-context-menu'
-import { unwrapLabel } from '../../context/actions'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { DropdownMenuGroup } from '../primitives/DropdownMenu'
+import { unwrapLabel } from '../../../context/actions'
+import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -33,9 +33,12 @@ export function TldrawUiMenuGroup({ id, label, small = false, children }: TLUiMe
 		}
 		case 'menu': {
 			return (
-				<DropdownMenuGroup data-testid={`${sourceId}-group.${id}`} size={small ? 'tiny' : 'medium'}>
+				<TldrawUiDropdownMenuGroup
+					data-testid={`${sourceId}-group.${id}`}
+					size={small ? 'tiny' : 'medium'}
+				>
 					{children}
-				</DropdownMenuGroup>
+				</TldrawUiDropdownMenuGroup>
 			)
 		}
 		case 'context-menu': {

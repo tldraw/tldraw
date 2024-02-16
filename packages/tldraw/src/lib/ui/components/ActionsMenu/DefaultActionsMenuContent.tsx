@@ -9,7 +9,7 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultActionsMenuContent() {

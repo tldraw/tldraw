@@ -1,16 +1,18 @@
 import { ContextMenuItem } from '@radix-ui/react-context-menu'
 import { preventDefault } from '@tldraw/editor'
 import { useState } from 'react'
-import { unwrapLabel } from '../../context/actions'
-import { TLUiEventSource } from '../../context/events'
-import { useReadonly } from '../../hooks/useReadonly'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Spinner } from '../Spinner'
-import { Button } from '../primitives/Button'
-import { DropdownMenuItem } from '../primitives/DropdownMenu'
-import { Kbd } from '../primitives/Kbd'
-import { kbdStr } from '../primitives/shared'
+import { unwrapLabel } from '../../../context/actions'
+import { TLUiEventSource } from '../../../context/events'
+import { useReadonly } from '../../../hooks/useReadonly'
+import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { kbdStr } from '../../../kbd-utils'
+import { Spinner } from '../../Spinner'
+import { TldrawUiButton } from '../Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
+import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
+import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
+import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -90,24 +92,27 @@ export function TldrawUiMenuItem<
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<DropdownMenuItem
-					type="menu"
-					data-testid={`${sourceId}.${id}`}
-					kbd={kbd}
-					label={labelStr}
-					disabled={disabled}
-					title={titleStr}
-					onClick={(e) => {
-						if (noClose) {
-							preventDefault(e)
-						}
-						if (disableClicks) {
-							setDisableClicks(false)
-						} else {
-							onSelect(sourceId)
-						}
-					}}
-				/>
+				<TldrawUiDropdownMenuItem>
+					<TldrawUiButton
+						type="menu"
+						data-testid={`${sourceId}.${id}`}
+						disabled={disabled}
+						title={titleStr}
+						onClick={(e) => {
+							if (noClose) {
+								preventDefault(e)
+							}
+							if (disableClicks) {
+								setDisableClicks(false)
+							} else {
+								onSelect(sourceId)
+							}
+						}}
+					>
+						<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+						{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuItem>
 			)
 		}
 		case 'context-menu': {
@@ -133,37 +138,37 @@ export function TldrawUiMenuItem<
 					<span className="tlui-button__label" draggable={false}>
 						{labelStr}
 					</span>
-					{kbd && <Kbd>{kbd}</Kbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					{spinner && <Spinner />}
 				</ContextMenuItem>
 			)
 		}
 		case 'panel': {
 			return (
-				<Button
+				<TldrawUiButton
 					data-testid={`${sourceId}.${id}`}
-					icon={icon}
 					type="menu"
-					label={labelStr}
 					title={titleStr}
-					onClick={() => onSelect(sourceId)}
-					smallIcon
 					disabled={disabled}
-				/>
+					onClick={() => onSelect(sourceId)}
+				>
+					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+					{icon && <TldrawUiButtonIcon icon={icon} />}
+				</TldrawUiButton>
 			)
 		}
 		case 'small-icons':
 		case 'icons': {
 			return (
-				<Button
+				<TldrawUiButton
 					data-testid={`${sourceId}.${id}`}
-					icon={icon}
 					type="icon"
 					title={titleStr}
-					onClick={() => onSelect(sourceId)}
 					disabled={disabled}
-					smallIcon={menuType === 'small-icons'}
-				/>
+					onClick={() => onSelect(sourceId)}
+				>
+					<TldrawUiButtonIcon icon={icon!} small={menuType === 'small-icons'} />
+				</TldrawUiButton>
 			)
 		}
 		case 'keyboard-shortcuts': {
@@ -173,14 +178,17 @@ export function TldrawUiMenuItem<
 				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
 					<div className="tlui-shortcuts-dialog__key-pair__key">{labelStr}</div>
 					<div className="tlui-shortcuts-dialog__key-pair__value">
-						<Kbd>{kbd!}</Kbd>
+						<TldrawUiKbd>{kbd!}</TldrawUiKbd>
 					</div>
 				</div>
 			)
 		}
 		case 'helper-buttons': {
 			return (
-				<Button type="low" label={labelStr} iconLeft={icon} onClick={() => onSelect(sourceId)} />
+				<TldrawUiButton type="low" onClick={() => onSelect(sourceId)}>
+					<TldrawUiButtonIcon icon={icon!} />
+					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+				</TldrawUiButton>
 			)
 		}
 		default: {

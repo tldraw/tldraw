@@ -9,8 +9,13 @@ import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 import { useRelevantStyles } from '../hooks/useRevelantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { Icon } from './primitives/Icon'
-import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'
+import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
+import {
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from './primitives/TldrawUiPopover'
 
 export function MobileStylePanel() {
 	const editor = useEditor()
@@ -42,22 +47,24 @@ export function MobileStylePanel() {
 	if (!StylePanel) return null
 
 	return (
-		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
-			<PopoverTrigger
-				disabled={disableStylePanel}
-				type="tool"
-				data-testid="mobile.styles"
-				style={{
-					color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
-				}}
-				title={msg('style-panel.title')}
-			>
-				<Icon icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'} />
-			</PopoverTrigger>
-			<PopoverContent side="top" align="end">
+		<TldrawUiPopover id="mobile style menu" onOpenChange={handleStylesOpenChange}>
+			<TldrawUiPopoverTrigger>
+				<TldrawUiButton
+					type="tool"
+					title={msg('style-panel.title')}
+					data-testid="mobile.styles"
+					disabled={disableStylePanel}
+					style={{ color: disableStylePanel ? 'var(--color-muted-1)' : currentColor }}
+				>
+					<TldrawUiButtonIcon
+						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
+					/>
+				</TldrawUiButton>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side="top" align="end">
 				<_StylePanel />
-			</PopoverContent>
-		</Popover>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 }
 
@@ -66,5 +73,5 @@ function _StylePanel() {
 	const relevantStyles = useRelevantStyles()
 
 	if (!StylePanel) return null
-	return <StylePanel relevantStyles={relevantStyles} />
+	return <StylePanel relevantStyles={relevantStyles} isMobile />
 }

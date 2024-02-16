@@ -1,13 +1,13 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault } from '@tldraw/editor'
-import { unwrapLabel } from '../../context/actions'
-import { TLUiEventSource } from '../../context/events'
-import { useReadonly } from '../../hooks/useReadonly'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Icon } from '../primitives/Icon'
-import { Kbd } from '../primitives/Kbd'
+import { unwrapLabel } from '../../../context/actions'
+import { TLUiEventSource } from '../../../context/events'
+import { useReadonly } from '../../../hooks/useReadonly'
+import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { TldrawUiIcon } from '../TldrawUiIcon'
+import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -63,13 +63,13 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<Icon small icon={checked ? 'check' : 'checkbox-empty'} />
+					<TldrawUiIcon small icon={checked ? 'check' : 'checkbox-empty'} />
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}
 						</span>
 					)}
-					{kbd && <Kbd>{kbd}</Kbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</_DropdownMenu.CheckboxItem>
 			)
 		}
@@ -87,13 +87,13 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<Icon small icon={checked ? 'check' : 'checkbox-empty'} />
+					<TldrawUiIcon small icon={checked ? 'check' : 'checkbox-empty'} />
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}
 						</span>
 					)}
-					{kbd && <Kbd>{kbd}</Kbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</_ContextMenu.CheckboxItem>
 			)
 		}

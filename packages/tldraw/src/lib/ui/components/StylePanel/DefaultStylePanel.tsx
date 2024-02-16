@@ -33,7 +33,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 
 	return (
 		<div
-			className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
+			className={classNames('', { 'tlui-style-panel__wrapper': !isMobile })}
 			data-ismobile={isMobile}
 			onPointerLeave={handlePointerOut}
 		>

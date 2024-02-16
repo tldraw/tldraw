@@ -1,6 +1,6 @@
 import { useActions } from '../../context/actions'
 import { ZoomTo100MenuItem, ZoomToFitMenuItem, ZoomToSelectionMenuItem } from '../menu-items'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultZoomMenuContent() {
