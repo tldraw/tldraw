@@ -4,9 +4,9 @@ import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { kbdStr } from '../../shared'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { kbdStr } from '../primitives/shared'
 
 /** @public */
 export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
