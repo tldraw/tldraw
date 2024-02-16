@@ -1249,7 +1249,7 @@ export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.E
 export const TldrawUiButtonPicker: MemoExoticComponent<(<T extends string>(props: TLUiButtonPickerProps<T>) => JSX_2.Element)>;
 
 // @public (undocumented)
-export function TldrawUiComponentsProvider({ overrides, children, }: ComponentsContextProviderProps): JSX_2.Element;
+export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
@@ -1423,6 +1423,12 @@ export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElemen
 export type TLUiComponents = Partial<{
     [K in keyof BaseTLUiComponents]: BaseTLUiComponents[K] | null;
 }>;
+
+// @public (undocumented)
+export type TLUiComponentsProviderProps = {
+    overrides?: TLUiComponents;
+    children: any;
+};
 
 // @public (undocumented)
 export interface TLUiContextMenuProps {

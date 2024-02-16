@@ -47,7 +47,7 @@ export function MobileStylePanel() {
 	if (!StylePanel) return null
 
 	return (
-		<TldrawUiPopover id="style menu" onOpenChange={handleStylesOpenChange}>
+		<TldrawUiPopover id="mobile style menu" onOpenChange={handleStylesOpenChange}>
 			<TldrawUiPopoverTrigger>
 				<TldrawUiButton
 					type="tool"
@@ -73,5 +73,5 @@ function _StylePanel() {
 	const relevantStyles = useRelevantStyles()
 
 	if (!StylePanel) return null
-	return <StylePanel relevantStyles={relevantStyles} />
+	return <StylePanel relevantStyles={relevantStyles} isMobile />
 }

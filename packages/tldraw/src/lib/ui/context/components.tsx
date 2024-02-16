@@ -58,7 +58,8 @@ export type TLUiComponents = Partial<{
 
 const TldrawUiComponentsContext = createContext({} as TLUiComponents)
 
-type ComponentsContextProviderProps = {
+/** @public */
+export type TLUiComponentsProviderProps = {
 	overrides?: TLUiComponents
 	children: any
 }
@@ -67,7 +68,7 @@ type ComponentsContextProviderProps = {
 export function TldrawUiComponentsProvider({
 	overrides = {},
 	children,
-}: ComponentsContextProviderProps) {
+}: TLUiComponentsProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
 
 	return (

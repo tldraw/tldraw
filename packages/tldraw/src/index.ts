@@ -138,6 +138,7 @@ export {
 	TldrawUiComponentsProvider,
 	useTldrawUiComponents,
 	type TLUiComponents,
+	type TLUiComponentsProviderProps,
 } from './lib/ui/context/components'
 
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
