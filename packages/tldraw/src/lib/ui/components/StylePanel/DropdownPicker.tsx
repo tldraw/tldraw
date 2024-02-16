@@ -1,5 +1,6 @@
 import { SharedStyle, StyleProp } from '@tldraw/editor'
 import * as React from 'react'
+import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
@@ -12,7 +13,6 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
-import { StyleValuesForUi } from './styles'
 
 interface DropdownPickerProps<T extends string> {
 	id: string

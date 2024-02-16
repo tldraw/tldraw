@@ -17,6 +17,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import React from 'react'
+import { STYLES } from '../../../styles'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -26,7 +27,6 @@ import { TldrawUiButtonPicker } from '../primitives/TldrawUiButtonPicker'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
-import { STYLES } from './styles'
 
 /** @public */
 export type TLUiStylePanelContentProps = {
