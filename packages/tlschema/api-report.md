@@ -6,6 +6,7 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
+import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
@@ -579,6 +580,9 @@ export const LANGUAGES: readonly [{
     readonly locale: "gl";
     readonly label: "Galego";
 }, {
+    readonly locale: "hr";
+    readonly label: "Hrvatski";
+}, {
     readonly locale: "it";
     readonly label: "Italiano";
 }, {
@@ -602,6 +606,9 @@ export const LANGUAGES: readonly [{
 }, {
     readonly locale: "ru";
     readonly label: "Russian";
+}, {
+    readonly locale: "sl";
+    readonly label: "Slovenščina";
 }, {
     readonly locale: "fi";
     readonly label: "Suomi";
@@ -667,7 +674,7 @@ export const lineShapeProps: {
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
-    handles: T.DictValidator<string, TLHandle>;
+    handles: T.DictValidator<IndexKey, VecModel>;
 };
 
 // @public (undocumented)
@@ -814,7 +821,7 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 // @public (undocumented)
 export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     isLocked: boolean;
     // (undocumented)
@@ -962,7 +969,7 @@ export interface TLHandle {
     canSnap?: boolean;
     id: string;
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     type: TLHandleType;
     // (undocumented)
@@ -1146,7 +1153,7 @@ export type TLOpacityType = number;
 // @public
 export interface TLPage extends BaseRecord<'page', TLPageId> {
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)

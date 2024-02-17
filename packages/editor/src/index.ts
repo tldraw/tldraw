@@ -41,7 +41,6 @@ export {
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
-export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { ShapeIndicator, type TLShapeIndicatorComponent } from './lib/components/ShapeIndicator'
 export {
@@ -155,7 +154,11 @@ export type {
 	TLBeforeCreateHandler,
 	TLBeforeDeleteHandler,
 } from './lib/editor/managers/SideEffectManager'
-export { type BoundsSnapPoint } from './lib/editor/managers/SnapManager/BoundsSnaps'
+export {
+	type BoundsSnapGeometry,
+	type BoundsSnapPoint,
+} from './lib/editor/managers/SnapManager/BoundsSnaps'
+export { type HandleSnapGeometry } from './lib/editor/managers/SnapManager/HandleSnaps'
 export {
 	SnapManager,
 	type GapsSnapIndicator,
@@ -250,9 +253,9 @@ export {
 } from './lib/editor/types/history-types'
 export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { useContainer } from './lib/hooks/useContainer'
+export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditor } from './lib/hooks/useEditor'
+export { EditorContext, useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
@@ -356,16 +359,6 @@ export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
-export {
-	getIndexAbove,
-	getIndexBelow,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBelow,
-	getIndicesBetween,
-	sortByIndex,
-} from './lib/utils/reordering/reordering'
 export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,

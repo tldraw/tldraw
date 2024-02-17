@@ -50,12 +50,12 @@
 		"build-package": "lazy build-package",
 		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
-		"format": "biome format --write .",
+		"format": "prettier --write --cache \"**/*.{ts,tsx,js,jsx,json}\"",
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api-check": "lazy api-check",
-		"test": "lazy test",
-		"test-dev": "yarn run -T jest --watch",
+		"test-ci": "lazy test-ci",
+		"test": "yarn run -T jest",
 		"test-coverage": "lazy test-coverage && node scripts/offer-coverage.mjs",
 		"e2e": "lazy e2e --filter='apps/examples'"
 	},
@@ -65,11 +65,10 @@
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
-			"biome format --write --no-errors-on-unmatched"
+			"prettier --write --cache"
 		]
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.5.3",
 		"@microsoft/api-extractor": "^7.35.4",
 		"@next/eslint-plugin-next": "^13.3.0",
 		"@swc/core": "^1.3.55",
@@ -97,13 +96,12 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"license-report": "^6.5.0",
 		"lint-staged": ">=10",
+		"prettier": "^3.0.3",
+		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
 		"tsx": "^4.0.0",
 		"typescript": "^5.2.2",
 		"vercel": "^28.16.15"
-	},
-	"devDependenciesComments": {
-		"@biomejs/biome": "biome recommends pinning the particular version, see https://github.com/marketplace/actions/setup-biome"
 	},
 	"resolutions": {
 		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch",

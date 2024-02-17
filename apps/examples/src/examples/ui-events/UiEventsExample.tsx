@@ -1,14 +1,19 @@
 import { TLUiEventHandler, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { useCallback, useState } from 'react'
+import { Fragment, useCallback, useState } from 'react'
+import { getCodeSnippet } from './codeSnippets'
 
 // There's a guide at the bottom of this file!
 
 export default function UiEventsExample() {
 	const [uiEvents, setUiEvents] = useState<string[]>([])
 
-	const handleUiEvent = useCallback<TLUiEventHandler>((name, data) => {
-		setUiEvents((events) => [`${name} ${JSON.stringify(data)}`, ...events])
+	const handleUiEvent = useCallback<TLUiEventHandler>((name, data: any) => {
+		const codeSnippet = getCodeSnippet(name, data)
+		setUiEvents((events) => [
+			`event: ${name} ${JSON.stringify(data)}${codeSnippet && `\ncode:  ${codeSnippet}`}`,
+			...events,
+		])
 	}, [])
 
 	return (
@@ -32,7 +37,11 @@ export default function UiEventsExample() {
 				}}
 			>
 				{uiEvents.map((t, i) => (
-					<div key={i}>{t}</div>
+					<Fragment key={i}>
+						<pre style={{ borderBottom: '1px solid #000', marginBottom: 0, paddingBottom: '12px' }}>
+							{t}
+						</pre>
+					</Fragment>
 				))}
 			</div>
 		</div>
@@ -44,6 +53,9 @@ This example shows how to listen to UI events. This includes includes things lik
 grouping shapes, zooming etc. Events are included even if they are triggered by a keyboard shortcut.
 However, interactions with the style panel are not included. For a full list of events and sources,
 check out the TLUiEventSource and TLUiEventMap types.
+
+It also shows the relevant code snippet for each event. This is useful for debugging and learning
+the tldraw SDK.
 
 We can pass a handler function to the onUiEvent prop of the Tldraw component. This handler function
 will be called with the name of the event and the data associated with the event. We're going to 

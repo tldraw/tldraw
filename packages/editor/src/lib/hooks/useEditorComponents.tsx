@@ -50,6 +50,7 @@ import {
 } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner, TLSpinnerComponent } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs, TLSvgDefsComponent } from '../components/default-components/DefaultSvgDefs'
+import { useShallowObjectIdentity } from './useIdentity'
 
 export interface BaseEditorComponents {
 	Background: TLBackgroundComponent
@@ -97,7 +98,11 @@ type ComponentsContextProviderProps = {
 	children: any
 }
 
-export function EditorComponentsProvider({ overrides, children }: ComponentsContextProviderProps) {
+export function EditorComponentsProvider({
+	overrides = {},
+	children,
+}: ComponentsContextProviderProps) {
+	const _overrides = useShallowObjectIdentity(overrides)
 	return (
 		<EditorComponentsContext.Provider
 			value={useMemo(
@@ -127,9 +132,9 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 					HoveredShapeIndicator: DefaultHoveredShapeIndicator,
 					OnTheCanvas: null,
 					InFrontOfTheCanvas: null,
-					...overrides,
+					..._overrides,
 				}),
-				[overrides]
+				[_overrides]
 			)}
 		>
 			{children}

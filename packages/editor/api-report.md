@@ -16,10 +16,9 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
-import { HTMLProps } from 'react';
+import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
-import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { PointerEventHandler } from 'react';
@@ -157,7 +156,14 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     // (undocumented)
     getGeometry(shape: Shape): Geometry2d;
     // (undocumented)
+    getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
+    // (undocumented)
     onResize: TLOnResizeHandler<any>;
+}
+
+// @public
+export interface BoundsSnapGeometry {
+    points?: VecModel[];
 }
 
 // @public (undocumented)
@@ -198,6 +204,8 @@ export class Box {
     containsPoint(V: VecLike, margin?: number): boolean;
     // (undocumented)
     get corners(): Vec[];
+    // (undocumented)
+    get cornersAndCenter(): Vec[];
     // (undocumented)
     static Equals(a: Box | BoxModel, b: Box | BoxModel): boolean;
     // (undocumented)
@@ -264,8 +272,6 @@ export class Box {
     get sides(): Array<[Vec, Vec]>;
     // (undocumented)
     get size(): Vec;
-    // (undocumented)
-    get snapPoints(): Vec[];
     // (undocumented)
     snapToGrid(size: number): void;
     // (undocumented)
@@ -352,6 +358,12 @@ export function clockwiseAngleDist(a0: number, a1: number): number;
 
 export { computed }
 
+// @internal (undocumented)
+export function ContainerProvider({ container, children, }: {
+    container: HTMLDivElement;
+    children: React.ReactNode;
+}): JSX_2.Element;
+
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
@@ -425,22 +437,7 @@ export function dataUrlToFile(url: string, filename: string, mimeType: string): 
 export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
 
 // @internal (undocumented)
-export const debugFlags: {
-    preventDefaultLogging: DebugFlag<boolean>;
-    pointerCaptureLogging: DebugFlag<boolean>;
-    pointerCaptureTracking: DebugFlag<boolean>;
-    pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
-    elementRemovalLogging: DebugFlag<boolean>;
-    debugSvg: DebugFlag<boolean>;
-    showFps: DebugFlag<boolean>;
-    throwToBlob: DebugFlag<boolean>;
-    logMessages: DebugFlag<any[]>;
-    resetConnectionEveryPing: DebugFlag<boolean>;
-    debugCursors: DebugFlag<boolean>;
-    forceSrgb: DebugFlag<boolean>;
-    debugGeometry: DebugFlag<boolean>;
-    hideShapes: DebugFlag<boolean>;
-};
+export const debugFlags: Record<string, DebugFlag<boolean>>;
 
 // @internal (undocumented)
 export const DEFAULT_ANIMATION_OPTIONS: {
@@ -503,7 +500,7 @@ export const DefaultSvgDefs: () => null;
 // @public (undocumented)
 export const defaultUserPreferences: Readonly<{
     name: "New User";
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     isDarkMode: false;
     edgeScrollSpeed: 1;
@@ -548,7 +545,6 @@ export class Edge2d extends Geometry2d {
     constructor(config: {
         start: Vec;
         end: Vec;
-        isSnappable?: boolean;
     });
     // (undocumented)
     d: Vec;
@@ -698,7 +694,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
-    getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
+    getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
     getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
     getHoveredShape(): TLShape | undefined;
@@ -845,7 +841,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     } : TLExternalContent) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     renderingBoundsMargin: number;
-    reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
+    reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, animation?: TLAnimationOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     readonly root: RootState;
@@ -912,16 +908,22 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateRenderingBounds(): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, historyOptions?: TLCommandHistoryOptions): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
-    updateViewportScreenBounds(center?: boolean): this;
+    updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, animation?: TLAnimationOptions): this;
     zoomOut(point?: Vec, animation?: TLAnimationOptions): this;
-    zoomToBounds(bounds: Box, targetZoom?: number, animation?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box, opts?: {
+        targetZoom?: number;
+        inset?: number;
+    } & TLAnimationOptions): this;
     zoomToContent(): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
+
+// @internal (undocumented)
+export const EditorContext: React_2.Context<Editor>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -999,11 +1001,7 @@ export abstract class Geometry2d {
     // (undocumented)
     get area(): number;
     // (undocumented)
-    _area: number | undefined;
-    // (undocumented)
     get bounds(): Box;
-    // (undocumented)
-    _bounds: Box | undefined;
     // (undocumented)
     get center(): Vec;
     // (undocumented)
@@ -1033,21 +1031,13 @@ export abstract class Geometry2d {
     // (undocumented)
     isPointInBounds(point: Vec, margin?: number): boolean;
     // (undocumented)
-    isSnappable: boolean;
-    // (undocumented)
     abstract nearestPoint(point: Vec): Vec;
     // (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
-    get snapPoints(): Vec[];
-    // (undocumented)
-    _snapPoints: undefined | Vec[];
-    // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
     get vertices(): Vec[];
-    // (undocumented)
-    _vertices: undefined | Vec[];
 }
 
 // @public
@@ -1067,27 +1057,6 @@ export function getFreshUserPreferences(): TLUserPreferences;
 
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
-
-// @public
-export function getIndexAbove(below: string): string;
-
-// @public
-export function getIndexBelow(above: string): string;
-
-// @public
-export function getIndexBetween(below: string, above?: string): string;
-
-// @public
-export function getIndices(n: number, start?: string): string[];
-
-// @public
-export function getIndicesAbove(below: string, n: number): string[];
-
-// @public
-export function getIndicesBelow(above: string, n: number): string[];
-
-// @public
-export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
 
 // @public (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
@@ -1182,6 +1151,12 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 // @public (undocumented)
 export const HALF_PI: number;
+
+// @public
+export interface HandleSnapGeometry {
+    outline?: Geometry2d | null;
+    points?: VecModel[];
+}
 
 // @public
 export function hardReset({ shouldReload }?: {
@@ -1476,13 +1451,6 @@ export class Polyline2d extends Geometry2d {
 }
 
 // @public (undocumented)
-export const PositionedOnCanvas: MemoExoticComponent<({ x: offsetX, y: offsetY, rotation, ...rest }: {
-x?: number | undefined;
-y?: number | undefined;
-rotation?: number | undefined;
-} & HTMLProps<HTMLDivElement>) => JSX_2.Element>;
-
-// @public (undocumented)
 export function precise(A: VecLike): string;
 
 // @public
@@ -1647,10 +1615,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
+    getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
+    getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     getOutlineSegments(shape: Shape): Vec[][];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
@@ -1746,11 +1716,6 @@ export class SnapManager {
     // (undocumented)
     readonly shapeBounds: BoundsSnaps;
 }
-
-// @public
-export function sortByIndex<T extends {
-    index: string;
-}>(a: T, b: T): -1 | 0 | 1;
 
 // @public (undocumented)
 export class Stadium2d extends Ellipse2d {
@@ -1860,6 +1825,7 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 // @public (undocumented)
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
+    readonly isDarkMode: boolean;
 }
 
 // @public (undocumented)
@@ -2837,6 +2803,8 @@ export class Vec {
     static FromAngle(r: number, length?: number): Vec;
     // (undocumented)
     static FromArray(v: number[]): Vec;
+    // (undocumented)
+    static IsNaN(A: VecLike): boolean;
     // (undocumented)
     static Len(A: VecLike): number;
     // (undocumented)

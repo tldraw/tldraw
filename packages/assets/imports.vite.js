@@ -5,6 +5,23 @@
 /// <reference path="./modules.d.ts" />
 import { formatAssetUrl } from './utils.js'
 
+import embedIconsCodepen from './embed-icons/codepen.png?url'
+import embedIconsCodesandbox from './embed-icons/codesandbox.png?url'
+import embedIconsExcalidraw from './embed-icons/excalidraw.png?url'
+import embedIconsFelt from './embed-icons/felt.png?url'
+import embedIconsFigma from './embed-icons/figma.png?url'
+import embedIconsGithubGist from './embed-icons/github_gist.png?url'
+import embedIconsGoogleCalendar from './embed-icons/google_calendar.png?url'
+import embedIconsGoogleMaps from './embed-icons/google_maps.png?url'
+import embedIconsGoogleSlides from './embed-icons/google_slides.png?url'
+import embedIconsObservable from './embed-icons/observable.png?url'
+import embedIconsReplit from './embed-icons/replit.png?url'
+import embedIconsScratch from './embed-icons/scratch.png?url'
+import embedIconsSpotify from './embed-icons/spotify.png?url'
+import embedIconsTldraw from './embed-icons/tldraw.png?url'
+import embedIconsValTown from './embed-icons/val_town.png?url'
+import embedIconsVimeo from './embed-icons/vimeo.png?url'
+import embedIconsYoutube from './embed-icons/youtube.png?url'
 import fontsMonospace from './fonts/IBMPlexMono-Medium.woff2?url'
 import fontsSansSerif from './fonts/IBMPlexSans-Medium.woff2?url'
 import fontsSerif from './fonts/IBMPlexSerif-Medium.woff2?url'
@@ -186,6 +203,7 @@ import translationsFr from './translations/fr.json?url'
 import translationsGl from './translations/gl.json?url'
 import translationsHe from './translations/he.json?url'
 import translationsHiIn from './translations/hi-in.json?url'
+import translationsHr from './translations/hr.json?url'
 import translationsHu from './translations/hu.json?url'
 import translationsIt from './translations/it.json?url'
 import translationsJa from './translations/ja.json?url'
@@ -201,6 +219,7 @@ import translationsPtBr from './translations/pt-br.json?url'
 import translationsPtPt from './translations/pt-pt.json?url'
 import translationsRo from './translations/ro.json?url'
 import translationsRu from './translations/ru.json?url'
+import translationsSl from './translations/sl.json?url'
 import translationsSv from './translations/sv.json?url'
 import translationsTe from './translations/te.json?url'
 import translationsTh from './translations/th.json?url'
@@ -209,23 +228,6 @@ import translationsUk from './translations/uk.json?url'
 import translationsVi from './translations/vi.json?url'
 import translationsZhCn from './translations/zh-cn.json?url'
 import translationsZhTw from './translations/zh-tw.json?url'
-import embedIconsCodepen from './embed-icons/codepen.png?url'
-import embedIconsCodesandbox from './embed-icons/codesandbox.png?url'
-import embedIconsExcalidraw from './embed-icons/excalidraw.png?url'
-import embedIconsFelt from './embed-icons/felt.png?url'
-import embedIconsFigma from './embed-icons/figma.png?url'
-import embedIconsGithubGist from './embed-icons/github_gist.png?url'
-import embedIconsGoogleCalendar from './embed-icons/google_calendar.png?url'
-import embedIconsGoogleMaps from './embed-icons/google_maps.png?url'
-import embedIconsGoogleSlides from './embed-icons/google_slides.png?url'
-import embedIconsObservable from './embed-icons/observable.png?url'
-import embedIconsReplit from './embed-icons/replit.png?url'
-import embedIconsScratch from './embed-icons/scratch.png?url'
-import embedIconsSpotify from './embed-icons/spotify.png?url'
-import embedIconsTldraw from './embed-icons/tldraw.png?url'
-import embedIconsValTown from './embed-icons/val_town.png?url'
-import embedIconsVimeo from './embed-icons/vimeo.png?url'
-import embedIconsYoutube from './embed-icons/youtube.png?url'
 
 /**
  * @param {AssetUrlOptions} [opts]
@@ -419,6 +421,7 @@ export function getAssetUrlsByImport(opts) {
 			gl: formatAssetUrl(translationsGl, opts),
 			he: formatAssetUrl(translationsHe, opts),
 			'hi-in': formatAssetUrl(translationsHiIn, opts),
+			hr: formatAssetUrl(translationsHr, opts),
 			hu: formatAssetUrl(translationsHu, opts),
 			it: formatAssetUrl(translationsIt, opts),
 			ja: formatAssetUrl(translationsJa, opts),
@@ -434,6 +437,7 @@ export function getAssetUrlsByImport(opts) {
 			'pt-pt': formatAssetUrl(translationsPtPt, opts),
 			ro: formatAssetUrl(translationsRo, opts),
 			ru: formatAssetUrl(translationsRu, opts),
+			sl: formatAssetUrl(translationsSl, opts),
 			sv: formatAssetUrl(translationsSv, opts),
 			te: formatAssetUrl(translationsTe, opts),
 			th: formatAssetUrl(translationsTh, opts),

@@ -1,6 +1,7 @@
 import {
-	Button,
-	Icon,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiIcon,
 	track,
 	useEditor,
 	usePresence,
@@ -34,30 +35,33 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 
 	return (
 		<div className="tlui-people-menu__item tlui-buttons__horizontal">
-			<Button
+			<TldrawUiButton
 				type="menu"
 				className="tlui-people-menu__item__button"
 				onClick={() => editor.animateToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
-				<Icon icon="color" color={presence.color} />
+				<TldrawUiIcon icon="color" color={presence.color} />
 				<div className="tlui-people-menu__name">{presence.userName ?? 'New User'}</div>
-			</Button>
-			<Button
+			</TldrawUiButton>
+			<TldrawUiButton
 				type="icon"
 				className="tlui-people-menu__item__follow"
 				title={
 					theyAreFollowingYou
 						? msg('people-menu.leading')
 						: youAreFollowingThem
-						  ? msg('people-menu.following')
-						  : msg('people-menu.follow')
+							? msg('people-menu.following')
+							: msg('people-menu.follow')
 				}
-				icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}
 				onClick={handleFollowClick}
 				disabled={theyAreFollowingYou}
 				data-active={youAreFollowingThem || theyAreFollowingYou}
-			/>
+			>
+				<TldrawUiButtonIcon
+					icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}
+				/>
+			</TldrawUiButton>
 		</div>
 	)
 })

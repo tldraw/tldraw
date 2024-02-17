@@ -121,13 +121,13 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							migrations: ourType.migrations,
 							fromVersion: persistedVersion,
 							toVersion: ourVersion,
-					  })
+						})
 					: migrateRecord<R>({
 							record,
 							migrations: ourType.migrations,
 							fromVersion: ourVersion,
 							toVersion: persistedVersion,
-					  })
+						})
 			if (result.type === 'error') {
 				return result
 			}
@@ -174,13 +174,13 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						migrations: ourSubTypeMigrations,
 						fromVersion: persistedSubTypeVersion,
 						toVersion: ourSubTypeMigrations.currentVersion,
-				  })
+					})
 				: migrateRecord<R>({
 						record,
 						migrations: ourSubTypeMigrations,
 						fromVersion: ourSubTypeMigrations.currentVersion,
 						toVersion: persistedSubTypeVersion,
-				  })
+					})
 
 		if (result.type === 'error') {
 			return result
@@ -258,12 +258,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 												k,
 												v.currentVersion,
 											])
-									  )
+										)
 									: undefined,
-						  }
+							}
 						: {
 								version: type.migrations.currentVersion,
-						  },
+							},
 				])
 			),
 		}
@@ -286,12 +286,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 												k,
 												v.firstVersion,
 											])
-									  )
+										)
 									: undefined,
-						  }
+							}
 						: {
 								version: type.migrations.firstVersion,
-						  },
+							},
 				])
 			),
 		}

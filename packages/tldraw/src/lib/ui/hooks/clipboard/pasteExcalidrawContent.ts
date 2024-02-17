@@ -15,6 +15,7 @@ import {
 	TLShapeId,
 	Vec,
 	VecLike,
+	ZERO_INDEX_KEY,
 	compact,
 	createShapeId,
 	getIndexAbove,
@@ -63,7 +64,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 		}
 	})
 
-	let index = 'a1'
+	let index = ZERO_INDEX_KEY
 
 	for (const element of elements) {
 		if (skipIds.has(element.id)) {
@@ -244,12 +245,12 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 									normalizedAnchor: { x: 0.5, y: 0.5 },
 									isPrecise: false,
 									isExact: false,
-							  }
+								}
 							: {
 									type: 'point',
 									x: start[0],
 									y: start[1],
-							  },
+								},
 						end: endTargetId
 							? {
 									type: 'binding',
@@ -257,12 +258,12 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 									normalizedAnchor: { x: 0.5, y: 0.5 },
 									isPrecise: false,
 									isExact: false,
-							  }
+								}
 							: {
 									type: 'point',
 									x: end[0],
 									y: end[1],
-							  },
+								},
 						arrowheadEnd: arrowheadsToArrowheadTypes[element.endArrowhead] ?? 'none',
 						arrowheadStart: arrowheadsToArrowheadTypes[element.startArrowhead] ?? 'none',
 					},

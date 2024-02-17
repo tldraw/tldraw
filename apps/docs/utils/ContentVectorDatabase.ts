@@ -217,8 +217,8 @@ export async function getVectorDb(
 			INCLUDE_API_CONTENT && INCLUDE_CONTENT
 				? await db.all('SELECT * FROM articles')
 				: INCLUDE_API_CONTENT
-				  ? await db.all('SELECT * FROM articles WHERE articles.sectionId = ?', 'reference')
-				  : await db.all('SELECT * FROM articles WHERE articles.sectionId != ?', 'reference')
+					? await db.all('SELECT * FROM articles WHERE articles.sectionId = ?', 'reference')
+					: await db.all('SELECT * FROM articles WHERE articles.sectionId != ?', 'reference')
 
 		nicelog(`Adding articles to index`)
 		const max = Math.min(articles.length, MAX_ARTICLES)

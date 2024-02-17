@@ -34,13 +34,6 @@ export class Idle extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		updateHoveredId(this.editor)
-
-		const hitShape = this.editor.getHoveredShape()
-		if (this.isOverArrowLabelTest(hitShape)) {
-			this.editor.setCursor({ type: 'pointer', rotation: 0 })
-		} else {
-			this.editor.setCursor({ type: 'default', rotation: 0 })
-		}
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -195,10 +188,10 @@ export class Idle extends StateNode {
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
-						  this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
 								hitInside: false,
-						  })
+							})
 
 				const focusedGroupId = this.editor.getFocusedGroupId()
 
@@ -354,7 +347,7 @@ export class Idle extends StateNode {
 								hitLabels: true,
 								hitFrameInside: false,
 								renderingOnly: true,
-						  })
+							})
 
 				if (hitShape) {
 					this.onRightClick({
@@ -585,8 +578,8 @@ export class Idle extends StateNode {
 				? gridSize * GRID_INCREMENT
 				: gridSize
 			: shiftKey
-			  ? MAJOR_NUDGE_FACTOR
-			  : MINOR_NUDGE_FACTOR
+				? MAJOR_NUDGE_FACTOR
+				: MINOR_NUDGE_FACTOR
 
 		this.editor.nudgeShapes(this.editor.getSelectedShapeIds(), delta.mul(step))
 	}

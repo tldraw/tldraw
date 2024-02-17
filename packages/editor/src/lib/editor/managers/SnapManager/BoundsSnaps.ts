@@ -1,5 +1,5 @@
 import { computed } from '@tldraw/state'
-import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { assertExists, dedupe } from '@tldraw/utils'
 import {
 	Box,
@@ -21,6 +21,20 @@ import {
 	SnapIndicator,
 	SnapManager,
 } from './SnapManager'
+
+/**
+ * When moving or resizing shapes, the bounds of the shape can snap to key geometry on other nearby
+ * shapes. Customize how a shape snaps to others with {@link ShapeUtil.getBoundsSnapGeometry}.
+ *
+ * @public
+ */
+export interface BoundsSnapGeometry {
+	/**
+	 * Points that this shape will snap to. By default, this will be the corners and center of the
+	 * shapes bounding box. To disable snapping to a specific point, use an empty array.
+	 */
+	points?: VecModel[]
+}
 
 /** @public */
 export interface BoundsSnapPoint {
@@ -188,11 +202,15 @@ export class BoundsSnaps {
 	@computed private getSnapPointsCache() {
 		const { editor } = this
 		return editor.store.createComputedCache<BoundsSnapPoint[], TLShape>('snapPoints', (shape) => {
-			const pageTransfrorm = editor.getShapePageTransform(shape.id)
-			if (!pageTransfrorm) return undefined
-			const snapPoints = this.editor.getShapeGeometry(shape).snapPoints
+			const pageTransform = editor.getShapePageTransform(shape.id)
+			if (!pageTransform) return undefined
+			const boundsSnapGeometry = editor.getShapeUtil(shape).getBoundsSnapGeometry(shape)
+			const snapPoints =
+				boundsSnapGeometry.points ?? editor.getShapeGeometry(shape).bounds.cornersAndCenter
+
+			if (!pageTransform || !snapPoints) return undefined
 			return snapPoints.map((point, i) => {
-				const { x, y } = Mat.applyToPoint(pageTransfrorm, point)
+				const { x, y } = Mat.applyToPoint(pageTransform, point)
 				return { x, y, id: `${shape.id}:${i}` }
 			})
 		})
@@ -208,12 +226,12 @@ export class BoundsSnaps {
 		const snappableShapes = this.manager.getSnappableShapes()
 		const result: BoundsSnapPoint[] = []
 
-		snappableShapes.forEach((shapeId) => {
+		for (const shapeId of snappableShapes) {
 			const snapPoints = snapPointsCache.get(shapeId)
 			if (snapPoints) {
 				result.push(...snapPoints)
 			}
-		})
+		}
 
 		return result
 	}
@@ -499,8 +517,8 @@ export class BoundsSnaps {
 						? 'x'
 						: 'y'
 					: nearestSnapsX.length
-					  ? 'x'
-					  : 'y'
+						? 'x'
+						: 'y'
 
 			const ratio = initialSelectionPageBounds.aspectRatio
 
@@ -1049,7 +1067,7 @@ export class BoundsSnaps {
 												'forward',
 												gapBreadthIntersection
 											),
-									  ]
+										]
 									: [
 											...findAdjacentGaps(
 												horizontal,
@@ -1065,7 +1083,7 @@ export class BoundsSnaps {
 												) as [Vec, Vec],
 												endEdge: selectionSides.left,
 											},
-									  ],
+										],
 						})
 
 						break
@@ -1153,7 +1171,7 @@ export class BoundsSnaps {
 													'forward',
 													gapBreadthIntersection
 												),
-										  ]
+											]
 										: [
 												...findAdjacentGaps(
 													vertical,
@@ -1169,7 +1187,7 @@ export class BoundsSnaps {
 													) as [Vec, Vec],
 													endEdge: selectionSides.top,
 												},
-										  ],
+											],
 							})
 						}
 						break

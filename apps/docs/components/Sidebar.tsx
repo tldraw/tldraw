@@ -12,7 +12,7 @@ import {
 import * as Accordion from '@radix-ui/react-accordion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { createContext, useContext, useEffect } from 'react'
+import { UIEvent, createContext, useContext, useEffect, useRef } from 'react'
 import { SectionLinks } from './Header'
 import { Chevron } from './Icons'
 import { Search } from './Search'
@@ -28,21 +28,46 @@ const linkContext = createContext<{
 	sectionId: string | null
 } | null>(null)
 
+// N.B. UGH, the sidebar's scroll position keeps getting lost when navigation occurs
+// and we keep track of the last known position here outside of the component because
+// it keeps re-rendering.
+let scrollPosition = 0
+
 export function Sidebar({ headings, links, sectionId, categoryId, articleId }: SidebarProps) {
 	const activeId = articleId ?? categoryId ?? sectionId
+	const sidebarRef = useRef<HTMLDivElement>(null)
 
 	const pathName = usePathname()
 
 	useEffect(() => {
 		document.body.classList.remove('sidebar-open')
 
-		document.querySelector('.sidebar__nav [data-active=true]')?.scrollIntoView({ block: 'center' })
+		const sidebarEl = sidebarRef.current
+		if (!sidebarEl) return
+
+		sidebarEl.scrollTo(0, scrollPosition)
+
+		const activeLink = document.querySelector('.sidebar__nav [data-active=true]') as HTMLElement
+		if (
+			activeLink &&
+			(activeLink.offsetTop < sidebarEl.scrollTop ||
+				activeLink.offsetTop > sidebarEl.scrollTop + sidebarEl.clientHeight)
+		) {
+			// The above will *mostly* work to keep the position but we have some accordions that will collapse
+			// (like in the Reference docs) and we need to scroll to the active item.
+			activeLink.scrollIntoView({ block: 'center' })
+		}
 	}, [pathName])
+
+	const handleScroll = (e: UIEvent) => {
+		e.stopPropagation()
+		scrollPosition = sidebarRef.current?.scrollTop ?? 0
+	}
 
 	return (
 		<>
 			<linkContext.Provider value={{ activeId, articleId, categoryId, sectionId }}>
-				<div className="sidebar scroll-light" onScroll={(e) => e.stopPropagation()}>
+				<div ref={sidebarRef} className="sidebar scroll-light" onScroll={handleScroll}>
 					<Search />
 					<div className="sidebar__section__links">
 						<SectionLinks sectionId={sectionId} />
