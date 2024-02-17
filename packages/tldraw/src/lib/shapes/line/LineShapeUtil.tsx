@@ -18,6 +18,7 @@ import {
 	lineShapeMigrations,
 	lineShapeProps,
 	objectMapEntries,
+	objectMapValues,
 	sortByIndex,
 } from '@tldraw/editor'
 
@@ -54,11 +55,15 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			color: 'black',
 			spline: 'line',
 			handles: {
-				[startIndex]: {
+				a: {
+					id: 'a',
+					index: startIndex,
 					x: 0,
 					y: 0,
 				},
-				[endIndex]: {
+				b: {
+					id: 'b',
+					index: endIndex,
 					x: 0.1,
 					y: 0.1,
 				},
@@ -73,39 +78,34 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	override getHandles(shape: TLLineShape) {
 		return handlesCache.get(shape.props, () => {
-			const handles = shape.props.handles
-
 			const spline = getGeometryForLineShape(shape)
 
-			const sortedHandles = objectMapEntries(handles)
-				.map(
-					([index, handle]): TLHandle => ({
-						id: index,
-						index,
-						...handle,
-						type: 'vertex',
-						canBind: false,
-						canSnap: true,
-					})
-				)
-				.sort(sortByIndex)
-			const results = sortedHandles.slice()
+			const results: TLHandle[] = []
 
-			// Add "create" handles between each vertex handle
-			for (let i = 0; i < spline.segments.length; i++) {
-				const segment = spline.segments[i]
-				const point = segment.midPoint()
-				const index = getIndexBetween(sortedHandles[i].index, sortedHandles[i + 1].index)
+			const sortedHandles = objectMapValues(shape.props.handles).sort(sortByIndex)
 
+			for (let i = 0; i < sortedHandles.length; i++) {
+				const handle = sortedHandles[i]
 				results.push({
-					id: `mid-${i}`,
-					type: 'create',
-					index,
-					x: point.x,
-					y: point.y,
-					canSnap: true,
+					...handle,
+					type: 'vertex',
 					canBind: false,
+					canSnap: true,
 				})
+				if (i < sortedHandles.length - 1) {
+					const segment = spline.segments[i]
+					const point = segment.midPoint()
+					const index = getIndexBetween(sortedHandles[i].index, sortedHandles[i + 1].index)
+					results.push({
+						id: index,
+						type: 'create',
+						index,
+						x: point.x,
+						y: point.y,
+						canSnap: true,
+						canBind: false,
+					})
+				}
 			}
 
 			return results.sort(sortByIndex)
@@ -137,13 +137,22 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
+		// If the dragging handle is a "create" handle, then we want to create
+		// a new handle rather than updating an existing one. All we need to do
+		// here is create a new id. The dragging handle isn't yet represented in the
+		// props of the shape, so by assigning a new id we'll create a new handle.
 		return {
 			...shape,
 			props: {
 				...shape.props,
 				handles: {
 					...shape.props.handles,
-					[handle.index]: { x: handle.x, y: handle.y },
+					[handle.id]: {
+						id: handle.id,
+						index: handle.index,
+						x: handle.x,
+						y: handle.y,
+					},
 				},
 			},
 		}
@@ -392,10 +401,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 /** @public */
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
 	const { spline, handles } = shape.props
-	const handlePoints = objectMapEntries(handles)
-		.map(([index, position]) => ({ index, ...position }))
-		.sort(sortByIndex)
-		.map(Vec.From)
+	const handlePoints = objectMapValues(handles).sort(sortByIndex).map(Vec.From)
 
 	switch (spline) {
 		case 'cubic': {

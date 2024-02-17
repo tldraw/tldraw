@@ -1,7 +1,6 @@
 import { IndexKey, TLGeoShape, TLLineShape, createShapeId, deepCopy } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TL } from '../../../test/test-jsx'
-import { LineShapeUtil } from './LineShapeUtil'
 
 jest.mock('nanoid', () => {
 	let i = 0
@@ -18,7 +17,7 @@ beforeEach(() => {
 	editor
 		.selectAll()
 		.deleteShapes(editor.getSelectedShapeIds())
-		.createShapes([
+		.createShapes<TLLineShape>([
 			{
 				id: id,
 				type: 'line',
@@ -26,11 +25,15 @@ beforeEach(() => {
 				y: 150,
 				props: {
 					handles: {
-						a1: {
+						a: {
+							id: 'a',
+							index: 'a1' as IndexKey,
 							x: 0,
 							y: 0,
 						},
-						a2: {
+						b: {
+							id: 'b',
+							index: 'a2' as IndexKey,
 							x: 100,
 							y: 100,
 						},
@@ -41,7 +44,7 @@ beforeEach(() => {
 })
 
 const getShape = () => editor.getShape<TLLineShape>(id)!
-const getHandles = () => (editor.getShapeUtil('line') as LineShapeUtil).getHandles(getShape())
+const getHandles = () => editor.getShapeHandles<TLLineShape>(id)!
 
 describe('Translating', () => {
 	it('updates the line', () => {
@@ -94,7 +97,9 @@ describe('Mid-point handles', () => {
 			id: id,
 			props: {
 				handles: {
-					a1V: { x: 200, y: 200 },
+					a: { id: 'a', index: 'a1', x: 0, y: 0 },
+					// a1v: { id: 'b', index: 'a1v', x: 50, y: 50 },
+					b: { id: 'b', index: 'a2', x: 100, y: 100 },
 				},
 			},
 		})
@@ -109,33 +114,32 @@ describe('Mid-point handles', () => {
 			.pointerDown(200, 200, {
 				target: 'handle',
 				shape: getShape(),
-				handle: getHandles().find((h) => h.id === 'mid-0')!,
+				handle: getHandles().find((h) => h.index === 'a1V')!,
 			})
 			.pointerMove(198, 230, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
-		editor.expectShapeToMatch({
-			id: id,
-			props: {
-				handles: {
-					a1V: { x: 50, y: 80 },
-				},
-			},
-		})
+		expect(editor.getShapeHandles(id)).toHaveLength(5) // 3 real + 2
+		const handles = Object.values(editor.getShape<TLLineShape>(id)!.props.handles)
+		expect(handles).toHaveLength(3)
+		expect(handles[0]).toMatchObject({ id: 'a', index: 'a1', x: 0, y: 0 })
+		expect(handles[1]).toMatchObject({ id: 'b', index: 'a2', x: 100, y: 100 })
+		expect(handles[2]).toMatchObject({ index: 'a1V', x: 50, y: 80 })
 	})
 
 	it('allows snapping with created mid-point handles', () => {
 		editor.createShapesFromJsx([<TL.geo x={200} y={200} w={100} h={100} />])
-		editor.select(id)
 
 		// use a mid-point handle to create a new handle
 		editor
+			.select(id)
 			.pointerDown(200, 200, {
 				target: 'handle',
 				shape: getShape(),
-				handle: getHandles().find((h) => h.id === 'mid-0')!,
+				handle: getHandles().find((h) => h.index === 'a1V')!,
 			})
 			.pointerMove(230, 200)
+			.pointerMove(240, 200)
 			.pointerMove(200, 200)
 			.pointerUp()
 
@@ -147,19 +151,17 @@ describe('Mid-point handles', () => {
 			.pointerDown(200, 200, {
 				target: 'handle',
 				shape: getShape(),
-				handle: getHandles().find((h) => h.id === 'a1V')!,
+				handle: getHandles().find((h) => h.index === 'a1V')!,
 			})
 			.pointerMove(198, 230, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
-		editor.expectShapeToMatch({
-			id: id,
-			props: {
-				handles: {
-					a1V: { x: 50, y: 80 },
-				},
-			},
-		})
+		expect(editor.getShapeHandles(id)).toHaveLength(5) // 3 real + 2
+		const handles = Object.values(editor.getShape<TLLineShape>(id)!.props.handles)
+		expect(handles).toHaveLength(3)
+		expect(handles[0]).toMatchObject({ id: 'a', index: 'a1', x: 0, y: 0 })
+		expect(handles[1]).toMatchObject({ id: 'b', index: 'a2', x: 100, y: 100 })
+		expect(handles[2]).toMatchObject({ index: 'a1V', x: 50, y: 80 })
 	})
 })
 
@@ -170,10 +172,10 @@ describe('Snapping', () => {
 			type: 'line',
 			props: {
 				handles: {
-					a1: { x: 0, y: 0 },
-					a2: { x: 100, y: 0 },
-					a3: { x: 100, y: 100 },
-					a4: { x: 0, y: 100 },
+					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2', x: 100, y: 0 },
+					a3: { id: 'a3', index: 'a3', x: 100, y: 100 },
+					a4: { id: 'a4', index: 'a4', x: 0, y: 100 },
 				},
 			},
 		})
@@ -220,7 +222,10 @@ describe('Snapping', () => {
 			<TL.line
 				x={150}
 				y={150}
-				handles={{ ['a1' as IndexKey]: { x: 200, y: 0 }, ['a2' as IndexKey]: { x: 300, y: 0 } }}
+				handles={{
+					a: { id: 'a', index: 'a1' as IndexKey, x: 200, y: 0 },
+					b: { id: 'b', index: 'a2' as IndexKey, x: 300, y: 0 },
+				}}
 			/>,
 		])
 

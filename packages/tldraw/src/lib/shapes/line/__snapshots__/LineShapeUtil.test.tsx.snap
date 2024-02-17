@@ -12,11 +12,15 @@ exports[`Misc resizes: line shape after resize 1`] = `
     "color": "black",
     "dash": "draw",
     "handles": {
-      "a1": {
+      "a": {
+        "id": "a",
+        "index": "a1",
         "x": 0,
         "y": 0,
       },
-      "a2": {
+      "b": {
+        "id": "b",
+        "index": "a2",
         "x": 100,
         "y": 700,
       },

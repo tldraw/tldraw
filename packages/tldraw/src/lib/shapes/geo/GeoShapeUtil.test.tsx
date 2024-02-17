@@ -17,7 +17,10 @@ describe('Handle snapping', () => {
 				ref="line"
 				x={0}
 				y={0}
-				handles={{ ['a1' as IndexKey]: { x: 200, y: 0 }, ['a2' as IndexKey]: { x: 200, y: 100 } }}
+				handles={{
+					a: { id: 'a', index: 'a1' as IndexKey, x: 200, y: 0 },
+					b: { id: 'b', index: 'a2' as IndexKey, x: 200, y: 100 },
+				}}
 			/>,
 		])
 	})

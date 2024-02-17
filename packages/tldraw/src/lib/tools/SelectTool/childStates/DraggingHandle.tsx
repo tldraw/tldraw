@@ -15,6 +15,7 @@ import {
 	deepCopy,
 	snapAngle,
 	sortByIndex,
+	uniqueId,
 } from '@tldraw/editor'
 
 export class DraggingHandle extends StateNode {
@@ -54,7 +55,18 @@ export class DraggingHandle extends StateNode {
 		this.shapeId = shape.id
 		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
 		if (!isCreating) this.editor.mark(this.markId)
+
 		this.initialHandle = deepCopy(handle)
+
+		// Change create handles to new vertex handle?
+		if (this.initialHandle.type === 'create') {
+			this.initialHandle = {
+				...this.initialHandle,
+				id: uniqueId(),
+				type: 'vertex',
+			}
+		}
+
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
@@ -216,6 +228,7 @@ export class DraggingHandle extends StateNode {
 		} = editor
 
 		const initial = this.info.shape
+
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)

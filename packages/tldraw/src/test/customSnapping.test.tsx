@@ -205,8 +205,8 @@ describe('custom handle snapping', () => {
 				x={0}
 				y={0}
 				handles={{
-					['a1' as IndexKey]: { x: 0, y: 0 },
-					['a2' as IndexKey]: { x: 100, y: 100 },
+					a: { id: 'a', index: 'a1' as IndexKey, x: 0, y: 0 },
+					b: { id: 'b', index: 'a2' as IndexKey, x: 100, y: 100 },
 				}}
 			/>,
 			<TL.test ref="test" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,

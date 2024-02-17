@@ -674,7 +674,12 @@ export const lineShapeProps: {
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
-    handles: T.DictValidator<IndexKey, VecModel>;
+    handles: T.DictValidator<string, {
+        id: string;
+        index: IndexKey;
+        x: number;
+        y: number;
+    }>;
 };
 
 // @public (undocumented)
@@ -1143,6 +1148,9 @@ export type TLLanguage = (typeof LANGUAGES)[number];
 
 // @public (undocumented)
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>;
+
+// @public (undocumented)
+export type TLLineShapeHandle = T.TypeOf<typeof handleModelValidator>;
 
 // @public (undocumented)
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;

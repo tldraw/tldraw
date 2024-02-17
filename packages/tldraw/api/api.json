@@ -10239,16 +10239,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        points: import(\"@tldraw/editor\")."
+                  "text": "{\n        points: {\n            id: string;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "VecModel",
-                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n    }"
+                  "text": ";\n            x: number;\n            y: number;\n        }[];\n    }"
                 },
                 {
                   "kind": "Content",
@@ -10684,7 +10684,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            id: string;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10693,16 +10693,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "VecModel",
-                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">;\n    }"
+                  "text": ";\n            x: number;\n            y: number;\n        }>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -10715,7 +10706,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 16
+                "endIndex": 14
               },
               "isStatic": true,
               "isProtected": false,

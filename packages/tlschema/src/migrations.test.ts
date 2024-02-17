@@ -1937,6 +1937,67 @@ describe('Remove extra handle props', () => {
 	})
 })
 
+describe('Restore some handle props', () => {
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.RestoreSomeProps]
+	it('up works as expected', () => {
+		expect(
+			up({
+				props: {
+					handles: {
+						a1: { x: 0, y: 0 },
+						a1V: { x: 76, y: 60 },
+						a2: { x: 190, y: -62 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					'handle:a1': {
+						id: 'handle:a1',
+						index: 'a1',
+						x: 0,
+						y: 0,
+					},
+					'handle:a2': {
+						id: 'handle:a2',
+						index: 'a2',
+						x: 190,
+						y: -62,
+					},
+					'handle:a1V': {
+						id: 'handle:a1V',
+						index: 'a1V',
+						x: 76,
+						y: 60,
+					},
+				},
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					handles: {
+						cat: { id: 'cat', index: 'a1', x: 0, y: 0 },
+						dog: { id: 'dog', index: 'a2', x: 190, y: -62 },
+						rat: { id: 'rat', index: 'a1V', x: 76, y: 60 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					a1: { x: 0, y: 0 },
+					a1V: { x: 76, y: 60 },
+					a2: { x: 190, y: -62 },
+				},
+			},
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

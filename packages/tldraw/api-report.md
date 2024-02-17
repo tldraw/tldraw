@@ -867,7 +867,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): {
-        points: VecModel[];
+        points: {
+            id: string;
+            index: IndexKey;
+            x: number;
+            y: number;
+        }[];
     };
     // (undocumented)
     getOutlineSegments(shape: TLLineShape): Vec[][];
@@ -893,7 +898,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
-        handles: DictValidator<IndexKey, VecModel>;
+        handles: DictValidator<string, {
+        id: string;
+        index: IndexKey;
+        x: number;
+        y: number;
+        }>;
     };
     // (undocumented)
     toSvg(shape: TLLineShape, ctx: SvgExportContext): SVGGElement;
