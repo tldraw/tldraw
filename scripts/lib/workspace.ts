@@ -1,7 +1,6 @@
-import { glob } from 'glob'
+import glob from 'glob'
 import path from 'path'
 import { REPO_ROOT, readJsonIfExists } from './file'
-import posixPath from './posixPath'
 
 export type PackageJson = { name: string; private?: boolean; workspaces?: string[] } & Record<
 	string,
@@ -37,9 +36,7 @@ async function getChildWorkspaces(parent: Package): Promise<Package[]> {
 	const foundPackages = []
 	for (const workspace of parent.packageJson.workspaces) {
 		const workspacePath = path.join(parent.path, workspace)
-		for (const packageJsonFilePath of glob.sync(
-			posixPath(path.join(workspacePath, 'package.json'))
-		)) {
+		for (const packageJsonFilePath of glob.sync(path.join(workspacePath, 'package.json'))) {
 			const child = await readPackage(packageJsonFilePath)
 			foundPackages.push(child)
 			if (child.packageJson.workspaces) {

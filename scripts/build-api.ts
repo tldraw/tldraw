@@ -1,9 +1,8 @@
-import { glob } from 'glob'
+import glob from 'glob'
 import isCI from 'is-ci'
 import path from 'path'
 import { rimraf } from 'rimraf'
 import { exec } from './lib/exec'
-import posixPath from './lib/posixPath'
 import { sortUnions } from './lib/sort-unions'
 
 async function buildApi(sourcePackageDir: string) {
@@ -19,7 +18,7 @@ async function buildApi(sourcePackageDir: string) {
 	sortUnions(path.join(sourcePackageDir, '.tsbuild-api'))
 
 	// clear api-extractor build files
-	rimraf.sync(glob.sync(posixPath(path.join(sourcePackageDir, 'api'))))
+	rimraf.sync(glob.sync(path.join(sourcePackageDir, 'api')))
 	// extract public api
 	try {
 		await exec('yarn', ['run', '-T', 'api-extractor', 'run', isCI ? null : '--local'], {

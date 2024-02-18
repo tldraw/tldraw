@@ -1,8 +1,7 @@
 import { existsSync, readFileSync, statSync, writeFileSync } from 'fs'
-import { glob } from 'glob'
+import glob from 'glob'
 import path from 'path'
 import { parse, print, visit } from 'recast'
-import posixPath from './posixPath'
 
 const extensions = ['.js', '.mjs', '.cjs']
 function resolveRelativePath(importingFile: string, relativePath: string) {
@@ -44,7 +43,7 @@ function resolveRelativePath(importingFile: string, relativePath: string) {
 }
 
 export function addJsExtensions(distDir: string) {
-	for (const file of glob.sync(posixPath(path.join(distDir, '**/*.{mjs,cjs,js}')))) {
+	for (const file of glob.sync(path.join(distDir, '**/*.{mjs,cjs,js}'))) {
 		const code = parse(readFileSync(file, 'utf8'), { parser: require('recast/parsers/typescript') })
 
 		visit(code, {
