@@ -7985,6 +7985,54 @@
               "name": "complete"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#containerBounds:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "containerBounds: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/state\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Atom",
+                  "canonicalReference": "@tldraw/state!Atom:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "containerBounds",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#createAssets:member(1)",
               "docComment": "/**\n * Create one or more assets.\n *\n * @param assets - The assets to create.\n *\n * @example\n * ```ts\n * editor.createAssets([...myAssets])\n * ```\n *\n * @public\n */\n",

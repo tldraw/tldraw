@@ -202,6 +202,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
 		this.getContainer = getContainer ?? (() => document.body)
+		const bounds = this.getContainer().getBoundingClientRect()
+		this.containerBounds.set(new Box(0, 0, bounds.width, bounds.height))
 
 		this.textMeasure = new TextManager(this)
 
@@ -638,6 +640,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 	}
+
+	containerBounds = atom('component bounds', new Box())
 
 	/**
 	 * The editor's store

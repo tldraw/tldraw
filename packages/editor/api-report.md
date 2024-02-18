@@ -603,6 +603,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
+    // (undocumented)
+    containerBounds: Atom<Box, unknown>;
     // @internal (undocumented)
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;

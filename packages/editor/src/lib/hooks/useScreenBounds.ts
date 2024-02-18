@@ -8,11 +8,11 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 
 	useLayoutEffect(() => {
 		function updateScreenBounds() {
-			const container = ref.current
-			if (!container) return null
+			const canvas = ref.current
+			if (!canvas) return null
 
-			const rect = container.getBoundingClientRect()
-
+			// canvas
+			const rect = canvas.getBoundingClientRect()
 			editor.updateViewportScreenBounds(
 				new Box(
 					rect.left || rect.x,
@@ -20,6 +20,13 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 					Math.max(rect.width, 1),
 					Math.max(rect.height, 1)
 				)
+			)
+
+			// container
+			const container = editor.getContainer()
+			const containerRect = container.getBoundingClientRect()
+			editor.containerBounds.set(
+				new Box(0, 0, Math.max(containerRect.width, 1), Math.max(containerRect.height, 1))
 			)
 		}
 
