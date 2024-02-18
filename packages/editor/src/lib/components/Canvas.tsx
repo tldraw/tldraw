@@ -114,7 +114,7 @@ export function Canvas({ className }: { className?: string }) {
 				<SelectionBackgroundWrapper />
 				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 			</div>
-			<div className="tl-fixed-layer tl-overlays">
+			<div className="tl-overlays">
 				<div ref={rHtmlLayer2} className="tl-html-layer">
 					{debugGeometry ? <GeometryDebuggingView /> : null}
 					<HandlesWrapper />
