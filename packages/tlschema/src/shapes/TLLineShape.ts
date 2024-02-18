@@ -1,6 +1,7 @@
 import { defineMigrations } from '@tldraw/store'
-import { deepCopy, objectMapFromEntries, objectMapValues, sortByIndex } from '@tldraw/utils'
+import { IndexKey, deepCopy, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import { vecModelValidator } from '../misc/geometry-types'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -32,7 +33,7 @@ export const lineShapeProps = {
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,
-	handles: T.dict(T.string, handleModelValidator),
+	points: T.arrayOf(vecModelValidator),
 }
 
 /** @public */
@@ -45,12 +46,12 @@ export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 export const lineShapeVersions = {
 	AddSnapHandles: 1,
 	RemoveExtraHandleProps: 2,
-	RestoreSomeProps: 3,
+	HandlesToPoints: 3,
 } as const
 
 /** @internal */
 export const lineShapeMigrations = defineMigrations({
-	currentVersion: lineShapeVersions.RestoreSomeProps,
+	currentVersion: lineShapeVersions.HandlesToPoints,
 	migrators: {
 		[lineShapeVersions.AddSnapHandles]: {
 			up: (record: any) => {
@@ -117,42 +118,35 @@ export const lineShapeMigrations = defineMigrations({
 				}
 			},
 		},
-		[lineShapeVersions.RestoreSomeProps]: {
+		[lineShapeVersions.HandlesToPoints]: {
 			up: (record: any) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						handles: objectMapFromEntries(
-							Object.entries(record.props.handles as Record<string, { x: number; y: number }>).map(
-								([index, handle]) => {
-									const id = 'handle:' + index
-									return [
-										id,
-										{
-											id,
-											index: index,
-											x: handle.x,
-											y: handle.y,
-										},
-									]
-								}
-							)
-						),
-					},
-				}
-			},
-			down: (record: any) => {
-				const handles = (objectMapValues(record.props.handles) as any).sort(sortByIndex)
+				const { handles, ...props } = record.props
+
+				const sortedHandles = (Object.entries(handles) as [IndexKey, { x: number; y: number }][])
+					.map(([index, { x, y }]) => ({ x, y, index }))
+					.sort(sortByIndex)
 
 				return {
 					...record,
 					props: {
-						...record.props,
+						...props,
+						points: sortedHandles.map(({ x, y }) => ({ x, y })),
+					},
+				}
+			},
+			down: (record: any) => {
+				const { points, ...props } = record.props
+				const indices = getIndices(points.length)
+
+				return {
+					...record,
+					props: {
+						...props,
 						handles: Object.fromEntries(
-							handles.map((handle: any) => {
+							points.map((handle: { x: number; y: number }, i: number) => {
+								const index = indices[i]
 								return [
-									handle.index,
+									index,
 									{
 										x: handle.x,
 										y: handle.y,

@@ -11,14 +11,11 @@ import {
 	TLOnResizeHandler,
 	Vec,
 	WeakMapCache,
-	deepCopy,
+	ZERO_INDEX_KEY,
 	getDefaultColorTheme,
-	getIndexBetween,
-	getIndices,
+	getIndexAbove,
 	lineShapeMigrations,
 	lineShapeProps,
-	objectMapEntries,
-	objectMapValues,
 	sortByIndex,
 } from '@tldraw/editor'
 
@@ -48,26 +45,21 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsBg = () => true
 
 	override getDefaultProps(): TLLineShape['props'] {
-		const [startIndex, endIndex] = getIndices(2)
 		return {
 			dash: 'draw',
 			size: 'm',
 			color: 'black',
 			spline: 'line',
-			handles: {
-				a: {
-					id: 'a',
-					index: startIndex,
+			points: [
+				{
 					x: 0,
 					y: 0,
 				},
-				b: {
-					id: 'b',
-					index: endIndex,
+				{
 					x: 0.1,
 					y: 0.1,
 				},
-			},
+			],
 		}
 	}
 
@@ -82,20 +74,25 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 			const results: TLHandle[] = []
 
-			const sortedHandles = objectMapValues(shape.props.handles).sort(sortByIndex)
+			const { points } = shape.props
 
-			for (let i = 0; i < sortedHandles.length; i++) {
-				const handle = sortedHandles[i]
+			let index = ZERO_INDEX_KEY
+
+			for (let i = 0; i < points.length; i++) {
+				const handle = points[i]
 				results.push({
 					...handle,
+					id: index,
+					index,
 					type: 'vertex',
 					canBind: false,
 					canSnap: true,
 				})
-				if (i < sortedHandles.length - 1) {
+				index = getIndexAbove(index)
+
+				if (i < points.length - 1) {
 					const segment = spline.segments[i]
 					const point = segment.midPoint()
-					const index = getIndexBetween(sortedHandles[i].index, sortedHandles[i + 1].index)
 					results.push({
 						id: index,
 						type: 'create',
@@ -105,6 +102,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						canSnap: true,
 						canBind: false,
 					})
+					index = getIndexAbove(index)
 				}
 			}
 
@@ -122,38 +120,38 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override onResize: TLOnResizeHandler<TLLineShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
 
-		const handles = deepCopy(shape.props.handles)
-
-		objectMapEntries(shape.props.handles).forEach(([index, { x, y }]) => {
-			handles[index].x = x * scaleX
-			handles[index].y = y * scaleY
-		})
-
 		return {
 			props: {
-				handles,
+				points: shape.props.points.map(({ x, y }) => {
+					return {
+						x: x * scaleX,
+						y: y * scaleY,
+					}
+				}),
 			},
 		}
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
-		// If the dragging handle is a "create" handle, then we want to create
-		// a new handle rather than updating an existing one. All we need to do
-		// here is create a new id. The dragging handle isn't yet represented in the
-		// props of the shape, so by assigning a new id we'll create a new handle.
+		// we should only ever be dragging vertex handles
+		if (handle.type !== 'vertex') {
+			return shape
+		}
+
+		// get the index of the point to which the vertex handle corresponds
+		const index = this.getHandles(shape)
+			.filter((h) => h.type === 'vertex')
+			.findIndex((h) => h.id === handle.id)!
+
+		// splice in the new point
+		const points = [...shape.props.points]
+		points[index] = { x: handle.x, y: handle.y }
+
 		return {
 			...shape,
 			props: {
 				...shape.props,
-				handles: {
-					...shape.props.handles,
-					[handle.id]: {
-						id: handle.id,
-						index: handle.index,
-						x: handle.x,
-						y: handle.y,
-					},
-				},
+				points,
 			},
 		}
 	}
@@ -393,15 +391,15 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	override getHandleSnapGeometry(shape: TLLineShape) {
 		return {
-			points: Object.values(shape.props.handles),
+			points: shape.props.points,
 		}
 	}
 }
 
 /** @public */
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
-	const { spline, handles } = shape.props
-	const handlePoints = objectMapValues(handles).sort(sortByIndex).map(Vec.From)
+	const { spline, points } = shape.props
+	const handlePoints = points.map(Vec.From)
 
 	switch (spline) {
 		case 'cubic': {

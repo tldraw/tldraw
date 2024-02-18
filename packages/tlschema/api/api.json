@@ -2756,25 +2756,25 @@
             },
             {
               "kind": "Content",
-              "text": "<\"cubic\" | \"line\">;\n    handles: "
+              "text": "<\"cubic\" | \"line\">;\n    points: "
             },
             {
               "kind": "Reference",
-              "text": "T.DictValidator",
-              "canonicalReference": "@tldraw/validate!DictValidator:class"
+              "text": "T.ArrayOfValidator",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        id: string;\n        index: import(\"@tldraw/utils\")."
+              "text": "<import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
-              "text": "IndexKey",
-              "canonicalReference": "@tldraw/utils!IndexKey:type"
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
-              "text": ";\n        x: number;\n        y: number;\n    }>;\n}"
+              "text": ">;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",

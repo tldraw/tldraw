@@ -1,4 +1,4 @@
-import { IndexKey, TLGeoShape, TLLineShape, createShapeId, deepCopy } from '@tldraw/editor'
+import { TLGeoShape, TLLineShape, createShapeId, deepCopy, sortByIndex } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TL } from '../../../test/test-jsx'
 
@@ -24,20 +24,10 @@ beforeEach(() => {
 				x: 150,
 				y: 150,
 				props: {
-					handles: {
-						a: {
-							id: 'a',
-							index: 'a1' as IndexKey,
-							x: 0,
-							y: 0,
-						},
-						b: {
-							id: 'b',
-							index: 'a2' as IndexKey,
-							x: 100,
-							y: 100,
-						},
-					},
+					points: [
+						{ x: 0, y: 0 },
+						{ x: 100, y: 100 },
+					],
 				},
 			},
 		])
@@ -51,7 +41,7 @@ describe('Translating', () => {
 		editor.select(id)
 		editor.pointerDown(25, 25, { target: 'shape', shape: getShape() })
 		editor.pointerMove(50, 50) // Move shape by 25, 25
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id: id,
 			x: 175,
 			y: 175,
@@ -67,7 +57,7 @@ describe('Translating', () => {
 		editor.pointerDown(250, 250, { target: 'shape', shape: shape })
 		editor.pointerMove(300, 400) // Move shape by 50, 150
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id: id,
 			x: 200,
 			y: 300,
@@ -82,25 +72,19 @@ describe('Mid-point handles', () => {
 		editor.pointerDown(200, 200, {
 			target: 'handle',
 			shape: getShape(),
-			handle: {
-				id: 'mid-0',
-				type: 'create',
-				index: 'a1V' as IndexKey,
-				x: 50,
-				y: 50,
-			},
+			handle: getHandles()[1],
 		})
 		editor.pointerMove(349, 349).pointerMove(350, 350) // Move handle by 150, 150
 		editor.pointerUp()
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id: id,
 			props: {
-				handles: {
-					a: { id: 'a', index: 'a1', x: 0, y: 0 },
-					// a1v: { id: 'b', index: 'a1v', x: 50, y: 50 },
-					b: { id: 'b', index: 'a2', x: 100, y: 100 },
-				},
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 200, y: 200 },
+					{ x: 100, y: 100 },
+				],
 			},
 		})
 	})
@@ -114,21 +98,24 @@ describe('Mid-point handles', () => {
 			.pointerDown(200, 200, {
 				target: 'handle',
 				shape: getShape(),
-				handle: getHandles().find((h) => h.index === 'a1V')!,
+				handle: getHandles()[1],
 			})
 			.pointerMove(198, 230, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
 		expect(editor.getShapeHandles(id)).toHaveLength(5) // 3 real + 2
-		const handles = Object.values(editor.getShape<TLLineShape>(id)!.props.handles)
-		expect(handles).toHaveLength(3)
-		expect(handles[0]).toMatchObject({ id: 'a', index: 'a1', x: 0, y: 0 })
-		expect(handles[1]).toMatchObject({ id: 'b', index: 'a2', x: 100, y: 100 })
-		expect(handles[2]).toMatchObject({ index: 'a1V', x: 50, y: 80 })
+		const points = editor.getShape<TLLineShape>(id)!.props.points
+		expect(points).toHaveLength(3)
+		expect(points[0]).toMatchObject({ x: 0, y: 0 })
+		expect(points[1]).toMatchObject({ x: 50, y: 80 })
+		expect(points[2]).toMatchObject({ x: 100, y: 100 })
 	})
 
 	it('allows snapping with created mid-point handles', () => {
 		editor.createShapesFromJsx([<TL.geo x={200} y={200} w={100} h={100} />])
+
+		// 2 actual points, plus 1 mid-points:
+		expect(getHandles()).toHaveLength(3)
 
 		// use a mid-point handle to create a new handle
 		editor
@@ -136,7 +123,7 @@ describe('Mid-point handles', () => {
 			.pointerDown(200, 200, {
 				target: 'handle',
 				shape: getShape(),
-				handle: getHandles().find((h) => h.index === 'a1V')!,
+				handle: getHandles().sort(sortByIndex)[1]!,
 			})
 			.pointerMove(230, 200)
 			.pointerMove(240, 200)
@@ -151,17 +138,17 @@ describe('Mid-point handles', () => {
 			.pointerDown(200, 200, {
 				target: 'handle',
 				shape: getShape(),
-				handle: getHandles().find((h) => h.index === 'a1V')!,
+				handle: getHandles().sort(sortByIndex)[2],
 			})
 			.pointerMove(198, 230, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
 		expect(editor.getShapeHandles(id)).toHaveLength(5) // 3 real + 2
-		const handles = Object.values(editor.getShape<TLLineShape>(id)!.props.handles)
-		expect(handles).toHaveLength(3)
-		expect(handles[0]).toMatchObject({ id: 'a', index: 'a1', x: 0, y: 0 })
-		expect(handles[1]).toMatchObject({ id: 'b', index: 'a2', x: 100, y: 100 })
-		expect(handles[2]).toMatchObject({ index: 'a1V', x: 50, y: 80 })
+		const points = editor.getShape<TLLineShape>(id)!.props.points
+		expect(points).toHaveLength(3)
+		expect(points[0]).toMatchObject({ x: 0, y: 0 })
+		expect(points[1]).toMatchObject({ x: 50, y: 80 })
+		expect(points[2]).toMatchObject({ x: 100, y: 100 })
 	})
 })
 
@@ -171,12 +158,12 @@ describe('Snapping', () => {
 			id: id,
 			type: 'line',
 			props: {
-				handles: {
-					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-					a2: { id: 'a2', index: 'a2', x: 100, y: 0 },
-					a3: { id: 'a3', index: 'a3', x: 100, y: 100 },
-					a4: { id: 'a4', index: 'a4', x: 0, y: 100 },
-				},
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 0 },
+					{ x: 100, y: 100 },
+					{ x: 0, y: 100 },
+				],
 			},
 		})
 	})
@@ -189,12 +176,15 @@ describe('Snapping', () => {
 			.pointerMove(50, 95, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id: id,
 			props: {
-				handles: {
-					a1: { x: 50, y: 100 },
-				},
+				points: [
+					{ x: 50, y: 100 },
+					{ x: 100, y: 0 },
+					{ x: 100, y: 100 },
+					{ x: 0, y: 100 },
+				],
 			},
 		})
 	})
@@ -207,12 +197,15 @@ describe('Snapping', () => {
 			.pointerMove(5, 2, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(0)
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id: id,
 			props: {
-				handles: {
-					a1: { x: 5, y: 2 },
-				},
+				points: [
+					{ x: 5, y: 2 },
+					{ x: 100, y: 0 },
+					{ x: 100, y: 100 },
+					{ x: 0, y: 100 },
+				],
 			},
 		})
 	})
@@ -222,23 +215,31 @@ describe('Snapping', () => {
 			<TL.line
 				x={150}
 				y={150}
-				handles={{
-					a: { id: 'a', index: 'a1' as IndexKey, x: 200, y: 0 },
-					b: { id: 'b', index: 'a2' as IndexKey, x: 300, y: 0 },
-				}}
+				points={[
+					{ x: 200, y: 0 },
+					{ x: 300, y: 0 },
+				]}
 			/>,
 		])
 
 		editor.select(id)
 
+		const handle = getHandles()[0]
 		editor
-			.pointerDown(0, 0, { target: 'handle', shape: getShape(), handle: getHandles()[0] })
+			.pointerDown(handle.x, handle.y, { target: 'handle', shape: getShape(), handle })
 			.pointerMove(205, 1, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id: id,
-			props: { handles: { a1: { x: 200, y: 0 } } },
+			props: {
+				points: [
+					{ x: 200, y: 0 },
+					{ x: 100, y: 0 },
+					{ x: 100, y: 100 },
+					{ x: 0, y: 100 },
+				],
+			},
 		})
 	})
 })
@@ -247,7 +248,7 @@ describe('Misc', () => {
 	it('preserves handle positions on spline type change', () => {
 		editor.select(id)
 		const shape = getShape()
-		const prevHandles = deepCopy(shape.props.handles)
+		const prevPoints = deepCopy(shape.props.points)
 
 		editor.updateShapes([
 			{
@@ -258,11 +259,11 @@ describe('Misc', () => {
 			},
 		])
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id,
 			props: {
 				spline: 'cubic',
-				handles: prevHandles,
+				points: prevPoints,
 			},
 		})
 	})
@@ -282,7 +283,7 @@ describe('Misc', () => {
 		editor.select(id)
 		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 1, y: 0 })
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id: id,
 			x: 151,
 			y: 150,
@@ -290,7 +291,7 @@ describe('Misc', () => {
 
 		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: 10 })
 
-		editor.expectShapeToMatch({
+		editor.expectShapeToMatch<TLLineShape>({
 			id: id,
 			x: 151,
 			y: 160,

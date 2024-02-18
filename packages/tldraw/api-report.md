@@ -14,7 +14,6 @@ import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
-import { DictValidator } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { EmbedDefinition } from '@tldraw/editor';
@@ -867,12 +866,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): {
-        points: {
-            id: string;
-            index: IndexKey;
-            x: number;
-            y: number;
-        }[];
+        points: VecModel[];
     };
     // (undocumented)
     getOutlineSegments(shape: TLLineShape): Vec[][];
@@ -898,12 +892,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
-        handles: DictValidator<string, {
-        id: string;
-        index: IndexKey;
-        x: number;
-        y: number;
-        }>;
+        points: ArrayOfValidator<VecModel>;
     };
     // (undocumented)
     toSvg(shape: TLLineShape, ctx: SvgExportContext): SVGGElement;

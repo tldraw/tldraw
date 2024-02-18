@@ -10239,16 +10239,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        points: {\n            id: string;\n            index: import(\"@tldraw/editor\")."
+                  "text": "{\n        points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n            x: number;\n            y: number;\n        }[];\n    }"
+                  "text": "[];\n    }"
                 },
                 {
                   "kind": "Content",
@@ -10675,25 +10675,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"cubic\" | \"line\">;\n        handles: import(\"@tldraw/editor\")."
+                  "text": "<\"cubic\" | \"line\">;\n        points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "DictValidator",
-                  "canonicalReference": "@tldraw/validate!DictValidator:class"
+                  "text": "ArrayOfValidator",
+                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, {\n            id: string;\n            index: import(\"@tldraw/editor\")."
+                  "text": "<import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n            x: number;\n            y: number;\n        }>;\n    }"
+                  "text": ">;\n    }"
                 },
                 {
                   "kind": "Content",

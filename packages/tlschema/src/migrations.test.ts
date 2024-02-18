@@ -1938,7 +1938,7 @@ describe('Remove extra handle props', () => {
 })
 
 describe('Restore some handle props', () => {
-	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.RestoreSomeProps]
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.HandlesToPoints]
 	it('up works as expected', () => {
 		expect(
 			up({
@@ -1952,26 +1952,11 @@ describe('Restore some handle props', () => {
 			})
 		).toEqual({
 			props: {
-				handles: {
-					'handle:a1': {
-						id: 'handle:a1',
-						index: 'a1',
-						x: 0,
-						y: 0,
-					},
-					'handle:a2': {
-						id: 'handle:a2',
-						index: 'a2',
-						x: 190,
-						y: -62,
-					},
-					'handle:a1V': {
-						id: 'handle:a1V',
-						index: 'a1V',
-						x: 76,
-						y: 60,
-					},
-				},
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 76, y: 60 },
+					{ x: 190, y: -62 },
+				],
 			},
 		})
 	})
@@ -1979,19 +1964,19 @@ describe('Restore some handle props', () => {
 		expect(
 			down({
 				props: {
-					handles: {
-						cat: { id: 'cat', index: 'a1', x: 0, y: 0 },
-						dog: { id: 'dog', index: 'a2', x: 190, y: -62 },
-						rat: { id: 'rat', index: 'a1V', x: 76, y: 60 },
-					},
+					points: [
+						{ x: 0, y: 0 },
+						{ x: 76, y: 60 },
+						{ x: 190, y: -62 },
+					],
 				},
 			})
 		).toEqual({
 			props: {
 				handles: {
 					a1: { x: 0, y: 0 },
-					a1V: { x: 76, y: 60 },
-					a2: { x: 190, y: -62 },
+					a2: { x: 76, y: 60 },
+					a3: { x: 190, y: -62 },
 				},
 			},
 		})

@@ -4,14 +4,12 @@ import {
 	TLEventHandlers,
 	TLInterruptEvent,
 	TLLineShape,
-	TLLineShapeHandle,
 	TLShapeId,
 	Vec,
 	createShapeId,
-	getIndexAbove,
 	last,
 	sortByIndex,
-	uniqueId,
+	structuredClone,
 } from '@tldraw/editor'
 
 const MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES = 2
@@ -50,29 +48,18 @@ export class Pointing extends StateNode {
 				new Vec(this.shape.x, this.shape.y)
 			)
 
-			let nextEndHandle: TLLineShapeHandle
-
-			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint)
+			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
+			const points = structuredClone(this.shape.props.points)
 
 			if (
 				Vec.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES ||
 				Vec.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
 			) {
-				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
-				nextEndHandle = {
-					id: endHandle.id,
-					index: endHandle.index,
-					x: nextPoint.x + 0.1,
-					y: nextPoint.y + 0.1,
-				}
+				// Don't add a new point if the distance between the last two points is too small
+				points[points.length - 1] = nextPoint.toJson()
 			} else {
-				// Otherwise, we'll create a new end handle
-				nextEndHandle = {
-					id: uniqueId(),
-					index: getIndexAbove(endHandle.index),
-					x: nextPoint.x + 0.1,
-					y: nextPoint.y + 0.1,
-				}
+				// Add a new point
+				points.push(nextPoint.toJson())
 			}
 
 			this.editor.updateShapes([
@@ -80,10 +67,7 @@ export class Pointing extends StateNode {
 					id: this.shape.id,
 					type: this.shape.type,
 					props: {
-						handles: {
-							...this.shape.props.handles,
-							[nextEndHandle.id]: nextEndHandle,
-						},
+						points,
 					},
 				},
 			])
