@@ -97,8 +97,6 @@ export function Canvas({ className }: { className?: string }) {
 			data-testid="canvas"
 			{...events}
 		>
-			{Background && <Background />}
-			<GridWrapper />
 			<svg className="tl-svg-context">
 				<defs>
 					{shapeSvgDefs}
@@ -109,6 +107,9 @@ export function Canvas({ className }: { className?: string }) {
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
+			{Background && <Background />}
+			<GridWrapper />
+
 			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 				<OnTheCanvasWrapper />
 				<SelectionBackgroundWrapper />
