@@ -872,10 +872,20 @@ export function setEnum<T>(values: ReadonlySet<T>): Validator<T> {
 
 /** @public */
 export function optional<T>(validator: Validatable<T>): Validator<T | undefined> {
-	return new Validator((value) => {
-		if (value === undefined) return undefined
-		return validator.validate(value)
-	})
+	return new Validator(
+		(value) => {
+			if (value === undefined) return undefined
+			return validator.validate(value)
+		},
+		(knownGoodValue, newValue) => {
+			if (knownGoodValue === undefined && newValue === undefined) return undefined
+			if (newValue === undefined) return undefined
+			if (validator.validateUsingKnownGoodVersion && knownGoodValue !== undefined) {
+				return validator.validateUsingKnownGoodVersion(knownGoodValue as T, newValue)
+			}
+			return validator.validate(newValue)
+		}
+	)
 }
 
 /** @public */

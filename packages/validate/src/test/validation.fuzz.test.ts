@@ -111,7 +111,7 @@ const builtinTypes: Record<string, TestType> = {
 	string: {
 		validator: T.string,
 		generateValid: (source) => source.selectOne(['a', 'b', 'c', 'd']),
-		generateInvalid: (source) => source.selectOne([5, /regexp/, null, undefined, {}]),
+		generateInvalid: (source) => source.selectOne([5, /regexp/, null, {}]),
 	},
 	number: {
 		validator: T.number,
@@ -126,13 +126,14 @@ const builtinTypes: Record<string, TestType> = {
 	json: {
 		validator: T.jsonValue,
 		generateValid: (source) => source.nextJsonValue(),
-		generateInvalid: (source) => source.selectOne([undefined, /regexp/, 343n, { key: /regexp/ }]),
+		generateInvalid: (source) => source.selectOne([/regexp/, 343n, { key: /regexp/ }]),
 	},
 } as const
 
 function generateObjectType(source: RandomSource): TestType {
 	const numProperties = source.nextIntInRange(1, 5)
 	const propertyTypes: Record<string, TestType> = {}
+	const optionalTypes = new Set<string>()
 	for (let i = 0; i < numProperties; i++) {
 		const type = source.executeOne<TestType>({
 			primitive: {
@@ -143,12 +144,20 @@ function generateObjectType(source: RandomSource): TestType {
 			object: () => generateObjectType(source),
 		})
 		const name = source.nextId()
-		propertyTypes[name] = type
+		if (source.choice(0.2)) {
+			optionalTypes.add(name)
+		}
+		propertyTypes[name] = optionalTypes.has(name)
+			? { ...type, validator: type.validator.optional() }
+			: type
 	}
 
 	const generateValid = (source: RandomSource) => {
 		const result = {} as any
 		for (const [name, type] of Object.entries(propertyTypes)) {
+			if (optionalTypes.has(name) && source.choice(0.2)) {
+				continue
+			}
 			result[name] = type.generateValid(source)
 		}
 		return result
@@ -168,7 +177,15 @@ function generateObjectType(source: RandomSource): TestType {
 					}),
 				missingProperty: () => {
 					const val = generateValid(source)
-					const keyToDelete = source.selectOne(Object.keys(val))
+					const keyToDelete = source.selectOne(
+						Object.keys(val).filter((key) => !optionalTypes.has(key))
+					)
+					if (!keyToDelete) {
+						// no non-optional properties, do a invalid property test instead
+						val[keyToDelete] =
+							propertyTypes[source.selectOne(Object.keys(propertyTypes))].generateInvalid(source)
+						return val
+					}
 					delete val[keyToDelete]
 					return val
 				},
@@ -179,7 +196,7 @@ function generateObjectType(source: RandomSource): TestType {
 				},
 				invalidProperty: () => {
 					const val = generateValid(source)
-					const keyToChange = source.selectOne(Object.keys(val))
+					const keyToChange = source.selectOne(Object.keys(propertyTypes))
 					val[keyToChange] = propertyTypes[keyToChange].generateInvalid(source)
 					return val
 				},
@@ -273,4 +290,20 @@ test('regression 3', () => {
 
 test('regression 4', () => {
 	runTest(3653979)
+})
+
+test('regresion 5', () => {
+	runTest(6715024)
+})
+
+test('regression 6', () => {
+	runTest(43112375)
+})
+
+test('regression 7', () => {
+	runTest(93348512)
+})
+
+test('regression 8', () => {
+	runTest(44591734)
 })
