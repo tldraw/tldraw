@@ -15464,7 +15464,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiDropdownMenuGroup({ children, size, }: "
+              "text": "export declare function TldrawUiDropdownMenuGroup({ children }: "
             },
             {
               "kind": "Reference",
@@ -15498,7 +15498,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ children, size, }",
+              "parameterName": "{ children }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -16120,7 +16120,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiMenuGroup({ id, label, small, children }: "
+              "text": "export declare function TldrawUiMenuGroup({ id, label, children }: "
             },
             {
               "kind": "Reference",
@@ -16149,7 +16149,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, label, small, children }",
+              "parameterName": "{ id, label, children }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -18055,7 +18055,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children: any;\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
+              "text": "{\n    children: any;\n}"
             },
             {
               "kind": "Content",
@@ -21262,7 +21262,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    small?: boolean;\n    children?: any;\n}"
+              "text": "{\n    id: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    children?: any;\n}"
             },
             {
               "kind": "Content",
@@ -21417,7 +21417,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: any;\n    size?: 'large' | 'medium' | 'small' | 'tiny';\n}"
+              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: any;\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
             },
             {
               "kind": "Content",

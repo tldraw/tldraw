@@ -1298,7 +1298,7 @@ export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }
 export function TldrawUiDropdownMenuContent({ side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuGroup({ children, size, }: TLUiDropdownMenuGroupProps): JSX_2.Element;
+export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuIndicator(): JSX_2.Element;
@@ -1334,7 +1334,7 @@ export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string,
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiMenuGroup({ id, label, small, children }: TLUiMenuGroupProps): any;
+export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): any;
 
 // @public (undocumented)
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
@@ -1532,7 +1532,6 @@ export type TLUiDropdownMenuContentProps = {
 // @public (undocumented)
 export type TLUiDropdownMenuGroupProps = {
     children: any;
-    size?: 'medium' | 'small' | 'tiny' | 'wide';
 };
 
 // @public (undocumented)
@@ -1849,7 +1848,6 @@ export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
-    small?: boolean;
     children?: any;
 };
 
@@ -1877,7 +1875,7 @@ export type TLUiMenuSubmenuProps<Translation extends string = string> = {
     } | Translation;
     disabled?: boolean;
     children: any;
-    size?: 'large' | 'medium' | 'small' | 'tiny';
+    size?: 'medium' | 'small' | 'tiny' | 'wide';
 };
 
 // @public (undocumented)
