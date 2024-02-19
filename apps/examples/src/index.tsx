@@ -11,7 +11,6 @@ import { ExamplePage } from './ExamplePage'
 import { examples } from './examples'
 import Develop from './misc/develop'
 import EndToEnd from './misc/end-to-end'
-import Speedster from './misc/speed'
 
 // This example is only used for end to end tests
 
@@ -22,7 +21,7 @@ setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting Started')
 if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
-const basicExample = gettingStartedExamples.value.find((e) => e.priority === 1)
+const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Persistence key')
 if (!basicExample) throw new Error('Could not find initial example')
 
 const router = createBrowserRouter([
@@ -50,10 +49,6 @@ const router = createBrowserRouter([
 	{
 		path: 'end-to-end',
 		element: <EndToEnd />,
-	},
-	{
-		path: 'speed',
-		element: <Speedster />,
 	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [
