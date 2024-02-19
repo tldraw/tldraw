@@ -79,6 +79,16 @@
 	margin-left: var(--space-2);
 }
 
+.tlui-button[data-state='hinted']::after {
+	background-color: var(--color-hint);
+	opacity: 1;
+}
+
+.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
+	background: var(--color-hint);
+	opacity: 1;
+}
+
 @media (hover: hover) {
 	.tlui-button::after {
 		background-color: var(--color-muted-2);

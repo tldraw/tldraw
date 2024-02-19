@@ -9,12 +9,15 @@ import {
 	TldrawUiButtonLabel,
 	useEditor,
 } from '@tldraw/tldraw'
+import { useRelevantStyles } from '@tldraw/tldraw/src/lib/ui/hooks/useRevelantStyles'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomStylePanel(props: TLUiStylePanelProps) {
 	const editor = useEditor()
 
 	// Styles are complex, sorry. Check our DefaultStylePanel for an example.
+
+	const styles = useRelevantStyles()
 
 	return (
 		<DefaultStylePanel {...props}>
@@ -34,7 +37,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 			>
 				<TldrawUiButtonLabel>Green</TldrawUiButtonLabel>
 			</TldrawUiButton>
-			<DefaultStylePanelContent relevantStyles={props.relevantStyles} />
+			<DefaultStylePanelContent styles={styles} />
 		</DefaultStylePanel>
 	)
 }

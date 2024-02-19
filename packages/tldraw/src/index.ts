@@ -82,6 +82,7 @@ export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
+export { useRelevantStyles } from './lib/ui/hooks/useRevelantStyles'
 export {
 	toolbarItem,
 	useToolbarSchema,

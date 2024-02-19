@@ -3185,7 +3185,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DefaultStylePanelContent({ relevantStyles }: "
+              "text": "export declare function DefaultStylePanelContent({ styles }: "
             },
             {
               "kind": "Reference",
@@ -3223,7 +3223,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ relevantStyles }",
+              "parameterName": "{ styles }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -21760,7 +21760,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    relevantStyles: "
+              "text": "{\n    styles: "
             },
             {
               "kind": "Reference",
@@ -21774,7 +21774,7 @@
             {
               "kind": "Reference",
               "text": "useRelevantStyles",
-              "canonicalReference": "@tldraw/tldraw!~useRelevantStyles:function"
+              "canonicalReference": "@tldraw/tldraw!useRelevantStyles:function"
             },
             {
               "kind": "Content",
@@ -21803,7 +21803,7 @@
               "text": "export interface TLUiStylePanelProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/StylePanel/DefaultStylePanel.d.ts",
           "releaseTag": "Public",
           "name": "TLUiStylePanelProps",
           "preserveMemberOrder": false,
@@ -21826,6 +21826,7 @@
                   "text": ";"
                 }
               ],
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
@@ -21853,6 +21854,7 @@
                   "text": ";"
                 }
               ],
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
@@ -21860,51 +21862,6 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiStylePanelProps#relevantStyles:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "relevantStyles: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n        styles: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ReadonlySharedStyleMap",
-                  "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        opacity: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SharedStyle",
-                  "canonicalReference": "@tldraw/editor!SharedStyle:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n    } | null"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "relevantStyles",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 6
               }
             }
           ],
@@ -23629,6 +23586,92 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useReadonly"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!useRelevantStyles:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useRelevantStyles(stylesToCheck?: "
+            },
+            {
+              "kind": "Content",
+              "text": "readonly (import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\"> | import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\"> | import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\"> | import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">)[]"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReadonlySharedStyleMap",
+              "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useRevelantStyles.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 11,
+            "endIndex": 13
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "stylesToCheck",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 10
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "useRelevantStyles"
         },
         {
           "kind": "Function",

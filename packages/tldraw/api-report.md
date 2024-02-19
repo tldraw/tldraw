@@ -347,7 +347,7 @@ export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
-export function DefaultStylePanelContent({ relevantStyles }: TLUiStylePanelContentProps): JSX_2.Element | null;
+export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DefaultToolbar: React_2.NamedExoticComponent<object>;
@@ -1949,7 +1949,7 @@ export interface TLUiSliderProps {
 
 // @public (undocumented)
 export type TLUiStylePanelContentProps = {
-    relevantStyles: ReturnType<typeof useRelevantStyles>;
+    styles: ReturnType<typeof useRelevantStyles>;
 };
 
 // @public (undocumented)
@@ -1958,11 +1958,6 @@ export interface TLUiStylePanelProps {
     children?: any;
     // (undocumented)
     isMobile?: boolean;
-    // (undocumented)
-    relevantStyles: {
-        styles: ReadonlySharedStyleMap;
-        opacity: SharedStyle<number>;
-    } | null;
 }
 
 // @public (undocumented)
@@ -2133,6 +2128,9 @@ export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
 export function useReadonly(): boolean;
+
+// @public (undocumented)
+export function useRelevantStyles(stylesToCheck?: readonly (EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow"> | EnumStyleProp<"dashed" | "dotted" | "draw" | "solid"> | EnumStyleProp<"l" | "m" | "s" | "xl"> | EnumStyleProp<"none" | "pattern" | "semi" | "solid">)[]): null | ReadonlySharedStyleMap;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): Partial<{
