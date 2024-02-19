@@ -8,8 +8,8 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	useEditor,
+	useRelevantStyles,
 } from '@tldraw/tldraw'
-import { useRelevantStyles } from '@tldraw/tldraw/src/lib/ui/hooks/useRevelantStyles'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomStylePanel(props: TLUiStylePanelProps) {
