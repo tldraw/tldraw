@@ -1,5 +1,5 @@
 import { ToastProvider } from '@radix-ui/react-toast'
-import { useEditor, useValue } from '@tldraw/editor'
+import { debugFlags, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -117,6 +117,10 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		() => editor.getSelectedShapes().length,
 		[editor]
 	)
+	const hideStylePanelWhenNoShapesSelected =
+		useValue('hideStylePanel', () => debugFlags.hideStylePanel.get(), [debugFlags]) &&
+		selectedShapesCount === 0 &&
+		selectToolActive
 
 	const {
 		SharePanel,
@@ -167,7 +171,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 								{StylePanel &&
 									breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM &&
 									!isReadonlyMode &&
-									(!selectToolActive || selectedShapesCount > 0) && <_StylePanel />}
+									!hideStylePanelWhenNoShapesSelected && <_StylePanel />}
 							</div>
 						</div>
 						<div className="tlui-layout__bottom">
