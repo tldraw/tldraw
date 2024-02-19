@@ -185,14 +185,11 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			textHandleHeight * zoom >= 4
 
 		return (
-			<svg
-				className="tl-overlays__item tl-selection__fg tl-svg-context"
-				data-testid="selection-foreground"
-			>
+			<svg className="tl-overlays__item tl-selection__fg" data-testid="selection-foreground">
 				<g ref={rSvg}>
 					{shouldDisplayBox && (
 						<rect
-							className={classNames('tl-selection__fg__outline')}
+							className="tl-selection__fg__outline"
 							width={toDomPrecision(width)}
 							height={toDomPrecision(height)}
 						/>
