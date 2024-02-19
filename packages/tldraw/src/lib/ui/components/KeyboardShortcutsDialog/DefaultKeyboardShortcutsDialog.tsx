@@ -26,7 +26,7 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 	return (
 		<>
 			<TldrawUiDialogHeader className="tlui-shortcuts-dialog__header">
-				<DialogTitle>{msg('shortcuts-title')}</DialogTitle>
+				<DialogTitle>{msg('shortcuts-dialog.title')}</DialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className="tlui-shortcuts-dialog__body">
