@@ -19,7 +19,7 @@ export default function EditableShapeExample() {
 				tools={customTools}
 				// Pass in any overrides to the user interface
 				overrides={uiOverrides}
-				// pass in the new Keybaord Shortcuts component
+				// pass in the new Keyboard Shortcuts component
 				components={components}
 			/>
 		</div>
