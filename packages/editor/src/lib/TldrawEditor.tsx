@@ -11,7 +11,6 @@ import React, {
 } from 'react'
 
 import classNames from 'classnames'
-import { Canvas } from './components/Canvas'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { DefaultLoadingScreen } from './components/default-components/DefaultLoadingScreen'
@@ -309,6 +308,8 @@ function TldrawEditorWithReadyStore({
 		() => editor?.getCrashingError() ?? null
 	)
 
+	const { Canvas } = useEditorComponents()
+
 	if (!editor) {
 		return null
 	}
@@ -331,7 +332,7 @@ function TldrawEditorWithReadyStore({
 			) : (
 				<EditorContext.Provider value={editor}>
 					<Layout autoFocus={autoFocus} onMount={onMount}>
-						{children}
+						{children ?? (Canvas ? <Canvas /> : null)}
 					</Layout>
 				</EditorContext.Provider>
 			)}
@@ -356,7 +357,7 @@ function Layout({
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 
-	return children ?? <Canvas />
+	return <>{children}</>
 }
 
 function Crash({ crashingError }: { crashingError: unknown }): null {

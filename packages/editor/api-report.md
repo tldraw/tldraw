@@ -307,11 +307,6 @@ export const CAMERA_SLIDE_FRICTION = 0.09;
 export function canonicalizeRotation(a: number): number;
 
 // @public (undocumented)
-export function Canvas({ className }: {
-    className?: string;
-}): JSX_2.Element;
-
-// @public (undocumented)
 export class Circle2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         x?: number;
@@ -449,50 +444,49 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 export function DefaultBackground(): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultBrush: TLBrushComponent;
+export const DefaultBrush: ({ brush, color, opacity, className }: TLBrushProps) => JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultCollaboratorHint: TLCollaboratorHintComponent;
+export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultCursor: NamedExoticComponent<    {
-className?: string | undefined;
-point: null | VecModel;
-zoom: number;
-color?: string | undefined;
-name: null | string;
-chatMessage: string;
-}>;
+export function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity, }: TLCollaboratorHintProps): JSX_2.Element;
+
+// @public (undocumented)
+export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
 
 // @public (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const DefaultGrid: TLGridComponent;
+export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultHandle: TLHandleComponent;
+export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultHandles: TLHandlesComponent;
+export const DefaultHandles: ({ children }: TLHandlesProps) => JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
+export function DefaultHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export const DefaultScribble: TLScribbleComponent;
+export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export const DefaultSelectionBackground: TLSelectionBackgroundComponent;
+export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultSelectionForeground: TLSelectionForegroundComponent;
+export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps): JSX_2.Element;
 
 // @public (undocumented)
-export const DefaultSnapIndicator: TLSnapIndicatorComponent;
+export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
 
 // @public (undocumented)
-export const DefaultSpinner: TLSpinnerComponent;
+export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
+
+// @public (undocumented)
+export function DefaultSpinner(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultSvgDefs: () => null;
@@ -1589,14 +1583,6 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 export function setUserPreferences(user: TLUserPreferences): void;
 
 // @public (undocumented)
-export const ShapeIndicator: React_3.NamedExoticComponent<{
-    id: TLShapeId;
-    color?: string | undefined;
-    opacity?: number | undefined;
-    className?: string | undefined;
-}>;
-
-// @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
@@ -1899,9 +1885,6 @@ export type TLArrowPoint = {
 };
 
 // @public (undocumented)
-export type TLBackgroundComponent = ComponentType;
-
-// @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
     w: number;
     h: number;
@@ -1932,12 +1915,12 @@ export type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'rem
 export type TLBeforeDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => false | void;
 
 // @public (undocumented)
-export type TLBrushComponent = ComponentType<{
+export type TLBrushProps = {
     brush: BoxModel;
     color?: string;
     opacity?: number;
     className?: string;
-}>;
+};
 
 // @public (undocumented)
 export type TLCancelEvent = (info: TLCancelEventInfo) => void;
@@ -1965,14 +1948,14 @@ export type TLClickEventInfo = TLBaseEventInfo & {
 export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_click';
 
 // @public (undocumented)
-export type TLCollaboratorHintComponent = ComponentType<{
+export type TLCollaboratorHintProps = {
     className?: string;
     point: VecModel;
     viewport: Box;
     zoom: number;
     opacity?: number;
     color: string;
-}>;
+};
 
 // @public (undocumented)
 export type TLCommand<Name extends string = any, Data = any> = {
@@ -2020,14 +2003,14 @@ export interface TLContent {
 }
 
 // @public (undocumented)
-export type TLCursorComponent = ComponentType<{
+export type TLCursorProps = {
     className?: string;
     point: null | VecModel;
     zoom: number;
     color?: string;
     name: null | string;
     chatMessage: string;
-}>;
+};
 
 // @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
@@ -2224,27 +2207,26 @@ export type TLExternalContentSource = {
 };
 
 // @public (undocumented)
-export type TLGridComponent = ComponentType<{
+export type TLGridProps = {
     x: number;
     y: number;
     z: number;
     size: number;
-}>;
+};
 
 // @public (undocumented)
-export type TLHandleComponent = ComponentType<{
+export type TLHandleProps = {
     shapeId: TLShapeId;
     handle: TLHandle;
     zoom: number;
     isCoarse: boolean;
     className?: string;
-}>;
+};
 
 // @public (undocumented)
-export type TLHandlesComponent = ComponentType<{
-    className?: string;
+export type TLHandlesProps = {
     children: any;
-}>;
+};
 
 // @public (undocumented)
 export type TLHistoryEntry = TLCommand | TLHistoryMark;
@@ -2258,12 +2240,9 @@ export type TLHistoryMark = {
 };
 
 // @public (undocumented)
-export type TLHoveredShapeIndicatorComponent = ComponentType<{
+export type TLHoveredShapeIndicatorProps = {
     shapeId: TLShapeId;
-}>;
-
-// @public (undocumented)
-export type TLInFrontOfTheCanvas = ComponentType<object>;
+};
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
@@ -2342,9 +2321,6 @@ export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>;
 
 // @public (undocumented)
 export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
-
-// @public (undocumented)
-export type TLOnTheCanvas = ComponentType<object>;
 
 // @public (undocumented)
 export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
@@ -2442,25 +2418,25 @@ export type TLRotationSnapshot = {
 };
 
 // @public (undocumented)
-export type TLScribbleComponent = ComponentType<{
+export type TLScribbleProps = {
     scribble: TLScribble;
     zoom: number;
     color?: string;
     opacity?: number;
     className?: string;
-}>;
+};
 
 // @public (undocumented)
-export type TLSelectionBackgroundComponent = React_3.ComponentType<{
+export type TLSelectionBackgroundProps = {
     bounds: Box;
     rotation: number;
-}>;
+};
 
 // @public (undocumented)
-export type TLSelectionForegroundComponent = ComponentType<{
+export type TLSelectionForegroundProps = {
     bounds: Box;
     rotation: number;
-}>;
+};
 
 // @public (undocumented)
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
@@ -2495,12 +2471,12 @@ export interface TLSessionStateSnapshot {
 }
 
 // @public (undocumented)
-export type TLShapeIndicatorComponent = React_3.ComponentType<{
-    id: TLShapeId;
+export type TLShapeIndicatorProps = {
+    shapeId: TLShapeId;
     color?: string | undefined;
     opacity?: number;
     className?: string;
-}>;
+};
 
 // @public (undocumented)
 export interface TLShapeUtilCanvasSvgDef {
@@ -2526,14 +2502,11 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
 export type TLShapeUtilFlag<T> = (shape: T) => boolean;
 
 // @public (undocumented)
-export type TLSnapIndicatorComponent = React_3.ComponentType<{
+export type TLSnapIndicatorProps = {
     className?: string;
     line: SnapIndicator;
     zoom: number;
-}>;
-
-// @public (undocumented)
-export type TLSpinnerComponent = ComponentType<object>;
+};
 
 // @public (undocumented)
 export interface TLStateNodeConstructor {
@@ -2583,9 +2556,6 @@ export type TLStoreWithStatus = {
     readonly store: TLStore;
     readonly error?: undefined;
 };
-
-// @public (undocumented)
-export type TLSvgDefsComponent = React.ComponentType;
 
 // @public (undocumented)
 export type TLSvgOptions = {
@@ -2671,6 +2641,34 @@ export function useContainer(): HTMLDivElement;
 
 // @public (undocumented)
 export function useEditor(): Editor;
+
+// @public (undocumented)
+export function useEditorComponents(): Partial<{
+    Background: ComponentType | null;
+    SvgDefs: ComponentType | null;
+    Brush: ComponentType<TLBrushProps> | null;
+    ZoomBrush: ComponentType<TLBrushProps> | null;
+    ShapeIndicator: ComponentType<TLShapeIndicatorProps> | null;
+    Cursor: ComponentType<TLCursorProps> | null;
+    Canvas: ComponentType<TLCanvasComponentProps> | null;
+    CollaboratorBrush: ComponentType<TLBrushProps> | null;
+    CollaboratorCursor: ComponentType<TLCursorProps> | null;
+    CollaboratorHint: ComponentType<TLCollaboratorHintProps> | null;
+    CollaboratorShapeIndicator: ComponentType<TLShapeIndicatorProps> | null;
+    Grid: ComponentType<TLGridProps> | null;
+    Scribble: ComponentType<TLScribbleProps> | null;
+    CollaboratorScribble: ComponentType<TLScribbleProps> | null;
+    SnapIndicator: ComponentType<TLSnapIndicatorProps> | null;
+    Handles: ComponentType<TLHandlesProps> | null;
+    Handle: ComponentType<TLHandleProps> | null;
+    Spinner: ComponentType | null;
+    SelectionForeground: ComponentType<TLSelectionForegroundProps> | null;
+    SelectionBackground: ComponentType<TLSelectionBackgroundProps> | null;
+    HoveredShapeIndicator: ComponentType<TLHoveredShapeIndicatorProps> | null;
+    OnTheCanvas: ComponentType | null;
+    InFrontOfTheCanvas: ComponentType | null;
+    LoadingScreen: ComponentType | null;
+} & ErrorComponents> & ErrorComponents;
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;

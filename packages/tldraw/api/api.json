@@ -3185,7 +3185,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function DefaultStylePanelContent({ relevantStyles }: "
+              "text": "export declare function DefaultStylePanelContent({ styles }: "
             },
             {
               "kind": "Reference",
@@ -3223,7 +3223,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ relevantStyles }",
+              "parameterName": "{ styles }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -13661,183 +13661,6 @@
           "name": "Tldraw"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!TldrawCropHandles:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function TldrawCropHandles({ size, width, height, hideAlternateHandles, }: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TldrawCropHandlesProps",
-              "canonicalReference": "@tldraw/tldraw!TldrawCropHandlesProps:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawCropHandles.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ size, width, height, hideAlternateHandles, }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "TldrawCropHandles"
-        },
-        {
-          "kind": "Interface",
-          "canonicalReference": "@tldraw/tldraw!TldrawCropHandlesProps:interface",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export interface TldrawCropHandlesProps "
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawCropHandles.tsx",
-          "releaseTag": "Public",
-          "name": "TldrawCropHandlesProps",
-          "preserveMemberOrder": false,
-          "members": [
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TldrawCropHandlesProps#height:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "height: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "height",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TldrawCropHandlesProps#hideAlternateHandles:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "hideAlternateHandles: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "hideAlternateHandles",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TldrawCropHandlesProps#size:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "size: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "size",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TldrawCropHandlesProps#width:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "width: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "width",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            }
-          ],
-          "extendsTokenRanges": []
-        },
-        {
           "kind": "Interface",
           "canonicalReference": "@tldraw/tldraw!TldrawFile:interface",
           "docComment": "/**\n * @public\n */\n",
@@ -13943,52 +13766,114 @@
           "extendsTokenRanges": []
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tldraw!TldrawHandles:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawHandles:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "TldrawHandles: "
+              "text": "export declare function TldrawHandles({ children }: "
             },
             {
               "kind": "Reference",
-              "text": "TLHandlesComponent",
-              "canonicalReference": "@tldraw/editor!TLHandlesComponent:type"
+              "text": "TLHandlesProps",
+              "canonicalReference": "@tldraw/editor!TLHandlesProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawHandles.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
           "releaseTag": "Public",
-          "name": "TldrawHandles",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawHandles"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tldraw!TldrawHoveredShapeIndicator:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawHoveredShapeIndicator:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "TldrawHoveredShapeIndicator: "
+              "text": "export declare function TldrawHoveredShapeIndicator({ shapeId }: "
             },
             {
               "kind": "Reference",
-              "text": "TLHoveredShapeIndicatorComponent",
-              "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorComponent:type"
+              "text": "TLHoveredShapeIndicatorProps",
+              "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawHoveredShapeIndicator.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
           "releaseTag": "Public",
-          "name": "TldrawHoveredShapeIndicator",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ shapeId }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawHoveredShapeIndicator"
         },
         {
           "kind": "Variable",
@@ -14278,28 +14163,59 @@
           }
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tldraw!TldrawScribble:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawScribble:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "TldrawScribble: "
+              "text": "export declare function TldrawScribble({ scribble, zoom, color, opacity, className }: "
             },
             {
               "kind": "Reference",
-              "text": "TLScribbleComponent",
-              "canonicalReference": "@tldraw/editor!TLScribbleComponent:type"
+              "text": "TLScribbleProps",
+              "canonicalReference": "@tldraw/editor!TLScribbleProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawScribble.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
           "releaseTag": "Public",
-          "name": "TldrawScribble",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ scribble, zoom, color, opacity, className }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawScribble"
         },
         {
           "kind": "Variable",
@@ -14311,9 +14227,26 @@
               "text": "TldrawSelectionBackground: "
             },
             {
+              "kind": "Content",
+              "text": "({ bounds, rotation }: "
+            },
+            {
               "kind": "Reference",
-              "text": "TLSelectionBackgroundComponent",
-              "canonicalReference": "@tldraw/editor!TLSelectionBackgroundComponent:type"
+              "text": "TLSelectionBackgroundProps",
+              "canonicalReference": "@tldraw/editor!TLSelectionBackgroundProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawSelectionBackground.tsx",
@@ -14322,7 +14255,7 @@
           "name": "TldrawSelectionBackground",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 6
           }
         },
         {
@@ -14335,9 +14268,35 @@
               "text": "TldrawSelectionForeground: "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
               "kind": "Reference",
-              "text": "TLSelectionForegroundComponent",
-              "canonicalReference": "@tldraw/editor!TLSelectionForegroundComponent:type"
+              "text": "MemoExoticComponent",
+              "canonicalReference": "@types/react!React.MemoExoticComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<({ bounds, rotation, }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSelectionForegroundProps",
+              "canonicalReference": "@tldraw/editor!TLSelectionForegroundProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null>"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawSelectionForeground.tsx",
@@ -14346,7 +14305,7 @@
           "name": "TldrawSelectionForeground",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 8
           }
         },
         {
@@ -15463,7 +15422,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiDropdownMenuGroup({ children, size, }: "
+              "text": "export declare function TldrawUiDropdownMenuGroup({ children }: "
             },
             {
               "kind": "Reference",
@@ -15497,7 +15456,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ children, size, }",
+              "parameterName": "{ children }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -16119,7 +16078,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiMenuGroup({ id, label, small, children }: "
+              "text": "export declare function TldrawUiMenuGroup({ id, label, children }: "
             },
             {
               "kind": "Reference",
@@ -16148,7 +16107,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ id, label, small, children }",
+              "parameterName": "{ id, label, children }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -17458,34 +17417,6 @@
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiContextMenuProps#canvas:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canvas: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "any"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/DefaultContextMenu.tsx",
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "canvas",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tldraw!TLUiContextMenuProps#children:member",
               "docComment": "",
               "excerptTokens": [
@@ -18082,7 +18013,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children: any;\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
+              "text": "{\n    children: any;\n}"
             },
             {
               "kind": "Content",
@@ -21289,7 +21220,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    small?: boolean;\n    children?: any;\n}"
+              "text": "{\n    id: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    children?: any;\n}"
             },
             {
               "kind": "Content",
@@ -21444,7 +21375,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: any;\n    size?: 'large' | 'medium' | 'small' | 'tiny';\n}"
+              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: any;\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
             },
             {
               "kind": "Content",
@@ -21746,7 +21677,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    relevantStyles: "
+              "text": "{\n    styles: "
             },
             {
               "kind": "Reference",
@@ -21760,7 +21691,7 @@
             {
               "kind": "Reference",
               "text": "useRelevantStyles",
-              "canonicalReference": "@tldraw/tldraw!~useRelevantStyles:function"
+              "canonicalReference": "@tldraw/tldraw!useRelevantStyles:function"
             },
             {
               "kind": "Content",
@@ -21789,7 +21720,7 @@
               "text": "export interface TLUiStylePanelProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/StylePanel/DefaultStylePanel.d.ts",
           "releaseTag": "Public",
           "name": "TLUiStylePanelProps",
           "preserveMemberOrder": false,
@@ -21812,6 +21743,7 @@
                   "text": ";"
                 }
               ],
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
@@ -21839,6 +21771,7 @@
                   "text": ";"
                 }
               ],
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
@@ -21846,51 +21779,6 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TLUiStylePanelProps#relevantStyles:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "relevantStyles: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n        styles: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ReadonlySharedStyleMap",
-                  "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        opacity: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SharedStyle",
-                  "canonicalReference": "@tldraw/editor!SharedStyle:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n    } | null"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "relevantStyles",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 6
               }
             }
           ],
@@ -23615,6 +23503,92 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useReadonly"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!useRelevantStyles:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useRelevantStyles(stylesToCheck?: "
+            },
+            {
+              "kind": "Content",
+              "text": "readonly (import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\"> | import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\"> | import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\"> | import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">)[]"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReadonlySharedStyleMap",
+              "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useRevelantStyles.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 11,
+            "endIndex": 13
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "stylesToCheck",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 10
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "useRelevantStyles"
         },
         {
           "kind": "Function",

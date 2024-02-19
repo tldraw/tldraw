@@ -4,16 +4,13 @@ import { Box } from '../../primitives/Box'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
-export type TLSelectionBackgroundComponent = React.ComponentType<{
+export type TLSelectionBackgroundProps = {
 	bounds: Box
 	rotation: number
-}>
+}
 
 /** @public */
-export const DefaultSelectionBackground: TLSelectionBackgroundComponent = ({
-	bounds,
-	rotation,
-}) => {
+export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps) {
 	const rDiv = React.useRef<HTMLDivElement>(null)
 	useTransform(rDiv, bounds.x, bounds.y, 1, rotation)
 

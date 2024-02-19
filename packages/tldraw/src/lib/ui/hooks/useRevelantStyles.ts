@@ -4,18 +4,20 @@ import {
 	DefaultFillStyle,
 	DefaultSizeStyle,
 	ReadonlySharedStyleMap,
-	SharedStyle,
 	SharedStyleMap,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
 
-const selectToolStyles = [DefaultColorStyle, DefaultDashStyle, DefaultFillStyle, DefaultSizeStyle]
+const selectToolStyles = Object.freeze([
+	DefaultColorStyle,
+	DefaultDashStyle,
+	DefaultFillStyle,
+	DefaultSizeStyle,
+])
 
-export function useRelevantStyles(): {
-	styles: ReadonlySharedStyleMap
-	opacity: SharedStyle<number>
-} | null {
+/** @public */
+export function useRelevantStyles(stylesToCheck = selectToolStyles): ReadonlySharedStyleMap | null {
 	const editor = useEditor()
 	return useValue(
 		'getRelevantStyles',
@@ -25,13 +27,13 @@ export function useRelevantStyles(): {
 				editor.getSelectedShapeIds().length > 0 || !!editor.root.getCurrent()?.shapeType
 
 			if (styles.size === 0 && editor.isIn('select') && editor.getSelectedShapeIds().length === 0) {
-				for (const style of selectToolStyles) {
+				for (const style of stylesToCheck) {
 					styles.applyValue(style, editor.getStyleForNextShape(style))
 				}
 			}
 
 			if (styles.size === 0 && !hasShape) return null
-			return { styles, opacity: editor.getSharedOpacity() }
+			return styles
 		},
 		[editor]
 	)
