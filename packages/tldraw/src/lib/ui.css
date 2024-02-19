@@ -90,6 +90,20 @@
 	}
 }
 
+/* Hinted */
+
+.tlui-button__icon[data-state='hinted']::after {
+	background: var(--color-hint);
+	opacity: 1;
+	/* box-shadow: inset 0 0 0 1px var(--color-muted-1); */
+}
+
+.tlui-button__icon[data-state='hinted']:not(:disabled, :focus-visible):active::after {
+	background: var(--color-hint);
+	opacity: 1;
+	/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
+}
+
 /* Low button  */
 
 .tlui-button__low {
