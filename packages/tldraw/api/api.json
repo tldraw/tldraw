@@ -10633,25 +10633,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"cubic\" | \"line\">;\n        handles: import(\"@tldraw/editor\")."
+                  "text": "<\"cubic\" | \"line\">;\n        points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "DictValidator",
-                  "canonicalReference": "@tldraw/validate!DictValidator:class"
+                  "text": "ArrayOfValidator",
+                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
                 },
                 {
                   "kind": "Content",
                   "text": "<import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10673,7 +10664,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 16
+                "endIndex": 14
               },
               "isStatic": true,
               "isProtected": false,

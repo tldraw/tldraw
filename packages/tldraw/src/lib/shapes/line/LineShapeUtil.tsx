@@ -13,13 +13,11 @@ import {
 	TLOnResizeHandler,
 	Vec,
 	WeakMapCache,
-	deepCopy,
+	ZERO_INDEX_KEY,
 	getDefaultColorTheme,
-	getIndexBetween,
-	getIndices,
+	getIndexAbove,
 	lineShapeMigrations,
 	lineShapeProps,
-	objectMapEntries,
 	sortByIndex,
 } from '@tldraw/editor'
 
@@ -49,22 +47,21 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsBg = () => true
 
 	override getDefaultProps(): TLLineShape['props'] {
-		const [startIndex, endIndex] = getIndices(2)
 		return {
 			dash: 'draw',
 			size: 'm',
 			color: 'black',
 			spline: 'line',
-			handles: {
-				[startIndex]: {
+			points: [
+				{
 					x: 0,
 					y: 0,
 				},
-				[endIndex]: {
+				{
 					x: 0.1,
 					y: 0.1,
 				},
-			},
+			],
 		}
 	}
 
@@ -75,39 +72,40 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	override getHandles(shape: TLLineShape) {
 		return handlesCache.get(shape.props, () => {
-			const handles = shape.props.handles
-
 			const spline = getGeometryForLineShape(shape)
 
-			const sortedHandles = objectMapEntries(handles)
-				.map(
-					([index, handle]): TLHandle => ({
-						id: index,
-						index,
-						...handle,
-						type: 'vertex',
-						canBind: false,
-						canSnap: true,
-					})
-				)
-				.sort(sortByIndex)
-			const results = sortedHandles.slice()
+			const results: TLHandle[] = []
 
-			// Add "create" handles between each vertex handle
-			for (let i = 0; i < spline.segments.length; i++) {
-				const segment = spline.segments[i]
-				const point = segment.midPoint()
-				const index = getIndexBetween(sortedHandles[i].index, sortedHandles[i + 1].index)
+			const { points } = shape.props
 
+			let index = ZERO_INDEX_KEY
+
+			for (let i = 0; i < points.length; i++) {
+				const handle = points[i]
 				results.push({
-					id: `mid-${i}`,
-					type: 'create',
+					...handle,
+					id: index,
 					index,
-					x: point.x,
-					y: point.y,
-					canSnap: true,
+					type: 'vertex',
 					canBind: false,
+					canSnap: true,
 				})
+				index = getIndexAbove(index)
+
+				if (i < points.length - 1) {
+					const segment = spline.segments[i]
+					const point = segment.midPoint()
+					results.push({
+						id: index,
+						type: 'create',
+						index,
+						x: point.x,
+						y: point.y,
+						canSnap: true,
+						canBind: false,
+					})
+					index = getIndexAbove(index)
+				}
 			}
 
 			return results.sort(sortByIndex)
@@ -119,29 +117,38 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override onResize: TLOnResizeHandler<TLLineShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
 
-		const handles = deepCopy(shape.props.handles)
-
-		objectMapEntries(shape.props.handles).forEach(([index, { x, y }]) => {
-			handles[index].x = x * scaleX
-			handles[index].y = y * scaleY
-		})
-
 		return {
 			props: {
-				handles,
+				points: shape.props.points.map(({ x, y }) => {
+					return {
+						x: x * scaleX,
+						y: y * scaleY,
+					}
+				}),
 			},
 		}
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
+		// we should only ever be dragging vertex handles
+		if (handle.type !== 'vertex') {
+			return shape
+		}
+
+		// get the index of the point to which the vertex handle corresponds
+		const index = this.getHandles(shape)
+			.filter((h) => h.type === 'vertex')
+			.findIndex((h) => h.id === handle.id)!
+
+		// splice in the new point
+		const points = [...shape.props.points]
+		points[index] = { x: handle.x, y: handle.y }
+
 		return {
 			...shape,
 			props: {
 				...shape.props,
-				handles: {
-					...shape.props.handles,
-					[handle.index]: { x: handle.x, y: handle.y },
-				},
+				points,
 			},
 		}
 	}
@@ -380,29 +387,28 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
+		const { points } = shape.props
 		return {
-			points: Object.values(shape.props.handles),
+			points,
 			getSelfSnapPoints: (handle) => {
-				const handles = objectMapEntries(shape.props.handles)
-					.map(([index, pos]) => ({ index, ...pos }))
-					.sort(sortByIndex)
-				const handleIndex = handles.findIndex(({ index }) => handle.index === index)
+				const index = this.getHandles(shape)
+					.filter((h) => h.type === 'vertex')
+					.findIndex((h) => h.id === handle.id)!
+
 				// We want to skip the current and adjacent handles
-				return handles.filter((_, i) => Math.abs(i - handleIndex) > 1).map(Vec.From)
+				return points.filter((_, i) => Math.abs(i - index) > 1).map(Vec.From)
 			},
 			getSelfSnapOutline: (handle) => {
 				// We want to skip the segments that include the handle, so
 				// find the index of the handle that shares the same index property
 				// as the initial dragging handle; this catches a quirk of create handles
-				const handleIndex = this.editor
-					.getShapeHandles(shape)!
-					.filter(({ type }) => type === 'vertex')
-					.sort(sortByIndex)
-					.findIndex(({ index }) => handle.index === index)
+				const index = this.getHandles(shape)
+					.filter((h) => h.type === 'vertex')
+					.findIndex((h) => h.id === handle.id)!
 
 				// Get all the outline segments from the shape that don't include the handle
 				const segments = getGeometryForLineShape(shape).segments.filter(
-					(_, i) => i !== handleIndex - 1 && i !== handleIndex
+					(_, i) => i !== index - 1 && i !== index
 				)
 
 				if (!segments.length) return null
@@ -414,11 +420,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 /** @public */
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
-	const { spline, handles } = shape.props
-	const handlePoints = objectMapEntries(handles)
-		.map(([index, position]) => ({ index, ...position }))
-		.sort(sortByIndex)
-		.map(Vec.From)
+	const { spline, points } = shape.props
+	const handlePoints = points.map(Vec.From)
 
 	switch (spline) {
 		case 'cubic': {
