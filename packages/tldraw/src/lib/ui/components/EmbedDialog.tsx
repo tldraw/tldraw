@@ -1,4 +1,3 @@
-import { DialogTitle } from '@radix-ui/react-dialog'
 import { EMBED_DEFINITIONS, EmbedDefinition, track, useEditor } from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
@@ -12,6 +11,7 @@ import {
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from './primitives/TldrawUiDialog'
 import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 import { TldrawUiInput } from './primitives/TldrawUiInput'
@@ -37,11 +37,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<DialogTitle>
+				<TldrawUiDialogTitle>
 					{embedDefinition
 						? `${msg('embed-dialog.title')} — ${embedDefinition.title}`
 						: msg('embed-dialog.title')}
-				</DialogTitle>
+				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			{embedDefinition ? (
