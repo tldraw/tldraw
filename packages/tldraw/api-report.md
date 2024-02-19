@@ -1279,6 +1279,19 @@ export const TldrawUiButtonPicker: MemoExoticComponent<(<T extends string>(props
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
+export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
+
+// @public
+export interface TldrawUiContextProviderProps {
+    assetUrls?: RecursivePartial<TLUiAssetUrls>;
+    children?: any;
+    components?: TLUiComponents;
+    forceMobile?: boolean;
+    onUiEvent?: TLUiEventHandler;
+    overrides?: TLUiOverrides | TLUiOverrides[];
+}
+
+// @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
 
 // @public (undocumented)

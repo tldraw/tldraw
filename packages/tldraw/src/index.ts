@@ -44,6 +44,10 @@ export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/asse
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
+	TldrawUiContextProvider,
+	type TldrawUiContextProviderProps,
+} from './lib/ui/context/TldrawUiContextProvider'
+export {
 	useActions,
 	type TLUiActionItem,
 	type TLUiActionsContextType,

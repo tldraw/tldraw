@@ -14920,6 +14920,267 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawUiContextProvider:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TldrawUiContextProviderProps",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/TldrawUiContextProvider.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ overrides, components, assetUrls, onUiEvent, forceMobile, children, }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawUiContextProvider"
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps:interface",
+          "docComment": "/**\n * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface TldrawUiContextProviderProps "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/TldrawUiContextProvider.tsx",
+          "releaseTag": "Public",
+          "name": "TldrawUiContextProviderProps",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps#assetUrls:member",
+              "docComment": "/**\n * Urls for where to find fonts and other assets for the UI.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "assetUrls?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RecursivePartial",
+                  "canonicalReference": "@tldraw/utils!RecursivePartial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiAssetUrls",
+                  "canonicalReference": "@tldraw/tldraw!~TLUiAssetUrls:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "assetUrls",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps#children:member",
+              "docComment": "/**\n * The component's children.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "children?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps#components:member",
+              "docComment": "/**\n * Overrides for the UI components.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "components?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiComponents",
+                  "canonicalReference": "@tldraw/tldraw!TLUiComponents:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "components",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps#forceMobile:member",
+              "docComment": "/**\n * Whether to always should the mobile breakpoints.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "forceMobile?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "forceMobile",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps#onUiEvent:member",
+              "docComment": "/**\n * Callback for when an event occurs in the UI.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onUiEvent?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiEventHandler",
+                  "canonicalReference": "@tldraw/tldraw!TLUiEventHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onUiEvent",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps#overrides:member",
+              "docComment": "/**\n * Overrides for the UI.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "overrides?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiOverrides",
+                  "canonicalReference": "@tldraw/tldraw!TLUiOverrides:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUiOverrides",
+                  "canonicalReference": "@tldraw/tldraw!TLUiOverrides:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "overrides",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!TldrawUiDialogBody:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -16327,7 +16588,7 @@
             {
               "kind": "Reference",
               "text": "TldrawUiContextProviderProps",
-              "canonicalReference": "@tldraw/tldraw!~TldrawUiContextProviderProps:interface"
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps:interface"
             },
             {
               "kind": "Content",
