@@ -401,10 +401,16 @@ export class UnionValidator<
 			},
 			(prevValue, newValue) => {
 				this.expectObject(newValue)
+				this.expectObject(prevValue)
 
 				const { matchingSchema, variant } = this.getMatchingSchemaAndVariant(newValue)
 				if (matchingSchema === undefined) {
 					return this.unknownValueValidation(newValue, variant)
+				}
+
+				if (getOwnProperty(prevValue, key) !== getOwnProperty(newValue, key)) {
+					// the type has changed so bail out and do a regular validation
+					return prefixError(`(${key} = ${variant})`, () => matchingSchema.validate(newValue))
 				}
 
 				return prefixError(`(${key} = ${variant})`, () => {
