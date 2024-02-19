@@ -282,7 +282,7 @@ export function ArrangeMenuSubmenu() {
 	if (!(twoSelected || onlyFlippableShapeSelected)) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange">
+		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange" size="small">
 			{twoSelected && (
 				<TldrawUiMenuGroup id="align">
 					<TldrawUiMenuItem {...actions['align-left']} />
