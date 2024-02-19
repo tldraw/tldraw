@@ -186,52 +186,32 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         start: UnionValidator<"type", {
-        binding: ObjectValidator<Pick<{
+        binding: ObjectValidator<    {
         type: "binding";
         boundShapeId: TLShapeId;
         normalizedAnchor: VecModel;
         isExact: boolean;
         isPrecise: boolean;
-        }, "boundShapeId" | "isExact" | "isPrecise" | "normalizedAnchor" | "type"> & Partial<{
-        type: "binding";
-        boundShapeId: TLShapeId;
-        normalizedAnchor: VecModel;
-        isExact: boolean;
-        isPrecise: boolean;
-        }>>;
-        point: ObjectValidator<Pick<{
-        type: "point";
+        }>;
+        point: ObjectValidator<    {
         x: number;
         y: number;
-        }, "type" | "x" | "y"> & Partial<{
         type: "point";
-        x: number;
-        y: number;
-        }>>;
+        }>;
         }, never>;
         end: UnionValidator<"type", {
-        binding: ObjectValidator<Pick<{
+        binding: ObjectValidator<    {
         type: "binding";
         boundShapeId: TLShapeId;
         normalizedAnchor: VecModel;
         isExact: boolean;
         isPrecise: boolean;
-        }, "boundShapeId" | "isExact" | "isPrecise" | "normalizedAnchor" | "type"> & Partial<{
-        type: "binding";
-        boundShapeId: TLShapeId;
-        normalizedAnchor: VecModel;
-        isExact: boolean;
-        isPrecise: boolean;
-        }>>;
-        point: ObjectValidator<Pick<{
-        type: "point";
+        }>;
+        point: ObjectValidator<    {
         x: number;
         y: number;
-        }, "type" | "x" | "y"> & Partial<{
         type: "point";
-        x: number;
-        y: number;
-        }>>;
+        }>;
         }, never>;
         bend: Validator<number>;
         text: Validator<string>;
@@ -429,13 +409,10 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        segments: ArrayOfValidator<Pick<{
+        segments: ArrayOfValidator<    {
         type: "free" | "straight";
         points: VecModel[];
-        }, "points" | "type"> & Partial<{
-        type: "free" | "straight";
-        points: VecModel[];
-        }>>;
+        }>;
         isComplete: Validator<boolean>;
         isClosed: Validator<boolean>;
         isPen: Validator<boolean>;
@@ -780,13 +757,10 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        segments: ArrayOfValidator<Pick<{
+        segments: ArrayOfValidator<    {
         type: "free" | "straight";
         points: VecModel[];
-        }, "points" | "type"> & Partial<{
-        type: "free" | "straight";
-        points: VecModel[];
-        }>>;
+        }>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
     };
@@ -823,13 +797,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
         playing: Validator<boolean>;
         url: Validator<string>;
         assetId: Validator<TLAssetId | null>;
-        crop: Validator<(Pick<{
+        crop: Validator<    {
         topLeft: VecModel;
         bottomRight: VecModel;
-        }, "bottomRight" | "topLeft"> & Partial<{
-        topLeft: VecModel;
-        bottomRight: VecModel;
-        }>) | null>;
+        } | null>;
     };
     // (undocumented)
     shouldGetDataURI(src: string): "" | boolean;

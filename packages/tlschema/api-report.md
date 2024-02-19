@@ -39,52 +39,32 @@ export const arrowShapeProps: {
     arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     start: T.UnionValidator<"type", {
-        binding: T.ObjectValidator<Pick<{
+        binding: T.ObjectValidator<{
             type: "binding";
             boundShapeId: TLShapeId;
             normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
-        }, "boundShapeId" | "isExact" | "isPrecise" | "normalizedAnchor" | "type"> & Partial<{
-            type: "binding";
-            boundShapeId: TLShapeId;
-            normalizedAnchor: VecModel;
-            isExact: boolean;
-            isPrecise: boolean;
-        }>>;
-        point: T.ObjectValidator<Pick<{
-            type: "point";
+        } & {}>;
+        point: T.ObjectValidator<{
             x: number;
             y: number;
-        }, "type" | "x" | "y"> & Partial<{
             type: "point";
-            x: number;
-            y: number;
-        }>>;
+        } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
-        binding: T.ObjectValidator<Pick<{
+        binding: T.ObjectValidator<{
             type: "binding";
             boundShapeId: TLShapeId;
             normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
-        }, "boundShapeId" | "isExact" | "isPrecise" | "normalizedAnchor" | "type"> & Partial<{
-            type: "binding";
-            boundShapeId: TLShapeId;
-            normalizedAnchor: VecModel;
-            isExact: boolean;
-            isPrecise: boolean;
-        }>>;
-        point: T.ObjectValidator<Pick<{
-            type: "point";
+        } & {}>;
+        point: T.ObjectValidator<{
             x: number;
             y: number;
-        }, "type" | "x" | "y"> & Partial<{
             type: "point";
-            x: number;
-            y: number;
-        }>>;
+        } & {}>;
     }, never>;
     bend: T.Validator<number>;
     text: T.Validator<string>;
@@ -136,19 +116,19 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Pick<{
-    id: TLAssetId;
-    typeName: 'asset';
-    type: Type;
-    props: Props;
-    meta: JsonObject;
-}, "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")> & Partial<{
-    id: TLAssetId;
-    typeName: 'asset';
-    type: Type;
-    props: Props;
-    meta: JsonObject;
-}>>;
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{ [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
+        id: TLAssetId;
+        typeName: 'asset';
+        type: Type;
+        props: Props;
+        meta: JsonObject;
+    }[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
+        id: TLAssetId;
+        typeName: 'asset';
+        type: Type;
+        props: Props;
+        meta: JsonObject;
+    }[P_1] | undefined; }>;
 
 // @public (undocumented)
 export const createPresenceStateDerivation: ($user: Signal<{
@@ -165,7 +145,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Pick<TLBaseShape<Type, Props>, "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")> & Partial<TLBaseShape<Type, Props>>>;
+}): T.ObjectValidator<{ [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>;
 
 // @public
 export function createTLSchema({ shapes }: {
@@ -219,13 +199,10 @@ export const drawShapeProps: {
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    segments: T.ArrayOfValidator<Pick<{
+    segments: T.ArrayOfValidator<{
         type: "free" | "straight";
         points: VecModel[];
-    }, "points" | "type"> & Partial<{
-        type: "free" | "straight";
-        points: VecModel[];
-    }>>;
+    } & {}>;
     isComplete: T.Validator<boolean>;
     isClosed: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -541,13 +518,10 @@ export const highlightShapeMigrations: Migrations;
 export const highlightShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    segments: T.ArrayOfValidator<Pick<{
+    segments: T.ArrayOfValidator<{
         type: "free" | "straight";
         points: VecModel[];
-    }, "points" | "type"> & Partial<{
-        type: "free" | "straight";
-        points: VecModel[];
-    }>>;
+    } & {}>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
 };
@@ -565,13 +539,10 @@ export const imageShapeProps: {
     playing: T.Validator<boolean>;
     url: T.Validator<string>;
     assetId: T.Validator<TLAssetId | null>;
-    crop: T.Validator<(Pick<{
+    crop: T.Validator<({
         topLeft: VecModel;
         bottomRight: VecModel;
-    }, "bottomRight" | "topLeft"> & Partial<{
-        topLeft: VecModel;
-        bottomRight: VecModel;
-    }>) | null>;
+    } & {}) | null>;
 };
 
 // @public (undocumented)

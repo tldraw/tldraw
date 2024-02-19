@@ -86,7 +86,11 @@ const number: Validator<number>;
 // @public
 function object<Shape extends object>(config: {
     readonly [K in keyof Shape]: Validatable<Shape[K]>;
-}): ObjectValidator<MakeUndefinedOptional<Shape>>;
+}): ObjectValidator<{
+    [P in ExtractRequiredKeys<Shape>]: Shape[P];
+} & {
+    [P in ExtractOptionalKeys<Shape>]?: Shape[P];
+}>;
 
 // @public (undocumented)
 export class ObjectValidator<Shape extends object> extends Validator<Shape> {

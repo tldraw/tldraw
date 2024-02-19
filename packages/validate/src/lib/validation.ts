@@ -670,7 +670,9 @@ type ExtractRequiredKeys<T extends object> = {
 	[K in keyof T]: undefined extends T[K] ? never : K
 }[keyof T]
 
-type MakeUndefinedOptional<T extends object> = Pick<T, ExtractRequiredKeys<T>> & Partial<T>
+type ExtractOptionalKeys<T extends object> = {
+	[K in keyof T]: undefined extends T[K] ? K : never
+}[keyof T]
 
 /**
  * Validate an object has a particular shape.
@@ -679,7 +681,9 @@ type MakeUndefinedOptional<T extends object> = Pick<T, ExtractRequiredKeys<T>> &
  */
 export function object<Shape extends object>(config: {
 	readonly [K in keyof Shape]: Validatable<Shape[K]>
-}): ObjectValidator<MakeUndefinedOptional<Shape>> {
+}): ObjectValidator<
+	{ [P in ExtractRequiredKeys<Shape>]: Shape[P] } & { [P in ExtractOptionalKeys<Shape>]?: Shape[P] }
+> {
 	return new ObjectValidator(config) as any
 }
 

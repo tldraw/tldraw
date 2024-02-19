@@ -2142,16 +2142,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "<{\n    [P in "
                 },
                 {
                   "kind": "Reference",
-                  "text": "MakeUndefinedOptional",
-                  "canonicalReference": "@tldraw/validate!~MakeUndefinedOptional:type"
+                  "text": "ExtractRequiredKeys",
+                  "canonicalReference": "@tldraw/validate!~ExtractRequiredKeys:type"
                 },
                 {
                   "kind": "Content",
-                  "text": "<Shape>>"
+                  "text": "<Shape>]: Shape[P];\n} & {\n    [P in "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ExtractOptionalKeys",
+                  "canonicalReference": "@tldraw/validate!~ExtractOptionalKeys:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>]?: Shape[P];\n}>"
                 },
                 {
                   "kind": "Content",
@@ -2161,7 +2170,7 @@
               "fileUrlPath": "packages/validate/src/lib/validation.ts",
               "returnTypeTokenRange": {
                 "startIndex": 7,
-                "endIndex": 11
+                "endIndex": 13
               },
               "releaseTag": "Public",
               "overloadIndex": 1,
