@@ -149,7 +149,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 					<TldrawUiInput
 						ref={rInput}
 						className="tlui-edit-link-dialog__input"
-						label="edit-link-url"
+						label="edit-link-dialog.url"
 						autofocus
 						value={urlInputState.actual}
 						onValueChange={handleChange}
