@@ -8,16 +8,15 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import * as React from 'react'
-import { useRef } from 'react'
+import { memo, useMemo, useRef } from 'react'
+import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TLUiIconType } from '../../icon-types'
-import { StyleValuesForUi } from '../StylePanel/styles'
-import { Button } from './Button'
+import { TldrawUiButton } from './Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 
-/** @internal */
-export interface ButtonPickerProps<T extends string> {
+/** @public */
+export interface TLUiButtonPickerProps<T extends string> {
 	title: string
 	uiType: string
 	style: StyleProp<T>
@@ -26,7 +25,10 @@ export interface ButtonPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
+/** @public */
+export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends string>(
+	props: TLUiButtonPickerProps<T>
+) {
 	const {
 		uiType,
 		items,
@@ -46,7 +48,7 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 		handleButtonPointerDown,
 		handleButtonPointerEnter,
 		handleButtonPointerUp,
-	} = React.useMemo(() => {
+	} = useMemo(() => {
 		const handlePointerUp = () => {
 			rPointing.current = false
 			window.removeEventListener('pointerup', handlePointerUp)
@@ -97,9 +99,9 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 	)
 
 	return (
-		<div className={classNames('tlui-buttons__grid')}>
+		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>
 			{items.map((item) => (
-				<Button
+				<TldrawUiButton
 					type="icon"
 					key={item.value}
 					data-id={item.value}
@@ -117,12 +119,10 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 					onPointerDown={handleButtonPointerDown}
 					onPointerUp={handleButtonPointerUp}
 					onClick={handleButtonClick}
-					icon={item.icon as TLUiIconType}
-				/>
+				>
+					<TldrawUiButtonIcon icon={item.icon} />
+				</TldrawUiButton>
 			))}
 		</div>
 	)
-}
-
-/** @internal */
-export const ButtonPicker = React.memo(_ButtonPicker) as typeof _ButtonPicker
+})

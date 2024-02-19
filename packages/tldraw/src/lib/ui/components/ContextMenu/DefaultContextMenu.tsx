@@ -2,7 +2,7 @@ import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import { memo, useCallback } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 
 /** @public */

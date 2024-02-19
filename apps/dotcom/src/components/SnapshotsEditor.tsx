@@ -54,6 +54,13 @@ const components: TLComponents = {
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},
+	SharePanel: () => {
+		return (
+			<div className="tlui-share-zone" draggable={false}>
+				<ExportMenu />
+			</div>
+		)
+	},
 }
 
 type SnapshotEditorProps = {
@@ -79,11 +86,6 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 					editor.updateInstanceState({ isReadonly: true })
 				}}
 				components={components}
-				shareZone={
-					<div className="tlui-share-zone" draggable={false}>
-						<ExportMenu />
-					</div>
-				}
 				renderDebugMenuItems={() => <DebugMenuItems />}
 				autoFocus
 				inferDarkMode

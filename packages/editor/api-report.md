@@ -156,7 +156,14 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     // (undocumented)
     getGeometry(shape: Shape): Geometry2d;
     // (undocumented)
+    getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
+    // (undocumented)
     onResize: TLOnResizeHandler<any>;
+}
+
+// @public
+export interface BoundsSnapGeometry {
+    points?: VecModel[];
 }
 
 // @public (undocumented)
@@ -197,6 +204,8 @@ export class Box {
     containsPoint(V: VecLike, margin?: number): boolean;
     // (undocumented)
     get corners(): Vec[];
+    // (undocumented)
+    get cornersAndCenter(): Vec[];
     // (undocumented)
     static Equals(a: Box | BoxModel, b: Box | BoxModel): boolean;
     // (undocumented)
@@ -263,8 +272,6 @@ export class Box {
     get sides(): Array<[Vec, Vec]>;
     // (undocumented)
     get size(): Vec;
-    // (undocumented)
-    get snapPoints(): Vec[];
     // (undocumented)
     snapToGrid(size: number): void;
     // (undocumented)
@@ -350,6 +357,12 @@ export function clampRadians(r: number): number;
 export function clockwiseAngleDist(a0: number, a1: number): number;
 
 export { computed }
+
+// @internal (undocumented)
+export function ContainerProvider({ container, children, }: {
+    container: HTMLDivElement;
+    children: React.ReactNode;
+}): JSX_2.Element;
 
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
@@ -900,11 +913,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, animation?: TLAnimationOptions): this;
     zoomOut(point?: Vec, animation?: TLAnimationOptions): this;
-    zoomToBounds(bounds: Box, targetZoom?: number, animation?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box, opts?: {
+        targetZoom?: number;
+        inset?: number;
+    } & TLAnimationOptions): this;
     zoomToContent(): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
+
+// @internal (undocumented)
+export const EditorContext: React_2.Context<Editor>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -982,11 +1001,7 @@ export abstract class Geometry2d {
     // (undocumented)
     get area(): number;
     // (undocumented)
-    _area: number | undefined;
-    // (undocumented)
     get bounds(): Box;
-    // (undocumented)
-    _bounds: Box | undefined;
     // (undocumented)
     get center(): Vec;
     // (undocumented)
@@ -1020,15 +1035,9 @@ export abstract class Geometry2d {
     // (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
-    get snapPoints(): Vec[];
-    // (undocumented)
-    _snapPoints: undefined | Vec[];
-    // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
     get vertices(): Vec[];
-    // (undocumented)
-    _vertices: undefined | Vec[];
 }
 
 // @public
@@ -1142,6 +1151,12 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 // @public (undocumented)
 export const HALF_PI: number;
+
+// @public
+export interface HandleSnapGeometry {
+    outline?: Geometry2d | null;
+    points?: VecModel[];
+}
 
 // @public
 export function hardReset({ shouldReload }?: {
@@ -1600,10 +1615,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
+    getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
+    getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     getOutlineSegments(shape: Shape): Vec[][];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
@@ -1808,6 +1825,7 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 // @public (undocumented)
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
+    readonly isDarkMode: boolean;
 }
 
 // @public (undocumented)

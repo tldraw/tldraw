@@ -8,13 +8,20 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Button } from '../primitives/Button'
-import { Icon } from '../primitives/Icon'
-import { Popover, PopoverContent, PopoverTrigger } from '../primitives/Popover'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import {
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+} from '../primitives/TldrawUiPopover'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 import { onMovePage } from './edit-pages-shared'
@@ -254,33 +261,30 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [editor, msg, isReadonlyMode])
 
 	return (
-		<Popover id="pages" onOpenChange={onOpenChange} open={isOpen}>
-			<PopoverTrigger
-				className="tlui-page-menu__trigger tlui-menu__trigger"
-				data-testid="main.page-menu"
-				icon="chevron-down"
-				type="menu"
-				title={currentPage.name}
-			>
-				<div className="tlui-page-menu__name">{currentPage.name}</div>
-			</PopoverTrigger>
-			<PopoverContent side="bottom" align="start" sideOffset={6}>
+		<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
+			<TldrawUiPopoverTrigger data-testid="main.page-menu">
+				<TldrawUiButton type="menu" title={currentPage.name} className="tlui-page-menu__trigger">
+					<div className="tlui-page-menu__name">{currentPage.name}</div>
+					<TldrawUiButtonIcon icon="chevron-down" small />
+				</TldrawUiButton>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={6}>
 				<div className="tlui-page-menu__wrapper">
 					<div className="tlui-page-menu__header">
 						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
 						{!isReadonlyMode && (
 							<div className="tlui-buttons__horizontal">
-								<Button
+								<TldrawUiButton
 									type="icon"
 									data-testid="page-menu.edit"
 									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
-									icon={isEditing ? 'check' : 'edit'}
 									onClick={toggleEditing}
-								/>
-								<Button
+								>
+									<TldrawUiButtonIcon icon={isEditing ? 'check' : 'edit'} />
+								</TldrawUiButton>
+								<TldrawUiButton
 									type="icon"
 									data-testid="page-menu.create"
-									icon="plus"
 									title={msg(
 										maxPageCountReached
 											? 'page-menu.max-page-count-reached'
@@ -288,11 +292,14 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									)}
 									disabled={maxPageCountReached}
 									onClick={handleCreatePageClick}
-								/>
+								>
+									<TldrawUiButtonIcon icon="plus" />
+								</TldrawUiButton>
 							</div>
 						)}
 					</div>
 					<div
+						data-testid="page-menu.list"
 						className="tlui-page-menu__list tlui-menu__group"
 						style={{ height: ITEM_HEIGHT * pages.length + 4 }}
 						ref={rSortableContainer}
@@ -306,31 +313,32 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 							return isEditing ? (
 								<div
 									key={page.id + '_editing'}
-									data-testid={`page-menu-item-${page.id}`}
+									data-testid="page-menu.item"
 									className="tlui-page_menu__item__sortable"
 									style={{
 										zIndex: page.id === currentPage.id ? 888 : index,
 										transform: `translate(0px, ${position.y + position.offsetY}px)`,
 									}}
 								>
-									<Button
+									<TldrawUiButton
 										type="icon"
 										tabIndex={-1}
 										className="tlui-page_menu__item__sortable__handle"
-										icon="drag-handle-dots"
 										onPointerDown={handlePointerDown}
 										onPointerUp={handlePointerUp}
 										onPointerMove={handlePointerMove}
 										onKeyDown={handleKeyDown}
 										data-id={page.id}
 										data-index={index}
-									/>
-									{breakpoint < 5 && isCoarsePointer ? (
+									>
+										<TldrawUiButtonIcon icon="drag-handle-dots" />
+									</TldrawUiButton>
+									{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer ? (
 										// sigh, this is a workaround for iOS Safari
 										// because the device and the radix popover seem
 										// to be fighting over scroll position. Nothing
 										// else seems to work!
-										<Button
+										<TldrawUiButton
 											type="normal"
 											className="tlui-page-menu__item__button"
 											onClick={() => {
@@ -340,10 +348,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												}
 											}}
 											onDoubleClick={toggleEditing}
-											isChecked={page.id === currentPage.id}
 										>
-											<span>{page.name}</span>
-										</Button>
+											<TldrawUiButtonCheck checked={page.id === currentPage.id} />
+											<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
+										</TldrawUiButton>
 									) : (
 										<div
 											className="tlui-page_menu__item__sortable__title"
@@ -363,24 +371,17 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									)}
 								</div>
 							) : (
-								<div
-									key={page.id}
-									data-testid={`page-menu-item-${page.id}`}
-									className="tlui-page-menu__item"
-								>
-									<Button
+								<div key={page.id} data-testid="page-menu.item" className="tlui-page-menu__item">
+									<TldrawUiButton
 										type="normal"
-										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
+										className="tlui-page-menu__item__button"
 										onClick={() => editor.setCurrentPage(page.id)}
 										onDoubleClick={toggleEditing}
-										isChecked={page.id === currentPage.id}
 										title={msg('page-menu.go-to-page')}
 									>
-										<div className="tlui-page-menu__item__button__check">
-											{page.id === currentPage.id && <Icon icon="check" />}
-										</div>
-										<span>{page.name}</span>
-									</Button>
+										<TldrawUiButtonCheck checked={page.id === currentPage.id} />
+										<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
+									</TldrawUiButton>
 									{!isReadonlyMode && (
 										<div className="tlui-page_menu__item__submenu">
 											<PageItemSubmenu
@@ -408,7 +409,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						})}
 					</div>
 				</div>
-			</PopoverContent>
-		</Popover>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 })

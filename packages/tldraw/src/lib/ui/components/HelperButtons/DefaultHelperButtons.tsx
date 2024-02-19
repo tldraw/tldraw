@@ -1,4 +1,4 @@
-import { TldrawUiMenuContextProvider } from '../menus/TldrawUiMenuContext'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultHelperButtonsContent } from './DefaultHelperButtonsContent'
 
 /** @public */

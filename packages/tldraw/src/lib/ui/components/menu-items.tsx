@@ -21,10 +21,10 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../hooks/menu-hooks'
-import { TldrawUiMenuCheckboxItem } from './menus/TldrawUiMenuCheckboxItem'
-import { TldrawUiMenuGroup } from './menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from './menus/TldrawUiMenuItem'
-import { TldrawUiMenuSubmenu } from './menus/TldrawUiMenuSubmenu'
+import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckboxItem'
+import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from './primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
 /* -------------------- Selection ------------------- */
 

@@ -4,6 +4,7 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SelectionEdge,
+	SvgExportContext,
 	TLFrameShape,
 	TLGroupShape,
 	TLOnResizeEndHandler,
@@ -96,8 +97,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override toSvg(shape: TLFrameShape): SVGElement | Promise<SVGElement> {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+	override toSvg(shape: TLFrameShape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> {
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
