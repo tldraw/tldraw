@@ -1,4 +1,3 @@
-import { DialogTitle } from '@radix-ui/react-dialog'
 import { memo } from 'react'
 import { TLUiDialogProps } from '../../context/dialogs'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -6,6 +5,7 @@ import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from '../primitives/TldrawUiDialog'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultKeyboardShortcutsDialogContent } from './DefaultKeyboardShortcutsDialogContent'
@@ -26,7 +26,7 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 	return (
 		<>
 			<TldrawUiDialogHeader className="tlui-shortcuts-dialog__header">
-				<DialogTitle>{msg('shortcuts-dialog.title')}</DialogTitle>
+				<TldrawUiDialogTitle>{msg('shortcuts-dialog.title')}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className="tlui-shortcuts-dialog__body">
