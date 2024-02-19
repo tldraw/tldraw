@@ -6,8 +6,10 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseShape,
+	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	resizeBox,
+	structuredClone,
 	useIsEditing,
 } from '@tldraw/tldraw'
 import { useState } from 'react'
@@ -68,7 +70,8 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 			<HTMLContainer id={shape.id}>
 				<div
 					style={{
-						border: '1px solid black',
+						border: '1px solid rgba(0, 0, 0, 0.1)',
+						boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.04)',
 						display: 'flex',
 						borderRadius: '50%',
 						height: '100%',
@@ -116,6 +119,25 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 	// [9]
 	override onResize: TLOnResizeHandler<ICatDog> = (shape, info) => {
 		return resizeBox(shape, info)
+	}
+
+	// [10]
+	override onEditEnd: TLOnEditEndHandler<ICatDog> = (shape) => {
+		const frame1 = structuredClone(shape)
+		const frame2 = structuredClone(shape)
+
+		frame1.x = shape.x + 1.2
+		frame2.x = shape.x - 1.2
+
+		this.editor.animateShape(frame1, { duration: 50 })
+
+		setTimeout(() => {
+			this.editor.animateShape(frame2, { duration: 50 })
+		}, 100)
+
+		setTimeout(() => {
+			this.editor.animateShape(shape, { duration: 100 })
+		}, 200)
 	}
 }
 
@@ -165,4 +187,10 @@ make it appear red if the shape is in the editing state by using the useIsEditin
 [9]
 The onResize method is where we handle the resizing of the shape. We use the resizeBox helper
 to handle the resizing for us.
+
+[10]
+The onEditEnd method is called when the shape exits the editing state. In the tldraw codebase we 
+mostly use this for trimming text fields in shapes. In this case, we use it to animate the shape
+when it exits the editing state.
+
 */

@@ -5,7 +5,7 @@ category: shapes/tools
 priority: 1
 ---
 
-A custom shape that you can edit by double-clicking.
+A custom shape that you can edit by double-clicking it.
 
 ---
 
