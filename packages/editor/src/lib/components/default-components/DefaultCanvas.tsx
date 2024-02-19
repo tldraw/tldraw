@@ -20,13 +20,9 @@ import { debugFlags } from '../../utils/debug-flags'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
-import { ShapeIndicator } from '../ShapeIndicator'
 
 /** @public */
 export type TLCanvasComponentProps = { className?: string }
-
-/** @public */
-export type TLCanvasComponent = React.FC<TLCanvasComponentProps>
 
 /** @public */
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
@@ -384,12 +380,19 @@ function SelectedIdIndicators() {
 		[editor]
 	)
 
+	const { ShapeIndicator } = useEditorComponents()
+
+	if (!ShapeIndicator) return null
 	if (!shouldDisplay) return null
 
 	return (
 		<>
 			{selectedShapeIds.map((id) => (
-				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
+				<ShapeIndicator
+					key={id + '_indicator'}
+					className="tl-user-indicator__selected"
+					shapeId={id}
+				/>
 			))}
 		</>
 	)
@@ -419,15 +422,17 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	const editor = useEditor()
+	const { ShapeIndicator } = useEditorComponents()
 
 	const ids = dedupe(editor.getHintingShapeIds())
 
 	if (!ids.length) return null
+	if (!ShapeIndicator) return null
 
 	return (
 		<>
 			{ids.map((id) => (
-				<ShapeIndicator className="tl-user-indicator__hint" id={id} key={id + '_hinting'} />
+				<ShapeIndicator className="tl-user-indicator__hint" shapeId={id} key={id + '_hinting'} />
 			))}
 		</>
 	)

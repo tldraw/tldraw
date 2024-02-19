@@ -4,7 +4,6 @@
 export * from '@tldraw/editor'
 export { Tldraw, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
-export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'

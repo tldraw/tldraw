@@ -74,9 +74,9 @@ import { TLExitEventHandler } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
-import { TLHandlesComponent } from '@tldraw/editor';
+import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
-import { TLHoveredShapeIndicatorComponent } from '@tldraw/editor';
+import { TLHoveredShapeIndicatorProps } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
@@ -100,9 +100,9 @@ import { TLPointerEventName } from '@tldraw/editor';
 import { TLRecord } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
-import { TLScribbleComponent } from '@tldraw/editor';
-import { TLSelectionBackgroundComponent } from '@tldraw/editor';
-import { TLSelectionForegroundComponent } from '@tldraw/editor';
+import { TLScribbleProps } from '@tldraw/editor';
+import { TLSelectionBackgroundProps } from '@tldraw/editor';
+import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
@@ -1174,21 +1174,6 @@ export function Tldraw(props: TldrawProps): JSX_2.Element;
 export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
-export function TldrawCropHandles({ size, width, height, hideAlternateHandles, }: TldrawCropHandlesProps): JSX_2.Element;
-
-// @public (undocumented)
-export interface TldrawCropHandlesProps {
-    // (undocumented)
-    height: number;
-    // (undocumented)
-    hideAlternateHandles: boolean;
-    // (undocumented)
-    size: number;
-    // (undocumented)
-    width: number;
-}
-
-// @public (undocumented)
 export interface TldrawFile {
     // (undocumented)
     records: UnknownRecord[];
@@ -1199,10 +1184,10 @@ export interface TldrawFile {
 }
 
 // @public (undocumented)
-export const TldrawHandles: TLHandlesComponent;
+export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
+export function TldrawHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps): JSX_2.Element | null;
 
 // @public
 export const TldrawImage: NamedExoticComponent<    {
@@ -1240,13 +1225,13 @@ export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditor
 });
 
 // @public (undocumented)
-export const TldrawScribble: TLScribbleComponent;
+export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawSelectionBackground: TLSelectionBackgroundComponent;
+export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgroundProps) => JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawSelectionForeground: TLSelectionForegroundComponent;
+export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
 
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;
