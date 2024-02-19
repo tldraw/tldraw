@@ -6724,23 +6724,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let remaining = duration
 		let t: number
 
-		type FromTo = { prop: string; from: number; to: number }
-		type ShapeAnimation = { partial: TLShapePartial; values: FromTo[] }
+		type ShapeAnimation = {
+			partial: TLShapePartial
+			values: { prop: string; from: number; to: number }[]
+		}
 
 		const animations: ShapeAnimation[] = []
 
-		partials.forEach((partial) => {
-			if (!partial) return
+		let partial: TLShapePartial | null | undefined, result: ShapeAnimation
+		for (let i = 0, n = partials.length; i < n; i++) {
+			partial = partials[i]
+			if (!partial) continue
 
-			const result: ShapeAnimation = {
+			result = {
 				partial,
 				values: [],
 			}
 
 			const shape = this.getShape(partial.id)!
+			if (!shape) continue
 
-			if (!shape) return
-
+			// We only support animations for certain props
 			for (const key of ['x', 'y', 'rotation'] as const) {
 				if (partial[key] !== undefined && shape[key] !== partial[key]) {
 					result.values.push({ prop: key, from: shape[key], to: partial[key] as number })
@@ -6749,7 +6753,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			animations.push(result)
 			this.animatingShapes.set(shape.id, animationId)
-		})
+		}
 
 		let value: ShapeAnimation
 
@@ -6774,28 +6778,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const { animatingShapes } = this
 
-			try {
-				const tPartials: TLShapePartial[] = []
+			const updates: TLShapePartial[] = []
 
-				for (let i = 0; i < animations.length; i++) {
-					value = animations[i]
+			let animationIdForShape: string | undefined
+			for (let i = 0, n = animations.length; i < n; i++) {
+				value = animations[i]
+				// Is the animation for this shape still active?
+				animationIdForShape = animatingShapes.get(value.partial.id)
+				if (animationIdForShape !== animationId) continue
 
-					if (animatingShapes.get(value.partial.id) === animationId) {
-						tPartials.push({
-							id: value.partial.id,
-							type: value.partial.type,
-							...value.values.reduce((acc, { prop, from, to }) => {
-								acc[prop] = from + (to - from) * t
-								return acc
-							}, {} as any),
-						})
-					}
-				}
-
-				this._updateShapes(tPartials, { squashing: true })
-			} catch (e) {
-				// noop
+				// Create the update
+				updates.push({
+					id: value.partial.id,
+					type: value.partial.type,
+					...value.values.reduce((acc, { prop, from, to }) => {
+						acc[prop] = from + (to - from) * t
+						return acc
+					}, {} as any),
+				})
 			}
+
+			this._updateShapes(updates, { squashing: true })
 		}
 
 		this.addListener('tick', handleTick)
