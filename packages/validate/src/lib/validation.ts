@@ -177,10 +177,13 @@ export class Validator<T> implements Validatable<T> {
 			(value) => {
 				return otherValidationFn(this.validate(value))
 			},
+
 			(knownGoodValue, newValue) => {
-				return otherValidationFn(
-					this.validateUsingKnownGoodVersion(knownGoodValue as any, newValue)
-				)
+				const validated = this.validateUsingKnownGoodVersion(knownGoodValue as any, newValue)
+				if (Object.is(knownGoodValue, validated)) {
+					return knownGoodValue
+				}
+				return otherValidationFn(validated)
 			}
 		)
 	}

@@ -90,18 +90,16 @@ class RandomSource {
 		})
 	}
 
-	nextTestType() {
+	nextTestType(depth: number) {
+		if (depth >= 3) {
+			return this.selectOne(Object.values(builtinTypes))
+		}
 		return this.executeOne<TestType>({
-			primitive: {
-				weight: 4,
-				do: () => this.selectOne(Object.values(builtinTypes)),
-			},
-			array: () => generateArrayType(this),
-			object: () => generateObjectType(this),
-			union: {
-				weight: 0.1,
-				do: () => generateUnionType(this),
-			},
+			primitive: () => this.selectOne(Object.values(builtinTypes)),
+			array: () => generateArrayType(this, depth),
+			object: () => generateObjectType(this, {}, depth),
+			union: () => generateUnionType(this, depth),
+			dict: () => generateDictType(this, depth),
 		})
 	}
 }
@@ -111,7 +109,7 @@ type TestType = {
 	generateValid: (source: RandomSource) => any
 	generateInvalid: (source: RandomSource) => any
 }
-const builtinTypes: Record<string, TestType> = {
+const builtinTypes = {
 	string: {
 		validator: T.string,
 		generateValid: (source) => source.selectOne(['a', 'b', 'c', 'd']),
@@ -132,11 +130,12 @@ const builtinTypes: Record<string, TestType> = {
 		generateValid: (source) => source.nextJsonValue(),
 		generateInvalid: (source) => source.selectOne([/regexp/, 343n, { key: /regexp/ }]),
 	},
-} as const
+} as const satisfies Record<string, TestType>
 
 function generateObjectType(
 	source: RandomSource,
-	injectProperties?: Record<string, TestType>
+	injectProperties: Record<string, TestType>,
+	depth: number
 ): TestType {
 	const numProperties = source.nextIntInRange(1, 5)
 	const propertyTypes: Record<string, TestType> = {
@@ -144,18 +143,7 @@ function generateObjectType(
 	}
 	const optionalTypes = new Set<string>()
 	for (let i = 0; i < numProperties; i++) {
-		const type = source.executeOne<TestType>({
-			primitive: {
-				weight: 4,
-				do: () => source.selectOne(Object.values(builtinTypes)),
-			},
-			array: () => generateArrayType(source),
-			object: () => generateObjectType(source),
-			union: {
-				weight: 0.1,
-				do: () => generateUnionType(source),
-			},
-		})
+		const type = source.nextTestType(depth + 1)
 		const name = source.nextId()
 		if (source.choice(0.2)) {
 			optionalTypes.add(name)
@@ -218,6 +206,34 @@ function generateObjectType(
 	}
 }
 
+function generateDictType(source: RandomSource, depth: number): TestType {
+	const keyType = builtinTypes.string
+	const keySet = ['a', 'b', 'c', 'd', 'e', 'f'] as const
+	const valueType = source.nextTestType(depth + 1)
+
+	const validator = T.dict(keyType.validator, valueType.validator)
+
+	const generateValid = (source: RandomSource) => {
+		const result = {} as any
+		const numItems = source.nextInt(4)
+		for (let i = 0; i < numItems; i++) {
+			result[source.selectOne(keySet)] = valueType.generateValid(source)
+		}
+		return result
+	}
+
+	return {
+		validator,
+		generateValid,
+		generateInvalid: (source) => {
+			const result = generateValid(source)
+			const key = source.selectOne(Object.keys(result)) ?? source.nextId()
+			result[key] = valueType.generateInvalid(source)
+			return result
+		},
+	}
+}
+
 function createLiteralType(value: string): TestType {
 	return {
 		validator: T.literal(value),
@@ -226,7 +242,7 @@ function createLiteralType(value: string): TestType {
 	}
 }
 
-function generateUnionType(source: RandomSource): TestType {
+function generateUnionType(source: RandomSource, depth: number): TestType {
 	const key = source.selectOne(['type', 'name', 'kind'])
 	const numMembers = source.nextIntInRange(1, 4)
 	const members: TestType[] = []
@@ -234,7 +250,7 @@ function generateUnionType(source: RandomSource): TestType {
 	for (let i = 0; i < numMembers; i++) {
 		const id = source.nextId()
 		const keyType = createLiteralType(id)
-		const type = generateObjectType(source, { [key]: keyType })
+		const type = generateObjectType(source, { [key]: keyType }, depth + 1)
 		members.push(type)
 		unionMap[id] = type.validator
 	}
@@ -261,8 +277,8 @@ function generateUnionType(source: RandomSource): TestType {
 	}
 }
 
-function generateArrayType(source: RandomSource): TestType {
-	const valueType = source.nextTestType()
+function generateArrayType(source: RandomSource, depth: number): TestType {
+	const valueType = source.nextTestType(depth + 1)
 	const validator = T.arrayOf(valueType.validator)
 	const generateValid = (source: RandomSource) => {
 		const result = [] as any[]
@@ -300,7 +316,7 @@ function generateArrayType(source: RandomSource): TestType {
 
 function runTest(seed: number) {
 	const source = new RandomSource(seed)
-	const type = source.nextTestType()
+	const type = source.nextTestType(0)
 	const oldValid = type.generateValid(source)
 	const newValid = source.choice(0.5) ? type.generateValid(source) : oldValid
 	const didChange = !isEqual(oldValid, newValid)
