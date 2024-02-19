@@ -3,6 +3,8 @@ import '@tldraw/tldraw/tldraw.css'
 import { useEffect, useState } from 'react'
 import './external-ui.css'
 
+// There's a guide at the bottom of this file!
+
 export default function ExternalUiExample() {
 	const [editor, setEditor] = useState<Editor>()
 
@@ -10,16 +12,16 @@ export default function ExternalUiExample() {
 		<div style={{ margin: 32, width: 600 }}>
 			<div style={{ height: 400 }}>
 				<Tldraw
-					onMount={(editor) => {
-						setEditor(editor)
-					}}
-					components={{
-						Toolbar: null,
-					}}
+					// [1]
+					onMount={(editor) => setEditor(editor)}
+					components={{ Toolbar: null }}
 				/>
 			</div>
 
-			<ExternalToolbar editor={editor} />
+			<ExternalToolbar
+				// [2]
+				editor={editor}
+			/>
 		</div>
 	)
 }
@@ -86,3 +88,23 @@ const ExternalToolbar = track(({ editor }: { editor?: Editor }) => {
 		</div>
 	)
 })
+
+/*
+
+This example shows how to control the tldraw editor from an external UI, outside
+of the `Tldraw` component.
+
+[1]
+Store the editor in some state when the `Tldraw` component mounts.
+
+[2] Pass the editor to your external UI component. In this example, we're using
+the same component as in the `custom-ui` example, but you could use any UI you
+want. Check out that example for more info on how , including how to make the UI
+reactive.
+
+This example passes the editor down as a prop, but you could also use a context.
+
+Check out the `custom-ui` example for more information on how to create custom
+UI components for the editor, including how to make them reactive.
+
+*/
