@@ -14,6 +14,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	atom,
+	debugFlags,
 	lns,
 	useActions,
 	useValue,
@@ -32,6 +33,7 @@ import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { CursorChatBubble } from './CursorChatBubble'
+import { DocumentTopZone } from './DocumentName/DocumentName'
 import { EmbeddedInIFrameWarning } from './EmbeddedInIFrameWarning'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
@@ -84,8 +86,16 @@ const components: TLComponents = {
 	},
 	TopPanel: () => {
 		const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
-		if (!isOffline) return null
-		return <OfflineIndicator />
+		const showDocumentName = useValue('documentName ', () => debugFlags.documentName.get(), [
+			debugFlags,
+		])
+		if (!showDocumentName) {
+			if (isOffline) {
+				return <OfflineIndicator />
+			}
+			return null
+		}
+		return <DocumentTopZone isOffline={isOffline} />
 	},
 	SharePanel: () => {
 		return (

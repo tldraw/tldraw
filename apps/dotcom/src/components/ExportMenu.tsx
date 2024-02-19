@@ -23,7 +23,11 @@ export const ExportMenu = React.memo(function ExportMenu() {
 	const msg = useTranslation()
 	const handleUiEvent = useHandleUiEvents()
 	const editor = useEditor()
-	const saveFileCopyAction = getSaveFileCopyAction(editor, handleUiEvent)
+	const saveFileCopyAction = getSaveFileCopyAction(
+		editor,
+		handleUiEvent,
+		msg('document.default-name')
+	)
 	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
 	const [isUploadingSnapshot, setIsUploadingSnapshot] = useState(false)
 
