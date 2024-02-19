@@ -173,7 +173,6 @@ export class Validator<T> implements Validatable<T> {
 	 * if the value can't be converted to the new type, or return the new type otherwise.
 	 */
 	refine<U>(otherValidationFn: (value: T) => U): Validator<U> {
-		// TODO: is this OK? that it doesn't use the knownGoodVersion function?
 		return new Validator(
 			(value) => {
 				return otherValidationFn(this.validate(value))
@@ -250,7 +249,7 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 					}
 				}
 
-				return isDifferent ? (arr as T[]) : knownGoodValue
+				return isDifferent ? (newValue as T[]) : knownGoodValue
 			}
 		)
 	}
@@ -687,6 +686,14 @@ export function object<Shape extends object>(config: {
 	return new ObjectValidator(config) as any
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		(value.constructor === Object || !value.constructor)
+	)
+}
+
 function isValidJson(value: any): value is JsonValue {
 	if (
 		value === null ||
@@ -701,7 +708,7 @@ function isValidJson(value: any): value is JsonValue {
 		return value.every(isValidJson)
 	}
 
-	if (typeof value === 'object') {
+	if (isPlainObject(value)) {
 		return Object.values(value).every(isValidJson)
 	}
 
@@ -713,13 +720,64 @@ function isValidJson(value: any): value is JsonValue {
  *
  * @public
  */
-export const jsonValue = new Validator<JsonValue>((value): JsonValue => {
-	if (isValidJson(value)) {
-		return value as JsonValue
-	}
+export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
+	(value): JsonValue => {
+		if (isValidJson(value)) {
+			return value as JsonValue
+		}
 
-	throw new ValidationError(`Expected json serializable value, got ${typeof value}`)
-})
+		throw new ValidationError(`Expected json serializable value, got ${typeof value}`)
+	},
+	(knownGoodValue, newValue) => {
+		if (Array.isArray(knownGoodValue) && Array.isArray(newValue)) {
+			let isDifferent = knownGoodValue.length !== newValue.length
+			for (let i = 0; i < newValue.length; i++) {
+				if (i >= knownGoodValue.length) {
+					isDifferent = true
+					jsonValue.validate(newValue[i])
+					continue
+				}
+				const prev = knownGoodValue[i]
+				const next = newValue[i]
+				if (Object.is(prev, next)) {
+					continue
+				}
+				const checked = jsonValue.validateUsingKnownGoodVersion!(prev, next)
+				if (!Object.is(checked, prev)) {
+					isDifferent = true
+				}
+			}
+			return isDifferent ? (newValue as JsonValue) : knownGoodValue
+		} else if (isPlainObject(knownGoodValue) && isPlainObject(newValue)) {
+			let isDifferent = false
+			for (const key of Object.keys(newValue)) {
+				if (!hasOwnProperty(knownGoodValue, key)) {
+					isDifferent = true
+					jsonValue.validate(newValue[key])
+					continue
+				}
+				const prev = knownGoodValue[key]
+				const next = newValue[key]
+				if (Object.is(prev, next)) {
+					continue
+				}
+				const checked = jsonValue.validateUsingKnownGoodVersion!(prev!, next)
+				if (!Object.is(checked, prev)) {
+					isDifferent = true
+				}
+			}
+			for (const key of Object.keys(knownGoodValue)) {
+				if (!hasOwnProperty(newValue, key)) {
+					isDifferent = true
+					break
+				}
+			}
+			return isDifferent ? (newValue as JsonValue) : knownGoodValue
+		} else {
+			return jsonValue.validate(newValue)
+		}
+	}
+)
 
 /**
  * Validate an object has a particular shape.
