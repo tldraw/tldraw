@@ -58,6 +58,10 @@ class RandomSource {
 		throw new Error('unreachable')
 	}
 
+	nextPropertyName(): string {
+		return this.selectOne(['foo', 'bar', 'baz', 'qux', 'mux', 'bah'])
+	}
+
 	nextJsonValue(): any {
 		return this.executeOne<any>({
 			string: { weight: 1, do: () => this.nextId() },
@@ -82,7 +86,7 @@ class RandomSource {
 					const numItems = this.nextInt(4)
 					const result = {} as any
 					for (let i = 0; i < numItems; i++) {
-						result[this.nextId()] = this.nextJsonValue()
+						result[this.nextPropertyName()] = this.nextJsonValue()
 					}
 					return result
 				},
@@ -90,7 +94,7 @@ class RandomSource {
 		})
 	}
 
-	nextTestType(depth: number) {
+	nextTestType(depth: number): TestType {
 		if (depth >= 3) {
 			return this.selectOne(Object.values(builtinTypes))
 		}
@@ -100,6 +104,14 @@ class RandomSource {
 			object: () => generateObjectType(this, {}, depth),
 			union: () => generateUnionType(this, depth),
 			dict: () => generateDictType(this, depth),
+			model: () => {
+				const objType = generateObjectType(this, {}, depth)
+				const name = this.nextPropertyName()
+				return {
+					...objType,
+					validator: T.model(name, objType.validator),
+				}
+			},
 		})
 	}
 }
@@ -144,7 +156,7 @@ function generateObjectType(
 	const optionalTypes = new Set<string>()
 	for (let i = 0; i < numProperties; i++) {
 		const type = source.nextTestType(depth + 1)
-		const name = source.nextId()
+		const name = source.nextPropertyName()
 		if (source.choice(0.2)) {
 			optionalTypes.add(name)
 		}
@@ -192,7 +204,7 @@ function generateObjectType(
 				},
 				extraProperty: () => {
 					const val = generateValid(source)
-					val[source.nextId()] = source.nextJsonValue()
+					val[source.nextPropertyName() + '_'] = source.nextJsonValue()
 					return val
 				},
 				invalidProperty: () => {
@@ -227,7 +239,7 @@ function generateDictType(source: RandomSource, depth: number): TestType {
 		generateValid,
 		generateInvalid: (source) => {
 			const result = generateValid(source)
-			const key = source.selectOne(Object.keys(result)) ?? source.nextId()
+			const key = source.selectOne(Object.keys(result)) ?? source.nextPropertyName()
 			result[key] = valueType.generateInvalid(source)
 			return result
 		},
@@ -338,7 +350,7 @@ function runTest(seed: number) {
 	}
 }
 
-const NUM_TESTS = 500
+const NUM_TESTS = 1000
 const source = new RandomSource(Math.random())
 
 for (let i = 0; i < NUM_TESTS; i++) {
