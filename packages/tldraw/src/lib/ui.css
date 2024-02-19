@@ -79,6 +79,16 @@
 	margin-left: var(--space-2);
 }
 
+.tlui-button[data-state='hinted']::after {
+	background-color: var(--color-hint);
+	opacity: 1;
+}
+
+.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
+	background: var(--color-hint);
+	opacity: 1;
+}
+
 @media (hover: hover) {
 	.tlui-button::after {
 		background-color: var(--color-muted-2);
@@ -136,7 +146,6 @@
 .tlui-button__menu {
 	height: 40px;
 	min-height: 40px;
-	min-width: 128px;
 	width: 100%;
 	gap: 8px;
 	margin: -4px 0px;
@@ -929,6 +938,10 @@
 	stroke-width: 1px;
 }
 
+.tlui-menu__group {
+	width: 100%;
+}
+
 .tlui-menu__group:empty {
 	display: none;
 }
@@ -952,25 +965,22 @@
 
 /* Menu Sizes */
 
-.tlui-menu[data-size='large'] > .tlui-menu__group,
-.tlui-menu__submenu__content[data-size='large'] > .tlui-menu__group {
+.tlui-menu[data-size='large'] > .tlui-menu__group {
 	min-width: initial;
 }
 
-.tlui-menu[data-size='medium'] > .tlui-menu__group,
-.tlui-menu__submenu__content[data-size='medium'] > .tlui-menu__group {
+.tlui-menu[data-size='medium'] > .tlui-menu__group {
 	min-width: 144px;
 }
 
-.tlui-menu[data-size='small'] > .tlui-menu__group,
-.tlui-menu__submenu__content[data-size='small'] > .tlui-menu__group {
-	min-width: 96px;
-}
-
-.tlui-menu[data-size='tiny'] > .tlui-menu__group,
-.tlui-menu__submenu__content[data-size='tiny'] > .tlui-menu__group {
+.tlui-menu[data-size='small'] > .tlui-menu__group {
 	min-width: 0px;
 }
+
+.tlui-menu[data-size='tiny'] > .tlui-menu__group {
+	min-width: 0px;
+}
+
 /* ------------------ Actions Menu ------------------ */
 
 .tlui-actions-menu {

@@ -24,7 +24,7 @@ export type TLUiMenuSubmenuProps<Translation extends string = string> = {
 	label?: Translation | { [key: string]: Translation }
 	disabled?: boolean
 	children: any
-	size?: 'tiny' | 'small' | 'medium' | 'large'
+	size?: 'tiny' | 'small' | 'medium' | 'wide'
 }
 
 /** @public */
@@ -32,7 +32,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	id,
 	disabled = false,
 	label,
-	size,
+	size = 'small',
 	children,
 }: TLUiMenuSubmenuProps<Translation>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
@@ -55,7 +55,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 						label={labelStr!}
 						title={labelStr!}
 					/>
-					<TldrawUiDropdownMenuSubContent id={`${sourceId}-sub-content.${id}`} data-size={size}>
+					<TldrawUiDropdownMenuSubContent id={`${sourceId}-sub-content.${id}`} size={size}>
 						{children}
 					</TldrawUiDropdownMenuSubContent>
 				</TldrawUiDropdownMenuSub>

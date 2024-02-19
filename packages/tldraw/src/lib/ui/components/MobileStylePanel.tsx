@@ -22,14 +22,14 @@ export function MobileStylePanel() {
 	const msg = useTranslation()
 
 	const relevantStyles = useRelevantStyles()
-	const color = relevantStyles?.styles.get(DefaultColorStyle)
+	const color = relevantStyles?.get(DefaultColorStyle)
 	const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
 	const currentColor = (
 		color?.type === 'shared' ? theme[color.value as TLDefaultColorStyle] : theme.black
 	).solid
 
 	const disableStylePanel = useValue(
-		'isHandOrEraserToolActive',
+		'disable style panel',
 		() => editor.isInAny('hand', 'zoom', 'eraser', 'laser'),
 		[editor]
 	)
@@ -64,16 +64,8 @@ export function MobileStylePanel() {
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side="top" align="end">
-				<_StylePanel />
+				{StylePanel && <StylePanel isMobile />}
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>
 	)
-}
-
-function _StylePanel() {
-	const { StylePanel } = useTldrawUiComponents()
-	const relevantStyles = useRelevantStyles()
-
-	if (!StylePanel) return null
-	return <StylePanel relevantStyles={relevantStyles} isMobile />
 }
