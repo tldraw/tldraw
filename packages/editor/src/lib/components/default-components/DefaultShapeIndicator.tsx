@@ -1,12 +1,12 @@
 import { useStateTracking, useValue } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import * as React from 'react'
-import type { Editor } from '../editor/Editor'
-import { ShapeUtil } from '../editor/shapes/ShapeUtil'
-import { useEditor } from '../hooks/useEditor'
-import { useEditorComponents } from '../hooks/useEditorComponents'
-import { OptionalErrorBoundary } from './ErrorBoundary'
+import { memo } from 'react'
+import type { Editor } from '../../editor/Editor'
+import { ShapeUtil } from '../../editor/shapes/ShapeUtil'
+import { useEditor } from '../../hooks/useEditor'
+import { useEditorComponents } from '../../hooks/useEditorComponents'
+import { OptionalErrorBoundary } from '../ErrorBoundary'
 
 class ShapeWithPropsEquality {
 	constructor(public shape: TLShape | undefined) {}
@@ -51,24 +51,30 @@ const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
 }
 
 /** @public */
-export type TLShapeIndicatorComponent = React.ComponentType<{
-	id: TLShapeId
+export type TLShapeIndicatorProps = {
+	shapeId: TLShapeId
 	color?: string | undefined
 	opacity?: number
 	className?: string
-}>
+}
 
-const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opacity }) => {
+/** @public */
+export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
+	shapeId,
+	className,
+	color,
+	opacity,
+}: TLShapeIndicatorProps) {
 	const editor = useEditor()
 
 	const transform = useValue(
 		'transform',
 		() => {
-			const pageTransform = editor.getShapePageTransform(id)
+			const pageTransform = editor.getShapePageTransform(shapeId)
 			if (!pageTransform) return ''
 			return pageTransform.toCssString()
 		},
-		[editor, id]
+		[editor, shapeId]
 	)
 
 	return (
@@ -79,11 +85,8 @@ const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opac
 				stroke={color ?? 'var(--color-selected)'}
 				opacity={opacity}
 			>
-				<InnerIndicator editor={editor} id={id} />
+				<InnerIndicator editor={editor} id={shapeId} />
 			</g>
 		</svg>
 	)
-}
-
-/** @public */
-export const ShapeIndicator = React.memo(_ShapeIndicator)
+})

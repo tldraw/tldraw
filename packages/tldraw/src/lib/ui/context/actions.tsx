@@ -70,6 +70,15 @@ function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
 }
 
+function getExportName(editor: Editor, defaultName: string) {
+	const selectedShapes = editor.getSelectedShapes()
+	// When we don't have any shapes selected, we want to use the document name
+	if (selectedShapes.length === 0) {
+		return editor.getDocumentSettings().name || defaultName
+	}
+	return undefined
+}
+
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
@@ -83,6 +92,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
+	const defaultDocumentName = msg('document.default-name')
 
 	const trackEvent = useUiEvents()
 
@@ -165,7 +175,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'svg', source })
-					exportAs(editor.getSelectedShapeIds(), 'svg')
+					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -178,7 +188,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(editor.getSelectedShapeIds(), 'png')
+					exportAs(editor.getSelectedShapeIds(), 'png', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -191,7 +201,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(editor.getSelectedShapeIds(), 'json')
+					exportAs(editor.getSelectedShapeIds(), 'json', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -1213,6 +1223,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		clearToasts,
 		printSelectionOrPages,
 		msg,
+		defaultDocumentName,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

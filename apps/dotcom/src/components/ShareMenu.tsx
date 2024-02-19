@@ -232,7 +232,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	)
 })
 
-function getShareUrl(url: string, readonly: boolean) {
+export function getShareUrl(url: string, readonly: boolean) {
 	if (!readonly) {
 		return url
 	}

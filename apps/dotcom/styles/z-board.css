@@ -317,3 +317,71 @@
 .tlui-layout[data-breakpoint='0'] .tlui-offline-indicator {
 	margin-top: 4px;
 }
+
+/* Document Name */
+
+.tlui-document-name__inner {
+	border-radius: calc(var(--radius-2) + var(--space-2));
+	background-color: var(--color-background);
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 40px;
+	max-width: 100%;
+	color: var(--color-text);
+	text-shadow: 1px 1px 0px var(--color-background);
+	pointer-events: all;
+}
+
+.tlui-document-name__input__wrapper {
+	position: relative;
+	max-width: calc(100% - 40px);
+	display: flex;
+	flex: auto;
+}
+
+.tlui-document-name__input,
+.tlui-document-name__text {
+	padding: var(--space-2) var(--space-3);
+	white-space: pre;
+	line-height: 24px;
+	min-width: 62px;
+}
+
+.tlui-document-name__input {
+	position: absolute;
+	width: 100%;
+	border-radius: var(--radius-2);
+	color: var(--color-text);
+	background: transparent;
+}
+.tlui-document-name__input:focus {
+	box-shadow: inset 0px 0px 0px 1px var(--color-selected);
+	border: none;
+}
+
+.tlui-document-name__text {
+	width: 100%;
+	color: var(--color-text);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-document-name__text__hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.tlui-document-name__menu {
+	width: 40px;
+	height: 40px;
+}
+
+.tlui-document-name__input__wrapper:focus-within + .tlui-document-name__menu::after {
+	/* when the input is focused, its outline is flush against the menu button which doesn't look
+	good. This shifts the left-hand edge of the menu button over by 2px to give it a little
+	breathing room when the input is focused. */
+	width: calc(100% - 10px);
+}

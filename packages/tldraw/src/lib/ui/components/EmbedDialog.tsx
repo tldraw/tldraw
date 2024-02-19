@@ -39,8 +39,8 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 			<TldrawUiDialogHeader>
 				<DialogTitle>
 					{embedDefinition
-						? `${msg('embed-title')} — ${embedDefinition.title}`
-						: msg('embed-title')}
+						? `${msg('embed-dialog.title')} — ${embedDefinition.title}`
+						: msg('embed-dialog.title')}
 				</DialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
@@ -74,7 +74,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 						/>
 						{url === '' ? (
 							<div className="tlui-embed-dialog__instruction">
-								<span>{msg('embed-instruction')}</span>{' '}
+								<span>{msg('embed-dialog.instruction')}</span>{' '}
 								{embedDefinition.instructionLink && (
 									<a
 										target="_blank"
@@ -89,7 +89,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							</div>
 						) : (
 							<div className="tlui-embed-dialog__warning">
-								{showError ? msg('embed-invalid-url') : '\xa0'}
+								{showError ? msg('embed-dialog.invalid-url') : '\xa0'}
 							</div>
 						)}
 					</TldrawUiDialogBody>
@@ -102,11 +102,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								setUrl('')
 							}}
 						>
-							<TldrawUiButtonLabel>{msg('embed-back')}</TldrawUiButtonLabel>
+							<TldrawUiButtonLabel>{msg('embed-dialog.back')}</TldrawUiButtonLabel>
 						</TldrawUiButton>
 						<div className="tlui-embed__spacer" />
 						<TldrawUiButton type="normal" onClick={onClose}>
-							<TldrawUiButtonLabel>{msg('embed-cancel')}</TldrawUiButtonLabel>
+							<TldrawUiButtonLabel>{msg('embed-dialog.cancel')}</TldrawUiButtonLabel>
 						</TldrawUiButton>
 						<TldrawUiButton
 							type="primary"
@@ -124,7 +124,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								onClose()
 							}}
 						>
-							<TldrawUiButtonLabel>{msg('embed-create')}</TldrawUiButtonLabel>
+							<TldrawUiButtonLabel>{msg('embed-dialog.create')}</TldrawUiButtonLabel>
 						</TldrawUiButton>
 					</TldrawUiDialogFooter>
 				</>
