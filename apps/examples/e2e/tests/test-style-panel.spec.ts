@@ -2,6 +2,11 @@ import { expect } from '@playwright/test'
 import { setup } from '../shared-e2e'
 import test from './fixtures/fixtures'
 
+test.describe('Style selection behaviour', () => {
+	test.beforeEach(setup)
+	test('selecting a style highlights the button', async ({ stylePanel }) => {})
+})
+
 test.describe('mobile ui', () => {
 	test.beforeEach(setup)
 	test('style panel opens and closes as expected', async ({
