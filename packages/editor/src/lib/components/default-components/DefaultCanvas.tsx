@@ -373,7 +373,8 @@ function SelectedIdIndicators() {
 					'select.editing_shape',
 					'select.pointing_shape',
 					'select.pointing_selection',
-					'select.pointing_handle'
+					'select.pointing_arrow_handle',
+					'select.pointing_line_handle'
 				) && !editor.getInstanceState().isChangingStyle
 			)
 		},

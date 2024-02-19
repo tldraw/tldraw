@@ -1085,50 +1085,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onHandleDrag:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onHandleDrag: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnHandleDragHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnHandleDragHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLArrowShape",
-                  "canonicalReference": "@tldraw/tlschema!TLArrowShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onHandleDrag",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil#onResize:member",
               "docComment": "",
               "excerptTokens": [
@@ -12003,8 +11959,17 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "DraggingHandle",
-                  "canonicalReference": "@tldraw/tldraw!~DraggingHandle:class"
+                  "text": "DraggingArrowHandle",
+                  "canonicalReference": "@tldraw/tldraw!~DraggingArrowHandle:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DraggingLineHandle",
+                  "canonicalReference": "@tldraw/tldraw!~DraggingLineHandle:class"
                 },
                 {
                   "kind": "Content",
@@ -12023,6 +11988,15 @@
                   "kind": "Reference",
                   "text": "Idle",
                   "canonicalReference": "@tldraw/tldraw!~Idle_11:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PointingArrowHandle",
+                  "canonicalReference": "@tldraw/tldraw!~PointingArrowHandle:class"
                 },
                 {
                   "kind": "Content",
@@ -12057,8 +12031,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "PointingHandle",
-                  "canonicalReference": "@tldraw/tldraw!~PointingHandle:class"
+                  "text": "PointingLineHandle",
+                  "canonicalReference": "@tldraw/tldraw!~PointingLineHandle:class"
                 },
                 {
                   "kind": "Content",
@@ -12147,7 +12121,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 38
+                "endIndex": 42
               },
               "isStatic": true,
               "isProtected": false,

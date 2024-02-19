@@ -169,8 +169,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLArrowShape>;
     // (undocumented)
-    onHandleDrag: TLOnHandleDragHandler<TLArrowShape>;
-    // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
     // (undocumented)
     onTranslate?: TLOnTranslateHandler<TLArrowShape>;
@@ -1013,7 +1011,7 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 // @public (undocumented)
 export class SelectTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
+    static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingArrowHandle | typeof DraggingLineHandle | typeof EditingShape | typeof Idle_11 | typeof PointingArrowHandle | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingLineHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
     // (undocumented)
     static id: string;
     // (undocumented)

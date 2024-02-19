@@ -116,7 +116,7 @@ describe('PointingHandle', () => {
 			shape,
 			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
-		editor.expectToBeIn('select.pointing_handle')
+		editor.expectToBeIn('select.pointing_arrow_handle')
 
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
@@ -129,14 +129,14 @@ describe('PointingHandle', () => {
 			shape,
 			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
-		editor.expectToBeIn('select.pointing_handle')
+		editor.expectToBeIn('select.pointing_arrow_handle')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})
 })
 
 describe('DraggingHandle', () => {
-	it('Enters from pointing_handle and exits to idle', () => {
+	it('Enters from dragging_line_handle and exits to idle', () => {
 		editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 		const shape = editor.getShape(ids.line1)
 		editor.pointerDown(150, 150, {
@@ -145,7 +145,7 @@ describe('DraggingHandle', () => {
 			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('select.dragging_line_handle')
 
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
@@ -161,7 +161,7 @@ describe('DraggingHandle', () => {
 			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('select.dragging_line_handle')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})

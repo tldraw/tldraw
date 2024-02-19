@@ -323,6 +323,7 @@ export {
 	rangeIntersection,
 	shortAngleDist,
 	snapAngle,
+	snapAngleBetweenPoints,
 	toDomPrecision,
 	toFixed,
 	toPrecision,

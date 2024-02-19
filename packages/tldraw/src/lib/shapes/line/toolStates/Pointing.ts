@@ -102,7 +102,7 @@ export class Pointing extends StateNode {
 				throw Error('No handles found')
 			}
 			const lastHandle = last(handles)!
-			this.editor.setCurrentTool('select.dragging_handle', {
+			this.editor.setCurrentTool('select.dragging_line_handle', {
 				shape: this.shape,
 				isCreating: true,
 				// remove the offset that we added to the handle when we created it

@@ -845,7 +845,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!areAnglesCompatible:function(1)",
-          "docComment": "/**\n * Checks whether two angles are approximately at right-angles or parallel to each other\n *\n * @param a - Angle a (radians)\n *\n * @param b - Angle b (radians)\n *\n * @returns True iff the angles are approximately at right-angles or parallel to each other\n *\n * @public\n */\n",
+          "docComment": "/**\n * Checks whether two angles are approximately at right-angles or parallel to each other\n *\n * @param a - Angle a (radians)\n *\n * @param b - Angle b (radians)\n *\n * @returns True if the angles are approximately at right-angles or parallel to each other\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

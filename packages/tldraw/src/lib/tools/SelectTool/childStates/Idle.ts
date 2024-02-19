@@ -111,7 +111,12 @@ export class Idle extends StateNode {
 				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
-					this.parent.transition('pointing_handle', info)
+					if (this.editor.isShapeOfType(info.shape, 'arrow')) {
+						this.parent.transition('pointing_arrow_handle', info)
+					}
+					if (this.editor.isShapeOfType(info.shape, 'line')) {
+						this.parent.transition('pointing_line_handle', info)
+					}
 				}
 				break
 			}

@@ -1,21 +1,12 @@
-import { StateNode, TLArrowShape, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLLineShape, TLPointerEventInfo } from '@tldraw/editor'
 
-export class PointingHandle extends StateNode {
-	static override id = 'pointing_handle'
+export class PointingLineHandle extends StateNode {
+	static override id = 'pointing_line_handle'
 
-	info = {} as TLPointerEventInfo & { target: 'handle' }
+	info = {} as TLPointerEventInfo & { shape: TLLineShape; target: 'handle' }
 
-	override onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
+	override onEnter = (info: TLPointerEventInfo & { shape: TLLineShape; target: 'handle' }) => {
 		this.info = info
-
-		const { shape } = info
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			const initialTerminal = shape.props[info.handle.id as 'start' | 'end']
-
-			if (initialTerminal?.type === 'binding') {
-				this.editor.setHintingShapes([initialTerminal.boundShapeId])
-			}
-		}
 
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'grabbing', rotation: 0 } },
@@ -24,7 +15,6 @@ export class PointingHandle extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.setHintingShapes([])
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
@@ -37,7 +27,7 @@ export class PointingHandle extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging_handle', this.info)
+			this.parent.transition('dragging_line_handle', this.info)
 		}
 	}
 

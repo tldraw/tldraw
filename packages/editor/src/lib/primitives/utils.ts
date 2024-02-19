@@ -171,11 +171,25 @@ export function snapAngle(r: number, segments: number): number {
 }
 
 /**
+ * Adjust point A so that its angle at point B is at a snapped angle.
+ * @param A - The point to adjust
+ * @param B - The point to snap to
+ * @returns A new adjusted point a
+ * @internal
+ */
+export function snapAngleBetweenPoints(A: VecLike, B: VecLike) {
+	const angle = Vec.Angle(B, A)
+	const snappedAngle = snapAngle(angle, 24)
+	const angleDifference = snappedAngle - angle
+	return Vec.RotWith(A, B, angleDifference)
+}
+
+/**
  * Checks whether two angles are approximately at right-angles or parallel to each other
  *
  * @param a - Angle a (radians)
  * @param b - Angle b (radians)
- * @returns True iff the angles are approximately at right-angles or parallel to each other
+ * @returns True if the angles are approximately at right-angles or parallel to each other
  * @public
  */
 export function areAnglesCompatible(a: number, b: number) {

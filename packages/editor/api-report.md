@@ -1677,6 +1677,9 @@ export const SIN: (x: number) => number;
 // @public
 export function snapAngle(r: number, segments: number): number;
 
+// @internal
+export function snapAngleBetweenPoints(A: VecLike, B: VecLike): Vec;
+
 // @public (undocumented)
 export type SnapIndicator = GapsSnapIndicator | PointsSnapIndicator;
 

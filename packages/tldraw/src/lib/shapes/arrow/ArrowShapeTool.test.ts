@@ -74,11 +74,11 @@ describe('When in the pointing state', () => {
 
 	it('enters the dragging state on pointer move', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('select.dragging_arrow_handle')
 	})
 })
 
-// This could be moved to dragging_handle
+// This could be moved to dragging_arrow_handle
 describe('When dragging the arrow', () => {
 	it('updates the arrow on pointer move', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
@@ -93,7 +93,7 @@ describe('When dragging the arrow', () => {
 				end: { type: 'point', x: 10, y: 10 },
 			},
 		})
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('select.dragging_arrow_handle')
 	})
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {
@@ -416,10 +416,10 @@ describe('reparenting issue', () => {
 			handle: { id: 'end', type: 'vertex', index: 'a0' as IndexKey, x: 100, y: 100 },
 			shape: editor.getShape(arrowId)!,
 		})
-		editor.expectToBeIn('select.pointing_handle')
+		editor.expectToBeIn('select.pointing_arrow_handle')
 
 		editor.pointerMove(320, 320) // over box 2
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('select.dragging_arrow_handle')
 		editor.expectShapeToMatch({
 			id: arrowId,
 			index: 'a3V' as IndexKey,

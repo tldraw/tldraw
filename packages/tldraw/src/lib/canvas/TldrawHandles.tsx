@@ -5,7 +5,8 @@ export function TldrawHandles({ children }: TLHandlesProps) {
 	const editor = useEditor()
 	const shouldDisplayHandles = useValue(
 		'shouldDisplayHandles',
-		() => editor.isInAny('select.idle', 'select.pointing_handle'),
+		() =>
+			editor.isInAny('select.idle', 'select.pointing_arrow_handle', 'select.pointing_line_handle'),
 		[editor]
 	)
 
