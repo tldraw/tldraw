@@ -39,7 +39,7 @@
 	"action.flip-vertical": "Függőleges tükrözés",
 	"action.flip-horizontal.short": "V. tükrözés",
 	"action.flip-vertical.short": "F. tükrözés",
-	"action.group": "Csoportosítás",
+	"action.group": "Csoport",
 	"action.insert-media": "Média feltöltése",
 	"action.new-shared-project": "Új megosztott projekt",
 	"action.open-file": "Fájl megnyitása",
@@ -104,7 +104,7 @@
 	"fill-style.pattern": "Mintázat",
 	"dash-style.dashed": "Szaggatott",
 	"dash-style.dotted": "Pontozott",
-	"dash-style.draw": "Rajzolt",
+	"dash-style.draw": "Rajzolás",
 	"dash-style.solid": "Teli",
 	"size-style.s": "Kicsi",
 	"size-style.m": "Közepes",
@@ -260,7 +260,7 @@
 	"style-panel.align": "Igazítás",
 	"style-panel.arrowheads": "Nyílhegyek",
 	"style-panel.color": "Szín",
-	"style-panel.dash": "Körvonal",
+	"style-panel.dash": "Gondolatjel",
 	"style-panel.fill": "Kitöltés",
 	"style-panel.font": "Betűtípus",
 	"style-panel.geo": "Alakzat",
@@ -351,8 +351,5 @@
 	"action.remove-frame": "Keret eltávolítása",
 	"action.fit-frame-to-content": "Tartalomhoz igazítás",
 	"action.toggle-edge-scrolling.menu": "Szélgörgetés",
-	"action.toggle-edge-scrolling": "A szélgörgetés be- és kikapcsolása",
-	"verticalAlign-style.start": "Felülre",
-	"verticalAlign-style.middle": "Középre",
-	"verticalAlign-style.end": "Alulra"
+	"action.toggle-edge-scrolling": "A szélgörgetés be- és kikapcsolása"
 }
