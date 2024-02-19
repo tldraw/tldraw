@@ -5,8 +5,6 @@ category: ui
 priority: 1
 ---
 
-TODO
+This example shows how to control the tldraw editor from an external UI, outside of the `Tldraw` component.
 
 ---
-
-TODO
