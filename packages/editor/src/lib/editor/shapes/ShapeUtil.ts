@@ -605,16 +605,6 @@ export type TLOnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapeP
 export type TLOnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void
 
 /** @public */
-export type TLOnHandleCreateHandler<T extends TLShape> = (
-	shape: T,
-	info: {
-		handle: TLHandle
-		isPrecise: boolean
-		initial?: T | undefined
-	}
-) => TLShapePartial<T> | void
-
-/** @public */
 export type TLOnHandleDragHandler<T extends TLShape> = (
 	shape: T,
 	info: {

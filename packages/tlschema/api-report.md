@@ -1145,9 +1145,6 @@ export type TLLanguage = (typeof LANGUAGES)[number];
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>;
 
 // @public (undocumented)
-export type TLLineShapeHandle = T.TypeOf<typeof handleModelValidator>;
-
-// @public (undocumented)
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
 
 // @public (undocumented)

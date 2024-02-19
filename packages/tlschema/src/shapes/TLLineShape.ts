@@ -8,16 +8,6 @@ import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
-const handleModelValidator = T.object({
-	id: T.string,
-	index: T.indexKey,
-	x: T.number,
-	y: T.number,
-})
-
-/** @public */
-export type TLLineShapeHandle = T.TypeOf<typeof handleModelValidator>
-
 /** @public */
 export const LineShapeSplineStyle = StyleProp.defineEnum('tldraw:spline', {
 	defaultValue: 'line',
