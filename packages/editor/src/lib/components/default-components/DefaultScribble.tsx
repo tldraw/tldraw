@@ -1,25 +1,18 @@
 import { TLScribble } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { ComponentType } from 'react'
 import { getSvgPathFromPoints } from '../../utils/getSvgPathFromPoints'
 
 /** @public */
-export type TLScribbleComponent = ComponentType<{
+export type TLScribbleProps = {
 	scribble: TLScribble
 	zoom: number
 	color?: string
 	opacity?: number
 	className?: string
-}>
+}
 
 /** @public */
-export const DefaultScribble: TLScribbleComponent = ({
-	scribble,
-	zoom,
-	color,
-	opacity,
-	className,
-}) => {
+export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps) {
 	if (!scribble.points.length) return null
 
 	return (

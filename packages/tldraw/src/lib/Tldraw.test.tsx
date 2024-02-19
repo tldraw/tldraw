@@ -9,7 +9,8 @@ describe('<Tldraw />', () => {
 		await renderTldrawComponent(
 			<Tldraw>
 				<div data-testid="canvas-1" />
-			</Tldraw>
+			</Tldraw>,
+			{ waitForPatterns: false }
 		)
 
 		await screen.findByTestId('canvas-1')
@@ -26,7 +27,7 @@ describe('<Tldraw />', () => {
 			)
 		}
 
-		await renderTldrawComponent(<TestComponent />)
+		await renderTldrawComponent(<TestComponent />, { waitForPatterns: false })
 		await screen.findByTestId('canvas-1')
 	})
 
@@ -59,7 +60,8 @@ describe('<Tldraw />', () => {
 		const rendered = await renderTldrawComponent(
 			<Tldraw shapeUtils={[FakeShapeUtil1]}>
 				<div data-testid="canvas-1" />
-			</Tldraw>
+			</Tldraw>,
+			{ waitForPatterns: false }
 		)
 
 		await screen.findByTestId('canvas-1')

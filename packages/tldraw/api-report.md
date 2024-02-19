@@ -74,9 +74,9 @@ import { TLExitEventHandler } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
-import { TLHandlesComponent } from '@tldraw/editor';
+import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
-import { TLHoveredShapeIndicatorComponent } from '@tldraw/editor';
+import { TLHoveredShapeIndicatorProps } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
@@ -100,9 +100,9 @@ import { TLPointerEventName } from '@tldraw/editor';
 import { TLRecord } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
-import { TLScribbleComponent } from '@tldraw/editor';
-import { TLSelectionBackgroundComponent } from '@tldraw/editor';
-import { TLSelectionForegroundComponent } from '@tldraw/editor';
+import { TLScribbleProps } from '@tldraw/editor';
+import { TLSelectionBackgroundProps } from '@tldraw/editor';
+import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
@@ -347,7 +347,7 @@ export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
-export function DefaultStylePanelContent({ relevantStyles }: TLUiStylePanelContentProps): JSX_2.Element | null;
+export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DefaultToolbar: React_2.NamedExoticComponent<object>;
@@ -1174,21 +1174,6 @@ export function Tldraw(props: TldrawProps): JSX_2.Element;
 export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
-export function TldrawCropHandles({ size, width, height, hideAlternateHandles, }: TldrawCropHandlesProps): JSX_2.Element;
-
-// @public (undocumented)
-export interface TldrawCropHandlesProps {
-    // (undocumented)
-    height: number;
-    // (undocumented)
-    hideAlternateHandles: boolean;
-    // (undocumented)
-    size: number;
-    // (undocumented)
-    width: number;
-}
-
-// @public (undocumented)
 export interface TldrawFile {
     // (undocumented)
     records: UnknownRecord[];
@@ -1199,10 +1184,10 @@ export interface TldrawFile {
 }
 
 // @public (undocumented)
-export const TldrawHandles: TLHandlesComponent;
+export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
+export function TldrawHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps): JSX_2.Element | null;
 
 // @public
 export const TldrawImage: NamedExoticComponent<    {
@@ -1240,13 +1225,13 @@ export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditor
 });
 
 // @public (undocumented)
-export const TldrawScribble: TLScribbleComponent;
+export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawSelectionBackground: TLSelectionBackgroundComponent;
+export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgroundProps) => JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawSelectionForeground: TLSelectionForegroundComponent;
+export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
 
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;
@@ -1313,7 +1298,7 @@ export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }
 export function TldrawUiDropdownMenuContent({ side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuGroup({ children, size, }: TLUiDropdownMenuGroupProps): JSX_2.Element;
+export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuIndicator(): JSX_2.Element;
@@ -1349,7 +1334,7 @@ export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string,
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiMenuGroup({ id, label, small, children }: TLUiMenuGroupProps): any;
+export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): any;
 
 // @public (undocumented)
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
@@ -1460,8 +1445,6 @@ export type TLUiComponentsProviderProps = {
 // @public (undocumented)
 export interface TLUiContextMenuProps {
     // (undocumented)
-    canvas: any;
-    // (undocumented)
     children?: any;
 }
 
@@ -1549,7 +1532,6 @@ export type TLUiDropdownMenuContentProps = {
 // @public (undocumented)
 export type TLUiDropdownMenuGroupProps = {
     children: any;
-    size?: 'medium' | 'small' | 'tiny' | 'wide';
 };
 
 // @public (undocumented)
@@ -1866,7 +1848,6 @@ export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
-    small?: boolean;
     children?: any;
 };
 
@@ -1894,7 +1875,7 @@ export type TLUiMenuSubmenuProps<Translation extends string = string> = {
     } | Translation;
     disabled?: boolean;
     children: any;
-    size?: 'large' | 'medium' | 'small' | 'tiny';
+    size?: 'medium' | 'small' | 'tiny' | 'wide';
 };
 
 // @public (undocumented)
@@ -1951,7 +1932,7 @@ export interface TLUiSliderProps {
 
 // @public (undocumented)
 export type TLUiStylePanelContentProps = {
-    relevantStyles: ReturnType<typeof useRelevantStyles>;
+    styles: ReturnType<typeof useRelevantStyles>;
 };
 
 // @public (undocumented)
@@ -1960,11 +1941,6 @@ export interface TLUiStylePanelProps {
     children?: any;
     // (undocumented)
     isMobile?: boolean;
-    // (undocumented)
-    relevantStyles: {
-        styles: ReadonlySharedStyleMap;
-        opacity: SharedStyle<number>;
-    } | null;
 }
 
 // @public (undocumented)
@@ -2135,6 +2111,9 @@ export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
 export function useReadonly(): boolean;
+
+// @public (undocumented)
+export function useRelevantStyles(stylesToCheck?: readonly (EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow"> | EnumStyleProp<"dashed" | "dotted" | "draw" | "solid"> | EnumStyleProp<"l" | "m" | "s" | "xl"> | EnumStyleProp<"none" | "pattern" | "semi" | "solid">)[]): null | ReadonlySharedStyleMap;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): Partial<{
