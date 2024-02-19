@@ -4,17 +4,24 @@ import test from './fixtures/fixtures'
 
 test.describe('Style selection behaviour', () => {
 	test.beforeEach(setup)
-	test('selecting a style highlights the button', async ({ stylePanel }) => {})
+	test.only('selecting a style highlights the button', async ({
+		isMobile,
+		stylePanel,
+		toolbar,
+	}) => {
+		const { blue } = stylePanel.colors
+		expect(blue.first()).toHaveCSS('opacity', '0')
+		if (isMobile) {
+			await toolbar.mobileStylesButton.click()
+		}
+		await blue.click()
+		expect(blue.first()).toHaveCSS('opacity', '1')
+	})
 })
 
-test.describe('mobile ui', () => {
+test.describe('mobile style panel', () => {
 	test.beforeEach(setup)
-	test('style panel opens and closes as expected', async ({
-		isMobile,
-		page,
-		toolbar,
-		stylePanel,
-	}) => {
+	test('opens and closes as expected', async ({ isMobile, page, toolbar, stylePanel }) => {
 		test.skip(!isMobile, 'only run on mobile')
 
 		await expect(stylePanel.getElement()).toBeHidden()
