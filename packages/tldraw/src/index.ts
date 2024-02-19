@@ -38,10 +38,10 @@ export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
-export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 // UI
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
+export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Kbd, type KbdProps } from './lib/ui/components/primitives/Kbd'
 export {
 	useActions,
