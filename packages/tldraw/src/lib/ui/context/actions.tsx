@@ -83,15 +83,15 @@ function getExportName(editor: Editor, defaultName: string) {
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
 
+	const { addDialog, clearDialogs } = useDialogs()
+	const { clearToasts } = useToasts()
+	const msg = useTranslation()
+
 	const insertMedia = useInsertMedia()
 	const printSelectionOrPages = usePrint()
 	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
-	const { addDialog, clearDialogs } = useDialogs()
-	const { clearToasts } = useToasts()
-
-	const msg = useTranslation()
 	const defaultDocumentName = msg('document.default-name')
 
 	const trackEvent = useUiEvents()
@@ -1209,21 +1209,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 		return actions
 	}, [
-		addDialog,
-		clearDialogs,
-		clearToasts,
 		editor,
 		trackEvent,
 		overrides,
+		addDialog,
 		insertMedia,
 		exportAs,
 		copyAs,
 		cut,
 		copy,
 		paste,
+		clearDialogs,
+		clearToasts,
 		printSelectionOrPages,
-		defaultDocumentName,
 		msg,
+		defaultDocumentName,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
