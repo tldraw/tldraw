@@ -12915,81 +12915,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getShapeOutlineSegments:member(1)",
-              "docComment": "/**\n * Get the local outline segments of a shape.\n *\n * @param shape - The shape (or shape id) to get the outline segments for.\n *\n * @example\n * ```ts\n * editor.getShapeOutlineSegments(myShape)\n * editor.getShapeOutlineSegments(myShapeId)\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getShapeOutlineSegments<T extends "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">(shape: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "T | T['id']"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[][]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "typeParameters": [
-                {
-                  "typeParameterName": "T",
-                  "constraintTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "defaultTypeTokenRange": {
-                    "startIndex": 0,
-                    "endIndex": 0
-                  }
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 7
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getShapeOutlineSegments"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShapePageBounds:member(1)",
               "docComment": "/**\n * Get the bounds of a shape in the current page space.\n *\n * @param shape - The shape (or shape id) to get the bounds for.\n *\n * @example\n * ```ts\n * editor.getShapePageBounds(myShape)\n * editor.getShapePageBounds(myShapeId)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -23310,6 +23235,108 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/editor!HandleSnapGeometry#getSelfSnapOutline:member(1)",
+              "docComment": "/**\n * By default, handles can't snap to their own shape because moving the handle might change the snapping location which can cause feedback loops. You can override this by returning a version of `outline` that won't be affected by the current handle's position to use for self-snapping.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelfSnapOutline?(handle: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Geometry2d",
+                  "canonicalReference": "@tldraw/editor!Geometry2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "handle",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getSelfSnapOutline"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/editor!HandleSnapGeometry#getSelfSnapPoints:member(1)",
+              "docComment": "/**\n * By default, handles can't snap to their own shape because moving the handle might change the snapping location which can cause feedback loops. You can override this by returning a version of `points` that won't be affected by the current handle's position to use for self-snapping.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelfSnapPoints?(handle: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "handle",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getSelfSnapPoints"
+            },
+            {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!HandleSnapGeometry#outline:member",
               "docComment": "/**\n * A `Geometry2d` that describe the outline of the shape that the handle will snap to - fills are ignored. By default, this is the same geometry returned by {@link ShapeUtil.getGeometry}. Set this to `null` to disable handle snapping to this shape's outline.\n */\n",
@@ -30777,59 +30804,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getHandleSnapGeometry"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#getOutlineSegments:member(1)",
-              "docComment": "/**\n * Get an array of outline segments for the shape. For most shapes, this will be a single segment that includes the entire outline. For shapes with handles, this might be segments of the outline between each handle.\n *\n * @param shape - The shape.\n *\n * @example\n * ```ts\n * util.getOutlineSegments(myShape)\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getOutlineSegments(shape: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "Shape"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[][]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getOutlineSegments"
             },
             {
               "kind": "Property",

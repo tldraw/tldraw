@@ -1,5 +1,4 @@
 import {
-	Mat,
 	StateNode,
 	TLArrowShape,
 	TLArrowShapeTerminal,
@@ -263,43 +262,24 @@ export class DraggingHandle extends StateNode {
 		// Clear any existing snaps
 		editor.snaps.clearIndicators()
 
+		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
+
 		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
-			// We want to skip the segments that include the handle, so
-			// find the index of the handle that shares the same index property
-			// as the initial dragging handle; this catches a quirk of create handles
-			const handleIndex = editor
-				.getShapeHandles(shape)!
-				.filter(({ type }) => type === 'vertex')
-				.sort(sortByIndex)
-				.findIndex(({ index }) => initialHandle.index === index)
-
-			// Get all the outline segments from the shape
-			const additionalSegments = util
-				.getOutlineSegments(shape)
-				.map((segment) => Mat.applyToPoints(pageTransform, segment))
-				.filter((_segment, i) => i !== handleIndex - 1 && i !== handleIndex)
-
-			const snap = snaps.handles.snapHandle({
-				additionalSegments,
-				handlePoint: Mat.applyToPoint(pageTransform, point),
-			})
+			const snap = snaps.handles.snapHandle({ currentShapeId: shapeId, handle: nextHandle })
 
 			if (snap) {
 				snap.nudge.rot(-editor.getShapeParentTransform(shape)!.rotation())
 				point.add(snap.nudge)
+				nextHandle = { ...initialHandle, x: point.x, y: point.y }
 			}
 		}
 
 		const changes = util.onHandleDrag?.(shape, {
-			handle: {
-				...initialHandle,
-				x: point.x,
-				y: point.y,
-			},
+			handle: nextHandle,
 			isPrecise: this.isPrecise || altKey,
 			initial: initial,
 		})

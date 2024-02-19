@@ -1,6 +1,8 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	CubicSpline2d,
+	Group2d,
+	HandleSnapGeometry,
 	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
@@ -108,11 +110,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 			return results.sort(sortByIndex)
 		})
-	}
-
-	override getOutlineSegments(shape: TLLineShape) {
-		const spline = this.editor.getShapeGeometry(shape) as Polyline2d | CubicSpline2d
-		return spline.segments.map((s) => s.vertices)
 	}
 
 	//   Events
@@ -389,9 +386,34 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
-	override getHandleSnapGeometry(shape: TLLineShape) {
+	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
+		const { points } = shape.props
 		return {
-			points: shape.props.points,
+			points,
+			getSelfSnapPoints: (handle) => {
+				const index = this.getHandles(shape)
+					.filter((h) => h.type === 'vertex')
+					.findIndex((h) => h.id === handle.id)!
+
+				// We want to skip the current and adjacent handles
+				return points.filter((_, i) => Math.abs(i - index) > 1).map(Vec.From)
+			},
+			getSelfSnapOutline: (handle) => {
+				// We want to skip the segments that include the handle, so
+				// find the index of the handle that shares the same index property
+				// as the initial dragging handle; this catches a quirk of create handles
+				const index = this.getHandles(shape)
+					.filter((h) => h.type === 'vertex')
+					.findIndex((h) => h.id === handle.id)!
+
+				// Get all the outline segments from the shape that don't include the handle
+				const segments = getGeometryForLineShape(shape).segments.filter(
+					(_, i) => i !== index - 1 && i !== index
+				)
+
+				if (!segments.length) return null
+				return new Group2d({ children: segments })
+			},
 		}
 	}
 }
