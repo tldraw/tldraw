@@ -189,6 +189,27 @@ describe('Snapping', () => {
 		})
 	})
 
+	it('snaps endpoints to its vertices', () => {
+		editor.select(id)
+
+		editor
+			.pointerDown(0, 0, { target: 'handle', shape: getShape(), handle: getHandles()[0] })
+			.pointerMove(3, 95, undefined, { ctrlKey: true })
+
+		expect(editor.snaps.getIndicators()).toHaveLength(1)
+		editor.expectShapeToMatch({
+			id: id,
+			props: {
+				points: [
+					{ x: 0, y: 100 },
+					{ x: 100, y: 0 },
+					{ x: 100, y: 100 },
+					{ x: 0, y: 100 },
+				],
+			},
+		})
+	})
+
 	it("doesn't snap to the segment of the current handle", () => {
 		editor.select(id)
 
