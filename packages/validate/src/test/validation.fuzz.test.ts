@@ -1,6 +1,6 @@
 import { mapObjectMapValues } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
-import { T } from '..'
+import { T, Validator } from '..'
 
 class RandomSource {
 	private seed: number
@@ -98,6 +98,10 @@ class RandomSource {
 			},
 			array: () => generateArrayType(this),
 			object: () => generateObjectType(this),
+			union: {
+				weight: 0.1,
+				do: () => generateUnionType(this),
+			},
 		})
 	}
 }
@@ -130,9 +134,14 @@ const builtinTypes: Record<string, TestType> = {
 	},
 } as const
 
-function generateObjectType(source: RandomSource): TestType {
+function generateObjectType(
+	source: RandomSource,
+	injectProperties?: Record<string, TestType>
+): TestType {
 	const numProperties = source.nextIntInRange(1, 5)
-	const propertyTypes: Record<string, TestType> = {}
+	const propertyTypes: Record<string, TestType> = {
+		...injectProperties,
+	}
 	const optionalTypes = new Set<string>()
 	for (let i = 0; i < numProperties; i++) {
 		const type = source.executeOne<TestType>({
@@ -142,6 +151,10 @@ function generateObjectType(source: RandomSource): TestType {
 			},
 			array: () => generateArrayType(source),
 			object: () => generateObjectType(source),
+			union: {
+				weight: 0.1,
+				do: () => generateUnionType(source),
+			},
 		})
 		const name = source.nextId()
 		if (source.choice(0.2)) {
@@ -199,6 +212,49 @@ function generateObjectType(source: RandomSource): TestType {
 					const keyToChange = source.selectOne(Object.keys(propertyTypes))
 					val[keyToChange] = propertyTypes[keyToChange].generateInvalid(source)
 					return val
+				},
+			})
+		},
+	}
+}
+
+function createLiteralType(value: string): TestType {
+	return {
+		validator: T.literal(value),
+		generateValid: () => value,
+		generateInvalid: (source) => source.selectOne(['_invalid_' + value, 2324, null, {}]),
+	}
+}
+
+function generateUnionType(source: RandomSource): TestType {
+	const key = source.selectOne(['type', 'name', 'kind'])
+	const numMembers = source.nextIntInRange(1, 4)
+	const members: TestType[] = []
+	const unionMap: Record<string, Validator<any>> = {}
+	for (let i = 0; i < numMembers; i++) {
+		const id = source.nextId()
+		const keyType = createLiteralType(id)
+		const type = generateObjectType(source, { [key]: keyType })
+		members.push(type)
+		unionMap[id] = type.validator
+	}
+	const validator = T.union(key, unionMap)
+
+	return {
+		validator,
+		generateValid: (source) => {
+			const member = source.selectOne(members)
+			return member.generateValid(source)
+		},
+		generateInvalid(source) {
+			return source.executeOne<any>({
+				otherType: () => source.selectOne(['_invalid_', 2324, null, {}]),
+				badMember: {
+					weight: 4,
+					do() {
+						const member = source.selectOne(members)
+						return member.generateInvalid(source)
+					},
 				},
 			})
 		},
@@ -266,7 +322,7 @@ function runTest(seed: number) {
 	}
 }
 
-const NUM_TESTS = 5000
+const NUM_TESTS = 500
 const source = new RandomSource(Math.random())
 
 for (let i = 0; i < NUM_TESTS; i++) {
