@@ -97,9 +97,6 @@ export function Canvas({ className }: { className?: string }) {
 			data-testid="canvas"
 			{...events}
 		>
-			{Background && <Background />}
-			<GridWrapper />
-			<UiLogger />
 			<svg className="tl-svg-context">
 				<defs>
 					{shapeSvgDefs}
@@ -110,12 +107,15 @@ export function Canvas({ className }: { className?: string }) {
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
+			{Background && <Background />}
+			<GridWrapper />
+
 			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 				<OnTheCanvasWrapper />
 				<SelectionBackgroundWrapper />
 				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 			</div>
-			<div className="tl-fixed-layer tl-overlays">
+			<div className="tl-overlays">
 				<div ref={rHtmlLayer2} className="tl-html-layer">
 					{debugGeometry ? <GeometryDebuggingView /> : null}
 					<HandlesWrapper />
@@ -510,26 +510,6 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		</div>
 	)
 })
-
-function UiLogger() {
-	const uiLog = useValue('debugging ui log', () => debugFlags.logMessages.get(), [debugFlags])
-
-	if (!uiLog.length) return null
-
-	return (
-		<div className="debug__ui-logger">
-			{uiLog.map((message, messageIndex) => {
-				const text = typeof message === 'string' ? message : JSON.stringify(message)
-
-				return (
-					<div className="debug__ui-logger__line" key={messageIndex}>
-						{text}
-					</div>
-				)
-			})}
-		</div>
-	)
-}
 
 function SelectionForegroundWrapper() {
 	const editor = useEditor()

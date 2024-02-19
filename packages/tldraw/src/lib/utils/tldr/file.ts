@@ -19,7 +19,7 @@ import {
 	partition,
 	transact,
 } from '@tldraw/editor'
-import { TLUiToastsContextType } from '../../ui/hooks/useToastsProvider'
+import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from '../tldr/buildFromV1Document'
 
@@ -296,7 +296,7 @@ export async function parseAndLoadDocument(
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
-			editor.zoomToBounds(bounds, 1)
+			editor.zoomToBounds(bounds, { targetZoom: 1 })
 		}
 		editor.updateInstanceState({ isFocused })
 	})

@@ -91,7 +91,8 @@ export async function getSvgAsImage(
 	})
 }
 
-async function getSvgAsString(svg: SVGElement) {
+/** @public */
+export async function getSvgAsString(svg: SVGElement) {
 	const clone = svg.cloneNode(true) as SVGGraphicsElement
 
 	svg.setAttribute('width', +svg.getAttribute('width')! + '')

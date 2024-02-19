@@ -5,6 +5,8 @@ import { refreshContent } from './scripts/functions/refreshContent'
 import { debounce } from './utils/debounce'
 import { nicelog } from './utils/nicelog'
 
+refreshContent({ silent: true })
+
 fs.watch(
 	'content',
 	{ persistent: true, recursive: true },

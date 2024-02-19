@@ -1,8 +1,14 @@
 import {
-	Button,
-	DropdownMenu,
 	Kbd,
 	OfflineIndicator,
+	TLUiTranslationKey,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	track,
 	useActions,
 	useBreakpoint,
@@ -59,54 +65,58 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 	return (
 		<div className="tlui-document-name__inner">
 			<DocumentNameEditor state={state} setState={setState} />
-			<DropdownMenu.Root id="document-name">
-				<DropdownMenu.Trigger>
-					<Button
+			<TldrawUiDropdownMenuRoot id="document-name">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton
 						type="icon"
-						icon="chevron-down"
 						className="tlui-document-name__menu tlui-menu__trigger flex-none"
-					/>
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end" alignOffset={4} sideOffset={6}>
-					<DropdownMenu.Group>
-						<DropdownMenu.Item
-							type="menu"
-							id="rename"
-							onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
-						>
-							<span className={'tlui-button__label' as any}>{msg('action.rename')}</span>
-						</DropdownMenu.Item>
-						<DropdownMenu.Item
-							type="menu"
-							id="copy-link"
-							onClick={() => {
-								const shareLink = getShareUrl(
-									window.location.href,
-									editor.getInstanceState().isReadonly
-								)
-								navigator.clipboard.writeText(shareLink)
-							}}
-						>
-							<span className={'tlui-button__label' as any}>Copy link</span>
-						</DropdownMenu.Item>
-						<DropdownMenu.Item
-							type="menu"
-							id="save-file-copy"
-							onClick={() => saveFileAction.onSelect('document-name')}
-						>
-							<span className={'tlui-button__label' as any}>{msg(saveFileAction.label!)}</span>
-							{saveFileAction.kbd && <Kbd>{saveFileAction.kbd}</Kbd>}
-						</DropdownMenu.Item>
-						<DropdownMenu.Item
-							type="menu"
-							id="fork"
-							onClick={() => forkAction.onSelect('document-name')}
-						>
-							<span className={'tlui-button__label' as any}>{msg(forkAction.label!)}</span>
-						</DropdownMenu.Item>
-					</DropdownMenu.Group>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+					>
+						<TldrawUiButtonIcon icon="chevron-down" />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent align="end" alignOffset={4} sideOffset={6}>
+					<TldrawUiDropdownMenuGroup>
+						<TldrawUiDropdownMenuItem>
+							<TldrawUiButton
+								type="menu"
+								onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
+							>
+								{' '}
+								<span className={'tlui-button__label' as any}>{msg('action.rename')}</span>
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuItem>
+						<TldrawUiDropdownMenuItem>
+							<TldrawUiButton
+								type="menu"
+								onClick={() => {
+									const shareLink = getShareUrl(
+										window.location.href,
+										editor.getInstanceState().isReadonly
+									)
+									navigator.clipboard.writeText(shareLink)
+								}}
+							>
+								<span className={'tlui-button__label' as any}>Copy link</span>
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuItem>
+						<TldrawUiDropdownMenuItem>
+							<TldrawUiButton type="menu" onClick={() => saveFileAction.onSelect('document-name')}>
+								<span className={'tlui-button__label' as any}>
+									{msg(saveFileAction.label! as TLUiTranslationKey)}
+								</span>
+								{saveFileAction.kbd && <Kbd>{saveFileAction.kbd}</Kbd>}
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuItem>
+						<TldrawUiDropdownMenuItem>
+							<TldrawUiButton type="menu" onClick={() => forkAction.onSelect('document-name')}>
+								<span className={'tlui-button__label' as any}>
+									{msg(forkAction.label! as TLUiTranslationKey)}
+								</span>
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuItem>
+					</TldrawUiDropdownMenuGroup>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiDropdownMenuRoot>
 		</div>
 	)
 })

@@ -19,3 +19,10 @@ apps/example/www/index.css
 apps/docs/.next
 
 packages/tldraw/tldraw.css
+
+**/dist-cjs/**/*
+**/dist-esm/**/*
+**/*.js.map
+**/*.api.json
+apps/docs/utils/vector-db
+packages/**/api

@@ -1,5 +1,5 @@
 import { BaseRecord } from '@tldraw/store'
-import { Expand, JsonObject } from '@tldraw/utils'
+import { Expand, IndexKey, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
 import { idValidator } from '../misc/id-validator'
@@ -12,7 +12,7 @@ export interface TLBaseShape<Type extends string, Props extends object>
 	x: number
 	y: number
 	rotation: number
-	index: string
+	index: IndexKey
 	parentId: TLParentId
 	isLocked: boolean
 	opacity: TLOpacityType
@@ -47,7 +47,7 @@ export function createShapeValidator<
 		x: T.number,
 		y: T.number,
 		rotation: T.number,
-		index: T.string,
+		index: T.indexKey,
 		parentId: parentIdValidator,
 		type: T.literal(type),
 		isLocked: T.boolean,

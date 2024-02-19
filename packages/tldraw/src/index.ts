@@ -3,6 +3,7 @@
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TldrawProps } from './lib/Tldraw'
+export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
@@ -37,59 +38,24 @@ export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
+export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 // UI
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
-export {
-	TldrawUiContextProvider,
-	type TldrawUiContextProviderProps,
-} from './lib/ui/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
-export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu'
-export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
-export { Spinner } from './lib/ui/components/Spinner'
-export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
-export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
-export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
 export { Kbd, type KbdProps } from './lib/ui/components/primitives/Kbd'
-export {
-	compactMenuItems,
-	findMenuItem,
-	menuCustom,
-	menuGroup,
-	menuItem,
-	menuSubmenu,
-	type TLUiCustomMenuItem,
-	type TLUiMenuChild,
-	type TLUiMenuGroup,
-	type TLUiMenuItem,
-	type TLUiMenuSchema,
-	type TLUiSubMenu,
-} from './lib/ui/hooks/menuHelpers'
 export {
 	useActions,
 	type TLUiActionItem,
 	type TLUiActionsContextType,
-} from './lib/ui/hooks/useActions'
-export {
-	useActionsMenuSchema,
-	type TLUiActionsMenuSchemaContextType,
-} from './lib/ui/hooks/useActionsMenuSchema'
-export { AssetUrlsProvider, useAssetUrls } from './lib/ui/hooks/useAssetUrls'
-export { BreakPointProvider, useBreakpoint } from './lib/ui/hooks/useBreakpoint'
-export { useCanRedo } from './lib/ui/hooks/useCanRedo'
-export { useCanUndo } from './lib/ui/hooks/useCanUndo'
-export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
-export {
-	useContextMenuSchema,
-	type TLUiContextTTLUiMenuSchemaContextType,
-} from './lib/ui/hooks/useContextMenuSchema'
-export { useCopyAs } from './lib/ui/hooks/useCopyAs'
+} from './lib/ui/context/actions'
+export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
+export { BreakPointProvider, useBreakpoint } from './lib/ui/context/breakpoints'
 export {
 	useDialogs,
 	type TLUiDialog,
 	type TLUiDialogProps,
 	type TLUiDialogsContextType,
-} from './lib/ui/hooks/useDialogsProvider'
+} from './lib/ui/context/dialogs'
 export {
 	UiEventsProvider,
 	useUiEvents,
@@ -98,32 +64,20 @@ export {
 	type TLUiEventHandler,
 	type TLUiEventMap,
 	type TLUiEventSource,
-} from './lib/ui/hooks/useEventsProvider'
-export { useExportAs } from './lib/ui/hooks/useExportAs'
-export {
-	useHelpMenuSchema,
-	type TLUiHelpMenuSchemaContextType,
-} from './lib/ui/hooks/useHelpMenuSchema'
-export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
-export {
-	useKeyboardShortcutsSchema,
-	type TLUiKeyboardShortcutsSchemaContextType,
-	type TLUiKeyboardShortcutsSchemaProviderProps,
-} from './lib/ui/hooks/useKeyboardShortcutsSchema'
-export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
-export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
-export {
-	useMenuSchema,
-	type TLUiMenuSchemaContextType,
-	type TLUiMenuSchemaProviderProps,
-} from './lib/ui/hooks/useMenuSchema'
-export { useReadonly } from './lib/ui/hooks/useReadonly'
+} from './lib/ui/context/events'
 export {
 	useToasts,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
-} from './lib/ui/hooks/useToastsProvider'
+} from './lib/ui/context/toasts'
+export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export { useCopyAs } from './lib/ui/hooks/useCopyAs'
+export { useExportAs } from './lib/ui/hooks/useExportAs'
+export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
+export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
+export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
+export { useReadonly } from './lib/ui/hooks/useReadonly'
 export {
 	toolbarItem,
 	useToolbarSchema,
@@ -139,7 +93,7 @@ export {
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
 export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
-	useTranslation as useTranslation,
+	useTranslation,
 	type TLUiTranslationContextType,
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
@@ -153,7 +107,7 @@ export {
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
-export { getSvgAsImage } from './lib/utils/export/export'
+export { getSvgAsImage, getSvgAsString } from './lib/utils/export/export'
 export { exportAs } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
@@ -171,9 +125,191 @@ export {
 	type TldrawFile,
 } from './lib/utils/tldr/file'
 
-import * as Dialog from './lib/ui/components/primitives/Dialog'
-import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
+// Minimap default component
+export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 
-// N.B. Preserve order of import / export here with this comment.
-// Sometimes this can cause an import problem depending on build setup downstream.
-export { Dialog, DropdownMenu }
+// Helper to unwrap label from action items
+export { unwrapLabel } from './lib/ui/context/actions'
+
+export {
+	TldrawUiComponentsProvider,
+	useTldrawUiComponents,
+	type TLUiComponents,
+	type TLUiComponentsProviderProps,
+} from './lib/ui/context/components'
+
+export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
+
+export {
+	DefaultStylePanel,
+	type TLUiStylePanelProps,
+} from './lib/ui/components/StylePanel/DefaultStylePanel'
+export {
+	DefaultStylePanelContent,
+	type TLUiStylePanelContentProps,
+} from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+
+export {
+	DefaultActionsMenu,
+	type TLUiActionsMenuProps,
+} from './lib/ui/components/ActionsMenu/DefaultActionsMenu'
+export { DefaultActionsMenuContent } from './lib/ui/components/ActionsMenu/DefaultActionsMenuContent'
+
+export {
+	DefaultContextMenu as ContextMenu,
+	DefaultContextMenu,
+	type TLUiContextMenuProps,
+} from './lib/ui/components/ContextMenu/DefaultContextMenu'
+export { DefaultContextMenuContent } from './lib/ui/components/ContextMenu/DefaultContextMenuContent'
+
+export {
+	DefaultHelpMenu,
+	type TLUiHelpMenuProps,
+} from './lib/ui/components/HelpMenu/DefaultHelpMenu'
+export { DefaultHelpMenuContent } from './lib/ui/components/HelpMenu/DefaultHelpMenuContent'
+
+export {
+	DefaultMainMenu,
+	type TLUiMainMenuProps,
+} from './lib/ui/components/MainMenu/DefaultMainMenu'
+export { DefaultMainMenuContent } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
+
+export {
+	DefaultQuickActions,
+	type TLUiQuickActionsProps,
+} from './lib/ui/components/QuickActions/DefaultQuickActions'
+export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
+
+export {
+	DefaultZoomMenu,
+	type TLUiZoomMenuProps,
+} from './lib/ui/components/ZoomMenu/DefaultZoomMenu'
+export { DefaultZoomMenuContent } from './lib/ui/components/ZoomMenu/DefaultZoomMenuContent'
+
+export {
+	DefaultHelperButtons,
+	type TLUiHelperButtonsProps,
+} from './lib/ui/components/HelperButtons/DefaultHelperButtons'
+export { DefaultHelperButtonsContent } from './lib/ui/components/HelperButtons/DefaultHelperButtonsContent'
+
+export {
+	DefaultKeyboardShortcutsDialog,
+	type TLUiKeyboardShortcutsDialogProps,
+} from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
+
+export {
+	DefaultDebugMenu,
+	type TLUiDebugMenuProps,
+} from './lib/ui/components/DebugMenu/DefaultDebugMenu'
+export { DefaultDebugMenuContent } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
+
+export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+
+export { type TLComponents } from './lib/Tldraw'
+
+/* ------------------- Primitives ------------------- */
+
+// Button
+export {
+	TldrawUiButton,
+	type TLUiButtonProps,
+} from './lib/ui/components/primitives/Button/TldrawUiButton'
+export {
+	TldrawUiButtonCheck,
+	type TLUiButtonCheckProps,
+} from './lib/ui/components/primitives/Button/TldrawUiButtonCheck'
+export {
+	TldrawUiButtonIcon,
+	type TLUiButtonIconProps,
+} from './lib/ui/components/primitives/Button/TldrawUiButtonIcon'
+export {
+	TldrawUiButtonLabel,
+	type TLUiButtonLabelProps,
+} from './lib/ui/components/primitives/Button/TldrawUiButtonLabel'
+
+// Button picker
+export {
+	TldrawUiButtonPicker,
+	type TLUiButtonPickerProps,
+} from './lib/ui/components/primitives/TldrawUiButtonPicker'
+
+// Dialog
+export {
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+	type TLUiDialogBodyProps,
+	type TLUiDialogFooterProps,
+	type TLUiDialogHeaderProps,
+	type TLUiDialogTitleProps,
+} from './lib/ui/components/primitives/TldrawUiDialog'
+
+// Dropdown Menu
+export {
+	TldrawUiDropdownMenuCheckboxItem,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuIndicator,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubTrigger,
+	TldrawUiDropdownMenuTrigger,
+	type TLUiDropdownMenuCheckboxItemProps,
+	type TLUiDropdownMenuContentProps,
+	type TLUiDropdownMenuGroupProps,
+	type TLUiDropdownMenuItemProps,
+	type TLUiDropdownMenuRootProps,
+	type TLUiDropdownMenuSubProps,
+	type TLUiDropdownMenuSubTriggerProps,
+	type TLUiDropdownMenuTriggerProps,
+} from './lib/ui/components/primitives/TldrawUiDropdownMenu'
+
+// Icon
+export { TldrawUiIcon, type TLUiIconProps } from './lib/ui/components/primitives/TldrawUiIcon'
+
+// Input
+export { TldrawUiInput, type TLUiInputProps } from './lib/ui/components/primitives/TldrawUiInput'
+
+// Kbd
+export { TldrawUiKbd, type TLUiKbdProps } from './lib/ui/components/primitives/TldrawUiKbd'
+
+// Popover
+export {
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+	type TLUiPopoverContentProps,
+	type TLUiPopoverProps,
+	type TLUiPopoverTriggerProps,
+} from './lib/ui/components/primitives/TldrawUiPopover'
+
+// Slider
+export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
+
+/* ----------------- Menu Primitives ---------------- */
+
+// General UI components for building menus
+export {
+	TldrawUiMenuCheckboxItem,
+	type TLUiMenuCheckboxItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
+export {
+	TldrawUiMenuContextProvider,
+	type TLUiMenuContextProviderProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuContext'
+export {
+	TldrawUiMenuGroup,
+	type TLUiMenuGroupProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuGroup'
+export {
+	TldrawUiMenuItem,
+	type TLUiMenuItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuItem'
+export {
+	TldrawUiMenuSubmenu,
+	type TLUiMenuSubmenuProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'

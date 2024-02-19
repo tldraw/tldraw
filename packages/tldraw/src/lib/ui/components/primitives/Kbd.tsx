@@ -1,5 +1,5 @@
-import { useBreakpoint } from '../../hooks/useBreakpoint'
-import { kbd } from './shared'
+import { useBreakpoint } from '../../context/breakpoints'
+import { kbd } from '../../kbd-utils'
 
 /** @public */
 export interface KbdProps {
