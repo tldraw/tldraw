@@ -68,19 +68,21 @@ function useStyleChangeCallback() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
-	return React.useMemo(() => {
-		return function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
-			editor.batch(() => {
-				if (editor.isIn('select')) {
-					editor.setStyleForSelectedShapes(style, value, { squashing })
-				}
-				editor.setStyleForNextShapes(style, value, { squashing })
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
+	return React.useMemo(
+		() =>
+			function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
+				editor.batch(() => {
+					if (editor.isIn('select')) {
+						editor.setStyleForSelectedShapes(style, value, { squashing })
+					}
+					editor.setStyleForNextShapes(style, value, { squashing })
+					editor.updateInstanceState({ isChangingStyle: true })
+				})
 
-			trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
-		}
-	}, [editor, trackEvent])
+				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
+			},
+		[editor, trackEvent]
+	)
 }
 
 const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
