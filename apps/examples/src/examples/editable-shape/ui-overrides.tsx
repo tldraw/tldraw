@@ -1,4 +1,12 @@
-import { TLUiMenuGroup, TLUiOverrides, menuItem, toolbarItem } from '@tldraw/tldraw'
+import {
+	DefaultKeyboardShortcutsDialog,
+	DefaultKeyboardShortcutsDialogContent,
+	TLComponents,
+	TLUiOverrides,
+	TldrawUiMenuItem,
+	toolbarItem,
+	useTools,
+} from '@tldraw/tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -8,9 +16,8 @@ export const uiOverrides: TLUiOverrides = {
 		tools.catdog = {
 			id: 'catdog',
 			icon: 'color',
-			label: 'catdog',
-			kbd: 'm',
-			readonlyOk: false,
+			label: 'Catdog',
+			kbd: 'c',
 			onSelect: () => {
 				editor.setCurrentTool('catdog')
 			},
@@ -22,13 +29,18 @@ export const uiOverrides: TLUiOverrides = {
 		toolbar.splice(4, 0, toolbarItem(tools.catdog))
 		return toolbar
 	},
-	keyboardShortcutsMenu(_app, keyboardShortcutsMenu, { tools }) {
-		// Add the tool item from the context to the keyboard shortcuts dialog.
-		const toolsGroup = keyboardShortcutsMenu.find(
-			(group) => group.id === 'shortcuts-dialog.tools'
-		) as TLUiMenuGroup
-		toolsGroup.children.push(menuItem(tools.catdog))
-		return keyboardShortcutsMenu
+}
+
+export const components: TLComponents = {
+	KeyboardShortcutsDialog: (props) => {
+		const tools = useTools()
+		return (
+			<DefaultKeyboardShortcutsDialog {...props}>
+				<DefaultKeyboardShortcutsDialogContent />
+				{/* Ideally, we'd interleave this into the tools group */}
+				<TldrawUiMenuItem {...tools['catdog']} />
+			</DefaultKeyboardShortcutsDialog>
+		)
 	},
 }
 

@@ -2,7 +2,7 @@ import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { CatDogTool } from './my-shape/my-shape-tool'
 import { CatDogUtil } from './my-shape/my-shape-util'
-import { uiOverrides } from './ui-overrides'
+import { components, uiOverrides } from './ui-overrides'
 
 // [1]
 const customShapeUtils = [CatDogUtil]
@@ -19,6 +19,8 @@ export default function EditableShapeExample() {
 				tools={customTools}
 				// Pass in any overrides to the user interface
 				overrides={uiOverrides}
+				// pass in the new Keybaord Shortcuts component
+				components={components}
 			/>
 		</div>
 	)
