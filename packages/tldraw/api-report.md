@@ -816,15 +816,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 export function isGifAnimated(file: Blob): Promise<boolean>;
 
 // @public (undocumented)
-export function Kbd({ children }: KbdProps): JSX_2.Element | null;
-
-// @public (undocumented)
-export interface KbdProps {
-    // (undocumented)
-    children: string;
-}
-
-// @public (undocumented)
 export class LaserTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_9 | typeof Lasering)[];
@@ -1051,6 +1042,9 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
+
+// @internal (undocumented)
+export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {

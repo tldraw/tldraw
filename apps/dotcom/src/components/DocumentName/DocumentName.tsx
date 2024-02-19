@@ -1,5 +1,4 @@
 import {
-	Kbd,
 	OfflineIndicator,
 	TLUiTranslationKey,
 	TldrawUiButton,
@@ -9,6 +8,7 @@ import {
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiKbd,
 	track,
 	useActions,
 	useBreakpoint,
@@ -104,7 +104,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 								<span className={'tlui-button__label' as any}>
 									{msg(saveFileAction.label! as TLUiTranslationKey)}
 								</span>
-								{saveFileAction.kbd && <Kbd>{saveFileAction.kbd}</Kbd>}
+								{saveFileAction.kbd && <TldrawUiKbd>{saveFileAction.kbd}</TldrawUiKbd>}
 							</TldrawUiButton>
 						</TldrawUiDropdownMenuItem>
 						<TldrawUiDropdownMenuItem>

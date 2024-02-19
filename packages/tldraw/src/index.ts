@@ -42,7 +42,7 @@ export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
-export { Kbd, type KbdProps } from './lib/ui/components/primitives/Kbd'
+export { Spinner } from './lib/ui/components/Spinner'
 export {
 	useActions,
 	type TLUiActionItem,
