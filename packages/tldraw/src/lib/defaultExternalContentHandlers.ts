@@ -30,9 +30,9 @@ export type TLExternalContentProps = {
 	// The maximum size (in bytes) of an asset. Assets larger than this will be rejected. Defaults to 10mb (10 * 1024 * 1024).
 	maxAssetSize: number
 	// The mime types of images that are allowed to be handled. Defaults to ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].
-	acceptedImageMimeTypes: string[]
+	acceptedImageMimeTypes: readonly string[]
 	// The mime types of videos that are allowed to be handled. Defaults to ['video/mp4', 'video/webm', 'video/quicktime'].
-	acceptedVideoMimeTypes: string[]
+	acceptedVideoMimeTypes: readonly string[]
 }
 
 export function registerDefaultExternalContentHandlers(

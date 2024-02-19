@@ -1,5 +1,5 @@
-import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
-import { isShapeId, TLFrameShape, TLGroupShape, TLParentId, TLShapeId } from '@tldraw/tlschema'
+import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
+import { TLFrameShape, TLGroupShape, TLParentId, TLShapeId, isShapeId } from '@tldraw/tlschema'
 import { Vec, VecLike } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
 import { BoundsSnaps } from './BoundsSnaps'

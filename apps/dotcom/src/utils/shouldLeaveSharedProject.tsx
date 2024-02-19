@@ -1,7 +1,13 @@
 import {
-	Button,
-	Dialog,
 	TLUiDialogsContextType,
+	TldrawUiButton,
+	TldrawUiButtonCheck,
+	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 	useLocalStorageState,
 	useTranslation,
 } from '@tldraw/tldraw'
@@ -46,26 +52,26 @@ function ConfirmLeaveDialog({
 
 	return (
 		<>
-			<Dialog.Header>
-				<Dialog.Title>{msg('sharing.confirm-leave.title')}</Dialog.Title>
-				<Dialog.CloseButton />
-			</Dialog.Header>
-			<Dialog.Body style={{ maxWidth: 350 }}>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg('sharing.confirm-leave.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				{msg('sharing.confirm-leave.description')}
-			</Dialog.Body>
-			<Dialog.Footer className="tlui-dialog__footer__actions">
-				<Button
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton
 					type="normal"
-					onClick={() => setDontShowAgain(!dontShowAgain)}
-					iconLeft={dontShowAgain ? 'checkbox-checked' : 'checkbox-empty'}
 					style={{ marginRight: 'auto' }}
+					onClick={() => setDontShowAgain(!dontShowAgain)}
 				>
-					{msg('sharing.confirm-leave.dont-show-again')}
-				</Button>
-				<Button type="normal" onClick={onCancel}>
-					{msg('sharing.confirm-leave.cancel')}
-				</Button>
-				<Button
+					<TldrawUiButtonCheck checked={dontShowAgain} />
+					<TldrawUiButtonLabel>{msg('sharing.confirm-leave.dont-show-again')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={onCancel}>
+					<TldrawUiButtonLabel>{msg('sharing.confirm-leave.cancel')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton
 					type="primary"
 					onClick={async () => {
 						if (dontShowAgain) {
@@ -74,9 +80,9 @@ function ConfirmLeaveDialog({
 						onContinue()
 					}}
 				>
-					{msg('sharing.confirm-leave.leave')}
-				</Button>
-			</Dialog.Footer>
+					<TldrawUiButtonLabel>{msg('sharing.confirm-leave.leave')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

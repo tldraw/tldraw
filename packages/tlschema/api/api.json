@@ -2765,12 +2765,21 @@
             },
             {
               "kind": "Content",
-              "text": "<string, import(\"../misc/TLHandle\")."
+              "text": "<import(\"@tldraw/utils\")."
             },
             {
               "kind": "Reference",
-              "text": "TLHandle",
-              "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+              "text": "IndexKey",
+              "canonicalReference": "@tldraw/utils!IndexKey:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", import(\"../misc/geometry-types\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
             },
             {
               "kind": "Content",
@@ -2783,7 +2792,7 @@
           "name": "lineShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 14
+            "endIndex": 16
           }
         },
         {
@@ -4322,8 +4331,9 @@
                   "text": "index: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",
@@ -6064,8 +6074,9 @@
                   "text": "index: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",
@@ -8299,8 +8310,9 @@
                   "text": "index: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",

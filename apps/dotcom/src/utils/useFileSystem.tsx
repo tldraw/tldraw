@@ -5,10 +5,6 @@ import {
 	TLUiActionItem,
 	TLUiEventHandler,
 	TLUiOverrides,
-	assert,
-	findMenuItem,
-	menuGroup,
-	menuItem,
 	parseAndLoadDocument,
 	serializeTldrawJsonBlob,
 	transact,
@@ -19,9 +15,9 @@ import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'
 
-const SAVE_FILE_COPY_ACTION = 'save-file-copy'
-const OPEN_FILE_ACTION = 'open-file'
-const NEW_PROJECT_ACTION = 'new-file'
+export const SAVE_FILE_COPY_ACTION = 'save-file-copy'
+export const OPEN_FILE_ACTION = 'open-file'
+export const NEW_PROJECT_ACTION = 'new-file'
 
 const saveFileNames = new WeakMap<TLStore, string>()
 
@@ -91,31 +87,6 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 					},
 				}
 				return actions
-			},
-			menu(editor, menu, { actions }) {
-				const fileMenu = findMenuItem(menu, ['menu', 'file'])
-				assert(fileMenu.type === 'submenu')
-
-				const saveItem = menuItem(actions[SAVE_FILE_COPY_ACTION])
-				const openItem = menuItem(actions[OPEN_FILE_ACTION])
-				const newItem = menuItem(actions[NEW_PROJECT_ACTION])
-				const group = isMultiplayer
-					? // open is not currently supported in multiplayer
-						menuGroup('filesystem', saveItem)
-					: menuGroup('filesystem', newItem, openItem, saveItem)
-				fileMenu.children.unshift(group!)
-
-				return menu
-			},
-			keyboardShortcutsMenu(editor, menu, { actions }) {
-				const fileItems = findMenuItem(menu, ['shortcuts-dialog.file'])
-				assert(fileItems.type === 'group')
-				fileItems.children.unshift(menuItem(actions[SAVE_FILE_COPY_ACTION]))
-				if (!isMultiplayer) {
-					fileItems.children.unshift(menuItem(actions[OPEN_FILE_ACTION]))
-				}
-
-				return menu
 			},
 		}
 	}, [isMultiplayer, handleUiEvent])
