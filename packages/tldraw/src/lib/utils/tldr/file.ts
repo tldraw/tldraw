@@ -19,7 +19,7 @@ import {
 	partition,
 	transact,
 } from '@tldraw/editor'
-import { TLUiToastsContextType } from '../../ui/hooks/useToastsProvider'
+import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from '../tldr/buildFromV1Document'
 
@@ -279,6 +279,7 @@ export async function parseAndLoadDocument(
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
 	transact(() => {
+		const initialBounds = editor.getViewportScreenBounds().clone()
 		const isFocused = editor.getInstanceState().isFocused
 		editor.store.clear()
 		const [shapes, nonShapes] = partition(
@@ -289,12 +290,13 @@ export async function parseAndLoadDocument(
 		editor.store.ensureStoreIsUsable()
 		editor.store.put(shapes, 'initialize')
 		editor.history.clear()
-		editor.updateViewportScreenBounds()
+		// Put the old bounds back in place
+		editor.updateViewportScreenBounds(initialBounds)
 		editor.updateRenderingBounds()
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
-			editor.zoomToBounds(bounds, 1)
+			editor.zoomToBounds(bounds, { targetZoom: 1 })
 		}
 		editor.updateInstanceState({ isFocused })
 	})

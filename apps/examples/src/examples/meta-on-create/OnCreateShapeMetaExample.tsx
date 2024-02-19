@@ -7,7 +7,7 @@ export default function OnCreateShapeMetaExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				persistenceKey="tldraw_example"
+				persistenceKey="example"
 				onMount={(editor) => {
 					//[1]
 					editor.getInitialMetaForShape = (_shape) => {

@@ -5,6 +5,8 @@ import { Box } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
+import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
+import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
 import { TLResizeHandle } from '../types/selection-types'
 
@@ -274,6 +276,22 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return []
+	}
+
+	/**
+	 * Get the geometry to use when snapping to this this shape in translate/resize operations. See
+	 * {@link BoundsSnapGeometry} for details.
+	 */
+	getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry {
+		return {}
+	}
+
+	/**
+	 * Get the geometry to use when snapping handles to this shape. See {@link HandleSnapGeometry}
+	 * for details.
+	 */
+	getHandleSnapGeometry(shape: Shape): HandleSnapGeometry {
+		return {}
 	}
 
 	//  Events

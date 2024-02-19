@@ -1,6 +1,6 @@
-/* ---------------------- Lists --------------------- */
-
 import React from 'react'
+
+/* ---------------------- Lists --------------------- */
 
 export const UnorderedList = (props: any) => {
 	return <ul {...props} />
@@ -62,7 +62,21 @@ export const Paragraph = (props: any) => {
 }
 
 export const A = (props: any) => {
-	return <a {...props} />
+	const isLocalUrl = props.href.startsWith('/') || props.href.startsWith('#')
+	let maybeParsedUrl
+	try {
+		maybeParsedUrl = isLocalUrl ? null : new URL(props.href)
+	} catch (e) {
+		console.error(`Invalid URL: ${props.href}`)
+	}
+	const derivedTarget =
+		isLocalUrl ||
+		maybeParsedUrl?.host.includes('tldraw.com') ||
+		maybeParsedUrl?.host.includes('localhost')
+			? undefined
+			: '_blank'
+	const target = props.target ?? derivedTarget
+	return <a {...props} target={target} />
 }
 
 export const Divider = (props: any) => {
@@ -122,11 +136,11 @@ export const Video = (props: any) => {
 /* ------------------- Code Blocks ------------------ */
 
 export const Pre = (props: any) => {
-	return <pre {...props} />
-}
+	if (props.children?.props?.className.startsWith('language-')) {
+		return props.children
+	}
 
-export const Code = (props: any) => {
-	return <code {...props} />
+	return <pre {...props} />
 }
 
 export const Footnotes = (props: any) => {
@@ -136,13 +150,13 @@ export const Footnotes = (props: any) => {
 /* -------------------- API docs -------------------- */
 
 export const ApiHeading = (props: any) => {
-	return <div className="article__api-heading" {...props} />
+	return <div {...props} />
 }
 
 export const Embed = (props: any) => {
 	return (
-		<div className="article__embed">
-			<iframe className="iframe" src={props.src} width="100%" height="600p" frameBorder="0" />
+		<div className={props.className || 'article__embed'}>
+			<iframe className="iframe" src={props.src} width="100%" height={600} />
 			{props.caption && <span className="article__caption">{props.caption}</span>}
 		</div>
 	)

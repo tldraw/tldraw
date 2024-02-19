@@ -24,7 +24,7 @@ export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export { MediaHelpers } from './lib/media'
-export { lerp, modulate, rng } from './lib/number'
+export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
 	areObjectsShallowEqual,
 	deepCopy,
@@ -39,6 +39,19 @@ export {
 } from './lib/object'
 export { PngHelpers } from './lib/png'
 export { rafThrottle, throttledRaf } from './lib/raf'
+export { type IndexKey } from './lib/reordering/IndexKey'
+export {
+	ZERO_INDEX_KEY,
+	getIndexAbove,
+	getIndexBelow,
+	getIndexBetween,
+	getIndices,
+	getIndicesAbove,
+	getIndicesBelow,
+	getIndicesBetween,
+	sortByIndex,
+	validateIndexKey,
+} from './lib/reordering/reordering'
 export { sortById } from './lib/sort'
 export type { Expand, RecursivePartial, Required } from './lib/types'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'

@@ -48,6 +48,10 @@
 		"label": "עברית"
 	},
 	{
+		"locale": "hr",
+		"label": "Hrvatski"
+	},
+	{
 		"locale": "it",
 		"label": "Italiano"
 	},
@@ -102,6 +106,10 @@
 	{
 		"locale": "ru",
 		"label": "Russian"
+	},
+	{
+		"locale": "sl",
+		"label": "Slovenščina"
 	},
 	{
 		"locale": "sv",

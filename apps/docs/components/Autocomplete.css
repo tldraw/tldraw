@@ -1,0 +1,223 @@
+.autocomplete__wrapper {
+	position: relative;
+	display: flex;
+	height: 40px;
+	flex-direction: row;
+	border-radius: 24px;
+	padding: 0 16px;
+	border: 1px solid var(--color-tint-2);
+}
+
+.autocomplete__wrapper:focus-within {
+	background-color: var(--color-tint-1);
+}
+
+.autocomplete__input {
+	position: relative;
+	padding-left: 20px;
+	height: 100%;
+	width: 100%;
+	border-radius: 4px;
+	border: none;
+	background-color: var(--color-background);
+	font-family: var(--font-body);
+	font-size: 14px;
+	background-color: none;
+	background: none;
+}
+
+.autocomplete__input:disabled {
+	/* background-color: var(--color-tint-1); */
+	color: var(--color-tint-5);
+}
+
+.autocomplete__input::placeholder {
+	color: var(--color-tint-5);
+}
+
+.autocomplete__input:focus {
+	outline: none;
+}
+
+.autocomplete__icon {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--color-tint-5);
+	left: 12px;
+	z-index: 2;
+	pointer-events: none;
+	transition: color 0.12s;
+}
+
+.autocomplete__cancel {
+	display: none;
+}
+
+.autocomplete__wrapper:focus-within .autocomplete__cancel {
+	display: flex;
+}
+
+.autocomplete__cancel {
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 50%;
+	right: 12px;
+	transform: translateY(-50%);
+	z-index: 2;
+	border: 0;
+	cursor: pointer;
+	height: 24px;
+	min-width: 24px;
+	line-height: 26px;
+	color: var(--color-tint-6);
+	background-color: var(--color-tint-2);
+	border-radius: 2px;
+}
+
+.autocomplete__item__icon {
+	width: 24px;
+	height: 24px;
+	flex: 0 0 24px;
+}
+
+.autocomplete__group {
+	font-size: 12px;
+	padding-left: 8px;
+	font-weight: 500;
+	margin-bottom: 4px;
+	position: relative;
+	letter-spacing: 0.5px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	color: var(--color-text-secondary);
+	text-transform: uppercase;
+	--bg: transparent;
+	white-space: nowrap;
+}
+
+.autocomplete__wrapper:focus-within .autocomplete__icon {
+	color: var(--color-text);
+}
+
+.autocomplete__item {
+	position: relative;
+	display: flex;
+	height: 2.5rem;
+	cursor: default;
+	scroll-margin-top: 0.25rem;
+	scroll-margin-bottom: 0.25rem;
+	align-items: center;
+	border-radius: 0.25rem;
+	padding-left: 1.75rem;
+	padding-right: 1.75rem;
+	color: hsl(204 10% 10%);
+	outline: 2px solid transparent;
+	outline-offset: 2px;
+}
+
+.autocomplete__item [data-user-value] {
+	font-weight: bold;
+}
+
+.autocomplete__popover {
+	margin-top: 4px;
+	position: relative;
+	z-index: 50;
+	min-width: 240px;
+	font-size: 14px;
+	display: flex;
+	max-height: min(var(--popover-available-height, 300px), 300px);
+	flex-direction: column;
+	overflow: auto;
+	overscroll-behavior: contain;
+	border-radius: 0.5rem;
+	border-width: 1px;
+	border-style: solid;
+	border-color: hsl(204 20% 88%);
+	background-color: hsl(204 20% 100%);
+	padding: 0.5rem;
+	color: hsl(204 10% 10%);
+	outline: 2px solid transparent;
+	outline-offset: 2px;
+	box-shadow:
+		0 10px 14px -3px rgb(0 0 0 / 0.1),
+		0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+:is([data-theme='dark'] .autocomplete__popover) {
+	border-color: hsl(204 3% 26%);
+	background-color: hsl(204 3% 18%);
+	color: hsl(204 20% 100%);
+	box-shadow:
+		0 10px 14px -3px rgb(0 0 0 / 0.25),
+		0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.autocomplete__empty {
+	padding: 0px 8px;
+}
+
+.autocomplete__item {
+	position: relative;
+	padding: 0px 8px;
+	display: flex;
+	cursor: pointer;
+	align-items: center;
+	justify-content: flex-start;
+	color: var(--color-text);
+	--bg: transparent;
+	height: 32px;
+	flex-grow: 2;
+	font-size: 14px;
+}
+
+.autocomplete__item::after {
+	position: absolute;
+	display: block;
+	content: '';
+	inset: 1px 0px;
+	background-color: var(--bg);
+	border-radius: var(--border-radius-menu);
+	transition: background-color 0.12s ease-in-out;
+	transition-delay: 0s;
+}
+
+.autocomplete__item[data-active-item]::after {
+	background-color: var(--color-tint-2);
+}
+
+@media (hover: hover) {
+	.autocomplete__item:hover {
+		color: var(--color-text);
+	}
+
+	.autocomplete__item:hover::after {
+		--bg: var(--color-tint-1);
+	}
+}
+
+.autocomplete__item:active,
+.autocomplete__item[data-active] {
+	padding-top: 9px;
+	padding-bottom: 7px;
+}
+
+:is([data-theme='dark'] .autocomplete__item) {
+	color: hsl(204 20% 100%);
+}
+
+:is([data-theme='dark'] .autocomplete__item__icon path) {
+	fill: hsl(204 20% 100%);
+}
+
+:is([data-theme='dark'] .autocomplete__item:hover) {
+	background-color: hsl(204 100% 40% / 0.25);
+}
+
+:is([data-theme='dark'] .autocomplete__item)[data-active-item] {
+	background-color: hsl(204 100% 40%);
+}

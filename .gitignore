@@ -83,7 +83,7 @@ apps/examples/build.esbuild.json
 apps/examples/e2e/test-results
 apps/examples/playwright-report
 
-docs/gen
+apps/docs/content/gen
 
 .dev.vars
 .env.local

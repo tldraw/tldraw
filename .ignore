@@ -16,5 +16,13 @@ yarn.lock
 apps/example/www/index.css
 **/dist/*
 *.cjs
+apps/docs/.next
 
 packages/tldraw/tldraw.css
+
+**/dist-cjs/**/*
+**/dist-esm/**/*
+**/*.js.map
+**/*.api.json
+apps/docs/utils/vector-db
+packages/**/api

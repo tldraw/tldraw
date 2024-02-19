@@ -1,12 +1,8 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { createShapeId, noop } from '@tldraw/editor'
-import { act } from 'react-dom/test-utils'
-import { Tldraw } from '../../lib/Tldraw'
-import { TLUiOverrides } from '../../lib/ui/overrides'
-import {
-	renderTldrawComponent,
-	renderTldrawComponentWithEditor,
-} from '../testutils/renderTldrawComponent'
+import { createShapeId } from '@tldraw/editor'
+import { TLComponents, Tldraw } from '../../lib/Tldraw'
+import { DefaultContextMenu } from '../../lib/ui/components/ContextMenu/DefaultContextMenu'
+import { renderTldrawComponent } from '../testutils/renderTldrawComponent'
 
 it('opens on right-click', async () => {
 	await renderTldrawComponent(
@@ -20,55 +16,35 @@ it('opens on right-click', async () => {
 
 	fireEvent.contextMenu(canvas)
 	await screen.findByTestId('context-menu')
-	await screen.findByTestId('menu-item.select-all')
+	await screen.findByTestId('context-menu.select-all')
 
 	fireEvent.keyDown(canvas, { key: 'Escape' })
 	expect(screen.queryByTestId('context-menu')).toBeNull()
 })
 
-it('updates overrides reactively', async () => {
-	const overrides: TLUiOverrides = {
-		contextMenu: (editor, schema) => {
-			const items = editor.getSelectedShapeIds().length
-			if (items === 0) return schema
-			return [
-				...schema,
-				{
-					type: 'item',
-					id: 'tester',
-					disabled: false,
-					readonlyOk: true,
-					checked: false,
-					actionItem: {
-						id: 'tester',
-						readonlyOk: true,
-						onSelect: noop,
-						label: `Selected: ${items}`,
-					},
-				},
-			]
+it('tunnels context menu', async () => {
+	const components: TLComponents = {
+		ContextMenu: (props) => {
+			return (
+				<DefaultContextMenu {...props}>
+					<button data-testid="abc123">Hello</button>
+				</DefaultContextMenu>
+			)
 		},
 	}
-	const { editor } = await renderTldrawComponentWithEditor((onMount) => (
-		<Tldraw onMount={onMount} overrides={overrides} />
-	))
+	await renderTldrawComponent(
+		<Tldraw
+			onMount={(editor) => {
+				editor.createShape({ id: createShapeId(), type: 'geo' })
+			}}
+			components={components}
+		/>
+	)
 
-	await act(() => editor.createShape({ id: createShapeId(), type: 'geo' }).selectAll())
+	const canvas = await screen.findByTestId('canvas')
 
-	// open the context menu:
-	fireEvent.contextMenu(await screen.findByTestId('canvas'))
-
-	// check that the context menu item was added:
-	await screen.findByTestId('menu-item.tester')
-
-	// It should disappear when we deselect all shapes:
-	await act(() => editor.setSelectedShapes([]))
-	expect(screen.queryByTestId('menu-item.tester')).toBeNull()
-
-	// It should update its label when it changes:
-	await act(() => editor.selectAll())
-	const item = await screen.findByTestId('menu-item.tester')
-	expect(item.textContent).toBe('Selected: 1')
-	await act(() => editor.createShape({ id: createShapeId(), type: 'geo' }).selectAll())
-	expect(item.textContent).toBe('Selected: 2')
+	fireEvent.contextMenu(canvas)
+	await screen.findByTestId('context-menu')
+	const elm = await screen.findByTestId('abc123')
+	expect(elm).toBeDefined()
 })

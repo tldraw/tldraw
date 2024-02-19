@@ -1,12 +1,13 @@
 import {
+	IndexKey,
 	Mat,
 	StateNode,
 	TLEventHandlers,
-	TLHandle,
 	TLInterruptEvent,
 	TLLineShape,
 	TLShapeId,
 	Vec,
+	VecModel,
 	createShapeId,
 	getIndexAbove,
 	last,
@@ -50,7 +51,7 @@ export class Pointing extends StateNode {
 				new Vec(this.shape.x, this.shape.y)
 			)
 
-			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
+			let nextEndHandleIndex: IndexKey, nextEndHandle: VecModel
 
 			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint)
 
@@ -60,29 +61,22 @@ export class Pointing extends StateNode {
 			) {
 				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
 				nextEndHandleIndex = endHandle.index
-				nextEndHandleId = endHandle.id
 				nextEndHandle = {
-					...endHandle,
 					x: nextPoint.x + 0.1,
 					y: nextPoint.y + 0.1,
 				}
 			} else {
 				// Otherwise, we'll create a new end handle
 				nextEndHandleIndex = getIndexAbove(endHandle.index)
-				nextEndHandleId = 'handle:' + nextEndHandleIndex
 				nextEndHandle = {
-					id: nextEndHandleId,
-					type: 'vertex',
-					index: nextEndHandleIndex,
 					x: nextPoint.x + 0.1,
 					y: nextPoint.y + 0.1,
-					canBind: false,
 				}
 			}
 
 			const nextHandles = structuredClone(this.shape.props.handles)
 
-			nextHandles[nextEndHandle.id] = nextEndHandle
+			nextHandles[nextEndHandleIndex] = nextEndHandle
 
 			this.editor.updateShapes([
 				{
@@ -149,17 +143,17 @@ export class Pointing extends StateNode {
 	override onInterrupt: TLInterruptEvent = () => {
 		this.parent.transition('idle')
 		if (this.markId) this.editor.bailToMark(this.markId)
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 
 	complete() {
 		this.parent.transition('idle', { shapeId: this.shape.id })
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 
 	cancel() {
 		if (this.markId) this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', { shapeId: this.shape.id })
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 }

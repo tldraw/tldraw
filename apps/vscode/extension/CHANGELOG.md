@@ -1,3 +1,21 @@
+## 2.0.24
+
+- New: You can now use tldraw in Croatian language.
+- Small visual improvements.
+- Bug fixes.
+
+## 2.0.23
+
+- New: Positional keyboard shortcuts for toolbar. You can now use 1, 2, 3,... to select the first, second, third,... tool in the toolbar.
+- New: You can now change the arrow label placement by simply dragging it towards one of the arrow's ends.
+- New: You can now snap shapes that are within the frame to the frame's edges and the frame's centre.
+- Improves duplication. If you alt drag a shape to duplicate it and use duplication afterwards, the new shape will use the same offset as the one you just created.
+- Improves the geo cloud icon.
+- Improves dismissing dialogs.
+- Improves note shape border radius.
+- Improves exporting of images. This should now be significantly faster.
+- Updates the colors of the dark mode.
+
 ## 2.0.22
 
 - Improves the dark mode appearance.

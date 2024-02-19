@@ -1,13 +1,18 @@
-import { Tldraw } from '@tldraw/tldraw'
+import { TLComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
+
+const components: TLComponents = {
+	SharePanel: CustomShareZone,
+	TopPanel: CustomTopZone,
+}
 
 // [1]
 export default function Example() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw topZone={<CustomTopZone />} shareZone={<CustomShareZone />} />
+			<Tldraw components={components} />
 		</div>
 	)
 }
@@ -46,8 +51,8 @@ function CustomShareZone() {
 }
 
 /* 
-This example shows how to pass in a custom component to the share zone and top zone.
-The share zone is in the top right corner above the style menu, the top zone is in 
+This example shows how to pass in a custom component to the share panel and top panel.
+The share panel is in the top right corner above the style menu, the top panel is in 
 the top center.
 
 [1]

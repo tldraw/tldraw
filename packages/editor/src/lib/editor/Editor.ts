@@ -39,15 +39,22 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	IndexKey,
 	JsonObject,
 	annotateError,
 	assert,
 	compact,
 	dedupe,
 	deepCopy,
+	getIndexAbove,
+	getIndexBetween,
+	getIndices,
+	getIndicesAbove,
+	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
 	sortById,
+	sortByIndex,
 	structuredClone,
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
@@ -89,14 +96,6 @@ import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
-import {
-	getIndexAbove,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBetween,
-	sortByIndex,
-} from '../utils/reordering/reordering'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
@@ -107,7 +106,7 @@ import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SideEffectManager } from './managers/SideEffectManager'
-import { SnapManager } from './managers/SnapManager'
+import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
@@ -324,7 +323,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return
 			}
 
-			let finalIndex: string
+			let finalIndex: IndexKey
 
 			const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
 				.map((id) => this.getShape(id)!)
@@ -2074,12 +2073,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
 			const { currentScreenPoint } = this.inputs
+			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
 			this.dispatch({
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_move',
-				point: currentScreenPoint,
+				// weird but true: we need to put the screen point back into client space
+				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
 				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
@@ -2175,7 +2176,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
 
 		if (bounds) {
-			this.zoomToBounds(bounds, Math.min(1, this.getZoomLevel()), { duration: 220 })
+			this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), duration: 220 })
 		}
 
 		return this
@@ -2201,7 +2202,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 
 		const pageBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-		this.zoomToBounds(pageBounds, undefined, animation)
+		this.zoomToBounds(pageBounds, animation)
 		return this
 	}
 
@@ -2332,7 +2333,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (!selectionPageBounds) return this
 
-		this.zoomToBounds(selectionPageBounds, Math.max(1, this.getZoomLevel()), animation)
+		this.zoomToBounds(selectionPageBounds, {
+			targetZoom: Math.max(1, this.getZoomLevel()),
+			...animation,
+		})
 
 		return this
 	}
@@ -2354,7 +2358,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const viewportPageBounds = this.getViewportPageBounds()
 
 		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
-			this.zoomToBounds(selectionBounds, this.getCamera().z, animation)
+			this.zoomToBounds(selectionBounds, { targetZoom: this.getCamera().z, ...animation })
 
 			return this
 		} else {
@@ -2397,22 +2401,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.zoomToBounds(myBounds)
-	 * editor.zoomToBounds(myBounds, 1)
-	 * editor.zoomToBounds(myBounds, 1, { duration: 100 })
+	 * editor.zoomToBounds(myBounds)
+	 * editor.zoomToBounds(myBounds, { duration: 100 })
+	 * editor.zoomToBounds(myBounds, { inset: 0, targetZoom: 1 })
 	 * ```
 	 *
 	 * @param bounds - The bounding box.
-	 * @param targetZoom - The desired zoom level. Defaults to 0.1.
-	 * @param animation - The options for an animation.
+	 * @param options - The options for an animation, target zoom, or custom inset amount.
 	 *
 	 * @public
 	 */
-	zoomToBounds(bounds: Box, targetZoom?: number, animation?: TLAnimationOptions): this {
+	zoomToBounds(
+		bounds: Box,
+		opts?: { targetZoom?: number; inset?: number } & TLAnimationOptions
+	): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
-		const inset = Math.min(256, viewportScreenBounds.width * 0.28)
+		const inset = opts?.inset ?? Math.min(256, viewportScreenBounds.width * 0.28)
 
 		let zoom = clamp(
 			Math.min(
@@ -2423,8 +2430,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			MAX_ZOOM
 		)
 
-		if (targetZoom !== undefined) {
-			zoom = Math.min(targetZoom, zoom)
+		if (opts?.targetZoom !== undefined) {
+			zoom = Math.min(opts.targetZoom, zoom)
 		}
 
 		this.setCamera(
@@ -2433,7 +2440,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				y: -bounds.minY + (viewportScreenBounds.height - bounds.height * zoom) / 2 / zoom,
 				z: zoom,
 			},
-			animation
+			opts
 		)
 
 		return this
@@ -2515,8 +2522,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const animationSpeed = this.user.getAnimationSpeed()
 		const viewportPageBounds = this.getViewportPageBounds()
 
-		// If we have an existing animation, then stop it; also stop following any user
+		// If we have an existing animation, then stop it
 		this.stopCameraAnimation()
+
+		// also stop following any user
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
@@ -2705,17 +2714,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(center = false): this {
-		const container = this.getContainer()
-		if (!container) return this
-
-		const rect = container.getBoundingClientRect()
-		const screenBounds = new Box(
-			rect.left || rect.x,
-			rect.top || rect.y,
-			Math.max(rect.width, 1),
-			Math.max(rect.height, 1)
-		)
+	updateViewportScreenBounds(screenBounds: Box, center = false): this {
+		screenBounds.width = Math.max(screenBounds.width, 1)
+		screenBounds.height = Math.max(screenBounds.height, 1)
 
 		const insets = [
 			// top
@@ -2783,7 +2784,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getViewportScreenCenter() {
-		return this.getViewportScreenBounds().center
+		const viewportScreenBounds = this.getViewportScreenBounds()
+		return new Vec(
+			viewportScreenBounds.midX - viewportScreenBounds.minX,
+			viewportScreenBounds.midY - viewportScreenBounds.minY
+		)
 	}
 
 	/**
@@ -3141,8 +3146,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		for (const childId of this.getSortedChildIdsForParent(this.getCurrentPageId())) {
-			addShapeById(childId, 1, false)
+		// If we're using editor state, then we're only interested in on-screen shapes.
+		// If we're not using the editor state, then we're interested in ALL shapes, even those from other pages.
+		const pages = useEditorState ? [this.getCurrentPage()] : this.getPages()
+		for (const page of pages) {
+			for (const childId of this.getSortedChildIdsForParent(page.id)) {
+				addShapeById(childId, 1, false)
+			}
 		}
 
 		return renderingShapes
@@ -3296,8 +3306,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')
-	 * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)
+	 * const idsOnPage1 = editor.getPageShapeIds('page1')
+	 * const idsOnPage2 = editor.getPageShapeIds(myPage2)
 	 * ```
 	 *
 	 * @param page - The page (or page id) to get.
@@ -4775,7 +4785,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: string) {
+	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: IndexKey) {
 		const ids =
 			typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : shapes.map((s) => (s as TLShape).id)
 		if (ids.length === 0) return this
@@ -4788,7 +4798,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const parentPageRotation = parentTransform.rotation()
 
-		let indices: string[] = []
+		let indices: IndexKey[] = []
 
 		const sibs = compact(this.getSortedChildIdsForParent(parentId).map((id) => this.getShape(id)))
 
@@ -4877,12 +4887,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getHighestIndexForParent(parent: TLParentId | TLPage | TLShape): string {
+	getHighestIndexForParent(parent: TLParentId | TLPage | TLShape): IndexKey {
 		const parentId = typeof parent === 'string' ? parent : parent.id
 		const children = this._parentIdsToChildIds.get()[parentId]
 
 		if (!children || children.length === 0) {
-			return 'a1'
+			return 'a1' as IndexKey
 		}
 		const shape = this.getShape(children[children.length - 1])!
 		return getIndexAbove(shape.index)
@@ -6584,7 +6594,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Get the highest index among the parents of each of the
 				// the shapes being created; we'll increment from there.
 
-				const parentIndices = new Map<string, string>()
+				const parentIndices = new Map<TLParentId, IndexKey>()
 
 				const shapeRecordsToCreate: TLShape[] = []
 
@@ -7906,7 +7916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					assets[i] = result.value as TLAsset
 				} else {
 					throw Error(
-						`Could not put content:\ncould not migrate content for asset:\n${asset.id}\n${asset.type}\nreason:${result.reason}`
+						`Could not put content:\ncould not migrate content for asset:\n${asset.type}\nreason:${result.reason}`
 					)
 				}
 			}
@@ -7964,7 +7974,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				newShapes[i] = result.value as TLShape
 			} else {
 				throw Error(
-					`Could not put content:\ncould not migrate content for shape:\n${shape.id}, ${shape.type}\nreason:${result.reason}`
+					`Could not put content:\ncould not migrate content for shape:\n${shape.type}\nreason:${result.reason}`
 				)
 			}
 		}
@@ -8077,8 +8087,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			preserveAspectRatio = false,
 		} = opts
 
-		// todo: we shouldn't depend on the public theme here
-		const theme = getDefaultColorTheme({ isDarkMode: this.user.getIsDarkMode() })
+		const isDarkMode = opts.darkMode ?? this.user.getIsDarkMode()
+		const theme = getDefaultColorTheme({ isDarkMode })
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
@@ -8156,6 +8166,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const exportDefPromisesById = new Map<string, Promise<void>>()
 		const exportContext: SvgExportContext = {
+			isDarkMode,
 			addExportDef: (def: SvgExportDef) => {
 				if (exportDefPromisesById.has(def.key)) return
 				const promise = (async () => {
@@ -8334,18 +8345,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: sx, y: sy, z: sz } = info.point
 		const { x: cx, y: cy, z: cz } = this.getCamera()
+
+		const sx = info.point.x - screenBounds.x
+		const sy = info.point.y - screenBounds.y
+		const sz = info.point.z
 
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)
 
+		// The "screen bounds" is relative to the user's actual screen.
+		// The "screen point" is relative to the "screen bounds";
+		// it will be 0,0 when its actual screen position is equal
+		// to screenBounds.point. This is confusing!
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(
-			(sx - screenBounds.x) / cz - cx,
-			(sy - screenBounds.y) / cz - cy,
-			sz ?? 0.5
-		)
+		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
@@ -8605,9 +8619,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (!inputs.isPinching) return
 
 							const {
-								point: { x, y, z = 1 },
+								point: { z = 1 },
 								delta: { x: dx, y: dy },
 							} = info
+
+							const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+							const { x, y } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
 
 							const { x: cx, y: cy, z: cz } = this.getCamera()
 
@@ -8655,7 +8672,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							// If the alt or ctrl keys are pressed,
 							// zoom or pan the camera and then return.
+
+							// Subtract the top left offset from the user's point
+
 							const { x, y } = this.inputs.currentScreenPoint
+
 							const { x: cx, y: cy, z: cz } = this.getCamera()
 
 							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))

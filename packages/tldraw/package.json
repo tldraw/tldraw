@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "2.0.0-beta.2",
+	"version": "2.0.0-beta.3",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -28,8 +28,8 @@
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"scripts": {
-		"test": "lazy inherit",
-		"test-dev": "yarn run -T jest --watch",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../{editor/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs'",
@@ -45,7 +45,7 @@
 		"tldraw.css"
 	],
 	"dependencies": {
-		"@radix-ui/react-alert-dialog": "^1.0.0",
+		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@radix-ui/react-context-menu": "^2.1.5",
 		"@radix-ui/react-dialog": "^1.0.5",
 		"@radix-ui/react-dropdown-menu": "^2.0.6",

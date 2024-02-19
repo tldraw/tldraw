@@ -77,6 +77,27 @@ export function getHashForObject(obj: any): string;
 // @public
 export function getHashForString(string: string): string;
 
+// @public
+export function getIndexAbove(below: IndexKey): IndexKey;
+
+// @public
+export function getIndexBelow(above: IndexKey): IndexKey;
+
+// @public
+export function getIndexBetween(below: IndexKey, above?: IndexKey): IndexKey;
+
+// @public
+export function getIndices(n: number, start?: IndexKey): IndexKey[];
+
+// @public
+export function getIndicesAbove(below: IndexKey, n: number): IndexKey[];
+
+// @public
+export function getIndicesBelow(above: IndexKey, n: number): IndexKey[];
+
+// @public
+export function getIndicesBetween(below: IndexKey | undefined, above: IndexKey | undefined, n: number): IndexKey[];
+
 // @internal (undocumented)
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
 
@@ -85,6 +106,14 @@ export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
+
+// @public
+export type IndexKey = string & {
+    __orderKey: true;
+};
+
+// @public
+export function invLerp(a: number, b: number, t: number): number;
 
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
@@ -249,6 +278,11 @@ export function sortById<T extends {
     id: any;
 }>(a: T, b: T): -1 | 1;
 
+// @public
+export function sortByIndex<T extends {
+    index: IndexKey;
+}>(a: T, b: T): -1 | 0 | 1;
+
 // @public (undocumented)
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
@@ -260,7 +294,13 @@ export function throttle<T extends (...args: any) => any>(func: T, limit: number
 export function throttledRaf(fn: () => void): void;
 
 // @internal (undocumented)
+export function validateIndexKey(key: string): asserts key is IndexKey;
+
+// @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
+
+// @public
+export const ZERO_INDEX_KEY: IndexKey;
 
 // (No @packageDocumentation comment for this package)
 

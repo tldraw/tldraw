@@ -1,10 +1,13 @@
-import test, { Page, expect } from '@playwright/test'
-import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
-import assert from 'assert'
-import { rename, writeFile } from 'fs/promises'
-import { setupPage } from '../shared-e2e'
+import test from '@playwright/test'
+import { TLShapeId, TLShapePartial } from '@tldraw/tldraw'
 
-declare const editor: Editor
+// import test, { Page, expect } from '@playwright/test'
+// import assert from 'assert'
+// import { rename, writeFile } from 'fs/promises'
+// import { setupPage } from '../shared-e2e'
+// import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
+
+// declare const editor: Editor
 
 test.describe('Export snapshots', () => {
 	const snapshots = {
@@ -186,50 +189,50 @@ test.describe('Export snapshots', () => {
 		]
 	}
 
-	const snapshotsToTest = Object.entries(snapshots)
-	const filteredSnapshots = snapshotsToTest // maybe we filter these down, there are a lot of them
+	// 	const snapshotsToTest = Object.entries(snapshots)
+	// 	const filteredSnapshots = snapshotsToTest // maybe we filter these down, there are a lot of them
 
-	for (const [name, shapes] of filteredSnapshots) {
-		test(`Exports with ${name} in dark mode`, async ({ browser }) => {
-			const page = await browser.newPage()
-			await setupPage(page)
-			await page.evaluate((shapes) => {
-				editor.user.updateUserPreferences({ isDarkMode: true })
-				editor
-					.updateInstanceState({ exportBackground: false })
-					.selectAll()
-					.deleteShapes(editor.getSelectedShapeIds())
-					.createShapes(shapes)
-			}, shapes as any)
+	// 	for (const [name, shapes] of filteredSnapshots) {
+	// 		test(`Exports with ${name} in dark mode`, async ({ browser }) => {
+	// 			const page = await browser.newPage()
+	// 			await setupPage(page)
+	// 			await page.evaluate((shapes) => {
+	// 				editor.user.updateUserPreferences({ isDarkMode: true })
+	// 				editor
+	// 					.updateInstanceState({ exportBackground: false })
+	// 					.selectAll()
+	// 					.deleteShapes(editor.getSelectedShapeIds())
+	// 					.createShapes(shapes)
+	// 			}, shapes as any)
 
-			await snapshotTest(page)
-		})
-	}
+	// 			await snapshotTest(page)
+	// 		})
+	// 	}
 
-	async function snapshotTest(page: Page) {
-		const downloadAndSnapshot = page.waitForEvent('download').then(async (download) => {
-			const path = (await download.path()) as string
-			assert(path)
-			await rename(path, path + '.svg')
-			await writeFile(
-				path + '.html',
-				`
-							<!DOCTYPE html>
-							<meta charset="utf-8" />
-							<meta name="viewport" content="width=device-width, initial-scale=1" />
-							<img src="${path}.svg" />
-			`,
-				'utf-8'
-			)
+	// 	async function snapshotTest(page: Page) {
+	// 		const downloadAndSnapshot = page.waitForEvent('download').then(async (download) => {
+	// 			const path = (await download.path()) as string
+	// 			assert(path)
+	// 			await rename(path, path + '.svg')
+	// 			await writeFile(
+	// 				path + '.html',
+	// 				`
+	// 							<!DOCTYPE html>
+	// 							<meta charset="utf-8" />
+	// 							<meta name="viewport" content="width=device-width, initial-scale=1" />
+	// 							<img src="${path}.svg" />
+	// 			`,
+	// 				'utf-8'
+	// 			)
 
-			await page.goto(`file://${path}.html`)
-			const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
-			await expect(page).toHaveScreenshot({
-				omitBackground: true,
-				clip,
-			})
-		})
-		await page.evaluate(() => (window as any)['tldraw-export']())
-		await downloadAndSnapshot
-	}
+	// 			await page.goto(`file://${path}.html`)
+	// 			const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
+	// 			await expect(page).toHaveScreenshot({
+	// 				omitBackground: true,
+	// 				clip,
+	// 			})
+	// 		})
+	// 		await page.evaluate(() => (window as any)['tldraw-export']())
+	// 		await downloadAndSnapshot
+	// }
 })

@@ -31,10 +31,6 @@ export class EditingShape extends StateNode {
 
 		// Check for changes on editing end
 		util.onEditEnd?.(shape)
-
-		setTimeout(() => {
-			this.editor.updateViewportScreenBounds()
-		}, 500)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {

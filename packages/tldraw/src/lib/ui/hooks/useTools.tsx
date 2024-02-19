@@ -1,9 +1,9 @@
 import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { useDialogs } from '../context/dialogs'
+import { TLUiEventSource, useUiEvents } from '../context/events'
 import { TLUiIconType } from '../icon-types'
-import { useDialogs } from './useDialogsProvider'
-import { TLUiEventSource, useUiEvents } from './useEventsProvider'
 import { useInsertMedia } from './useInsertMedia'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
@@ -18,7 +18,7 @@ export interface TLUiToolItem<
 	icon: IconType
 	onSelect: (source: TLUiEventSource) => void
 	kbd?: string
-	readonlyOk: boolean
+	readonlyOk?: boolean
 	meta?: {
 		[key: string]: any
 	}
@@ -77,7 +77,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: 'tool.eraser',
 				icon: 'tool-eraser',
 				kbd: 'e',
-				readonlyOk: false,
 				onSelect(source) {
 					editor.setCurrentTool('eraser')
 					trackEvent('select-tool', { source, id: 'eraser' })
@@ -86,7 +85,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'draw',
 				label: 'tool.draw',
-				readonlyOk: false,
 				icon: 'tool-pencil',
 				kbd: 'd,b,x',
 				onSelect(source) {
@@ -97,7 +95,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			...[...GeoShapeGeoStyle.values].map((id) => ({
 				id,
 				label: `tool.${id}` as TLUiTranslationKey,
-				readonlyOk: false,
 				meta: {
 					geo: id,
 				},
@@ -122,7 +119,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'arrow',
 				label: 'tool.arrow',
-				readonlyOk: false,
 				icon: 'tool-arrow',
 				kbd: 'a',
 				onSelect(source) {
@@ -133,7 +129,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'line',
 				label: 'tool.line',
-				readonlyOk: false,
 				icon: 'tool-line',
 				kbd: 'l',
 				onSelect(source) {
@@ -144,7 +139,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'frame',
 				label: 'tool.frame',
-				readonlyOk: false,
 				icon: 'tool-frame',
 				kbd: 'f',
 				onSelect(source) {
@@ -155,7 +149,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'text',
 				label: 'tool.text',
-				readonlyOk: false,
 				icon: 'tool-text',
 				kbd: 't',
 				onSelect(source) {
@@ -166,7 +159,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'asset',
 				label: 'tool.asset',
-				readonlyOk: false,
 				icon: 'tool-media',
 				kbd: '$u',
 				onSelect(source) {
@@ -177,7 +169,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'note',
 				label: 'tool.note',
-				readonlyOk: false,
 				icon: 'tool-note',
 				kbd: 'n',
 				onSelect(source) {
@@ -199,7 +190,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'embed',
 				label: 'tool.embed',
-				readonlyOk: false,
 				icon: 'tool-embed',
 				onSelect(source) {
 					addDialog({ component: EmbedDialog })
@@ -211,7 +201,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		toolsArray.push({
 			id: 'highlight',
 			label: 'tool.highlight',
-			readonlyOk: false,
 			icon: 'tool-highlight',
 			// TODO: pick a better shortcut
 			kbd: '!d',

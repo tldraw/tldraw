@@ -33,6 +33,10 @@ function getArrowPoints(
 					: ints[0]
 	}
 
+	if (Vec.IsNaN(P0)) {
+		P0 = info.start.point
+	}
+
 	return {
 		point: PT,
 		int: P0,
