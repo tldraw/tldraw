@@ -169,6 +169,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLArrowShape>;
     // (undocumented)
+    onHandleDrag: TLOnHandleDragHandler<TLArrowShape>;
+    // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
     // (undocumented)
     onTranslate?: TLOnTranslateHandler<TLArrowShape>;

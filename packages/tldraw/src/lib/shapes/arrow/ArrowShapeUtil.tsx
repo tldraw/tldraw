@@ -17,6 +17,7 @@ import {
 	TLDefaultFillStyle,
 	TLHandle,
 	TLOnEditEndHandler,
+	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
@@ -169,6 +170,139 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				canBind: true,
 			},
 		].filter(Boolean) as TLHandle[]
+	}
+
+	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
+		const handleId = handle.id as ARROW_HANDLES
+
+		if (handleId === ARROW_HANDLES.MIDDLE) {
+			// Bending the arrow...
+			const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
+
+			const delta = Vec.Sub(end, start)
+			const v = Vec.Per(delta)
+
+			const med = Vec.Med(end, start)
+			const A = Vec.Sub(med, v)
+			const B = Vec.Add(med, v)
+
+			const point = Vec.NearestPointOnLineSegment(A, B, handle, false)
+			let bend = Vec.Dist(point, med)
+			if (Vec.Clockwise(point, end, med)) bend *= -1
+			return { id: shape.id, type: shape.type, props: { bend } }
+		}
+
+		// Start or end, pointing the arrow...
+
+		const next = deepCopy(shape) as TLArrowShape
+
+		if (this.editor.inputs.ctrlKey) {
+			// todo: maybe double check that this isn't equal to the other handle too?
+			// Skip binding
+			next.props[handleId] = {
+				type: 'point',
+				x: handle.x,
+				y: handle.y,
+			}
+			return next
+		}
+
+		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
+
+		const target = this.editor.getShapeAtPoint(point, {
+			hitInside: true,
+			hitFrameInside: true,
+			margin: 0,
+			filter: (targetShape) => {
+				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+			},
+		})
+
+		if (!target) {
+			// todo: maybe double check that this isn't equal to the other handle too?
+			next.props[handleId] = {
+				type: 'point',
+				x: handle.x,
+				y: handle.y,
+			}
+			return next
+		}
+
+		// we've got a target! the handle is being dragged over a shape, bind to it
+
+		const targetGeometry = this.editor.getShapeGeometry(target)
+		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
+		const pageTransform = this.editor.getShapePageTransform(next.id)!
+		const pointInPageSpace = pageTransform.applyToPoint(handle)
+		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
+
+		let precise = isPrecise
+
+		if (!precise) {
+			// If we're switching to a new bound shape, then precise only if moving slowly
+			const prevHandle = next.props[handleId]
+			if (
+				prevHandle.type === 'point' ||
+				(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
+			) {
+				precise = this.editor.inputs.pointerVelocity.len() < 0.5
+			}
+		}
+
+		if (!isPrecise) {
+			if (!targetGeometry.isClosed) {
+				precise = true
+			}
+
+			// Double check that we're not going to be doing an imprecise snap on
+			// the same shape twice, as this would result in a zero length line
+			const otherHandle =
+				next.props[handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START]
+			if (
+				otherHandle.type === 'binding' &&
+				target.id === otherHandle.boundShapeId &&
+				otherHandle.isPrecise
+			) {
+				precise = true
+			}
+		}
+
+		const normalizedAnchor = {
+			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+		}
+
+		if (precise) {
+			// Turn off precision if we're within a certain distance to the center of the shape.
+			// Funky math but we want the snap distance to be 4 at the minimum and either
+			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
+			if (
+				Vec.Dist(pointInTargetSpace, targetBounds.center) <
+				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
+					this.editor.getZoomLevel()
+			) {
+				normalizedAnchor.x = 0.5
+				normalizedAnchor.y = 0.5
+			}
+		}
+
+		next.props[handleId] = {
+			type: 'binding',
+			boundShapeId: target.id,
+			normalizedAnchor: normalizedAnchor,
+			isPrecise: precise,
+			isExact: this.editor.inputs.altKey,
+		}
+
+		if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
+			if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
+				if (Vec.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
+					next.props.end.normalizedAnchor.x += 0.05
+				}
+			}
+		}
+
+		return next
 	}
 
 	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
