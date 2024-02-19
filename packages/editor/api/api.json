@@ -4200,56 +4200,6 @@
           "name": "canonicalizeRotation"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!Canvas:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function Canvas({ className }: "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    className?: string;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/Canvas.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ className }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "Canvas"
-        },
-        {
           "kind": "Class",
           "canonicalReference": "@tldraw/editor!Circle2d:class",
           "docComment": "/**\n * @public\n */\n",
@@ -6159,6 +6109,57 @@
             "startIndex": 1,
             "endIndex": 2
           }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultCanvas:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultCanvas({ className }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCanvasComponentProps",
+              "canonicalReference": "@tldraw/editor!~TLCanvasComponentProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultCanvas.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultCanvas"
         },
         {
           "kind": "Variable",
@@ -42055,6 +42056,260 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useEditor"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!useEditorComponents:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useEditorComponents(): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    Background: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBackgroundComponent",
+              "canonicalReference": "@tldraw/editor!TLBackgroundComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    SvgDefs: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSvgDefsComponent",
+              "canonicalReference": "@tldraw/editor!TLSvgDefsComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    Brush: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBrushComponent",
+              "canonicalReference": "@tldraw/editor!TLBrushComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    ZoomBrush: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBrushComponent",
+              "canonicalReference": "@tldraw/editor!TLBrushComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    Cursor: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCursorComponent",
+              "canonicalReference": "@tldraw/editor!TLCursorComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    Canvas: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCanvasComponent",
+              "canonicalReference": "@tldraw/editor!~TLCanvasComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    CollaboratorBrush: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBrushComponent",
+              "canonicalReference": "@tldraw/editor!TLBrushComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    CollaboratorCursor: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCursorComponent",
+              "canonicalReference": "@tldraw/editor!TLCursorComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    CollaboratorHint: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCollaboratorHintComponent",
+              "canonicalReference": "@tldraw/editor!TLCollaboratorHintComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    CollaboratorShapeIndicator: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeIndicatorComponent",
+              "canonicalReference": "@tldraw/editor!TLShapeIndicatorComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    Grid: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLGridComponent",
+              "canonicalReference": "@tldraw/editor!TLGridComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    Scribble: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLScribbleComponent",
+              "canonicalReference": "@tldraw/editor!TLScribbleComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    CollaboratorScribble: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLScribbleComponent",
+              "canonicalReference": "@tldraw/editor!TLScribbleComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    SnapIndicator: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSnapIndicatorComponent",
+              "canonicalReference": "@tldraw/editor!TLSnapIndicatorComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    Handles: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLHandlesComponent",
+              "canonicalReference": "@tldraw/editor!TLHandlesComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    Handle: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLHandleComponent",
+              "canonicalReference": "@tldraw/editor!TLHandleComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    Spinner: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSpinnerComponent",
+              "canonicalReference": "@tldraw/editor!TLSpinnerComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    SelectionForeground: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSelectionForegroundComponent",
+              "canonicalReference": "@tldraw/editor!TLSelectionForegroundComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    SelectionBackground: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSelectionBackgroundComponent",
+              "canonicalReference": "@tldraw/editor!TLSelectionBackgroundComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    HoveredShapeIndicator: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLHoveredShapeIndicatorComponent",
+              "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    OnTheCanvas: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLOnTheCanvas",
+              "canonicalReference": "@tldraw/editor!TLOnTheCanvas:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    InFrontOfTheCanvas: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLInFrontOfTheCanvas",
+              "canonicalReference": "@tldraw/editor!TLInFrontOfTheCanvas:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    LoadingScreen: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLLoadingScreenComponent",
+              "canonicalReference": "@tldraw/editor!~TLLoadingScreenComponent:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} & "
+            },
+            {
+              "kind": "Reference",
+              "text": "ErrorComponents",
+              "canonicalReference": "@tldraw/editor!~ErrorComponents:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "ErrorComponents",
+              "canonicalReference": "@tldraw/editor!~ErrorComponents:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/hooks/useEditorComponents.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 52
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useEditorComponents"
         },
         {
           "kind": "Function",

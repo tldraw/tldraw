@@ -307,11 +307,6 @@ export const CAMERA_SLIDE_FRICTION = 0.09;
 export function canonicalizeRotation(a: number): number;
 
 // @public (undocumented)
-export function Canvas({ className }: {
-    className?: string;
-}): JSX_2.Element;
-
-// @public (undocumented)
 export class Circle2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         x?: number;
@@ -450,6 +445,9 @@ export function DefaultBackground(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultBrush: TLBrushComponent;
+
+// @public (undocumented)
+export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultCollaboratorHint: TLCollaboratorHintComponent;
@@ -2671,6 +2669,33 @@ export function useContainer(): HTMLDivElement;
 
 // @public (undocumented)
 export function useEditor(): Editor;
+
+// @public (undocumented)
+export function useEditorComponents(): Partial<{
+    Background: null | TLBackgroundComponent;
+    SvgDefs: null | TLSvgDefsComponent;
+    Brush: null | TLBrushComponent;
+    ZoomBrush: null | TLBrushComponent;
+    Cursor: null | TLCursorComponent;
+    Canvas: null | TLCanvasComponent;
+    CollaboratorBrush: null | TLBrushComponent;
+    CollaboratorCursor: null | TLCursorComponent;
+    CollaboratorHint: null | TLCollaboratorHintComponent;
+    CollaboratorShapeIndicator: null | TLShapeIndicatorComponent;
+    Grid: null | TLGridComponent;
+    Scribble: null | TLScribbleComponent;
+    CollaboratorScribble: null | TLScribbleComponent;
+    SnapIndicator: null | TLSnapIndicatorComponent;
+    Handles: null | TLHandlesComponent;
+    Handle: null | TLHandleComponent;
+    Spinner: null | TLSpinnerComponent;
+    SelectionForeground: null | TLSelectionForegroundComponent;
+    SelectionBackground: null | TLSelectionBackgroundComponent;
+    HoveredShapeIndicator: null | TLHoveredShapeIndicatorComponent;
+    OnTheCanvas: null | TLOnTheCanvas;
+    InFrontOfTheCanvas: null | TLInFrontOfTheCanvas;
+    LoadingScreen: null | TLLoadingScreenComponent;
+} & ErrorComponents> & ErrorComponents;
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;

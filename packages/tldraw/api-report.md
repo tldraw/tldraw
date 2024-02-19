@@ -1460,8 +1460,6 @@ export type TLUiComponentsProviderProps = {
 // @public (undocumented)
 export interface TLUiContextMenuProps {
     // (undocumented)
-    canvas: any;
-    // (undocumented)
     children?: any;
 }
 

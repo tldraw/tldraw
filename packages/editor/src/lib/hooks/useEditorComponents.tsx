@@ -5,6 +5,7 @@ import {
 	TLBackgroundComponent,
 } from '../components/default-components/DefaultBackground'
 import { DefaultBrush, TLBrushComponent } from '../components/default-components/DefaultBrush'
+import { DefaultCanvas, TLCanvasComponent } from '../components/default-components/DefaultCanvas'
 import {
 	DefaultCollaboratorHint,
 	TLCollaboratorHintComponent,
@@ -58,6 +59,7 @@ export interface BaseEditorComponents {
 	Brush: TLBrushComponent
 	ZoomBrush: TLBrushComponent
 	Cursor: TLCursorComponent
+	Canvas: TLCanvasComponent
 	CollaboratorBrush: TLBrushComponent
 	CollaboratorCursor: TLCursorComponent
 	CollaboratorHint: TLCollaboratorHintComponent
@@ -132,6 +134,7 @@ export function EditorComponentsProvider({
 					HoveredShapeIndicator: DefaultHoveredShapeIndicator,
 					OnTheCanvas: null,
 					InFrontOfTheCanvas: null,
+					Canvas: DefaultCanvas,
 					..._overrides,
 				}),
 				[_overrides]

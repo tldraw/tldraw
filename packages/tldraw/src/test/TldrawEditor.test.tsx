@@ -2,7 +2,6 @@ import { act, render, screen } from '@testing-library/react'
 import {
 	BaseBoxShapeTool,
 	BaseBoxShapeUtil,
-	Canvas,
 	Editor,
 	HTMLContainer,
 	TLBaseShape,
@@ -26,13 +25,10 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
 		await renderTldrawComponent(
-			<TldrawEditor tools={defaultTools} autoFocus initialState="select">
-				<div data-testid="canvas-1" />
-				<Canvas />
-			</TldrawEditor>,
+			<TldrawEditor tools={defaultTools} autoFocus initialState="select" />,
 			{ waitForPatterns: false }
 		)
-		await screen.findByTestId('canvas-1')
+		await screen.findByTestId('canvas')
 	})
 
 	it('Creates its own store with core shapes', async () => {
@@ -45,12 +41,9 @@ describe('<TldrawEditor />', () => {
 				initialState="select"
 				tools={defaultTools}
 				autoFocus
-			>
-				<div data-testid="canvas-1" />
-			</TldrawEditor>,
+			/>,
 			{ waitForPatterns: false }
 		)
-		await screen.findByTestId('canvas-1')
 		checkAllShapes(editor!, ['group'])
 	})
 
@@ -65,13 +58,9 @@ describe('<TldrawEditor />', () => {
 					editor = e
 				}}
 				autoFocus
-			>
-				<div data-testid="canvas-1" />
-				<Canvas />
-			</TldrawEditor>,
+			/>,
 			{ waitForPatterns: false }
 		)
-		await screen.findByTestId('canvas-1')
 		expect(editor!).toBeTruthy()
 
 		checkAllShapes(editor!, ['group'])
@@ -88,13 +77,9 @@ describe('<TldrawEditor />', () => {
 					expect(editor.store).toBe(store)
 				}}
 				autoFocus
-			>
-				<div data-testid="canvas-1" />
-				<Canvas />
-			</TldrawEditor>,
+			/>,
 			{ waitForPatterns: false }
 		)
-		await screen.findByTestId('canvas-1')
 	})
 
 	it('throws if the store has different shapes to the ones passed in', async () => {
@@ -148,11 +133,8 @@ describe('<TldrawEditor />', () => {
 				store={initialStore}
 				onMount={onMount}
 				autoFocus
-			>
-				<div data-testid="canvas-1" />
-			</TldrawEditor>
+			/>
 		)
-		await screen.findByTestId('canvas-1')
 		const initialEditor = onMount.mock.lastCall[0]
 		jest.spyOn(initialEditor, 'dispose')
 		expect(initialEditor.store).toBe(initialStore)
@@ -164,11 +146,8 @@ describe('<TldrawEditor />', () => {
 				store={initialStore}
 				onMount={onMount}
 				autoFocus
-			>
-				<div data-testid="canvas-2" />
-			</TldrawEditor>
+			/>
 		)
-		await screen.findByTestId('canvas-2')
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
@@ -180,11 +159,8 @@ describe('<TldrawEditor />', () => {
 				store={newStore}
 				onMount={onMount}
 				autoFocus
-			>
-				<div data-testid="canvas-3" />
-			</TldrawEditor>
+			/>
 		)
-		await screen.findByTestId('canvas-3')
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall[0].store).toBe(newStore)
@@ -201,12 +177,9 @@ describe('<TldrawEditor />', () => {
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
-			>
-				<Canvas />
-				<div data-testid="canvas-1" />
-			</TldrawEditor>
+			/>,
+			{ waitForPatterns: false }
 		)
-		await screen.findByTestId('canvas-1')
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
@@ -325,13 +298,9 @@ describe('Custom shapes', () => {
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
-			>
-				<Canvas />
-				<div data-testid="canvas-1" />
-			</TldrawEditor>,
+			/>,
 			{ waitForPatterns: false }
 		)
-		await screen.findByTestId('canvas-1')
 
 		expect(editor).toBeTruthy()
 		await act(async () => {

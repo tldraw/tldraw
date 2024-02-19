@@ -3,27 +3,33 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import React from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../constants'
-import { useCanvasEvents } from '../hooks/useCanvasEvents'
-import { useCoarsePointer } from '../hooks/useCoarsePointer'
-import { useDocumentEvents } from '../hooks/useDocumentEvents'
-import { useEditor } from '../hooks/useEditor'
-import { useEditorComponents } from '../hooks/useEditorComponents'
-import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoubleTapZoomPencilEvents'
-import { useGestureEvents } from '../hooks/useGestureEvents'
-import { useHandleEvents } from '../hooks/useHandleEvents'
-import { useScreenBounds } from '../hooks/useScreenBounds'
-import { Mat } from '../primitives/Mat'
-import { Vec } from '../primitives/Vec'
-import { toDomPrecision } from '../primitives/utils'
-import { debugFlags } from '../utils/debug-flags'
-import { GeometryDebuggingView } from './GeometryDebuggingView'
-import { LiveCollaborators } from './LiveCollaborators'
-import { Shape } from './Shape'
-import { ShapeIndicator } from './ShapeIndicator'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
+import { useCanvasEvents } from '../../hooks/useCanvasEvents'
+import { useCoarsePointer } from '../../hooks/useCoarsePointer'
+import { useDocumentEvents } from '../../hooks/useDocumentEvents'
+import { useEditor } from '../../hooks/useEditor'
+import { useEditorComponents } from '../../hooks/useEditorComponents'
+import { useFixSafariDoubleTapZoomPencilEvents } from '../../hooks/useFixSafariDoubleTapZoomPencilEvents'
+import { useGestureEvents } from '../../hooks/useGestureEvents'
+import { useHandleEvents } from '../../hooks/useHandleEvents'
+import { useScreenBounds } from '../../hooks/useScreenBounds'
+import { Mat } from '../../primitives/Mat'
+import { Vec } from '../../primitives/Vec'
+import { toDomPrecision } from '../../primitives/utils'
+import { debugFlags } from '../../utils/debug-flags'
+import { GeometryDebuggingView } from '../GeometryDebuggingView'
+import { LiveCollaborators } from '../LiveCollaborators'
+import { Shape } from '../Shape'
+import { ShapeIndicator } from '../ShapeIndicator'
 
 /** @public */
-export function Canvas({ className }: { className?: string }) {
+export type TLCanvasComponentProps = { className?: string }
+
+/** @public */
+export type TLCanvasComponent = React.FC<TLCanvasComponentProps>
+
+/** @public */
+export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
 	const { Background, SvgDefs } = useEditorComponents()

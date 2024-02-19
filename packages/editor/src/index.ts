@@ -34,7 +34,6 @@ export {
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
-export { Canvas } from './lib/components/Canvas'
 export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
@@ -51,6 +50,7 @@ export {
 	DefaultBrush,
 	type TLBrushComponent,
 } from './lib/components/default-components/DefaultBrush'
+export { DefaultCanvas } from './lib/components/default-components/DefaultCanvas'
 export {
 	DefaultCollaboratorHint,
 	type TLCollaboratorHintComponent,
@@ -256,6 +256,7 @@ export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/
 export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
 export { EditorContext, useEditor } from './lib/hooks/useEditor'
+export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'

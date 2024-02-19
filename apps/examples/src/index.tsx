@@ -11,6 +11,7 @@ import { ExamplePage } from './ExamplePage'
 import { examples } from './examples'
 import Develop from './misc/develop'
 import EndToEnd from './misc/end-to-end'
+import Speedster from './misc/speed'
 
 // This example is only used for end to end tests
 
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
 	{
 		path: 'end-to-end',
 		element: <EndToEnd />,
+	},
+	{
+		path: 'speed',
+		element: <Speedster />,
 	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [
