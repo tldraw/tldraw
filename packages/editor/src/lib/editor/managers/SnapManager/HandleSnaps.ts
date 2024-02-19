@@ -1,5 +1,5 @@
 import { computed } from '@tldraw/state'
-import { TLHandle, TLShape, VecModel } from '@tldraw/tlschema'
+import { TLHandle, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { assertExists } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
@@ -44,6 +44,9 @@ export interface HandleSnapGeometry {
 	getSelfSnapPoints?(handle: TLHandle): VecModel[]
 }
 
+const defaultGetSelfSnapOutline = () => null
+const defaultGetSelfSnapPoints = () => []
+
 export class HandleSnaps {
 	readonly editor: Editor
 	constructor(readonly manager: SnapManager) {
@@ -61,17 +64,62 @@ export class HandleSnaps {
 						? editor.getShapeGeometry(shape)
 						: snapGeometry.outline,
 
-				points: snapGeometry.points,
+				points: snapGeometry.points ?? [],
+				getSelfSnapOutline: snapGeometry.getSelfSnapOutline ?? defaultGetSelfSnapOutline,
+				getSelfSnapPoints: snapGeometry.getSelfSnapPoints ?? defaultGetSelfSnapPoints,
 			}
 		})
 	}
 
+	private *iterateSnapPointsInPageSpace(currentShapeId: TLShapeId, currentHandle: TLHandle) {
+		const selfSnapPoints = this.getSnapGeometryCache()
+			.get(currentShapeId)
+			?.getSelfSnapPoints(currentHandle)
+		if (selfSnapPoints && selfSnapPoints.length) {
+			const shapePageTransform = assertExists(this.editor.getShapePageTransform(currentShapeId))
+			for (const point of selfSnapPoints) {
+				yield shapePageTransform.applyToPoint(point)
+			}
+		}
+
+		for (const shapeId of this.manager.getSnappableShapes()) {
+			if (shapeId === currentShapeId) continue
+			const snapPoints = this.getSnapGeometryCache().get(shapeId)?.points
+			if (!snapPoints || !snapPoints.length) continue
+
+			const shapePageTransform = assertExists(this.editor.getShapePageTransform(shapeId))
+			for (const point of snapPoints) {
+				yield shapePageTransform.applyToPoint(point)
+			}
+		}
+	}
+
+	private *iterateSnapOutlines(currentShapeId: TLShapeId, currentHandle: TLHandle) {
+		const selfSnapOutline = this.getSnapGeometryCache()
+			.get(currentShapeId)
+			?.getSelfSnapOutline(currentHandle)
+		if (selfSnapOutline) {
+			yield { shapeId: currentShapeId, outline: selfSnapOutline }
+		}
+
+		for (const shapeId of this.manager.getSnappableShapes()) {
+			if (shapeId === currentShapeId) continue
+
+			const snapOutline = this.getSnapGeometryCache().get(shapeId)?.outline
+			if (!snapOutline) continue
+
+			yield { shapeId, outline: snapOutline }
+		}
+	}
+
 	private getHandleSnapPosition({
-		handlePoint,
-		additionalSegments,
+		currentShapeId,
+		handle,
+		handleInPageSpace,
 	}: {
-		handlePoint: Vec
-		additionalSegments: Vec[][]
+		currentShapeId: TLShapeId
+		handle: TLHandle
+		handleInPageSpace: Vec
 	}): Vec | null {
 		const snapThreshold = this.manager.getSnapThreshold()
 
@@ -84,20 +132,12 @@ export class HandleSnaps {
 		// Start with the points:
 		let minDistanceForSnapPoint = snapThreshold
 		let nearestSnapPoint: Vec | null = null
-		for (const shapeId of this.manager.getSnappableShapes()) {
-			const snapPoints = this.getSnapGeometryCache().get(shapeId)?.points
-			if (!snapPoints) continue
+		for (const snapPoint of this.iterateSnapPointsInPageSpace(currentShapeId, handle)) {
+			const distance = Vec.Dist(handleInPageSpace, snapPoint)
 
-			const shapePageTransform = assertExists(this.editor.getShapePageTransform(shapeId))
-
-			for (const snapPointInShapeSpace of snapPoints) {
-				const snapPointInPageSpace = shapePageTransform.applyToPoint(snapPointInShapeSpace)
-				const distance = Vec.Dist(handlePoint, snapPointInPageSpace)
-
-				if (distance < minDistanceForSnapPoint) {
-					minDistanceForSnapPoint = distance
-					nearestSnapPoint = snapPointInPageSpace
-				}
+			if (distance < minDistanceForSnapPoint) {
+				minDistanceForSnapPoint = distance
+				nearestSnapPoint = snapPoint
 			}
 		}
 
@@ -108,32 +148,17 @@ export class HandleSnaps {
 		let minDistanceForOutline = snapThreshold
 		let nearestPointOnOutline: Vec | null = null
 
-		for (const shapeId of this.manager.getSnappableShapes()) {
-			const snapOutline = this.getSnapGeometryCache().get(shapeId)?.outline
-			if (!snapOutline) continue
-
+		for (const { shapeId, outline } of this.iterateSnapOutlines(currentShapeId, handle)) {
 			const shapePageTransform = assertExists(this.editor.getShapePageTransform(shapeId))
-			const pointInShapeSpace = this.editor.getPointInShapeSpace(shapeId, handlePoint)
+			const pointInShapeSpace = this.editor.getPointInShapeSpace(shapeId, handleInPageSpace)
 
-			const nearestShapePointInShapeSpace = snapOutline.nearestPoint(pointInShapeSpace)
+			const nearestShapePointInShapeSpace = outline.nearestPoint(pointInShapeSpace)
 			const nearestInPageSpace = shapePageTransform.applyToPoint(nearestShapePointInShapeSpace)
-			const distance = Vec.Dist(handlePoint, nearestInPageSpace)
+			const distance = Vec.Dist(handleInPageSpace, nearestInPageSpace)
 
 			if (distance < minDistanceForOutline) {
 				minDistanceForOutline = distance
 				nearestPointOnOutline = nearestInPageSpace
-			}
-		}
-
-		// We also allow passing "additionSegments" for self-snapping.
-		// TODO(alex): replace this with a proper self-snapping solution
-		for (const segment of additionalSegments) {
-			const nearestOnSegment = Vec.NearestPointOnLineSegment(segment[0], segment[1], handlePoint)
-			const distance = Vec.Dist(handlePoint, nearestOnSegment)
-
-			if (distance < minDistanceForOutline) {
-				minDistanceForOutline = distance
-				nearestPointOnOutline = nearestOnSegment
 			}
 		}
 
@@ -144,8 +169,16 @@ export class HandleSnaps {
 		return null
 	}
 
-	snapHandle(opts: { handlePoint: Vec; additionalSegments: Vec[][] }): SnapData | null {
-		const snapPosition = this.getHandleSnapPosition(opts)
+	snapHandle({
+		currentShapeId,
+		handle,
+	}: {
+		currentShapeId: TLShapeId
+		handle: TLHandle
+	}): SnapData | null {
+		const currentShapeTransform = assertExists(this.editor.getShapePageTransform(currentShapeId))
+		const handleInPageSpace = currentShapeTransform.applyToPoint(handle)
+		const snapPosition = this.getHandleSnapPosition({ currentShapeId, handle, handleInPageSpace })
 
 		// If we found a point, display snap lines, and return the nudge
 		if (snapPosition) {
@@ -157,7 +190,7 @@ export class HandleSnaps {
 				},
 			])
 
-			return { nudge: Vec.Sub(snapPosition, opts.handlePoint) }
+			return { nudge: Vec.Sub(snapPosition, handleInPageSpace) }
 		}
 
 		return null

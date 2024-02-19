@@ -23009,6 +23009,108 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/editor!HandleSnapGeometry#getSelfSnapOutline:member(1)",
+              "docComment": "/**\n * By default, handles can't snap to their own shape because moving the handle might change the snapping location which can cause feedback loops. You can override this by returning a version of `outline` that won't be affected by the current handle's position to use for self-snapping.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelfSnapOutline?(handle: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Geometry2d",
+                  "canonicalReference": "@tldraw/editor!Geometry2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "handle",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getSelfSnapOutline"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/editor!HandleSnapGeometry#getSelfSnapPoints:member(1)",
+              "docComment": "/**\n * By default, handles can't snap to their own shape because moving the handle might change the snapping location which can cause feedback loops. You can override this by returning a version of `points` that won't be affected by the current handle's position to use for self-snapping.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelfSnapPoints?(handle: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "handle",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getSelfSnapPoints"
+            },
+            {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!HandleSnapGeometry#outline:member",
               "docComment": "/**\n * A `Geometry2d` that describe the outline of the shape that the handle will snap to - fills are ignored. By default, this is the same geometry returned by {@link ShapeUtil.getGeometry}. Set this to `null` to disable handle snapping to this shape's outline.\n */\n",

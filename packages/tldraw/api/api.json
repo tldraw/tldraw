@@ -10258,17 +10258,9 @@
                   "text": "): "
                 },
                 {
-                  "kind": "Content",
-                  "text": "{\n        points: import(\"@tldraw/editor\")."
-                },
-                {
                   "kind": "Reference",
-                  "text": "VecModel",
-                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[];\n    }"
+                  "text": "HandleSnapGeometry",
+                  "canonicalReference": "@tldraw/editor!HandleSnapGeometry:interface"
                 },
                 {
                   "kind": "Content",
@@ -10278,7 +10270,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 6
+                "endIndex": 4
               },
               "releaseTag": "Public",
               "isProtected": false,

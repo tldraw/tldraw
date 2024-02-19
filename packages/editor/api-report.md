@@ -1154,6 +1154,8 @@ export const HALF_PI: number;
 
 // @public
 export interface HandleSnapGeometry {
+    getSelfSnapOutline?(handle: TLHandle): Geometry2d | null;
+    getSelfSnapPoints?(handle: TLHandle): VecModel[];
     outline?: Geometry2d | null;
     points?: VecModel[];
 }

@@ -423,7 +423,7 @@ describe('custom handle snapping', () => {
 				x: 0,
 				y: 0,
 				props: {
-					selfSnapPoints: [{ x: 0, y: 0 }],
+					handlePoints: [{ x: 0, y: 0 }],
 				},
 			})
 		})
