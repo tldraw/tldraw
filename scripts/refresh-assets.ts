@@ -219,7 +219,7 @@ async function copyTranslations() {
 	const languagesFile = `
 		/** @public */
 		export const LANGUAGES = ${JSON.stringify(
-			languagesSource.sort((a: Language, b: Language) => a.label.localeCompare(b.label))
+			languagesSource.sort((a: Language, b: Language) => a.label.localeCompare(b.label, 'en'))
 		)} as const
 	`
 	const schemaPath = join(REPO_ROOT, 'packages', 'tlschema', 'src', 'translations')
