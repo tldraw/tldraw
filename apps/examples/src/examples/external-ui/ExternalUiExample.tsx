@@ -104,7 +104,4 @@ reactive.
 
 This example passes the editor down as a prop, but you could also use a context.
 
-Check out the `custom-ui` example for more information on how to create custom
-UI components for the editor, including how to make them reactive.
-
 */
