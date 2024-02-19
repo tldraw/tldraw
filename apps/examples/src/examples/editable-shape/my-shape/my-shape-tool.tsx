@@ -1,13 +1,8 @@
-import { BaseBoxShapeTool, TLClickEvent } from '@tldraw/tldraw'
+import { BaseBoxShapeTool } from '@tldraw/tldraw'
 export class CatDogTool extends BaseBoxShapeTool {
 	static override id = 'catdog'
 	static override initial = 'idle'
 	override shapeType = 'catdog'
-
-	override onDoubleClick: TLClickEvent = (_info) => {
-		// you can handle events in handlers like this one;
-		// check the BaseBoxShapeTool source as an example
-	}
 }
 
 /*

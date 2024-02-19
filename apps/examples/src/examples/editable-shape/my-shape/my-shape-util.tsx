@@ -6,6 +6,8 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseShape,
+	TLOnResizeHandler,
+	resizeBox,
 	useIsEditing,
 } from '@tldraw/tldraw'
 import { useState } from 'react'
@@ -20,6 +22,7 @@ type ICatDog = TLBaseShape<
 		h: number
 	}
 >
+
 export class CatDogUtil extends ShapeUtil<ICatDog> {
 	// [2]
 	static override type = 'catdog' as const
@@ -29,9 +32,10 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 	}
 
 	// [3]
-	override isAspectRatioLocked = (_shape: ICatDog) => false
-	override canResize = (_shape: ICatDog) => false
+	override isAspectRatioLocked = (_shape: ICatDog) => true
+	override canResize = (_shape: ICatDog) => true
 	override canBind = (_shape: ICatDog) => true
+
 	// [4]
 	override canEdit = () => true
 
@@ -105,9 +109,13 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 
 	// [8]
 	indicator(shape: ICatDog) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
 		return <rect stroke={isEditing ? 'red' : 'blue'} width={shape.props.w} height={shape.props.h} />
+	}
+
+	// [9]
+	override onResize: TLOnResizeHandler<ICatDog> = (shape, info) => {
+		return resizeBox(shape, info)
 	}
 }
 
@@ -116,37 +124,45 @@ This is a utility class for the catdog shape. This is where you define the shape
 how it renders (its component and indicator), and how it handles different events.
 
 [1]
-We define the shape's type and its props. The type is a string that uniquely identifies the
-shape. The props are the shape's properties, in this case, the width and height.
+This is where we define the shape's type for Typescript. We can extend the TLBaseShape type,
+providing a unique string to identify the shape and the shape's props. We only need height
+and width for this shape.
 
 [2]
-We define the type of the shape. This is a string that uniquely identifies the shape. We also
-define the shape's properties. In this case, the width and height.
+We define the shape's type and props for the editor. We can use tldraw's validator library to
+define the shape's properties. In this case, we define the width and height properties as numbers.
 
 [3]
-We override the isAspectRatioLocked, canResize, and canBind methods. The isAspectRatioLocked
-method returns a boolean that determines if the aspect ratio of the shape is locked. The
-canResize method returns a boolean that determines if the shape can be resized. The canBind
-method returns a boolean that determines if the shape can be bound.
+Some methods we can override to define specific beahviour for the shape. For this shape, we don't
+want the aspect ratio to change, we want it to resize, and sure it can bind, why not. Who doesn't
+love arrows?
 
 [4]
-We override the canEdit method. This method returns a boolean that determines if the shape can
-be edited.
+This is the important one. We set canEdit to true. This means that the shape can enter the editing
+state.
 
 [5]
-We define the getDefaultProps method. This method returns the default properties of the shape.
+This will be the default props for the shape when you create it via clicking.
 
 [6]
 We define the getGeometry method. This method returns the geometry of the shape. In this case,
 a Rectangle2d object.
 
 [7]
-We define the component method. This method returns the component of the shape. The component
-is the visual representation of the shape. In this case, a div with a button and a paragraph
-element.
+We define the component method. This controls what the shape looks like and it returns JSX.
+
+	[a] We can use the useIsEditing hook to check if the shape is in the editing state. If it is,
+	    we want our shape to render differently.
+	
+	[b] The HTML container is a really handy wrapper for custom shapes, it essentially creates a
+		div with some helpful css for you. We can use the isEditing variable to conditionally
+		render the shape. We also use the useState hook to toggle between a cat and a dog.
 
 [8]
-We define the indicator method. This method returns the indicator of the shape. The indicator is
-a visual representation of the shape that is used to indicate that the shape is selected or
-focused. In this case, a rectangle.
+The indicator method is the blue box that appears around the shape when it's selected. We can 
+make it appear red if the shape is in the editing state by using the useIsEditing hook.
+
+[9]
+The onResize method is where we handle the resizing of the shape. We use the resizeBox helper
+to handle the resizing for us.
 */
