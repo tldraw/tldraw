@@ -37,8 +37,6 @@ export type TLUiStylePanelContentProps = {
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps) {
 	if (!styles) return null
 
-	console.log(styles)
-
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
 	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
