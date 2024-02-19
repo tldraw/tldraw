@@ -10290,60 +10290,6 @@
               "name": "getHandleSnapGeometry"
             },
             {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/tldraw!LineShapeUtil#getOutlineSegments:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getOutlineSegments(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLLineShape",
-                  "canonicalReference": "@tldraw/tlschema!TLLineShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[][]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getOutlineSegments"
-            },
-            {
               "kind": "Property",
               "canonicalReference": "@tldraw/tldraw!LineShapeUtil#hideResizeHandles:member",
               "docComment": "",

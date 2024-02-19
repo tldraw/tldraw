@@ -114,11 +114,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		})
 	}
 
-	override getOutlineSegments(shape: TLLineShape) {
-		const spline = this.editor.getShapeGeometry(shape) as Polyline2d | CubicSpline2d
-		return spline.segments.map((s) => s.vertices)
-	}
-
 	//   Events
 
 	override onResize: TLOnResizeHandler<TLLineShape> = (shape, info) => {

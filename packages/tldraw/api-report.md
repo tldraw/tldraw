@@ -868,8 +868,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
-    getOutlineSegments(shape: TLLineShape): Vec[][];
-    // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
     hideRotateHandle: () => boolean;
