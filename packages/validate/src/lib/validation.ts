@@ -841,17 +841,12 @@ export function model<T extends { readonly id: string }>(
 	name: string,
 	validator: Validatable<T>
 ): Validator<T> {
-	const getPrefix = (value: unknown) => {
-		return value && typeof value === 'object' && 'id' in value && typeof value.id === 'string'
-			? `${name}(id = ${value.id})`
-			: name
-	}
 	return new Validator(
 		(value) => {
-			return prefixError(getPrefix(value), () => validator.validate(value))
+			return prefixError(name, () => validator.validate(value))
 		},
 		(prevValue, newValue) => {
-			return prefixError(getPrefix(newValue), () => {
+			return prefixError(name, () => {
 				if (validator.validateUsingKnownGoodVersion) {
 					return validator.validateUsingKnownGoodVersion(prevValue, newValue)
 				} else {
