@@ -1,12 +1,12 @@
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { CatDogTool } from './my-shape/my-shape-tool'
-import { CatDogUtil } from './my-shape/my-shape-util'
+import { MyshapeTool } from './my-shape/my-shape-tool'
+import { MyshapeUtil } from './my-shape/my-shape-util'
 import { components, uiOverrides } from './ui-overrides'
 
 // [1]
-const customShapeUtils = [CatDogUtil]
-const customTools = [CatDogTool]
+const customShapeUtils = [MyshapeUtil]
+const customTools = [MyshapeTool]
 
 //[2]
 export default function EditableShapeExample() {

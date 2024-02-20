@@ -10,9 +10,7 @@ import {
 	TLOnResizeHandler,
 	resizeBox,
 	structuredClone,
-	useIsEditing,
 } from '@tldraw/tldraw'
-import { useState } from 'react'
 
 // There's a guide at the bottom of this file!
 
@@ -37,15 +35,13 @@ export class MyshapeUtil extends ShapeUtil<IMyshape> {
 	override isAspectRatioLocked = (_shape: IMyshape) => true
 	override canResize = (_shape: IMyshape) => true
 	override canBind = (_shape: IMyshape) => true
-
-	// [4]
-	override canEdit = () => true
+	override canEdit = () => false
 
 	// [5]
 	getDefaultProps(): IMyshape['props'] {
 		return {
-			w: 170,
-			h: 165,
+			w: 270,
+			h: 370,
 		}
 	}
 
@@ -60,51 +56,53 @@ export class MyshapeUtil extends ShapeUtil<IMyshape> {
 
 	// [7]
 	component(shape: IMyshape) {
-		// [a]
-		const isEditing = useIsEditing(shape.id)
-
-		const [animal, setAnimal] = useState<boolean>(true)
-
 		// [b]
+		//many animals in this array
+		const animalEmojiArray = [
+			'🐶',
+			'🐱',
+			'🐭',
+			'🐹',
+			'🐰',
+			'🦊',
+			'🐻',
+			'🐼',
+			'🐨',
+			'🐯',
+			'🦁',
+			'🐮',
+			'🐷',
+			'🐸',
+			'🐵',
+		]
+		const randomAnimal = animalEmojiArray[Math.floor(Math.random() * animalEmojiArray.length)]
 		return (
-			<HTMLContainer id={shape.id}>
+			<HTMLContainer
+				style={{
+					height: shape.props.h,
+					width: shape.props.w,
+					backgroundColor: 'lightblue',
+					boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.2)',
+					position: 'relative',
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					padding: 8,
+				}}
+				id={shape.id}
+			>
+				<span style={{ position: 'absolute', top: 0, left: 0, fontSize: shape.props.h / 5 }}>
+					{randomAnimal}
+				</span>
 				<div
 					style={{
-						border: '1px solid rgba(0, 0, 0, 0.1)',
-						boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.04)',
-						display: 'flex',
-						borderRadius: '50%',
-						height: '100%',
-						flexDirection: 'column',
-						alignItems: 'center',
-						justifyContent: 'center',
-						pointerEvents: 'all',
-						backgroundColor: animal ? 'hsl(180, 34%, 86%)' : 'hsl(10, 34%, 86%)',
-						position: 'relative',
+						fontSize: shape.props.h / 3,
+						backgroundColor: 'rgba(255, 255, 255, 0.5)',
+						padding: 7,
+						borderRadius: '8px',
 					}}
 				>
-					<button
-						style={{
-							display: isEditing ? 'block' : 'none',
-							border: 'none',
-							position: 'absolute',
-							top: 0,
-							left: 50,
-							cursor: 'pointer',
-							padding: '8px 8px',
-							borderRadius: '4px',
-							backgroundColor: 'hsl(120, 54%, 46%)',
-							color: '#fff',
-							textDecoration: 'none',
-							boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.04)',
-						}}
-						disabled={!isEditing}
-						onPointerDown={(e) => e.stopPropagation()}
-						onClick={() => setAnimal((prev) => !prev)}
-					>
-						Change
-					</button>
-					<p style={{ fontSize: shape.props.h / 1.5, margin: 0 }}>{animal ? '🐶' : '🐱'}</p>
+					{randomAnimal}
 				</div>
 			</HTMLContainer>
 		)
@@ -112,8 +110,7 @@ export class MyshapeUtil extends ShapeUtil<IMyshape> {
 
 	// [8]
 	indicator(shape: IMyshape) {
-		const isEditing = useIsEditing(shape.id)
-		return <rect stroke={isEditing ? 'red' : 'blue'} width={shape.props.w} height={shape.props.h} />
+		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 
 	// [9]
