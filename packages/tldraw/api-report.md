@@ -28,6 +28,7 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
 import { Mat } from '@tldraw/editor';
 import { MatModel } from '@tldraw/editor';
+import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -2107,7 +2108,7 @@ export function useNativeClipboardEvents(): void;
 export function useReadonly(): boolean;
 
 // @public (undocumented)
-export function useRelevantStyles(stylesToCheck?: readonly (EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow"> | EnumStyleProp<"dashed" | "dotted" | "draw" | "solid"> | EnumStyleProp<"l" | "m" | "s" | "xl"> | EnumStyleProp<"none" | "pattern" | "semi" | "solid">)[]): null | ReadonlySharedStyleMap;
+export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): Partial<{
