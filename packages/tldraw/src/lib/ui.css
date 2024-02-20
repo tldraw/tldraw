@@ -748,8 +748,8 @@
 	font-size: 12px;
 	overflow: hidden;
 	min-width: 300px;
-	max-width: 80vw;
-	max-height: 80vh;
+	max-width: 80%;
+	max-height: 80%;
 }
 
 .tlui-dialog__header {
