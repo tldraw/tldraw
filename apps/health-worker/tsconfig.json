@@ -7,5 +7,9 @@
 		"emitDeclarationOnly": false,
 		"types": ["@cloudflare/workers-types", "@types/node"]
 	},
-	"references": []
+	"references": [
+		{
+			"path": "../../packages/utils"
+		}
+	]
 }

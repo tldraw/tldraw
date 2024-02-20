@@ -1,8 +1,10 @@
+import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { parse } from 'json5'
 import kleur from 'kleur'
 import path from 'path'
 import { REPO_ROOT, writeJsonFile } from './lib/file'
 import { nicelog } from './lib/nicelog'
-import { getAllWorkspacePackages } from './lib/workspace'
+import { Package, getAllWorkspacePackages } from './lib/workspace'
 
 function scriptPath(packageDir: string, scriptName: string) {
 	return path.relative(packageDir, path.join(__dirname, scriptName))
@@ -53,9 +55,69 @@ const perPackageExceptions: Record<string, Record<string, () => string | undefin
 	},
 }
 
+const packagesWithoutTSConfigs: ReadonlySet<string> = new Set(['config'])
+
+async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Package[] }) {
+	for (const workspace of packages) {
+		const tsconfigPath = path.join(workspace.path, 'tsconfig.json')
+		if (packagesWithoutTSConfigs.has(workspace.name)) {
+			continue
+		}
+
+		if (!existsSync(tsconfigPath)) {
+			throw new Error('No tsconfig.json found at ' + tsconfigPath)
+		}
+
+		const tsconfig = parse(readFileSync(tsconfigPath, 'utf-8'))
+		const tldrawDeps = Object.keys({
+			...workspace.packageJson.dependencies,
+			...workspace.packageJson.devDependencies,
+		}).filter((dep) => dep.startsWith('@tldraw/'))
+
+		const fixedDeps = tsconfig.references ?? []
+		const missingRefs = []
+		for (const dep of tldrawDeps) {
+			// construct the expected path to the dependency's tsconfig
+			const matchingWorkspace = packages.find((p) => p.name === dep)
+			if (!matchingWorkspace) {
+				throw new Error(`No workspace found for ${dep}`)
+			}
+			const tsconfigReferencePath = path.relative(workspace.path, matchingWorkspace.path)
+			if (
+				!tsconfig.references?.some(({ path }: { path: string }) => path === tsconfigReferencePath)
+			) {
+				fixedDeps.push({ path: tsconfigReferencePath })
+				missingRefs.push(dep)
+			}
+		}
+		if (missingRefs.length) {
+			if (fix) {
+				tsconfig.references = fixedDeps.sort((a: any, b: any) => a.path.localeCompare(b.path))
+				writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, '\t'), 'utf-8')
+			} else {
+				nicelog(
+					[
+						'❌ ',
+						kleur.red(`${workspace.name}: `),
+						kleur.blue(tsconfigPath),
+						kleur.grey(' is missing references to '),
+						kleur.red(missingRefs.join(', ')),
+					].join('')
+				)
+				nicelog('The references entry should look like this:')
+				nicelog('"references": ' + JSON.stringify(fixedDeps, null, 2))
+				nicelog('Run `yarn check-scripts --fix` to fix this')
+				process.exit(1)
+			}
+		}
+	}
+}
+
 async function main({ fix }: { fix?: boolean }) {
 	const packages = await getAllWorkspacePackages()
 	const needsFix = new Set()
+
+	await checkTsConfigs({ packages, fix })
 
 	let errorCount = 0
 	for (const { path: packageDir, relativePath, packageJson, name } of packages) {
