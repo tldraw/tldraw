@@ -178,7 +178,7 @@ export function TldrawUiMenuItem<
 				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
 					<div className="tlui-shortcuts-dialog__key-pair__key">{labelStr}</div>
 					<div className="tlui-shortcuts-dialog__key-pair__value">
-						<TldrawUiKbd>{kbd!}</TldrawUiKbd>
+						<TldrawUiKbd>{kbd}</TldrawUiKbd>
 					</div>
 				</div>
 			)
