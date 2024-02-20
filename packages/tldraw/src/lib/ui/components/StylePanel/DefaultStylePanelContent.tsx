@@ -20,7 +20,7 @@ import {
 import React from 'react'
 import { STYLES } from '../../../styles'
 import { useUiEvents } from '../../context/events'
-import { useRelevantStyles } from '../../hooks/useRevelantStyles'
+import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
