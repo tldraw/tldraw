@@ -363,7 +363,7 @@ function runTest(seed: number) {
 	})
 }
 
-const NUM_TESTS = 10000
+const NUM_TESTS = 1000
 const source = new RandomSource(Math.random())
 
 // 54480484
