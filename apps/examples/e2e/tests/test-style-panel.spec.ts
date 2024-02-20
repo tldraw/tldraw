@@ -9,15 +9,14 @@ test.describe('Style selection behaviour', () => {
 		stylePanel,
 		toolbar,
 	}) => {
+		const { blue, black } = stylePanel.colors
 		if (isMobile) {
 			await toolbar.mobileStylesButton.click()
 		}
-		const { blue } = stylePanel.colors
-		const getAfterElementStyle = (element: Element, property: string) =>
-			window.getComputedStyle(element, '::after').getPropertyValue(property)
-		expect(await blue.evaluate(getAfterElementStyle, 'opacity')).toBe('0')
+		await stylePanel.isHinted(black)
+		await stylePanel.isNotHinted(blue)
 		await blue.click()
-		expect(await blue.evaluate(getAfterElementStyle, 'opacity')).toBe('1')
+		await stylePanel.isHinted(blue)
 	})
 })
 
