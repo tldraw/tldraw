@@ -2,6 +2,7 @@
 
 import { SandpackCodeViewer, SandpackFiles, SandpackProvider } from '@codesandbox/sandpack-react'
 import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 
 export const Code = (props: any) => {
 	if (!props.className) {
@@ -13,7 +14,14 @@ export const Code = (props: any) => {
 }
 
 export function CodeBlock({ code }: { code: SandpackFiles }) {
+	const [isClientSide, setIsClientSide] = useState(false)
 	const { theme } = useTheme()
+	useEffect(() => setIsClientSide(true), [])
+
+	// This is to avoid hydration mismatch between the server and the client because of the useTheme.
+	if (!isClientSide) {
+		return null
+	}
 
 	const trimmedCode = Object.fromEntries(
 		Object.entries(code).map(([key, value]) => [key, (value as string).trim()])
