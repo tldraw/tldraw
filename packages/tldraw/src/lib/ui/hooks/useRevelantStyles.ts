@@ -24,8 +24,6 @@ export function useRelevantStyles(stylesToCheck = selectToolStyles): ReadonlySha
 		'getRelevantStyles',
 		() => {
 			const styles = new SharedStyleMap(editor.getSharedStyles())
-			const hasShape =
-				editor.getSelectedShapeIds().length > 0 || !!editor.root.getCurrent()?.shapeType
 
 			if (styles.size === 0 && editor.isIn('select') && editor.getSelectedShapeIds().length === 0) {
 				for (const style of stylesToCheck) {
@@ -33,7 +31,7 @@ export function useRelevantStyles(stylesToCheck = selectToolStyles): ReadonlySha
 				}
 			}
 
-			if (styles.size === 0 && !hasShape) return null
+			if (styles.size === 0) return null
 			return styles
 		},
 		[editor]
