@@ -17,7 +17,7 @@ export function useEmojis(inputEl: HTMLTextAreaElement | null, onComplete: (text
 	const onEmojiSelect = (emoji: any) => {
 		if (!inputEl) return
 
-		const searchText = EmojiDialogSingleton?.component.refs.searchInput.current.value
+		const searchText = EmojiDialogSingleton?.component.refs.searchInput.current.value || ''
 		inputEl.focus()
 		inputEl.setSelectionRange(
 			inputEl.selectionStart - searchText.length - 1,
@@ -46,14 +46,15 @@ export function useEmojis(inputEl: HTMLTextAreaElement | null, onComplete: (text
 				setEmojiSearchText('')
 				addDialog({
 					id: 'emoji',
-					component: EmojiDialog,
+					component: () => (
+						<EmojiDialog
+							onEmojiSelect={onEmojiSelect}
+							onClickOutside={closeMenu}
+							top={coords?.top}
+							left={coords?.left}
+						/>
+					),
 					isCustomDialog: true,
-					dialogProps: {
-						onEmojiSelect,
-						onClickOutside: closeMenu,
-						top: coords?.top,
-						left: coords?.left,
-					},
 				})
 				setIsEmojiMenuOpen(true)
 

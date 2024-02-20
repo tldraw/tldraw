@@ -70,8 +70,8 @@ export class Group2d extends Geometry2d {
 		return this.children[0].area
 	}
 
-	getLabel() {
-		return this.children.filter((c) => c.isLabel)[0]
+	findLabels() {
+		return this.children.filter((c) => c.isLabel)
 	}
 
 	toSimpleSvgPath() {

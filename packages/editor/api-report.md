@@ -1113,9 +1113,9 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     distanceToPoint(point: Vec, hitInside?: boolean): number;
     // (undocumented)
-    getArea(): number;
+    findLabels(): Geometry2d[];
     // (undocumented)
-    getLabel(): Geometry2d;
+    getArea(): number;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)

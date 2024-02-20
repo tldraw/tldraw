@@ -1636,8 +1636,6 @@ export interface TLUiDialog {
     // (undocumented)
     component: ComponentType<TLUiDialogProps>;
     // (undocumented)
-    dialogProps?: any;
-    // (undocumented)
     id: string;
     // (undocumented)
     isCustomDialog?: boolean;

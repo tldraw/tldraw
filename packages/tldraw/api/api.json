@@ -19449,6 +19449,7 @@
             {
               "kind": "PropertySignature",
 <<<<<<< HEAD
+<<<<<<< HEAD
               "canonicalReference": "tldraw!TLUiDialog#id:member",
 =======
               "canonicalReference": "@tldraw/tldraw!TLUiDialog#dialogProps:member",
@@ -19478,6 +19479,8 @@
             },
             {
               "kind": "PropertySignature",
+=======
+>>>>>>> eae083307 (initial feedback)
               "canonicalReference": "@tldraw/tldraw!TLUiDialog#id:member",
 >>>>>>> 64bb6fd1f (Revert "Revert "emojis! 🧑‍🎨 🎨 ✏️ (#2814)" (#2822)")
               "docComment": "",

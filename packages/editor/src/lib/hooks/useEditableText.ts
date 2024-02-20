@@ -98,8 +98,9 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
 
-			if (featureFlags.emojiMenu.get()) {
-				const coords = getCaretPosition(editor, e.target as HTMLTextAreaElement)
+			const inputEl = e.target as HTMLTextAreaElement
+			if (featureFlags.emojiMenu.get() && inputEl && inputEl.previousSibling) {
+				const coords = getCaretPosition(editor, inputEl, inputEl.previousSibling)
 				const isHandledByEmoji = onEmojiKeyDown(e, coords)
 				if (isHandledByEmoji) {
 					return
@@ -205,45 +206,17 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	}
 }
 
-function getCaretPosition(editor: Editor, inputEl: HTMLTextAreaElement | null) {
-	const selectedShape = editor.getOnlySelectedShape() as
-		| TLTextShape
-		| TLArrowShape
-		| TLGeoShape
-		| undefined
-	if (!selectedShape) return null
+function getCaretPosition(editor: Editor, inputEl: HTMLTextAreaElement, measureEl: ChildNode) {
+	// There should only be one child - the text node.
+	const measureNode = measureEl.childNodes[0]
 
-	let labelX, labelY
-	if (selectedShape.type === 'text') {
-		labelX = selectedShape.x
-		labelY = selectedShape.y
-	} else {
-		const geometry = editor.getShapeGeometry(selectedShape)
-		if (!(geometry instanceof Group2d)) return null
-		const labelGeometry = geometry.getLabel() as Rectangle2d
-		const padding = selectedShape.type === 'arrow' ? ARROW_LABEL_PADDING : LABEL_PADDING
-		labelX = selectedShape.x + labelGeometry.x + padding
-		labelY = selectedShape.y + labelGeometry.y + padding
-	}
+	const range = document.createRange()
+	range.setStart(measureNode, inputEl.selectionStart)
+	range.setEnd(measureNode, inputEl.selectionEnd)
+	const rangeBounds = range.getBoundingClientRect()
 
-	const sizeSet =
-		selectedShape.type === 'arrow'
-			? ARROW_LABEL_FONT_SIZES
-			: selectedShape.type === 'text'
-				? FONT_SIZES
-				: LABEL_FONT_SIZES
-	const substring = !inputEl ? '' : inputEl.value.substring(0, inputEl.selectionStart)
-	const { w, h } = editor.textMeasure.measureText(substring, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[selectedShape.props.font],
-		fontSize: sizeSet[selectedShape.props.size],
-		maxWidth: null,
-	})
+	const cursorScreenPos = new Vec(rangeBounds.left + rangeBounds.width / 2, rangeBounds.bottom)
+	const cursorViewportPos = Vec.Sub(cursorScreenPos, editor.getViewportScreenBounds())
 
-	const { x, y } = editor.pageToScreen({ x: labelX, y: labelY })
-	const zoomLevel = editor.getZoomLevel()
-	const top = y + h * zoomLevel
-	const left = x + w * zoomLevel
-
-	return { top, left }
+	return { top: cursorViewportPos.y, left: cursorViewportPos.x }
 }
