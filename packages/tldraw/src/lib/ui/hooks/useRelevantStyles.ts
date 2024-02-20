@@ -37,7 +37,7 @@ export function useRelevantStyles(stylesToCheck = selectToolStyles): ReadonlySha
 				// If size is 0 we may still want to return an empty styles map to allow
 				// the opacity slider to show up.
 				// This can happen in two situations:
-				// 1. When the user is in the select tool and has multiple shapes selected but they have no overlapping styles.
+				// 1. When the user is in the select tool and has multiple shapes selected but they have no supported styles (beyond opacity).
 				// 2. When the user is in a shape-specific tool and the shape has no supported styles (beyond opacity obvs).
 				return styles
 			}
