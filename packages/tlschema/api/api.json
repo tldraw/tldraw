@@ -2756,25 +2756,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"cubic\" | \"line\">;\n    handles: "
+              "text": "<\"cubic\" | \"line\">;\n    points: "
             },
             {
               "kind": "Reference",
-              "text": "T.DictValidator",
-              "canonicalReference": "@tldraw/validate!DictValidator:class"
+              "text": "T.ArrayOfValidator",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
             },
             {
               "kind": "Content",
-              "text": "<import(\"@tldraw/utils\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "IndexKey",
-              "canonicalReference": "@tldraw/utils!IndexKey:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", import(\"../misc/geometry-types\")."
+              "text": "<import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -2792,7 +2783,7 @@
           "name": "lineShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 16
+            "endIndex": 14
           }
         },
         {

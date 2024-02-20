@@ -139,6 +139,7 @@ export type TLUiDropdownMenuSubContentProps = {
 	id?: string
 	alignOffset?: number
 	sideOffset?: number
+	size?: 'tiny' | 'small' | 'medium' | 'wide'
 	children: any
 }
 
@@ -146,6 +147,7 @@ export type TLUiDropdownMenuSubContentProps = {
 export function TldrawUiDropdownMenuSubContent({
 	alignOffset = -1,
 	sideOffset = -4,
+	size = 'small',
 	children,
 }: TLUiDropdownMenuSubContentProps) {
 	const container = useContainer()
@@ -156,6 +158,7 @@ export function TldrawUiDropdownMenuSubContent({
 				alignOffset={alignOffset}
 				sideOffset={sideOffset}
 				collisionPadding={4}
+				data-size={size}
 			>
 				{children}
 			</_DropdownMenu.SubContent>
@@ -166,16 +169,12 @@ export function TldrawUiDropdownMenuSubContent({
 /** @public */
 export type TLUiDropdownMenuGroupProps = {
 	children: any
-	size?: 'tiny' | 'small' | 'medium' | 'wide'
 }
 
 /** @public */
-export function TldrawUiDropdownMenuGroup({
-	children,
-	size = 'medium',
-}: TLUiDropdownMenuGroupProps) {
+export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps) {
 	return (
-		<_DropdownMenu.Group dir="ltr" className="tlui-menu__group" data-size={size}>
+		<_DropdownMenu.Group dir="ltr" className="tlui-menu__group">
 			{children}
 		</_DropdownMenu.Group>
 	)

@@ -3,27 +3,29 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import React from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../constants'
-import { useCanvasEvents } from '../hooks/useCanvasEvents'
-import { useCoarsePointer } from '../hooks/useCoarsePointer'
-import { useDocumentEvents } from '../hooks/useDocumentEvents'
-import { useEditor } from '../hooks/useEditor'
-import { useEditorComponents } from '../hooks/useEditorComponents'
-import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoubleTapZoomPencilEvents'
-import { useGestureEvents } from '../hooks/useGestureEvents'
-import { useHandleEvents } from '../hooks/useHandleEvents'
-import { useScreenBounds } from '../hooks/useScreenBounds'
-import { Mat } from '../primitives/Mat'
-import { Vec } from '../primitives/Vec'
-import { toDomPrecision } from '../primitives/utils'
-import { debugFlags } from '../utils/debug-flags'
-import { GeometryDebuggingView } from './GeometryDebuggingView'
-import { LiveCollaborators } from './LiveCollaborators'
-import { Shape } from './Shape'
-import { ShapeIndicator } from './ShapeIndicator'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
+import { useCanvasEvents } from '../../hooks/useCanvasEvents'
+import { useCoarsePointer } from '../../hooks/useCoarsePointer'
+import { useDocumentEvents } from '../../hooks/useDocumentEvents'
+import { useEditor } from '../../hooks/useEditor'
+import { useEditorComponents } from '../../hooks/useEditorComponents'
+import { useFixSafariDoubleTapZoomPencilEvents } from '../../hooks/useFixSafariDoubleTapZoomPencilEvents'
+import { useGestureEvents } from '../../hooks/useGestureEvents'
+import { useHandleEvents } from '../../hooks/useHandleEvents'
+import { useScreenBounds } from '../../hooks/useScreenBounds'
+import { Mat } from '../../primitives/Mat'
+import { Vec } from '../../primitives/Vec'
+import { toDomPrecision } from '../../primitives/utils'
+import { debugFlags } from '../../utils/debug-flags'
+import { GeometryDebuggingView } from '../GeometryDebuggingView'
+import { LiveCollaborators } from '../LiveCollaborators'
+import { Shape } from '../Shape'
 
 /** @public */
-export function Canvas({ className }: { className?: string }) {
+export type TLCanvasComponentProps = { className?: string }
+
+/** @public */
+export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
 	const { Background, SvgDefs } = useEditorComponents()
@@ -378,12 +380,19 @@ function SelectedIdIndicators() {
 		[editor]
 	)
 
+	const { ShapeIndicator } = useEditorComponents()
+
+	if (!ShapeIndicator) return null
 	if (!shouldDisplay) return null
 
 	return (
 		<>
 			{selectedShapeIds.map((id) => (
-				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
+				<ShapeIndicator
+					key={id + '_indicator'}
+					className="tl-user-indicator__selected"
+					shapeId={id}
+				/>
 			))}
 		</>
 	)
@@ -413,15 +422,17 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	const editor = useEditor()
+	const { ShapeIndicator } = useEditorComponents()
 
 	const ids = dedupe(editor.getHintingShapeIds())
 
 	if (!ids.length) return null
+	if (!ShapeIndicator) return null
 
 	return (
 		<>
 			{ids.map((id) => (
-				<ShapeIndicator className="tl-user-indicator__hint" id={id} key={id + '_hinting'} />
+				<ShapeIndicator className="tl-user-indicator__hint" shapeId={id} key={id + '_hinting'} />
 			))}
 		</>
 	)
