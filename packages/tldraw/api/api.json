@@ -10637,21 +10637,21 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "ArrayOfValidator",
-                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
+                  "text": "DictValidator",
+                  "canonicalReference": "@tldraw/validate!DictValidator:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "<import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            id: string;\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "VecModel",
-                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",
-                  "text": ">;\n    }"
+                  "text": ";\n        }>;\n    }"
                 },
                 {
                   "kind": "Content",
