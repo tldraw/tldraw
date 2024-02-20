@@ -96,7 +96,6 @@ export class Pointing extends StateNode {
 
 		if (this.editor.inputs.isDragging) {
 			const handles = this.editor.getShapeHandles(this.shape)
-			console
 			if (!handles) {
 				if (this.markId) this.editor.bailToMark(this.markId)
 				throw Error('No handles found')
