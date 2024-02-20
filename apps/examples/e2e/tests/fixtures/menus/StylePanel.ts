@@ -67,14 +67,16 @@ export class StylePanel {
 	async isHinted(style: Locator) {
 		const getAfterElementStyle = (element: Element, property: string) =>
 			window.getComputedStyle(element, '::after').getPropertyValue(property)
-		const opacity = await style.evaluate(getAfterElementStyle, 'opacity')
-		return expect(opacity).toBe('1')
+		const backgroundColor = await style.evaluate(getAfterElementStyle, 'background-color')
+
+		return expect(backgroundColor).toBe('rgba(0, 0, 0, 0.055)')
 	}
 	async isNotHinted(style: Locator) {
 		const getAfterElementStyle = (element: Element, property: string) =>
 			window.getComputedStyle(element, '::after').getPropertyValue(property)
-		const opacity = await style.evaluate(getAfterElementStyle, 'opacity')
-		return expect(opacity).toBe('0')
+		const backgroundColor = await style.evaluate(getAfterElementStyle, 'background-color')
+		// The color is different on mobile
+		return expect(['rgba(0, 0, 0, 0.043)', 'rgba(0, 0, 0, 0)']).toContain(backgroundColor)
 	}
 	getElement() {
 		return this.page.locator('[data-testid="style.panel"]')

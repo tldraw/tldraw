@@ -10,12 +10,25 @@ test.describe('Style selection behaviour', () => {
 		toolbar,
 	}) => {
 		const { blue, black } = stylePanel.colors
+		const { pattern, none } = stylePanel.fill
 		if (isMobile) {
 			await toolbar.mobileStylesButton.click()
 		}
+		// these are hinted by default
 		await stylePanel.isHinted(black)
+		await stylePanel.isHinted(none)
+		// these are not hinted by default
+		await stylePanel.isNotHinted(pattern)
 		await stylePanel.isNotHinted(blue)
+
 		await blue.click()
+		await stylePanel.isHinted(blue)
+		await stylePanel.isNotHinted(black)
+
+		await pattern.click()
+		await stylePanel.isHinted(pattern)
+		await stylePanel.isNotHinted(none)
+		// this should not change the hint state of color buttons
 		await stylePanel.isHinted(blue)
 	})
 })
