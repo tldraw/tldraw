@@ -888,7 +888,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
-        points: ArrayOfValidator<VecModel>;
+        points: ArrayOfValidator<    {
+        x: number;
+        y: number;
+        index: IndexKey;
+        }>;
     };
     // (undocumented)
     toSvg(shape: TLLineShape, ctx: SvgExportContext): SVGGElement;

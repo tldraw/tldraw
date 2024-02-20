@@ -2765,16 +2765,16 @@
             },
             {
               "kind": "Content",
-              "text": "<import(\"../misc/geometry-types\")."
+              "text": "<{\n        x: number;\n        y: number;\n        index: "
             },
             {
               "kind": "Reference",
-              "text": "VecModel",
-              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+              "text": "IndexKey",
+              "canonicalReference": "@tldraw/utils!IndexKey:type"
             },
             {
               "kind": "Content",
-              "text": ">;\n}"
+              "text": ";\n    }>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",

@@ -674,7 +674,11 @@ export const lineShapeProps: {
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
-    points: T.ArrayOfValidator<VecModel>;
+    points: T.ArrayOfValidator<{
+        x: number;
+        y: number;
+        index: IndexKey;
+    }>;
 };
 
 // @public (undocumented)
