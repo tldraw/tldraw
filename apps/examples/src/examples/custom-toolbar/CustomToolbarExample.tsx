@@ -1,5 +1,4 @@
-import { TLComponents, Tldraw } from '@tldraw/tldraw'
-import { DefaultToolbar } from '@tldraw/tldraw/src/lib/ui/components/Toolbar/DefaultToolbar'
+import { DefaultToolbar, TLComponents, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 function CustomToolbar() {

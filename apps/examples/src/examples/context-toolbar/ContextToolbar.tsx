@@ -1,8 +1,8 @@
 import {
 	DefaultSizeStyle,
-	Icon,
 	SharedStyleMap,
 	Tldraw,
+	TldrawUiIcon,
 	TLEditorComponents,
 	track,
 	useEditor,
@@ -15,7 +15,7 @@ const SIZES = [
 	{ value: 'm', icon: 'size-medium' },
 	{ value: 'l', icon: 'size-large' },
 	{ value: 'xl', icon: 'size-extra-large' },
-]
+] as const
 
 // There's a guide at the bottom of this file!
 
@@ -85,7 +85,7 @@ const ContextToolbarComponent = track(() => {
 									editor.setStyleForSelectedShapes(DefaultSizeStyle, value, { squashing: false })
 								}
 							>
-								<Icon icon={icon} />
+								<TldrawUiIcon icon={icon} />
 							</div>
 						)
 					})}

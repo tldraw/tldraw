@@ -3,7 +3,7 @@
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TldrawProps } from './lib/Tldraw'
-export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
+export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
@@ -42,9 +42,6 @@ export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/T
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
-export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
-export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
-export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
 export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
@@ -92,6 +89,7 @@ export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
+export { useRelevantStyles } from './lib/ui/hooks/useRevelantStyles'
 export {
 	toolbarItem,
 	useToolbarSchema,
@@ -107,7 +105,7 @@ export {
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
 export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
-	useTranslation as useTranslation,
+	useTranslation,
 	type TLUiTranslationContextType,
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
@@ -121,7 +119,7 @@ export {
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
-export { getSvgAsImage } from './lib/utils/export/export'
+export { getSvgAsImage, getSvgAsString } from './lib/utils/export/export'
 export { exportAs } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
@@ -145,35 +143,13 @@ export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 // Helper to unwrap label from action items
 export { unwrapLabel } from './lib/ui/context/actions'
 
-// General UI components for building menus
-export {
-	TldrawUiMenuCheckboxItem,
-	type TLUiMenuCheckboxItemProps,
-} from './lib/ui/components/menus/TldrawUiMenuCheckboxItem'
-export {
-	TldrawUiMenuContextProvider,
-	type TLUiMenuContextProviderProps,
-} from './lib/ui/components/menus/TldrawUiMenuContext'
-export {
-	TldrawUiMenuGroup,
-	type TLUiMenuGroupProps,
-} from './lib/ui/components/menus/TldrawUiMenuGroup'
-export {
-	TldrawUiMenuItem,
-	type TLUiMenuItemProps,
-} from './lib/ui/components/menus/TldrawUiMenuItem'
-export {
-	TldrawUiMenuSubmenu,
-	type TLUiMenuSubmenuProps,
-} from './lib/ui/components/menus/TldrawUiMenuSubmenu'
-
 export {
 	TldrawUiComponentsProvider,
 	useTldrawUiComponents,
 	type TLUiComponents,
+	type TLUiComponentsProviderProps,
 } from './lib/ui/context/components'
 
-// Menus / UI elements that can be customized
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
 
 export {
@@ -253,45 +229,108 @@ export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 
 export { type TLComponents } from './lib/Tldraw'
 
+/* ------------------- Primitives ------------------- */
+
+// Button
 export {
-	DialogBody,
-	DialogCloseButton,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
+	TldrawUiButton,
+	type TLUiButtonProps,
+} from './lib/ui/components/primitives/Button/TldrawUiButton'
+export {
+	TldrawUiButtonCheck,
+	type TLUiButtonCheckProps,
+} from './lib/ui/components/primitives/Button/TldrawUiButtonCheck'
+export {
+	TldrawUiButtonIcon,
+	type TLUiButtonIconProps,
+} from './lib/ui/components/primitives/Button/TldrawUiButtonIcon'
+export {
+	TldrawUiButtonLabel,
+	type TLUiButtonLabelProps,
+} from './lib/ui/components/primitives/Button/TldrawUiButtonLabel'
+
+// Button picker
+export {
+	TldrawUiButtonPicker,
+	type TLUiButtonPickerProps,
+} from './lib/ui/components/primitives/TldrawUiButtonPicker'
+
+// Dialog
+export {
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 	type TLUiDialogBodyProps,
 	type TLUiDialogFooterProps,
 	type TLUiDialogHeaderProps,
 	type TLUiDialogTitleProps,
-} from './lib/ui/components/primitives/Dialog'
+} from './lib/ui/components/primitives/TldrawUiDialog'
 
+// Dropdown Menu
 export {
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuIndicator,
-	DropdownMenuItem,
-	DropdownMenuRadioItem,
-	DropdownMenuRoot,
-	DropdownMenuSub,
-	DropdownMenuSubTrigger,
-	DropdownMenuTrigger,
+	TldrawUiDropdownMenuCheckboxItem,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuIndicator,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubTrigger,
+	TldrawUiDropdownMenuTrigger,
 	type TLUiDropdownMenuCheckboxItemProps,
 	type TLUiDropdownMenuContentProps,
 	type TLUiDropdownMenuGroupProps,
 	type TLUiDropdownMenuItemProps,
-	type TLUiDropdownMenuRadioItemProps,
 	type TLUiDropdownMenuRootProps,
 	type TLUiDropdownMenuSubProps,
 	type TLUiDropdownMenuSubTriggerProps,
 	type TLUiDropdownMenuTriggerProps,
-} from './lib/ui/components/primitives/DropdownMenu'
+} from './lib/ui/components/primitives/TldrawUiDropdownMenu'
 
+// Icon
+export { TldrawUiIcon, type TLUiIconProps } from './lib/ui/components/primitives/TldrawUiIcon'
+
+// Input
+export { TldrawUiInput, type TLUiInputProps } from './lib/ui/components/primitives/TldrawUiInput'
+
+// Kbd
+export { TldrawUiKbd, type TLUiKbdProps } from './lib/ui/components/primitives/TldrawUiKbd'
+
+// Popover
 export {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
 	type TLUiPopoverContentProps,
 	type TLUiPopoverProps,
 	type TLUiPopoverTriggerProps,
-} from './lib/ui/components/primitives/Popover'
+} from './lib/ui/components/primitives/TldrawUiPopover'
+
+// Slider
+export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
+
+/* ----------------- Menu Primitives ---------------- */
+
+// General UI components for building menus
+export {
+	TldrawUiMenuCheckboxItem,
+	type TLUiMenuCheckboxItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
+export {
+	TldrawUiMenuContextProvider,
+	type TLUiMenuContextProviderProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuContext'
+export {
+	TldrawUiMenuGroup,
+	type TLUiMenuGroupProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuGroup'
+export {
+	TldrawUiMenuItem,
+	type TLUiMenuItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuItem'
+export {
+	TldrawUiMenuSubmenu,
+	type TLUiMenuSubmenuProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'

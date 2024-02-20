@@ -5,6 +5,7 @@ export type TLUiEventSource =
 	| 'menu'
 	| 'context-menu'
 	| 'zoom-menu'
+	| 'document-name'
 	| 'navigation-zone'
 	| 'quick-actions'
 	| 'actions-menu'

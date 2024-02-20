@@ -1,17 +1,16 @@
 import { modulate } from '@tldraw/utils'
-import { ComponentType } from 'react'
 import { GRID_STEPS } from '../../constants'
 
 /** @public */
-export type TLGridComponent = ComponentType<{
+export type TLGridProps = {
 	x: number
 	y: number
 	z: number
 	size: number
-}>
+}
 
 /** @public */
-export const DefaultGrid: TLGridComponent = ({ x, y, z, size }) => {
+export function DefaultGrid({ x, y, z, size }: TLGridProps) {
 	return (
 		<svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg">
 			<defs>

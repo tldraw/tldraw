@@ -136,7 +136,7 @@ export {
 	type TLTextShapeProps,
 } from './shapes/TLTextShape'
 export { videoShapeMigrations, videoShapeProps, type TLVideoShape } from './shapes/TLVideoShape'
-export { EnumStyleProp, StyleProp } from './styles/StyleProp'
+export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
 export {
 	DefaultColorStyle,
 	DefaultColorThemePalette,

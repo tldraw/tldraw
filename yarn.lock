@@ -7560,6 +7560,7 @@ __metadata:
   dependencies:
     "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.isequal: "npm:^4.5.0"
   languageName: unknown
   linkType: soft
 

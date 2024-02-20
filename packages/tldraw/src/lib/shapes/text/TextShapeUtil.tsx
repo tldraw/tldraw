@@ -150,7 +150,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const text = shape.props.text
 

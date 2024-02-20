@@ -11,32 +11,34 @@ import {
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
 	ReadonlySharedStyleMap,
-	SharedStyle,
 	StyleProp,
+	TLArrowShapeArrowheadStyle,
+	TLDefaultVerticalAlignStyle,
 	minBy,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import React from 'react'
+import { STYLES } from '../../../styles'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Button } from '../primitives/Button'
-import { ButtonPicker } from '../primitives/ButtonPicker'
-import { Slider } from '../primitives/Slider'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiButtonPicker } from '../primitives/TldrawUiButtonPicker'
+import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
-import { STYLES } from './styles'
 
 /** @public */
 export type TLUiStylePanelContentProps = {
-	relevantStyles: ReturnType<typeof useRelevantStyles>
+	styles: ReturnType<typeof useRelevantStyles>
 }
 
 /** @public */
-export function DefaultStylePanelContent({ relevantStyles }: TLUiStylePanelContentProps) {
-	if (!relevantStyles) return null
+export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps) {
+	if (!styles) return null
 
-	const { styles, opacity } = relevantStyles
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
 	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
@@ -50,7 +52,7 @@ export function DefaultStylePanelContent({ relevantStyles }: TLUiStylePanelConte
 
 	return (
 		<>
-			<CommonStylePickerSet styles={styles} opacity={opacity} />
+			<CommonStylePickerSet styles={styles} />
 			{!hideText && <TextStylePickerSet styles={styles} />}
 			{!(hideGeo && hideArrowHeads && hideSpline) && (
 				<div className="tlui-style-panel__section" aria-label="style panel styles">
@@ -67,51 +69,27 @@ function useStyleChangeCallback() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
-	return React.useMemo(() => {
-		return function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
-			editor.batch(() => {
-				if (editor.isIn('select')) {
-					editor.setStyleForSelectedShapes(style, value, { squashing })
-				}
-				editor.setStyleForNextShapes(style, value, { squashing })
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
+	return React.useMemo(
+		() =>
+			function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
+				editor.batch(() => {
+					if (editor.isIn('select')) {
+						editor.setStyleForSelectedShapes(style, value, { squashing })
+					}
+					editor.setStyleForNextShapes(style, value, { squashing })
+					editor.updateInstanceState({ isChangingStyle: true })
+				})
 
-			trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
-		}
-	}, [editor, trackEvent])
+				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
+			},
+		[editor, trackEvent]
+	)
 }
 
-const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
-
-function CommonStylePickerSet({
-	styles,
-	opacity,
-}: {
-	styles: ReadonlySharedStyleMap
-	opacity: SharedStyle<number>
-}) {
-	const editor = useEditor()
-	const trackEvent = useUiEvents()
+function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const msg = useTranslation()
 
 	const handleValueChange = useStyleChangeCallback()
-
-	const handleOpacityValueChange = React.useCallback(
-		(value: number, ephemeral: boolean) => {
-			const item = tldrawSupportedOpacities[value]
-			editor.batch(() => {
-				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item, { ephemeral })
-				}
-				editor.setOpacityForNextShapes(item, { ephemeral })
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
-
-			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })
-		},
-		[editor, trackEvent]
-	)
 
 	const color = styles.get(DefaultColorStyle)
 	const fill = styles.get(DefaultFillStyle)
@@ -120,24 +98,16 @@ function CommonStylePickerSet({
 
 	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
-	const opacityIndex =
-		opacity.type === 'mixed'
-			? -1
-			: tldrawSupportedOpacities.indexOf(
-					minBy(tldrawSupportedOpacities, (supportedOpacity) =>
-						Math.abs(supportedOpacity - opacity.value)
-					)!
-				)
-
 	return (
 		<>
 			<div
 				tabIndex={-1}
 				className="tlui-style-panel__section__common"
 				aria-label="style panel styles"
+				data-testid="style.panel"
 			>
 				{color === undefined ? null : (
-					<ButtonPicker
+					<TldrawUiButtonPicker
 						title={msg('style-panel.color')}
 						uiType="color"
 						style={DefaultColorStyle}
@@ -146,23 +116,12 @@ function CommonStylePickerSet({
 						onValueChange={handleValueChange}
 					/>
 				)}
-				{opacity === undefined ? null : (
-					<Slider
-						data-testid="style.opacity"
-						value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
-						label={
-							opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`
-						}
-						onValueChange={handleOpacityValueChange}
-						steps={tldrawSupportedOpacities.length - 1}
-						title={msg('style-panel.opacity')}
-					/>
-				)}
+				<OpacitySlider />
 			</div>
 			{showPickers && (
 				<div className="tlui-style-panel__section" aria-label="style panel styles">
 					{fill === undefined ? null : (
-						<ButtonPicker
+						<TldrawUiButtonPicker
 							title={msg('style-panel.fill')}
 							uiType="fill"
 							style={DefaultFillStyle}
@@ -172,7 +131,7 @@ function CommonStylePickerSet({
 						/>
 					)}
 					{dash === undefined ? null : (
-						<ButtonPicker
+						<TldrawUiButtonPicker
 							title={msg('style-panel.dash')}
 							uiType="dash"
 							style={DefaultDashStyle}
@@ -182,7 +141,7 @@ function CommonStylePickerSet({
 						/>
 					)}
 					{size === undefined ? null : (
-						<ButtonPicker
+						<TldrawUiButtonPicker
 							title={msg('style-panel.size')}
 							uiType="size"
 							style={DefaultSizeStyle}
@@ -211,7 +170,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	return (
 		<div className="tlui-style-panel__section" aria-label="style panel text">
 			{font === undefined ? null : (
-				<ButtonPicker
+				<TldrawUiButtonPicker
 					title={msg('style-panel.font')}
 					uiType="font"
 					style={DefaultFontStyle}
@@ -223,7 +182,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 
 			{align === undefined ? null : (
 				<div className="tlui-style-panel__row">
-					<ButtonPicker
+					<TldrawUiButtonPicker
 						title={msg('style-panel.align')}
 						uiType="align"
 						style={DefaultHorizontalAlignStyle}
@@ -233,15 +192,16 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 					/>
 					<div className="tlui-style-panel__row__extra-button">
 						{verticalAlign === undefined ? (
-							<Button
+							<TldrawUiButton
 								type="icon"
 								title={msg('style-panel.vertical-align')}
 								data-testid="vertical-align"
-								icon="vertical-align-center"
 								disabled
-							/>
+							>
+								<TldrawUiButtonIcon icon="vertical-align-center" />
+							</TldrawUiButton>
 						) : (
-							<DropdownPicker
+							<DropdownPicker<TLDefaultVerticalAlignStyle>
 								type="icon"
 								id="geo-vertical-alignment"
 								uiType="verticalAlign"
@@ -312,7 +272,7 @@ function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap })
 	}
 
 	return (
-		<DoubleDropdownPicker
+		<DoubleDropdownPicker<TLArrowShapeArrowheadStyle>
 			label={'style-panel.arrowheads'}
 			uiTypeA="arrowheadStart"
 			styleA={ArrowShapeArrowheadStartStyle}
@@ -325,6 +285,53 @@ function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap })
 			onValueChange={handleValueChange}
 			labelA="style-panel.arrowhead-start"
 			labelB="style-panel.arrowhead-end"
+		/>
+	)
+}
+
+const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
+
+function OpacitySlider() {
+	const editor = useEditor()
+	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
+	const trackEvent = useUiEvents()
+	const msg = useTranslation()
+
+	const handleOpacityValueChange = React.useCallback(
+		(value: number, ephemeral: boolean) => {
+			const item = tldrawSupportedOpacities[value]
+			editor.batch(() => {
+				if (editor.isIn('select')) {
+					editor.setOpacityForSelectedShapes(item, { ephemeral })
+				}
+				editor.setOpacityForNextShapes(item, { ephemeral })
+				editor.updateInstanceState({ isChangingStyle: true })
+			})
+
+			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })
+		},
+		[editor, trackEvent]
+	)
+
+	if (opacity === undefined) return null
+
+	const opacityIndex =
+		opacity.type === 'mixed'
+			? -1
+			: tldrawSupportedOpacities.indexOf(
+					minBy(tldrawSupportedOpacities, (supportedOpacity) =>
+						Math.abs(supportedOpacity - opacity.value)
+					)!
+				)
+
+	return (
+		<TldrawUiSlider
+			data-testid="style.opacity"
+			value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
+			label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
+			onValueChange={handleOpacityValueChange}
+			steps={tldrawSupportedOpacities.length - 1}
+			title={msg('style-panel.opacity')}
 		/>
 	)
 }

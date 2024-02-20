@@ -1,5 +1,4 @@
 import {
-	Canvas,
 	Editor,
 	ErrorScreen,
 	LoadingScreen,
@@ -13,6 +12,7 @@ import {
 	TldrawEditorBaseProps,
 	assert,
 	useEditor,
+	useEditorComponents,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
@@ -125,7 +125,7 @@ export function Tldraw(props: TldrawProps) {
 			tools={toolsWithDefaults}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>
-				<InsideOfEditorContext
+				<InsideOfEditorAndUiContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
@@ -147,8 +147,8 @@ const defaultAcceptedImageMimeTypes = Object.freeze([
 
 const defaultAcceptedVideoMimeTypes = Object.freeze(['video/mp4', 'video/quicktime'])
 
-// We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor.
-function InsideOfEditorContext({
+// We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
+function InsideOfEditorAndUiContext({
 	maxImageDimension = 1000,
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
 	acceptedImageMimeTypes = defaultAcceptedImageMimeTypes,
@@ -182,10 +182,19 @@ function InsideOfEditorContext({
 		if (editor) return onMountEvent?.(editor)
 	}, [editor, onMountEvent])
 
+	const { Canvas } = useEditorComponents()
 	const { ContextMenu } = useTldrawUiComponents()
-	if (!ContextMenu) return <Canvas />
 
-	return <ContextMenu canvas={<Canvas />} />
+	if (ContextMenu) {
+		// should wrap canvas
+		return <ContextMenu />
+	}
+
+	if (Canvas) {
+		return <Canvas />
+	}
+
+	return null
 }
 
 // duped from tldraw editor
