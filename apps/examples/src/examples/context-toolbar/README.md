@@ -1,5 +1,5 @@
 ---
-title: Context Toolbar
+title: Context toolbar
 component: ./ContextToolbar.tsx
 category: ui
 priority: 2

@@ -1,5 +1,5 @@
 ---
-title: Shape Meta (on create)
+title: Shape meta (on create)
 component: ./OnCreateShapeMetaExample.tsx
 category: data/assets
 priority: 3
