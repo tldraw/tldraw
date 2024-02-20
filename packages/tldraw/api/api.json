@@ -23513,7 +23513,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useRevelantStyles.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useRelevantStyles.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 7
