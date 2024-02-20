@@ -591,7 +591,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
-			editor.zoomToBounds(bounds, 1)
+			editor.zoomToBounds(bounds, { targetZoom: 1 })
 		}
 	})
 }

@@ -74,8 +74,8 @@ export function releasePointerCapture(
 		} else {
 			console.warn('Release without capture')
 		}
+		console.warn('releasePointerCapture called on element:', element, event)
 	}
-	console.warn('releasePointerCapture called on element:', element, event)
 }
 
 /** @public */

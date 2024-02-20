@@ -11,16 +11,16 @@ exports[`Misc resizes: line shape after resize 1`] = `
   "props": {
     "color": "black",
     "dash": "draw",
-    "handles": {
-      "a1": {
+    "points": [
+      {
         "x": 0,
         "y": 0,
       },
-      "a2": {
+      {
         "x": 100,
         "y": 700,
       },
-    },
+    ],
     "size": "m",
     "spline": "line",
   },

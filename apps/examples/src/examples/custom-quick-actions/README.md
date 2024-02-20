@@ -8,4 +8,4 @@ You can customize tldraw's quick actions, a collection of components that appear
 
 ---
 
-The quick actions component can be customized by providing a `QuickActionsContent` component to the `Tldraw` component's `uiComponents` prop. If you provide `null`, then that component will be hidden.
+The quick actions component can be customized by providing a `QuickActionsContent` component to the `Tldraw` component's `components` prop. If you provide `null`, then that component will be hidden.

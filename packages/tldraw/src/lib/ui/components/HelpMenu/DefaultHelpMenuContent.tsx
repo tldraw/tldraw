@@ -1,7 +1,7 @@
 import { useTldrawUiComponents } from '../../context/components'
 import { useDialogs } from '../../context/dialogs'
 import { LanguageMenu } from '../LanguageMenu'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultHelpMenuContent() {

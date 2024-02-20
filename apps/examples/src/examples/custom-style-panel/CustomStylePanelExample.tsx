@@ -1,12 +1,14 @@
 import {
-	Button,
 	DefaultColorStyle,
 	DefaultStylePanel,
 	DefaultStylePanelContent,
 	TLComponents,
 	TLUiStylePanelProps,
 	Tldraw,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
 	useEditor,
+	useRelevantStyles,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
@@ -15,25 +17,27 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 
 	// Styles are complex, sorry. Check our DefaultStylePanel for an example.
 
+	const styles = useRelevantStyles()
+
 	return (
 		<DefaultStylePanel {...props}>
-			<Button
+			<TldrawUiButton
 				type="menu"
 				onClick={() => {
 					editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { squashing: true })
 				}}
 			>
-				Red
-			</Button>
-			<Button
+				<TldrawUiButtonLabel>Red</TldrawUiButtonLabel>
+			</TldrawUiButton>
+			<TldrawUiButton
 				type="menu"
 				onClick={() => {
 					editor.setStyleForSelectedShapes(DefaultColorStyle, 'green', { squashing: true })
 				}}
 			>
-				Green
-			</Button>
-			<DefaultStylePanelContent relevantStyles={props.relevantStyles} />
+				<TldrawUiButtonLabel>Green</TldrawUiButtonLabel>
+			</TldrawUiButton>
+			<DefaultStylePanelContent styles={styles} />
 		</DefaultStylePanel>
 	)
 }

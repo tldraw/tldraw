@@ -35,9 +35,9 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from '../menu-items'
-import { TldrawUiMenuGroup } from '../menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../menus/TldrawUiMenuItem'
-import { TldrawUiMenuSubmenu } from '../menus/TldrawUiMenuSubmenu'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
 /** @public */
 export function DefaultMainMenuContent() {

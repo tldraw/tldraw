@@ -45,7 +45,7 @@ export const getFileSystemActions = (
 	msg: (id?: string | undefined) => string,
 	addDialog: TLUiDialogsContextType['addDialog']
 ) => ({
-	[SAVE_FILE_COPY_ACTION]: getSaveFileCopyAction(editor),
+	[SAVE_FILE_COPY_ACTION]: getSaveFileCopyAction(editor, msg('document.default-name')),
 	[OPEN_FILE_ACTION]: {
 		id: OPEN_FILE_ACTION,
 		label: 'action.open-file',
@@ -105,14 +105,19 @@ export const getFileSystemActions = (
 })
 
 /** @public */
-export function getSaveFileCopyAction(editor: Editor): TLUiActionItem {
+export function getSaveFileCopyAction(editor: Editor, defaultDocumentName: string): TLUiActionItem {
 	return {
 		id: SAVE_FILE_COPY_ACTION,
 		label: 'action.save-copy',
 		readonlyOk: true,
 		kbd: '$s',
 		async onSelect() {
-			const defaultName = saveFileNames.get(editor.store) || `Untitled${TLDRAW_FILE_EXTENSION}`
+			const documentName =
+				editor.getDocumentSettings().name === ''
+					? defaultDocumentName
+					: editor.getDocumentSettings().name
+			const defaultName =
+				saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
 
 			const blobToSave = serializeTldrawJsonBlob(editor.store)
 			let handle

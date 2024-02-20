@@ -1,11 +1,12 @@
-import { Button } from '../components/primitives/Button'
+import { TldrawUiButton } from '../components/primitives/Button/TldrawUiButton'
+import { TldrawUiButtonLabel } from '../components/primitives/Button/TldrawUiButtonLabel'
 import {
-	DialogBody,
-	DialogCloseButton,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '../components/primitives/Dialog'
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+} from '../components/primitives/TldrawUiDialog'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiDialogsContextType } from './dialogs'
 
@@ -42,24 +43,23 @@ function ConfirmOpenDialog({
 	onContinue: () => void
 }) {
 	const msg = useTranslation()
-
 	return (
 		<>
-			<DialogHeader>
-				<DialogTitle>{msg('file-system.confirm-open.title')}</DialogTitle>
-				<DialogCloseButton />
-			</DialogHeader>
-			<DialogBody style={{ maxWidth: 350 }}>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg('file-system.confirm-open.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				{msg('file-system.confirm-open.description')}
-			</DialogBody>
-			<DialogFooter className="tlui-dialog__footer__actions">
-				<Button type="normal" onClick={onCancel}>
-					{msg('file-system.confirm-open.cancel')}
-				</Button>
-				<Button type="primary" onClick={async () => onContinue()}>
-					{msg('file-system.confirm-open.open')}
-				</Button>
-			</DialogFooter>
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton type="normal" onClick={onCancel}>
+					<TldrawUiButtonLabel>{msg('file-system.confirm-open.cancel')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
+					<TldrawUiButtonLabel>{msg('file-system.confirm-open.open')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

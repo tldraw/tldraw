@@ -53,8 +53,8 @@ export class ZoomBrushing extends StateNode {
 				this.editor.zoomIn(point, { duration: 220 })
 			}
 		} else {
-			const zoomLevel = this.editor.inputs.altKey ? this.editor.getZoomLevel() / 2 : undefined
-			this.editor.zoomToBounds(zoomBrush, zoomLevel, { duration: 220 })
+			const targetZoom = this.editor.inputs.altKey ? this.editor.getZoomLevel() / 2 : undefined
+			this.editor.zoomToBounds(zoomBrush, { targetZoom, duration: 220 })
 		}
 
 		this.parent.transition('idle', this.info)

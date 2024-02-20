@@ -1,11 +1,17 @@
-import { DialogTitle } from '@radix-ui/react-dialog'
 import { T, TLBaseShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiDialogProps } from '../context/dialogs'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { Button } from './primitives/Button'
-import { DialogBody, DialogCloseButton, DialogFooter, DialogHeader } from './primitives/Dialog'
-import { Input } from './primitives/Input'
+import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
+import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
+import {
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+} from './primitives/TldrawUiDialog'
+import { TldrawUiInput } from './primitives/TldrawUiInput'
 
 // A url can either be invalid, or valid with a protocol, or valid without a protocol.
 // For example, "aol.com" would be valid with a protocol ()
@@ -134,44 +140,48 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 
 	return (
 		<>
-			<DialogHeader>
-				<DialogTitle>{msg('edit-link-title')}</DialogTitle>
-				<DialogCloseButton />
-			</DialogHeader>
-			<DialogBody>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg('edit-link-dialog.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody>
 				<div className="tlui-edit-link-dialog">
-					<Input
+					<TldrawUiInput
 						ref={rInput}
 						className="tlui-edit-link-dialog__input"
-						label="edit-link-url"
+						label="edit-link-dialog.url"
 						autofocus
 						value={urlInputState.actual}
 						onValueChange={handleChange}
 						onComplete={handleComplete}
 						onCancel={handleCancel}
 					/>
-					<div>{urlInputState.valid ? msg('edit-link-detail') : msg('edit-link-invalid-url')}</div>
+					<div>
+						{urlInputState.valid
+							? msg('edit-link-dialog.detail')
+							: msg('edit-link-dialog.invalid-url')}
+					</div>
 				</div>
-			</DialogBody>
-			<DialogFooter className="tlui-dialog__footer__actions">
-				<Button type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
-					{msg('edit-link-cancel')}
-				</Button>
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
+					<TldrawUiButtonLabel>{msg('edit-link-dialog.cancel')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
 				{isRemoving ? (
-					<Button type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
-						{msg('edit-link-clear')}
-					</Button>
+					<TldrawUiButton type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
+						<TldrawUiButtonLabel>{msg('edit-link-dialog.clear')}</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				) : (
-					<Button
+					<TldrawUiButton
 						type="primary"
 						disabled={!urlInputState.valid}
 						onTouchEnd={handleComplete}
 						onClick={handleComplete}
 					>
-						{msg('edit-link-save')}
-					</Button>
+						<TldrawUiButtonLabel>{msg('edit-link-dialog.save')}</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				)}
-			</DialogFooter>
+			</TldrawUiDialogFooter>
 		</>
 	)
 })

@@ -5,6 +5,7 @@ import {
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
+	StylePropValue,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
@@ -53,6 +54,7 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
+	objectMapValues,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -736,7 +738,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
 
-	styleProps: { [key: string]: Map<StyleProp<unknown>, string> }
+	styleProps: { [key: string]: Map<StyleProp<any>, string> }
 
 	/**
 	 * Get a shape util from a shape itself.
@@ -2176,7 +2178,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
 
 		if (bounds) {
-			this.zoomToBounds(bounds, Math.min(1, this.getZoomLevel()), { duration: 220 })
+			this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), duration: 220 })
 		}
 
 		return this
@@ -2202,7 +2204,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 
 		const pageBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-		this.zoomToBounds(pageBounds, undefined, animation)
+		this.zoomToBounds(pageBounds, animation)
 		return this
 	}
 
@@ -2333,7 +2335,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (!selectionPageBounds) return this
 
-		this.zoomToBounds(selectionPageBounds, Math.max(1, this.getZoomLevel()), animation)
+		this.zoomToBounds(selectionPageBounds, {
+			targetZoom: Math.max(1, this.getZoomLevel()),
+			...animation,
+		})
 
 		return this
 	}
@@ -2355,7 +2360,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const viewportPageBounds = this.getViewportPageBounds()
 
 		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
-			this.zoomToBounds(selectionBounds, this.getCamera().z, animation)
+			this.zoomToBounds(selectionBounds, { targetZoom: this.getCamera().z, ...animation })
 
 			return this
 		} else {
@@ -2398,22 +2403,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.zoomToBounds(myBounds)
-	 * editor.zoomToBounds(myBounds, 1)
-	 * editor.zoomToBounds(myBounds, 1, { duration: 100 })
+	 * editor.zoomToBounds(myBounds)
+	 * editor.zoomToBounds(myBounds, { duration: 100 })
+	 * editor.zoomToBounds(myBounds, { inset: 0, targetZoom: 1 })
 	 * ```
 	 *
 	 * @param bounds - The bounding box.
-	 * @param targetZoom - The desired zoom level. Defaults to 0.1.
-	 * @param animation - The options for an animation.
+	 * @param options - The options for an animation, target zoom, or custom inset amount.
 	 *
 	 * @public
 	 */
-	zoomToBounds(bounds: Box, targetZoom?: number, animation?: TLAnimationOptions): this {
+	zoomToBounds(
+		bounds: Box,
+		opts?: { targetZoom?: number; inset?: number } & TLAnimationOptions
+	): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
-		const inset = Math.min(256, viewportScreenBounds.width * 0.28)
+		const inset = opts?.inset ?? Math.min(256, viewportScreenBounds.width * 0.28)
 
 		let zoom = clamp(
 			Math.min(
@@ -2424,8 +2432,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			MAX_ZOOM
 		)
 
-		if (targetZoom !== undefined) {
-			zoom = Math.min(targetZoom, zoom)
+		if (opts?.targetZoom !== undefined) {
+			zoom = Math.min(opts.targetZoom, zoom)
 		}
 
 		this.setCamera(
@@ -2434,7 +2442,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				y: -bounds.minY + (viewportScreenBounds.height - bounds.height * zoom) / 2 / zoom,
 				z: zoom,
 			},
-			animation
+			opts
 		)
 
 		return this
@@ -3140,8 +3148,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		for (const childId of this.getSortedChildIdsForParent(this.getCurrentPageId())) {
-			addShapeById(childId, 1, false)
+		// If we're using editor state, then we're only interested in on-screen shapes.
+		// If we're not using the editor state, then we're interested in ALL shapes, even those from other pages.
+		const pages = useEditorState ? [this.getCurrentPage()] : this.getPages()
+		for (const page of pages) {
+			for (const childId of this.getSortedChildIdsForParent(page.id)) {
+				addShapeById(childId, 1, false)
+			}
 		}
 
 		return renderingShapes
@@ -3295,8 +3308,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')
-	 * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)
+	 * const idsOnPage1 = editor.getPageShapeIds('page1')
+	 * const idsOnPage2 = editor.getPageShapeIds(myPage2)
 	 * ```
 	 *
 	 * @param page - The page (or page id) to get.
@@ -3801,33 +3814,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T {
 		return this._getShapeGeometryCache().get(typeof shape === 'string' ? shape : shape.id)! as T
-	}
-
-	/** @internal */
-	@computed private _getShapeOutlineSegmentsCache(): ComputedCache<Vec[][], TLShape> {
-		return this.store.createComputedCache('outline-segments', (shape) => {
-			return this.getShapeUtil(shape).getOutlineSegments(shape)
-		})
-	}
-
-	/**
-	 * Get the local outline segments of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getShapeOutlineSegments(myShape)
-	 * editor.getShapeOutlineSegments(myShapeId)
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) to get the outline segments for.
-	 *
-	 * @public
-	 */
-	getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec[][] {
-		return (
-			this._getShapeOutlineSegmentsCache().get(typeof shape === 'string' ? shape : shape.id) ??
-			EMPTY_ARRAY
-		)
 	}
 
 	/** @internal */
@@ -6712,23 +6698,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let remaining = duration
 		let t: number
 
-		type FromTo = { prop: string; from: number; to: number }
-		type ShapeAnimation = { partial: TLShapePartial; values: FromTo[] }
+		type ShapeAnimation = {
+			partial: TLShapePartial
+			values: { prop: string; from: number; to: number }[]
+		}
 
 		const animations: ShapeAnimation[] = []
 
-		partials.forEach((partial) => {
-			if (!partial) return
+		let partial: TLShapePartial | null | undefined, result: ShapeAnimation
+		for (let i = 0, n = partials.length; i < n; i++) {
+			partial = partials[i]
+			if (!partial) continue
 
-			const result: ShapeAnimation = {
+			result = {
 				partial,
 				values: [],
 			}
 
 			const shape = this.getShape(partial.id)!
+			if (!shape) continue
 
-			if (!shape) return
-
+			// We only support animations for certain props
 			for (const key of ['x', 'y', 'rotation'] as const) {
 				if (partial[key] !== undefined && shape[key] !== partial[key]) {
 					result.values.push({ prop: key, from: shape[key], to: partial[key] as number })
@@ -6737,7 +6727,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			animations.push(result)
 			this.animatingShapes.set(shape.id, animationId)
-		})
+		}
 
 		let value: ShapeAnimation
 
@@ -6762,28 +6752,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const { animatingShapes } = this
 
-			try {
-				const tPartials: TLShapePartial[] = []
+			const updates: TLShapePartial[] = []
 
-				for (let i = 0; i < animations.length; i++) {
-					value = animations[i]
+			let animationIdForShape: string | undefined
+			for (let i = 0, n = animations.length; i < n; i++) {
+				value = animations[i]
+				// Is the animation for this shape still active?
+				animationIdForShape = animatingShapes.get(value.partial.id)
+				if (animationIdForShape !== animationId) continue
 
-					if (animatingShapes.get(value.partial.id) === animationId) {
-						tPartials.push({
-							id: value.partial.id,
-							type: value.partial.type,
-							...value.values.reduce((acc, { prop, from, to }) => {
-								acc[prop] = from + (to - from) * t
-								return acc
-							}, {} as any),
-						})
-					}
-				}
-
-				this._updateShapes(tPartials, { squashing: true })
-			} catch (e) {
-				// noop
+				// Create the update
+				updates.push({
+					id: value.partial.id,
+					type: value.partial.type,
+					...value.values.reduce((acc, { prop, from, to }) => {
+						acc[prop] = from + (to - from) * t
+						return acc
+					}, {} as any),
+				})
 			}
+
+			this._updateShapes(updates, { squashing: true })
 		}
 
 		this.addListener('tick', handleTick)
@@ -6957,19 +6946,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partials: (TLShapePartial<T> | null | undefined)[],
 		historyOptions?: TLCommandHistoryOptions
 	) {
-		let compactedPartials = compact(partials)
-		if (this.animatingShapes.size > 0) {
-			compactedPartials.forEach((p) => this.animatingShapes.delete(p.id))
+		const compactedPartials: TLShapePartial<T>[] = Array(partials.length)
+
+		for (let i = 0, n = partials.length; i < n; i++) {
+			const partial = partials[i]
+			if (!partial) continue
+			// Get the current shape referenced by the partial
+			const shape = this.getShape(partial.id)
+			if (!shape) continue
+
+			// If the shape is locked and we're not setting isLocked to true, continue
+			if (this.isShapeOrAncestorLocked(shape) && !Object.hasOwn(partial, 'isLocked')) continue
+
+			// Remove any animating shapes from the list of partials
+			this.animatingShapes.delete(partial.id)
+
+			compactedPartials.push(partial)
 		}
-
-		compactedPartials = compactedPartials.filter((p) => {
-			const shape = this.getShape(p.id)
-			if (!shape) return false
-
-			// Only allow changes to unlocked shapes or changes to the isLocked property (otherwise we cannot unlock a shape)
-			if (this.isShapeOrAncestorLocked(shape) && !Object.hasOwn(p, 'isLocked')) return false
-			return true
-		})
 
 		this._updateShapes(compactedPartials, historyOptions)
 		return this
@@ -6984,45 +6977,49 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) => {
 			if (this.getInstanceState().isReadonly) return null
 
-			const partials = compact(_partials)
+			const snapshots: Record<string, TLShape> = {}
+			const updates: Record<string, TLShape> = {}
 
-			const snapshots = Object.fromEntries(
-				compact(partials.map(({ id }) => this.getShape(id))).map((shape) => {
-					return [shape.id, shape]
-				})
-			)
+			let shape: TLShape | undefined
+			let updated: TLShape
 
-			if (partials.length <= 0) return null
+			for (let i = 0, n = _partials.length; i < n; i++) {
+				const partial = _partials[i]
+				// Skip nullish partials (sometimes created by map fns returning undefined)
+				if (!partial) continue
 
-			const updated = compact(
-				partials.map((partial) => {
-					const prev = snapshots[partial.id]
-					if (!prev) return null
-					return applyPartialToShape(prev, partial)
-				})
-			)
+				// Get the current shape referenced by the partial
+				// If there is no current shape, we'll skip this update
+				shape = this.getShape(partial.id)
+				if (!shape) continue
 
-			const updates = Object.fromEntries(updated.map((shape) => [shape.id, shape]))
+				// Get the updated version of the shape
+				// If the update had no effect, we'll skip this update
+				updated = applyPartialToShape(shape, partial)
+				if (updated === shape) continue
+
+				snapshots[shape.id] = shape
+				updates[shape.id] = updated
+			}
 
 			return { data: { snapshots, updates }, ...historyOptions }
 		},
 		{
 			do: ({ updates }) => {
-				// Iterate through array; if any shape has an onUpdate handler, call it
+				// Iterate through array; if any shape has an onBeforeUpdate handler, call it
 				// and, if the handler returns a new shape, replace the old shape with
 				// the new one. This is used for example when repositioning a text shape
 				// based on its new text content.
-				const result = Object.values(updates)
-				for (let i = 0; i < result.length; i++) {
-					const shape = result[i]
-					const current = this.store.get(shape.id)
-					if (!current) continue
-					const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
-					if (next) {
-						result[i] = next
-					}
-				}
-				this.store.put(result)
+				this.store.put(
+					objectMapValues(updates).map((shape) => {
+						const current = this.store.get(shape.id)
+						if (current) {
+							const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
+							if (next) return next
+						}
+						return shape
+					})
+				)
 			},
 			undo: ({ snapshots }) => {
 				this.store.put(Object.values(snapshots))
@@ -7389,9 +7386,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setStyleForSelectedShapes<T>(
-		style: StyleProp<T>,
-		value: T,
+	setStyleForSelectedShapes<S extends StyleProp<any>>(
+		style: S,
+		value: StylePropValue<S>,
 		historyOptions?: TLCommandHistoryOptions
 	): this {
 		const selectedShapes = this.getSelectedShapes()
@@ -8048,8 +8045,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			preserveAspectRatio = false,
 		} = opts
 
-		// todo: we shouldn't depend on the public theme here
-		const theme = getDefaultColorTheme({ isDarkMode: this.user.getIsDarkMode() })
+		const isDarkMode = opts.darkMode ?? this.user.getIsDarkMode()
+		const theme = getDefaultColorTheme({ isDarkMode })
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
@@ -8127,6 +8124,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const exportDefPromisesById = new Map<string, Promise<void>>()
 		const exportContext: SvgExportContext = {
+			isDarkMode,
 			addExportDef: (def: SvgExportDef) => {
 				if (exportDefPromisesById.has(def.key)) return
 				const promise = (async () => {
@@ -8942,44 +8940,34 @@ function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
 	if (!partial) return prev
 	let next = null as null | T
-	for (const [k, v] of Object.entries(partial)) {
+	const entries = Object.entries(partial)
+	for (let i = 0, n = entries.length; i < n; i++) {
+		const [k, v] = entries[i]
 		if (v === undefined) continue
-		switch (k) {
-			case 'id':
-			case 'type':
-				continue
-			default: {
-				if (v !== (prev as any)[k]) {
-					if (!next) {
-						next = { ...prev }
-					}
 
-					if (k === 'props') {
-						// props property
-						const nextProps = { ...prev.props } as JsonObject
-						for (const [propKey, propValue] of Object.entries(v as object)) {
-							if (propValue !== undefined) {
-								nextProps[propKey] = propValue
-							}
-						}
-						next!.props = nextProps
-					} else if (k === 'meta') {
-						// meta property
-						const nextMeta = { ...prev.meta } as JsonObject
-						for (const [metaKey, metaValue] of Object.entries(v as object)) {
-							if (metaValue !== undefined) {
-								nextMeta[metaKey] = metaValue
-							}
-						}
-						next!.meta = nextMeta
-					} else {
-						// base property
-						;(next as any)[k] = v
-					}
+		// Is the key a special key? We don't update those
+		if (k === 'id' || k === 'type' || k === 'typeName') continue
+
+		// Is the value the same as it was before?
+		if (v === (prev as any)[k]) continue
+
+		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
+		if (!next) next = { ...prev }
+
+		// for props / meta properties, we support updates with partials of this object
+		if (k === 'props' || k === 'meta') {
+			next[k] = { ...prev[k] } as JsonObject
+			for (const [nextKey, nextValue] of Object.entries(v as object)) {
+				if (nextValue !== undefined) {
+					;(next[k] as JsonObject)[nextKey] = nextValue
 				}
 			}
+			continue
 		}
-	}
 
-	return next ?? prev
+		// base property
+		;(next as any)[k] = v
+	}
+	if (!next) return prev
+	return next
 }

@@ -75,6 +75,13 @@ const components: TLComponents = {
 			</DefaultDebugMenu>
 		)
 	},
+	SharePanel: () => {
+		return (
+			<div className="tlui-share-zone" draggable={false}>
+				<ShareMenu />
+			</div>
+		)
+	},
 }
 
 export function LocalEditor() {
@@ -96,11 +103,6 @@ export function LocalEditor() {
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
-				shareZone={
-					<div className="tlui-share-zone" draggable={false}>
-						<ShareMenu />
-					</div>
-				}
 				inferDarkMode
 			>
 				<LocalMigration />
