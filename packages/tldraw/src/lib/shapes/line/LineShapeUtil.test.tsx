@@ -153,9 +153,9 @@ describe('Mid-point handles', () => {
 		expect(editor.getShapeHandles(id)).toHaveLength(5) // 3 real + 2
 		const points = editor.getShape<TLLineShape>(id)!.props.points
 		expect(points).toHaveLength(3)
-		expect(points[0]).toMatchObject({ x: 0, y: 0 })
-		expect(points[1]).toMatchObject({ x: 50, y: 80 })
-		expect(points[2]).toMatchObject({ x: 100, y: 100 })
+		expect(points[0]).toMatchObject({ x: 0, y: 0, index: 'a1' })
+		expect(points[1]).toMatchObject({ x: 100, y: 100, index: 'a2' })
+		expect(points[2]).toMatchObject({ x: 50, y: 80, index: 'a1V' })
 	})
 })
 

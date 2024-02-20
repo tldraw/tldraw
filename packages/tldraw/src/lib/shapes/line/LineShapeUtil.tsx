@@ -13,9 +13,8 @@ import {
 	TLOnResizeHandler,
 	Vec,
 	WeakMapCache,
-	ZERO_INDEX_KEY,
 	getDefaultColorTheme,
-	getIndexAbove,
+	getIndexBetween,
 	getIndices,
 	lineShapeMigrations,
 	lineShapeProps,
@@ -80,25 +79,22 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 			const results: TLHandle[] = []
 
-			const { points } = shape.props
-
-			let index = ZERO_INDEX_KEY
+			const points = shape.props.points.slice().sort(sortByIndex)
 
 			for (let i = 0; i < points.length; i++) {
 				const handle = points[i]
 				results.push({
 					...handle,
-					id: index,
-					index,
+					id: handle.index,
 					type: 'vertex',
 					canBind: false,
 					canSnap: true,
 				})
-				index = getIndexAbove(index)
 
 				if (i < points.length - 1) {
 					const segment = spline.segments[i]
 					const point = segment.midPoint()
+					const index = getIndexBetween(handle.index, points[i + 1].index)
 					results.push({
 						id: index,
 						type: 'create',
@@ -108,7 +104,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						canSnap: true,
 						canBind: false,
 					})
-					index = getIndexAbove(index)
 				}
 			}
 
@@ -123,8 +118,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 		return {
 			props: {
-				points: shape.props.points.map(({ x, y }) => {
+				points: shape.props.points.map(({ x, y, index }) => {
 					return {
+						index,
 						x: x * scaleX,
 						y: y * scaleY,
 					}
@@ -134,27 +130,17 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
-		// we should only ever be dragging vertex handles
-		if (handle.type !== 'vertex') {
-			return shape
-		}
+		const existingIdx = shape.props.points.findIndex((p) => p.index === handle.index)
+		const updatedPoint = { x: handle.x, y: handle.y, index: handle.index }
 
-		// get the index of the point to which the vertex handle corresponds
-		const index = this.getHandles(shape)
-			.filter((h) => h.type === 'vertex')
-			.findIndex((h) => h.id === handle.id)!
-
-		// splice in the new point
 		const points = [...shape.props.points]
-		points[index] = { x: handle.x, y: handle.y }
-
-		return {
-			...shape,
-			props: {
-				...shape.props,
-				points,
-			},
+		if (existingIdx === -1) {
+			points.push(updatedPoint)
+		} else {
+			points[existingIdx] = updatedPoint
 		}
+
+		return { ...shape, props: { ...shape.props, points } }
 	}
 
 	component(shape: TLLineShape) {
@@ -425,7 +411,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 /** @public */
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
 	const { spline, points } = shape.props
-	const handlePoints = points.map(Vec.From)
+	const handlePoints = points.slice().sort(sortByIndex).map(Vec.From)
 
 	switch (spline) {
 		case 'cubic': {

@@ -1983,6 +1983,54 @@ describe('Restore some handle props', () => {
 	})
 })
 
+describe('add indexes to line points', () => {
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.AddPointIndex]
+	it('up works as expected', () => {
+		expect(
+			up({
+				props: {
+					points: [
+						{ x: 0, y: 0 },
+						{ x: 76, y: 60 },
+						{ x: 190, y: -62 },
+					],
+				},
+			})
+		).toEqual({
+			props: {
+				points: [
+					{ x: 0, y: 0, index: 'a1' },
+					{ x: 76, y: 60, index: 'a2' },
+					{ x: 190, y: -62, index: 'a3' },
+				],
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					points: [
+						{ x: 0, y: 0, index: 'a0' },
+						{ x: 76, y: 60, index: 'a1' },
+						{ x: 190, y: -62, index: 'a2' },
+						{ x: 200, y: 200, index: 'a1V' },
+					],
+				},
+			})
+		).toEqual({
+			props: {
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 76, y: 60 },
+					{ x: 200, y: 200 },
+					{ x: 190, y: -62 },
+				],
+			},
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

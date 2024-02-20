@@ -57,27 +57,6 @@ export class DraggingHandle extends StateNode {
 
 		this.initialHandle = structuredClone(handle)
 
-		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
-			// For line shapes, if we're dragging a "create" handle, then
-			// create a new vertex handle at that point; and make this handle
-			// the handle that we're dragging.
-			if (this.initialHandle.type === 'create') {
-				const handles = this.editor.getShapeHandles(shape)!
-				const index = handles.indexOf(handle)
-				const points = structuredClone(shape.props.points)
-				points.splice(Math.ceil(index / 2), 0, { x: handle.x, y: handle.y })
-				this.editor.updateShape({
-					...shape,
-					props: {
-						points,
-					},
-				})
-				const handlesAfter = this.editor.getShapeHandles(shape)!
-				const handleAfter = handlesAfter.find((h) => h.x === handle.x && h.y === handle.y)!
-				this.initialHandle = structuredClone(handleAfter)
-			}
-		}
-
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()

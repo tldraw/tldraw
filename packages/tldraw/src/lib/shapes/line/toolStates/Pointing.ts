@@ -58,13 +58,15 @@ export class Pointing extends StateNode {
 			) {
 				// Don't add a new point if the distance between the last two points is too small
 				points[points.length - 1] = {
-					...nextPoint.toJson(),
+					x: nextPoint.x,
+					y: nextPoint.y,
 					index: points[points.length - 1].index,
 				}
 			} else {
 				// Add a new point
 				points.push({
-					...nextPoint.toJson(),
+					x: nextPoint.x,
+					y: nextPoint.y,
 					index: getIndexAbove(points[points.length - 1].index),
 				})
 			}

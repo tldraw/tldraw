@@ -165,7 +165,10 @@ export const lineShapeMigrations = defineMigrations({
 				return { ...record, props: { ...record.props, points } }
 			},
 			down: (record: any) => {
-				const points = record.props.points.map((point: any) => ({ x: point.x, y: point.y }))
+				const points = record.props.points
+					.slice()
+					.sort(sortByIndex)
+					.map((point: any) => ({ x: point.x, y: point.y }))
 				return { ...record, props: { ...record.props, points } }
 			},
 		},

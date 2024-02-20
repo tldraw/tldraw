@@ -13,10 +13,12 @@ exports[`Misc resizes: line shape after resize 1`] = `
     "dash": "draw",
     "points": [
       {
+        "index": "a0",
         "x": 0,
         "y": 0,
       },
       {
+        "index": "a1",
         "x": 100,
         "y": 700,
       },
