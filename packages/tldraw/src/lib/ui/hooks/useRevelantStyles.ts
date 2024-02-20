@@ -5,11 +5,12 @@ import {
 	DefaultSizeStyle,
 	ReadonlySharedStyleMap,
 	SharedStyleMap,
+	StyleProp,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
 
-const selectToolStyles = Object.freeze([
+const selectToolStyles: readonly StyleProp<any>[] = Object.freeze([
 	DefaultColorStyle,
 	DefaultDashStyle,
 	DefaultFillStyle,

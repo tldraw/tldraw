@@ -27,7 +27,7 @@ interface DoubleDropdownPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T extends string>({
+function _DoubleDropdownPicker<T extends string>({
 	label,
 	uiTypeA,
 	uiTypeB,
@@ -137,4 +137,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 			</div>
 		</div>
 	)
-})
+}
+
+// need to memo like this to get generics
+export const DoubleDropdownPicker = React.memo(
+	_DoubleDropdownPicker
+) as typeof _DoubleDropdownPicker
