@@ -11,11 +11,11 @@ test.describe('when selecting a tool from the toolbar', () => {
 
 		await test.step('selecting a tool changes the button color', async () => {
 			await select.click()
-			await toolbar.isSelected(select, true)
-			await toolbar.isSelected(draw, false)
+			await toolbar.isSelected(select)
+			await toolbar.isNotSelected(draw)
 			await draw.click()
-			await toolbar.isSelected(select, false)
-			await toolbar.isSelected(draw, true)
+			await toolbar.isNotSelected(select)
+			await toolbar.isSelected(draw)
 		})
 
 		await test.step('selecting certain tools exposes the tool-lock button', async () => {

@@ -29,9 +29,13 @@ export class Toolbar {
 	async clickTool(tool: Locator) {
 		await tool.click()
 	}
-	async isSelected(tool: Locator, isSelected: boolean) {
+	async isSelected(tool: Locator) {
 		// pseudo elements aren't exposed to the DOM, but we can check the color as a proxy
-		const expectedColor = isSelected ? 'rgb(255, 255, 255)' : 'rgb(46, 46, 46)'
+		const expectedColor = 'rgb(255, 255, 255)'
+		await expect(tool).toHaveCSS('color', expectedColor)
+	}
+	async isNotSelected(tool: Locator) {
+		const expectedColor = 'rgb(46, 46, 46)'
 		await expect(tool).toHaveCSS('color', expectedColor)
 	}
 }
