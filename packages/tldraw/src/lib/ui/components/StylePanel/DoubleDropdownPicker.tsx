@@ -82,9 +82,9 @@ function _DoubleDropdownPicker<T extends string>({
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
-							{itemsA.map((item) => {
+							{itemsA.map((item, i) => {
 								return (
-									<TldrawUiDropdownMenuItem data-testid={`style.${uiTypeA}.${item.value}`}>
+									<TldrawUiDropdownMenuItem key={i} data-testid={`style.${uiTypeA}.${item.value}`}>
 										<TldrawUiButton
 											type="icon"
 											key={item.value}
