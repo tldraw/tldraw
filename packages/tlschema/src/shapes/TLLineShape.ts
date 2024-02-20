@@ -1,7 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 import { IndexKey, deepCopy, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { vecModelValidator } from '../misc/geometry-types'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -18,12 +17,19 @@ export const LineShapeSplineStyle = StyleProp.defineEnum('tldraw:spline', {
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>
 
 /** @public */
+export const lineShapePoint = T.object({
+	x: T.number,
+	y: T.number,
+	index: T.indexKey,
+})
+
+/** @public */
 export const lineShapeProps = {
 	color: DefaultColorStyle,
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,
-	points: T.arrayOf(vecModelValidator),
+	points: T.arrayOf(lineShapePoint),
 }
 
 /** @public */
@@ -37,11 +43,12 @@ export const lineShapeVersions = {
 	AddSnapHandles: 1,
 	RemoveExtraHandleProps: 2,
 	HandlesToPoints: 3,
+	AddPointIndex: 4,
 } as const
 
 /** @internal */
 export const lineShapeMigrations = defineMigrations({
-	currentVersion: lineShapeVersions.HandlesToPoints,
+	currentVersion: lineShapeVersions.AddPointIndex,
 	migrators: {
 		[lineShapeVersions.AddSnapHandles]: {
 			up: (record: any) => {
@@ -146,6 +153,20 @@ export const lineShapeMigrations = defineMigrations({
 						),
 					},
 				}
+			},
+		},
+		[lineShapeVersions.AddPointIndex]: {
+			up: (record: any) => {
+				const indices = getIndices(record.props.points.length)
+				const points = record.props.points.map((point: any, i: number) => ({
+					...point,
+					index: indices[i],
+				}))
+				return { ...record, props: { ...record.props, points } }
+			},
+			down: (record: any) => {
+				const points = record.props.points.map((point: any) => ({ x: point.x, y: point.y }))
+				return { ...record, props: { ...record.props, points } }
 			},
 		},
 	},

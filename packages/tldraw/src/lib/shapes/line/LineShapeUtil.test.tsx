@@ -1,4 +1,11 @@
-import { TLGeoShape, TLLineShape, createShapeId, deepCopy, sortByIndex } from '@tldraw/editor'
+import {
+	IndexKey,
+	TLGeoShape,
+	TLLineShape,
+	createShapeId,
+	deepCopy,
+	sortByIndex,
+} from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TL } from '../../../test/test-jsx'
 
@@ -25,8 +32,8 @@ beforeEach(() => {
 				y: 150,
 				props: {
 					points: [
-						{ x: 0, y: 0 },
-						{ x: 100, y: 100 },
+						{ x: 0, y: 0, index: 'a0' as IndexKey },
+						{ x: 100, y: 100, index: 'a1' as IndexKey },
 					],
 				},
 			},
@@ -77,13 +84,13 @@ describe('Mid-point handles', () => {
 		editor.pointerMove(349, 349).pointerMove(350, 350) // Move handle by 150, 150
 		editor.pointerUp()
 
-		editor.expectShapeToMatch<TLLineShape>({
+		editor.expectShapeToMatch({
 			id: id,
 			props: {
 				points: [
-					{ x: 0, y: 0 },
-					{ x: 200, y: 200 },
-					{ x: 100, y: 100 },
+					{ x: 0, y: 0, index: 'a0' as IndexKey },
+					{ x: 100, y: 100, index: 'a1' as IndexKey },
+					{ x: 200, y: 200, index: 'a1v' as IndexKey },
 				],
 			},
 		})
@@ -159,10 +166,10 @@ describe('Snapping', () => {
 			type: 'line',
 			props: {
 				points: [
-					{ x: 0, y: 0 },
-					{ x: 100, y: 0 },
-					{ x: 100, y: 100 },
-					{ x: 0, y: 100 },
+					{ x: 0, y: 0, index: 'a0' as IndexKey },
+					{ x: 100, y: 0, index: 'a1' as IndexKey },
+					{ x: 100, y: 100, index: 'a2' as IndexKey },
+					{ x: 0, y: 100, index: 'a3' as IndexKey },
 				],
 			},
 		})
@@ -176,7 +183,7 @@ describe('Snapping', () => {
 			.pointerMove(50, 95, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
-		editor.expectShapeToMatch<TLLineShape>({
+		editor.expectShapeToMatch({
 			id: id,
 			props: {
 				points: [
@@ -218,7 +225,7 @@ describe('Snapping', () => {
 			.pointerMove(5, 2, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(0)
-		editor.expectShapeToMatch<TLLineShape>({
+		editor.expectShapeToMatch({
 			id: id,
 			props: {
 				points: [
@@ -237,8 +244,8 @@ describe('Snapping', () => {
 				x={150}
 				y={150}
 				points={[
-					{ x: 200, y: 0 },
-					{ x: 300, y: 0 },
+					{ x: 200, y: 0, index: 'a0' as IndexKey },
+					{ x: 300, y: 0, index: 'a1' as IndexKey },
 				]}
 			/>,
 		])
@@ -251,7 +258,7 @@ describe('Snapping', () => {
 			.pointerMove(205, 1, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
-		editor.expectShapeToMatch<TLLineShape>({
+		editor.expectShapeToMatch({
 			id: id,
 			props: {
 				points: [

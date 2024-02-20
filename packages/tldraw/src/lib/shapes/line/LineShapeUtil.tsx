@@ -16,6 +16,7 @@ import {
 	ZERO_INDEX_KEY,
 	getDefaultColorTheme,
 	getIndexAbove,
+	getIndices,
 	lineShapeMigrations,
 	lineShapeProps,
 	sortByIndex,
@@ -47,6 +48,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsBg = () => true
 
 	override getDefaultProps(): TLLineShape['props'] {
+		const [start, end] = getIndices(2)
 		return {
 			dash: 'draw',
 			size: 'm',
@@ -56,10 +58,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				{
 					x: 0,
 					y: 0,
+					index: start,
 				},
 				{
 					x: 0.1,
 					y: 0.1,
+					index: end,
 				},
 			],
 		}

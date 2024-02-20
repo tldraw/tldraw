@@ -1,5 +1,6 @@
 import {
 	BaseBoxShapeUtil,
+	IndexKey,
 	Polyline2d,
 	TLAnyShapeUtilConstructor,
 	TLBaseShape,
@@ -239,8 +240,8 @@ describe('custom handle snapping', () => {
 				x={0}
 				y={0}
 				points={[
-					{ x: 0, y: 0 },
-					{ x: 100, y: 100 },
+					{ x: 0, y: 0, index: 'a0' as IndexKey },
+					{ x: 100, y: 100, index: 'a1' as IndexKey },
 				]}
 			/>,
 			<TL.test ref="test" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
