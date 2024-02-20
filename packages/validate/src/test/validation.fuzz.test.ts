@@ -125,12 +125,12 @@ const builtinTypes = {
 	string: {
 		validator: T.string,
 		generateValid: (source) => source.selectOne(['a', 'b', 'c', 'd']),
-		generateInvalid: (source) => source.selectOne([5, /regexp/, null, {}]),
+		generateInvalid: (source) => source.selectOne([5, /regexp/, {}]),
 	},
 	number: {
 		validator: T.number,
 		generateValid: (source) => source.nextInt(5),
-		generateInvalid: (source) => source.selectOne(['a', /num/, null]),
+		generateInvalid: (source) => source.selectOne(['a', /num/]),
 	},
 	integer: {
 		validator: T.integer,
@@ -154,21 +154,33 @@ function generateObjectType(
 		...injectProperties,
 	}
 	const optionalTypes = new Set<string>()
+	const nullableTypes = new Set<string>()
 	for (let i = 0; i < numProperties; i++) {
 		const type = source.nextTestType(depth + 1)
 		const name = source.nextPropertyName()
 		if (source.choice(0.2)) {
 			optionalTypes.add(name)
 		}
-		propertyTypes[name] = optionalTypes.has(name)
-			? { ...type, validator: type.validator.optional() }
-			: type
+		if (source.choice(0.2)) {
+			nullableTypes.add(name)
+		}
+		let validator = type.validator
+		if (nullableTypes.has(name)) {
+			validator = validator.nullable()
+		}
+		if (optionalTypes.has(name)) {
+			validator = validator.optional()
+		}
+		propertyTypes[name] = { ...type, validator }
 	}
 
 	const generateValid = (source: RandomSource) => {
 		const result = {} as any
 		for (const [name, type] of Object.entries(propertyTypes)) {
 			if (optionalTypes.has(name) && source.choice(0.2)) {
+				continue
+			} else if (nullableTypes.has(name) && source.choice(0.2)) {
+				result[name] = null
 				continue
 			}
 			result[name] = type.generateValid(source)
@@ -186,7 +198,7 @@ function generateObjectType(
 						string: () => source.selectOne(['a', 'b', 'c', 'd']),
 						number: () => source.nextInt(5),
 						array: () => [source.nextId(), source.nextFloat()],
-						null: () => null,
+						bool: () => true,
 					}),
 				missingProperty: () => {
 					const val = generateValid(source)
@@ -276,7 +288,7 @@ function generateUnionType(source: RandomSource, depth: number): TestType {
 		},
 		generateInvalid(source) {
 			return source.executeOne<any>({
-				otherType: () => source.selectOne(['_invalid_', 2324, null, {}]),
+				otherType: () => source.selectOne(['_invalid_', 2324, {}]),
 				badMember: {
 					weight: 4,
 					do() {
