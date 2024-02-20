@@ -195,9 +195,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -209,9 +209,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -1253,7 +1253,7 @@ export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconPr
 export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX_2.Element;
 
 // @public (undocumented)
-export const TldrawUiButtonPicker: MemoExoticComponent<(<T extends string>(props: TLUiButtonPickerProps<T>) => JSX_2.Element)>;
+export const TldrawUiButtonPicker: typeof _TldrawUiButtonPicker;
 
 // @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
@@ -2110,7 +2110,7 @@ export function useNativeClipboardEvents(): void;
 export function useReadonly(): boolean;
 
 // @public (undocumented)
-export function useRelevantStyles(stylesToCheck?: readonly (EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow"> | EnumStyleProp<"dashed" | "dotted" | "draw" | "solid"> | EnumStyleProp<"l" | "m" | "s" | "xl"> | EnumStyleProp<"none" | "pattern" | "semi" | "solid">)[]): null | ReadonlySharedStyleMap;
+export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): Partial<{

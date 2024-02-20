@@ -12,6 +12,8 @@ import {
 	LineShapeSplineStyle,
 	ReadonlySharedStyleMap,
 	StyleProp,
+	TLArrowShapeArrowheadStyle,
+	TLDefaultVerticalAlignStyle,
 	minBy,
 	useEditor,
 	useValue,
@@ -199,7 +201,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 								<TldrawUiButtonIcon icon="vertical-align-center" />
 							</TldrawUiButton>
 						) : (
-							<DropdownPicker
+							<DropdownPicker<TLDefaultVerticalAlignStyle>
 								type="icon"
 								id="geo-vertical-alignment"
 								uiType="verticalAlign"
@@ -270,7 +272,7 @@ function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap })
 	}
 
 	return (
-		<DoubleDropdownPicker
+		<DoubleDropdownPicker<TLArrowShapeArrowheadStyle>
 			label={'style-panel.arrowheads'}
 			uiTypeA="arrowheadStart"
 			styleA={ArrowShapeArrowheadStartStyle}

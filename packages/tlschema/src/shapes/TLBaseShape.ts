@@ -52,8 +52,8 @@ export function createShapeValidator<
 		type: T.literal(type),
 		isLocked: T.boolean,
 		opacity: opacityValidator,
-		props: props ? T.object(props) : (T.jsonValue as T.ObjectValidator<Props>),
-		meta: meta ? T.object(meta) : (T.jsonValue as T.ObjectValidator<Meta>),
+		props: props ? T.object(props) : (T.jsonValue as any),
+		meta: meta ? T.object(meta) : (T.jsonValue as any),
 	})
 }
 
