@@ -172,7 +172,12 @@ export function TldrawUiMenuItem<
 			)
 		}
 		case 'keyboard-shortcuts': {
-			if (!kbd) return null
+			if (!kbd) {
+				console.warn(
+					`Menu item '${label}' isn't shown in the keyboard shortcuts dialog because it doesn't have a keyboard shortcut.`
+				)
+				return null
+			}
 
 			return (
 				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
