@@ -15848,7 +15848,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiKbd({ children }: "
+              "text": "export declare function TldrawUiKbd({ children, visibleOnMobileLayout }: "
             },
             {
               "kind": "Reference",
@@ -15886,7 +15886,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ children }",
+              "parameterName": "{ children, visibleOnMobileLayout }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -20966,6 +20966,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiKbdProps#visibleOnMobileLayout:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "visibleOnMobileLayout?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "visibleOnMobileLayout",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
