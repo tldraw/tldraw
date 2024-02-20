@@ -171,11 +171,38 @@ export function ZoomToSelectionMenuItem() {
 /* -------------------- Clipboard ------------------- */
 
 export function ClipboardMenuGroup() {
+	const editor = useEditor()
+	const actions = useActions()
+	const atLeastOneShapeOnPage = useValue(
+		'atLeastOneShapeOnPage',
+		() => editor.getCurrentPageShapeIds().size > 0,
+		[]
+	)
+
 	return (
 		<TldrawUiMenuGroup id="clipboard">
 			<CutMenuItem />
 			<CopyMenuItem />
+			<TldrawUiMenuSubmenu
+				id="copy-as"
+				label="context-menu.copy-as"
+				size="small"
+				disabled={!atLeastOneShapeOnPage}
+			>
+				<TldrawUiMenuGroup id="copy-as-group">
+					<TldrawUiMenuItem {...actions['copy-as-svg']} />
+					{Boolean(window.navigator.clipboard?.write) && (
+						<TldrawUiMenuItem {...actions['copy-as-png']} />
+					)}
+					<TldrawUiMenuItem {...actions['copy-as-json']} />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="copy-as-bg">
+					<ToggleTransparentBgMenuItem />
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuSubmenu>
+			<DuplicateMenuItem />
 			<PasteMenuItem />
+			<DeleteMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -215,23 +242,6 @@ export function ConversionsMenuGroup() {
 	return (
 		<TldrawUiMenuGroup id="conversions">
 			<TldrawUiMenuSubmenu
-				id="copy-as"
-				label="context-menu.copy-as"
-				size="small"
-				disabled={!atLeastOneShapeOnPage}
-			>
-				<TldrawUiMenuGroup id="copy-as-group">
-					<TldrawUiMenuItem {...actions['copy-as-svg']} />
-					{Boolean(window.navigator.clipboard?.write) && (
-						<TldrawUiMenuItem {...actions['copy-as-png']} />
-					)}
-					<TldrawUiMenuItem {...actions['copy-as-json']} />
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="copy-as-bg">
-					<ToggleTransparentBgMenuItem />
-				</TldrawUiMenuGroup>
-			</TldrawUiMenuSubmenu>
-			<TldrawUiMenuSubmenu
 				id="export-as"
 				label="context-menu.export-as"
 				size="small"
@@ -270,15 +280,11 @@ export function SetSelectionGroup() {
 
 /* ------------------ Delete Group ------------------ */
 
-export function DeleteGroup() {
+export function DeleteMenuItem() {
 	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 
-	return (
-		<TldrawUiMenuGroup id="delete-group">
-			<TldrawUiMenuItem {...actions['delete']} disabled={!oneSelected} />
-		</TldrawUiMenuGroup>
-	)
+	return <TldrawUiMenuItem {...actions['delete']} disabled={!oneSelected} />
 }
 
 /* --------------------- Modify --------------------- */

@@ -10,8 +10,6 @@ import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
-	DeleteGroup,
-	DuplicateMenuItem,
 	EditLinkMenuItem,
 	EmbedsGroup,
 	FitFrameToContentMenuItem,
@@ -99,6 +97,7 @@ export function EditSubmenu() {
 		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
+			<SetSelectionGroup />
 		</TldrawUiMenuSubmenu>
 	)
 }
@@ -116,27 +115,42 @@ export function ObjectSubmenu() {
 	return (
 		<TldrawUiMenuSubmenu id="object" label="menu.object" disabled={!selectToolActive}>
 			<ConversionsMenuGroup />
-			<SetSelectionGroup />
-			<SelectionMenuGroup />
+			<MultiShapeMenuGroup />
+			<MiscMenuGroup />
 			<EmbedsGroup />
-			<DeleteGroup />
+			<LockGroup />
 		</TldrawUiMenuSubmenu>
 	)
 }
 
 /** @public */
-export function SelectionMenuGroup() {
+export function MiscMenuGroup() {
 	return (
-		<TldrawUiMenuGroup id="selection">
+		<TldrawUiMenuGroup id="misc">
 			<ToggleAutoSizeMenuItem />
 			<EditLinkMenuItem />
-			<DuplicateMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function LockGroup() {
+	return (
+		<TldrawUiMenuGroup id="lock">
+			<ToggleLockMenuItem />
+			<UnlockAllMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function MultiShapeMenuGroup() {
+	return (
+		<TldrawUiMenuGroup id="multi-shape">
 			<GroupMenuItem />
 			<UngroupMenuItem />
 			<RemoveFrameMenuItem />
 			<FitFrameToContentMenuItem />
-			<ToggleLockMenuItem />
-			<UnlockAllMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
