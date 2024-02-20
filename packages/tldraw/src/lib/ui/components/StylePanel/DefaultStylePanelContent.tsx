@@ -13,7 +13,6 @@ import {
 	ReadonlySharedStyleMap,
 	StyleProp,
 	TLArrowShapeArrowheadStyle,
-	TLDefaultVerticalAlignStyle,
 	minBy,
 	useEditor,
 	useValue,
@@ -201,7 +200,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 								<TldrawUiButtonIcon icon="vertical-align-center" />
 							</TldrawUiButton>
 						) : (
-							<DropdownPicker<TLDefaultVerticalAlignStyle>
+							<DropdownPicker
 								type="icon"
 								id="geo-vertical-alignment"
 								uiType="verticalAlign"
