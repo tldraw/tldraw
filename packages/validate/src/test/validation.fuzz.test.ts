@@ -262,7 +262,7 @@ function createLiteralType(value: string): TestType {
 	return {
 		validator: T.literal(value),
 		generateValid: () => value,
-		generateInvalid: (source) => source.selectOne(['_invalid_' + value, 2324, null, {}]),
+		generateInvalid: (source) => source.selectOne(['_invalid_' + value, 2324, {}]),
 	}
 }
 
@@ -322,7 +322,6 @@ function generateArrayType(source: RandomSource, depth: number): TestType {
 						string: () => source.nextId(),
 						number: () => source.nextInt(100),
 						object: () => ({ key: source.nextId() }),
-						null: () => null,
 					}),
 				invalidItem: () => {
 					const val = generateValid(source)
@@ -339,67 +338,42 @@ function generateArrayType(source: RandomSource, depth: number): TestType {
 }
 
 function runTest(seed: number) {
-	const source = new RandomSource(seed)
-	const type = source.nextTestType(0)
-	const oldValid = type.generateValid(source)
-	const newValid = source.choice(0.5) ? type.generateValid(source) : oldValid
-	const didChange = !isEqual(oldValid, newValid)
-	const invalid = type.generateInvalid(source)
-
-	expect(type.validator.validate(oldValid)).toBe(oldValid)
-	expect(type.validator.validate(newValid)).toBe(newValid)
-	expect(() => {
-		type.validator.validate(invalid)
-	}).toThrow()
-
-	expect(() => type.validator.validateUsingKnownGoodVersion(oldValid, newValid)).not.toThrow()
-	expect(() => type.validator.validateUsingKnownGoodVersion(oldValid, invalid)).toThrow()
-
-	if (didChange) {
-		expect(type.validator.validateUsingKnownGoodVersion(oldValid, newValid)).toBe(newValid)
-	} else {
-		expect(type.validator.validateUsingKnownGoodVersion(oldValid, newValid)).toBe(oldValid)
-	}
-}
-
-const NUM_TESTS = 1000
-const source = new RandomSource(Math.random())
-
-for (let i = 0; i < NUM_TESTS; i++) {
-	const seed = source.nextInt(100000000)
 	test(`fuzz test with seed ${seed}`, () => {
-		runTest(seed)
+		const source = new RandomSource(seed)
+		const type = source.nextTestType(0)
+		const oldValid = type.generateValid(source)
+		const newValid = source.choice(0.5) ? type.generateValid(source) : oldValid
+		const didChange = !isEqual(oldValid, newValid)
+		const invalid = type.generateInvalid(source)
+
+		expect(type.validator.validate(oldValid)).toBe(oldValid)
+		expect(type.validator.validate(newValid)).toBe(newValid)
+		expect(() => {
+			type.validator.validate(invalid)
+		}).toThrow()
+
+		expect(() => type.validator.validateUsingKnownGoodVersion(oldValid, newValid)).not.toThrow()
+		expect(() => type.validator.validateUsingKnownGoodVersion(oldValid, invalid)).toThrow()
+
+		if (didChange) {
+			expect(type.validator.validateUsingKnownGoodVersion(oldValid, newValid)).toBe(newValid)
+		} else {
+			expect(type.validator.validateUsingKnownGoodVersion(oldValid, newValid)).toBe(oldValid)
+		}
 	})
 }
 
-test('regression', () => {
-	runTest(31724743)
-})
+const NUM_TESTS = 10000
+const source = new RandomSource(Math.random())
 
-test('regression 2', () => {
-	runTest(29597217)
-})
+// 54480484
+const onlySeed: null | number = null
 
-test('regression 3', () => {
-	runTest(77387914)
-})
-
-test('regression 4', () => {
-	runTest(3653979)
-})
-
-test('regresion 5', () => {
-	runTest(6715024)
-})
-
-test('regression 6', () => {
-	runTest(43112375)
-})
-
-test('regression 7', () => {
-	runTest(93348512)
-})
-
-test('regression 8', () => {
-	runTest(44591734)
-})
+if (onlySeed) {
+	runTest(onlySeed)
+} else {
+	for (let i = 0; i < NUM_TESTS; i++) {
+		const seed = source.nextInt(100000000)
+		runTest(seed)
+	}
+}

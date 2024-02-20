@@ -893,10 +893,19 @@ export function optional<T>(validator: Validatable<T>): Validator<T | undefined>
 
 /** @public */
 export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
-	return new Validator((value) => {
-		if (value === null) return null
-		return validator.validate(value)
-	})
+	return new Validator(
+		(value) => {
+			if (value === null) return null
+			return validator.validate(value)
+		},
+		(knownGoodValue, newValue) => {
+			if (newValue === null) return null
+			if (validator.validateUsingKnownGoodVersion && knownGoodValue !== null) {
+				return validator.validateUsingKnownGoodVersion(knownGoodValue as T, newValue)
+			}
+			return validator.validate(newValue)
+		}
+	)
 }
 
 /** @public */
