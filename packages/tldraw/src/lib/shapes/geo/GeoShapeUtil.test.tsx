@@ -1,4 +1,4 @@
-import { Group2d, IndexKey, TLShapeId } from '@tldraw/editor'
+import { Group2d, TLShapeId } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TL } from '../../../test/test-jsx'
 
@@ -17,7 +17,10 @@ describe('Handle snapping', () => {
 				ref="line"
 				x={0}
 				y={0}
-				handles={{ ['a1' as IndexKey]: { x: 200, y: 0 }, ['a2' as IndexKey]: { x: 200, y: 100 } }}
+				points={[
+					{ x: 200, y: 0 },
+					{ x: 200, y: 100 },
+				]}
 			/>,
 		])
 	})

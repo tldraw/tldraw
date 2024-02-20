@@ -10258,17 +10258,9 @@
                   "text": "): "
                 },
                 {
-                  "kind": "Content",
-                  "text": "{\n        points: import(\"@tldraw/editor\")."
-                },
-                {
                   "kind": "Reference",
-                  "text": "VecModel",
-                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[];\n    }"
+                  "text": "HandleSnapGeometry",
+                  "canonicalReference": "@tldraw/editor!HandleSnapGeometry:interface"
                 },
                 {
                   "kind": "Content",
@@ -10278,7 +10270,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 6
+                "endIndex": 4
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -10296,60 +10288,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getHandleSnapGeometry"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/tldraw!LineShapeUtil#getOutlineSegments:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getOutlineSegments(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLLineShape",
-                  "canonicalReference": "@tldraw/tlschema!TLLineShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[][]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getOutlineSegments"
             },
             {
               "kind": "Property",
@@ -10695,25 +10633,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"cubic\" | \"line\">;\n        handles: import(\"@tldraw/editor\")."
+                  "text": "<\"cubic\" | \"line\">;\n        points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "DictValidator",
-                  "canonicalReference": "@tldraw/validate!DictValidator:class"
+                  "text": "ArrayOfValidator",
+                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
                 },
                 {
                   "kind": "Content",
                   "text": "<import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10735,7 +10664,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 16
+                "endIndex": 14
               },
               "isStatic": true,
               "isProtected": false,

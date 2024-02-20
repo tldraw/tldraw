@@ -202,25 +202,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	getHandles?(shape: Shape): TLHandle[]
 
 	/**
-	 * Get an array of outline segments for the shape. For most shapes,
-	 * this will be a single segment that includes the entire outline.
-	 * For shapes with handles, this might be segments of the outline
-	 * between each handle.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * util.getOutlineSegments(myShape)
-	 * ```
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	getOutlineSegments(shape: Shape): Vec[][] {
-		return [this.editor.getShapeGeometry(shape).vertices]
-	}
-
-	/**
 	 * Get whether the shape can receive children of a given type.
 	 *
 	 * @param type - The shape type.

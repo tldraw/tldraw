@@ -741,7 +741,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
-    getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec[][];
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
@@ -1148,6 +1147,8 @@ export const HALF_PI: number;
 
 // @public
 export interface HandleSnapGeometry {
+    getSelfSnapOutline?(handle: TLHandle): Geometry2d | null;
+    getSelfSnapPoints?(handle: TLHandle): VecModel[];
     outline?: Geometry2d | null;
     points?: VecModel[];
 }
@@ -1607,7 +1608,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
-    getOutlineSegments(shape: Shape): Vec[][];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;

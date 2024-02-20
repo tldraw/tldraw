@@ -1,5 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
-import { deepCopy, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
+import { IndexKey, deepCopy, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { vecModelValidator } from '../misc/geometry-types'
 import { StyleProp } from '../styles/StyleProp'
@@ -23,7 +23,7 @@ export const lineShapeProps = {
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,
-	handles: T.dict(T.indexKey, vecModelValidator),
+	points: T.arrayOf(vecModelValidator),
 }
 
 /** @public */
@@ -36,11 +36,12 @@ export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 export const lineShapeVersions = {
 	AddSnapHandles: 1,
 	RemoveExtraHandleProps: 2,
+	HandlesToPoints: 3,
 } as const
 
 /** @internal */
 export const lineShapeMigrations = defineMigrations({
-	currentVersion: lineShapeVersions.RemoveExtraHandleProps,
+	currentVersion: lineShapeVersions.HandlesToPoints,
 	migrators: {
 		[lineShapeVersions.AddSnapHandles]: {
 			up: (record: any) => {
@@ -97,6 +98,46 @@ export const lineShapeMigrations = defineMigrations({
 										canBind: false,
 										canSnap: true,
 										index: handle.index,
+										x: handle.x,
+										y: handle.y,
+									},
+								]
+							})
+						),
+					},
+				}
+			},
+		},
+		[lineShapeVersions.HandlesToPoints]: {
+			up: (record: any) => {
+				const { handles, ...props } = record.props
+
+				const sortedHandles = (Object.entries(handles) as [IndexKey, { x: number; y: number }][])
+					.map(([index, { x, y }]) => ({ x, y, index }))
+					.sort(sortByIndex)
+
+				return {
+					...record,
+					props: {
+						...props,
+						points: sortedHandles.map(({ x, y }) => ({ x, y })),
+					},
+				}
+			},
+			down: (record: any) => {
+				const { points, ...props } = record.props
+				const indices = getIndices(points.length)
+
+				return {
+					...record,
+					props: {
+						...props,
+						handles: Object.fromEntries(
+							points.map((handle: { x: number; y: number }, i: number) => {
+								const index = indices[i]
+								return [
+									index,
+									{
 										x: handle.x,
 										y: handle.y,
 									},

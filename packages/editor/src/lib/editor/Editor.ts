@@ -3816,33 +3816,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private _getShapeOutlineSegmentsCache(): ComputedCache<Vec[][], TLShape> {
-		return this.store.createComputedCache('outline-segments', (shape) => {
-			return this.getShapeUtil(shape).getOutlineSegments(shape)
-		})
-	}
-
-	/**
-	 * Get the local outline segments of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getShapeOutlineSegments(myShape)
-	 * editor.getShapeOutlineSegments(myShapeId)
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) to get the outline segments for.
-	 *
-	 * @public
-	 */
-	getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec[][] {
-		return (
-			this._getShapeOutlineSegmentsCache().get(typeof shape === 'string' ? shape : shape.id) ??
-			EMPTY_ARRAY
-		)
-	}
-
-	/** @internal */
 	@computed private _getShapeHandlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
 		return this.store.createComputedCache('handles', (shape) => {
 			return this.getShapeUtil(shape).getHandles?.(shape)
