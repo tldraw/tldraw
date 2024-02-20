@@ -4,11 +4,7 @@ import test from './fixtures/fixtures'
 
 test.describe('Style selection behaviour', () => {
 	test.beforeEach(setup)
-	test.only('selecting a style highlights the button', async ({
-		isMobile,
-		stylePanel,
-		toolbar,
-	}) => {
+	test('selecting a style highlights the button', async ({ isMobile, stylePanel, toolbar }) => {
 		const { blue, black } = stylePanel.colors
 		const { pattern, none } = stylePanel.fill
 		if (isMobile) {
