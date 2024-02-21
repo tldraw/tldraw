@@ -28,9 +28,9 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 				<div className="page-header">
 					<Breadcrumb section={section} category={category} />
 					<h1>{article.title}</h1>
+					{article.description && <p>{article.description}</p>}
 				</div>
 				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}
-				{article.description && <p className="">{article.description}</p>}
 				{article.content && <Mdx content={article.content} />}
 				{article.componentCode && (
 					<ExampleCodeBlock

@@ -549,6 +549,11 @@ body {
 	margin: 0;
 }
 
+.page-header > p {
+	margin-top: 1rem;
+	
+}
+
 .article table {
 	margin: 20px 0px;
 	border-radius: var(--border-radius-menu);
