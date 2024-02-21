@@ -45,6 +45,7 @@ const components: TLComponents = {
 		<DefaultMainMenu>
 			<LocalFileMenu />
 			<DefaultMainMenuContent />
+			<Links />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
