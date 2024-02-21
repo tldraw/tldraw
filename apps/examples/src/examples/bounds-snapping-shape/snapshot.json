@@ -14,37 +14,39 @@
 			"index": "a1",
 			"typeName": "page"
 		},
-		"shape:bqVosZLQdsL5uMqLIUXIX": {
-			"x": 323.12109375,
-			"y": 303.56640625,
+		"shape:lO3gDT8toaxNdM8RZyKqm": {
+			"x": 436.99609375,
+			"y": 317.43359375,
 			"rotation": 0,
 			"isLocked": false,
 			"opacity": 1,
 			"meta": {},
-			"id": "shape:bqVosZLQdsL5uMqLIUXIX",
+			"id": "shape:lO3gDT8toaxNdM8RZyKqm",
 			"type": "PlayingCard",
 			"parentId": "page:page",
 			"index": "a1",
 			"props": {
 				"w": 270,
-				"h": 370
+				"h": 370,
+				"suit": "♠️"
 			},
 			"typeName": "shape"
 		},
-		"shape:VOwdBMSiTV4N1OowqpafU": {
-			"x": 405.34331597222223,
-			"y": 303.56640625,
+		"shape:db5wxGPcC0KNtdDMrSimx": {
+			"x": 519.2183159722222,
+			"y": 317.43359375,
 			"rotation": 0,
 			"isLocked": false,
 			"opacity": 1,
 			"meta": {},
-			"id": "shape:VOwdBMSiTV4N1OowqpafU",
+			"id": "shape:db5wxGPcC0KNtdDMrSimx",
 			"type": "PlayingCard",
 			"parentId": "page:page",
 			"index": "a2",
 			"props": {
 				"w": 270,
-				"h": 370
+				"h": 370,
+				"suit": "♣️"
 			},
 			"typeName": "shape"
 		}
