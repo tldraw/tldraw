@@ -1349,6 +1349,12 @@
 	opacity: 0;
 }
 
+@media (any-pointer: coarse) {
+	.tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+}
+
 .tlui-page-menu__item__button .tlui-button__icon {
 	margin-right: 4px;
 }
