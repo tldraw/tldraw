@@ -418,6 +418,20 @@ input,
 	contain: size;
 }
 
+.tl-user-indicator__hint {
+	z-index: 110;
+	stroke-width: calc(2.5px * var(--tl-scale));
+}
+
+/* behind collaborator cursor */
+.tl-collaborator__cursor-hint {
+	z-index: 120;
+}
+
+.tl-collaborator__cursor {
+	z-index: 130;
+}
+
 /* ------------------ SelectionBox ------------------ */
 
 .tl-selection__bg {
