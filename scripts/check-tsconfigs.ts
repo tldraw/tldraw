@@ -27,7 +27,7 @@ async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Pack
 			...workspace.packageJson.devDependencies,
 		}).filter((dep) => dep.startsWith('@tldraw/'))
 
-		const fixedDeps = tsconfig.references ?? []
+		const fixedDeps = []
 		const missingRefs = []
 		const currentRefs = new Set<string>([...(tsconfig.references?.map((ref) => ref.path) ?? [])])
 		for (const dep of tldrawDeps) {
@@ -44,6 +44,7 @@ async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Pack
 				missingRefs.push(dep)
 			}
 		}
+
 		fixedDeps.sort((a, b) => a.path.localeCompare(b.path))
 		if (currentRefs.size > 0) {
 			if (fix) {
@@ -79,7 +80,6 @@ async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Pack
 				)
 				nicelog('The references entry should look like this:')
 				nicelog('"references": ' + JSON.stringify(fixedDeps, null, 2))
-				nicelog('Run `yarn check-tsconfigs --fix` to fix this')
 			}
 		}
 	}

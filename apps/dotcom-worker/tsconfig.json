@@ -11,28 +11,13 @@
 			"path": "../../packages/store"
 		},
 		{
-			"path": "../../packages/store"
-		},
-		{
-			"path": "../../packages/tlschema"
-		},
-		{
 			"path": "../../packages/tlschema"
 		},
 		{
 			"path": "../../packages/tlsync"
 		},
 		{
-			"path": "../../packages/tlsync"
-		},
-		{
 			"path": "../../packages/utils"
-		},
-		{
-			"path": "../../packages/utils"
-		},
-		{
-			"path": "../../packages/validate"
 		}
 	]
 }
