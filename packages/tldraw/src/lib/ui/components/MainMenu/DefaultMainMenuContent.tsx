@@ -1,10 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
-import {
-	NEW_PROJECT_ACTION,
-	OPEN_FILE_ACTION,
-	SAVE_FILE_COPY_ACTION,
-} from '../../context/useFileSystem'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { LanguageMenu } from '../LanguageMenu'
 import {
@@ -62,13 +57,8 @@ export function FileSubmenu() {
 
 /** @public */
 export function DefaultMainMenuFileContent() {
-	const actions = useActions()
-
 	return (
 		<TldrawUiMenuGroup id="file-actions">
-			<TldrawUiMenuItem {...actions[NEW_PROJECT_ACTION]} />
-			<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
-			<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 			<ExportFileContentSubMenu />
 		</TldrawUiMenuGroup>
 	)

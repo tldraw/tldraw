@@ -68,20 +68,12 @@ export {
 	type TLUiEventMap,
 	type TLUiEventSource,
 } from './lib/ui/context/events'
-export { shouldOverrideDocument } from './lib/ui/context/shouldOverrideDocument'
 export {
 	useToasts,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
 } from './lib/ui/context/toasts'
-export {
-	NEW_PROJECT_ACTION,
-	OPEN_FILE_ACTION,
-	SAVE_FILE_COPY_ACTION,
-	getSaveFileCopyAction,
-	useFileSystem,
-} from './lib/ui/context/useFileSystem'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'

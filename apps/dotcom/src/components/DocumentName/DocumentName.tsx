@@ -1,6 +1,5 @@
 import {
 	OfflineIndicator,
-	SAVE_FILE_COPY_ACTION,
 	TLUiTranslationKey,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
@@ -28,6 +27,7 @@ import {
 	useState,
 } from 'react'
 import { FORK_PROJECT_ACTION } from '../../utils/sharing'
+import { SAVE_FILE_COPY_ACTION } from '../../utils/useFileSystem'
 import { getShareUrl } from '../ShareMenu'
 
 type NameState = {

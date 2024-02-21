@@ -9,11 +9,9 @@ import {
 	EditSubmenu,
 	Editor,
 	ExtrasGroup,
-	OPEN_FILE_ACTION,
 	ObjectSubmenu,
 	OfflineIndicator,
 	PreferencesGroup,
-	SAVE_FILE_COPY_ACTION,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -23,7 +21,6 @@ import {
 	debugFlags,
 	lns,
 	useActions,
-	useFileSystem,
 	useValue,
 } from '@tldraw/tldraw'
 import { useCallback, useEffect } from 'react'
@@ -37,6 +34,7 @@ import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { useSharing } from '../utils/sharing'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
+import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'

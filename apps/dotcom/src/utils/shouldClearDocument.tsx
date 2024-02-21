@@ -1,14 +1,14 @@
-import { TldrawUiButton } from '../components/primitives/Button/TldrawUiButton'
-import { TldrawUiButtonLabel } from '../components/primitives/Button/TldrawUiButtonLabel'
 import {
+	TLUiDialogsContextType,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-} from '../components/primitives/TldrawUiDialog'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { TLUiDialogsContextType } from './dialogs'
+	useTranslation,
+} from '@tldraw/tldraw'
 
 export async function shouldClearDocument(addDialog: TLUiDialogsContextType['addDialog']) {
 	const shouldContinue = await new Promise<boolean>((resolve) => {

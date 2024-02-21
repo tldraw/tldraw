@@ -708,9 +708,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
-export function getSaveFileCopyAction(editor: Editor, defaultDocumentName: string): TLUiActionItem;
-
-// @public (undocumented)
 export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
     quality: number;
@@ -915,9 +912,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 }
 
 // @public (undocumented)
-export const NEW_PROJECT_ACTION = "new-file";
-
-// @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_5 | typeof Pointing_4)[];
@@ -1022,9 +1016,6 @@ export function ObjectSubmenu(): JSX_2.Element;
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
-// @public (undocumented)
-export const OPEN_FILE_ACTION = "open-file";
-
 // @internal (undocumented)
 export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
@@ -1039,9 +1030,6 @@ export function PreferencesGroup(): JSX_2.Element;
 
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
-
-// @public (undocumented)
-export const SAVE_FILE_COPY_ACTION = "save-file-copy";
 
 // @public (undocumented)
 export class SelectTool extends StateNode {
@@ -1070,9 +1058,6 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
-
-// @public (undocumented)
-export function shouldOverrideDocument(addDialog: TLUiDialogsContextType['addDialog']): Promise<boolean>;
 
 // @internal (undocumented)
 export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
@@ -2120,11 +2105,6 @@ export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
-
-// @public (undocumented)
-export function useFileSystem({ isMultiplayer }: {
-    isMultiplayer: boolean;
-}): TLUiOverrides;
 
 // @public (undocumented)
 export function useKeyboardShortcuts(): void;
