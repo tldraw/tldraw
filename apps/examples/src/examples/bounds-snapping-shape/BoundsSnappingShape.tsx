@@ -10,7 +10,7 @@ import { components, uiOverrides } from './ui-overrides'
 const customShapes = [PlayingCardUtil]
 const customTools = [PlayingCardTool]
 
-export default function CustomSnappingShapeExample() {
+export default function BoundsSnappingShapeExample() {
 	// [2]
 	const handleMount = (editor: Editor) => {
 		editor.user.updateUserPreferences({ isSnapMode: true })
