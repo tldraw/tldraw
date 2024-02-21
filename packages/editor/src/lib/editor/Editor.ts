@@ -7369,15 +7369,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const stylesForNextShape = this.getInstanceState().stylesForNextShape
 		const selectedShapeTypes = this.getSelectedShapes().map((shape) => shape.type)
 		const newStyleForId = deepCopy(stylesForNextShape[style.id]) ?? {}
-
-		if (selectedShapeTypes.length === 0) {
-			const tool = this.getCurrentTool()
-			if (tool?.shapeType) {
-				newStyleForId[tool.shapeType] = value
-			} else {
-				return this
-			}
-		} else {
+		const tool = this.getCurrentTool()
+		if (tool.shapeType) {
+			// We have a shape tool, so we will update the style for that shape type
+			newStyleForId[tool.shapeType] = value
+		} else if (selectedShapeTypes.length !== 0) {
+			// We have selected shapes, so we will update the style for those shapes
 			for (const selectedShapeType of selectedShapeTypes) {
 				const shapeStyles = this.styleProps[selectedShapeType]
 				// If the shape type doesn't support this style then skip the update
@@ -7386,6 +7383,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 				newStyleForId[selectedShapeType] = value
 			}
+		} else {
+			// We don't have anything to update
+			return this
 		}
 		this.updateInstanceState(
 			{
