@@ -974,7 +974,7 @@
 }
 
 .tlui-menu[data-size='small'] > .tlui-menu__group {
-	min-width: 0px;
+	min-width: 96px;
 }
 
 .tlui-menu[data-size='tiny'] > .tlui-menu__group {
@@ -1347,6 +1347,12 @@
 
 .tlui-page_menu__item__submenu > .tlui-button {
 	opacity: 0;
+}
+
+@media (any-pointer: coarse) {
+	.tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
 }
 
 .tlui-page-menu__item__button .tlui-button__icon {
