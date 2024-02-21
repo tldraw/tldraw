@@ -36,9 +36,9 @@ export const components: TLComponents = {
 		const tools = useTools()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<DefaultKeyboardShortcutsDialogContent />
 				{/* Ideally, we'd interleave this into the tools group */}
 				<TldrawUiMenuItem {...tools['PlayingCard']} />
+				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},

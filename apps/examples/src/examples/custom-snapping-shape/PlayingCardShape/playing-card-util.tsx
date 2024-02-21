@@ -36,7 +36,7 @@ export class PlayingCardUtil extends ShapeUtil<IPlayingCard> {
 	override canBind = (_shape: IPlayingCard) => true
 	override canEdit = () => false
 
-	// [5]
+	// [4]
 	getDefaultProps(): IPlayingCard['props'] {
 		return {
 			w: 270,
@@ -44,7 +44,7 @@ export class PlayingCardUtil extends ShapeUtil<IPlayingCard> {
 		}
 	}
 
-	// [6]
+	// [5]
 	getGeometry(shape: IPlayingCard) {
 		return new Rectangle2d({
 			width: shape.props.w,
@@ -53,6 +53,7 @@ export class PlayingCardUtil extends ShapeUtil<IPlayingCard> {
 		})
 	}
 
+	// [6]
 	override getBoundsSnapGeometry(shape: IPlayingCard): BoundsSnapGeometry {
 		return new Rectangle2d({
 			width: shape.props.h / 4.5,
@@ -63,32 +64,14 @@ export class PlayingCardUtil extends ShapeUtil<IPlayingCard> {
 
 	// [7]
 	component(shape: IPlayingCard) {
-		// [b]
-		//many animals in this array
-		const animalEmojiArray = [
-			'🐶',
-			'🐱',
-			'🐭',
-			'🐹',
-			'🐰',
-			'🦊',
-			'🐻',
-			'🐼',
-			'🐨',
-			'🐯',
-			'🦁',
-			'🐮',
-			'🐷',
-			'🐸',
-			'🐵',
-		]
-		const randomAnimal = animalEmojiArray[Math.floor(Math.random() * animalEmojiArray.length)]
+		const cardSuitsArray: string[] = ['♠️', '♣️', '♥️', '♦️']
+		const randomSuit = cardSuitsArray[Math.floor(Math.random() * cardSuitsArray.length)]
 		return (
 			<HTMLContainer
 				style={{
 					height: shape.props.h,
 					width: shape.props.w,
-					backgroundColor: 'lightblue',
+					backgroundColor: 'white',
 					boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.2)',
 					position: 'relative',
 					display: 'flex',
@@ -111,18 +94,9 @@ export class PlayingCardUtil extends ShapeUtil<IPlayingCard> {
 						fontSize: shape.props.h / 5,
 					}}
 				>
-					{randomAnimal}
+					{randomSuit}
 				</span>
-				<div
-					style={{
-						fontSize: shape.props.h / 3,
-						backgroundColor: 'rgba(255, 255, 255, 0.5)',
-						padding: 7,
-						borderRadius: '8px',
-					}}
-				>
-					{randomAnimal}
-				</div>
+				<div style={{ fontSize: shape.props.h / 3 }}>{randomSuit}</div>
 			</HTMLContainer>
 		)
 	}
@@ -140,7 +114,8 @@ export class PlayingCardUtil extends ShapeUtil<IPlayingCard> {
 
 /* 
 This is a utility class for the PlayingCard shape. This is where you define the shape's behavior, 
-how it renders (its component and indicator), and how it handles different events.
+how it renders (its component and indicator), and how it handles different events. The most relevant
+part of the code to custom snapping can be found in [6].
 
 [1]
 This is where we define the shape's type for Typescript. We can extend the TLBaseShape type,
@@ -149,45 +124,41 @@ and width for this shape.
 
 [2]
 We define the shape's type and props for the editor. We can use tldraw's validator library to
-define the shape's properties. In this case, we define the width and height properties as numbers.
+make sure that the store always has shape data we can trust. In this case, we define the width 
+and height properties as numbers and assign a validator from tldraw's library to them.
 
 [3]
-Some methods we can override to define specific beahviour for the shape. For this shape, we don't
-want the aspect ratio to change, we want it to resize, and sure it can bind, why not. Who doesn't
-love arrows?
+Here are some methods we can override to define specific beahviour for the shape. For this shape,
+we want to lock the aspect ratio, allow resizing, allow binding, and disallow editing.
 
 [4]
-This is the important one. We set canEdit to true. This means that the shape can enter the editing
-state.
+getDefaultProps determines what our shape looks like when click-creating one. In this case, we
+want the shape to be 270x370 pixels.
 
 [5]
-This will be the default props for the shape when you create it via clicking.
+We define the getGeometry method. This method returns the geometry of the shape. In this case,
+a we can use the Rectangle2d helper to create a rectangle with the width and height of the shape.
 
 [6]
-We define the getGeometry method. This method returns the geometry of the shape. In this case,
-a Rectangle2d object.
+This is the important part for custom snapping. We define the getBoundsSnapGeometry method. This
+method returns the geometry that the shape will snap to. In this case, we want the shape to snap
+to a rectangle in the top left that contains the suit of the card. We can use the Rectangle2d helper
+again here and set it to the same width and height as the span containing the suit which is defined
+in [7].
 
 [7]
-We define the component method. This controls what the shape looks like and it returns JSX.
+We define the component method. This controls what the shape looks like and it returns JSX. It
+generates a random suit for the card and returns a div with the suit in the center and a span with
+the suit in the top left. The HTMLContainer component is a helpful wrapper that the tldraw library
+exports, it's a div that comes with a css class.
 
-	[a] We can use the useIsEditing hook to check if the shape is in the editing state. If it is,
-	    we want our shape to render differently.
-	
-	[b] The HTML container is a really handy wrapper for custom shapes, it essentially creates a
-		div with some helpful css for you. We can use the isEditing variable to conditionally
-		render the shape. We also use the useState hook to toggle between a cat and a dog.
 
 [8]
-The indicator method is the blue box that appears around the shape when it's selected. We can 
-make it appear red if the shape is in the editing state by using the useIsEditing hook.
+The indicator method is the blue box that appears around the shape when it's selected. We can return
+jsx here. In this case we're just returning an svg rect with the width and height of the shape.
 
 [9]
 The onResize method is where we handle the resizing of the shape. We use the resizeBox helper
 to handle the resizing for us.
-
-[10]
-The onEditEnd method is called when the shape exits the editing state. In the tldraw codebase we 
-mostly use this for trimming text fields in shapes. In this case, we use it to animate the shape
-when it exits the editing state.
 
 */
