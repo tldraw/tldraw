@@ -353,11 +353,9 @@ function ShapesToDisplay() {
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
-	const selectedShapeIds = useValue(
-		'selectedShapeIds',
-		() => editor.getCurrentPageState().selectedShapeIds,
-		[editor]
-	)
+	const selectedShapeIds = useValue('selectedShapeIds', () => editor.getSelectedShapeIds(), [
+		editor,
+	])
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {

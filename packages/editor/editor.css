@@ -416,11 +416,12 @@ input,
 }
 
 .tl-user-indicator__hint {
+	/* Above other indicators, below handles / controls */
 	z-index: 75;
 }
 
 .tl-user-indicator__hint > .tl-shape-indicator {
-	stroke-width: calc(2.5px * var(--tl-scale));
+	stroke-width: calc(3px * var(--tl-scale));
 }
 
 /* ------------------ Collaborator ------------------ */

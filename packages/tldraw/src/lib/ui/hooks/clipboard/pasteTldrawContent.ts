@@ -20,6 +20,6 @@ export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?:
 	editor.setHintingShapes(shapeIds)
 	setTimeout(() => {
 		editor.setHintingShapes([])
-	}, 150)
+	}, 250)
 	editor.emit('event', { type: 'misc', name: 'paste' })
 }
