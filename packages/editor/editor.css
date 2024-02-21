@@ -405,6 +405,11 @@ input,
 	z-index: 100;
 }
 
+.tl-user-indicator__hint {
+	z-index: 110;
+	stroke-width: calc(2.5px * var(--tl-scale));
+}
+
 .tl-cursor {
 	overflow: visible;
 }
@@ -416,11 +421,6 @@ input,
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
 	contain: size;
-}
-
-.tl-user-indicator__hint {
-	z-index: 110;
-	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* behind collaborator cursor */
