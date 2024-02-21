@@ -4,10 +4,13 @@ import {
 	Polyline2d,
 	TLAnyShapeUtilConstructor,
 	TLBaseShape,
+	TLHandle,
 	TLLineShape,
+	TLOnHandleDragHandler,
 	TLShapeId,
 	Vec,
 	VecModel,
+	ZERO_INDEX_KEY,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -165,14 +168,25 @@ describe('custom handle snapping', () => {
 		{
 			w: number
 			h: number
+			ownHandle: VecModel
 			handleOutline: VecModel[] | 'default' | null
-			handlePoints: 'default' | VecModel[]
+			handlePoints: VecModel[] | 'default'
+			selfSnapOutline: VecModel[] | 'default'
+			selfSnapPoints: VecModel[] | 'default'
 		}
 	>
 	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
 		static override type = 'test'
 		override getDefaultProps(): TestShape['props'] {
-			return { w: 100, h: 100, handleOutline: 'default', handlePoints: 'default' }
+			return {
+				w: 100,
+				h: 100,
+				ownHandle: { x: 0, y: 0 },
+				handleOutline: 'default',
+				handlePoints: 'default',
+				selfSnapOutline: 'default',
+				selfSnapPoints: 'default',
+			}
 		}
 		override component() {
 			throw new Error('Method not implemented.')
@@ -181,7 +195,7 @@ describe('custom handle snapping', () => {
 			throw new Error('Method not implemented.')
 		}
 		override getHandleSnapGeometry(shape: TestShape) {
-			const { handleOutline, handlePoints } = shape.props
+			const { handleOutline, handlePoints, selfSnapOutline, selfSnapPoints } = shape.props
 			return {
 				outline:
 					handleOutline === 'default'
@@ -190,7 +204,28 @@ describe('custom handle snapping', () => {
 							? null
 							: new Polyline2d({ points: handleOutline.map(Vec.From) }),
 				points: handlePoints === 'default' ? undefined : handlePoints,
+
+				getSelfSnapOutline:
+					selfSnapOutline === 'default'
+						? undefined
+						: () => new Polyline2d({ points: selfSnapOutline.map(Vec.From) }),
+				getSelfSnapPoints: selfSnapPoints === 'default' ? undefined : () => selfSnapPoints,
 			}
+		}
+		override getHandles(shape: TestShape): TLHandle[] {
+			return [
+				{
+					id: 'handle',
+					type: 'vertex',
+					x: shape.props.ownHandle.x,
+					y: shape.props.ownHandle.y,
+					index: ZERO_INDEX_KEY,
+					canSnap: true,
+				},
+			]
+		}
+		override onHandleDrag: TLOnHandleDragHandler<TestShape> = (shape, { handle }) => {
+			return { ...shape, props: { ...shape.props, ownHandle: { x: handle.x, y: handle.y } } }
 		}
 	}
 	const shapeUtils = [TestShapeUtil] as TLAnyShapeUtilConstructor[]
@@ -204,9 +239,9 @@ describe('custom handle snapping', () => {
 				ref="line"
 				x={0}
 				y={0}
-				handles={{
-					['a1' as IndexKey]: { x: 0, y: 0 },
-					['a2' as IndexKey]: { x: 100, y: 100 },
+				points={{
+					a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
 				}}
 			/>,
 			<TL.test ref="test" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
@@ -376,6 +411,88 @@ describe('custom handle snapping', () => {
 			// snaps to the edge:
 			expect(editor.snaps.getIndicators()).toHaveLength(1)
 			expect(handlePosition()).toMatchObject({ x: 235, y: 200 })
+		})
+	})
+
+	describe('self snapping', () => {
+		beforeEach(() => {
+			editor.deleteShape(ids.line)
+			editor.updateShape<TestShape>({
+				id: ids.test,
+				type: 'test',
+				x: 0,
+				y: 0,
+				props: {
+					handlePoints: [{ x: 0, y: 0 }],
+				},
+			})
+		})
+		function startDraggingOwnHandle() {
+			const shape = editor.select(ids.test).getOnlySelectedShape()!
+			const handles = editor.getShapeHandles(shape)!
+			editor.pointerDown(0, 0, { target: 'handle', shape, handle: handles[0] })
+		}
+		function ownHandlePosition() {
+			const shape = editor.select(ids.test).getOnlySelectedShape()!
+			const handle = editor.getShapeHandles(shape)![0]
+			return { x: handle.x, y: handle.y }
+		}
+		describe('by default', () => {
+			test('does not snap to standard outline', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(3, 50, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(0)
+				expect(ownHandlePosition()).toMatchObject({ x: 3, y: 50 })
+			})
+			test('does not snap to standard points', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(3, 3, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(0)
+				expect(ownHandlePosition()).toMatchObject({ x: 3, y: 3 })
+			})
+		})
+		describe('with custom self snap outline & points', () => {
+			beforeEach(() => {
+				editor.updateShape<TestShape>({
+					id: ids.test,
+					type: 'test',
+					props: {
+						selfSnapOutline: [
+							{ x: 20, y: 50 },
+							{ x: 80, y: 50 },
+						],
+						selfSnapPoints: [
+							{ x: 20, y: 50 },
+							{ x: 80, y: 50 },
+						],
+					},
+				})
+			})
+
+			test('does not snap to standard outline', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(3, 50, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(0)
+				expect(ownHandlePosition()).toMatchObject({ x: 3, y: 50 })
+			})
+			test('does not snap to standard points', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(3, 3, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(0)
+				expect(ownHandlePosition()).toMatchObject({ x: 3, y: 3 })
+			})
+			test('snaps to the self-snap outline', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(50, 55, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(1)
+				expect(ownHandlePosition()).toMatchObject({ x: 50, y: 50 })
+			})
+			test('snaps to the self-snap points', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(23, 55, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(1)
+				expect(ownHandlePosition()).toMatchObject({ x: 20, y: 50 })
+			})
 		})
 	})
 })

@@ -1,12 +1,12 @@
 import {
 	DefaultSelectionBackground,
-	TLSelectionBackgroundComponent,
+	TLSelectionBackgroundProps,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
 
 /** @public */
-export const TldrawSelectionBackground: TLSelectionBackgroundComponent = ({ bounds, rotation }) => {
+export const TldrawSelectionBackground = ({ bounds, rotation }: TLSelectionBackgroundProps) => {
 	const editor = useEditor()
 
 	const shouldDisplay = useValue(

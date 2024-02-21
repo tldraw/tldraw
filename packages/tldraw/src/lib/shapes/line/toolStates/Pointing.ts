@@ -1,5 +1,4 @@
 import {
-	IndexKey,
 	Mat,
 	StateNode,
 	TLEventHandlers,
@@ -7,7 +6,6 @@ import {
 	TLLineShape,
 	TLShapeId,
 	Vec,
-	VecModel,
 	createShapeId,
 	getIndexAbove,
 	last,
@@ -51,39 +49,37 @@ export class Pointing extends StateNode {
 				new Vec(this.shape.x, this.shape.y)
 			)
 
-			let nextEndHandleIndex: IndexKey, nextEndHandle: VecModel
-
-			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint)
+			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
+			const points = structuredClone(this.shape.props.points)
 
 			if (
 				Vec.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES ||
 				Vec.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
 			) {
-				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
-				nextEndHandleIndex = endHandle.index
-				nextEndHandle = {
-					x: nextPoint.x + 0.1,
-					y: nextPoint.y + 0.1,
+				// Don't add a new point if the distance between the last two points is too small
+				points[endHandle.id] = {
+					id: endHandle.id,
+					index: endHandle.index,
+					x: nextPoint.x,
+					y: nextPoint.y,
 				}
 			} else {
-				// Otherwise, we'll create a new end handle
-				nextEndHandleIndex = getIndexAbove(endHandle.index)
-				nextEndHandle = {
-					x: nextPoint.x + 0.1,
-					y: nextPoint.y + 0.1,
+				// Add a new point
+				const nextIndex = getIndexAbove(endHandle.index)
+				points[nextIndex] = {
+					id: nextIndex,
+					index: nextIndex,
+					x: nextPoint.x,
+					y: nextPoint.y,
 				}
 			}
-
-			const nextHandles = structuredClone(this.shape.props.handles)
-
-			nextHandles[nextEndHandleIndex] = nextEndHandle
 
 			this.editor.updateShapes([
 				{
 					id: this.shape.id,
 					type: this.shape.type,
 					props: {
-						handles: nextHandles,
+						points,
 					},
 				},
 			])
@@ -112,7 +108,6 @@ export class Pointing extends StateNode {
 
 		if (this.editor.inputs.isDragging) {
 			const handles = this.editor.getShapeHandles(this.shape)
-			console
 			if (!handles) {
 				if (this.markId) this.editor.bailToMark(this.markId)
 				throw Error('No handles found')

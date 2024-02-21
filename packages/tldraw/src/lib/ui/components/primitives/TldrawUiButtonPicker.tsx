@@ -25,10 +25,7 @@ export interface TLUiButtonPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-/** @public */
-export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends string>(
-	props: TLUiButtonPickerProps<T>
-) {
+function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>) {
 	const {
 		uiType,
 		items,
@@ -99,7 +96,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 	)
 
 	return (
-		<div className={classNames('tlui-buttons__grid')}>
+		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>
 			{items.map((item) => (
 				<TldrawUiButton
 					type="icon"
@@ -125,4 +122,6 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			))}
 		</div>
 	)
-})
+}
+/** @public */
+export const TldrawUiButtonPicker = memo(_TldrawUiButtonPicker) as typeof _TldrawUiButtonPicker

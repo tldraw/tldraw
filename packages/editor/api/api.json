@@ -4200,56 +4200,6 @@
           "name": "canonicalizeRotation"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!Canvas:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function Canvas({ className }: "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    className?: string;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/Canvas.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ className }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "Canvas"
-        },
-        {
           "kind": "Class",
           "canonicalReference": "@tldraw/editor!Circle2d:class",
           "docComment": "/**\n * @public\n */\n",
@@ -6146,9 +6096,22 @@
               "text": "DefaultBrush: "
             },
             {
+              "kind": "Content",
+              "text": "({ brush, color, opacity, className }: "
+            },
+            {
               "kind": "Reference",
-              "text": "TLBrushComponent",
-              "canonicalReference": "@tldraw/editor!TLBrushComponent:type"
+              "text": "TLBrushProps",
+              "canonicalReference": "@tldraw/editor!TLBrushProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultBrush.tsx",
@@ -6157,32 +6120,110 @@
           "name": "DefaultBrush",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 5
           }
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultCollaboratorHint:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultCanvas:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultCollaboratorHint: "
+              "text": "export declare function DefaultCanvas({ className }: "
             },
             {
               "kind": "Reference",
-              "text": "TLCollaboratorHintComponent",
-              "canonicalReference": "@tldraw/editor!TLCollaboratorHintComponent:type"
+              "text": "TLCanvasComponentProps",
+              "canonicalReference": "@tldraw/editor!~TLCanvasComponentProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultCanvas.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultCanvas"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultCollaboratorHint:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity, }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCollaboratorHintProps",
+              "canonicalReference": "@tldraw/editor!TLCollaboratorHintProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultCollaboratorHint.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
           "releaseTag": "Public",
-          "name": "DefaultCollaboratorHint",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, zoom, point, color, viewport, opacity, }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultCollaboratorHint"
         },
         {
           "kind": "Variable",
@@ -6204,16 +6245,16 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    className?: string | undefined;\n    point: null | "
+              "text": "<"
             },
             {
               "kind": "Reference",
-              "text": "VecModel",
-              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+              "text": "TLCursorProps",
+              "canonicalReference": "@tldraw/editor!TLCursorProps:type"
             },
             {
               "kind": "Content",
-              "text": ";\n    zoom: number;\n    color?: string | undefined;\n    name: null | string;\n    chatMessage: string;\n}>"
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultCursor.tsx",
@@ -6250,52 +6291,106 @@
           }
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultGrid:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultGrid:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultGrid: "
+              "text": "export declare function DefaultGrid({ x, y, z, size }: "
             },
             {
               "kind": "Reference",
-              "text": "TLGridComponent",
-              "canonicalReference": "@tldraw/editor!TLGridComponent:type"
+              "text": "TLGridProps",
+              "canonicalReference": "@tldraw/editor!TLGridProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultGrid.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
           "releaseTag": "Public",
-          "name": "DefaultGrid",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ x, y, z, size }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultGrid"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultHandle:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultHandle:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultHandle: "
+              "text": "export declare function DefaultHandle({ handle, isCoarse, className, zoom }: "
             },
             {
               "kind": "Reference",
-              "text": "TLHandleComponent",
-              "canonicalReference": "@tldraw/editor!TLHandleComponent:type"
+              "text": "TLHandleProps",
+              "canonicalReference": "@tldraw/editor!TLHandleProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultHandle.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
           "releaseTag": "Public",
-          "name": "DefaultHandle",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ handle, isCoarse, className, zoom }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultHandle"
         },
         {
           "kind": "Variable",
@@ -6307,9 +6402,22 @@
               "text": "DefaultHandles: "
             },
             {
+              "kind": "Content",
+              "text": "({ children }: "
+            },
+            {
               "kind": "Reference",
-              "text": "TLHandlesComponent",
-              "canonicalReference": "@tldraw/editor!TLHandlesComponent:type"
+              "text": "TLHandlesProps",
+              "canonicalReference": "@tldraw/editor!TLHandlesProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultHandles.tsx",
@@ -6318,152 +6426,345 @@
           "name": "DefaultHandles",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 5
           }
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultHoveredShapeIndicator:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultHoveredShapeIndicator:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultHoveredShapeIndicator: "
+              "text": "export declare function DefaultHoveredShapeIndicator({ shapeId }: "
             },
             {
               "kind": "Reference",
-              "text": "TLHoveredShapeIndicatorComponent",
-              "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorComponent:type"
+              "text": "TLHoveredShapeIndicatorProps",
+              "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultHoveredShapeIndicator.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
           "releaseTag": "Public",
-          "name": "DefaultHoveredShapeIndicator",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ shapeId }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultHoveredShapeIndicator"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultScribble:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultScribble:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultScribble: "
+              "text": "export declare function DefaultScribble({ scribble, zoom, color, opacity, className }: "
             },
             {
               "kind": "Reference",
-              "text": "TLScribbleComponent",
-              "canonicalReference": "@tldraw/editor!TLScribbleComponent:type"
+              "text": "TLScribbleProps",
+              "canonicalReference": "@tldraw/editor!TLScribbleProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultScribble.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
           "releaseTag": "Public",
-          "name": "DefaultScribble",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ scribble, zoom, color, opacity, className }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultScribble"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultSelectionBackground:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultSelectionBackground:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultSelectionBackground: "
+              "text": "export declare function DefaultSelectionBackground({ bounds, rotation }: "
             },
             {
               "kind": "Reference",
-              "text": "TLSelectionBackgroundComponent",
-              "canonicalReference": "@tldraw/editor!TLSelectionBackgroundComponent:type"
+              "text": "TLSelectionBackgroundProps",
+              "canonicalReference": "@tldraw/editor!TLSelectionBackgroundProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSelectionBackground.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
           "releaseTag": "Public",
-          "name": "DefaultSelectionBackground",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ bounds, rotation }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultSelectionBackground"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultSelectionForeground:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultSelectionForeground:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultSelectionForeground: "
+              "text": "export declare function DefaultSelectionForeground({ bounds, rotation }: "
             },
             {
               "kind": "Reference",
-              "text": "TLSelectionForegroundComponent",
-              "canonicalReference": "@tldraw/editor!TLSelectionForegroundComponent:type"
+              "text": "TLSelectionForegroundProps",
+              "canonicalReference": "@tldraw/editor!TLSelectionForegroundProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSelectionForeground.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
           "releaseTag": "Public",
-          "name": "DefaultSelectionForeground",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ bounds, rotation }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultSelectionForeground"
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultSnapIndicator:var",
+          "canonicalReference": "@tldraw/editor!DefaultShapeIndicator:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultSnapIndicator: "
+              "text": "DefaultShapeIndicator: "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
             },
             {
               "kind": "Reference",
-              "text": "TLSnapIndicatorComponent",
-              "canonicalReference": "@tldraw/editor!TLSnapIndicatorComponent:type"
+              "text": "NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeIndicatorProps",
+              "canonicalReference": "@tldraw/editor!TLShapeIndicatorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultShapeIndicator.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DefaultShapeIndicator",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
+          }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultSnapIndicator:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultSnapIndicator({ className, line, zoom }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSnapIndicatorProps",
+              "canonicalReference": "@tldraw/editor!TLSnapIndicatorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSnapIndictor.tsx",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
           "releaseTag": "Public",
-          "name": "DefaultSnapIndicator",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ className, line, zoom }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultSnapIndicator"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultSpinner:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultSpinner:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultSpinner: "
+              "text": "export declare function DefaultSpinner(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
             },
             {
               "kind": "Reference",
-              "text": "TLSpinnerComponent",
-              "canonicalReference": "@tldraw/editor!TLSpinnerComponent:type"
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSpinner.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "DefaultSpinner",
-          "variableTypeTokenRange": {
+          "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
-          }
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DefaultSpinner"
         },
         {
           "kind": "Variable",
@@ -11234,7 +11535,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPageShapeIds:member(1)",
-              "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')\n * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Get the ids of shapes on a page.\n *\n * @param page - The page (or page id) to get.\n *\n * @example\n * ```ts\n * const idsOnPage1 = editor.getPageShapeIds('page1')\n * const idsOnPage2 = editor.getPageShapeIds(myPage2)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -12611,81 +12912,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getShapeMaskedPageBounds"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getShapeOutlineSegments:member(1)",
-              "docComment": "/**\n * Get the local outline segments of a shape.\n *\n * @param shape - The shape (or shape id) to get the outline segments for.\n *\n * @example\n * ```ts\n * editor.getShapeOutlineSegments(myShape)\n * editor.getShapeOutlineSegments(myShapeId)\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getShapeOutlineSegments<T extends "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">(shape: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "T | T['id']"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[][]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "typeParameters": [
-                {
-                  "typeParameterName": "T",
-                  "constraintTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "defaultTypeTokenRange": {
-                    "startIndex": 0,
-                    "endIndex": 0
-                  }
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 7
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getShapeOutlineSegments"
             },
             {
               "kind": "Method",
@@ -17432,7 +17658,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "setStyleForSelectedShapes<T>(style: "
+                  "text": "setStyleForSelectedShapes<S extends "
                 },
                 {
                   "kind": "Reference",
@@ -17441,15 +17667,28 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<T>"
+                  "text": "<any>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(style: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "S"
                 },
                 {
                   "kind": "Content",
                   "text": ", value: "
                 },
                 {
+                  "kind": "Reference",
+                  "text": "StylePropValue",
+                  "canonicalReference": "@tldraw/tlschema!StylePropValue:type"
+                },
+                {
                   "kind": "Content",
-                  "text": "T"
+                  "text": "<S>"
                 },
                 {
                   "kind": "Content",
@@ -17475,10 +17714,10 @@
               ],
               "typeParameters": [
                 {
-                  "typeParameterName": "T",
+                  "typeParameterName": "S",
                   "constraintTokenRange": {
-                    "startIndex": 0,
-                    "endIndex": 0
+                    "startIndex": 1,
+                    "endIndex": 3
                   },
                   "defaultTypeTokenRange": {
                     "startIndex": 0,
@@ -17488,8 +17727,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 8,
-                "endIndex": 9
+                "startIndex": 11,
+                "endIndex": 12
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -17498,24 +17737,24 @@
                 {
                   "parameterName": "style",
                   "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 3
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "value",
-                  "parameterTypeTokenRange": {
                     "startIndex": 4,
                     "endIndex": 5
                   },
                   "isOptional": false
                 },
                 {
-                  "parameterName": "historyOptions",
+                  "parameterName": "value",
                   "parameterTypeTokenRange": {
                     "startIndex": 6,
-                    "endIndex": 7
+                    "endIndex": 8
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "historyOptions",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 9,
+                    "endIndex": 10
                   },
                   "isOptional": true
                 }
@@ -18037,7 +18276,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<unknown>, string>;\n    }"
+                  "text": "<any>, string>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -19171,7 +19410,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToBounds:member(1)",
-              "docComment": "/**\n * Zoom the camera to fit a bounding box (in the current page space).\n *\n * @param bounds - The bounding box.\n *\n * @param targetZoom - The desired zoom level. Defaults to 0.1.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds, 1)\n * editor.zoomToBounds(myBounds, 1, { duration: 100 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera to fit a bounding box (in the current page space).\n *\n * @param bounds - The bounding box.\n *\n * @param options - The options for an animation, target zoom, or custom inset amount.\n *\n * @example\n * ```ts\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds, { duration: 100 })\n * editor.zoomToBounds(myBounds, { inset: 0, targetZoom: 1 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19184,15 +19423,11 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", targetZoom?: "
+                  "text": ", opts?: "
                 },
                 {
                   "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", animation?: "
+                  "text": "{\n        targetZoom?: number;\n        inset?: number;\n    } & "
                 },
                 {
                   "kind": "Reference",
@@ -19214,8 +19449,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 7,
-                "endIndex": 8
+                "startIndex": 6,
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -19230,18 +19465,10 @@
                   "isOptional": false
                 },
                 {
-                  "parameterName": "targetZoom",
+                  "parameterName": "opts",
                   "parameterTypeTokenRange": {
                     "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": true
-                },
-                {
-                  "parameterName": "animation",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 5,
-                    "endIndex": 6
+                    "endIndex": 5
                   },
                   "isOptional": true
                 }
@@ -23020,6 +23247,108 @@
           "name": "HandleSnapGeometry",
           "preserveMemberOrder": false,
           "members": [
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/editor!HandleSnapGeometry#getSelfSnapOutline:member(1)",
+              "docComment": "/**\n * By default, handles can't snap to their own shape because moving the handle might change the snapping location which can cause feedback loops. You can override this by returning a version of `outline` that won't be affected by the current handle's position to use for self-snapping.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelfSnapOutline?(handle: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Geometry2d",
+                  "canonicalReference": "@tldraw/editor!Geometry2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "handle",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getSelfSnapOutline"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/editor!HandleSnapGeometry#getSelfSnapPoints:member(1)",
+              "docComment": "/**\n * By default, handles can't snap to their own shape because moving the handle might change the snapping location which can cause feedback loops. You can override this by returning a version of `points` that won't be affected by the current handle's position to use for self-snapping.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelfSnapPoints?(handle: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "handle",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getSelfSnapPoints"
+            },
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!HandleSnapGeometry#outline:member",
@@ -28207,7 +28536,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<unknown>, "
+                  "text": "<any>, "
                 },
                 {
                   "kind": "Reference",
@@ -28316,7 +28645,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<unknown>, "
+                  "text": "<any>, "
                 },
                 {
                   "kind": "Reference",
@@ -28556,7 +28885,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<unknown>>"
+                  "text": "<any>>"
                 },
                 {
                   "kind": "Content",
@@ -29651,43 +29980,6 @@
           "name": "setUserPreferences"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!ShapeIndicator:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "ShapeIndicator: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.NamedExoticComponent",
-              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<{\n    id: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShapeId",
-              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    color?: string | undefined;\n    opacity?: number | undefined;\n    className?: string | undefined;\n}>"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/ShapeIndicator.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "ShapeIndicator",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 5
-          }
-        },
-        {
           "kind": "Class",
           "canonicalReference": "@tldraw/editor!ShapeUtil:class",
           "docComment": "/**\n * @public\n */\n",
@@ -30525,59 +30817,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getHandleSnapGeometry"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#getOutlineSegments:member(1)",
-              "docComment": "/**\n * Get an array of outline segments for the shape. For most shapes, this will be a single segment that includes the entire outline. For shapes with handles, this might be segments of the outline between each handle.\n *\n * @param shape - The shape.\n *\n * @example\n * ```ts\n * util.getOutlineSegments(myShape)\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getOutlineSegments(shape: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "Shape"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[][]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getOutlineSegments"
             },
             {
               "kind": "Property",
@@ -34215,6 +34454,33 @@
                 }
               ],
               "name": "addExportDef"
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!SvgExportContext#isDarkMode:member",
+              "docComment": "/**\n * Whether the export should be in dark mode.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly isDarkMode: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isDarkMode",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
             }
           ],
           "extendsTokenRanges": []
@@ -34899,33 +35165,6 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLBackgroundComponent:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLBackgroundComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultBackground.tsx",
-          "releaseTag": "Public",
-          "name": "TLBackgroundComponent",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
-          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLBaseBoxShape:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -35254,21 +35493,16 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLBrushComponent:type",
+          "canonicalReference": "@tldraw/editor!TLBrushProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLBrushComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLBrushProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    brush: "
+              "text": "{\n    brush: "
             },
             {
               "kind": "Reference",
@@ -35277,7 +35511,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    color?: string;\n    opacity?: number;\n    className?: string;\n}>"
+              "text": ";\n    color?: string;\n    opacity?: number;\n    className?: string;\n}"
             },
             {
               "kind": "Content",
@@ -35286,10 +35520,10 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultBrush.tsx",
           "releaseTag": "Public",
-          "name": "TLBrushComponent",
+          "name": "TLBrushProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
+            "endIndex": 4
           }
         },
         {
@@ -35470,21 +35704,16 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLCollaboratorHintComponent:type",
+          "canonicalReference": "@tldraw/editor!TLCollaboratorHintProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLCollaboratorHintComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLCollaboratorHintProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    className?: string;\n    point: "
+              "text": "{\n    className?: string;\n    point: "
             },
             {
               "kind": "Reference",
@@ -35502,7 +35731,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    zoom: number;\n    opacity?: number;\n    color: string;\n}>"
+              "text": ";\n    zoom: number;\n    opacity?: number;\n    color: string;\n}"
             },
             {
               "kind": "Content",
@@ -35511,10 +35740,10 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultCollaboratorHint.tsx",
           "releaseTag": "Public",
-          "name": "TLCollaboratorHintComponent",
+          "name": "TLCollaboratorHintProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 7
+            "endIndex": 6
           }
         },
         {
@@ -35866,21 +36095,16 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLCursorComponent:type",
+          "canonicalReference": "@tldraw/editor!TLCursorProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLCursorComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLCursorProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    className?: string;\n    point: null | "
+              "text": "{\n    className?: string;\n    point: null | "
             },
             {
               "kind": "Reference",
@@ -35889,7 +36113,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    zoom: number;\n    color?: string;\n    name: null | string;\n    chatMessage: string;\n}>"
+              "text": ";\n    zoom: number;\n    color?: string;\n    name: null | string;\n    chatMessage: string;\n}"
             },
             {
               "kind": "Content",
@@ -35898,10 +36122,10 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultCursor.tsx",
           "releaseTag": "Public",
-          "name": "TLCursorComponent",
+          "name": "TLCursorProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
+            "endIndex": 4
           }
         },
         {
@@ -37983,21 +38207,16 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLGridComponent:type",
+          "canonicalReference": "@tldraw/editor!TLGridProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLGridComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLGridProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    x: number;\n    y: number;\n    z: number;\n    size: number;\n}>"
+              "text": "{\n    x: number;\n    y: number;\n    z: number;\n    size: number;\n}"
             },
             {
               "kind": "Content",
@@ -38006,29 +38225,24 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultGrid.tsx",
           "releaseTag": "Public",
-          "name": "TLGridComponent",
+          "name": "TLGridProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 2
           }
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLHandleComponent:type",
+          "canonicalReference": "@tldraw/editor!TLHandleProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLHandleComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLHandleProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    shapeId: "
+              "text": "{\n    shapeId: "
             },
             {
               "kind": "Reference",
@@ -38046,7 +38260,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    zoom: number;\n    isCoarse: boolean;\n    className?: string;\n}>"
+              "text": ";\n    zoom: number;\n    isCoarse: boolean;\n    className?: string;\n}"
             },
             {
               "kind": "Content",
@@ -38055,29 +38269,24 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultHandle.tsx",
           "releaseTag": "Public",
-          "name": "TLHandleComponent",
+          "name": "TLHandleProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 7
+            "endIndex": 6
           }
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLHandlesComponent:type",
+          "canonicalReference": "@tldraw/editor!TLHandlesProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLHandlesComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLHandlesProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    className?: string;\n    children: any;\n}>"
+              "text": "{\n    children: any;\n}"
             },
             {
               "kind": "Content",
@@ -38086,10 +38295,10 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultHandles.tsx",
           "releaseTag": "Public",
-          "name": "TLHandlesComponent",
+          "name": "TLHandlesProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 2
           }
         },
         {
@@ -38156,21 +38365,16 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorComponent:type",
+          "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLHoveredShapeIndicatorComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLHoveredShapeIndicatorProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    shapeId: "
+              "text": "{\n    shapeId: "
             },
             {
               "kind": "Reference",
@@ -38179,7 +38383,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}>"
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -38188,41 +38392,10 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultHoveredShapeIndicator.tsx",
           "releaseTag": "Public",
-          "name": "TLHoveredShapeIndicatorComponent",
+          "name": "TLHoveredShapeIndicatorProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLInFrontOfTheCanvas:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLInFrontOfTheCanvas = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<object>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultInFrontOfTheCanvas.tsx",
-          "releaseTag": "Public",
-          "name": "TLInFrontOfTheCanvas",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           }
         },
         {
@@ -39287,37 +39460,6 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLOnTheCanvas:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLOnTheCanvas = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<object>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultOnTheCanvas.tsx",
-          "releaseTag": "Public",
-          "name": "TLOnTheCanvas",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          }
-        },
-        {
-          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLOnTranslateEndHandler:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -40057,21 +40199,16 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLScribbleComponent:type",
+          "canonicalReference": "@tldraw/editor!TLScribbleProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLScribbleComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLScribbleProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    scribble: "
+              "text": "{\n    scribble: "
             },
             {
               "kind": "Reference",
@@ -40080,7 +40217,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    zoom: number;\n    color?: string;\n    opacity?: number;\n    className?: string;\n}>"
+              "text": ";\n    zoom: number;\n    color?: string;\n    opacity?: number;\n    className?: string;\n}"
             },
             {
               "kind": "Content",
@@ -40089,29 +40226,24 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultScribble.tsx",
           "releaseTag": "Public",
-          "name": "TLScribbleComponent",
+          "name": "TLScribbleProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
+            "endIndex": 4
           }
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLSelectionBackgroundComponent:type",
+          "canonicalReference": "@tldraw/editor!TLSelectionBackgroundProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLSelectionBackgroundComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLSelectionBackgroundProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    bounds: "
+              "text": "{\n    bounds: "
             },
             {
               "kind": "Reference",
@@ -40120,7 +40252,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    rotation: number;\n}>"
+              "text": ";\n    rotation: number;\n}"
             },
             {
               "kind": "Content",
@@ -40129,29 +40261,24 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSelectionBackground.tsx",
           "releaseTag": "Public",
-          "name": "TLSelectionBackgroundComponent",
+          "name": "TLSelectionBackgroundProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
+            "endIndex": 4
           }
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLSelectionForegroundComponent:type",
+          "canonicalReference": "@tldraw/editor!TLSelectionForegroundProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLSelectionForegroundComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLSelectionForegroundProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    bounds: "
+              "text": "{\n    bounds: "
             },
             {
               "kind": "Reference",
@@ -40160,7 +40287,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    rotation: number;\n}>"
+              "text": ";\n    rotation: number;\n}"
             },
             {
               "kind": "Content",
@@ -40169,10 +40296,10 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSelectionForeground.tsx",
           "releaseTag": "Public",
-          "name": "TLSelectionForegroundComponent",
+          "name": "TLSelectionForegroundProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
+            "endIndex": 4
           }
         },
         {
@@ -40489,21 +40616,16 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLShapeIndicatorComponent:type",
+          "canonicalReference": "@tldraw/editor!TLShapeIndicatorProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLShapeIndicatorComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLShapeIndicatorProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    id: "
+              "text": "{\n    shapeId: "
             },
             {
               "kind": "Reference",
@@ -40512,19 +40634,19 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    color?: string | undefined;\n    opacity?: number;\n    className?: string;\n}>"
+              "text": ";\n    color?: string | undefined;\n    opacity?: number;\n    className?: string;\n}"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/components/ShapeIndicator.tsx",
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultShapeIndicator.tsx",
           "releaseTag": "Public",
-          "name": "TLShapeIndicatorComponent",
+          "name": "TLShapeIndicatorProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
+            "endIndex": 4
           }
         },
         {
@@ -40849,21 +40971,16 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLSnapIndicatorComponent:type",
+          "canonicalReference": "@tldraw/editor!TLSnapIndicatorProps:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLSnapIndicatorComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "export type TLSnapIndicatorProps = "
             },
             {
               "kind": "Content",
-              "text": "<{\n    className?: string;\n    line: "
+              "text": "{\n    className?: string;\n    line: "
             },
             {
               "kind": "Reference",
@@ -40872,7 +40989,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    zoom: number;\n}>"
+              "text": ";\n    zoom: number;\n}"
             },
             {
               "kind": "Content",
@@ -40881,41 +40998,10 @@
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSnapIndictor.tsx",
           "releaseTag": "Public",
-          "name": "TLSnapIndicatorComponent",
+          "name": "TLSnapIndicatorProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLSpinnerComponent:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLSpinnerComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<object>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSpinner.tsx",
-          "releaseTag": "Public",
-          "name": "TLSpinnerComponent",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           }
         },
         {
@@ -41268,33 +41354,6 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 10
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLSvgDefsComponent:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLSvgDefsComponent = "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/.tsbuild-api/lib/components/default-components/DefaultSvgDefs.d.ts",
-          "releaseTag": "Public",
-          "name": "TLSvgDefsComponent",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
           }
         },
         {
@@ -42112,6 +42171,431 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useEditor"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!useEditorComponents:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useEditorComponents(): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    Background: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    SvgDefs: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    Brush: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBrushProps",
+              "canonicalReference": "@tldraw/editor!TLBrushProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    ZoomBrush: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBrushProps",
+              "canonicalReference": "@tldraw/editor!TLBrushProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    ShapeIndicator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeIndicatorProps",
+              "canonicalReference": "@tldraw/editor!TLShapeIndicatorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    Cursor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCursorProps",
+              "canonicalReference": "@tldraw/editor!TLCursorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    Canvas: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCanvasComponentProps",
+              "canonicalReference": "@tldraw/editor!~TLCanvasComponentProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    CollaboratorBrush: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBrushProps",
+              "canonicalReference": "@tldraw/editor!TLBrushProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    CollaboratorCursor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCursorProps",
+              "canonicalReference": "@tldraw/editor!TLCursorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    CollaboratorHint: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLCollaboratorHintProps",
+              "canonicalReference": "@tldraw/editor!TLCollaboratorHintProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    CollaboratorShapeIndicator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeIndicatorProps",
+              "canonicalReference": "@tldraw/editor!TLShapeIndicatorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    Grid: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLGridProps",
+              "canonicalReference": "@tldraw/editor!TLGridProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    Scribble: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLScribbleProps",
+              "canonicalReference": "@tldraw/editor!TLScribbleProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    CollaboratorScribble: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLScribbleProps",
+              "canonicalReference": "@tldraw/editor!TLScribbleProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    SnapIndicator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSnapIndicatorProps",
+              "canonicalReference": "@tldraw/editor!TLSnapIndicatorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    Handles: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLHandlesProps",
+              "canonicalReference": "@tldraw/editor!TLHandlesProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    Handle: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLHandleProps",
+              "canonicalReference": "@tldraw/editor!TLHandleProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    Spinner: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    SelectionForeground: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSelectionForegroundProps",
+              "canonicalReference": "@tldraw/editor!TLSelectionForegroundProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    SelectionBackground: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSelectionBackgroundProps",
+              "canonicalReference": "@tldraw/editor!TLSelectionBackgroundProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    HoveredShapeIndicator: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLHoveredShapeIndicatorProps",
+              "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    OnTheCanvas: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    InFrontOfTheCanvas: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    LoadingScreen: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n} & "
+            },
+            {
+              "kind": "Reference",
+              "text": "ErrorComponents",
+              "canonicalReference": "@tldraw/editor!~ErrorComponents:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> & "
+            },
+            {
+              "kind": "Reference",
+              "text": "ErrorComponents",
+              "canonicalReference": "@tldraw/editor!~ErrorComponents:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/hooks/useEditorComponents.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 90
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useEditorComponents"
         },
         {
           "kind": "Function",

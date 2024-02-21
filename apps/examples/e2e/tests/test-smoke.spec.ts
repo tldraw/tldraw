@@ -1,6 +1,7 @@
-import test, { expect } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { Editor, TLGeoShape } from '@tldraw/tldraw'
 import { getAllShapeTypes, setup } from '../shared-e2e'
+import test from './fixtures/fixtures'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -57,7 +58,7 @@ test.describe('smoke tests', () => {
 		expect(await page.getByTestId('quick-actions.redo').isDisabled()).toBe(true)
 	})
 
-	test('style panel + undo and redo squashing', async ({ page }) => {
+	test('style panel + undo and redo squashing', async ({ page, toolbar }) => {
 		await page.keyboard.press('r')
 		await page.mouse.move(100, 100)
 		await page.mouse.down()
@@ -71,12 +72,11 @@ test.describe('smoke tests', () => {
 		expect(await getSelectedShapeColor()).toBe('black')
 
 		// when on a mobile device...
-		const mobileStylesButton = page.getByTestId('mobile.styles')
-		const hasMobileMenu = await mobileStylesButton.isVisible()
+		const hasMobileMenu = await toolbar.mobileStylesButton.isVisible()
 
 		if (hasMobileMenu) {
 			// open the style menu
-			await page.getByTestId('mobile.styles').click()
+			await toolbar.mobileStylesButton.click()
 		}
 
 		// Click the light-blue color

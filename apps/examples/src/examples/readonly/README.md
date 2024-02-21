@@ -1,5 +1,5 @@
 ---
-title: Readonly
+title: Read-only
 component: ./ReadOnlyExample
 category: basic
 priority: 3

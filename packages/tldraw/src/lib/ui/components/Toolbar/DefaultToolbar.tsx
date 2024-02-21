@@ -150,7 +150,7 @@ export const DefaultToolbar = memo(function DefaultToolbar() {
 											title={msg('tool-panel.more')}
 											type="tool"
 											className="tlui-toolbar__overflow"
-											data-testid="tools.more"
+											data-testid="tools.more-button"
 										>
 											<TldrawUiButtonIcon icon="chevron-up" />
 										</TldrawUiButton>
@@ -181,7 +181,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 	const msg = useTranslation()
 
 	return (
-		<div className="tlui-buttons__grid">
+		<div className="tlui-buttons__grid" data-testid="tools.more-content">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
 				return (
 					<TldrawUiDropdownMenuItem

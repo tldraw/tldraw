@@ -53,6 +53,7 @@
 		}
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27"
+		"lazyrepo": "0.0.0-alpha.27",
+		"lodash.isequal": "^4.5.0"
 	}
 }

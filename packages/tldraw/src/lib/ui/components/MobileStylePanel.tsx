@@ -7,7 +7,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../context/components'
-import { useRelevantStyles } from '../hooks/useRevelantStyles'
+import { useRelevantStyles } from '../hooks/useRelevantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
@@ -22,14 +22,14 @@ export function MobileStylePanel() {
 	const msg = useTranslation()
 
 	const relevantStyles = useRelevantStyles()
-	const color = relevantStyles?.styles.get(DefaultColorStyle)
+	const color = relevantStyles?.get(DefaultColorStyle)
 	const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
 	const currentColor = (
 		color?.type === 'shared' ? theme[color.value as TLDefaultColorStyle] : theme.black
 	).solid
 
 	const disableStylePanel = useValue(
-		'isHandOrEraserToolActive',
+		'disable style panel',
 		() => editor.isInAny('hand', 'zoom', 'eraser', 'laser'),
 		[editor]
 	)
@@ -51,10 +51,12 @@ export function MobileStylePanel() {
 			<TldrawUiPopoverTrigger>
 				<TldrawUiButton
 					type="tool"
+					data-testid="mobile-styles.button"
+					style={{
+						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
+					}}
 					title={msg('style-panel.title')}
-					data-testid="mobile.styles"
 					disabled={disableStylePanel}
-					style={{ color: disableStylePanel ? 'var(--color-muted-1)' : currentColor }}
 				>
 					<TldrawUiButtonIcon
 						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
@@ -62,16 +64,8 @@ export function MobileStylePanel() {
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side="top" align="end">
-				<_StylePanel />
+				{StylePanel && <StylePanel isMobile />}
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>
 	)
-}
-
-function _StylePanel() {
-	const { StylePanel } = useTldrawUiComponents()
-	const relevantStyles = useRelevantStyles()
-
-	if (!StylePanel) return null
-	return <StylePanel relevantStyles={relevantStyles} isMobile />
 }

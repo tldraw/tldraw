@@ -56,7 +56,7 @@ const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	}),
 	records: T.arrayOf(
 		T.object({
-			id: T.string as T.Validator<RecordId<any>>,
+			id: T.string as any as T.Validator<RecordId<any>>,
 			typeName: T.string,
 		}).allowUnknownProperties()
 	),
@@ -296,7 +296,7 @@ export async function parseAndLoadDocument(
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
-			editor.zoomToBounds(bounds, 1)
+			editor.zoomToBounds(bounds, { targetZoom: 1 })
 		}
 		editor.updateInstanceState({ isFocused })
 	})

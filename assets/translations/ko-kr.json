@@ -351,5 +351,8 @@
 	"action.remove-frame": "프레임 삭제",
 	"action.fit-frame-to-content": "콘텐츠에 맞추기",
 	"action.toggle-edge-scrolling.menu": "가장자리 스크롤",
-	"action.toggle-edge-scrolling": "가장자리 스크롤 전환"
+	"action.toggle-edge-scrolling": "가장자리 스크롤 전환",
+	"verticalAlign-style.start": "위",
+	"verticalAlign-style.middle": "중간",
+	"verticalAlign-style.end": "아래"
 }
