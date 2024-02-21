@@ -1,10 +1,12 @@
 import glob from 'fast-glob'
 import { mkdirSync, writeFileSync } from 'fs'
 import { exec } from '../../../scripts/lib/exec'
+import { SPA_ROUTE_FILTER } from '../spaRouteFilter'
 import { Config } from './vercel-output-config'
 
 import { config } from 'dotenv'
 import { nicelog } from '../../../scripts/lib/nicelog'
+
 config({
 	path: './.env.local',
 })
@@ -45,7 +47,7 @@ async function build() {
 					// finally handle SPA routing
 					{
 						check: true,
-						src: '.*',
+						src: SPA_ROUTE_FILTER,
 						dest: '/index.html',
 					},
 				],
