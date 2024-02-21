@@ -10,8 +10,6 @@ import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
-	DeleteGroup,
-	DuplicateMenuItem,
 	EditLinkMenuItem,
 	EmbedsGroup,
 	FitFrameToContentMenuItem,
@@ -45,6 +43,7 @@ export function DefaultMainMenuContent() {
 		<>
 			<FileSubmenu />
 			<EditSubmenu />
+			<ObjectSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
@@ -94,34 +93,64 @@ export function EditSubmenu() {
 		[editor]
 	)
 
-	if (!selectToolActive) return null
-
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="menu.edit">
+		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
-			<ConversionsMenuGroup />
 			<SetSelectionGroup />
-			<SelectionMenuGroup />
-			<EmbedsGroup />
-			<DeleteGroup />
 		</TldrawUiMenuSubmenu>
 	)
 }
 
 /** @public */
-export function SelectionMenuGroup() {
+export function ObjectSubmenu() {
+	const editor = useEditor()
+
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
 	return (
-		<TldrawUiMenuGroup id="selection">
+		<TldrawUiMenuSubmenu id="object" label="menu.object" disabled={!selectToolActive}>
+			<ConversionsMenuGroup />
+			<MultiShapeMenuGroup />
+			<MiscMenuGroup />
+			<EmbedsGroup />
+			<LockGroup />
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/** @public */
+export function MiscMenuGroup() {
+	return (
+		<TldrawUiMenuGroup id="misc">
 			<ToggleAutoSizeMenuItem />
 			<EditLinkMenuItem />
-			<DuplicateMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function LockGroup() {
+	return (
+		<TldrawUiMenuGroup id="lock">
+			<ToggleLockMenuItem />
+			<UnlockAllMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function MultiShapeMenuGroup() {
+	return (
+		<TldrawUiMenuGroup id="multi-shape">
 			<GroupMenuItem />
 			<UngroupMenuItem />
 			<RemoveFrameMenuItem />
 			<FitFrameToContentMenuItem />
-			<ToggleLockMenuItem />
-			<UnlockAllMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
