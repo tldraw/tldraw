@@ -418,26 +418,6 @@ input,
 	contain: size;
 }
 
-.tl-user-indicator__hint {
-	/* Above other indicators, below handles / controls */
-	z-index: 75;
-}
-
-.tl-user-indicator__hint > .tl-shape-indicator {
-	stroke-width: calc(3px * var(--tl-scale));
-}
-
-/* ------------------ Collaborator ------------------ */
-
-/* behind collaborator cursor */
-.tl-collaborator__cursor-hint {
-	z-index: 120;
-}
-
-.tl-collaborator__cursor {
-	z-index: 130;
-}
-
 /* ------------------ SelectionBox ------------------ */
 
 .tl-selection__bg {

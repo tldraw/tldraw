@@ -33793,41 +33793,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!StateNode#onPaste:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onPaste?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLEventHandlers",
-                  "canonicalReference": "@tldraw/editor!TLEventHandlers:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['onPaste']"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onPaste",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#onPointerDown:member",
               "docComment": "",
               "excerptTokens": [
@@ -37226,34 +37191,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!TLEventHandlers#onPaste:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onPaste: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLPasteEvent",
-                  "canonicalReference": "@tldraw/editor!~TLPasteEvent:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onPaste",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEventHandlers#onPointerDown:member",
               "docComment": "",
               "excerptTokens": [
@@ -37507,15 +37444,6 @@
             },
             {
               "kind": "Reference",
-              "text": "TLPasteEventInfo",
-              "canonicalReference": "@tldraw/editor!~TLPasteEventInfo:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | "
-            },
-            {
-              "kind": "Reference",
               "text": "TLPinchEventInfo",
               "canonicalReference": "@tldraw/editor!TLPinchEventInfo:type"
             },
@@ -37547,7 +37475,7 @@
           "name": "TLEventInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 18
+            "endIndex": 16
           }
         },
         {
@@ -38000,7 +37928,7 @@
             },
             {
               "kind": "Content",
-              "text": "'cancel' | 'complete' | 'interrupt' | 'paste' | 'wheel' | "
+              "text": "'cancel' | 'complete' | 'interrupt' | 'wheel' | "
             },
             {
               "kind": "Reference",

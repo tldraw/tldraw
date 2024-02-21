@@ -39,7 +39,6 @@ export type TLEventName =
 	| 'cancel'
 	| 'complete'
 	| 'interrupt'
-	| 'paste'
 
 /** @public */
 export interface TLBaseEventInfo {
@@ -100,8 +99,6 @@ export type TLCancelEventInfo = { type: 'misc'; name: 'cancel' }
 export type TLCompleteEventInfo = { type: 'misc'; name: 'complete' }
 /** @public */
 export type TLInterruptEventInfo = { type: 'misc'; name: 'interrupt' }
-/** @public */
-export type TLPasteEventInfo = { type: 'misc'; name: 'paste' }
 
 /** @public */
 export type TLEventInfo =
@@ -113,7 +110,6 @@ export type TLEventInfo =
 	| TLCancelEventInfo
 	| TLCompleteEventInfo
 	| TLInterruptEventInfo
-	| TLPasteEventInfo
 
 /** @public */
 export type TLPointerEvent = (info: TLPointerEventInfo) => void
@@ -131,8 +127,6 @@ export type TLCancelEvent = (info: TLCancelEventInfo) => void
 export type TLCompleteEvent = (info: TLCompleteEventInfo) => void
 /** @public */
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void
-/** @public */
-export type TLPasteEvent = (info: TLPasteEventInfo) => void
 
 /** @public */
 export type UiEvent =
@@ -167,7 +161,6 @@ export interface TLEventHandlers {
 	onCancel: TLCancelEvent
 	onComplete: TLCompleteEvent
 	onInterrupt: TLInterruptEvent
-	onPaste: TLPasteEvent
 }
 
 /** @public */
@@ -187,7 +180,6 @@ export const EVENT_NAME_MAP: Record<
 	cancel: 'onCancel',
 	complete: 'onComplete',
 	interrupt: 'onInterrupt',
-	paste: 'onPaste',
 	double_click: 'onDoubleClick',
 	triple_click: 'onTripleClick',
 	quadruple_click: 'onQuadrupleClick',
