@@ -42,8 +42,6 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...actions['select-all']} />
 				<TldrawUiMenuItem {...actions['delete']} />
 				<TldrawUiMenuItem {...actions['duplicate']} />
-				<TldrawUiMenuItem {...actions['export-as-svg']} />
-				<TldrawUiMenuItem {...actions['export-as-png']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
 				<TldrawUiMenuItem {...actions['zoom-in']} />
