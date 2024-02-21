@@ -6,9 +6,11 @@
 		"outDir": "./.tsbuild"
 	},
 	"references": [
-		{ "path": "../../packages/tldraw" },
-		{ "path": "../../packages/utils" },
-		{ "path": "../../packages/assets" },
-		{ "path": "../../packages/validate" }
+		{
+			"path": "../../packages/assets"
+		},
+		{
+			"path": "../../packages/tldraw"
+		}
 	]
 }

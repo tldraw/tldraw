@@ -75,6 +75,7 @@ const components: TLComponents = {
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
+			<Links />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {

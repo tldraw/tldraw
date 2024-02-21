@@ -7,6 +7,7 @@ import {
 	TLShapeId,
 	Vec,
 	createShapeId,
+	getIndexAbove,
 	last,
 	sortByIndex,
 	structuredClone,
@@ -56,10 +57,21 @@ export class Pointing extends StateNode {
 				Vec.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
 			) {
 				// Don't add a new point if the distance between the last two points is too small
-				points[points.length - 1] = nextPoint.toJson()
+				points[endHandle.id] = {
+					id: endHandle.id,
+					index: endHandle.index,
+					x: nextPoint.x,
+					y: nextPoint.y,
+				}
 			} else {
 				// Add a new point
-				points.push(nextPoint.toJson())
+				const nextIndex = getIndexAbove(endHandle.index)
+				points[nextIndex] = {
+					id: nextIndex,
+					index: nextIndex,
+					x: nextPoint.x,
+					y: nextPoint.y,
+				}
 			}
 
 			this.editor.updateShapes([
