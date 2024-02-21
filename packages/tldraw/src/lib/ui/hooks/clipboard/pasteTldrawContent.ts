@@ -21,7 +21,7 @@ export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?:
 	if (
 		seletionBoundsBefore &&
 		selectedBoundsAfter &&
-		seletionBoundsBefore?.equals(selectedBoundsAfter)
+		seletionBoundsBefore?.collides(selectedBoundsAfter)
 	) {
 		editor.updateInstanceState({ isChangingStyle: true })
 		setTimeout(() => {
