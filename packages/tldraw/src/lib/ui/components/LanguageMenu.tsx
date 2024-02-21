@@ -1,11 +1,11 @@
-import { useEditor } from '@tldraw/editor'
+import { track, useEditor } from '@tldraw/editor'
 import { useUiEvents } from '../context/events'
 import { useLanguages } from '../hooks/useTranslation/useLanguages'
 import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
-export function LanguageMenu() {
+export const LanguageMenu = track(function LanguageMenu() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const { languages, currentLanguage } = useLanguages()
@@ -29,4 +29,4 @@ export function LanguageMenu() {
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
-}
+})
