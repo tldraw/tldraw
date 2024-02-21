@@ -21,7 +21,7 @@ setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting Started')
 if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
-const basicExample = gettingStartedExamples.value.find((e) => e.priority === 1)
+const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Persistence key')
 if (!basicExample) throw new Error('Could not find initial example')
 
 const router = createBrowserRouter([

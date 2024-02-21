@@ -59,7 +59,7 @@ describe('validations', () => {
 				x: 132,
 				y: NaN,
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"At shape().y: Expected a number, got NaN"`)
+		).toThrowErrorMatchingInlineSnapshot(`"At shape.y: Expected a number, got NaN"`)
 
 		expect(() =>
 			T.model(
@@ -70,7 +70,7 @@ describe('validations', () => {
 				})
 			).validate({ id: 'abc13', color: 'rubbish' })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At shape().color: Expected "red" or "green" or "blue", got rubbish"`
+			`"At shape.color: Expected "red" or "green" or "blue", got rubbish"`
 		)
 	})
 
@@ -121,4 +121,19 @@ describe('T.refine', () => {
 
 describe('T.check', () => {
 	it.todo('Adds a check to a validator.')
+})
+
+describe('T.indexKey', () => {
+	it('validates index keys', () => {
+		expect(T.indexKey.validate('a0')).toBe('a0')
+		expect(T.indexKey.validate('a1J')).toBe('a1J')
+	})
+	it('rejects invalid index keys', () => {
+		expect(() => T.indexKey.validate('a')).toThrowErrorMatchingInlineSnapshot(
+			`"At null: Expected an index key, got "a""`
+		)
+		expect(() => T.indexKey.validate('')).toThrowErrorMatchingInlineSnapshot(
+			`"At null: Expected an index key, got """`
+		)
+	})
 })

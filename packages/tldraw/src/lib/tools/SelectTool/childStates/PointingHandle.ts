@@ -8,10 +8,13 @@ export class PointingHandle extends StateNode {
 	override onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
 		this.info = info
 
-		const initialTerminal = (info.shape as TLArrowShape).props[info.handle.id as 'start' | 'end']
+		const { shape } = info
+		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const initialTerminal = shape.props[info.handle.id as 'start' | 'end']
 
-		if (initialTerminal?.type === 'binding') {
-			this.editor.setHintingShapes([initialTerminal.boundShapeId])
+			if (initialTerminal?.type === 'binding') {
+				this.editor.setHintingShapes([initialTerminal.boundShapeId])
+			}
 		}
 
 		this.editor.updateInstanceState(

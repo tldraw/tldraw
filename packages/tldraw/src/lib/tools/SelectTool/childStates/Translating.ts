@@ -329,7 +329,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	} else {
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		if (selectionPageBounds) {
-			initialSnapPoints = selectionPageBounds.snapPoints.map((p, i) => ({
+			initialSnapPoints = selectionPageBounds.cornersAndCenter.map((p, i) => ({
 				id: 'selection:' + i,
 				x: p.x,
 				y: p.y,

@@ -45,6 +45,9 @@
 
 	/* Shape */
 	--border-radius-menu: 4px;
+
+	/* Sizes */
+	--header-height: 72px;
 }
 
 [data-theme='dark'] {
@@ -90,6 +93,7 @@
 html {
 	background-color: #000;
 	border-bottom: none;
+	scroll-padding-top: var(--header-height);
 }
 
 body {
@@ -113,7 +117,7 @@ body {
 	width: 100%;
 	max-width: 1440px;
 	grid-template-columns: 250px 1fr;
-	grid-template-rows: 72px 1fr;
+	grid-template-rows: var(--header-height) 1fr;
 	column-gap: 48px;
 	row-gap: 0px;
 	padding: 0px;
@@ -770,7 +774,7 @@ body {
 .layout__headings {
 	position: sticky;
 	align-self: start;
-	top: 72px;
+	top: var(--header-height);
 	margin-left: -12px;
 	padding: 24px 28px 120px 12px;
 	max-height: calc(100vh);
@@ -804,7 +808,7 @@ body {
 .sidebar {
 	position: sticky;
 	align-self: start;
-	top: 72px;
+	top: var(--header-height);
 	margin-left: -12px;
 	padding: 0px 12px 120px 28px;
 	width: calc(100% + 24px);
@@ -1028,7 +1032,7 @@ body {
 	height: 100%;
 	padding: 0px;
 	top: 0px;
-	right: 0px;
+	right: 3px;
 	z-index: 2;
 	color: var(--color-tint-5);
 	pointer-events: none;

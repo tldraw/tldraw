@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Misc resizes: line shape after resize 1`] = `
+{
+  "id": "shape:line1",
+  "index": "a1",
+  "isLocked": false,
+  "meta": {},
+  "opacity": 1,
+  "parentId": "page:page",
+  "props": {
+    "color": "black",
+    "dash": "draw",
+    "points": {
+      "a1": {
+        "id": "a1",
+        "index": "a1",
+        "x": 0,
+        "y": 0,
+      },
+      "a2": {
+        "id": "a2",
+        "index": "a2",
+        "x": 100,
+        "y": 700,
+      },
+    },
+    "size": "m",
+    "spline": "line",
+  },
+  "rotation": 0,
+  "type": "line",
+  "typeName": "shape",
+  "x": 150,
+  "y": 150,
+}
+`;

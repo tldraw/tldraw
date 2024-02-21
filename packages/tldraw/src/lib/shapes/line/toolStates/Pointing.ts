@@ -2,7 +2,6 @@ import {
 	Mat,
 	StateNode,
 	TLEventHandlers,
-	TLHandle,
 	TLInterruptEvent,
 	TLLineShape,
 	TLShapeId,
@@ -50,46 +49,37 @@ export class Pointing extends StateNode {
 				new Vec(this.shape.x, this.shape.y)
 			)
 
-			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
-
-			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint)
+			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
+			const points = structuredClone(this.shape.props.points)
 
 			if (
 				Vec.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES ||
 				Vec.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
 			) {
-				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
-				nextEndHandleIndex = endHandle.index
-				nextEndHandleId = endHandle.id
-				nextEndHandle = {
-					...endHandle,
-					x: nextPoint.x + 0.1,
-					y: nextPoint.y + 0.1,
+				// Don't add a new point if the distance between the last two points is too small
+				points[endHandle.id] = {
+					id: endHandle.id,
+					index: endHandle.index,
+					x: nextPoint.x,
+					y: nextPoint.y,
 				}
 			} else {
-				// Otherwise, we'll create a new end handle
-				nextEndHandleIndex = getIndexAbove(endHandle.index)
-				nextEndHandleId = 'handle:' + nextEndHandleIndex
-				nextEndHandle = {
-					id: nextEndHandleId,
-					type: 'vertex',
-					index: nextEndHandleIndex,
-					x: nextPoint.x + 0.1,
-					y: nextPoint.y + 0.1,
-					canBind: false,
+				// Add a new point
+				const nextIndex = getIndexAbove(endHandle.index)
+				points[nextIndex] = {
+					id: nextIndex,
+					index: nextIndex,
+					x: nextPoint.x,
+					y: nextPoint.y,
 				}
 			}
-
-			const nextHandles = structuredClone(this.shape.props.handles)
-
-			nextHandles[nextEndHandle.id] = nextEndHandle
 
 			this.editor.updateShapes([
 				{
 					id: this.shape.id,
 					type: this.shape.type,
 					props: {
-						handles: nextHandles,
+						points,
 					},
 				},
 			])
@@ -118,7 +108,6 @@ export class Pointing extends StateNode {
 
 		if (this.editor.inputs.isDragging) {
 			const handles = this.editor.getShapeHandles(this.shape)
-			console
 			if (!handles) {
 				if (this.markId) this.editor.bailToMark(this.markId)
 				throw Error('No handles found')

@@ -4,6 +4,7 @@ import {
 	Polygon2d,
 	SVGContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLDefaultColorTheme,
 	TLDrawShapeSegment,
 	TLHighlightShape,
@@ -116,8 +117,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return <path d={strokePath} />
 	}
 
-	override toSvg(shape: TLHighlightShape) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+	override toSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		return highlighterToSvg(getStrokeWidth(shape), shape, OVERLAY_OPACITY, theme)
 	}
 

@@ -15,6 +15,7 @@ import {
 	TLShapeId,
 	Vec,
 	VecLike,
+	ZERO_INDEX_KEY,
 	compact,
 	createShapeId,
 	getIndexAbove,
@@ -63,7 +64,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 		}
 	})
 
-	let index = 'a1'
+	let index = ZERO_INDEX_KEY
 
 	for (const element of elements) {
 		if (skipIds.has(element.id)) {

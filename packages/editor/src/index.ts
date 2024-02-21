@@ -34,72 +34,60 @@ export {
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
-export { Canvas } from './lib/components/Canvas'
 export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
-export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
-export { ShapeIndicator, type TLShapeIndicatorComponent } from './lib/components/ShapeIndicator'
-export {
-	DefaultBackground,
-	type TLBackgroundComponent,
-} from './lib/components/default-components/DefaultBackground'
-export {
-	DefaultBrush,
-	type TLBrushComponent,
-} from './lib/components/default-components/DefaultBrush'
+export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
+export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
+export { DefaultCanvas } from './lib/components/default-components/DefaultCanvas'
 export {
 	DefaultCollaboratorHint,
-	type TLCollaboratorHintComponent,
+	type TLCollaboratorHintProps,
 } from './lib/components/default-components/DefaultCollaboratorHint'
 export {
 	DefaultCursor,
-	type TLCursorComponent,
+	type TLCursorProps,
 } from './lib/components/default-components/DefaultCursor'
 export { DefaultErrorFallback } from './lib/components/default-components/DefaultErrorFallback'
-export { DefaultGrid, type TLGridComponent } from './lib/components/default-components/DefaultGrid'
+export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
 export {
 	DefaultHandle,
-	type TLHandleComponent,
+	type TLHandleProps,
 } from './lib/components/default-components/DefaultHandle'
 export {
 	DefaultHandles,
-	type TLHandlesComponent,
+	type TLHandlesProps,
 } from './lib/components/default-components/DefaultHandles'
 export {
 	DefaultHoveredShapeIndicator,
-	type TLHoveredShapeIndicatorComponent,
+	type TLHoveredShapeIndicatorProps,
 } from './lib/components/default-components/DefaultHoveredShapeIndicator'
-export { type TLInFrontOfTheCanvas } from './lib/components/default-components/DefaultInFrontOfTheCanvas'
-export { type TLOnTheCanvas } from './lib/components/default-components/DefaultOnTheCanvas'
 export {
 	DefaultScribble,
-	type TLScribbleComponent,
+	type TLScribbleProps,
 } from './lib/components/default-components/DefaultScribble'
 export {
 	DefaultSelectionBackground,
-	type TLSelectionBackgroundComponent,
+	type TLSelectionBackgroundProps,
 } from './lib/components/default-components/DefaultSelectionBackground'
 export {
 	DefaultSelectionForeground,
-	type TLSelectionForegroundComponent,
+	type TLSelectionForegroundProps,
 } from './lib/components/default-components/DefaultSelectionForeground'
 export {
+	DefaultShapeIndicator,
+	type TLShapeIndicatorProps,
+} from './lib/components/default-components/DefaultShapeIndicator'
+export {
 	DefaultSnapIndicator,
-	type TLSnapIndicatorComponent,
+	type TLSnapIndicatorProps,
 } from './lib/components/default-components/DefaultSnapIndictor'
-export {
-	DefaultSpinner,
-	type TLSpinnerComponent,
-} from './lib/components/default-components/DefaultSpinner'
-export {
-	DefaultSvgDefs,
-	type TLSvgDefsComponent,
-} from './lib/components/default-components/DefaultSvgDefs'
+export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
+export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
@@ -155,7 +143,11 @@ export type {
 	TLBeforeCreateHandler,
 	TLBeforeDeleteHandler,
 } from './lib/editor/managers/SideEffectManager'
-export { type BoundsSnapPoint } from './lib/editor/managers/SnapManager/BoundsSnaps'
+export {
+	type BoundsSnapGeometry,
+	type BoundsSnapPoint,
+} from './lib/editor/managers/SnapManager/BoundsSnaps'
+export { type HandleSnapGeometry } from './lib/editor/managers/SnapManager/HandleSnaps'
 export {
 	SnapManager,
 	type GapsSnapIndicator,
@@ -250,9 +242,10 @@ export {
 } from './lib/editor/types/history-types'
 export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { useContainer } from './lib/hooks/useContainer'
+export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditor } from './lib/hooks/useEditor'
+export { EditorContext, useEditor } from './lib/hooks/useEditor'
+export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
@@ -356,16 +349,6 @@ export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
-export {
-	getIndexAbove,
-	getIndexBelow,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBelow,
-	getIndicesBetween,
-	sortByIndex,
-} from './lib/utils/reordering/reordering'
 export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,

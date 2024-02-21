@@ -5,10 +5,6 @@ import {
 	TLUiActionItem,
 	TLUiEventHandler,
 	TLUiOverrides,
-	assert,
-	findMenuItem,
-	menuGroup,
-	menuItem,
 	parseAndLoadDocument,
 	serializeTldrawJsonBlob,
 	transact,
@@ -19,9 +15,9 @@ import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'
 
-const SAVE_FILE_COPY_ACTION = 'save-file-copy'
-const OPEN_FILE_ACTION = 'open-file'
-const NEW_PROJECT_ACTION = 'new-file'
+export const SAVE_FILE_COPY_ACTION = 'save-file-copy'
+export const OPEN_FILE_ACTION = 'open-file'
+export const NEW_PROJECT_ACTION = 'new-file'
 
 const saveFileNames = new WeakMap<TLStore, string>()
 
@@ -31,7 +27,11 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 	return useMemo((): TLUiOverrides => {
 		return {
 			actions(editor, actions, { addToast, msg, addDialog }) {
-				actions[SAVE_FILE_COPY_ACTION] = getSaveFileCopyAction(editor, handleUiEvent)
+				actions[SAVE_FILE_COPY_ACTION] = getSaveFileCopyAction(
+					editor,
+					handleUiEvent,
+					msg('document.default-name')
+				)
 				actions[OPEN_FILE_ACTION] = {
 					id: OPEN_FILE_ACTION,
 					label: 'action.open-file',
@@ -92,38 +92,14 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 				}
 				return actions
 			},
-			menu(editor, menu, { actions }) {
-				const fileMenu = findMenuItem(menu, ['menu', 'file'])
-				assert(fileMenu.type === 'submenu')
-
-				const saveItem = menuItem(actions[SAVE_FILE_COPY_ACTION])
-				const openItem = menuItem(actions[OPEN_FILE_ACTION])
-				const newItem = menuItem(actions[NEW_PROJECT_ACTION])
-				const group = isMultiplayer
-					? // open is not currently supported in multiplayer
-						menuGroup('filesystem', saveItem)
-					: menuGroup('filesystem', newItem, openItem, saveItem)
-				fileMenu.children.unshift(group!)
-
-				return menu
-			},
-			keyboardShortcutsMenu(editor, menu, { actions }) {
-				const fileItems = findMenuItem(menu, ['shortcuts-dialog.file'])
-				assert(fileItems.type === 'group')
-				fileItems.children.unshift(menuItem(actions[SAVE_FILE_COPY_ACTION]))
-				if (!isMultiplayer) {
-					fileItems.children.unshift(menuItem(actions[OPEN_FILE_ACTION]))
-				}
-
-				return menu
-			},
 		}
 	}, [isMultiplayer, handleUiEvent])
 }
 
 export function getSaveFileCopyAction(
 	editor: Editor,
-	handleUiEvent: TLUiEventHandler
+	handleUiEvent: TLUiEventHandler,
+	defaultDocumentName: string
 ): TLUiActionItem {
 	return {
 		id: SAVE_FILE_COPY_ACTION,
@@ -132,7 +108,12 @@ export function getSaveFileCopyAction(
 		kbd: '$s',
 		async onSelect(source) {
 			handleUiEvent('save-project-to-file', { source })
-			const defaultName = saveFileNames.get(editor.store) || `Untitled${TLDRAW_FILE_EXTENSION}`
+			const documentName =
+				editor.getDocumentSettings().name === ''
+					? defaultDocumentName
+					: editor.getDocumentSettings().name
+			const defaultName =
+				saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
 
 			const blobToSave = serializeTldrawJsonBlob(editor.store)
 			let handle

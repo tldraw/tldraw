@@ -1,8 +1,8 @@
 ---
-title: UI events
+title: Code x-ray for UI events
 component: ./UiEventsExample.tsx
 category: editor-api
-priority: 2
+priority: 0
 ---
 
 Listen to events from tldraw's UI.
