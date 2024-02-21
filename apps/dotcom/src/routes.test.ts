@@ -6,6 +6,8 @@ test('SPA_ROUTE_FILTER matches all React routes', () => {
 	const paths: string[] = []
 
 	function walk(routeObject: RouteObject) {
+		// '*' is the catch-all route that just shows soft 404, we don't need
+		// to include it in the Vercel config
 		if (routeObject.path && routeObject.path !== '*') {
 			paths.push(routeObject.path)
 		}
@@ -16,10 +18,7 @@ test('SPA_ROUTE_FILTER matches all React routes', () => {
 
 	router.forEach(walk)
 
-	console.log(paths)
-
 	const regex = new RegExp(SPA_ROUTE_FILTER)
-	console.log(regex)
 	paths.forEach((path) => {
 		expect(path).toMatch(regex)
 	})
