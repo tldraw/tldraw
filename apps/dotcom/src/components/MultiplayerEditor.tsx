@@ -67,6 +67,7 @@ const components: TLComponents = {
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
 			<DefaultMainMenuContent />
+			<Links />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
