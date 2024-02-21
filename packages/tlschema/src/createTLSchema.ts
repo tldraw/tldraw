@@ -14,11 +14,16 @@ import { createShapeRecordType, getShapePropKeysByStyle } from './records/TLShap
 import { storeMigrations } from './store-migrations'
 import { StyleProp } from './styles/StyleProp'
 
+type AnyValidator = {
+	validate: (prop: any) => any
+	validateUsingKnownGoodVersion?: (prevVersion: any, newVersion: any) => any
+}
+
 /** @public */
 export type SchemaShapeInfo = {
 	migrations?: Migrations
-	props?: Record<string, { validate: (prop: any) => any }>
-	meta?: Record<string, { validate: (prop: any) => any }>
+	props?: Record<string, AnyValidator>
+	meta?: Record<string, AnyValidator>
 }
 
 /** @public */

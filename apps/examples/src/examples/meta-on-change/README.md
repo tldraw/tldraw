@@ -1,5 +1,5 @@
 ---
-title: Shape Meta (on change)
+title: Shape meta (on change)
 component: ./OnChangeShapeMetaExample.tsx
 category: data/assets
 priority: 3

@@ -15,7 +15,7 @@ const SIZES = [
 	{ value: 'm', icon: 'size-medium' },
 	{ value: 'l', icon: 'size-large' },
 	{ value: 'xl', icon: 'size-extra-large' },
-]
+] as const
 
 // There's a guide at the bottom of this file!
 

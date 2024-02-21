@@ -355,7 +355,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        } & {}>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -364,7 +364,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }>;\n    }, never>;\n    end: "
+              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    end: "
             },
             {
               "kind": "Reference",
@@ -400,7 +400,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        } & {}>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -409,7 +409,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }>;\n    }, never>;\n    bend: "
+              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    bend: "
             },
             {
               "kind": "Reference",
@@ -880,7 +880,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    id: "
+              "text": "<{ [P in \"id\" | \"meta\" | \"typeName\" | (undefined extends Props ? never : \"props\") | (undefined extends Type ? never : \"type\")]: {\n    id: "
             },
             {
               "kind": "Reference",
@@ -898,7 +898,25 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}>"
+              "text": ";\n}[P]; } & { [P_1 in (undefined extends Props ? \"props\" : never) | (undefined extends Type ? \"type\" : never)]?: {\n    id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLAssetId",
+              "canonicalReference": "@tldraw/tlschema!TLAssetId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    typeName: 'asset';\n    type: Type;\n    props: Props;\n    meta: "
+            },
+            {
+              "kind": "Reference",
+              "text": "JsonObject",
+              "canonicalReference": "@tldraw/utils!JsonObject:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}[P_1] | undefined; }>"
             },
             {
               "kind": "Content",
@@ -908,7 +926,7 @@
           "fileUrlPath": "packages/tlschema/src/assets/TLBaseAsset.ts",
           "returnTypeTokenRange": {
             "startIndex": 10,
-            "endIndex": 16
+            "endIndex": 20
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -1154,7 +1172,7 @@
             },
             {
               "kind": "Content",
-              "text": "<"
+              "text": "<{ [P in \"id\" | \"index\" | \"isLocked\" | \"meta\" | \"opacity\" | \"parentId\" | \"rotation\" | \"typeName\" | \"x\" | \"y\" | (undefined extends Props ? never : \"props\") | (undefined extends Type ? never : \"type\")]: "
             },
             {
               "kind": "Reference",
@@ -1163,7 +1181,16 @@
             },
             {
               "kind": "Content",
-              "text": "<Type, Props>>"
+              "text": "<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? \"props\" : never) | (undefined extends Type ? \"type\" : never)]?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBaseShape",
+              "canonicalReference": "@tldraw/tlschema!TLBaseShape:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<Type, Props>[P_1] | undefined; }>"
             },
             {
               "kind": "Content",
@@ -1173,7 +1200,7 @@
           "fileUrlPath": "packages/tlschema/src/shapes/TLBaseShape.ts",
           "returnTypeTokenRange": {
             "startIndex": 17,
-            "endIndex": 21
+            "endIndex": 23
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -1698,7 +1725,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    }>;\n    isComplete: "
+              "text": "[];\n    } & {}>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2304,7 +2331,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    }>;\n    isComplete: "
+              "text": "[];\n    } & {}>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2408,7 +2435,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        topLeft: import(\"../misc/geometry-types\")."
+              "text": "<({\n        topLeft: import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -2426,7 +2453,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    } | null>;\n}"
+              "text": ";\n    } & {}) | null>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLImageShape.ts",
@@ -2756,25 +2783,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"cubic\" | \"line\">;\n    handles: "
+              "text": "<\"cubic\" | \"line\">;\n    points: "
             },
             {
               "kind": "Reference",
-              "text": "T.DictValidator",
-              "canonicalReference": "@tldraw/validate!DictValidator:class"
+              "text": "T.ArrayOfValidator",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
             },
             {
               "kind": "Content",
-              "text": "<import(\"@tldraw/utils\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "IndexKey",
-              "canonicalReference": "@tldraw/utils!IndexKey:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", import(\"../misc/geometry-types\")."
+              "text": "<import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -2792,7 +2810,7 @@
           "name": "lineShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 16
+            "endIndex": 14
           }
         },
         {
@@ -3070,7 +3088,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        validate: (prop: any) => any;\n    }>;\n    meta?: "
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "AnyValidator",
+              "canonicalReference": "@tldraw/tlschema!~AnyValidator:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n    meta?: "
             },
             {
               "kind": "Reference",
@@ -3079,7 +3106,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        validate: (prop: any) => any;\n    }>;\n}"
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "AnyValidator",
+              "canonicalReference": "@tldraw/tlschema!~AnyValidator:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n}"
             },
             {
               "kind": "Content",
@@ -3091,7 +3127,7 @@
           "name": "SchemaShapeInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 8
+            "endIndex": 12
           }
         },
         {
@@ -3557,6 +3593,70 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "validate"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/tlschema!StyleProp#validateUsingKnownGoodVersion:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "validateUsingKnownGoodVersion(prevValue: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", newValue: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "unknown"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "prevValue",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "newValue",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "validateUsingKnownGoodVersion"
             }
           ],
           "implementsTokenRanges": [
@@ -3565,6 +3665,67 @@
               "endIndex": 3
             }
           ]
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!StylePropValue:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type StylePropValue<T extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StyleProp",
+              "canonicalReference": "@tldraw/tlschema!StyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<any>"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Content",
+              "text": "T extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StyleProp",
+              "canonicalReference": "@tldraw/tlschema!StyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<infer U> ? U : never"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/styles/StyleProp.ts",
+          "releaseTag": "Public",
+          "name": "StylePropValue",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 4,
+            "endIndex": 7
+          }
         },
         {
           "kind": "Variable",

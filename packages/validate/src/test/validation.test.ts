@@ -59,7 +59,7 @@ describe('validations', () => {
 				x: 132,
 				y: NaN,
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"At shape().y: Expected a number, got NaN"`)
+		).toThrowErrorMatchingInlineSnapshot(`"At shape.y: Expected a number, got NaN"`)
 
 		expect(() =>
 			T.model(
@@ -70,7 +70,7 @@ describe('validations', () => {
 				})
 			).validate({ id: 'abc13', color: 'rubbish' })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At shape().color: Expected "red" or "green" or "blue", got rubbish"`
+			`"At shape.color: Expected "red" or "green" or "blue", got rubbish"`
 		)
 	})
 
