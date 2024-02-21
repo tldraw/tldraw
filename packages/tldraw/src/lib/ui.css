@@ -974,7 +974,7 @@
 }
 
 .tlui-menu[data-size='small'] > .tlui-menu__group {
-	min-width: 0px;
+	min-width: 96px;
 }
 
 .tlui-menu[data-size='tiny'] > .tlui-menu__group {
