@@ -25,13 +25,6 @@ import { ShapeIndicator } from './ShapeIndicator'
 /** @public */
 export function Canvas({ className }: { className?: string }) {
 	const editor = useEditor()
-	const [didPasteEventHappenRecently, setDidPasteEventHappenRecently] = React.useState(false)
-	editor.on('event', (event) => {
-		if (event.type === 'misc' && event.name === 'paste') {
-			setDidPasteEventHappenRecently(true)
-		}
-	})
-	editor.on('change-history', () => setDidPasteEventHappenRecently(false))
 
 	const { Background, SvgDefs } = useEditorComponents()
 
@@ -100,11 +93,7 @@ export function Canvas({ className }: { className?: string }) {
 		<div
 			ref={rCanvas}
 			draggable={false}
-			className={classNames(
-				'tl-canvas',
-				{ 'tl-canvas-recent-paste-event': didPasteEventHappenRecently },
-				className
-			)}
+			className={classNames('tl-canvas', className)}
 			data-testid="canvas"
 			{...events}
 		>
@@ -364,11 +353,9 @@ function ShapesToDisplay() {
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
-	const selectedShapeIds = useValue(
-		'selectedShapeIds',
-		() => editor.getCurrentPageState().selectedShapeIds,
-		[editor]
-	)
+	const selectedShapeIds = useValue('selectedShapeIds', () => editor.getSelectedShapeIds(), [
+		editor,
+	])
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {
