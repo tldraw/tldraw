@@ -30,7 +30,8 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 					<h1>{article.title}</h1>
 				</div>
 				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}
-				{article.description && <Mdx content={article.description} />}
+				{article.description && <p className="">{article.description}</p>}
+				{article.content && <Mdx content={article.content} />}
 				{article.componentCode && (
 					<ExampleCodeBlock
 						articleId={article.id}
@@ -41,7 +42,6 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 						activeFile={'App.tsx'}
 					/>
 				)}
-				{article.content && <Mdx content={article.content} />}
 				{links && <ArticleNavLinks links={links} />}
 			</main>
 		</>
