@@ -1,5 +1,5 @@
 ---
-title: Keyboard Shortcuts
+title: Keyboard shortcuts
 component: ./KeyboardShortcuts.tsx
 category: ui
 priority: 2

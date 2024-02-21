@@ -31,9 +31,12 @@ export const FilterStyleUi = track(function FilterStyleUi() {
 				onChange={(e) => {
 					editor.batch(() => {
 						if (editor.isIn('select')) {
-							editor.setStyleForSelectedShapes(MyFilterStyle, e.target.value)
+							editor.setStyleForSelectedShapes(
+								MyFilterStyle,
+								MyFilterStyle.validate(e.target.value)
+							)
 						}
-						editor.setStyleForNextShapes(MyFilterStyle, e.target.value)
+						editor.setStyleForNextShapes(MyFilterStyle, MyFilterStyle.validate(e.target.value))
 					})
 				}}
 			>

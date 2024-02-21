@@ -17658,7 +17658,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "setStyleForSelectedShapes<T>(style: "
+                  "text": "setStyleForSelectedShapes<S extends "
                 },
                 {
                   "kind": "Reference",
@@ -17667,15 +17667,28 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<T>"
+                  "text": "<any>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(style: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "S"
                 },
                 {
                   "kind": "Content",
                   "text": ", value: "
                 },
                 {
+                  "kind": "Reference",
+                  "text": "StylePropValue",
+                  "canonicalReference": "@tldraw/tlschema!StylePropValue:type"
+                },
+                {
                   "kind": "Content",
-                  "text": "T"
+                  "text": "<S>"
                 },
                 {
                   "kind": "Content",
@@ -17701,10 +17714,10 @@
               ],
               "typeParameters": [
                 {
-                  "typeParameterName": "T",
+                  "typeParameterName": "S",
                   "constraintTokenRange": {
-                    "startIndex": 0,
-                    "endIndex": 0
+                    "startIndex": 1,
+                    "endIndex": 3
                   },
                   "defaultTypeTokenRange": {
                     "startIndex": 0,
@@ -17714,8 +17727,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 8,
-                "endIndex": 9
+                "startIndex": 11,
+                "endIndex": 12
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -17724,24 +17737,24 @@
                 {
                   "parameterName": "style",
                   "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 3
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "value",
-                  "parameterTypeTokenRange": {
                     "startIndex": 4,
                     "endIndex": 5
                   },
                   "isOptional": false
                 },
                 {
-                  "parameterName": "historyOptions",
+                  "parameterName": "value",
                   "parameterTypeTokenRange": {
                     "startIndex": 6,
-                    "endIndex": 7
+                    "endIndex": 8
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "historyOptions",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 9,
+                    "endIndex": 10
                   },
                   "isOptional": true
                 }
@@ -18263,7 +18276,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<unknown>, string>;\n    }"
+                  "text": "<any>, string>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -28523,7 +28536,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<unknown>, "
+                  "text": "<any>, "
                 },
                 {
                   "kind": "Reference",
@@ -28632,7 +28645,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<unknown>, "
+                  "text": "<any>, "
                 },
                 {
                   "kind": "Reference",
@@ -28872,7 +28885,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<unknown>>"
+                  "text": "<any>>"
                 },
                 {
                   "kind": "Content",
