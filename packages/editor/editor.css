@@ -410,6 +410,15 @@ input,
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
+/* behind collaborator cursor */
+.tl-collaborator__cursor-hint {
+	z-index: 120;
+}
+
+.tl-collaborator__cursor {
+	z-index: 130;
+}
+
 .tl-cursor {
 	overflow: visible;
 }
@@ -421,15 +430,6 @@ input,
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
 	contain: size;
-}
-
-/* behind collaborator cursor */
-.tl-collaborator__cursor-hint {
-	z-index: 120;
-}
-
-.tl-collaborator__cursor {
-	z-index: 130;
 }
 
 /* ------------------ SelectionBox ------------------ */
