@@ -1,8 +1,6 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { parse } from 'json5'
 import kleur from 'kleur'
 import path from 'path'
-import { REPO_ROOT, writeJsonFile } from './lib/file'
+import { REPO_ROOT, readJsonIfExists, writeJsonFile } from './lib/file'
 import { nicelog } from './lib/nicelog'
 import { Package, getAllWorkspacePackages } from './lib/workspace'
 
@@ -64,11 +62,13 @@ async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Pack
 			continue
 		}
 
-		if (!existsSync(tsconfigPath)) {
+		const tsconfig = readJsonIfExists(tsconfigPath) as {
+			references?: { path: string }[]
+		}
+		if (!tsconfig) {
 			throw new Error('No tsconfig.json found at ' + tsconfigPath)
 		}
 
-		const tsconfig = parse(readFileSync(tsconfigPath, 'utf-8'))
 		const tldrawDeps = Object.keys({
 			...workspace.packageJson.dependencies,
 			...workspace.packageJson.devDependencies,
@@ -83,17 +83,15 @@ async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Pack
 				throw new Error(`No workspace found for ${dep}`)
 			}
 			const tsconfigReferencePath = path.relative(workspace.path, matchingWorkspace.path)
-			if (
-				!tsconfig.references?.some(({ path }: { path: string }) => path === tsconfigReferencePath)
-			) {
+			if (!tsconfig.references?.some(({ path }) => path === tsconfigReferencePath)) {
 				fixedDeps.push({ path: tsconfigReferencePath })
 				missingRefs.push(dep)
 			}
 		}
 		if (missingRefs.length) {
 			if (fix) {
-				tsconfig.references = fixedDeps.sort((a: any, b: any) => a.path.localeCompare(b.path))
-				writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, '\t'), 'utf-8')
+				tsconfig.references = fixedDeps.sort((a, b) => a.path.localeCompare(b.path))
+				writeJsonFile(tsconfigPath, tsconfig)
 			} else {
 				nicelog(
 					[
