@@ -1,44 +1,43 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	BoundsSnapGeometry,
 	HTMLContainer,
 	Rectangle2d,
 	ShapeProps,
 	ShapeUtil,
 	T,
 	TLBaseShape,
-	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	resizeBox,
-	structuredClone,
 } from '@tldraw/tldraw'
 
 // There's a guide at the bottom of this file!
 
 // [1]
-type IMyshape = TLBaseShape<
-	'Myshape',
+type IPlayingCard = TLBaseShape<
+	'PlayingCard',
 	{
 		w: number
 		h: number
 	}
 >
 
-export class MyshapeUtil extends ShapeUtil<IMyshape> {
+export class PlayingCardUtil extends ShapeUtil<IPlayingCard> {
 	// [2]
-	static override type = 'Myshape' as const
-	static override props: ShapeProps<IMyshape> = {
+	static override type = 'PlayingCard' as const
+	static override props: ShapeProps<IPlayingCard> = {
 		w: T.number,
 		h: T.number,
 	}
 
 	// [3]
-	override isAspectRatioLocked = (_shape: IMyshape) => true
-	override canResize = (_shape: IMyshape) => true
-	override canBind = (_shape: IMyshape) => true
+	override isAspectRatioLocked = (_shape: IPlayingCard) => true
+	override canResize = (_shape: IPlayingCard) => true
+	override canBind = (_shape: IPlayingCard) => true
 	override canEdit = () => false
 
 	// [5]
-	getDefaultProps(): IMyshape['props'] {
+	getDefaultProps(): IPlayingCard['props'] {
 		return {
 			w: 270,
 			h: 370,
@@ -46,7 +45,7 @@ export class MyshapeUtil extends ShapeUtil<IMyshape> {
 	}
 
 	// [6]
-	getGeometry(shape: IMyshape) {
+	getGeometry(shape: IPlayingCard) {
 		return new Rectangle2d({
 			width: shape.props.w,
 			height: shape.props.h,
@@ -54,8 +53,16 @@ export class MyshapeUtil extends ShapeUtil<IMyshape> {
 		})
 	}
 
+	override getBoundsSnapGeometry(shape: IPlayingCard): BoundsSnapGeometry {
+		return new Rectangle2d({
+			width: shape.props.h / 4.5,
+			height: shape.props.h / 4.5,
+			isFilled: true,
+		})
+	}
+
 	// [7]
-	component(shape: IMyshape) {
+	component(shape: IPlayingCard) {
 		// [b]
 		//many animals in this array
 		const animalEmojiArray = [
@@ -91,7 +98,19 @@ export class MyshapeUtil extends ShapeUtil<IMyshape> {
 				}}
 				id={shape.id}
 			>
-				<span style={{ position: 'absolute', top: 0, left: 0, fontSize: shape.props.h / 5 }}>
+				<span
+					style={{
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						display: 'flex',
+						justifyContent: 'center',
+						alignItems: 'center',
+						height: shape.props.h / 4.5,
+						width: shape.props.h / 4.5,
+						fontSize: shape.props.h / 5,
+					}}
+				>
 					{randomAnimal}
 				</span>
 				<div
@@ -109,37 +128,18 @@ export class MyshapeUtil extends ShapeUtil<IMyshape> {
 	}
 
 	// [8]
-	indicator(shape: IMyshape) {
+	indicator(shape: IPlayingCard) {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 
 	// [9]
-	override onResize: TLOnResizeHandler<IMyshape> = (shape, info) => {
+	override onResize: TLOnResizeHandler<IPlayingCard> = (shape, info) => {
 		return resizeBox(shape, info)
-	}
-
-	// [10]
-	override onEditEnd: TLOnEditEndHandler<IMyshape> = (shape) => {
-		const frame1 = structuredClone(shape)
-		const frame2 = structuredClone(shape)
-
-		frame1.x = shape.x + 1.2
-		frame2.x = shape.x - 1.2
-
-		this.editor.animateShape(frame1, { duration: 50 })
-
-		setTimeout(() => {
-			this.editor.animateShape(frame2, { duration: 50 })
-		}, 100)
-
-		setTimeout(() => {
-			this.editor.animateShape(shape, { duration: 100 })
-		}, 200)
 	}
 }
 
 /* 
-This is a utility class for the Myshape shape. This is where you define the shape's behavior, 
+This is a utility class for the PlayingCard shape. This is where you define the shape's behavior, 
 how it renders (its component and indicator), and how it handles different events.
 
 [1]

@@ -1,12 +1,12 @@
 import { BaseBoxShapeTool } from '@tldraw/tldraw'
-export class MyshapeTool extends BaseBoxShapeTool {
-	static override id = 'Myshape'
+export class PlayingCardTool extends BaseBoxShapeTool {
+	static override id = 'PlayingCard'
 	static override initial = 'idle'
-	override shapeType = 'Myshape'
+	override shapeType = 'PlayingCard'
 }
 
 /*
-This file contains our custom tool. The tool is a StateNode with the `id` "Myshape".
+This file contains our custom tool. The tool is a StateNode with the `id` "PlayingCard".
 
 We get a lot of functionality for free by extending the BaseBoxShapeTool. but we can
 handle events in our own way by overriding methods like onDoubleClick. For an example 
