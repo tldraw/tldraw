@@ -6,15 +6,19 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	DefaultMainMenuContent,
+	EditSubmenu,
 	Editor,
+	ExtrasGroup,
 	OPEN_FILE_ACTION,
+	ObjectSubmenu,
 	OfflineIndicator,
+	PreferencesGroup,
 	SAVE_FILE_COPY_ACTION,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	ViewSubmenu,
 	atom,
 	debugFlags,
 	lns,
@@ -68,7 +72,11 @@ const components: TLComponents = {
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
-			<DefaultMainMenuContent />
+			<EditSubmenu />
+			<ObjectSubmenu />
+			<ViewSubmenu />
+			<ExtrasGroup />
+			<PreferencesGroup />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
