@@ -55,7 +55,7 @@ async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Pack
 					[
 						'❌ ',
 						kleur.red(`${workspace.name}: `),
-						kleur.blue(tsconfigPath),
+						kleur.blue(relative(process.cwd(), tsconfigPath)),
 						kleur.grey(' has unnecessary reference(s) to '),
 						kleur.red([...currentRefs].join(', ')),
 					].join('')
@@ -72,7 +72,7 @@ async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Pack
 					[
 						'❌ ',
 						kleur.red(`${workspace.name}: `),
-						kleur.blue(tsconfigPath),
+						kleur.blue(relative(process.cwd(), tsconfigPath)),
 						kleur.grey(' is missing reference(s) to '),
 						kleur.red(missingRefs.join(', ')),
 					].join('')
