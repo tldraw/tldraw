@@ -69,17 +69,26 @@ export function DefaultMainMenuFileContent() {
 			<TldrawUiMenuItem {...actions[NEW_PROJECT_ACTION]} />
 			<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
 			<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-			<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
-				<TldrawUiMenuGroup id="export-as-group">
-					<TldrawUiMenuItem {...actions['export-as-svg']} />
-					<TldrawUiMenuItem {...actions['export-as-png']} />
-					<TldrawUiMenuItem {...actions['export-as-json']} />
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="export-as-bg">
-					<ToggleTransparentBgMenuItem />
-				</TldrawUiMenuGroup>
-			</TldrawUiMenuSubmenu>
+			<ExportFileContentSubMenu />
 		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function ExportFileContentSubMenu() {
+	const actions = useActions()
+
+	return (
+		<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
+			<TldrawUiMenuGroup id="export-as-group">
+				<TldrawUiMenuItem {...actions['export-as-svg']} />
+				<TldrawUiMenuItem {...actions['export-as-png']} />
+				<TldrawUiMenuItem {...actions['export-as-json']} />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="export-as-bg">
+				<ToggleTransparentBgMenuItem />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
 	)
 }
 

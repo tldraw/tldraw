@@ -486,6 +486,9 @@ export type EventsProviderProps = {
 export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
 
 // @public (undocumented)
+export function ExportFileContentSubMenu(): JSX_2.Element;
+
+// @public (undocumented)
 export function ExtrasGroup(): JSX_2.Element;
 
 // @public (undocumented)

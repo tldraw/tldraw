@@ -1,5 +1,7 @@
 import {
 	DefaultMainMenuFileContent,
+	ExportFileContentSubMenu,
+	SAVE_FILE_COPY_ACTION,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
@@ -29,7 +31,10 @@ export function MultiplayerFileMenu() {
 
 	return (
 		<TldrawUiMenuSubmenu id="file" label="menu.file">
-			<DefaultMainMenuFileContent />
+			<TldrawUiMenuGroup id="file-actions">
+				<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+				<ExportFileContentSubMenu />
+			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="share">
 				<TldrawUiMenuItem {...actions[FORK_PROJECT_ACTION]} />
 				<TldrawUiMenuItem {...actions[LEAVE_SHARED_PROJECT_ACTION]} />

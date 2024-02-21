@@ -188,6 +188,7 @@ export {
 	DefaultMainMenuContent,
 	DefaultMainMenuFileContent,
 	EditSubmenu,
+	ExportFileContentSubMenu,
 	ExtrasGroup,
 	FileSubmenu,
 	ObjectSubmenu,
