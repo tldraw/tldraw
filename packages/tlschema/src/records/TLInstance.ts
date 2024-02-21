@@ -94,6 +94,10 @@ export const stylesForNextShapeValidator = (
 			}
 			return value as Record<string, Record<string, unknown>>
 		},
+		// TODO: fix for now, untill https://github.com/tldraw/tldraw/pull/2897/files lands
+		validateUsingKnownGoodVersion: (prevValue: unknown, newValue: unknown) => {
+			return newValue as Record<string, Record<string, unknown>>
+		},
 	}
 }
 
