@@ -23,3 +23,8 @@ test('SPA_ROUTE_FILTER matches all React routes', () => {
 		expect(path).toMatch(regex)
 	})
 })
+
+test("SPA_ROUTE_FILTER doesn't match assets", () => {
+	const regex = new RegExp(SPA_ROUTE_FILTER)
+	expect('/assets/test.png').not.toMatch(regex)
+})
