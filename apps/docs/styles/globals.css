@@ -776,7 +776,7 @@ body {
 	align-self: start;
 	top: var(--header-height);
 	margin-left: -12px;
-	padding: 24px 28px 120px 12px;
+	padding: 0px 28px 120px 12px;
 	max-height: calc(100vh);
 	width: 290px;
 	z-index: 800;
