@@ -14038,8 +14038,13 @@
               "text": "export type TldrawProps = "
             },
             {
+              "kind": "Reference",
+              "text": "Expand",
+              "canonicalReference": "@tldraw/utils!Expand:type"
+            },
+            {
               "kind": "Content",
-              "text": "("
+              "text": "<("
             },
             {
               "kind": "Reference",
@@ -14138,7 +14143,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n})"
+              "text": ">;\n})>"
             },
             {
               "kind": "Content",
@@ -14150,7 +14155,7 @@
           "name": "TldrawProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 24
+            "endIndex": 25
           }
         },
         {
@@ -14315,16 +14320,808 @@
             },
             {
               "kind": "Content",
-              "text": "<"
+              "text": "<{\n    children?: any;\n    hideUi?: boolean | undefined;\n    components?: "
             },
             {
               "kind": "Reference",
-              "text": "TldrawUiProps",
-              "canonicalReference": "@tldraw/tldraw!TldrawUiProps:type"
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
             },
             {
               "kind": "Content",
-              "text": ">"
+              "text": "<{\n        ContextMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiContextMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiContextMenuProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        ActionsMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionsMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiActionsMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        HelpMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelpMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiHelpMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        ZoomMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiZoomMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiZoomMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        MainMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiMainMenuProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiMainMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        Minimap: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        StylePanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiStylePanelProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiStylePanelProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        PageMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        NavigationPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        Toolbar: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        KeyboardShortcutsDialog: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiKeyboardShortcutsDialogProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiKeyboardShortcutsDialogProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        QuickActions: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiQuickActionsProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiQuickActionsProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        HelperButtons: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelperButtonsProps",
+              "canonicalReference": "@tldraw/tldraw!TLUiHelperButtonsProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        DebugMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        MenuPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        TopPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        SharePanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    }> | undefined;\n    renderDebugMenuItems?: (() => "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") | undefined;\n    assetUrls?: (import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "RecursivePartial",
+              "canonicalReference": "@tldraw/utils!RecursivePartial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./assetUrls\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiAssetUrls",
+              "canonicalReference": "@tldraw/tldraw!~TLUiAssetUrls:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> & import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "RecursivePartial",
+              "canonicalReference": "@tldraw/utils!RecursivePartial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./assetUrls\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiAssetUrls",
+              "canonicalReference": "@tldraw/tldraw!~TLUiAssetUrls:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">) | undefined;\n    overrides?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        actions: import(\"./overrides\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiOverride",
+              "canonicalReference": "@tldraw/tldraw!~TLUiOverride:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/actions\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionsContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiActionsContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", {\n            addToast: (toast: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/toasts\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToast",
+              "canonicalReference": "@tldraw/tldraw!TLUiToast:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        toolbar: import(\"./overrides\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiOverride",
+              "canonicalReference": "@tldraw/tldraw!~TLUiOverride:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./hooks/useToolbarSchema\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolbarSchemaContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiToolbarSchemaContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", {\n            tools: import(\"./hooks/useTools\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolsContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiToolsContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        } & {\n            addToast: (toast: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/toasts\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToast",
+              "canonicalReference": "@tldraw/tldraw!TLUiToast:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        tools: import(\"./overrides\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiOverride",
+              "canonicalReference": "@tldraw/tldraw!~TLUiOverride:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./hooks/useTools\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolsContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiToolsContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", {\n            insertMedia: () => void;\n        } & {\n            addToast: (toast: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/toasts\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToast",
+              "canonicalReference": "@tldraw/tldraw!TLUiToast:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        translations: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, string>> | undefined;\n    }> | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        actions: import(\"./overrides\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiOverride",
+              "canonicalReference": "@tldraw/tldraw!~TLUiOverride:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/actions\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionsContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiActionsContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", {\n            addToast: (toast: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/toasts\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToast",
+              "canonicalReference": "@tldraw/tldraw!TLUiToast:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        toolbar: import(\"./overrides\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiOverride",
+              "canonicalReference": "@tldraw/tldraw!~TLUiOverride:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./hooks/useToolbarSchema\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolbarSchemaContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiToolbarSchemaContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", {\n            tools: import(\"./hooks/useTools\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolsContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiToolsContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        } & {\n            addToast: (toast: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/toasts\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToast",
+              "canonicalReference": "@tldraw/tldraw!TLUiToast:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        tools: import(\"./overrides\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiOverride",
+              "canonicalReference": "@tldraw/tldraw!~TLUiOverride:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./hooks/useTools\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolsContextType",
+              "canonicalReference": "@tldraw/tldraw!TLUiToolsContextType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", {\n            insertMedia: () => void;\n        } & {\n            addToast: (toast: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/toasts\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToast",
+              "canonicalReference": "@tldraw/tldraw!TLUiToast:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "@tldraw/tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        translations: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, string>> | undefined;\n    }>[] | undefined;\n    onUiEvent?: import(\"./context/events\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiEventHandler",
+              "canonicalReference": "@tldraw/tldraw!TLUiEventHandler:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | undefined;\n    forceMobile?: boolean | undefined;\n}>"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/TldrawUi.tsx",
@@ -14333,7 +15130,7 @@
           "name": "TldrawUi",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
+            "endIndex": 181
           }
         },
         {
@@ -16444,6 +17241,15 @@
             },
             {
               "kind": "Reference",
+              "text": "Expand",
+              "canonicalReference": "@tldraw/utils!Expand:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TldrawUiBaseProps",
               "canonicalReference": "@tldraw/tldraw!TldrawUiBaseProps:interface"
             },
@@ -16458,6 +17264,10 @@
             },
             {
               "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
@@ -16466,7 +17276,7 @@
           "name": "TldrawUiProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 7
           }
         },
         {

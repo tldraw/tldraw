@@ -465,8 +465,9 @@ body {
 .article > blockquote {
 	max-width: 100%;
 	margin: 20px 0px;
-	padding-left: 16px;
-	border-left: 2px solid var(--color-tint-2);
+	padding: 16px;
+	border-radius: var(--border-radius-menu);
+	background-color: var(--color-tint-0);
 }
 
 .article pre {
@@ -513,8 +514,7 @@ body {
 	color: var(--color-text);
 }
 
-.article ol h3,
-.article ol li::marker {
+.article ol h3 {
 	font-size: 1.17em;
 	line-height: 28px;
 }

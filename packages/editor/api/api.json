@@ -36450,6 +36450,15 @@
             },
             {
               "kind": "Reference",
+              "text": "Expand",
+              "canonicalReference": "@tldraw/utils!Expand:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TldrawEditorBaseProps",
               "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps:interface"
             },
@@ -36509,7 +36518,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    persistenceKey?: string;\n    sessionId?: string;\n    defaultName?: string;\n})"
+              "text": ">;\n    persistenceKey?: string;\n    sessionId?: string;\n    defaultName?: string;\n})>"
             },
             {
               "kind": "Content",
@@ -36521,7 +36530,7 @@
           "name": "TldrawEditorProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 15
+            "endIndex": 17
           }
         },
         {

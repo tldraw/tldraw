@@ -1,5 +1,4 @@
 import React from 'react'
-import { Icon } from '../Icon'
 
 /* ---------------------- Lists --------------------- */
 
@@ -168,7 +167,7 @@ export const Embed = (props: any) => {
 export const Callout = ({ icon, children }: any) => {
 	return (
 		<div className="article__callout">
-			<Icon icon={icon} />
+			<span>{icon}</span>
 			<p>{children}</p>
 		</div>
 	)

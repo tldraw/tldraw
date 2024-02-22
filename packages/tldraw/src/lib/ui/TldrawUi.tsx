@@ -1,5 +1,5 @@
 import { ToastProvider } from '@radix-ui/react-toast'
-import { useEditor, useValue } from '@tldraw/editor'
+import { Expand, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -22,13 +22,6 @@ import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
-
-/**
- * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
- *
- * @public
- */
-export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps
 
 /**
  * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
@@ -59,6 +52,13 @@ export interface TldrawUiBaseProps {
 	/** Asset URL override. */
 	assetUrls?: TLUiAssetUrlOverrides
 }
+
+/**
+ * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
+ *
+ * @public
+ */
+export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderProps>
 
 /**
  * @public
