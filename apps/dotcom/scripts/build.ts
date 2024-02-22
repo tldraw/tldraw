@@ -1,11 +1,11 @@
 import glob from 'fast-glob'
 import { mkdirSync, writeFileSync } from 'fs'
 import { exec } from '../../../scripts/lib/exec'
-import { SPA_ROUTE_FILTER } from '../spaRouteFilter'
 import { Config } from './vercel-output-config'
 
 import { config } from 'dotenv'
 import { nicelog } from '../../../scripts/lib/nicelog'
+import { SPA_ROUTE_FILTERS } from '../spaRouteFilters'
 
 config({
 	path: './.env.local',
@@ -21,6 +21,13 @@ async function build() {
 	mkdirSync('.vercel/output', { recursive: true })
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
 	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
+
+	const spaRoutes = SPA_ROUTE_FILTERS.map((route) => ({
+		check: true,
+		src: route,
+		dest: '/index.html',
+	}))
+
 	writeFileSync(
 		'.vercel/output/config.json',
 		JSON.stringify(
@@ -45,14 +52,10 @@ async function build() {
 						handle: 'miss',
 					},
 					// finally handle SPA routing
-					{
-						check: true,
-						src: SPA_ROUTE_FILTER,
-						dest: '/index.html',
-					},
+					...spaRoutes,
+					// react router will handle drawing the 404 page
 					{
 						src: '.*',
-						// react router will handle drawing the 404 page
 						dest: '/index.html',
 						status: 404,
 					},
