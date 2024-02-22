@@ -24,7 +24,7 @@ export default function TldrawImageExample() {
 						setEditor(editor)
 						editor.updateInstanceState({ isDebugMode: false })
 					}}
-					autoFocus={false}
+					// autoFocus={false}
 				/>
 			</div>
 		</div>
