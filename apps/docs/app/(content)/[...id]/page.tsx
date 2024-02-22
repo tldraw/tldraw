@@ -127,10 +127,11 @@ export default async function ContentPage({ params }: { params: { id: string | s
 			}
 
 			if (firstArticleInSection) {
-				if (firstArticleInSection?.componentCode) {
-					return <ExampleDocsPage article={firstArticleInSection} />
+				const article = await db.getArticle(firstArticleInSection.id)
+				if (article?.componentCode) {
+					return <ExampleDocsPage article={article} />
 				}
-				return <ArticleDocsPage article={firstArticleInSection} />
+				return <ArticleDocsPage article={article} />
 			}
 
 			return <SectionDocsPage section={content.section} />
