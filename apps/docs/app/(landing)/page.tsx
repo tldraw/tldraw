@@ -8,6 +8,7 @@ export default async function HomePage() {
 					<img className="logo-dark" src="/tldraw_dev_dark.png" />
 					<img className="logo-light" src="/tldraw_dev_light.png" />
 				</Link>
+				<h3 className="landing__blurb">An infinite canvas SDK.</h3>
 				<ul className="landing__links">
 					<li>
 						<Link href="/introduction">Docs</Link>

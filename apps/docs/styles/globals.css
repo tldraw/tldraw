@@ -1514,8 +1514,6 @@ html[data-theme='light'] .hero__dark {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 16px;
-	margin-bottom: 8px;
 }
 
 .landing__logo img {
@@ -1531,6 +1529,13 @@ html[data-theme='light'] .hero__dark {
 	display: none;
 }
 
+.landing__blurb {
+	font-size: 1em;
+	font-weight: 500;
+	text-align: center;
+	margin: 12px 0 16px 0;
+}
+
 .landing__links {
 	list-style-type: none;
 	display: flex;
@@ -1544,7 +1549,7 @@ html[data-theme='light'] .hero__dark {
 	position: relative;
 	font-size: inherit;
 	font-family: inherit;
-	font-weight: 500;
+	font-weight: 600;
 }
 
 .landing__links a::after {
