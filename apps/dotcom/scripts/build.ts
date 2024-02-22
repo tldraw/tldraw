@@ -50,6 +50,12 @@ async function build() {
 						src: SPA_ROUTE_FILTER,
 						dest: '/index.html',
 					},
+					{
+						src: '.*',
+						// react router will handle drawing the 404 page
+						dest: '/index.html',
+						status: 404,
+					},
 				],
 				overrides: {},
 			} satisfies Config,
