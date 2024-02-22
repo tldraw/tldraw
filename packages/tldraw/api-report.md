@@ -1326,7 +1326,7 @@ export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 export const TldrawUiInput: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
-export function TldrawUiKbd({ children }: TLUiKbdProps): JSX_2.Element | null;
+export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
@@ -1809,6 +1809,8 @@ export interface TLUiInputProps {
 export interface TLUiKbdProps {
     // (undocumented)
     children: string;
+    // (undocumented)
+    visibleOnMobileLayout?: boolean;
 }
 
 // @public (undocumented)

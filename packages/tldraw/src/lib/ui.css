@@ -748,8 +748,8 @@
 	font-size: 12px;
 	overflow: hidden;
 	min-width: 300px;
-	max-width: 80vw;
-	max-height: 80vh;
+	max-width: 80%;
+	max-height: 80%;
 }
 
 .tlui-dialog__header {
@@ -1488,26 +1488,18 @@
 
 .tlui-shortcuts-dialog__body {
 	position: relative;
-	columns: 1;
+	columns: 3;
 	column-gap: var(--space-9);
 	pointer-events: all;
 	touch-action: auto;
 }
 
-/* TODO: refactor shortcuts dialog to make it work in small inline components */
-@media (min-width: 475px) {
-	.tlui-shortcuts-dialog__body {
-		columns: 2;
-		column-gap: var(--space-9);
-	}
+.tlui-shortcuts-dialog__body__tablet {
+	columns: 2;
 }
 
-/* TODO: refactor shortcuts dialog to make it work in small inline components */
-@media (min-width: 960px) {
-	.tlui-shortcuts-dialog__body {
-		columns: 3;
-		column-gap: var(--space-9);
-	}
+.tlui-shortcuts-dialog__body__mobile {
+	columns: 1;
 }
 
 .tlui-shortcuts-dialog__group {
