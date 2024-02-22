@@ -1,0 +1,34 @@
+---
+title: Introduction
+status: published
+author: steveruizok
+date: 2/22/2023
+order: 1
+---
+
+
+Welcome to the developer docs for the tldraw SDK, a React library for creating whiteboards and other infinite canvas experiences.
+
+<div className="hero__images__wrapper">
+	<a className="hero__images" href="https://examples.tldraw.com">
+		<img src={'/images/hero_light.png'} alt="tldraw demo" className="article__image hero__light" />
+		<img src={'/images/hero_light.png'} alt="tldraw demo" className="article__image hero__dark" />
+	</a>
+</div>
+
+```tsx
+import { Tldraw } from '@tldraw/tldraw'
+import '@tldraw/tldraw/tldraw.css'
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw />
+		</div>
+	)
+}
+```
+
+- Check out our [examples](http://tldraw.dev/examples/basic/basic)
+- Visit the [tldraw repo on Github](https://github.com/tldraw/tldraw)
+- Join the [Discord](https://discord.com/invite/SBBEVCA4PG)

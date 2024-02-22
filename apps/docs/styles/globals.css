@@ -551,7 +551,6 @@ body {
 
 .page-header > p {
 	margin-top: 1rem;
-	
 }
 
 .article table {
@@ -1358,12 +1357,12 @@ html[data-theme='light'] .hero__dark {
 
 /* ------------------- Hero images ------------------ */
 
-.hero__images {
-	margin: 32px 0px;
+.hero__images__wrapper {
+	padding-bottom: 24px;
 }
 
-.hero_images > a {
-	margin: 0px;
+.hero__images {
+	margin: 32px 0px;
 }
 
 .article__image {

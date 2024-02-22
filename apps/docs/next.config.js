@@ -16,13 +16,7 @@ const nextConfig = {
 			{
 				// For reverse compatibility with old links
 				source: '/docs/introduction',
-				destination: '/quick-start',
-				permanent: true,
-			},
-			{
-				// For reverse compatibility with old links
-				source: '/introduction',
-				destination: '/quick-start',
+				destination: '/introduction',
 				permanent: true,
 			},
 			{
@@ -34,13 +28,7 @@ const nextConfig = {
 			{
 				// For reverse compatibility with old links
 				source: '/docs/usage',
-				destination: '/installation',
-				permanent: true,
-			},
-			{
-				// For reverse compatibility with old links
-				source: '/usage',
-				destination: '/installation',
+				destination: '/tldraw-usage',
 				permanent: true,
 			},
 			{

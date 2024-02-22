@@ -9,7 +9,7 @@ export function Header({ sectionId }: { sectionId?: string }) {
 	return (
 		<div className="layout__header">
 			<div className="layout__header__left">
-				<Link href="/quick-start">
+				<Link href="/introduction">
 					<div
 						className="lockup"
 						style={{
@@ -56,7 +56,7 @@ export function SectionLinks({ sectionId }: { sectionId?: string | null }) {
 	return (
 		<>
 			<a
-				href="/quick-start"
+				href="/introduction"
 				title="Learn"
 				data-active={!['reference', 'examples'].includes(sectionId || '')}
 				className="layout_header__section"
