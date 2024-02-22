@@ -22981,6 +22981,62 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!useCanRedo:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useCanRedo(): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/menu-hooks.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useCanRedo"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!useCanUndo:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useCanUndo(): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/menu-hooks.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useCanUndo"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!useCopyAs:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [

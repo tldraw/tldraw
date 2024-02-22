@@ -2068,6 +2068,12 @@ export function useAssetUrls(): TLUiAssetUrls;
 export function useBreakpoint(): number;
 
 // @public (undocumented)
+export function useCanRedo(): boolean;
+
+// @public (undocumented)
+export function useCanUndo(): boolean;
+
+// @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
