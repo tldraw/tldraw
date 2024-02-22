@@ -54,7 +54,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## Contributors
 <a href="https://github.com/tldraw/tldraw/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=tldraw/tldraw" width="100%"/>
+  <img src="https://contrib.rocks/image?repo=tldraw/tldraw&max=400&columns=20" width="100%"/>
 </a>
 
 ## Star History
