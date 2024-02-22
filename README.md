@@ -52,6 +52,17 @@ Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsy
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
+## Contributors
+<a href="https://github.com/tldraw/tldraw/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=tldraw/tldraw" width="100%"/>
+</a>
+
+## Star History
+
+<a href="https://star-history.com/#tldraw/tldraw">
+  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
+</a>
+
 ## Contact
 
 Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [sales@tldraw.com](mailto://sales@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.
