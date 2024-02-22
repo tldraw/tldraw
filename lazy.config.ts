@@ -43,6 +43,8 @@ const config = {
 						],
 					},
 				},
+				'templates/vite': {},
+				'templates/next': {},
 			},
 		},
 		dev: {
