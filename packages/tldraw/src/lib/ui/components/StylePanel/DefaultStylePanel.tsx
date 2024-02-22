@@ -1,7 +1,7 @@
 import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useCallback } from 'react'
-import { useRelevantStyles } from '../../hooks/useRevelantStyles'
+import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 
 /** @public */

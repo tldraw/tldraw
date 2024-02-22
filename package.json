@@ -55,7 +55,7 @@
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api-check": "lazy api-check",
 		"test-ci": "lazy test-ci",
-		"test": "yarn run -T jest",
+		"test": "lazy test",
 		"test-coverage": "lazy test-coverage && node scripts/offer-coverage.mjs",
 		"e2e": "lazy e2e --filter='apps/examples'"
 	},

@@ -1,5 +1,5 @@
 ---
-title: Editable Shape
+title: Editable shape
 component: ./EditableShapeExample.tsx
 category: shapes/tools
 priority: 1

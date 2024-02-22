@@ -5,6 +5,7 @@ import {
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
+	StylePropValue,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
@@ -737,7 +738,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
 
-	styleProps: { [key: string]: Map<StyleProp<unknown>, string> }
+	styleProps: { [key: string]: Map<StyleProp<any>, string> }
 
 	/**
 	 * Get a shape util from a shape itself.
@@ -7167,19 +7168,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	private _selectionSharedStyles = computed<ReadonlySharedStyleMap>(
-		'_selectionSharedStyles',
-		() => {
-			const selectedShapes = this.getSelectedShapes()
+	@computed
+	private _getSelectionSharedStyles(): ReadonlySharedStyleMap {
+		const selectedShapes = this.getSelectedShapes()
 
-			const sharedStyles = new SharedStyleMap()
-			for (const selectedShape of selectedShapes) {
-				this._extractSharedStyles(selectedShape, sharedStyles)
-			}
-
-			return sharedStyles
+		const sharedStyles = new SharedStyleMap()
+		for (const selectedShape of selectedShapes) {
+			this._extractSharedStyles(selectedShape, sharedStyles)
 		}
-	)
+
+		return sharedStyles
+	}
 
 	/** @internal */
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
@@ -7212,7 +7211,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If we're in selecting and if we have a selection, return the shared styles from the
 		// current selection
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
-			return this._selectionSharedStyles.get()
+			return this._getSelectionSharedStyles()
 		}
 
 		// If the current tool is associated with a shape, return the styles for that shape.
@@ -7385,9 +7384,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setStyleForSelectedShapes<T>(
-		style: StyleProp<T>,
-		value: T,
+	setStyleForSelectedShapes<S extends StyleProp<any>>(
+		style: S,
+		value: StylePropValue<S>,
 		historyOptions?: TLCommandHistoryOptions
 	): this {
 		const selectedShapes = this.getSelectedShapes()
