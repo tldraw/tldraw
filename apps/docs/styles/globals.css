@@ -237,7 +237,7 @@ body {
 	background-color: currentColor;
 }
 
-.article {
+.main-content {
 	justify-self: center;
 	width: 100%;
 	min-height: calc(100vh - 64px);
@@ -1221,7 +1221,7 @@ body {
 		display: none;
 	}
 
-	.article {
+	.main-content {
 		padding: 24px 16px 16px 16px;
 	}
 
@@ -1321,6 +1321,7 @@ html[data-theme='light'] .hero__dark {
 }
 
 .code-example .sandpack {
+	margin-top: 20px;
 	margin-bottom: 32px;
 }
 

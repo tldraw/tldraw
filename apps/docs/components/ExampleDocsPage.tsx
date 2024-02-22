@@ -12,7 +12,6 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 	const db = await getDb()
 	const section = await db.getSection(article.sectionId)
 	const category = await db.getCategory(article.categoryId)
-	const headings = await db.getArticleHeadings(article.id)
 	const links = await db.getArticleLinks(article)
 	const sidebar = await db.getSidebarContentList({
 		sectionId: section.id,
@@ -23,7 +22,7 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 	return (
 		<>
 			<Header sectionId={section.id} />
-			<Sidebar headings={headings} {...sidebar} />
+			<Sidebar {...sidebar} />
 			<main className={`article article__example`}>
 				<div className="page-header">
 					<Breadcrumb section={section} category={category} />

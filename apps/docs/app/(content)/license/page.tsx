@@ -10,7 +10,7 @@ export default async function LicensePage() {
 		<>
 			<Header />
 			<Sidebar {...sidebar} />
-			<main className="article">
+			<main className="main-content article">
 				<div className="page-header">
 					<h1>tldraw License</h1>
 				</div>

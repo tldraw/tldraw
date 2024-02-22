@@ -1,30 +1,15 @@
 ---
-title: Usage
+title: Advanced
 status: published
 author: steveruizok
 date: 3/22/2023
-order: 2
+order: 3
 ---
 
 The tldraw SDK is designed to let you configure its user interface, extend its features, and control with JavaScript. This article contains notes on using the component in your project.
 
-> 🙋‍♂️ Using tldraw in a framework like Vite or Next.js ? Visit our [framework examples repository](https://github.com/tldraw/examples) to see examples of tldraw being used in various frameworks.
 
-### Wrapper
-
-You must wrap the [Tldraw](?) component in a parent container with a known size. The component's own height and width are set to `100%`, so it will fill its parent container.
-
-```tsx
-export function Example() {
-	return (
-		<div style={{width: 800, height: 600}}>
-			<Tldraw/>
-		</div>
-	)
-}
-```
-
-### CSS imports
+### CSS 
 
 The [Tldraw](?) component relies on CSS for styling. Depending on your framework or build system, you can import these in a JavaScript file:
 
@@ -38,7 +23,21 @@ import '@tldraw/tldraw/tldraw.css'
 @import url('@tldraw/tldraw/tldraw.css');
 ```
 
-> 🙋‍♂️ Want to change how tldraw looks? You can always use your own CSS. Make a new CSS file in your project, copy the contents of our `tldraw.css` file, make your changes, and import your file instead.
+<Callout icon={"github"}>Want to change how tldraw looks? You can always use your own CSS. Make a new CSS file in your project, copy the contents of our `tldraw.css` file, make your changes, and import your file instead.</Callout>
+
+### Wrapper element
+
+You must wrap the [Tldraw](?) component in a parent container with a known size. The component's own height and width are set to `100%`, so it will fill its parent container.
+
+```tsx
+export function Example() {
+	return (
+		<div style={{width: 800, height: 600}}>
+			<Tldraw/>
+		</div>
+	)
+}
+```
 
 ### Viewport
 
@@ -50,13 +49,12 @@ If you're using the [Tldraw](?) component in a full-screen app, you may also wan
 
 ### Fonts
 
-The tldraw component's user interface will inherit its body font. If you'd like to use the same font that we use on [tldraw.com](https://tldraw.com), import the [Inter font](https://github.com/rsms/inter) from Google fonts:
+The tldraw component's user interface will inherit the page's body font. If you'd like to use the same font that we use on [tldraw.com](https://tldraw.com), import the [Inter font](https://github.com/rsms/inter) from Google fonts:
 
 ```css
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 ```
 
-The [Tldraw](?) component's other fonts are [loaded separately](#Static-Assets).
 
 ### Server Rendering
 

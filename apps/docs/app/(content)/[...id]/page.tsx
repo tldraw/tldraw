@@ -1,4 +1,5 @@
 import { ArticleDocsPage } from '@/components/ArticleDocsPage'
+import { ArticleReferenceDocsPage } from '@/components/ArticleReferenceDocsPage'
 import { CategoryDocsPage } from '@/components/CategoryDocsPage'
 import { ExampleDocsPage } from '@/components/ExampleDocsPage'
 import { SectionDocsPage } from '@/components/SectionDocsPage'
@@ -143,6 +144,11 @@ export default async function ContentPage({ params }: { params: { id: string | s
 			if (content.article.componentCode) {
 				return <ExampleDocsPage article={content.article} />
 			}
+
+			if (content.article.sectionId === 'reference') {
+				return <ArticleReferenceDocsPage article={content.article} />
+			}
+
 			return <ArticleDocsPage article={content.article} />
 		}
 		default: {

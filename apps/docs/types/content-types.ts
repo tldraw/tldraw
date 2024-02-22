@@ -185,7 +185,6 @@ export type SidebarContentLink =
 	| SidebarContentArticleLink
 
 export type SidebarContentList = {
-	headings?: ArticleHeadings
 	sectionId: string | null
 	categoryId: string | null
 	articleId: string | null
