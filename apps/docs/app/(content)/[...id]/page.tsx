@@ -112,12 +112,19 @@ export default async function ContentPage({ params }: { params: { id: string | s
 
 	switch (content.type) {
 		case 'section': {
-			const firstArticleInSection = await getDb().then((db) =>
-				db.db.get(
-					`SELECT * FROM articles WHERE articles.sectionId = ? ORDER BY articles.order ASC LIMIT 1`,
-					content.section.id
-				)
-			)
+			const db = await getDb()
+			let firstArticleInSection: Article | undefined
+
+			const categories = await db.getCategoriesForSection(content.section.id)
+
+			for (const category of categories) {
+				const articles = await db.getCategoryArticles(content.section.id, category.id)
+				const article = articles[0]
+				if (article) {
+					firstArticleInSection = article
+					break
+				}
+			}
 
 			if (firstArticleInSection) {
 				if (firstArticleInSection?.componentCode) {
