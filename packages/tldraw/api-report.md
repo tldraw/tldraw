@@ -74,6 +74,7 @@ import { TLExitEventHandler } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
+import { TLHandleProps } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLHoveredShapeIndicatorProps } from '@tldraw/editor';
@@ -1183,6 +1184,9 @@ export interface TldrawFile {
     // (undocumented)
     tldrawFileFormatVersion: number;
 }
+
+// @public (undocumented)
+export function TldrawHandle({ children, handle, shapeId, zoom, isCoarse, customEvents, }: TLHandleProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | null;

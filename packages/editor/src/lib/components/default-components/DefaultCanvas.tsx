@@ -1,9 +1,8 @@
 import { react, track, useQuickReactor, useValue } from '@tldraw/state'
-import { TLHandle, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
-import React from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
+import React, { ReactElement } from 'react'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../../hooks/useDocumentEvents'
@@ -11,10 +10,8 @@ import { useEditor } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { useFixSafariDoubleTapZoomPencilEvents } from '../../hooks/useFixSafariDoubleTapZoomPencilEvents'
 import { useGestureEvents } from '../../hooks/useGestureEvents'
-import { useHandleEvents } from '../../hooks/useHandleEvents'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
 import { Mat } from '../../primitives/Mat'
-import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
@@ -242,84 +239,67 @@ function HandlesWrapper() {
 		[editor, onlySelectedShape]
 	)
 
-	const handles = useValue(
-		'handles',
+	const shapeHandles = useValue(
+		'handles-jsx',
 		() => {
 			if (!onlySelectedShape) return null
 
-			const handles = editor.getShapeHandles(onlySelectedShape)
+			const handles = editor.getShapeHandlesJsx(onlySelectedShape)
 			if (!handles) return null
 
-			const minDistBetweenVirtualHandlesAndRegularHandles =
-				((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
+			return handles
 
-			return (
-				handles
-					.filter(
-						(handle) =>
-							// if the handle isn't a virtual handle, we'll display it
-							handle.type !== 'virtual' ||
-							// but for virtual handles, we'll only display them if they're far enough away from vertex handles
-							!handles.some(
-								(h) =>
-									// skip the handle we're checking against
-									h !== handle &&
-									// only check against vertex handles
-									h.type === 'vertex' &&
-									// and check that their distance isn't below the minimum distance
-									Vec.Dist(handle, h) < minDistBetweenVirtualHandlesAndRegularHandles
-							)
-					)
-					// We want vertex handles in front of all other handles
-					.sort((a) => (a.type === 'vertex' ? 1 : -1))
-			)
+			// const minDistBetweenVirtualHandlesAndRegularHandles =
+			// 	((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
+
+			// return (
+			// 	handles
+			// 		.filter(
+			// 			(handle) =>
+			// 				// if the handle isn't a virtual handle, we'll display it
+			// 				handle.type !== 'virtual' ||
+			// 				// but for virtual handles, we'll only display them if they're far enough away from vertex handles
+			// 				!handles.some(
+			// 					(h) =>
+			// 						// skip the handle we're checking against
+			// 						h !== handle &&
+			// 						// only check against vertex handles
+			// 						h.type === 'vertex' &&
+			// 						// and check that their distance isn't below the minimum distance
+			// 						Vec.Dist(handle, h) < minDistBetweenVirtualHandlesAndRegularHandles
+			// 				)
+			// 		)
+			// 		// We want vertex handles in front of all other handles
+			// 		.sort((a) => (a.type === 'vertex' ? 1 : -1))
+			// )
 		},
 		[editor, onlySelectedShape, zoomLevel, isCoarse]
 	)
 
-	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
+	if (
+		!Handles ||
+		!onlySelectedShape ||
+		isChangingStyle ||
+		isReadonly ||
+		!shapeHandles ||
+		!transform
+	) {
 		return null
 	}
 
 	return (
 		<Handles>
 			<g transform={Mat.toCssString(transform)}>
-				{handles.map((handle) => {
-					return (
-						<HandleWrapper
-							key={handle.id}
-							shapeId={onlySelectedShape.id}
-							handle={handle}
-							zoom={zoomLevel}
-							isCoarse={isCoarse}
-						/>
-					)
-				})}
+				{React.Children.map((shapeHandles as ReactElement)!.props.children, (child) =>
+					React.cloneElement(child, {
+						...child.props,
+						shapeId: onlySelectedShape.id,
+						zoom: zoomLevel,
+						isCoarse: isCoarse,
+					})
+				)}
 			</g>
 		</Handles>
-	)
-}
-
-function HandleWrapper({
-	shapeId,
-	handle,
-	zoom,
-	isCoarse,
-}: {
-	shapeId: TLShapeId
-	handle: TLHandle
-	zoom: number
-	isCoarse: boolean
-}) {
-	const events = useHandleEvents(shapeId, handle.id)
-	const { Handle } = useEditorComponents()
-
-	if (!Handle) return null
-
-	return (
-		<g aria-label="handle" transform={`translate(${handle.x}, ${handle.y})`} {...events}>
-			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
-		</g>
 	)
 }
 

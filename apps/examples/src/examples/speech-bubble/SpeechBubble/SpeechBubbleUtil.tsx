@@ -1,7 +1,9 @@
 import {
+	Box,
 	DefaultColorStyle,
 	DefaultSizeStyle,
 	Geometry2d,
+	IndexKey,
 	Polygon2d,
 	ShapeUtil,
 	T,
@@ -12,13 +14,18 @@ import {
 	TLOnBeforeUpdateHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
+	TldrawHandle,
 	Vec,
 	ZERO_INDEX_KEY,
+	compact,
 	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
+	useEditor,
 } from '@tldraw/tldraw'
+import classNames from 'classnames'
+import { useState } from 'react'
 import { getHandleIntersectionPoint, getSpeechBubbleVertices } from './helpers'
 
 // Copied from tldraw/tldraw
@@ -41,6 +48,7 @@ export type SpeechBubbleShape = TLBaseShape<
 		color: TLDefaultColorStyle
 		handles: {
 			handle: TLHandle
+			handleCustom: TLHandle
 		}
 	}
 >
@@ -59,6 +67,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		handles: {
 			validate: handleValidator,
 			handle: { validate: handleValidator },
+			handleCustom: { validate: handleValidator },
 		},
 	}
 
@@ -85,6 +94,15 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					x: 0.5,
 					y: 1.5,
 				},
+				handleCustom: {
+					id: 'handleCustom',
+					type: 'vertex',
+					canBind: true,
+					canSnap: true,
+					index: 'a1' as IndexKey,
+					x: -0.5,
+					y: -1.5,
+				},
 			},
 		}
 	}
@@ -96,6 +114,30 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			isFilled: true,
 		})
 		return body
+	}
+
+	override getHandlesJsx(shape: SpeechBubbleShape) {
+		const {
+			handles: { handle },
+			w,
+			h,
+		} = shape.props
+
+		return (
+			<>
+				<MyCustomHandle shape={shape} />
+				<TldrawHandle
+					shapeId={shape.id}
+					handle={{
+						...handle,
+						// props.handles.handle coordinates are normalized
+						// but here we need them in shape space
+						x: handle.x * w,
+						y: handle.y * h,
+					}}
+				/>
+			</>
+		)
 	}
 
 	override getHandles(shape: SpeechBubbleShape) {
@@ -200,6 +242,59 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		next.props.h = resized.props.h
 		return next
 	}
+}
+
+function MyCustomHandle({ shape }: { shape: SpeechBubbleShape }) {
+	const editor = useEditor()
+	const [isActive, setIsActive] = useState(false)
+	const {
+		handles: { handleCustom },
+		w,
+	} = shape.props
+
+	const onPointerDown = () => {
+		const ids = editor.getSelectedShapeIds()
+		const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
+		const offset = {
+			x: commonBounds.width + 10,
+			y: 0,
+		}
+
+		editor.duplicateShapes(ids, offset)
+	}
+
+	return (
+		<TldrawHandle
+			shapeId={shape.id}
+			handle={{
+				...handleCustom,
+				// props.handles.handle coordinates are normalized
+				// but here we need them in shape space
+				x: w / 2 - 10,
+				y: -24,
+			}}
+			customEvents={{ onPointerDown }}
+		>
+			<g
+				className={classNames('tl-handle')}
+				onMouseDown={() => setIsActive(true)}
+				onMouseUp={() => setIsActive(false)}
+			>
+				<rect className="tl-handle__bg" width="16" height="16" style={{ stroke: 'red' }} />
+				<rect
+					className="tl-handle__fg"
+					width="16"
+					height="16"
+					style={{
+						stroke: 'red',
+						transformOrigin: '8px 8px',
+						transition: 'all 60ms ease-in',
+						transform: isActive ? 'rotate(135deg) scale(1.5)' : 'rotate(45deg)',
+					}}
+				/>
+			</g>
+		</TldrawHandle>
+	)
 }
 
 /*

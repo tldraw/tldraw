@@ -11,6 +11,7 @@ function getHandle(editor: Editor, id: TLShapeId, handleId: string) {
 	return { shape, handle: handles.find((h) => h.id === handleId) }
 }
 
+/** @public */
 export function useHandleEvents(id: TLShapeId, handleId: string) {
 	const editor = useEditor()
 

@@ -12726,6 +12726,81 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getShapeHandlesJsx:member(1)",
+              "docComment": "/**\n * Get the handles in jsx form (if any) for a shape.\n *\n * @param shape - The shape (or shape id) to get the handles for.\n *\n * @example\n * ```ts\n * editor.getShapeHandlesJsx(myShape)\n * editor.getShapeHandlesJsx(myShapeId)\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getShapeHandlesJsx<T extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(shape: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T | T['id']"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReactElement",
+                  "canonicalReference": "@types/react!React.ReactElement:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getShapeHandlesJsx"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShapeLocalTransform:member(1)",
               "docComment": "/**\n * Get the local transform for a shape as a matrix model. This transform reflects both its translation (x, y) from from either its parent's top left corner, if the shape's parent is another shape, or else from the 0,0 of the page, if the shape's parent is the page; and the shape's rotation.\n *\n * @param shape - The shape to get the local transform for.\n *\n * @example\n * ```ts\n * editor.getShapeLocalTransform(myShape)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -30771,6 +30846,55 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#getHandlesJsx:member(1)",
+              "docComment": "/**\n * Get an array of handles in JSX form for the shape. This is an optional method.\n *\n * @param shape - The shape.\n *\n * @example\n * ```ts\n * util.getHandlesJsx?.(myShape)\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHandlesJsx?(shape: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Shape"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReactElement",
+                  "canonicalReference": "@types/react!React.ReactElement:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "getHandlesJsx"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!ShapeUtil#getHandleSnapGeometry:member(1)",
               "docComment": "/**\n * Get the geometry to use when snapping handles to this shape. See {@link HandleSnapGeometry} for details.\n */\n",
               "excerptTokens": [
@@ -38170,7 +38294,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    shapeId: "
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    shapeId: "
             },
             {
               "kind": "Reference",
@@ -38188,7 +38321,34 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    zoom: number;\n    isCoarse: boolean;\n    className?: string;\n}"
+              "text": ";\n    zoom?: number;\n    isCoarse?: boolean;\n    className?: string;\n    customEvents?: {\n        onPointerDown?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.PointerEventHandler",
+              "canonicalReference": "@types/react!React.PointerEventHandler:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        onPointerMove?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.PointerEventHandler",
+              "canonicalReference": "@types/react!React.PointerEventHandler:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        onPointerUp?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.PointerEventHandler",
+              "canonicalReference": "@types/react!React.PointerEventHandler:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    };\n}"
             },
             {
               "kind": "Content",
@@ -38200,7 +38360,7 @@
           "name": "TLHandleProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 6
+            "endIndex": 14
           }
         },
         {
@@ -42524,6 +42684,95 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useEditorComponents"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!useHandleEvents:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useHandleEvents(id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", handleId: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    onPointerDown: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.PointerEvent",
+              "canonicalReference": "@types/react!React.PointerEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void;\n    onPointerMove: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.PointerEvent",
+              "canonicalReference": "@types/react!React.PointerEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void;\n    onPointerUp: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.PointerEvent",
+              "canonicalReference": "@types/react!React.PointerEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/hooks/useHandleEvents.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 12
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "id",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "handleId",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "useHandleEvents"
         },
         {
           "kind": "Function",

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
+import { ReactElement } from 'react'
 import { Box } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
@@ -200,6 +201,20 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	getHandles?(shape: Shape): TLHandle[]
+
+	/**
+	 * Get an array of handles in JSX form for the shape. This is an optional method.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getHandlesJsx?.(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getHandlesJsx?(shape: Shape): ReactElement
 
 	/**
 	 * Get whether the shape can receive children of a given type.

@@ -60,6 +60,7 @@ import {
 	structuredClone,
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
+import { ReactElement } from 'react'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -3823,6 +3824,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
+	/** @internal */
+	@computed private _getShapeHandlesJsxCache(): ComputedCache<ReactElement | undefined, TLShape> {
+		return this.store.createComputedCache('handles-jsx', (shape) => {
+			return this.getShapeUtil(shape).getHandlesJsx?.(shape)
+		})
+	}
+
 	/**
 	 * Get the handles (if any) for a shape.
 	 *
@@ -3837,6 +3845,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined {
 		return this._getShapeHandlesCache().get(typeof shape === 'string' ? shape : shape.id)
+	}
+
+	/**
+	 * Get the handles in jsx form (if any) for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeHandlesJsx(myShape)
+	 * editor.getShapeHandlesJsx(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the handles for.
+	 * @public
+	 */
+	getShapeHandlesJsx<T extends TLShape>(shape: T | T['id']): ReactElement | undefined {
+		return this._getShapeHandlesJsxCache().get(typeof shape === 'string' ? shape : shape.id)
 	}
 
 	/**

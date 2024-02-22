@@ -25,6 +25,7 @@ import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { ReactElement } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -739,6 +740,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
+    getShapeHandlesJsx<T extends TLShape>(shape: T | T['id']): ReactElement | undefined;
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
@@ -1608,6 +1610,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract getDefaultProps(): Shape['props'];
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
+    getHandlesJsx?(shape: Shape): ReactElement;
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
@@ -2217,11 +2220,17 @@ export type TLGridProps = {
 
 // @public (undocumented)
 export type TLHandleProps = {
+    children?: React.ReactNode;
     shapeId: TLShapeId;
     handle: TLHandle;
-    zoom: number;
-    isCoarse: boolean;
+    zoom?: number;
+    isCoarse?: boolean;
     className?: string;
+    customEvents?: {
+        onPointerDown?: React.PointerEventHandler;
+        onPointerMove?: React.PointerEventHandler;
+        onPointerUp?: React.PointerEventHandler;
+    };
 };
 
 // @public (undocumented)
@@ -2670,6 +2679,13 @@ export function useEditorComponents(): Partial<{
     InFrontOfTheCanvas: ComponentType | null;
     LoadingScreen: ComponentType | null;
 } & ErrorComponents> & ErrorComponents;
+
+// @public (undocumented)
+export function useHandleEvents(id: TLShapeId, handleId: string): {
+    onPointerDown: (e: React_3.PointerEvent) => void;
+    onPointerMove: (e: React_3.PointerEvent) => void;
+    onPointerUp: (e: React_3.PointerEvent) => void;
+};
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
