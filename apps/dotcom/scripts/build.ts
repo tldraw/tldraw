@@ -55,6 +55,7 @@ async function build() {
 					...spaRoutes,
 					// react router will handle drawing the 404 page
 					{
+						check: true,
 						src: '.*',
 						dest: '/index.html',
 						status: 404,
