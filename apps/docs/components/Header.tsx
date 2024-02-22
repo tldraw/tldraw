@@ -9,7 +9,7 @@ export function Header({ sectionId }: { sectionId?: string }) {
 	return (
 		<div className="layout__header">
 			<div className="layout__header__left">
-				<Link href="/">
+				<Link href="/introduction">
 					<img className="logo-dark" src="/tldraw_dev_dark.png" />
 					<img className="logo-light" src="/tldraw_dev_light.png" />
 				</Link>
