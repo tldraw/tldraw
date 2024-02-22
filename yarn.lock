@@ -11942,6 +11942,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dotcom@workspace:apps/dotcom"
   dependencies:
+    "@jest/globals": "npm:30.0.0-alpha.2"
     "@radix-ui/react-popover": "npm:^1.0.7"
     "@sentry/cli": "npm:^2.25.0"
     "@sentry/integrations": "npm:^7.34.0"

@@ -36,6 +36,7 @@
 		"react-router-dom": "^6.17.0"
 	},
 	"devDependencies": {
+		"@jest/globals": "30.0.0-alpha.2",
 		"@sentry/cli": "^2.25.0",
 		"@types/qrcode": "^1.5.0",
 		"@types/react": "^18.2.47",
