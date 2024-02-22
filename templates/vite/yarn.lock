@@ -1278,15 +1278,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tldraw/editor@npm:2.0.0-beta.2":
-  version: 2.0.0-beta.2
-  resolution: "@tldraw/editor@npm:2.0.0-beta.2"
+"@tldraw/editor@npm:2.0.0-beta.4":
+  version: 2.0.0-beta.4
+  resolution: "@tldraw/editor@npm:2.0.0-beta.4"
   dependencies:
-    "@tldraw/state": "npm:2.0.0-beta.2"
-    "@tldraw/store": "npm:2.0.0-beta.2"
-    "@tldraw/tlschema": "npm:2.0.0-beta.2"
-    "@tldraw/utils": "npm:2.0.0-beta.2"
-    "@tldraw/validate": "npm:2.0.0-beta.2"
+    "@tldraw/state": "npm:2.0.0-beta.4"
+    "@tldraw/store": "npm:2.0.0-beta.4"
+    "@tldraw/tlschema": "npm:2.0.0-beta.4"
+    "@tldraw/utils": "npm:2.0.0-beta.4"
+    "@tldraw/validate": "npm:2.0.0-beta.4"
     "@types/core-js": "npm:^2.5.5"
     "@use-gesture/react": "npm:^10.2.27"
     classnames: "npm:^2.3.2"
@@ -1300,34 +1300,36 @@ __metadata:
   peerDependencies:
     react: ^18
     react-dom: ^18
-  checksum: 52e9e4078b366a696959da574d2befd110814361cc2415ae4bf6794605d18413d16772749e20da16936192c22d6e576c4d6b97a321b5738d57a0e2f63f8fef5c
+  checksum: a9ef62fc61ba0901d55a6393ac9c1824d98249fec992390c6f14f32f46eba320edc9343f894089f5effb40436eaef29f585304a924577156047ad663ace60824
   languageName: node
   linkType: hard
 
-"@tldraw/state@npm:2.0.0-beta.2":
-  version: 2.0.0-beta.2
-  resolution: "@tldraw/state@npm:2.0.0-beta.2"
+"@tldraw/state@npm:2.0.0-beta.4":
+  version: 2.0.0-beta.4
+  resolution: "@tldraw/state@npm:2.0.0-beta.4"
   peerDependencies:
     react: ^18
-  checksum: 4d20425d03851045d59cfb7f4dd25b0a072078df59027f5b673b8742f1d2f2df8d055ba7442a1e75c6bd765cb293eec956bb229f0b8ba986a0292be7569c9cc4
+  checksum: 004491766be744c14416f03a6d22a39dfa2d1b6fced5546a8f35ef960fa20e11f001a7657c7c0def6335410724ce315f141f9b4c118bdb2d4c09e7001a54fa8a
   languageName: node
   linkType: hard
 
-"@tldraw/store@npm:2.0.0-beta.2":
-  version: 2.0.0-beta.2
-  resolution: "@tldraw/store@npm:2.0.0-beta.2"
+"@tldraw/store@npm:2.0.0-beta.4":
+  version: 2.0.0-beta.4
+  resolution: "@tldraw/store@npm:2.0.0-beta.4"
   dependencies:
-    "@tldraw/state": "npm:2.0.0-beta.2"
-    "@tldraw/utils": "npm:2.0.0-beta.2"
+    "@tldraw/state": "npm:2.0.0-beta.4"
+    "@tldraw/utils": "npm:2.0.0-beta.4"
     lodash.isequal: "npm:^4.5.0"
     nanoid: "npm:4.0.2"
-  checksum: bedb8d90dee36776ea85311bd5b7bd288442f2fd20b1eca0eae45f9859701d9c0d65e5168406c23bbffd2336496981eb67cc0c9fd38fb6ec06ec1f0d42b983de
+  peerDependencies:
+    react: ^18
+  checksum: 7de4869dbdd0ce089be72048ae1f0da48621eebbf47b55849eb5f601650df084aa919ea445ad23b1c451dcd38cbdee2b7cb033503f2234efabcef0a4f1e04bb5
   languageName: node
   linkType: hard
 
-"@tldraw/tldraw@file:../../packages/tldraw/package.tgz::locator=tldraw-vite-example%40workspace%3A.":
-  version: 2.0.0-beta.2
-  resolution: "@tldraw/tldraw@file:../../packages/tldraw/package.tgz#../../packages/tldraw/package.tgz::hash=b6c374&locator=tldraw-vite-example%40workspace%3A."
+"@tldraw/tldraw@npm:2.0.0-beta.4":
+  version: 2.0.0-beta.4
+  resolution: "@tldraw/tldraw@npm:2.0.0-beta.4"
   dependencies:
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@radix-ui/react-context-menu": "npm:^2.1.5"
@@ -1337,7 +1339,7 @@ __metadata:
     "@radix-ui/react-select": "npm:^1.2.0"
     "@radix-ui/react-slider": "npm:^1.1.0"
     "@radix-ui/react-toast": "npm:^1.1.1"
-    "@tldraw/editor": "npm:2.0.0-beta.2"
+    "@tldraw/editor": "npm:2.0.0-beta.4"
     canvas-size: "npm:^1.2.6"
     classnames: "npm:^2.3.2"
     hotkeys-js: "npm:^3.11.2"
@@ -1345,36 +1347,38 @@ __metadata:
   peerDependencies:
     react: ^18
     react-dom: ^18
-  checksum: 353c8a747162e078bbd2cb6eaea9edbf4e6ab64bebc3185d2817abff581b4f0eb39d5dfa0a1a6a71816b12a280eb9d59dfc12a47632cc87d7a063c90e7600d4a
+  checksum: 28ddfe82b4683d55ffff74649f10619d3e1f4e47135652cca7fd649b4f863f1420d4d922c98659046cd45da893b17427eb9b93b3982eef3f91e44ad6ff44c951
   languageName: node
   linkType: hard
 
-"@tldraw/tlschema@npm:2.0.0-beta.2":
-  version: 2.0.0-beta.2
-  resolution: "@tldraw/tlschema@npm:2.0.0-beta.2"
+"@tldraw/tlschema@npm:2.0.0-beta.4":
+  version: 2.0.0-beta.4
+  resolution: "@tldraw/tlschema@npm:2.0.0-beta.4"
   dependencies:
-    "@tldraw/state": "npm:2.0.0-beta.2"
-    "@tldraw/store": "npm:2.0.0-beta.2"
-    "@tldraw/utils": "npm:2.0.0-beta.2"
-    "@tldraw/validate": "npm:2.0.0-beta.2"
+    "@tldraw/state": "npm:2.0.0-beta.4"
+    "@tldraw/store": "npm:2.0.0-beta.4"
+    "@tldraw/utils": "npm:2.0.0-beta.4"
+    "@tldraw/validate": "npm:2.0.0-beta.4"
     nanoid: "npm:4.0.2"
-  checksum: 29733643745eae2980cf8d952b168c2b00bd737c3e12fe4867a7fb54237b78a8fa5e32137915b885a652b0a40673322bc4306164763fcd2416599704297bc521
+  peerDependencies:
+    react: ^18
+  checksum: c20fefb2f6c9787676d58bd8a1ca0003afd62a0c8b53e82e72f7a8abab1d86bf8aa6660d16bcaff4311833861af4b263ce3ceae8933148fb709ccdca31c719a7
   languageName: node
   linkType: hard
 
-"@tldraw/utils@npm:2.0.0-beta.2":
-  version: 2.0.0-beta.2
-  resolution: "@tldraw/utils@npm:2.0.0-beta.2"
-  checksum: c978c6e79eee9f5c15af40b76bdb76adb16994da99069ba82957a129f5a23214b989b327d31931a0c863568c96d05fbae7da1967887335cf3b9df9de16347a8b
+"@tldraw/utils@npm:2.0.0-beta.4":
+  version: 2.0.0-beta.4
+  resolution: "@tldraw/utils@npm:2.0.0-beta.4"
+  checksum: 37616fb0cc29e8b13ac03154b94e5d30c1ede048a9e55399d8fef0e391d8091fc8b63f451c727a18b9ad097f021d427301f81c43596729dc79d317d92313fe7e
   languageName: node
   linkType: hard
 
-"@tldraw/validate@npm:2.0.0-beta.2":
-  version: 2.0.0-beta.2
-  resolution: "@tldraw/validate@npm:2.0.0-beta.2"
+"@tldraw/validate@npm:2.0.0-beta.4":
+  version: 2.0.0-beta.4
+  resolution: "@tldraw/validate@npm:2.0.0-beta.4"
   dependencies:
-    "@tldraw/utils": "npm:2.0.0-beta.2"
-  checksum: db582bb546d3c62652bd4a5623218d0e3d9a540c84d3cf3af2b8a4ca68620e9cfc5d6d0a5a25ea3333b46a885457725578d42d9de3e944272edf4a0264fe37e5
+    "@tldraw/utils": "npm:2.0.0-beta.4"
+  checksum: 449875205055f8a672f2f38c8d6c6f0040b891a12ad4b648f77aed324b0d4a19bea0085c8642622d49d30fb9c9717445a5b2044b2aa438d3029a8af2d7aaf1e7
   languageName: node
   linkType: hard
 
@@ -3453,7 +3457,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-vite-example@workspace:."
   dependencies:
-    "@tldraw/tldraw": ../../packages/tldraw/package.tgz
+    "@tldraw/tldraw": "npm:2.0.0-beta.4"
     "@types/react": "npm:^18.0.37"
     "@types/react-dom": "npm:^18.0.11"
     "@typescript-eslint/eslint-plugin": "npm:^5.59.0"
