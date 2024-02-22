@@ -16,7 +16,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@tldraw/tldraw": "^2.0.0-beta.2",
+		"@tldraw/tldraw": "../../packages/tldraw/package.tgz",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},
