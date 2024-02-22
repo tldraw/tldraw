@@ -48,6 +48,7 @@ export default function CanvasEventsExample() {
 					overflow: 'auto',
 					whiteSpace: 'pre-wrap',
 				}}
+				onCopy={(event) => event.stopPropagation()}
 			>
 				<div>{JSON.stringify(events, undefined, 2)}</div>
 			</div>

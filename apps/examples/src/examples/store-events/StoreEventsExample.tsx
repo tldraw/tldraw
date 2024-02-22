@@ -92,6 +92,7 @@ export default function StoreEventsExample() {
 					flexDirection: 'column-reverse',
 					overflow: 'auto',
 				}}
+				onCopy={(event) => event.stopPropagation()}
 			>
 				<pre>{storeEvents}</pre>
 			</div>
