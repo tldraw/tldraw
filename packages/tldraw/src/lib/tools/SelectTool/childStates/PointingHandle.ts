@@ -1,4 +1,11 @@
-import { StateNode, TLArrowShape, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	StateNode,
+	TLArrowShape,
+	TLEventHandlers,
+	TLPointerEventInfo,
+	uniqueId,
+} from '@tldraw/editor'
+import { ArrowHandleDragState } from '../../../shapes/arrow/ArrowShapeUtil'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -37,7 +44,17 @@ export class PointingHandle extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging_handle', this.info)
+			this.parent.transition('dragging_handle', {
+				...this.info,
+				state:
+					this.info.shape.type === 'arrow'
+						? ({
+								interactionId: uniqueId(),
+								isCreation: false,
+								pointingShape: null,
+							} satisfies ArrowHandleDragState)
+						: {},
+			})
 		}
 	}
 

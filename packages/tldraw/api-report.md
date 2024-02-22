@@ -33,7 +33,6 @@ import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
-import { ObjectValidator } from '@tldraw/editor';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
 import { default as React_2 } from 'react';
@@ -116,7 +115,6 @@ import { TLTextShape } from '@tldraw/editor';
 import { TLTickEventHandler } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
-import { UnionValidator } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Validator } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
@@ -154,6 +152,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
     // (undocumented)
+    getNormalizedAnchor(shape: TLShape, pointInPageSpace: VecLike): VecLike;
+    // (undocumented)
     hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
     hideRotateHandle: TLShapeUtilFlag<TLArrowShape>;
@@ -187,38 +187,40 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         arrowheadStart: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
         arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        start: UnionValidator<"type", {
-        binding: ObjectValidator<    {
-        type: "binding";
-        boundShapeId: TLShapeId;
-        normalizedAnchor: VecModel;
-        isExact: boolean;
-        isPrecise: boolean;
-        }>;
-        point: ObjectValidator<    {
-        x: number;
-        y: number;
-        type: "point";
-        }>;
+        start: T.UnionValidator<"type", {
+            binding: T.ObjectValidator<{
+                type: "binding";
+                boundShapeId: TLShapeId;
+                normalizedAnchor: VecModel;
+                isExact: boolean;
+                isPrecise: boolean;
+            }>;
+            point: T.ObjectValidator<{
+                x: number;
+                y: number;
+                type: "point";
+            }>;
         }, never>;
-        end: UnionValidator<"type", {
-        binding: ObjectValidator<    {
-        type: "binding";
-        boundShapeId: TLShapeId;
-        normalizedAnchor: VecModel;
-        isExact: boolean;
-        isPrecise: boolean;
-        }>;
-        point: ObjectValidator<    {
-        x: number;
-        y: number;
-        type: "point";
-        }>;
+        end: T.UnionValidator<"type", {
+            binding: T.ObjectValidator<{
+                type: "binding";
+                boundShapeId: TLShapeId;
+                normalizedAnchor: VecModel;
+                isExact: boolean;
+                isPrecise: boolean;
+            }>;
+            point: T.ObjectValidator<{
+                x: number;
+                y: number;
+                type: "point";
+            }>;
         }, never>;
-        bend: Validator<number>;
-        text: Validator<string>;
-        labelPosition: Validator<number>;
+        bend: T.Validator<number>;
+        text: T.Validator<string>;
+        labelPosition: T.Validator<number>;
     };
+    // (undocumented)
+    shouldSnap(fromPoint: VecLike, toPoint: VecLike, toPointSnapped: VecLike): boolean;
     // (undocumented)
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)

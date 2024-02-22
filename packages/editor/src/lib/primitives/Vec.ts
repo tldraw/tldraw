@@ -523,8 +523,9 @@ export class Vec {
 		return [A.x, A.y, A.z!]
 	}
 
-	static ToJson(A: VecLike) {
+	static ToJson(A: VecLike): VecLike {
 		const { x, y, z } = A
+		if (z === undefined) return { x, y }
 		return { x, y, z }
 	}
 

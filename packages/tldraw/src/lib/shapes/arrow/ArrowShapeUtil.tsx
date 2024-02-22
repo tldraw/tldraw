@@ -9,9 +9,11 @@ import {
 	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
+	T,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLArrowShapeProps,
+	TLArrowShapeTerminal,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
@@ -21,10 +23,13 @@ import {
 	TLOnResizeHandler,
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
+	TLShape,
+	TLShapeId,
 	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec,
+	VecLike,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	deepCopy,
@@ -32,7 +37,10 @@ import {
 	getDefaultColorTheme,
 	mapObjectMapValues,
 	objectMapEntries,
+	shapeIdValidator,
+	shortAngleDist,
 	toDomPrecision,
+	uniqueId,
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
@@ -46,7 +54,7 @@ import {
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getArrowLabelPosition } from './arrowLabel'
-import { getArrowheadPathForType } from './arrowheads'
+import { getArrowPoints, getArrowheadPathForType } from './arrowheads'
 import {
 	getCurvedArrowHandlePath,
 	getSolidCurvedArrowPath,
@@ -62,6 +70,31 @@ enum ARROW_HANDLES {
 	MIDDLE = 'middle',
 	END = 'end',
 }
+
+export type ArrowHandleDragState = {
+	// uuid for the interaction
+	interactionId: string
+	// Whether or not this is a new arrow shape being created.
+	isCreation: boolean
+	overrideStartPointPrecise?: boolean
+	// which shape the handle is over, if any
+	pointingShape: {
+		// the shape's id
+		id: TLShapeId
+		// when the handle 'entered' the shape
+		entryTimestamp: number
+	} | null
+}
+
+const stateValidator = T.object<ArrowHandleDragState>({
+	interactionId: T.string,
+	isCreation: T.boolean,
+	overrideStartPointPrecise: T.boolean.optional(),
+	pointingShape: T.object({
+		id: shapeIdValidator,
+		entryTimestamp: T.number,
+	}).nullable(),
+})
 
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -172,8 +205,37 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		].filter(Boolean) as TLHandle[]
 	}
 
-	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
+	getNormalizedAnchor(shape: TLShape, pointInPageSpace: VecLike): VecLike {
+		const targetGeometry = this.editor.getShapeGeometry(shape)
+		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
+		const pointInTargetSpace = this.editor.getPointInShapeSpace(shape, pointInPageSpace)
+		return {
+			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+		}
+	}
+	shouldSnap(fromPoint: VecLike, toPoint: VecLike, toPointSnapped: VecLike) {
+		const drawnDistanceInScreenSpace = Vec.Dist(fromPoint, toPoint) * this.editor.getZoomLevel()
+		const drawnAngle = Vec.Angle(fromPoint, toPoint)
+
+		const snappedAngle = Vec.Angle(fromPoint, toPointSnapped)
+		const twentyDegrees = Math.PI / 9
+		const tenDegrees = Math.PI / 18
+		const fiveDegrees = Math.PI / 36
+		const angleDist = Math.abs(shortAngleDist(snappedAngle, drawnAngle))
+
+		return (
+			(drawnDistanceInScreenSpace < 50 && angleDist < twentyDegrees) ||
+			(drawnDistanceInScreenSpace < 100 && angleDist < tenDegrees) ||
+			angleDist < fiveDegrees
+		)
+	}
+
+	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, state }) => {
+		const PRECISION_TIMEOUT = 500
 		const handleId = handle.id as ARROW_HANDLES
+		const arrowPageTransform = this.editor.getShapePageTransform(shape.id)
+		if (!arrowPageTransform) return
 
 		if (handleId === ARROW_HANDLES.MIDDLE) {
 			// Bending the arrow...
@@ -192,24 +254,53 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return { id: shape.id, type: shape.type, props: { bend } }
 		}
 
-		// Start or end, pointing the arrow...
+		if (!state) {
+			state = {
+				interactionId: uniqueId(),
+				isCreation: false,
+				pointingShape: null,
+			}
+		}
+
+		const interactionState = stateValidator.validate(state)
 
 		const next = deepCopy(shape) as TLArrowShape
 
-		if (this.editor.inputs.ctrlKey) {
-			// todo: maybe double check that this isn't equal to the other handle too?
-			// Skip binding
-			next.props[handleId] = {
-				type: 'point',
-				x: handle.x,
-				y: handle.y,
-			}
-			return next
+		const info = this.editor.getArrowInfo(shape)
+		if (!info) return
+
+		const draggingHandlePoint = arrowPageTransform.applyToPoint(handle)
+		const otherHandlePoint = interactionState.isCreation
+			? this.editor.inputs.originPagePoint.clone()
+			: arrowPageTransform.applyToPoint(
+					info[handleId === ARROW_HANDLES.START ? 'end' : 'start'].point
+				)
+
+		// always reset the dragging point
+		const draggingHandlePointInShapeSpace = this.editor.getPointInShapeSpace(
+			shape.id,
+			draggingHandlePoint
+		)
+		next.props[handleId] = {
+			type: 'point',
+			x: draggingHandlePointInShapeSpace.x,
+			y: draggingHandlePointInShapeSpace.y,
 		}
 
-		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
+		if (interactionState.isCreation) {
+			// if we are creating a new arrow, reset the start point too since we might resnap it later
+			const otherHandlePointInShapeSpace = this.editor.getPointInShapeSpace(
+				shape.id,
+				otherHandlePoint
+			)
+			next.props.start = {
+				type: 'point',
+				x: otherHandlePointInShapeSpace.x,
+				y: otherHandlePointInShapeSpace.y,
+			}
+		}
 
-		const target = this.editor.getShapeAtPoint(point, {
+		const draggingHandleBindTarget = this.editor.getShapeAtPoint(draggingHandlePoint, {
 			hitInside: true,
 			hitFrameInside: true,
 			margin: 0,
@@ -218,88 +309,123 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 		})
 
-		if (!target) {
-			// todo: maybe double check that this isn't equal to the other handle too?
-			next.props[handleId] = {
-				type: 'point',
-				x: handle.x,
-				y: handle.y,
-			}
+		if (!draggingHandleBindTarget && !interactionState.isCreation) {
+			// no binding shape, so no snapping work to do, just return
+			interactionState.pointingShape = null
 			return next
 		}
 
-		// we've got a target! the handle is being dragged over a shape, bind to it
+		if (
+			interactionState.pointingShape &&
+			interactionState.pointingShape.id === draggingHandleBindTarget?.id
+		) {
+			// we've been pointing at this target before, no need to update
+		} else {
+			interactionState.pointingShape = draggingHandleBindTarget
+				? {
+						id: draggingHandleBindTarget.id,
+						// if the entry was slow, force a precise point
+						entryTimestamp:
+							this.editor.inputs.pointerVelocity.len() < 0.5
+								? Date.now() - PRECISION_TIMEOUT
+								: Date.now(),
+					}
+				: null
+		}
 
-		const targetGeometry = this.editor.getShapeGeometry(target)
-		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
-		const pageTransform = this.editor.getShapePageTransform(next.id)!
-		const pointInPageSpace = pageTransform.applyToPoint(handle)
-		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
+		if (draggingHandleBindTarget && !this.editor.inputs.ctrlKey) {
+			const precisionOverride = Date.now() - interactionState.pointingShape!.entryTimestamp > 500
+			const endCenterInPageSpace = this.editor
+				.getShapePageTransform(draggingHandleBindTarget.id)!
+				.applyToPoint(this.editor.getShapeGeometry(draggingHandleBindTarget).bounds.center)
+			const distInScreenSpace =
+				Vec.Dist(endCenterInPageSpace, draggingHandlePoint) * this.editor.getZoomLevel()
 
-		let precise = isPrecise
-
-		if (!precise) {
-			// If we're switching to a new bound shape, then precise only if moving slowly
-			const prevHandle = next.props[handleId]
+			const normalizedAnchor = this.getNormalizedAnchor(
+				draggingHandleBindTarget,
+				draggingHandlePoint
+			)
+			// start with a snapped start terminal and decide whether we need to un-snap
+			const draggingHandleTerminal: TLArrowShapeTerminal = {
+				type: 'binding',
+				boundShapeId: draggingHandleBindTarget.id,
+				isExact: this.editor.inputs.altKey,
+				isPrecise: false,
+				normalizedAnchor,
+			}
+			next.props[handleId] = draggingHandleTerminal
+			let lineStartPoint = otherHandlePoint as VecLike
+			if (!info.isStraight) {
+				// get angle of the line where it enters the target shape
+				const { point } = getArrowPoints(
+					info,
+					handleId,
+					0.1 /* actual value doesn't matter for us? */
+				)
+				lineStartPoint = point
+			}
 			if (
-				prevHandle.type === 'point' ||
-				(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
+				!draggingHandleTerminal.isExact &&
+				distInScreenSpace > 20 &&
+				(precisionOverride ||
+					!this.shouldSnap(lineStartPoint, draggingHandlePoint, endCenterInPageSpace))
 			) {
-				precise = this.editor.inputs.pointerVelocity.len() < 0.5
+				draggingHandleTerminal.isPrecise = true
 			}
 		}
 
-		if (!isPrecise) {
-			if (!targetGeometry.isClosed) {
-				precise = true
-			}
+		/// ------------------------------------
 
-			// Double check that we're not going to be doing an imprecise snap on
-			// the same shape twice, as this would result in a zero length line
-			const otherHandle =
-				next.props[handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START]
-			if (
-				otherHandle.type === 'binding' &&
-				target.id === otherHandle.boundShapeId &&
-				otherHandle.isPrecise
-			) {
-				precise = true
-			}
-		}
+		if (interactionState.isCreation) {
+			// maybe snap start point too
 
-		const normalizedAnchor = {
-			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-		}
+			// try snapping start point first
+			const otherHandleBindingTarget = this.editor.getShapeAtPoint(otherHandlePoint, {
+				hitInside: true,
+				hitFrameInside: true,
+				margin: 0,
+				filter: (targetShape) => {
+					return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				},
+			})
 
-		if (precise) {
-			// Turn off precision if we're within a certain distance to the center of the shape.
-			// Funky math but we want the snap distance to be 4 at the minimum and either
-			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-			if (
-				Vec.Dist(pointInTargetSpace, targetBounds.center) <
-				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.getZoomLevel()
-			) {
-				normalizedAnchor.x = 0.5
-				normalizedAnchor.y = 0.5
-			}
-		}
+			if (otherHandleBindingTarget && !this.editor.inputs.ctrlKey) {
+				if (
+					otherHandleBindingTarget.id === interactionState.pointingShape?.id &&
+					Date.now() - interactionState.pointingShape.entryTimestamp > 700
+				) {
+					interactionState.overrideStartPointPrecise = true
+				}
+				const startCenterInPageSpace = this.editor
+					.getShapePageTransform(otherHandleBindingTarget.id)!
+					.applyToPoint(this.editor.getShapeGeometry(otherHandleBindingTarget).bounds.center)
+				const distInScreenSpace =
+					Vec.Dist(startCenterInPageSpace, otherHandlePoint) * this.editor.getZoomLevel()
 
-		next.props[handleId] = {
-			type: 'binding',
-			boundShapeId: target.id,
-			normalizedAnchor: normalizedAnchor,
-			isPrecise: precise,
-			isExact: this.editor.inputs.altKey,
-		}
-
-		if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
-			if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
-				if (Vec.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
-					next.props.end.normalizedAnchor.x += 0.05
+				const normalizedAnchor = this.getNormalizedAnchor(
+					otherHandleBindingTarget,
+					otherHandlePoint
+				)
+				// start with a snapped start terminal and decide whether we need to un-snap
+				const startTerminal: TLArrowShapeTerminal = {
+					type: 'binding',
+					boundShapeId: otherHandleBindingTarget.id,
+					isExact: this.editor.inputs.altKey,
+					isPrecise: false,
+					normalizedAnchor,
+				}
+				next.props.start = startTerminal
+				if (
+					!startTerminal.isExact &&
+					distInScreenSpace > 20 &&
+					(interactionState.overrideStartPointPrecise ||
+						!this.shouldSnap(draggingHandlePoint, otherHandlePoint, startCenterInPageSpace))
+				) {
+					startTerminal.isPrecise = true
 				}
 			}
+
+			return next
 		}
 
 		return next

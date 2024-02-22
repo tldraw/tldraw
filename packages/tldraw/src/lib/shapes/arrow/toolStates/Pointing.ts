@@ -1,4 +1,5 @@
-import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
+import { StateNode, TLArrowShape, TLEventHandlers, createShapeId, uniqueId } from '@tldraw/editor'
+import { ArrowHandleDragState } from '../ArrowShapeUtil'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -48,6 +49,11 @@ export class Pointing extends StateNode {
 				shape: this.shape,
 				handle: this.editor.getShapeHandles(this.shape)!.find((h) => h.id === 'end')!,
 				isCreating: true,
+				state: {
+					interactionId: uniqueId(),
+					isCreation: true,
+					pointingShape: null,
+				} satisfies ArrowHandleDragState,
 				onInteractionEnd: 'arrow',
 			})
 		}
@@ -106,7 +112,7 @@ export class Pointing extends StateNode {
 		const startHandle = handles.find((h) => h.id === 'start')!
 		const change = util.onHandleDrag?.(shape, {
 			handle: { ...startHandle, x: 0, y: 0 },
-			isPrecise: true,
+			state: null,
 			initial: initial,
 		})
 
@@ -143,7 +149,7 @@ export class Pointing extends StateNode {
 			const endHandle = handles.find((h) => h.id === 'end')!
 			const change = util.onHandleDrag?.(shapeWithOutEndOffset, {
 				handle: { ...endHandle, x: point.x, y: point.y },
-				isPrecise: false, // sure about that?
+				state: null,
 				initial: initial,
 			})
 
@@ -163,7 +169,7 @@ export class Pointing extends StateNode {
 			const startHandle = handles.find((h) => h.id === 'start')!
 			const change = util.onHandleDrag?.(shapeWithOutEndOffset, {
 				handle: { ...startHandle, x: 0, y: 0 },
-				isPrecise: this.didTimeout, // sure about that?
+				state: null,
 				initial: initial,
 			})
 

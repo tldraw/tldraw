@@ -2298,7 +2298,7 @@ export type TLOnEditEndHandler<T extends TLShape> = (shape: T) => void;
 // @public (undocumented)
 export type TLOnHandleDragHandler<T extends TLShape> = (shape: T, info: {
     handle: TLHandle;
-    isPrecise: boolean;
+    state: unknown;
     initial?: T | undefined;
 }) => TLShapePartial<T> | void;
 
@@ -2906,11 +2906,7 @@ export class Vec {
     // (undocumented)
     toFixed(): Vec;
     // (undocumented)
-    static ToJson(A: VecLike): {
-        x: number;
-        y: number;
-        z: number | undefined;
-    };
+    static ToJson(A: VecLike): VecLike;
     // (undocumented)
     toJson(): VecModel;
     // (undocumented)

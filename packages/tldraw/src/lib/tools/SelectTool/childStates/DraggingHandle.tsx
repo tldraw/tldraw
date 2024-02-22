@@ -279,7 +279,7 @@ export class DraggingHandle extends StateNode {
 
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
-			isPrecise: this.isPrecise || altKey,
+			state: (this.info as any).state,
 			initial: initial,
 		})
 

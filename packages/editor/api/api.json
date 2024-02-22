@@ -38974,7 +38974,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    isPrecise: boolean;\n    initial?: T | undefined;\n}) => "
+              "text": ";\n    state: unknown;\n    initial?: T | undefined;\n}) => "
             },
             {
               "kind": "Reference",
@@ -48587,8 +48587,9 @@
                   "text": "): "
                 },
                 {
-                  "kind": "Content",
-                  "text": "{\n        x: number;\n        y: number;\n        z: number | undefined;\n    }"
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
                 },
                 {
                   "kind": "Content",

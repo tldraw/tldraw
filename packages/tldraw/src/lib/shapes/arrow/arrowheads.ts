@@ -5,7 +5,7 @@ type TLArrowPointsInfo = {
 	int: VecLike
 }
 
-function getArrowPoints(
+export function getArrowPoints(
 	info: TLArrowInfo,
 	side: 'start' | 'end',
 	strokeWidth: number
