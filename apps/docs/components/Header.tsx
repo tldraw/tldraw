@@ -10,13 +10,8 @@ export function Header({ sectionId }: { sectionId?: string }) {
 		<div className="layout__header">
 			<div className="layout__header__left">
 				<Link href="/introduction">
-					<div
-						className="lockup"
-						style={{
-							mask: `url(/lockup.svg) center 100% / 100% no-repeat`,
-							WebkitMask: `url(/lockup.svg) center 100% / 100% no-repeat`,
-						}}
-					/>
+					<img className="logo-dark" src="/tldraw_dev_dark.png" />
+					<img className="logo-light" src="/tldraw_dev_light.png" />
 				</Link>
 			</div>
 			<Search />

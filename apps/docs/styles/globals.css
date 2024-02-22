@@ -145,13 +145,9 @@ body {
 	color: var(--color-text);
 }
 
-.layout__header .lockup {
-	position: relative;
-	width: calc(71px * (30 / 18));
-	height: calc(18px * (30 / 18));
-	background: currentColor;
-	color: var(--color-text);
-	margin-bottom: 8px;
+.layout__header__left img {
+	width: calc(136px);
+	height: auto;
 }
 
 .layout__header__sections_and_socials {
@@ -1121,10 +1117,9 @@ body {
 		position: relative;
 		z-index: 1;
 		display: flex;
-		justify-content: space-around;
-		padding: 16px 0;
-		border-top: 1px solid var(--color-accent);
-		border-bottom: 1px solid var(--color-accent);
+		padding: 12px 0px;
+		border-bottom: 1px solid var(--color-tint-2);
+		margin-bottom: 12px;
 	}
 
 	.NavigationMenuTrigger {
@@ -1494,4 +1489,79 @@ html[data-theme='light'] .hero__dark {
 }
 .scroll-light::-webkit-scrollbar-thumb:hover {
 	background-color: rgba(144, 144, 144);
+}
+
+/* ------------------ Landing page ------------------ */
+
+.landing {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+}
+
+.landing__inner {
+	width: fit-content;
+	max-width: 960px;
+	height: fit-content;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.landing__logo {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	margin-bottom: 8px;
+}
+
+.landing__logo img {
+	width: 200px;
+	height: auto;
+}
+
+[data-theme='dark'] .logo-light {
+	display: none;
+}
+
+[data-theme='light'] .logo-dark {
+	display: none;
+}
+
+.landing__links {
+	list-style-type: none;
+	display: flex;
+	gap: 0px;
+}
+
+.landing__links a {
+	text-decoration: none;
+	color: var(--color-text);
+	padding: 16px 16px;
+	position: relative;
+	font-size: inherit;
+	font-family: inherit;
+	font-weight: 500;
+}
+
+.landing__links a::after {
+	position: absolute;
+	display: block;
+	content: '';
+	top: 8px;
+	bottom: 8px;
+	left: 1px;
+	right: 1px;
+	background-color: var(--color-tint-1);
+	border-radius: var(--border-radius-menu);
+	opacity: 0;
+}
+
+@media (hover: hover) {
+	.landing__links a:hover::after {
+		opacity: 1;
+	}
 }

@@ -2,11 +2,18 @@ import { ArticleDocsPage } from '@/components/ArticleDocsPage'
 import { CategoryDocsPage } from '@/components/CategoryDocsPage'
 import { ExampleDocsPage } from '@/components/ExampleDocsPage'
 import { SectionDocsPage } from '@/components/SectionDocsPage'
+import { Article, Category, Section } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-async function getContentForPath(path: string) {
+async function getContentForPath(
+	path: string
+): Promise<
+	| { type: 'section'; section: Section }
+	| { type: 'category'; category: Category }
+	| { type: 'article'; article: Article }
+> {
 	const db = await getDb()
 
 	const section = await db.db.get(`SELECT * FROM sections WHERE sections.path = ?`, path)
@@ -105,6 +112,20 @@ export default async function ContentPage({ params }: { params: { id: string | s
 
 	switch (content.type) {
 		case 'section': {
+			const firstArticleInSection = await getDb().then((db) =>
+				db.db.get(
+					`SELECT * FROM articles WHERE articles.sectionId = ? ORDER BY articles.order ASC LIMIT 1`,
+					content.section.id
+				)
+			)
+
+			if (firstArticleInSection) {
+				if (firstArticleInSection?.componentCode) {
+					return <ExampleDocsPage article={firstArticleInSection} />
+				}
+				return <ArticleDocsPage article={firstArticleInSection} />
+			}
+
 			return <SectionDocsPage section={content.section} />
 		}
 		case 'category': {

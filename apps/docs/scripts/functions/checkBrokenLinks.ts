@@ -1,7 +1,7 @@
 import { nicelog } from '@/utils/nicelog'
 import blc from 'broken-link-checker'
 
-const IGNORED_URLS = ['https://twitter.com/tldraw', 'https://tldraw.com']
+const IGNORED_URLS = ['https://x.com/tldraw', 'https://twitter.com/tldraw', 'https://tldraw.com']
 
 export async function checkBrokenLinks() {
 	nicelog('Checking broken links...')
