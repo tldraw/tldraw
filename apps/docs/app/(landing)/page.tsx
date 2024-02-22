@@ -16,7 +16,7 @@ export default async function HomePage() {
 						<Link href="/examples">Examples</Link>
 					</li>
 					<li>
-						<Link href="/introduction">GitHub</Link>
+						<a href="https://github.com/tldraw/tldraw">GitHub</a>
 					</li>
 				</ul>
 			</div>
