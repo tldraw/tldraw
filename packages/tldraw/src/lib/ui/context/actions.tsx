@@ -1012,7 +1012,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-wrap-mode',
 					menu: 'action.toggle-wrap-mode.menu',
 				},
-				kbd: '$/',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-wrap-mode', { source })
