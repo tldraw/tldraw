@@ -76,7 +76,7 @@ function useStyleChangeCallback() {
 						editor.setStyleForSelectedShapes(style, value, { squashing })
 					}
 					editor.setStyleForNextShapes(style, value, { squashing })
-					editor.updateInstanceState({ isChangingStyle: true })
+					editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
 				})
 
 				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
@@ -304,7 +304,7 @@ function OpacitySlider() {
 					editor.setOpacityForSelectedShapes(item, { squashing })
 				}
 				editor.setOpacityForNextShapes(item, { squashing })
-				editor.updateInstanceState({ isChangingStyle: true })
+				editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
 			})
 
 			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })
