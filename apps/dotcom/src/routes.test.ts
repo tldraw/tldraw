@@ -98,3 +98,14 @@ test("non-react routes don't match", () => {
 	expect('/robots.txt').not.toMatchAny(allVercelRoutingPatterns)
 	expect('/static/css/index.css').not.toMatchAny(allVercelRoutingPatterns)
 })
+
+test('convertReactToVercel', () => {
+	expect(() =>
+		convertReactToVercel('/r/:roomId/history?/:timestamp')
+	).toThrowErrorMatchingInlineSnapshot(
+		`"Optional route segments are not supported yet (you can add this)"`
+	)
+	expect(() => convertReactToVercel('/r/:roomId/history/*')).toThrowErrorMatchingInlineSnapshot(
+		`"Wildcard routes are not supported yet (you can add this)"`
+	)
+})
