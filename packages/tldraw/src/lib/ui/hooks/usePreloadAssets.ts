@@ -56,8 +56,6 @@ function getTypefaces(assetUrls: TLEditorAssetUrls) {
 	}
 }
 
-// todo: Expose this via a public API (prop on <Tldraw>).
-
 export function usePreloadAssets(assetUrls: TLEditorAssetUrls) {
 	const typefaces = useMemo(() => getTypefaces(assetUrls), [assetUrls])
 
