@@ -1007,6 +1007,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-wrap-mode',
+				label: {
+					default: 'action.toggle-wrap-mode',
+					menu: 'action.toggle-wrap-mode.menu',
+				},
+				kbd: '$/',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-wrap-mode', { source })
+					editor.user.updateUserPreferences({
+						isWrapMode: !editor.user.getIsWrapMode(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-reduce-motion',
 				label: {
 					default: 'action.toggle-reduce-motion',

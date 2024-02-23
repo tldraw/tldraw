@@ -80,6 +80,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-auto-size': 'Toggle auto size',
 	'action.toggle-dark-mode.menu': 'Dark mode',
 	'action.toggle-dark-mode': 'Toggle dark mode',
+	'action.toggle-wrap-mode.menu': 'Wrap mode',
+	'action.toggle-wrap-mode': 'Toggle wrap select mode',
 	'action.toggle-reduce-motion.menu': 'Reduce motion',
 	'action.toggle-reduce-motion': 'Toggle reduce motion',
 	'action.toggle-edge-scrolling.menu': 'Edge scrolling',

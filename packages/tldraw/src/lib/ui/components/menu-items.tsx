@@ -476,6 +476,13 @@ export function ToggleGridItem() {
 	return <TldrawUiMenuCheckboxItem {...actions['toggle-grid']} checked={isGridMode} />
 }
 
+export function ToggleWrapModeItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isWrapMode = useValue('isWrapMode', () => editor.user.getIsWrapMode(), [editor])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-wrap-mode']} checked={isWrapMode} />
+}
+
 export function ToggleDarkModeItem() {
 	const actions = useActions()
 	const editor = useEditor()

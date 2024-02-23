@@ -23,6 +23,7 @@ import {
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
+	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
 	ZoomTo100MenuItem,
@@ -132,6 +133,7 @@ function PreferencesGroup() {
 					<ToggleSnapModeItem />
 					<ToggleToolLockItem />
 					<ToggleGridItem />
+					<ToggleWrapModeItem />
 					<ToggleDarkModeItem />
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
