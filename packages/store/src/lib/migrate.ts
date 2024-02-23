@@ -42,6 +42,7 @@ export function defineMigrations<
 
 /** @public */
 export type Migration<Before = any, After = any> = {
+	storeVersion?: number
 	up: (oldState: Before) => After
 	down: (newState: After) => Before
 }
@@ -117,11 +118,13 @@ export function migrateRecord<R extends UnknownRecord>({
 	migrations,
 	fromVersion,
 	toVersion,
+	storeVersion,
 }: {
 	record: unknown
 	migrations: Migrations
 	fromVersion: number
 	toVersion: number
+	storeVersion: number
 }): MigrationResult<R> {
 	let currentVersion = fromVersion
 	if (!isRecord(record)) throw new Error('[migrateRecord] object is not a record')
@@ -137,8 +140,11 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooNew,
 			}
 		}
-		recordWithoutMeta = migrator.up(recordWithoutMeta) as any
-		currentVersion = nextVersion
+		// todo: figure out what the right thing to compare here is
+		if ((migrator.storeVersion ?? 0) !== storeVersion) {
+			recordWithoutMeta = migrator.up(recordWithoutMeta) as any
+			currentVersion = nextVersion
+		}
 	}
 
 	while (currentVersion > toVersion) {
@@ -150,8 +156,11 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooOld,
 			}
 		}
-		recordWithoutMeta = migrator.down(recordWithoutMeta) as any
-		currentVersion = nextVersion
+		// todo: figure out what the right thing to compare here is
+		if ((migrator.storeVersion ?? 0) !== storeVersion) {
+			recordWithoutMeta = migrator.down(recordWithoutMeta) as any
+			currentVersion = nextVersion
+		}
 	}
 
 	return {
@@ -205,6 +214,109 @@ export function migrate<T>({
 		value: value as T,
 	}
 }
+
+/* ---------------- Store migrations ---------------- */
+
+/** @public */
+export type StoreMigration<Before = any, After = any> = {
+	up: (oldState: Before) => After
+	down: (newState: After) => Before
+}
+
+/** @public */
+export interface StoreMigrations {
+	firstVersion: number
+	currentVersion: number
+	migrators: { [version: number]: StoreMigration }
+}
+
+/** @public */
+export function defineStoreMigrations<
+	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
+	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL,
+>(opts: {
+	firstVersion?: CurrentVersion extends number ? FirstVersion : never
+	currentVersion?: CurrentVersion
+	migrators?: CurrentVersion extends number
+		? FirstVersion extends number
+			? CurrentVersion extends FirstVersion
+				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: StoreMigration }
+				: {
+						[version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: StoreMigration
+					}
+			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: StoreMigration }
+		: never
+}): StoreMigrations {
+	const { currentVersion, firstVersion, migrators = {} } = opts
+
+	// Some basic guards against impossible version combinations, some of which will be caught by TypeScript
+	if (typeof currentVersion === 'number' && typeof firstVersion === 'number') {
+		if ((currentVersion as number) === (firstVersion as number)) {
+			throw Error(`Current version is equal to initial version.`)
+		} else if (currentVersion < firstVersion) {
+			throw Error(`Current version is lower than initial version.`)
+		}
+	}
+
+	return {
+		firstVersion: (firstVersion as number) ?? 0, // defaults
+		currentVersion: (currentVersion as number) ?? 0, // defaults
+		migrators,
+	}
+}
+
+/** @public */
+export type StoreMigrationResult<T> =
+	| { type: 'success'; store: T }
+	| { type: 'error'; reason: MigrationFailureReason }
+
+/** @public */
+export function migrateStore<T>({
+	store,
+	migrations,
+	fromVersion,
+	toVersion,
+}: {
+	store: unknown
+	migrations: Migrations
+	fromVersion: number
+	toVersion: number
+}): StoreMigrationResult<T> {
+	let currentVersion = fromVersion
+
+	while (currentVersion < toVersion) {
+		const nextVersion = currentVersion + 1
+		const migrator = migrations.migrators[nextVersion]
+		if (!migrator) {
+			return {
+				type: 'error',
+				reason: MigrationFailureReason.TargetVersionTooNew,
+			}
+		}
+		store = migrator.up(store)
+		currentVersion = nextVersion
+	}
+
+	while (currentVersion > toVersion) {
+		const nextVersion = currentVersion - 1
+		const migrator = migrations.migrators[currentVersion]
+		if (!migrator) {
+			return {
+				type: 'error',
+				reason: MigrationFailureReason.TargetVersionTooOld,
+			}
+		}
+		store = migrator.down(store)
+		currentVersion = nextVersion
+	}
+
+	return {
+		type: 'success',
+		store: store as T,
+	}
+}
+
+/* ------------------- Misc types ------------------- */
 
 type Range<From extends number, To extends number> = To extends From
 	? From

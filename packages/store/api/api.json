@@ -1378,7 +1378,7 @@
             },
             {
               "kind": "Content",
-              "text": ">({ record, migrations, fromVersion, toVersion, }: "
+              "text": ">({ record, migrations, fromVersion, toVersion, storeVersion, }: "
             },
             {
               "kind": "Content",
@@ -1391,7 +1391,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    fromVersion: number;\n    toVersion: number;\n}"
+              "text": ";\n    fromVersion: number;\n    toVersion: number;\n    storeVersion: number;\n}"
             },
             {
               "kind": "Content",
@@ -1420,7 +1420,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ record, migrations, fromVersion, toVersion, }",
+              "parameterName": "{ record, migrations, fromVersion, toVersion, storeVersion, }",
               "parameterTypeTokenRange": {
                 "startIndex": 3,
                 "endIndex": 6
@@ -1470,7 +1470,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    up: (oldState: Before) => After;\n    down: (newState: After) => Before;\n}"
+              "text": "{\n    storeVersion?: number;\n    up: (oldState: Before) => After;\n    down: (newState: After) => Before;\n}"
             },
             {
               "kind": "Content",

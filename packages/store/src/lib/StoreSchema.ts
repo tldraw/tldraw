@@ -2,13 +2,7 @@ import { getOwnProperty, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
-import {
-	MigrationFailureReason,
-	MigrationResult,
-	Migrations,
-	migrate,
-	migrateRecord,
-} from './migrate'
+import { MigrationFailureReason, MigrationResult, Migrations, migrateRecord } from './migrate'
 
 /** @public */
 export interface SerializedSchema {
@@ -121,12 +115,16 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							migrations: ourType.migrations,
 							fromVersion: persistedVersion,
 							toVersion: ourVersion,
+							// todo, how to handle storeVersion here?
+							storeVersion: 0,
 						})
 					: migrateRecord<R>({
 							record,
 							migrations: ourType.migrations,
 							fromVersion: ourVersion,
 							toVersion: persistedVersion,
+							// todo, how to handle storeVersion here?
+							storeVersion: 0,
 						})
 			if (result.type === 'error') {
 				return result
@@ -174,12 +172,16 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						migrations: ourSubTypeMigrations,
 						fromVersion: persistedSubTypeVersion,
 						toVersion: ourSubTypeMigrations.currentVersion,
+						// todo, how to handle storeVersion here?
+						storeVersion: 0,
 					})
 				: migrateRecord<R>({
 						record,
 						migrations: ourSubTypeMigrations,
 						fromVersion: ourSubTypeMigrations.currentVersion,
 						toVersion: persistedSubTypeVersion,
+						// todo, how to handle storeVersion here?
+						storeVersion: 0,
 					})
 
 		if (result.type === 'error') {
@@ -204,35 +206,117 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 		}
 
+		const records = objectMapValues(store)
+
 		if (ourStoreVersion > persistedStoreVersion) {
-			const result = migrate<SerializedStore<R>>({
-				value: store,
-				migrations,
-				fromVersion: persistedStoreVersion,
-				toVersion: ourStoreVersion,
-			})
+			const fromVersion = persistedStoreVersion
+			const toVersion = ourStoreVersion
 
-			if (result.type === 'error') {
-				return result
+			let currentVersion = fromVersion
+
+			while (currentVersion < toVersion) {
+				const nextVersion = currentVersion + 1
+				const migrator = migrations.migrators[nextVersion]
+				if (!migrator) {
+					return {
+						type: 'error',
+						reason: MigrationFailureReason.TargetVersionTooNew,
+					}
+				}
+				store = migrator.up(store)
+				currentVersion = nextVersion
+
+				const updated: R[] = []
+				for (const r of records) {
+					let result: MigrationResult<R>
+					let record = r
+
+					const ourType = getOwnProperty(this.types, record.typeName)
+					const persistedType = snapshot.schema.recordVersions[record.typeName]
+					if (!persistedType || !ourType) {
+						return { type: 'error', reason: MigrationFailureReason.UnknownType }
+					}
+					const ourVersion = ourType.migrations.currentVersion
+					const persistedVersion = persistedType.version
+					if (ourVersion !== persistedVersion) {
+						result = migrateRecord<R>({
+							record,
+							migrations: ourType.migrations,
+							fromVersion: persistedVersion,
+							toVersion: ourVersion,
+							storeVersion: currentVersion,
+						})
+						if (result.type === 'error') {
+							return result
+						}
+						record = result.value
+					}
+
+					if (!ourType.migrations.subTypeKey) {
+						continue // no update needed
+					}
+
+					const ourSubTypeMigrations =
+						ourType.migrations.subTypeMigrations?.[
+							record[ourType.migrations.subTypeKey as keyof R] as string
+						]
+
+					const persistedSubTypeVersion =
+						'subTypeVersions' in persistedType
+							? persistedType.subTypeVersions[
+									record[ourType.migrations.subTypeKey as keyof R] as string
+								]
+							: undefined
+
+					if (ourSubTypeMigrations === undefined) {
+						return { type: 'error', reason: MigrationFailureReason.UnrecognizedSubtype }
+					}
+
+					if (persistedSubTypeVersion === undefined) {
+						return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
+					}
+
+					result = migrateRecord<R>({
+						record,
+						migrations: ourSubTypeMigrations,
+						fromVersion: persistedSubTypeVersion,
+						toVersion: ourSubTypeMigrations.currentVersion,
+						storeVersion: currentVersion,
+					})
+
+					if (result.type === 'error') {
+						return result
+					}
+
+					if (result.value && result.value !== r) {
+						updated.push(result.value)
+					}
+				}
+
+				if (updated.length) {
+					store = { ...store }
+					for (const r of updated) {
+						store[r.id as IdOf<R>] = r
+					}
+				}
 			}
-			store = result.value
+
+			while (currentVersion > toVersion) {
+				const nextVersion = currentVersion - 1
+				const migrator = migrations.migrators[currentVersion]
+				if (!migrator) {
+					return {
+						type: 'error',
+						reason: MigrationFailureReason.TargetVersionTooOld,
+					}
+				}
+				store = migrator.down(store)
+				currentVersion = nextVersion
+
+				// todo: migrate all the records with this version as their storeVersion
+			}
 		}
 
-		const updated: R[] = []
-		for (const r of objectMapValues(store)) {
-			const result = this.migratePersistedRecord(r, snapshot.schema)
-			if (result.type === 'error') {
-				return result
-			} else if (result.value && result.value !== r) {
-				updated.push(result.value)
-			}
-		}
-		if (updated.length) {
-			store = { ...store }
-			for (const r of updated) {
-				store[r.id as IdOf<R>] = r
-			}
-		}
 		return { type: 'success', value: store }
 	}
 

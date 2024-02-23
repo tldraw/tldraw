@@ -99,15 +99,17 @@ export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
 }): MigrationResult<T>;
 
 // @public (undocumented)
-export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, }: {
+export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, storeVersion, }: {
     record: unknown;
     migrations: Migrations;
     fromVersion: number;
     toVersion: number;
+    storeVersion: number;
 }): MigrationResult<R>;
 
 // @public (undocumented)
 export type Migration<Before = any, After = any> = {
+    storeVersion?: number;
     up: (oldState: Before) => After;
     down: (newState: After) => Before;
 };
