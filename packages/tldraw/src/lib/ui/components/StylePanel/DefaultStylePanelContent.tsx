@@ -297,13 +297,13 @@ function OpacitySlider() {
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
-		(value: number, ephemeral: boolean) => {
+		(value: number, squashing: boolean) => {
 			const item = tldrawSupportedOpacities[value]
 			editor.batch(() => {
 				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item, { ephemeral })
+					editor.setOpacityForSelectedShapes(item, { squashing })
 				}
-				editor.setOpacityForNextShapes(item, { ephemeral })
+				editor.setOpacityForNextShapes(item, { squashing })
 				editor.updateInstanceState({ isChangingStyle: true })
 			})
 
