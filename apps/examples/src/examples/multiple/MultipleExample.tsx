@@ -37,13 +37,7 @@ export default function MultipleExample() {
 			<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
 				<h1>Focusing: {focusedEditor ?? 'none'}</h1>
 				<EditorA />
-				<textarea
-					data-testid="textarea"
-					placeholder="type in me"
-					style={{ margin: 10 }}
-					// Just to keep the current editor focused—shortcuts don't work when a textarea is focused
-					onPointerDown={(e) => e.stopPropagation()}
-				/>
+				<textarea data-testid="textarea" placeholder="type in me" style={{ margin: 10 }} />
 				<div
 					style={{
 						width: '100%',
