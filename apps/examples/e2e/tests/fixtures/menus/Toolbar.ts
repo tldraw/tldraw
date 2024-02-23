@@ -10,28 +10,34 @@ export class Toolbar {
 
 	constructor(public readonly page: Page) {
 		this.page = page
-		this.toolLock = this.page.locator('[data-testid="tool-lock"]')
-		this.moreToolsButton = this.page.locator('[data-testid="tools.more-button"]')
-		this.moreToolsPopover = this.page.locator('[data-testid="tools.more-content"]')
-		this.mobileStylesButton = this.page.locator('[data-testid="mobile-styles.button"]')
+		this.toolLock = this.page.getByTestId('tool-lock')
+		this.moreToolsButton = this.page.getByTestId('tools.more-button')
+		this.moreToolsPopover = this.page.getByTestId('tools.more-content')
+		this.mobileStylesButton = this.page.getByTestId('mobile-styles.button')
 		this.tools = {
-			select: this.page.locator('[data-testid="tools.select"]'),
-			draw: this.page.locator('[data-testid="tools.draw"]'),
-			arrow: this.page.locator('[data-testid="tools.arrow"]'),
-			cloud: this.page.locator('[data-testid="tools.cloud"]'),
-			eraser: this.page.locator('[data-testid="tools.eraser"]'),
+			select: this.page.getByTestId('tools.select'),
+			draw: this.page.getByTestId('tools.draw'),
+			arrow: this.page.getByTestId('tools.arrow'),
+			cloud: this.page.getByTestId('tools.cloud'),
+			eraser: this.page.getByTestId('tools.eraser'),
+			rectangle: this.page.getByTestId('tools.rectangle'),
 		}
 		this.popOverTools = {
-			popoverCloud: this.page.locator('[data-testid="tools.more.cloud"]'),
-			popoverFrame: this.page.locator('[data-testid="tools.more.frame"]'),
+			popoverCloud: this.page.getByTestId('tools.more.cloud'),
+			popoverFrame: this.page.getByTestId('tools.more.frame'),
+			popoverRectangle: this.page.getByTestId('tools.more.rectangle'),
 		}
 	}
 	async clickTool(tool: Locator) {
 		await tool.click()
 	}
-	async isSelected(tool: Locator, isSelected: boolean) {
+	async isSelected(tool: Locator) {
 		// pseudo elements aren't exposed to the DOM, but we can check the color as a proxy
-		const expectedColor = isSelected ? 'rgb(255, 255, 255)' : 'rgb(46, 46, 46)'
+		const expectedColor = 'rgb(255, 255, 255)'
+		await expect(tool).toHaveCSS('color', expectedColor)
+	}
+	async isNotSelected(tool: Locator) {
+		const expectedColor = 'rgb(46, 46, 46)'
 		await expect(tool).toHaveCSS('color', expectedColor)
 	}
 }
