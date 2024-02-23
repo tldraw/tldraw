@@ -2,6 +2,7 @@
 title: Editor focus
 component: ./EditorFocusExample.tsx
 category: basic
+priority: 7
 ---
 
 The `Editor`'s keyboard shortcuts only work when the `Editor` is "focused".
