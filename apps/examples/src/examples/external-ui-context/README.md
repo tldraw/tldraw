@@ -1,6 +1,6 @@
 ---
-title: External UI (2)
-component: ./ExternalUiExample2.tsx
+title: External UI (Context)
+component: ./ExternalUiContextExample.tsx
 category: ui
 ---
 
