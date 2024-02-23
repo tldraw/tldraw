@@ -31,11 +31,19 @@ export default function MultipleExample() {
 				backgroundColor: '#fff',
 				padding: 32,
 			}}
+			// Sorry you need to do this yourself
+			onPointerDown={() => setFocusedEditor(null)}
 		>
 			<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
 				<h1>Focusing: {focusedEditor ?? 'none'}</h1>
 				<EditorA />
-				<textarea data-testid="textarea" placeholder="type in me" style={{ margin: 10 }} />
+				<textarea
+					data-testid="textarea"
+					placeholder="type in me"
+					style={{ margin: 10 }}
+					// Just to keep the current editor focused—shortcuts don't work when a textarea is focused
+					onPointerDown={(e) => e.stopPropagation()}
+				/>
 				<div
 					style={{
 						width: '100%',
