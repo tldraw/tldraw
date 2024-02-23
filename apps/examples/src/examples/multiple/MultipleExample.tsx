@@ -31,6 +31,8 @@ export default function MultipleExample() {
 				backgroundColor: '#fff',
 				padding: 32,
 			}}
+			// Sorry you need to do this yourself
+			onPointerDown={() => setFocusedEditor(null)}
 		>
 			<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
 				<h1>Focusing: {focusedEditor ?? 'none'}</h1>
