@@ -1,5 +1,6 @@
 import { expect } from '@jest/globals'
 import type { MatcherFunction } from 'expect'
+import { join } from 'path'
 import { RouteObject } from 'react-router-dom'
 import { router } from './routes'
 
@@ -33,14 +34,13 @@ expect.extend({ toMatchAny })
 function extractContentPaths(routeObject: RouteObject): string[] {
 	const paths: string[] = []
 
-	if (routeObject.path && routeObject.path !== '*') {
-		paths.push(routeObject.path)
-	}
-
 	if (routeObject.children) {
+		const parentPath = routeObject.path || ''
 		routeObject.children.forEach((child) => {
-			paths.push(...extractContentPaths(child))
+			paths.push(...extractContentPaths(child).map((childPath) => join(parentPath, childPath)))
 		})
+	} else if (routeObject.path && routeObject.path !== '*') {
+		paths.push(routeObject.path)
 	}
 
 	return paths
