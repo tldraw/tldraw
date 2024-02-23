@@ -32,18 +32,16 @@ const toMatchAny: MatcherFunction<[regexes: unknown]> = function (actual, regexe
 expect.extend({ toMatchAny })
 
 function extractContentPaths(routeObject: RouteObject): string[] {
-	const paths: string[] = []
-
 	if (routeObject.children) {
 		const parentPath = routeObject.path || ''
-		routeObject.children.forEach((child) => {
-			paths.push(...extractContentPaths(child).map((childPath) => join(parentPath, childPath)))
-		})
-	} else if (routeObject.path && routeObject.path !== '*') {
-		paths.push(routeObject.path)
+		return routeObject.children.flatMap((child) =>
+			extractContentPaths(child).map((childPath) => join(parentPath, childPath))
+		)
+	} else if (routeObject.path) {
+		return [routeObject.path]
 	}
 
-	return paths
+	throw new Error('Route object has no path or children')
 }
 
 function convertReactToVercel(path: string): string {
@@ -65,6 +63,8 @@ function convertReactToVercel(path: string): string {
 const spaRoutes = router
 	.flatMap(extractContentPaths)
 	.sort()
+	// ignore the root catch-all route
+	.filter((path) => path !== '/*' && path !== '*')
 	.map((path) => ({
 		reactRouterPattern: path,
 		vercelRoutingPattern: convertReactToVercel(path),
