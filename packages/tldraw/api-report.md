@@ -1924,7 +1924,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
-    onValueChange: (value: number, emphemeral: boolean) => void;
+    onValueChange: (value: number, squashing: boolean) => void;
     // (undocumented)
     steps: number;
     // (undocumented)
