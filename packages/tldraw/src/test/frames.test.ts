@@ -784,6 +784,29 @@ describe('frame shapes', () => {
 		expect(newRectB.x).toBe(300)
 		expect(newRectB.y).toBe(300)
 	})
+
+	it('preserves the order of shapes when enclosing over them', () => {
+		const rectAId = createRect({ pos: [100, 100], size: [100, 100] })
+		const rectBId = createRect({ pos: [300, 300], size: [100, 100] })
+		const pageId = editor.getCurrentPageId()
+		expect(editor.getSortedChildIdsForParent(pageId)).toStrictEqual([rectAId, rectBId])
+
+		// Create the frame that encloses both rects
+		let frameId = dragCreateFrame({ down: [0, 0], move: [700, 700], up: [700, 700] })
+
+		// The order should be the same as before
+		expect(editor.getSortedChildIdsForParent(frameId)).toStrictEqual([rectAId, rectBId])
+
+		removeFrame(editor, [frameId])
+		expect(editor.getSortedChildIdsForParent(pageId)).toStrictEqual([rectAId, rectBId])
+
+		// Now let's push the second rect to the back
+		editor.sendToBack([rectBId])
+		expect(editor.getSortedChildIdsForParent(pageId)).toStrictEqual([rectBId, rectAId])
+
+		frameId = dragCreateFrame({ down: [0, 0], move: [700, 700], up: [700, 700] })
+		expect(editor.getSortedChildIdsForParent(frameId)).toStrictEqual([rectBId, rectAId])
+	})
 })
 
 test('arrows bound to a shape within a group within a frame are reparented if the group is moved outside of the frame', () => {
