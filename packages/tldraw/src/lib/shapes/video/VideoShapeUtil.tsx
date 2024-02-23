@@ -43,7 +43,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	override toSvg(shape: TLVideoShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const image = document.createElementNS('http://www.w3.org/2000/svg', 'image')
-		image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', serializeVideo(shape.id))
+		image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', serializeVideo(shape))
 		image.setAttribute('width', shape.props.w.toString())
 		image.setAttribute('height', shape.props.h.toString())
 		g.appendChild(image)
@@ -53,10 +53,16 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 }
 
 // Function from v1, could be improved but explicitly using this.model.time (?)
-function serializeVideo(id: string): string {
-	const splitId = id.split(':')[1]
+function serializeVideo(shape: TLVideoShape): string {
+	const splitId = shape.id.split(':')[1]
 	const video = document.querySelector(`.tl-video-shape-${splitId}`) as HTMLVideoElement
 	if (video) {
+		// If the video is paused, then set the video element's
+		// time to the shape's current time, so that we serialize
+		// the correct frame
+		if (!shape.props.playing) {
+			video.currentTime = shape.props.time
+		}
 		const canvas = document.createElement('canvas')
 		canvas.width = video.videoWidth
 		canvas.height = video.videoHeight

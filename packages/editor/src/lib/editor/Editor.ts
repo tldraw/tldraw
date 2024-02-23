@@ -8140,103 +8140,107 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		}
 
-		const unorderedShapeElements = (
-			await Promise.all(
-				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
-					// Don't render the frame if we're only exporting a single frame
-					if (id === singleFrameShapeId) return []
+		const unorderedShapeElements = compact(
+			(
+				await Promise.allSettled(
+					renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
+						// Don't render the frame if we're only exporting a single frame
+						if (id === singleFrameShapeId) return []
 
-					const shape = this.getShape(id)!
+						const shape = this.getShape(id)!
 
-					if (this.isShapeOfType<TLGroupShape>(shape, 'group')) return []
+						if (this.isShapeOfType<TLGroupShape>(shape, 'group')) return []
 
-					const util = this.getShapeUtil(shape)
+						const util = this.getShapeUtil(shape)
 
-					let shapeSvgElement = await util.toSvg?.(shape, exportContext)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, exportContext)
+						let shapeSvgElement = await util.toSvg?.(shape, exportContext)
+						let backgroundSvgElement = await util.toBackgroundSvg?.(shape, exportContext)
 
-					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
-					if (shapeSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(shapeSvgElement)
-						shapeSvgElement = outerElement
-					}
-
-					if (backgroundSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(backgroundSvgElement)
-						backgroundSvgElement = outerElement
-					}
-
-					if (!shapeSvgElement && !backgroundSvgElement) {
-						const bounds = this.getShapePageBounds(shape)!
-						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-						elm.setAttribute('width', bounds.width + '')
-						elm.setAttribute('height', bounds.height + '')
-						elm.setAttribute('fill', theme.solid)
-						elm.setAttribute('stroke', theme.grey.pattern)
-						elm.setAttribute('stroke-width', '1')
-						shapeSvgElement = elm
-					}
-
-					let pageTransform = this.getShapePageTransform(shape)!.toCssString()
-					if ('scale' in shape.props) {
-						if (shape.props.scale !== 1) {
-							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
-						}
-					}
-
-					shapeSvgElement?.setAttribute('transform', pageTransform)
-					backgroundSvgElement?.setAttribute('transform', pageTransform)
-					shapeSvgElement?.setAttribute('opacity', opacity + '')
-					backgroundSvgElement?.setAttribute('opacity', opacity + '')
-
-					// Create svg mask if shape has a frame as parent
-					const pageMask = this.getShapeMask(shape.id)
-					if (pageMask) {
-						// Create a clip path and add it to defs
-						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
-						defs.appendChild(clipPathEl)
-						const id = uniqueId()
-						clipPathEl.id = id
-
-						// Create a polyline mask that does the clipping
-						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
-						clipPathEl.appendChild(mask)
-
-						// Create group that uses the clip path and wraps the shape elements
+						// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
 						if (shapeSvgElement) {
 							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
 							outerElement.appendChild(shapeSvgElement)
 							shapeSvgElement = outerElement
 						}
 
 						if (backgroundSvgElement) {
 							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
 							outerElement.appendChild(backgroundSvgElement)
 							backgroundSvgElement = outerElement
 						}
-					}
 
-					const elements = []
-					if (shapeSvgElement) {
-						elements.push({ zIndex: index, element: shapeSvgElement })
-					}
-					if (backgroundSvgElement) {
-						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
-					}
+						if (!shapeSvgElement && !backgroundSvgElement) {
+							const bounds = this.getShapePageBounds(shape)!
+							const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+							elm.setAttribute('width', bounds.width + '')
+							elm.setAttribute('height', bounds.height + '')
+							elm.setAttribute('fill', theme.solid)
+							elm.setAttribute('stroke', theme.grey.pattern)
+							elm.setAttribute('stroke-width', '1')
+							shapeSvgElement = elm
+						}
 
-					return elements
-				})
-			)
-		).flat()
+						let pageTransform = this.getShapePageTransform(shape)!.toCssString()
+						if ('scale' in shape.props) {
+							if (shape.props.scale !== 1) {
+								pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
+							}
+						}
+
+						shapeSvgElement?.setAttribute('transform', pageTransform)
+						backgroundSvgElement?.setAttribute('transform', pageTransform)
+						shapeSvgElement?.setAttribute('opacity', opacity + '')
+						backgroundSvgElement?.setAttribute('opacity', opacity + '')
+
+						// Create svg mask if shape has a frame as parent
+						const pageMask = this.getShapeMask(shape.id)
+						if (pageMask) {
+							// Create a clip path and add it to defs
+							const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+							defs.appendChild(clipPathEl)
+							const id = uniqueId()
+							clipPathEl.id = id
+
+							// Create a polyline mask that does the clipping
+							const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+							mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
+							clipPathEl.appendChild(mask)
+
+							// Create group that uses the clip path and wraps the shape elements
+							if (shapeSvgElement) {
+								const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+								outerElement.setAttribute('clip-path', `url(#${id})`)
+								outerElement.appendChild(shapeSvgElement)
+								shapeSvgElement = outerElement
+							}
+
+							if (backgroundSvgElement) {
+								const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+								outerElement.setAttribute('clip-path', `url(#${id})`)
+								outerElement.appendChild(backgroundSvgElement)
+								backgroundSvgElement = outerElement
+							}
+						}
+
+						const elements = []
+						if (shapeSvgElement) {
+							elements.push({ zIndex: index, element: shapeSvgElement })
+						}
+						if (backgroundSvgElement) {
+							elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
+						}
+
+						return elements
+					})
+				)
+			).map((result) => (result.status === 'fulfilled' ? result.value : null))
+		)
+			.flat()
+			.sort((a, b) => a.zIndex - b.zIndex)
 
 		await Promise.all(exportDefPromisesById.values())
 
-		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
+		for (const { element } of unorderedShapeElements) {
 			svg.appendChild(element)
 		}
 
