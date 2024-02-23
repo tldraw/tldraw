@@ -100,8 +100,8 @@ and viewing it.
 
 [2] You can specify which page to display by using the `pageId` prop. By
     default, the first page is shown.
-	
+
 [3] You can customize the appearance of the image by passing other props to the
-		`TldrawImage` component. For example, you can toggle the background, set the
-		dark mode, and specify the viewport bounds.
+        `TldrawImage` component. For example, you can toggle the background, set
+        the dark mode, and specify the viewport bounds.
  */
