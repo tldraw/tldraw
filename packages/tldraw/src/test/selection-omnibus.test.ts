@@ -265,6 +265,18 @@ describe('when shape is hollow', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 
+	it('does not brush on point inside and drag when isWrapMode is on', () => {
+		editor.user.updateUserPreferences({ isWrapMode: true })
+		editor.pointerMove(75, 75)
+		expect(editor.getHoveredShapeId()).toBe(null)
+		editor.pointerDown()
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.pointerMove(80, 80)
+		editor.expectToBeIn('select.brushing')
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
 	it('drags draw shape child', () => {
 		editor
 			.selectAll()
