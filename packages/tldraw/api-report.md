@@ -1013,6 +1013,9 @@ export function parseTldrawJsonFile({ json, schema, }: {
     json: string;
 }): Result<TLStore, TldrawFileParseError>;
 
+// @public (undocumented)
+export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
+
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 
