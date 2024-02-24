@@ -87,7 +87,10 @@ export function FitFrameToContentMenuItem() {
 		() => {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
-			return editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
+			return (
+				onlySelectedShape.type === 'frame' &&
+				editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
+			)
 		},
 		[editor]
 	)
