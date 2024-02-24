@@ -99,8 +99,8 @@ const User = createRecordType<User>('user', {
 const ShapeVersion = {
 	AddRotation: 1,
 	AddParent: 2,
-	// This one MUST happen after the snapshot migration StoreVersions.AddCount
-	IncrementCount: 3,
+	CountDependency: 3,
+	IncrementCount: 4,
 } as const
 
 const RectangleVersion = {
@@ -109,8 +109,8 @@ const RectangleVersion = {
 
 const OvalVersion = {
 	AddBorderStyle: 1,
-	// This one MUST happen after the snapshot migration StoreVersions.AddCount
-	DecrementCount: 2,
+	CountDependency: 2,
+	DecrementCount: 3,
 } as const
 
 type ShapeId = RecordId<Shape<object>>
@@ -160,8 +160,8 @@ const shapeTypeMigrations = defineMigrations({
 				return rest
 			},
 		},
+		[ShapeVersion.CountDependency]: StoreVersions.AddCount,
 		[ShapeVersion.IncrementCount]: {
-			storeVersion: StoreVersions.AddCount,
 			up: (record) => {
 				return {
 					...record,
@@ -216,8 +216,8 @@ const shapeTypeMigrations = defineMigrations({
 						},
 					}),
 				},
+				[OvalVersion.CountDependency]: StoreVersions.AddCount,
 				[OvalVersion.DecrementCount]: {
-					storeVersion: StoreVersions.AddCount,
 					up: (record) => ({
 						...record,
 						count: record.count - 1,

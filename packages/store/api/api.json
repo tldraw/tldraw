@@ -914,6 +914,15 @@
             },
             {
               "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "SnapshotMigrationDependency",
+              "canonicalReference": "@tldraw/store!~SnapshotMigrationDependency:type"
+            },
+            {
+              "kind": "Content",
               "text": ";\n    } : {\n        [version in "
             },
             {
@@ -941,6 +950,15 @@
             },
             {
               "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "SnapshotMigrationDependency",
+              "canonicalReference": "@tldraw/store!~SnapshotMigrationDependency:type"
+            },
+            {
+              "kind": "Content",
               "text": ";\n    } : {\n        [version in "
             },
             {
@@ -965,6 +983,15 @@
               "kind": "Reference",
               "text": "Migration",
               "canonicalReference": "@tldraw/store!Migration:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "SnapshotMigrationDependency",
+              "canonicalReference": "@tldraw/store!~SnapshotMigrationDependency:type"
             },
             {
               "kind": "Content",
@@ -1004,8 +1031,8 @@
           ],
           "fileUrlPath": "packages/store/src/lib/migrate.ts",
           "returnTypeTokenRange": {
-            "startIndex": 37,
-            "endIndex": 38
+            "startIndex": 43,
+            "endIndex": 44
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -1014,7 +1041,7 @@
               "parameterName": "opts",
               "parameterTypeTokenRange": {
                 "startIndex": 13,
-                "endIndex": 36
+                "endIndex": 42
               },
               "isOptional": false
             }
@@ -1378,7 +1405,7 @@
             },
             {
               "kind": "Content",
-              "text": ">({ record, migrations, fromVersion, toVersion, storeVersion, defaultStoreVersion, }: "
+              "text": ">({ record, migrations, fromVersion, toVersion, }: "
             },
             {
               "kind": "Content",
@@ -1391,7 +1418,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    fromVersion: number;\n    toVersion: number;\n    storeVersion?: number;\n    defaultStoreVersion?: number;\n}"
+              "text": ";\n    fromVersion: number;\n    toVersion: number;\n}"
             },
             {
               "kind": "Content",
@@ -1420,7 +1447,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ record, migrations, fromVersion, toVersion, storeVersion, defaultStoreVersion, }",
+              "parameterName": "{ record, migrations, fromVersion, toVersion, }",
               "parameterTypeTokenRange": {
                 "startIndex": 3,
                 "endIndex": 6
@@ -1470,7 +1497,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    storeVersion?: number;\n    up: (oldState: Before) => After;\n    down: (newState: After) => Before;\n}"
+              "text": "{\n    up: (oldState: Before) => After;\n    down: (newState: After) => Before;\n}"
             },
             {
               "kind": "Content",
@@ -5047,22 +5074,6 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", storeVersion?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", defaultStoreVersion?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
@@ -5081,8 +5092,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 11,
-                "endIndex": 13
+                "startIndex": 7,
+                "endIndex": 9
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -5111,22 +5122,6 @@
                     "endIndex": 6
                   },
                   "isOptional": false
-                },
-                {
-                  "parameterName": "storeVersion",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 7,
-                    "endIndex": 8
-                  },
-                  "isOptional": true
-                },
-                {
-                  "parameterName": "defaultStoreVersion",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 9,
-                    "endIndex": 10
-                  },
-                  "isOptional": true
                 }
               ],
               "isOptional": false,

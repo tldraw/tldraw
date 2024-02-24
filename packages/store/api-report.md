@@ -50,11 +50,11 @@ export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EM
     firstVersion?: CurrentVersion extends number ? FirstVersion : never;
     currentVersion?: CurrentVersion;
     migrators?: CurrentVersion extends number ? FirstVersion extends number ? CurrentVersion extends FirstVersion ? {
-        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
+        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration | SnapshotMigrationDependency;
     } : {
-        [version in Exclude<Range_2<FirstVersion, CurrentVersion>, FirstVersion>]: Migration;
+        [version in Exclude<Range_2<FirstVersion, CurrentVersion>, FirstVersion>]: Migration | SnapshotMigrationDependency;
     } : {
-        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
+        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration | SnapshotMigrationDependency;
     } : never;
     subTypeKey?: string;
     subTypeMigrations?: Record<string, BaseMigrationsInfo>;
@@ -99,18 +99,15 @@ export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
 }): MigrationResult<T>;
 
 // @public
-export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, storeVersion, defaultStoreVersion, }: {
+export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, }: {
     record: unknown;
     migrations: Migrations;
     fromVersion: number;
     toVersion: number;
-    storeVersion?: number;
-    defaultStoreVersion?: number;
 }): MigrationResult<R>;
 
 // @public (undocumented)
 export type Migration<Before = any, After = any> = {
-    storeVersion?: number;
     up: (oldState: Before) => After;
     down: (newState: After) => Before;
 };
@@ -306,7 +303,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     get currentStoreVersion(): number;
     // (undocumented)
-    migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction: 'down' | 'up', storeVersion?: number, defaultStoreVersion?: number): MigrationResult<R>;
+    migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
     migrateRecordInIsolation(record: R, schema: SerializedSchema): R;
     // (undocumented)

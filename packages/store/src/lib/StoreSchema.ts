@@ -113,9 +113,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	migratePersistedRecord(
 		record: R,
 		persistedSchema: SerializedSchema,
-		direction: 'up' | 'down',
-		storeVersion?: number,
-		defaultStoreVersion?: number
+		direction: 'up' | 'down'
 	): MigrationResult<R> {
 		const ourType = getOwnProperty(this.types, record.typeName)
 		const persistedType = persistedSchema.recordVersions[record.typeName]
@@ -132,16 +130,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							migrations: ourType.migrations,
 							fromVersion: persistedVersion,
 							toVersion: ourVersion,
-							storeVersion,
-							defaultStoreVersion,
 						})
 					: migrateRecord<R>({
 							record,
 							migrations: ourType.migrations,
 							fromVersion: ourVersion,
 							toVersion: persistedVersion,
-							storeVersion,
-							defaultStoreVersion,
 						})
 			if (result.type === 'error') {
 				return result
@@ -189,16 +183,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						migrations: ourSubTypeMigrations,
 						fromVersion: persistedSubTypeVersion,
 						toVersion: ourSubTypeMigrations.currentVersion,
-						storeVersion,
-						defaultStoreVersion: this.options.defaultSnapshotMigrationVersion ?? 1,
 					})
 				: migrateRecord<R>({
 						record,
 						migrations: ourSubTypeMigrations,
 						fromVersion: ourSubTypeMigrations.currentVersion,
 						toVersion: persistedSubTypeVersion,
-						storeVersion,
-						defaultStoreVersion: this.options.defaultSnapshotMigrationVersion ?? 1,
 					})
 
 		if (result.type === 'error') {
@@ -230,6 +220,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 				currentVersion = fromVersion
 
+				// Previously, ALL the store migrations would run, and then ALL the record migrations would run.
+				// We've now added the ability to mark a migration as running AFTER a certain store version.
+				// If we encounter a migration with a store version, then we need to make sure that all lower version
+				// migrations have run first for that record. If we never encounter a store migration for a record,
+				// then we can run all of its migrations at the end.
+
 				// For each version of the store...
 				while (currentVersion < toVersion) {
 					// Get the snapshot migrator for the next version
@@ -242,32 +238,84 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							reason: MigrationFailureReason.TargetVersionTooNew,
 						}
 					}
+					if (typeof snapshotMigrator === 'number') {
+						throw Error(`Snapshot migrators should not include dependency markers`)
+					}
 
 					// Migrate the store to the next version
 					store = snapshotMigrator.up(store)
 
-					// Migrate all records in the store for the next version
-					// Only the migrtations that have `storeVersion` equal to `nextVersion` will be applied;
-					// If the migrations don't have a `storeVersion`, then they'll be applied at the end.
 					const updated: R[] = []
-					for (const r of objectMapValues(store)) {
-						const result = this.migratePersistedRecord(
-							r,
-							snapshot.schema,
-							'up',
-							nextVersion,
-							// Previously, ALL the store migrations would run, and then ALL the record migrations would run.
-							// We've now added the ability to mark a migration as running AFTER a certain store version.
-							// If we encounter a migration with a store version, then we need to make sure that all lower version
-							// migrations have run first for that record. If we never encounter a store migration for a record,
-							// then we can run all of its migrations at the end.
-							this.options.defaultSnapshotMigrationVersion ?? ourStoreVersion
-						)
+
+					for (let record of objectMapValues(store)) {
+						const ourType = getOwnProperty(this.types, record.typeName)
+						const persistedType = snapshot.schema.recordVersions[record.typeName]
+						if (!persistedType || !ourType) {
+							return { type: 'error', reason: MigrationFailureReason.UnknownType }
+						}
+						const ourVersion = ourType.migrations.currentVersion
+						const persistedVersion = persistedType.version
+						if (ourVersion !== persistedVersion) {
+							const result = migrateRecord<R>({
+								record,
+								migrations: ourType.migrations,
+								fromVersion: persistedVersion,
+								toVersion: ourVersion,
+							})
+							if (result.type === 'error') {
+								return result
+							}
+							record = result.value
+						}
+
+						if (!ourType.migrations.subTypeKey) {
+							updated.push(record)
+							continue
+						}
+
+						// we've handled the main version migration, now we need to handle subtypes
+						// subtypes are used by shape and asset types to migrate the props shape, which is configurable
+						// by library consumers.
+
+						const ourSubTypeMigrations =
+							ourType.migrations.subTypeMigrations?.[
+								record[ourType.migrations.subTypeKey as keyof R] as string
+							]
+
+						const persistedSubTypeVersion =
+							'subTypeVersions' in persistedType
+								? persistedType.subTypeVersions[
+										record[ourType.migrations.subTypeKey as keyof R] as string
+									]
+								: undefined
+
+						// if ourSubTypeMigrations is undefined then we don't have access to the migrations for this subtype
+						// that is almost certainly because we are running on the server and this type was supplied by a 3rd party.
+						// It could also be that we are running in a client that is outdated. Either way, we can't migrate this record
+						// and we need to let the consumer know so they can handle it.
+						if (ourSubTypeMigrations === undefined) {
+							return { type: 'error', reason: MigrationFailureReason.UnrecognizedSubtype }
+						}
+
+						// if the persistedSubTypeVersion is undefined then the record was either created after the schema
+						// was persisted, or it was created in a different place to where the schema was persisted.
+						// either way we don't know what to do with it safely, so let's return failure.
+						if (persistedSubTypeVersion === undefined) {
+							return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
+						}
+
+						const result = migrateRecord<R>({
+							record,
+							migrations: ourSubTypeMigrations,
+							fromVersion: persistedSubTypeVersion,
+							toVersion: ourSubTypeMigrations.currentVersion,
+						})
+
 						if (result.type === 'error') {
 							return result
-						} else if (result.value && result.value !== r) {
-							updated.push(result.value)
 						}
+
+						updated.push(result.value)
 					}
 					if (updated.length) {
 						store = { ...store }
@@ -284,13 +332,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			// Migrate all records in the store
 			const updated: R[] = []
 			for (const r of objectMapValues(store)) {
-				const result = this.migratePersistedRecord(
-					r,
-					snapshot.schema,
-					'up',
-					this.currentStoreVersion,
-					this.currentStoreVersion
-				)
+				const result = this.migratePersistedRecord(r, snapshot.schema, 'up')
 				if (result.type === 'error') {
 					return result
 				} else if (result.value && result.value !== r) {

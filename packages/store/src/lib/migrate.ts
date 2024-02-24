@@ -13,9 +13,19 @@ export function defineMigrations<
 	migrators?: CurrentVersion extends number
 		? FirstVersion extends number
 			? CurrentVersion extends FirstVersion
-				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
-				: { [version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: Migration }
-			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
+				? {
+						[version in Exclude<Range<1, CurrentVersion>, 0>]:
+							| Migration
+							| SnapshotMigrationDependency
+					}
+				: {
+						[version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]:
+							| Migration
+							| SnapshotMigrationDependency
+					}
+			: {
+					[version in Exclude<Range<1, CurrentVersion>, 0>]: Migration | SnapshotMigrationDependency
+				}
 		: never
 	subTypeKey?: string
 	subTypeMigrations?: Record<string, BaseMigrationsInfo>
@@ -42,15 +52,17 @@ export function defineMigrations<
 
 /** @public */
 export type Migration<Before = any, After = any> = {
-	storeVersion?: number
 	up: (oldState: Before) => After
 	down: (newState: After) => Before
 }
 
+/** @public */
+export type SnapshotMigrationDependency = number
+
 interface BaseMigrationsInfo {
 	firstVersion: number
 	currentVersion: number
-	migrators: { [version: number]: Migration }
+	migrators: { [version: number]: Migration | SnapshotMigrationDependency }
 }
 
 /** @public */
@@ -121,8 +133,6 @@ export function migrateRecord<R extends UnknownRecord>({
 	migrations,
 	fromVersion,
 	toVersion,
-	storeVersion,
-	defaultStoreVersion,
 }: {
 	/**
 	 * The record to update.
@@ -140,14 +150,6 @@ export function migrateRecord<R extends UnknownRecord>({
 	 * The record version to migrate to.
 	 */
 	toVersion: number
-	/**
-	 * The current store version. For each record migration, only versions that match the store version will be applied.
-	 */
-	storeVersion?: number
-	/**
-	 * The default store version to apply to migrations that don't specify a store version.
-	 */
-	defaultStoreVersion?: number
 }): MigrationResult<R> {
 	let currentVersion = fromVersion
 	if (!isRecord(record)) throw new Error('[migrateRecord] object is not a record')
@@ -163,9 +165,11 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooNew,
 			}
 		}
-		if ((migrator.storeVersion ?? defaultStoreVersion) === storeVersion) {
-			recordWithoutMeta = migrator.up(recordWithoutMeta) as any
+		if (typeof migrator === 'number') {
+			throw Error("Can't migrate a dependency marker, this should have been skipped")
 		}
+
+		recordWithoutMeta = migrator.up(recordWithoutMeta) as any
 		currentVersion = nextVersion
 	}
 
@@ -178,9 +182,12 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooOld,
 			}
 		}
-		if ((migrator.storeVersion ?? defaultStoreVersion) === storeVersion) {
-			recordWithoutMeta = migrator.down(recordWithoutMeta) as any
+
+		if (typeof migrator === 'number') {
+			throw Error("Can't migrate a dependency marker, this should have been skipped")
 		}
+
+		recordWithoutMeta = migrator.down(recordWithoutMeta) as any
 		currentVersion = nextVersion
 	}
 
@@ -228,6 +235,9 @@ export function migrate<T>({
 				reason: MigrationFailureReason.TargetVersionTooNew,
 			}
 		}
+		if (typeof migrator === 'number') {
+			throw Error('These migrations should not include dependency markers')
+		}
 		value = migrator.up(value)
 		currentVersion = nextVersion
 	}
@@ -240,6 +250,9 @@ export function migrate<T>({
 				type: 'error',
 				reason: MigrationFailureReason.TargetVersionTooOld,
 			}
+		}
+		if (typeof migrator === 'number') {
+			throw Error('These migrations should not include dependency markers')
 		}
 		value = migrator.down(value)
 		currentVersion = nextVersion
