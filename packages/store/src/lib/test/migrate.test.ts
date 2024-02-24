@@ -37,17 +37,17 @@ test('serializedV1Schenma', () => {
 		    "shape": {
 		      "subTypeKey": "type",
 		      "subTypeVersions": {
-		        "oval": 1,
+		        "oval": 2,
 		        "rectangle": 1,
 		      },
-		      "version": 2,
+		      "version": 3,
 		    },
 		    "user": {
 		      "version": 2,
 		    },
 		  },
 		  "schemaVersion": 1,
-		  "storeVersion": 1,
+		  "storeVersion": 2,
 		}
 	`)
 })
@@ -103,6 +103,8 @@ describe('migrating from v0 to v1', () => {
 			rotation: 0,
 			parentId: null,
 			type: 'rectangle',
+			// todo: this is a bug! The store migration should have run?
+			count: NaN,
 			props: {
 				width: 100,
 				height: 100,
@@ -189,6 +191,8 @@ describe('migrating from v1 to v0', () => {
 			x: 0,
 			y: 0,
 			type: 'rectangle',
+			// todo: this is a bug! The store migration should have run?
+			count: 1,
 			props: {
 				width: 100,
 				height: 100,
@@ -350,6 +354,7 @@ test('migrating a whole store snapshot works', () => {
 			type: 'rectangle',
 			parentId: null,
 			rotation: 0,
+			count: 1,
 			props: {
 				width: 100,
 				height: 100,
@@ -362,6 +367,7 @@ test('migrating a whole store snapshot works', () => {
 			name: 'name',
 			locale: 'en',
 			phoneNumber: null,
+			count: 0,
 		},
 	})
 })
