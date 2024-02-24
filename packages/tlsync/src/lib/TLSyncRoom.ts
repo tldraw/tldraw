@@ -770,6 +770,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			}
 
 			const addDocument = (id: string, _state: R): Result<void, void> => {
+				// todo: we can't migrate persisted records on their own, we need to migrate the entire store
 				const res = this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
 				if (res.type === 'error') {
 					return fail(
@@ -835,6 +836,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					case 1: {
 						// If the client's version of the record is older than ours,
 						// we apply the patch to the downgraded version of the record
+						// todo: we can't migrate persisted records on their own, we need to migrate the entire store
 						const downgraded = this.schema.migratePersistedRecord(
 							doc.state,
 							session.serializedSchema,
@@ -847,6 +849,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						// apply the patch to the downgraded version
 						const patched = applyObjectDiff(downgraded.value, patch)
 						// then upgrade the patched version and use that as the new state
+						// todo: we can't migrate persisted records on their own, we need to migrate the entire store
 						const upgraded = this.schema.migratePersistedRecord(
 							patched,
 							session.serializedSchema,
