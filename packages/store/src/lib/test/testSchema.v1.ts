@@ -162,10 +162,12 @@ const shapeTypeMigrations = defineMigrations({
 		},
 		[ShapeVersion.IncrementCount]: {
 			storeVersion: StoreVersions.AddCount,
-			up: (record) => ({
-				...record,
-				count: record.count + 1,
-			}),
+			up: (record) => {
+				return {
+					...record,
+					count: record.count + 1,
+				}
+			},
 			down: (record) => ({
 				...record,
 				count: record.count - 1,

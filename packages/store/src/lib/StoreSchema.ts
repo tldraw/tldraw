@@ -99,7 +99,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		record: R,
 		persistedSchema: SerializedSchema,
 		direction: 'up' | 'down' = 'up',
-		storeVersion = this.currentStoreVersion
+		storeVersion?: number
 	): MigrationResult<R> {
 		const ourType = getOwnProperty(this.types, record.typeName)
 		const persistedType = persistedSchema.recordVersions[record.typeName]
@@ -203,8 +203,6 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 		}
 
-		const records = objectMapValues(store)
-
 		// We want to migrate to a point where the store version is our store version
 		let currentVersion = ourStoreVersion
 
@@ -231,7 +229,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 				// Now migrate the records for this store version
 				const updated: R[] = []
-				for (const r of records) {
+				for (const r of objectMapValues(store)) {
 					const result = this.migratePersistedRecord(r, snapshot.schema, 'up', currentVersion)
 					if (result.type === 'error') {
 						return result
@@ -252,8 +250,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 		// Now that the current version is our store version, we can
 		const updated: R[] = []
-		for (const r of records) {
-			const result = this.migratePersistedRecord(r, snapshot.schema, 'up', ourStoreVersion)
+		for (const r of objectMapValues(store)) {
+			const result = this.migratePersistedRecord(r, snapshot.schema, 'up')
 			if (result.type === 'error') {
 				return result
 			} else if (result.value && result.value !== r) {

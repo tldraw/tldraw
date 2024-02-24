@@ -104,7 +104,7 @@ export function migrateRecord<R extends UnknownRecord>({ record, migrations, fro
     migrations: Migrations;
     fromVersion: number;
     toVersion: number;
-    storeVersion: number;
+    storeVersion?: number;
 }): MigrationResult<R>;
 
 // @public (undocumented)

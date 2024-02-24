@@ -1391,7 +1391,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    fromVersion: number;\n    toVersion: number;\n    storeVersion: number;\n}"
+              "text": ";\n    fromVersion: number;\n    toVersion: number;\n    storeVersion?: number;\n}"
             },
             {
               "kind": "Content",

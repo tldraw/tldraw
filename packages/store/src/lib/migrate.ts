@@ -142,7 +142,7 @@ export function migrateRecord<R extends UnknownRecord>({
 	/**
 	 * The current store version. For each record migration, only versions that match the store version will be applied.
 	 */
-	storeVersion: number
+	storeVersion?: number
 }): MigrationResult<R> {
 	let currentVersion = fromVersion
 	if (!isRecord(record)) throw new Error('[migrateRecord] object is not a record')
@@ -158,7 +158,7 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooNew,
 			}
 		}
-		if (migrator.storeVersion === storeVersion) {
+		if (storeVersion === undefined || migrator.storeVersion === storeVersion) {
 			recordWithoutMeta = migrator.up(recordWithoutMeta) as any
 		}
 		currentVersion = nextVersion
@@ -173,7 +173,7 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooOld,
 			}
 		}
-		if (migrator.storeVersion === storeVersion) {
+		if (storeVersion === undefined || migrator.storeVersion === storeVersion) {
 			recordWithoutMeta = migrator.down(recordWithoutMeta) as any
 		}
 		currentVersion = nextVersion

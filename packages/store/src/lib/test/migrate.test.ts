@@ -87,6 +87,8 @@ describe('migrating from v0 to v1', () => {
 			},
 		}
 
+		// todo: the snapshot migrations would need to run on this first
+		// the question is, do we EVER call migratePersistedRecord OUTSIDE of StoreSchema.migrateStoreSnapshot?
 		const shapeResult = testSchemaV1.migratePersistedRecord(rectangle as any, serializedV0Schenma)
 
 		if (shapeResult.type !== 'success') {
