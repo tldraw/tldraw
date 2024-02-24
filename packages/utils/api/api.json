@@ -3237,7 +3237,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "@tldraw/utils!structuredClone_2:var",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * Create a deep copy of a value. Uses the structuredClone API if available, otherwise uses JSON.parse(JSON.stringify()).\n *\n * @param i - The value to clone.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
