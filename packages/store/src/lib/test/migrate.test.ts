@@ -37,10 +37,10 @@ test('serializedV1Schenma', () => {
 		    "shape": {
 		      "subTypeKey": "type",
 		      "subTypeVersions": {
-		        "oval": 2,
+		        "oval": 3,
 		        "rectangle": 1,
 		      },
-		      "version": 3,
+		      "version": 4,
 		    },
 		    "user": {
 		      "version": 2,
