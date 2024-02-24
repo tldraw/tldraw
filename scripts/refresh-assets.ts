@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs'
+import { writeFile as writeFileUnchecked } from 'fs/promises'
 import { join } from 'path'
 import { optimize } from 'svgo'
 import {
@@ -401,6 +402,19 @@ async function writeAssetDeclarationDTSFile() {
 	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
+async function copyVersionToDotCom() {
+	const packageVersion = await import(join(REPO_ROOT, 'packages', 'tldraw', 'package.json')).then(
+		(pkg) => pkg.version
+	)
+	const file = `export const version = '${packageVersion}'`
+	await writeFileUnchecked(join(REPO_ROOT, 'apps', 'dotcom', 'version.ts'), file)
+	await writeFileUnchecked(join(REPO_ROOT, 'packages', 'editor', 'src', 'version.ts'), file)
+	await writeFileUnchecked(
+		join(REPO_ROOT, 'packages', 'tldraw', 'src', 'lib', 'ui', 'version.ts'),
+		file
+	)
+}
+
 // --- RUN
 async function main() {
 	nicelog('Copying icons...')
@@ -417,6 +431,7 @@ async function main() {
 	await writeImportBasedAssetDeclarationFile('', 'imports.js')
 	await writeImportBasedAssetDeclarationFile('?url', 'imports.vite.js')
 	await writeSelfHostedAssetDeclarationFile()
+	await copyVersionToDotCom()
 	nicelog('Done!')
 }
 
