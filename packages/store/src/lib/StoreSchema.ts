@@ -284,7 +284,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							const { typeName, id, ...others } = record
 							let recordWithoutMeta = others
 
-							while (currentVersion < toVersion) {
+							recordMigrateLoop: while (currentVersion < toVersion) {
 								const nextVersion = currentVersion + 1
 								const migrator = migrations.migrators[nextVersion]
 								if (!migrator) {
@@ -295,19 +295,19 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 								}
 								if (!migrationsThatHaveRun.has(migrator)) {
 									migrationsThatHaveRun.add(migrator)
-
 									if (typeof migrator === 'number') {
 										if (migrator > currentStoreVersion) {
-											// noop
+											break recordMigrateLoop
 										}
 									} else {
 										recordWithoutMeta = migrator.up(recordWithoutMeta) as any
 									}
 								}
+
 								currentVersion = nextVersion
 							}
 
-							while (currentVersion > toVersion) {
+							recordMigrateLoop: while (currentVersion > toVersion) {
 								const nextVersion = currentVersion - 1
 								const migrator = migrations.migrators[currentVersion]
 								if (!migrator) {
@@ -321,12 +321,13 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 									migrationsThatHaveRun.add(migrator)
 									if (typeof migrator === 'number') {
 										if (migrator > currentStoreVersion) {
-											// noop
+											break recordMigrateLoop
 										}
 									} else {
 										recordWithoutMeta = migrator.down(recordWithoutMeta) as any
 									}
 								}
+
 								currentVersion = nextVersion
 							}
 
@@ -369,13 +370,6 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
 						}
 
-						const result = migrateRecord<R>({
-							record,
-							migrations: ourSubTypeMigrations,
-							fromVersion: persistedSubTypeVersion,
-							toVersion: ourSubTypeMigrations.currentVersion,
-						})
-
 						const migrations = ourSubTypeMigrations
 						const fromVersion = persistedSubTypeVersion
 						const toVersion = ourSubTypeMigrations.currentVersion
@@ -385,7 +379,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						const { typeName, id, ...others } = record
 						let recordWithoutMeta = others
 
-						while (currentVersion < toVersion) {
+						recordSubTypeMigrateLoop: while (currentVersion < toVersion) {
 							const nextVersion = currentVersion + 1
 							const migrator = migrations.migrators[nextVersion]
 							if (!migrator) {
@@ -394,15 +388,20 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 									reason: MigrationFailureReason.TargetVersionTooNew,
 								}
 							}
-							if (typeof migrator === 'number') {
-								// nooop
-							} else {
-								recordWithoutMeta = migrator.up(recordWithoutMeta) as any
+							if (!migrationsThatHaveRun.has(migrator)) {
+								migrationsThatHaveRun.add(migrator)
+								if (typeof migrator === 'number') {
+									if (migrator > currentStoreVersion) {
+										break recordSubTypeMigrateLoop
+									}
+								} else {
+									recordWithoutMeta = migrator.up(recordWithoutMeta) as any
+								}
 							}
 							currentVersion = nextVersion
 						}
 
-						while (currentVersion > toVersion) {
+						recordSubTypeMigrateLoop: while (currentVersion > toVersion) {
 							const nextVersion = currentVersion - 1
 							const migrator = migrations.migrators[currentVersion]
 							if (!migrator) {
@@ -412,21 +411,22 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 								}
 							}
 
-							if (typeof migrator === 'number') {
-								// noop
-							} else {
-								recordWithoutMeta = migrator.down(recordWithoutMeta) as any
+							if (!migrationsThatHaveRun.has(migrator)) {
+								migrationsThatHaveRun.add(migrator)
+								if (typeof migrator === 'number') {
+									if (migrator > currentStoreVersion) {
+										break recordSubTypeMigrateLoop
+									}
+								} else {
+									recordWithoutMeta = migrator.down(recordWithoutMeta) as any
+								}
 							}
 							currentVersion = nextVersion
 						}
 
 						record = { ...recordWithoutMeta, id, typeName } as R
 
-						if (result.type === 'error') {
-							return result
-						}
-
-						updated.push(result.value)
+						updated.push(record)
 					}
 
 					if (updated.length) {

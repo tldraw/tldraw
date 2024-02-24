@@ -166,10 +166,10 @@ export function migrateRecord<R extends UnknownRecord>({
 			}
 		}
 		if (typeof migrator === 'number') {
-			throw Error("Can't migrate a dependency marker, this should have been skipped")
+			// dependency marker, we shouldn't really be here
+		} else {
+			recordWithoutMeta = migrator.up(recordWithoutMeta) as any
 		}
-
-		recordWithoutMeta = migrator.up(recordWithoutMeta) as any
 		currentVersion = nextVersion
 	}
 
@@ -184,10 +184,10 @@ export function migrateRecord<R extends UnknownRecord>({
 		}
 
 		if (typeof migrator === 'number') {
-			throw Error("Can't migrate a dependency marker, this should have been skipped")
+			// dependency marker, we shouldn't really be here
+		} else {
+			recordWithoutMeta = migrator.down(recordWithoutMeta) as any
 		}
-
-		recordWithoutMeta = migrator.down(recordWithoutMeta) as any
 		currentVersion = nextVersion
 	}
 
@@ -236,9 +236,10 @@ export function migrate<T>({
 			}
 		}
 		if (typeof migrator === 'number') {
-			throw Error('These migrations should not include dependency markers')
+			// dependency marker, we shouldn't really be here
+		} else {
+			value = migrator.up(value)
 		}
-		value = migrator.up(value)
 		currentVersion = nextVersion
 	}
 
@@ -252,9 +253,10 @@ export function migrate<T>({
 			}
 		}
 		if (typeof migrator === 'number') {
-			throw Error('These migrations should not include dependency markers')
+			// dependency marker, we shouldn't really be here
+		} else {
+			value = migrator.down(value)
 		}
-		value = migrator.down(value)
 		currentVersion = nextVersion
 	}
 
