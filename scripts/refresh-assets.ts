@@ -1,5 +1,4 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs'
-import { writeFile as writeFileUnchecked } from 'fs/promises'
 import { join } from 'path'
 import { optimize } from 'svgo'
 import {
@@ -407,9 +406,21 @@ async function copyVersionToDotCom() {
 		(pkg) => pkg.version
 	)
 	const file = `export const version = '${packageVersion}'`
-	await writeFileUnchecked(join(REPO_ROOT, 'apps', 'dotcom', 'version.ts'), file)
-	await writeFileUnchecked(join(REPO_ROOT, 'packages', 'editor', 'src', 'version.ts'), file)
-	await writeFileUnchecked(
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		join(REPO_ROOT, 'apps', 'dotcom', 'version.ts'),
+		file
+	)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		join(REPO_ROOT, 'packages', 'editor', 'src', 'version.ts'),
+		file
+	)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
 		join(REPO_ROOT, 'packages', 'tldraw', 'src', 'lib', 'ui', 'version.ts'),
 		file
 	)
