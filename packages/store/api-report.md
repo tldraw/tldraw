@@ -91,7 +91,7 @@ export class IncrementalSetConstructor<T> {
 }
 
 // @public
-export function migrateArbitraryValue<T>({ value, migrations, fromVersion, toVersion, }: {
+export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
     value: unknown;
     migrations: Migrations;
     fromVersion: number;

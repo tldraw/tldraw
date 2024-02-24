@@ -189,7 +189,7 @@ export function migrateRecord<R extends UnknownRecord>({
  * Used for TLSessionStateSnapshot and TLUserPreferences.
  *
  * @public */
-export function migrateArbitraryValue<T>({
+export function migrate<T>({
 	value,
 	migrations,
 	fromVersion,

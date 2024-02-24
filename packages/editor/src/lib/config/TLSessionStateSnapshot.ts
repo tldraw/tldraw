@@ -3,7 +3,7 @@ import {
 	RecordsDiff,
 	UnknownRecord,
 	defineMigrations,
-	migrateArbitraryValue,
+	migrate,
 	squashRecordDiffs,
 } from '@tldraw/store'
 import {
@@ -133,7 +133,7 @@ function migrateAndValidateSessionStateSnapshot(state: unknown): TLSessionStateS
 		console.warn('No version in instance state')
 		return null
 	}
-	const result = migrateArbitraryValue<TLSessionStateSnapshot>({
+	const result = migrate<TLSessionStateSnapshot>({
 		value: state,
 		fromVersion: state.version,
 		toVersion: CURRENT_SESSION_STATE_SNAPSHOT_VERSION,

@@ -23,7 +23,7 @@ export {
 	compareRecordVersions,
 	defineMigrations,
 	getRecordVersion,
-	migrateArbitraryValue,
+	migrate,
 	migrateRecord,
 	type Migration,
 	type MigrationResult,
