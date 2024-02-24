@@ -160,8 +160,8 @@ export function migrateRecord<R extends UnknownRecord>({
 		}
 		if (migrator.storeVersion === storeVersion) {
 			recordWithoutMeta = migrator.up(recordWithoutMeta) as any
-			currentVersion = nextVersion
 		}
+		currentVersion = nextVersion
 	}
 
 	while (currentVersion > toVersion) {
@@ -175,8 +175,8 @@ export function migrateRecord<R extends UnknownRecord>({
 		}
 		if (migrator.storeVersion === storeVersion) {
 			recordWithoutMeta = migrator.down(recordWithoutMeta) as any
-			currentVersion = nextVersion
 		}
+		currentVersion = nextVersion
 	}
 
 	return {
@@ -293,57 +293,6 @@ export function defineStoreMigrations<
 		firstVersion: (firstVersion as number) ?? 0, // defaults
 		currentVersion: (currentVersion as number) ?? 0, // defaults
 		migrators,
-	}
-}
-
-/** @public */
-export type StoreMigrationResult<T> =
-	| { type: 'success'; store: T }
-	| { type: 'error'; reason: MigrationFailureReason }
-
-/** @public */
-export function migrateStore<T>({
-	store,
-	migrations,
-	fromVersion,
-	toVersion,
-}: {
-	store: unknown
-	migrations: Migrations
-	fromVersion: number
-	toVersion: number
-}): StoreMigrationResult<T> {
-	let currentVersion = fromVersion
-
-	while (currentVersion < toVersion) {
-		const nextVersion = currentVersion + 1
-		const migrator = migrations.migrators[nextVersion]
-		if (!migrator) {
-			return {
-				type: 'error',
-				reason: MigrationFailureReason.TargetVersionTooNew,
-			}
-		}
-		store = migrator.up(store)
-		currentVersion = nextVersion
-	}
-
-	while (currentVersion > toVersion) {
-		const nextVersion = currentVersion - 1
-		const migrator = migrations.migrators[currentVersion]
-		if (!migrator) {
-			return {
-				type: 'error',
-				reason: MigrationFailureReason.TargetVersionTooOld,
-			}
-		}
-		store = migrator.down(store)
-		currentVersion = nextVersion
-	}
-
-	return {
-		type: 'success',
-		store: store as T,
 	}
 }
 

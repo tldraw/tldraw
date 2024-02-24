@@ -203,12 +203,17 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 		}
 
+		const records = objectMapValues(store)
+
+		// We want to migrate to a point where the store version is our store version
+		let currentVersion = ourStoreVersion
+
+		//
 		if (ourStoreVersion > persistedStoreVersion) {
 			const fromVersion = persistedStoreVersion
 			const toVersion = ourStoreVersion
-			let currentVersion = fromVersion
 
-			const records = objectMapValues(store)
+			currentVersion = fromVersion
 
 			while (currentVersion < toVersion) {
 				// Get the snapshot migrator for the next version
@@ -243,35 +248,22 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 				currentVersion = nextVersion
 			}
+		}
 
-			while (currentVersion > toVersion) {
-				const nextVersion = currentVersion - 1
-				const migrator = snapshotMigrations.migrators[currentVersion]
-				if (!migrator) {
-					return {
-						type: 'error',
-						reason: MigrationFailureReason.TargetVersionTooOld,
-					}
-				}
-				store = migrator.down(store)
-
-				const updated: R[] = []
-				for (const r of records) {
-					const result = this.migratePersistedRecord(r, snapshot.schema, 'down', currentVersion)
-					if (result.type === 'error') {
-						return result
-					} else if (result.value && result.value !== r) {
-						updated.push(result.value)
-					}
-				}
-				if (updated.length) {
-					store = { ...store }
-					for (const r of updated) {
-						store[r.id as IdOf<R>] = r
-					}
-				}
-
-				currentVersion = nextVersion
+		// Now that the current version is our store version, we can
+		const updated: R[] = []
+		for (const r of records) {
+			const result = this.migratePersistedRecord(r, snapshot.schema, 'up', ourStoreVersion)
+			if (result.type === 'error') {
+				return result
+			} else if (result.value && result.value !== r) {
+				updated.push(result.value)
+			}
+		}
+		if (updated.length) {
+			store = { ...store }
+			for (const r of updated) {
+				store[r.id as IdOf<R>] = r
 			}
 		}
 
