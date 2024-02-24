@@ -770,9 +770,13 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			}
 
 			const addDocument = (id: string, _state: R): Result<void, void> => {
-				// todo: we can't migrate persisted records on their own, we need to migrate the entire store
-				// We might create a temporary store here, then migrate it up?
-				const res = this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
+				// it may be that the client's version of the record is older than ours, so we use its serialized schema
+				// and our own schema to migrate the record up to our version. However we need to run store migrations
+				// on the record as well, so it's easier to create a temporary store and migrate the record there.
+				const res = this.schema.migrateStoreSnapshot({
+					store: { [id]: _state } as Record<IdOf<R>, R>,
+					schema: session.serializedSchema,
+				})
 				if (res.type === 'error') {
 					return fail(
 						res.reason === MigrationFailureReason.TargetVersionTooOld // target version is our version
@@ -780,7 +784,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 							: TLIncompatibilityReason.ClientTooOld
 					)
 				}
-				const { value: state } = res
+				// Pull the migrated record out of the migrated store
+				const state = res.value[id as IdOf<R>]
 
 				// Get the existing document, if any
 				const doc = this.getDocument(id)
@@ -837,31 +842,31 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					case 1: {
 						// If the client's version of the record is older than ours,
 						// we apply the patch to the downgraded version of the record
-						// todo: we can't migrate persisted records on their own, we need to migrate the entire store
-						const downgraded = this.schema.migratePersistedRecord(
-							doc.state,
-							session.serializedSchema,
-							'down'
-						)
+
+						// todo: we currently have no way to migrate a store snapshot "down", but that's what needs to happen here
+						const downgraded = this.schema.migrateStoreSnapshot({
+							store: { [id]: doc.state } as Record<IdOf<R>, R>,
+							schema: session.serializedSchema,
+						})
 						if (downgraded.type === 'error') {
+							// If the client's version is too old, we'll hit an error
+							return fail(TLIncompatibilityReason.ClientTooOld)
+						}
+						// apply the patch to the downgraded version
+						const patched = applyObjectDiff(downgraded.value[id as IdOf<R>], patch)
+
+						// then upgrade the patched version and use that as the new state
+						const upgraded = this.schema.migrateStoreSnapshot({
+							store: { [id]: patched } as Record<IdOf<R>, R>,
+							schema: session.serializedSchema,
+						})
+						if (upgraded.type === 'error') {
+							// If the client's version is too old, we'll hit an error
 							return fail(TLIncompatibilityReason.ClientTooOld)
 						}
 
-						// apply the patch to the downgraded version
-						const patched = applyObjectDiff(downgraded.value, patch)
-						// then upgrade the patched version and use that as the new state
-						// todo: we can't migrate persisted records on their own, we need to migrate the entire store
-						const upgraded = this.schema.migratePersistedRecord(
-							patched,
-							session.serializedSchema,
-							'up'
-						)
-						// If the client's version is too old, we'll hit an error
-						if (upgraded.type === 'error') {
-							return fail(TLIncompatibilityReason.ClientTooOld)
-						}
 						// replace the state with the upgraded version and propagate the patch op
-						const diff = doc.replaceState(upgraded.value, this.clock)
+						const diff = doc.replaceState(upgraded.value[id as IdOf<R>], this.clock)
 						if (!diff.ok) {
 							return fail(TLIncompatibilityReason.InvalidRecord)
 						}
