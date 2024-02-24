@@ -99,12 +99,13 @@ export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
 }): MigrationResult<T>;
 
 // @public
-export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, storeVersion, }: {
+export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, storeVersion, defaultStoreVersion, }: {
     record: unknown;
     migrations: Migrations;
     fromVersion: number;
     toVersion: number;
     storeVersion?: number;
+    defaultStoreVersion?: number;
 }): MigrationResult<R>;
 
 // @public (undocumented)
@@ -305,11 +306,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     get currentStoreVersion(): number;
     // (undocumented)
-    migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up', storeVersion?: number): MigrationResult<R>;
+    migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction: 'down' | 'up', storeVersion?: number, defaultStoreVersion?: number): MigrationResult<R>;
     // (undocumented)
     migrateRecordInIsolation(record: R, schema: SerializedSchema): R;
-    // (undocumented)
-    migrateStoreBetweenVersions(store: SerializedStore<R>, schema: SerializedSchema, fromVersion: number, toVersion: number): MigrationResult<SerializedStore<R>>;
     // (undocumented)
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>>;
     // (undocumented)
@@ -326,6 +325,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 // @public (undocumented)
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
+    defaultSnapshotMigrationVersion?: number;
     snapshotMigrations?: Migrations;
     onValidationFailure?: (data: {
         error: unknown;

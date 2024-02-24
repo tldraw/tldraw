@@ -1378,7 +1378,7 @@
             },
             {
               "kind": "Content",
-              "text": ">({ record, migrations, fromVersion, toVersion, storeVersion, }: "
+              "text": ">({ record, migrations, fromVersion, toVersion, storeVersion, defaultStoreVersion, }: "
             },
             {
               "kind": "Content",
@@ -1391,7 +1391,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    fromVersion: number;\n    toVersion: number;\n    storeVersion?: number;\n}"
+              "text": ";\n    fromVersion: number;\n    toVersion: number;\n    storeVersion?: number;\n    defaultStoreVersion?: number;\n}"
             },
             {
               "kind": "Content",
@@ -1420,7 +1420,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ record, migrations, fromVersion, toVersion, storeVersion, }",
+              "parameterName": "{ record, migrations, fromVersion, toVersion, storeVersion, defaultStoreVersion, }",
               "parameterTypeTokenRange": {
                 "startIndex": 3,
                 "endIndex": 6
@@ -5039,7 +5039,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", direction?: "
+                  "text": ", direction: "
                 },
                 {
                   "kind": "Content",
@@ -5048,6 +5048,14 @@
                 {
                   "kind": "Content",
                   "text": ", storeVersion?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", defaultStoreVersion?: "
                 },
                 {
                   "kind": "Content",
@@ -5073,8 +5081,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 9,
-                "endIndex": 11
+                "startIndex": 11,
+                "endIndex": 13
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -5102,13 +5110,21 @@
                     "startIndex": 5,
                     "endIndex": 6
                   },
-                  "isOptional": true
+                  "isOptional": false
                 },
                 {
                   "parameterName": "storeVersion",
                   "parameterTypeTokenRange": {
                     "startIndex": 7,
                     "endIndex": 8
+                  },
+                  "isOptional": true
+                },
+                {
+                  "parameterName": "defaultStoreVersion",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 9,
+                    "endIndex": 10
                   },
                   "isOptional": true
                 }
@@ -5181,122 +5197,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "migrateRecordInIsolation"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/store!StoreSchema#migrateStoreBetweenVersions:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "migrateStoreBetweenVersions(store: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SerializedStore",
-                  "canonicalReference": "@tldraw/store!SerializedStore:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<R>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", schema: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", fromVersion: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", toVersion: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "MigrationResult",
-                  "canonicalReference": "@tldraw/store!MigrationResult:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SerializedStore",
-                  "canonicalReference": "@tldraw/store!SerializedStore:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<R>>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 10,
-                "endIndex": 14
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "store",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 3
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "schema",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 4,
-                    "endIndex": 5
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "fromVersion",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 6,
-                    "endIndex": 7
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "toVersion",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 8,
-                    "endIndex": 9
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "migrateStoreBetweenVersions"
             },
             {
               "kind": "Method",
@@ -5592,7 +5492,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    snapshotMigrations?: "
+              "text": "{\n    defaultSnapshotMigrationVersion?: number;\n    snapshotMigrations?: "
             },
             {
               "kind": "Reference",

@@ -59,7 +59,13 @@ describe('migrating from v0 to v1', () => {
 			typeName: 'user',
 			name: 'name',
 		}
-		const userResult = testSchemaV1.migratePersistedRecord(user as any, serializedV0Schenma)
+		const userResult = testSchemaV1.migratePersistedRecord(
+			user as any,
+			serializedV0Schenma,
+			'up',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
+		)
 
 		if (userResult.type !== 'success') {
 			throw new Error('Migration failed')
@@ -87,7 +93,13 @@ describe('migrating from v0 to v1', () => {
 			},
 		}
 
-		const shapeResult = testSchemaV1.migratePersistedRecord(rectangle as any, serializedV0Schenma)
+		const shapeResult = testSchemaV1.migratePersistedRecord(
+			rectangle as any,
+			serializedV0Schenma,
+			'up',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
+		)
 
 		if (shapeResult.type !== 'success') {
 			throw new Error('Migration failed')
@@ -127,7 +139,13 @@ describe('migrating from v0 to v1', () => {
 			},
 		}
 
-		const ovalResult = testSchemaV1.migratePersistedRecord(oval as any, serializedV0Schenma)
+		const ovalResult = testSchemaV1.migratePersistedRecord(
+			oval as any,
+			serializedV0Schenma,
+			'up',
+			1,
+			testSchemaV1.currentStoreVersion
+		)
 
 		expect(ovalResult).toEqual({
 			type: 'error',
@@ -146,7 +164,13 @@ describe('migrating from v1 to v0', () => {
 			phoneNumber: null,
 		}
 
-		const userResult = testSchemaV1.migratePersistedRecord(user as any, serializedV0Schenma, 'down')
+		const userResult = testSchemaV1.migratePersistedRecord(
+			user as any,
+			serializedV0Schenma,
+			'down',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
+		)
 
 		if (userResult.type !== 'success') {
 			console.error(userResult)
@@ -180,7 +204,9 @@ describe('migrating from v1 to v0', () => {
 		const shapeResult = testSchemaV1.migratePersistedRecord(
 			rectangle as any,
 			serializedV0Schenma,
-			'down'
+			'down',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
 		)
 
 		if (shapeResult.type !== 'success') {
@@ -218,7 +244,13 @@ describe('migrating from v1 to v0', () => {
 			},
 		}
 
-		const ovalResult = testSchemaV1.migratePersistedRecord(oval as any, serializedV0Schenma, 'down')
+		const ovalResult = testSchemaV1.migratePersistedRecord(
+			oval as any,
+			serializedV0Schenma,
+			'down',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
+		)
 
 		expect(ovalResult).toEqual({
 			type: 'error',
@@ -235,7 +267,9 @@ test('unknown types fail', () => {
 				typeName: 'steve',
 			} as any,
 			serializedV0Schenma,
-			'up'
+			'up',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
 		)
 	).toEqual({
 		type: 'error',
@@ -249,7 +283,9 @@ test('unknown types fail', () => {
 				typeName: 'jeff',
 			} as any,
 			serializedV0Schenma,
-			'down'
+			'down',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
 		)
 	).toEqual({
 		type: 'error',
@@ -265,7 +301,10 @@ test('versions in the future fail', () => {
 				typeName: 'user',
 				name: 'steve',
 			} as any,
-			serializedV1Schenma
+			serializedV1Schenma,
+			'up',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
 		)
 	).toEqual({
 		type: 'error',
@@ -281,7 +320,10 @@ test('unrecogized subtypes fail', () => {
 				typeName: 'shape',
 				type: 'whatever',
 			} as any,
-			serializedV0Schenma
+			serializedV0Schenma,
+			'up',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
 		)
 	).toEqual({
 		type: 'error',
@@ -308,7 +350,10 @@ test('subtype versions in the future fail', () => {
 						},
 					},
 				},
-			}
+			},
+			'up',
+			testSchemaV1.currentStoreVersion,
+			testSchemaV1.currentStoreVersion
 		)
 	).toEqual({
 		type: 'error',

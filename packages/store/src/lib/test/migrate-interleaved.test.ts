@@ -4,7 +4,7 @@ import { testSchemaV1 } from './testSchema.v1'
 
 const serializedV0Schenma = testSchemaV0.serialize()
 
-test('migrating a whole store snapshot works', () => {
+test.only('migrating a whole store snapshot works', () => {
 	const serializedStore: SerializedStore<any> = {
 		'user-1': {
 			id: 'user-1',

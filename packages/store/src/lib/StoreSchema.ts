@@ -31,6 +31,8 @@ export interface SerializedSchema {
 /** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	/** @public */
+	defaultSnapshotMigrationVersion?: number
+	/** @public */
 	snapshotMigrations?: Migrations
 	/** @public */
 	onValidationFailure?: (data: {
@@ -111,8 +113,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	migratePersistedRecord(
 		record: R,
 		persistedSchema: SerializedSchema,
-		direction: 'up' | 'down' = 'up',
-		storeVersion?: number
+		direction: 'up' | 'down',
+		storeVersion?: number,
+		defaultStoreVersion?: number
 	): MigrationResult<R> {
 		const ourType = getOwnProperty(this.types, record.typeName)
 		const persistedType = persistedSchema.recordVersions[record.typeName]
@@ -130,6 +133,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							fromVersion: persistedVersion,
 							toVersion: ourVersion,
 							storeVersion,
+							defaultStoreVersion,
 						})
 					: migrateRecord<R>({
 							record,
@@ -137,6 +141,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							fromVersion: ourVersion,
 							toVersion: persistedVersion,
 							storeVersion,
+							defaultStoreVersion,
 						})
 			if (result.type === 'error') {
 				return result
@@ -185,6 +190,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						fromVersion: persistedSubTypeVersion,
 						toVersion: ourSubTypeMigrations.currentVersion,
 						storeVersion,
+						defaultStoreVersion: this.options.defaultSnapshotMigrationVersion ?? 1,
 					})
 				: migrateRecord<R>({
 						record,
@@ -192,6 +198,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						fromVersion: ourSubTypeMigrations.currentVersion,
 						toVersion: persistedSubTypeVersion,
 						storeVersion,
+						defaultStoreVersion: this.options.defaultSnapshotMigrationVersion ?? 1,
 					})
 
 		if (result.type === 'error') {
@@ -201,106 +208,100 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return { type: 'success', value: result.value }
 	}
 
-	migrateStoreBetweenVersions(
-		store: SerializedStore<R>,
-		schema: SerializedSchema,
-		fromVersion: number,
-		toVersion: number
-	): MigrationResult<SerializedStore<R>> {
-		const { snapshotMigrations } = this.options
-
-		if (snapshotMigrations) {
-			// Get the snapshot migrator for the next version
-			const snapshotMigrator = snapshotMigrations.migrators[toVersion]
-			if (!snapshotMigrator) {
-				return {
-					type: 'error',
-					reason: MigrationFailureReason.TargetVersionTooNew,
-				}
-			}
-
-			// Migrate the store
-			store = snapshotMigrator.up(store)
-		}
-
-		const updated: R[] = []
-		for (const r of objectMapValues(store)) {
-			const result = this.migratePersistedRecord(r, schema, 'up', fromVersion)
-			if (result.type === 'error') {
-				return result
-			} else if (result.value && result.value !== r) {
-				updated.push(result.value)
-			}
-		}
-		if (updated.length) {
-			store = { ...store }
-			for (const r of updated) {
-				store[r.id as IdOf<R>] = r
-			}
-		}
-
-		return { type: 'success', value: store }
-	}
-
 	migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>> {
 		let { store } = snapshot
 		const { snapshotMigrations } = this.options
 
-		if (!snapshotMigrations) {
-			return { type: 'success', value: store }
-		}
-		// apply store migrations first
-		const ourStoreVersion = snapshotMigrations.currentVersion
-		const persistedStoreVersion = snapshot.schema.storeVersion ?? 0
+		if (snapshotMigrations) {
+			// apply store migrations first
+			const ourStoreVersion = snapshotMigrations.currentVersion
+			const persistedStoreVersion = snapshot.schema.storeVersion ?? 0
 
-		if (ourStoreVersion < persistedStoreVersion) {
-			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
-		}
+			if (ourStoreVersion < persistedStoreVersion) {
+				return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
+			}
 
-		// We want to migrate to a point where the store version is our store version
-		let currentVersion = ourStoreVersion
+			// We want to migrate to a point where the store version is our store version
+			let currentVersion = ourStoreVersion
 
-		if (ourStoreVersion > persistedStoreVersion) {
-			const fromVersion = persistedStoreVersion
-			const toVersion = ourStoreVersion
+			if (ourStoreVersion > persistedStoreVersion) {
+				const fromVersion = persistedStoreVersion
+				const toVersion = ourStoreVersion
 
-			currentVersion = fromVersion
+				currentVersion = fromVersion
 
-			while (currentVersion < toVersion) {
-				// Get the snapshot migrator for the next version
-				const nextVersion = currentVersion + 1
+				// For each version of the store...
+				while (currentVersion < toVersion) {
+					// Get the snapshot migrator for the next version
+					const nextVersion = currentVersion + 1
 
-				const result = this.migrateStoreBetweenVersions(
-					store,
+					const snapshotMigrator = snapshotMigrations.migrators[nextVersion]
+					if (!snapshotMigrator) {
+						return {
+							type: 'error',
+							reason: MigrationFailureReason.TargetVersionTooNew,
+						}
+					}
+
+					// Migrate the store to the next version
+					store = snapshotMigrator.up(store)
+
+					// Migrate all records in the store for the next version
+					// Only the migrtations that have `storeVersion` equal to `nextVersion` will be applied;
+					// If the migrations don't have a `storeVersion`, then they'll be applied at the end.
+					const updated: R[] = []
+					for (const r of objectMapValues(store)) {
+						const result = this.migratePersistedRecord(
+							r,
+							snapshot.schema,
+							'up',
+							nextVersion,
+							// Previously, ALL the store migrations would run, and then ALL the record migrations would run.
+							// We've now added the ability to mark a migration as running AFTER a certain store version.
+							// If we encounter a migration with a store version, then we need to make sure that all lower version
+							// migrations have run first for that record. If we never encounter a store migration for a record,
+							// then we can run all of its migrations at the end.
+							this.options.defaultSnapshotMigrationVersion ?? ourStoreVersion
+						)
+						if (result.type === 'error') {
+							return result
+						} else if (result.value && result.value !== r) {
+							updated.push(result.value)
+						}
+					}
+					if (updated.length) {
+						store = { ...store }
+						for (const r of updated) {
+							store[r.id as IdOf<R>] = r
+						}
+					}
+
+					currentVersion = nextVersion
+				}
+			}
+		} else {
+			// There are no store migrations
+			// Migrate all records in the store
+			const updated: R[] = []
+			for (const r of objectMapValues(store)) {
+				const result = this.migratePersistedRecord(
+					r,
 					snapshot.schema,
-					currentVersion,
-					nextVersion
+					'up',
+					this.currentStoreVersion,
+					this.currentStoreVersion
 				)
-
 				if (result.type === 'error') {
 					return result
+				} else if (result.value && result.value !== r) {
+					updated.push(result.value)
 				}
-
-				store = result.value
-
-				currentVersion = nextVersion
 			}
-		}
-
-		// Now that the current version is our store version, we can
-		const updated: R[] = []
-		for (const r of objectMapValues(store)) {
-			const result = this.migratePersistedRecord(r, snapshot.schema, 'up')
-			if (result.type === 'error') {
-				return result
-			} else if (result.value && result.value !== r) {
-				updated.push(result.value)
-			}
-		}
-		if (updated.length) {
-			store = { ...store }
-			for (const r of updated) {
-				store[r.id as IdOf<R>] = r
+			if (updated.length) {
+				store = { ...store }
+				for (const r of updated) {
+					store[r.id as IdOf<R>] = r
+				}
 			}
 		}
 
