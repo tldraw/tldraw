@@ -229,8 +229,6 @@ function useIsEmbedded(slug: string) {
 
 		function handleMessageEvent(event: MessageEvent) {
 			// Ensure the message is from a trusted origin
-			const { log } = console
-			log(event.origin, event.data)
 			if (event.origin === 'www.tldraw.com') {
 				if (event.data === 'www.tldraw.com' + version) {
 					// Handle the trusted origin case
