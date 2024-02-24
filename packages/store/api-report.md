@@ -305,7 +305,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     get currentStoreVersion(): number;
     // (undocumented)
-    migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
+    migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up', storeVersion?: number): MigrationResult<R>;
     // (undocumented)
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>>;
     // (undocumented)
