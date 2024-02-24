@@ -87,13 +87,16 @@ describe('migrating from v0 to v1', () => {
 			},
 		}
 
-		// todo: the snapshot migrations would need to run on this first
-		// the question is, do we EVER call migratePersistedRecord OUTSIDE of StoreSchema.migrateStoreSnapshot?
 		const shapeResult = testSchemaV1.migratePersistedRecord(rectangle as any, serializedV0Schenma)
 
 		if (shapeResult.type !== 'success') {
 			throw new Error('Migration failed')
 		}
+
+		// todo: Normally the store migration would add the count field before the record tries to increment it
+		// but this test is only testing the shape migrations. In practice, we need to do ALL migrations in the
+		// context of a store—we can't migrate records in isolation.
+		expect((shapeResult.value as any).count).not.toBeNaN()
 
 		expect(shapeResult.value).toEqual({
 			id: 'shape-1',
@@ -103,8 +106,7 @@ describe('migrating from v0 to v1', () => {
 			rotation: 0,
 			parentId: null,
 			type: 'rectangle',
-			// todo: this is a bug! The store migration should have run?
-			count: NaN,
+			count: 1,
 			props: {
 				width: 100,
 				height: 100,
@@ -167,6 +169,7 @@ describe('migrating from v1 to v0', () => {
 			rotation: 0,
 			parentId: null,
 			type: 'rectangle',
+			count: 1,
 			props: {
 				width: 100,
 				height: 100,
@@ -185,14 +188,17 @@ describe('migrating from v1 to v0', () => {
 			throw new Error('Migration failed')
 		}
 
+		// todo: incorporate the store migration into the test
+		// The count field was added in v1, so it should be removed when migrating down;
+		// but this test is only testing the shape migrations, which will leave it at zero
+		expect((shapeResult.value as any).count).toBeUndefined()
+
 		expect(shapeResult.value).toEqual({
 			id: 'shape-1',
 			typeName: 'shape',
 			x: 0,
 			y: 0,
 			type: 'rectangle',
-			// todo: this is a bug! The store migration should have run?
-			count: 1,
 			props: {
 				width: 100,
 				height: 100,
