@@ -844,6 +844,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						// we apply the patch to the downgraded version of the record
 
 						// todo: we currently have no way to migrate a store snapshot "down", but that's what needs to happen here
+						// ! this is an "up" migration and it needs to be a "down" migration
 						const downgraded = this.schema.migrateStoreSnapshot({
 							store: { [id]: doc.state } as Record<IdOf<R>, R>,
 							schema: session.serializedSchema,
