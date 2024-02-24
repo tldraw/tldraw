@@ -1,5 +1,5 @@
-import { getOwnProperty, objectMapValues } from '@tldraw/utils'
-import { IdOf, UnknownRecord } from './BaseRecord'
+import { getOwnProperty, objectMapEntries, objectMapValues } from '@tldraw/utils'
+import { IdOf, UnknownRecord, isRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
 import { MigrationFailureReason, MigrationResult, Migrations, migrateRecord } from './migrate'
@@ -211,14 +211,16 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 			}
 
+			const migrationsForStoreVersions = this.getMigrationsForTypesAndSubtypes()
+
 			// We want to migrate to a point where the store version is our store version
-			let currentVersion = ourStoreVersion
+			let currentStoreVersion = ourStoreVersion
 
 			if (ourStoreVersion > persistedStoreVersion) {
-				const fromVersion = persistedStoreVersion
-				const toVersion = ourStoreVersion
+				const fromStoreVersion = persistedStoreVersion
+				const toStoreVersion = ourStoreVersion
 
-				currentVersion = fromVersion
+				currentStoreVersion = fromStoreVersion
 
 				// Previously, ALL the store migrations would run, and then ALL the record migrations would run.
 				// We've now added the ability to mark a migration as running AFTER a certain store version.
@@ -227,9 +229,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				// then we can run all of its migrations at the end.
 
 				// For each version of the store...
-				while (currentVersion < toVersion) {
+				while (currentStoreVersion < toStoreVersion) {
 					// Get the snapshot migrator for the next version
-					const nextVersion = currentVersion + 1
+					const nextVersion = currentStoreVersion + 1
 
 					const snapshotMigrator = snapshotMigrations.migrators[nextVersion]
 					if (!snapshotMigrator) {
@@ -245,9 +247,15 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 					// Migrate the store to the next version
 					store = snapshotMigrator.up(store)
 
+					// Now update the records
 					const updated: R[] = []
 
 					for (let record of objectMapValues(store)) {
+						if (!isRecord(record)) throw new Error('[migrateRecord] object is not a record')
+
+						// We only want to apply migrations from this version
+						const typeMigrationsForStoreVersion = migrationsForStoreVersions.types[record.typeName]
+
 						const ourType = getOwnProperty(this.types, record.typeName)
 						const persistedType = snapshot.schema.recordVersions[record.typeName]
 						if (!persistedType || !ourType) {
@@ -255,17 +263,64 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						}
 						const ourVersion = ourType.migrations.currentVersion
 						const persistedVersion = persistedType.version
+
 						if (ourVersion !== persistedVersion) {
-							const result = migrateRecord<R>({
-								record,
-								migrations: ourType.migrations,
-								fromVersion: persistedVersion,
-								toVersion: ourVersion,
-							})
-							if (result.type === 'error') {
-								return result
+							// const result = migrateRecord<R>({
+							// 	record,
+							// 	migrations: ourType.migrations,
+							// 	fromVersion: persistedVersion,
+							// 	toVersion: ourVersion,
+							// })
+
+							const fromVersion = persistedVersion
+							const toVersion = ourVersion
+							const migrations = ourType.migrations
+
+							let currentVersion = fromVersion
+							if (!isRecord(record)) throw new Error('[migrateRecord] object is not a record')
+							const { typeName, id, ...others } = record
+							let recordWithoutMeta = others
+
+							while (currentVersion < toVersion) {
+								const nextVersion = currentVersion + 1
+								const migrator = migrations.migrators[nextVersion]
+								if (!migrator) {
+									return {
+										type: 'error',
+										reason: MigrationFailureReason.TargetVersionTooNew,
+									}
+								}
+								if (typeMigrationsForStoreVersion[currentStoreVersion]?.includes(nextVersion)) {
+									if (typeof migrator === 'number') {
+										throw Error("Can't migrate a dependency marker, this should have been skipped")
+									}
+
+									recordWithoutMeta = migrator.up(recordWithoutMeta) as any
+								}
+								currentVersion = nextVersion
 							}
-							record = result.value
+
+							while (currentVersion > toVersion) {
+								const nextVersion = currentVersion - 1
+								const migrator = migrations.migrators[currentVersion]
+								if (!migrator) {
+									return {
+										type: 'error',
+										reason: MigrationFailureReason.TargetVersionTooOld,
+									}
+								}
+
+								if (typeMigrationsForStoreVersion[currentStoreVersion]?.includes(nextVersion)) {
+									if (typeof migrator === 'number') {
+										throw Error("Can't migrate a dependency marker, this should have been skipped")
+									}
+
+									recordWithoutMeta = migrator.down(recordWithoutMeta) as any
+								}
+								currentVersion = nextVersion
+							}
+
+							record = { ...recordWithoutMeta, id, typeName } as R
 						}
 
 						if (!ourType.migrations.subTypeKey) {
@@ -311,12 +366,67 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							toVersion: ourSubTypeMigrations.currentVersion,
 						})
 
+						const migrations = ourSubTypeMigrations
+						const fromVersion = persistedSubTypeVersion
+						const toVersion = ourSubTypeMigrations.currentVersion
+						const subTypeKey = (record.typeName +
+							':' +
+							record[ourType.migrations.subTypeKey as keyof R]) as string
+						const subTypeMigrationsForStoreVersion = migrationsForStoreVersions.subtypes[subTypeKey]
+
+						let currentVersion = fromVersion
+						if (!isRecord(record)) throw new Error('[migrateRecord] object is not a record')
+						const { typeName, id, ...others } = record
+						let recordWithoutMeta = others
+
+						while (currentVersion < toVersion) {
+							const nextVersion = currentVersion + 1
+							const migrator = migrations.migrators[nextVersion]
+							if (!migrator) {
+								return {
+									type: 'error',
+									reason: MigrationFailureReason.TargetVersionTooNew,
+								}
+							}
+							if (subTypeMigrationsForStoreVersion[currentStoreVersion]?.includes(nextVersion)) {
+								if (typeof migrator === 'number') {
+									throw Error("Can't migrate a dependency marker, this should have been skipped")
+								}
+
+								recordWithoutMeta = migrator.up(recordWithoutMeta) as any
+							}
+							currentVersion = nextVersion
+						}
+
+						while (currentVersion > toVersion) {
+							const nextVersion = currentVersion - 1
+							const migrator = migrations.migrators[currentVersion]
+							if (!migrator) {
+								return {
+									type: 'error',
+									reason: MigrationFailureReason.TargetVersionTooOld,
+								}
+							}
+
+							if (subTypeMigrationsForStoreVersion[currentStoreVersion]?.includes(nextVersion)) {
+								if (typeof migrator === 'number') {
+									throw Error("Can't migrate a dependency marker, this should have been skipped")
+								}
+
+								recordWithoutMeta = migrator.down(recordWithoutMeta) as any
+							}
+							currentVersion = nextVersion
+						}
+
+						record = { ...recordWithoutMeta, id, typeName } as R
+
 						if (result.type === 'error') {
 							return result
 						}
 
 						updated.push(result.value)
 					}
+
 					if (updated.length) {
 						store = { ...store }
 						for (const r of updated) {
@@ -324,7 +434,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						}
 					}
 
-					currentVersion = nextVersion
+					currentStoreVersion = nextVersion
 				}
 			}
 		} else {
@@ -408,6 +518,99 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 							},
 				])
 			),
+		}
+	}
+
+	private getMigrationsForTypesAndSubtypes() {
+		const typeNames = objectMapEntries(this.types)
+		const typeMigrationsForStoreVersions: Record<
+			// store snapshot version
+			string,
+			Record<
+				// type name
+				string,
+				// type migrations versions to after this snapshot version
+				number[]
+			>
+		> = {}
+
+		const subtypeMigrationsForStoreVersions: Record<
+			// store snapshot version
+			string,
+			Record<
+				// type name + subtype name
+				string,
+				// sub type migrations versions to run after this snapshot version
+				number[]
+			>
+		> = {}
+
+		for (const [typeName, type] of typeNames) {
+			typeMigrationsForStoreVersions[typeName] = {}
+			const collecting: number[] = []
+			for (const [version, migrator] of objectMapEntries(type.migrations.migrators).sort(
+				([a], [b]) => a.localeCompare(b)
+			)) {
+				if (typeof migrator === 'number') {
+					// if the migrator is a number, it's a dependency marker;
+					typeMigrationsForStoreVersions[typeName][+migrator] = [...collecting]
+					collecting.length = 0
+				} else {
+					// otherwise its a migrator
+					collecting.push(+version)
+				}
+			}
+			// Any migrations that haven't been placed under a store version dependency will now be placed under the current version
+			const items = typeMigrationsForStoreVersions[typeName][+this.currentStoreVersion]
+			if (!items) {
+				typeMigrationsForStoreVersions[typeName][+this.currentStoreVersion] = [...collecting]
+			} else {
+				items.push(...collecting)
+			}
+
+			// add sub type migrations
+			if (type.migrations.subTypeMigrations && type.migrations.subTypeKey) {
+				for (const [subTypeName, subtypeMigrators] of objectMapEntries(
+					type.migrations.subTypeMigrations
+				)) {
+					const subTypeCollecting: number[] = []
+					subtypeMigrationsForStoreVersions[typeName + ':' + subTypeName] = {}
+					for (const [subTypeVersion, subTypeMigrator] of objectMapEntries(
+						subtypeMigrators.migrators
+					).sort(([a], [b]) => a.localeCompare(b))) {
+						if (typeof subTypeMigrator === 'number') {
+							// if the sub type migrator is a number, it's a dependency marker;
+							subtypeMigrationsForStoreVersions[typeName + ':' + subTypeName][+subTypeMigrator] = [
+								...subTypeCollecting,
+							]
+							subTypeCollecting.length = 0
+						} else {
+							// otherwise its a sub type migrator
+							subTypeCollecting.push(+subTypeVersion)
+						}
+					}
+					// Any subtype migrations that haven't been placed under a store version dependency will now be placed under the current version
+					const items =
+						subtypeMigrationsForStoreVersions[typeName + ':' + subTypeName][
+							+this.currentStoreVersion
+						]
+
+					if (!items) {
+						subtypeMigrationsForStoreVersions[typeName + ':' + subTypeName][
+							+this.currentStoreVersion
+						] = [...subTypeCollecting]
+					} else {
+						subtypeMigrationsForStoreVersions[typeName + ':' + subTypeName][
+							+this.currentStoreVersion
+						].push(...subTypeCollecting)
+					}
+				}
+			}
+		}
+
+		return {
+			types: typeMigrationsForStoreVersions,
+			subtypes: subtypeMigrationsForStoreVersions,
 		}
 	}
 }
