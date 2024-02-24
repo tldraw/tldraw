@@ -771,6 +771,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 			const addDocument = (id: string, _state: R): Result<void, void> => {
 				// todo: we can't migrate persisted records on their own, we need to migrate the entire store
+				// We might create a temporary store here, then migrate it up?
 				const res = this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
 				if (res.type === 'error') {
 					return fail(

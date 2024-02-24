@@ -7943,18 +7943,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 
-		for (let i = 0; i < newShapes.length; i++) {
-			const shape = newShapes[i]
-			const result = this.store.schema.migratePersistedRecord(shape, content.schema)
-			if (result.type === 'success') {
-				newShapes[i] = result.value as TLShape
-			} else {
-				throw Error(
-					`Could not put content:\ncould not migrate content for shape:\n${shape.type}\nreason:${result.reason}`
-				)
-			}
-		}
-
 		this.batch(() => {
 			// Create any assets that need to be created
 			if (assetsToCreate.length > 0) {
