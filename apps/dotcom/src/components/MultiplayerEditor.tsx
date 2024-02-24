@@ -190,9 +190,7 @@ export function UrlStateSync() {
 
 function useIsEmbedded(slug: string) {
 	const isEmbedded =
-		typeof window !== 'undefined' &&
-		window.self !== window.top &&
-		window.location.host !== 'www.tldraw.com'
+		typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
 
 	useEffect(() => {
 		if (isEmbedded) {
