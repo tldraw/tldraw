@@ -112,7 +112,10 @@ export function compareRecordVersions(a: RecordVersion, b: RecordVersion) {
 	return 0
 }
 
-/** @public */
+/**
+ * Migrate a record from one version to another.
+ *
+ * @public */
 export function migrateRecord<R extends UnknownRecord>({
 	record,
 	migrations,
@@ -120,10 +123,25 @@ export function migrateRecord<R extends UnknownRecord>({
 	toVersion,
 	storeVersion,
 }: {
+	/**
+	 * The record to update.
+	 */
 	record: unknown
+	/**
+	 * The stack of migrations for this record.
+	 */
 	migrations: Migrations
+	/**
+	 * The record version to migrate from.
+	 */
 	fromVersion: number
+	/**
+	 * The record version to migrate to.
+	 */
 	toVersion: number
+	/**
+	 * The current store version. For each record migration, only versions that match the store version will be applied.
+	 */
 	storeVersion: number
 }): MigrationResult<R> {
 	let currentVersion = fromVersion
@@ -140,8 +158,7 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooNew,
 			}
 		}
-		// todo: figure out what the right thing to compare here is
-		if ((migrator.storeVersion ?? 0) !== storeVersion) {
+		if (migrator.storeVersion === storeVersion) {
 			recordWithoutMeta = migrator.up(recordWithoutMeta) as any
 			currentVersion = nextVersion
 		}
@@ -156,8 +173,7 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooOld,
 			}
 		}
-		// todo: figure out what the right thing to compare here is
-		if ((migrator.storeVersion ?? 0) !== storeVersion) {
+		if (migrator.storeVersion === storeVersion) {
 			recordWithoutMeta = migrator.down(recordWithoutMeta) as any
 			currentVersion = nextVersion
 		}
@@ -169,16 +185,31 @@ export function migrateRecord<R extends UnknownRecord>({
 	}
 }
 
-/** @public */
-export function migrate<T>({
+/**
+ * Used for TLSessionStateSnapshot and TLUserPreferences.
+ *
+ * @public */
+export function migrateArbitraryValue<T>({
 	value,
 	migrations,
 	fromVersion,
 	toVersion,
 }: {
+	/**
+	 * The value to update.
+	 */
 	value: unknown
+	/**
+	 * The stack of migrations for this value.
+	 */
 	migrations: Migrations
+	/**
+	 * The value version to migrate from.
+	 */
 	fromVersion: number
+	/**
+	 * The value version to migrate to.
+	 */
 	toVersion: number
 }): MigrationResult<T> {
 	let currentVersion = fromVersion

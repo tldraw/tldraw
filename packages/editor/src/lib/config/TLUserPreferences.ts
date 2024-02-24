@@ -1,5 +1,5 @@
 import { atom } from '@tldraw/state'
-import { defineMigrations, migrate } from '@tldraw/store'
+import { defineMigrations, migrateArbitraryValue } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import { uniqueId } from '../utils/uniqueId'
@@ -166,7 +166,7 @@ function migrateUserPreferences(userData: unknown) {
 		return getFreshUserPreferences()
 	}
 
-	const migrationResult = migrate<TLUserPreferences>({
+	const migrationResult = migrateArbitraryValue<TLUserPreferences>({
 		value: userData.user,
 		fromVersion: userData.version,
 		toVersion: userMigrations.currentVersion ?? 0,

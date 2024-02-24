@@ -1292,12 +1292,12 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/store!migrate:function(1)",
-          "docComment": "/**\n * @public\n */\n",
+          "canonicalReference": "@tldraw/store!migrateArbitraryValue:function(1)",
+          "docComment": "/**\n * Used for TLSessionStateSnapshot and TLUserPreferences.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function migrate<T>({ value, migrations, fromVersion, toVersion, }: "
+              "text": "export declare function migrateArbitraryValue<T>({ value, migrations, fromVersion, toVersion, }: "
             },
             {
               "kind": "Content",
@@ -1360,12 +1360,12 @@
               }
             }
           ],
-          "name": "migrate"
+          "name": "migrateArbitraryValue"
         },
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/store!migrateRecord:function(1)",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * Migrate a record from one version to another.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

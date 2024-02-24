@@ -90,15 +90,15 @@ export class IncrementalSetConstructor<T> {
     remove(item: T): void;
 }
 
-// @public (undocumented)
-export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
+// @public
+export function migrateArbitraryValue<T>({ value, migrations, fromVersion, toVersion, }: {
     value: unknown;
     migrations: Migrations;
     fromVersion: number;
     toVersion: number;
 }): MigrationResult<T>;
 
-// @public (undocumented)
+// @public
 export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, storeVersion, }: {
     record: unknown;
     migrations: Migrations;
