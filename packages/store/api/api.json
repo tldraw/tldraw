@@ -5119,6 +5119,187 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/store!StoreSchema#migrateRecordInIsolation:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "migrateRecordInIsolation(record: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", schema: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedSchema",
+                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "record",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "schema",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "migrateRecordInIsolation"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/store!StoreSchema#migrateStoreBetweenVersions:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "migrateStoreBetweenVersions(store: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedStore",
+                  "canonicalReference": "@tldraw/store!SerializedStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", schema: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedSchema",
+                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", fromVersion: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", toVersion: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "MigrationResult",
+                  "canonicalReference": "@tldraw/store!MigrationResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedStore",
+                  "canonicalReference": "@tldraw/store!SerializedStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R>>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 10,
+                "endIndex": 14
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "store",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "schema",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 4,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "fromVersion",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "toVersion",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 8,
+                    "endIndex": 9
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "migrateStoreBetweenVersions"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/store!StoreSchema#migrateStoreSnapshot:member(1)",
               "docComment": "",
               "excerptTokens": [
