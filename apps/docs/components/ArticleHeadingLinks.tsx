@@ -11,7 +11,7 @@ export function ArticleHeadingLinks({
 }) {
 	return (
 		<nav className="layout__headings">
-			{headingLinks.length ? (
+			{headingLinks.length > 1 ? (
 				<ul className="sidebar__list sidebar__sections__list" key={article.id}>
 					<li className="sidebar__section">
 						<div className="sidebar__section__title" data-active={false}>
