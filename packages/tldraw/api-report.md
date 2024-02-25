@@ -196,9 +196,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -210,9 +210,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
