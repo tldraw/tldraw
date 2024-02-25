@@ -47,9 +47,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -61,9 +61,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -212,7 +212,7 @@ export const drawShapeProps: {
 export const EMBED_DEFINITIONS: readonly [{
     readonly type: "tldraw";
     readonly title: "tldraw";
-    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com"];
+    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "pr-2947-preview-deploy.tldraw.com"];
     readonly minWidth: 300;
     readonly minHeight: 300;
     readonly width: 720;
