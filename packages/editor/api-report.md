@@ -1624,6 +1624,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onBindingChange?: TLOnBindingChangeHandler<Shape>;
     onChildrenChange?: TLOnChildrenChangeHandler<Shape>;
     onClick?: TLOnClickHandler<Shape>;
+    onCreate?: () => void;
     onDoubleClick?: TLOnDoubleClickHandler<Shape>;
     onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>;
     onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>;
@@ -1640,9 +1641,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onRotate?: TLOnRotateHandler<Shape>;
     onRotateEnd?: TLOnRotateEndHandler<Shape>;
     onRotateStart?: TLOnRotateStartHandler<Shape>;
-    onTranslate?: TLOnTranslateHandler<Shape>;
-    onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
-    onTranslateStart?: TLOnTranslateStartHandler<Shape>;
     // (undocumented)
     static props?: ShapeProps<TLUnknownShape>;
     // @internal
@@ -1727,6 +1725,19 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
+    // (undocumented)
+    static createStateHandler<T extends TLUnknownShape, Opts extends object = object, Returns = void>(defaultHandler?: (shape: T, opts: Opts, memo: {
+        [key: string]: any;
+    }) => Returns): {
+        addHandler: <Shape extends T = T, Memo extends object = {
+            [key: string]: any;
+        }>(shapeType: Shape["type"], handler: (shape: Shape, opts: Opts, memo: Memo) => Returns) => void;
+        getHandler: <Shape_1 extends T = T, Memo_1 extends object = {
+            [key: string]: any;
+        }>(shapeType: Shape_1["type"]) => (shape: Shape_1, opts: Opts, memo: Memo_1) => Returns;
+        removeHandler: <Shape_2 extends T = T>(shapeType: Shape_2["type"]) => void;
+        clear: () => void;
+    };
     _currentToolIdMask: Atom<string | undefined, unknown>;
     // (undocumented)
     editor: Editor;
@@ -2323,15 +2334,6 @@ export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>;
 
 // @public (undocumented)
 export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
-
-// @public (undocumented)
-export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
-
-// @public (undocumented)
-export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>;
-
-// @public (undocumented)
-export type TLOnTranslateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
 
 // @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;

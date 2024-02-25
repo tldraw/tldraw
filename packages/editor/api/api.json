@@ -31253,6 +31253,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onCreate:member",
+              "docComment": "/**\n * A callback called when a shape util is first initialized. Use this to set event listeners and other things.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onCreate?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onCreate",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#onDoubleClick:member",
               "docComment": "/**\n * A callback called when a shape is double clicked.\n *\n * @param shape - The shape.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -31733,111 +31763,6 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "onRotateStart",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onTranslate:member",
-              "docComment": "/**\n * A callback called when a shape changes from a translation.\n *\n * @param initial - The shape at the start of the translation.\n *\n * @param current - The current shape.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onTranslate?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnTranslateHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnTranslateHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<Shape>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onTranslate",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onTranslateEnd:member",
-              "docComment": "/**\n * A callback called when a shape finishes translating.\n *\n * @param initial - The shape at the start of the translation.\n *\n * @param current - The current shape.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onTranslateEnd?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnTranslateEndHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnTranslateEndHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<Shape>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onTranslateEnd",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onTranslateStart:member",
-              "docComment": "/**\n * A callback called when a shape starts being translated.\n *\n * @param shape - The shape.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onTranslateStart?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnTranslateStartHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnTranslateStartHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<Shape>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onTranslateStart",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
@@ -33108,6 +33033,122 @@
               "isStatic": true,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode.createStateHandler:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static createStateHandler<T extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUnknownShape",
+                  "canonicalReference": "@tldraw/tlschema!TLUnknownShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", Opts extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "object"
+                },
+                {
+                  "kind": "Content",
+                  "text": " = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "object"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", Returns = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(defaultHandler?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(shape: T, opts: Opts, memo: {\n        [key: string]: any;\n    }) => Returns"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        addHandler: <Shape extends T = T, Memo extends object = {\n            [key: string]: any;\n        }>(shapeType: Shape[\"type\"], handler: (shape: Shape, opts: Opts, memo: Memo) => Returns) => void;\n        getHandler: <Shape_1 extends T = T, Memo_1 extends object = {\n            [key: string]: any;\n        }>(shapeType: Shape_1[\"type\"]) => (shape: Shape_1, opts: Opts, memo: Memo_1) => Returns;\n        removeHandler: <Shape_2 extends T = T>(shapeType: Shape_2[\"type\"]) => void;\n        clear: () => void;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                },
+                {
+                  "typeParameterName": "Opts",
+                  "constraintTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  }
+                },
+                {
+                  "typeParameterName": "Returns",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
+                  }
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 11,
+                "endIndex": 12
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "defaultHandler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 9,
+                    "endIndex": 10
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "createStateHandler"
             },
             {
               "kind": "Property",
@@ -39452,165 +39493,6 @@
           "fileUrlPath": "packages/editor/src/lib/editor/shapes/ShapeUtil.ts",
           "releaseTag": "Public",
           "name": "TLOnRotateStartHandler",
-          "typeParameters": [
-            {
-              "typeParameterName": "T",
-              "constraintTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "typeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLOnTranslateEndHandler:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLOnTranslateEndHandler<T extends "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShape",
-              "canonicalReference": "@tldraw/tlschema!TLShape:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> = "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLEventChangeHandler",
-              "canonicalReference": "@tldraw/editor!~TLEventChangeHandler:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<T>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/ShapeUtil.ts",
-          "releaseTag": "Public",
-          "name": "TLOnTranslateEndHandler",
-          "typeParameters": [
-            {
-              "typeParameterName": "T",
-              "constraintTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "typeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLOnTranslateHandler:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLOnTranslateHandler<T extends "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShape",
-              "canonicalReference": "@tldraw/tlschema!TLShape:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> = "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLEventChangeHandler",
-              "canonicalReference": "@tldraw/editor!~TLEventChangeHandler:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<T>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/ShapeUtil.ts",
-          "releaseTag": "Public",
-          "name": "TLOnTranslateHandler",
-          "typeParameters": [
-            {
-              "typeParameterName": "T",
-              "constraintTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "defaultTypeTokenRange": {
-                "startIndex": 0,
-                "endIndex": 0
-              }
-            }
-          ],
-          "typeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLOnTranslateStartHandler:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLOnTranslateStartHandler<T extends "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShape",
-              "canonicalReference": "@tldraw/tlschema!TLShape:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> = "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLEventStartHandler",
-              "canonicalReference": "@tldraw/editor!~TLEventStartHandler:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<T>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/shapes/ShapeUtil.ts",
-          "releaseTag": "Public",
-          "name": "TLOnTranslateStartHandler",
           "typeParameters": [
             {
               "typeParameterName": "T",

@@ -24,7 +24,7 @@ export class Translating extends StateNode {
 	info = {} as TLPointerEventInfo & {
 		target: 'shape'
 		isCreating?: boolean
-		onCreate?: () => void
+		onCreate?: (shape: TLShape | null) => void
 		onInteractionEnd?: string
 	}
 
@@ -36,7 +36,6 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
-	onCreate: (shape: TLShape | null) => void = () => void null
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
@@ -48,12 +47,11 @@ export class Translating extends StateNode {
 			onInteractionEnd?: string
 		}
 	) => {
-		const { isCreating = false, onCreate = () => void null } = info
+		const { isCreating = false } = info
 
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
-		this.onCreate = onCreate
 
 		if (isCreating) {
 			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
@@ -174,7 +172,7 @@ export class Translating extends StateNode {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			if (this.isCreating) {
-				this.onCreate?.(this.editor.getOnlySelectedShape())
+				this.info.onCreate?.(this.editor.getOnlySelectedShape())
 			} else {
 				this.parent.transition('idle')
 			}
@@ -190,16 +188,22 @@ export class Translating extends StateNode {
 		}
 	}
 
+	memos = new Map<string, any>()
+
 	protected handleStart() {
 		const { movingShapes } = this.snapshot
 
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onTranslateStart?.(shape)
-			if (change) {
-				changes.push(change)
+			const handler = this.onTranslateStart.getHandler(shape.type)
+			if (handler) {
+				const memo = {}
+				this.memos.set(shape.id, memo)
+				const change = handler(shape, {}, memo)
+				if (change) {
+					changes.push(change)
+				}
 			}
 		})
 
@@ -228,12 +232,16 @@ export class Translating extends StateNode {
 
 		const changes: TLShapePartial[] = []
 
-		movingShapes.forEach((shape) => {
-			const current = this.editor.getShape(shape.id)!
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onTranslateEnd?.(shape, current)
-			if (change) {
-				changes.push(change)
+		movingShapes.forEach((intitial) => {
+			const shape = this.editor.getShape(intitial.id)!
+
+			const handler = this.onTranslateEnd.getHandler(shape.type)
+			if (handler) {
+				const memo = this.memos.get(shape.id)
+				const change = handler(shape, {}, memo)
+				if (change) {
+					changes.push(change)
+				}
 			}
 		})
 
@@ -247,12 +255,16 @@ export class Translating extends StateNode {
 
 		const changes: TLShapePartial[] = []
 
-		movingShapes.forEach((shape) => {
-			const current = this.editor.getShape(shape.id)!
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onTranslate?.(shape, current)
-			if (change) {
-				changes.push(change)
+		movingShapes.forEach((initial) => {
+			const shape = this.editor.getShape(initial.id)!
+
+			const handler = this.onTranslate.getHandler(shape.type)
+			if (handler) {
+				const memo = this.memos.get(shape.id)
+				const change = handler(shape, {}, memo)
+				if (change) {
+					changes.push(change)
+				}
 			}
 		})
 
@@ -295,6 +307,10 @@ export class Translating extends StateNode {
 			shapeSnapshot.parentTransform = parentTransform
 		})
 	}
+
+	onTranslateStart = StateNode.createStateHandler<TLShape, object, TLShape | undefined>()
+	onTranslate = StateNode.createStateHandler<TLShape, object, TLShape | undefined>()
+	onTranslateEnd = StateNode.createStateHandler<TLShape, object, TLShape | undefined>()
 }
 
 function getTranslatingSnapshot(editor: Editor) {

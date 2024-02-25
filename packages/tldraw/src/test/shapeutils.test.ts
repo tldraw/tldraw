@@ -1,4 +1,5 @@
 import { createShapeId, TLFrameShape, TLGeoShape } from '@tldraw/editor'
+import { Translating } from '../lib/tools/SelectTool/childStates/Translating'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -140,16 +141,16 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Fires translating events', () => {
-		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const translating = editor.getStateDescendant<Translating>('select.translating')
 
 		const fnStart = jest.fn()
-		util.onTranslateStart = fnStart
+		translating?.onTranslateStart.addHandler('frame', fnStart)
 
 		const fnChange = jest.fn()
-		util.onTranslate = fnChange
+		translating?.onTranslate.addHandler('frame', fnChange)
 
 		const fnEnd = jest.fn()
-		util.onTranslateEnd = fnEnd
+		translating?.onTranslateEnd.addHandler('frame', fnEnd)
 
 		editor.selectAll()
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])

@@ -1,4 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
+import { TLUnknownShape } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
@@ -215,4 +216,46 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onEnter?: TLEnterEventHandler
 	onExit?: TLExitEventHandler
 	onTick?: TLTickEventHandler
+
+	static createStateHandler<T extends TLUnknownShape, Opts extends object = object, Returns = void>(
+		defaultHandler?: (shape: T, opts: Opts, memo: { [key: string]: any }) => Returns
+	) {
+		type Handler<Shape extends T, Memo extends object> = (
+			shape: Shape,
+			opts: Opts,
+			memo: Memo
+		) => Returns
+
+		const handlers = {} as { [K in T['type']]: Handler<any, any> }
+
+		function removeHandler<Shape extends T = T>(shapeType: Shape['type']) {
+			delete handlers[shapeType]
+		}
+
+		function addHandler<Shape extends T = T, Memo extends object = { [key: string]: any }>(
+			shapeType: Shape['type'],
+			handler: Handler<Shape, Memo>
+		) {
+			handlers[shapeType] = handler
+		}
+
+		function getHandler<Shape extends T = T, Memo extends object = { [key: string]: any }>(
+			shapeType: Shape['type']
+		) {
+			return (handlers[shapeType] ?? defaultHandler) as Handler<Shape, Memo>
+		}
+
+		function clear() {
+			for (const key in Object.getOwnPropertyNames(handlers)) {
+				delete handlers[key as T['type']]
+			}
+		}
+
+		return {
+			addHandler,
+			getHandler,
+			removeHandler,
+			clear,
+		}
+	}
 }

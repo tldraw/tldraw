@@ -90,14 +90,14 @@ import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleDragHandler } from '@tldraw/editor';
 import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
-import { TLOnTranslateHandler } from '@tldraw/editor';
-import { TLOnTranslateStartHandler } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPointerEventName } from '@tldraw/editor';
 import { TLRecord } from '@tldraw/editor';
+import { TLResizeHandle } from '@tldraw/editor';
+import { TLResizeMode } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
@@ -114,7 +114,6 @@ import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTickEventHandler } from '@tldraw/editor';
-import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnionValidator } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -166,6 +165,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)
+    onCreate: () => void;
+    // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLArrowShape>;
@@ -173,10 +174,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     onHandleDrag: TLOnHandleDragHandler<TLArrowShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
-    // (undocumented)
-    onTranslate?: TLOnTranslateHandler<TLArrowShape>;
-    // (undocumented)
-    onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
     // (undocumented)
     static props: {
         labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;

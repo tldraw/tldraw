@@ -10,6 +10,8 @@ import {
 	TLEventHandlers,
 	TLFrameShape,
 	TLPointerEventInfo,
+	TLResizeHandle,
+	TLResizeMode,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -127,12 +129,23 @@ export class Resizing extends StateNode {
 		this.parent.transition('idle')
 	}
 
-	private handleResizeStart() {
+	private memos = new Map<TLShapeId, any>()
+
+	private handleResizeStart = () => {
 		const { shapeSnapshots } = this.snapshot
 
 		const changes: TLShapePartial[] = []
 
+		this.memos.clear()
+
 		shapeSnapshots.forEach(({ shape }) => {
+			const handler = this.onResizeStart.getHandler(shape.type)
+			if (handler) {
+				const memo = {}
+				const _change = handler(shape, {}, memo)
+				this.memos.set(shape.id, memo)
+			}
+
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onResizeStart?.(shape)
 			if (change) {
@@ -152,6 +165,13 @@ export class Resizing extends StateNode {
 
 		shapeSnapshots.forEach(({ shape }) => {
 			const current = this.editor.getShape(shape.id)!
+
+			const handler = this.onResizeEnd.getHandler(shape.type)
+			if (handler) {
+				const memo = this.memos.get(shape.id)
+				const _change = handler(shape, {}, memo)
+			}
+
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onResizeEnd?.(shape, current)
 			if (change) {
@@ -306,6 +326,25 @@ export class Resizing extends StateNode {
 
 		for (const id of shapeSnapshots.keys()) {
 			const snapshot = shapeSnapshots.get(id)!
+
+			const shape = this.editor.getShape(id)
+			if (shape) {
+				const memo = this.memos.get(id)
+				const handler = this.onResize.getHandler(shape.type)
+				if (handler) {
+					const _change = handler(
+						shape,
+						{
+							newPoint: currentPagePoint,
+							handle: this.info.handle,
+							mode: 'scale_shape',
+							scaleX: scale.x,
+							scaleY: scale.y,
+						},
+						memo
+					)
+				}
+			}
 
 			this.editor.resizeShape(id, scale, {
 				initialShape: snapshot.shape,
@@ -491,6 +530,20 @@ export class Resizing extends StateNode {
 			isAspectRatioLocked: util.isAspectRatioLocked(shape),
 		}
 	}
+
+	onResizeStart = StateNode.createStateHandler<TLShape, object, TLShape>()
+	onResize = StateNode.createStateHandler<
+		TLShape,
+		{
+			newPoint: Vec
+			handle: TLResizeHandle
+			mode: TLResizeMode
+			scaleX: number
+			scaleY: number
+		},
+		TLShape
+	>()
+	onResizeEnd = StateNode.createStateHandler<TLShape, object, TLShape>()
 }
 
 type Snapshot = ReturnType<Resizing['_createSnapshot']>
