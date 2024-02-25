@@ -1,9 +1,9 @@
 import { Footer } from '@/components/Footer'
 
-export default async function LandingPageLayout({ children }: { children: React.ReactNode }) {
+export default async function ContentLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<div className="wrapper">
-			{children}
+			<div className="layout">{children}</div>
 			<Footer />
 		</div>
 	)
