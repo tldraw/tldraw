@@ -4125,7 +4125,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor-model@npm:7.28.13":
+"@microsoft/api-extractor-model@npm:7.28.13, @microsoft/api-extractor-model@npm:^7.26.4":
   version: 7.28.13
   resolution: "@microsoft/api-extractor-model@npm:7.28.13"
   dependencies:
@@ -4133,17 +4133,6 @@ __metadata:
     "@microsoft/tsdoc-config": "npm:~0.16.1"
     "@rushstack/node-core-library": "npm:4.0.2"
   checksum: af1d0457d76b909ac870c7c895caf773a3348312d8c308f73bf160c8b85ab6c0be6ed6c5568a5ee5ccedf29ee1b6826af0bb241264b02ed9f5f5bba49981e631
-  languageName: node
-  linkType: hard
-
-"@microsoft/api-extractor-model@npm:^7.26.4":
-  version: 7.28.4
-  resolution: "@microsoft/api-extractor-model@npm:7.28.4"
-  dependencies:
-    "@microsoft/tsdoc": "npm:0.14.2"
-    "@microsoft/tsdoc-config": "npm:~0.16.1"
-    "@rushstack/node-core-library": "npm:3.63.0"
-  checksum: ecabfab1a816a31fb6bb6fef26661dd200417c38687c9efdb0755e3347be0618377ce871146fb780d4e8b0a09ba5763f6825dd9e66d7a6c16177594c0d5cce6a
   languageName: node
   linkType: hard
 
@@ -6014,26 +6003,6 @@ __metadata:
   version: 1.6.1
   resolution: "@rushstack/eslint-patch@npm:1.6.1"
   checksum: 4c57775785718c6665bee8daea204bf2fe59c2fec6cabf0d126f01c6c170e11605b7453a089dfd5bf3fb758832b2aa7964d6b9f29007d708a3571e8ff7bcf391
-  languageName: node
-  linkType: hard
-
-"@rushstack/node-core-library@npm:3.63.0":
-  version: 3.63.0
-  resolution: "@rushstack/node-core-library@npm:3.63.0"
-  dependencies:
-    colors: "npm:~1.2.1"
-    fs-extra: "npm:~7.0.1"
-    import-lazy: "npm:~4.0.0"
-    jju: "npm:~1.4.0"
-    resolve: "npm:~1.22.1"
-    semver: "npm:~7.5.4"
-    z-schema: "npm:~5.0.2"
-  peerDependencies:
-    "@types/node": "*"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 14e635884bac94b7d2a73a2e5793389c0a770c9d8cc9a4f6b13975318d4e7361af5169cd7084d00ac883bf7623c5ea74581c5cfb0a4c6a5590d72b0ce6cbef83
   languageName: node
   linkType: hard
 
@@ -10976,13 +10945,6 @@ __metadata:
   version: 1.0.3
   resolution: "colors@npm:1.0.3"
   checksum: 8d81835f217ffca6de6665c8dd9ed132c562d108d4ba842d638c7cb5f8127cff47cb1b54c6bbea49e22eaa7b56caee6b85278dde9c2564f8a0eaef161e028ae0
-  languageName: node
-  linkType: hard
-
-"colors@npm:~1.2.1":
-  version: 1.2.5
-  resolution: "colors@npm:1.2.5"
-  checksum: fe30007df0f62abedc2726990d0951f19292d85686dffcc76fa96ee9dc4e1a987d50b34aa02796e88627709c54a52f07c057bf1da4b7302c06eda8e1afd2f09a
   languageName: node
   linkType: hard
 
