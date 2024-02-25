@@ -1,6 +1,7 @@
 import {
 	Editor,
 	ErrorScreen,
+	Expand,
 	LoadingScreen,
 	StoreSnapshot,
 	TLEditorComponents,
@@ -36,10 +37,10 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /**@public */
-export type TLComponents = TLEditorComponents & TLUiComponents
+export type TLComponents = Expand<TLEditorComponents & TLUiComponents>
 
 /** @public */
-export type TldrawProps =
+export type TldrawProps = Expand<
 	// combine components from base editor and ui
 	(Omit<TldrawUiProps, 'components'> &
 		Omit<TldrawEditorBaseProps, 'components'> & {
@@ -62,6 +63,7 @@ export type TldrawProps =
 					snapshot?: StoreSnapshot<TLRecord>
 			  }
 		)
+>
 
 /** @public */
 export function Tldraw(props: TldrawProps) {
