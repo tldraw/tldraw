@@ -51,7 +51,7 @@ export function IFrameProtector({
 }) {
 	const [embeddedState, setEmbeddedState] = useState<
 		'iframe-unknown' | 'iframe-not-allowed' | 'not-iframe' | 'iframe-ok'
-	>(isInIframe() ? 'iframe-unknown' : 'not-iframe')
+	>(isInIframe() ? 'iframe-not-allowed' : 'not-iframe')
 
 	const url = useUrl()
 
