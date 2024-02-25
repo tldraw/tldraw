@@ -363,8 +363,8 @@ export { openWindow } from './lib/utils/window-open'
 
 /** @polyfills */
 
-import 'core-js/stable/array/at'
-import 'core-js/stable/array/flat'
-import 'core-js/stable/array/flat-map'
-import 'core-js/stable/string/at'
-import 'core-js/stable/string/replace-all'
+import 'core-js/stable/array/at.js'
+import 'core-js/stable/array/flat-map.js'
+import 'core-js/stable/array/flat.js'
+import 'core-js/stable/string/at.js'
+import 'core-js/stable/string/replace-all.js'

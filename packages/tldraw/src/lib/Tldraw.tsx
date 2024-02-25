@@ -37,7 +37,7 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /**@public */
-export type TLComponents = TLEditorComponents & TLUiComponents
+export type TLComponents = Expand<TLEditorComponents & TLUiComponents>
 
 /** @public */
 export type TldrawProps = Expand<

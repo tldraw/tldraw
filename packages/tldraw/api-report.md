@@ -1013,6 +1013,9 @@ export function parseTldrawJsonFile({ json, schema, }: {
     json: string;
 }): Result<TLStore, TldrawFileParseError>;
 
+// @public (undocumented)
+export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
+
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 
@@ -1166,7 +1169,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-export type TLComponents = TLEditorComponents & TLUiComponents;
+export type TLComponents = Expand<TLEditorComponents & TLUiComponents>;
 
 // @public (undocumented)
 export function Tldraw(props: TldrawProps): JSX_2.Element;
@@ -2053,7 +2056,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
-    onValueChange: (value: number, emphemeral: boolean) => void;
+    onValueChange: (value: number, squashing: boolean) => void;
     // (undocumented)
     steps: number;
     // (undocumented)
@@ -2195,6 +2198,12 @@ export function useAssetUrls(): TLUiAssetUrls;
 
 // @public (undocumented)
 export function useBreakpoint(): number;
+
+// @public (undocumented)
+export function useCanRedo(): boolean;
+
+// @public (undocumented)
+export function useCanUndo(): boolean;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;

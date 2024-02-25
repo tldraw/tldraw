@@ -1,0 +1,20 @@
+.external-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px;
+	gap: 8px;
+}
+
+.external-button {
+	pointer-events: all;
+	padding: 4px 12px;
+	background: white;
+	border: 1px solid black;
+	border-radius: 16px;
+}
+
+.external-button[data-isactive='true'] {
+	background-color: black;
+	color: white;
+}
