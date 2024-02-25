@@ -8,7 +8,7 @@ import { Providers } from './providers'
 
 const TITLE = 'tldraw.dev'
 const DESCRIPTION =
-	'Developer documentation for tldraw. Build infinite canvas experiences for the web.'
+	'Infinite canvas SDK from tldraw. Build whiteboards, design tools, and canvas experiences for the web.'
 const TWITTER_HANDLE = '@tldraw'
 const TWITTER_CARD = 'social-twitter.png'
 const FACEBOOK_CARD = 'social-og.png'

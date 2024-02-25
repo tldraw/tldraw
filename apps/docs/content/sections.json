@@ -9,7 +9,7 @@
 	{
 		"id": "docs",
 		"title": "Learn tldraw",
-		"description": "Developer documentation for tldraw.",
+		"description": "Learn to use the tldraw SDK.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
 	},
