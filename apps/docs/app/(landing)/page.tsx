@@ -1,26 +1,10 @@
-import Link from 'next/link'
+import { ArticleDocsPage } from '@/components/ArticleDocsPage'
+import { getDb } from '@/utils/ContentDatabase'
+import { notFound } from 'next/navigation'
 
 export default async function HomePage() {
-	return (
-		<div className="landing">
-			<div className="landing__inner">
-				<Link className="landing__logo" href="/introduction">
-					<img className="logo-dark" src="/tldraw_dev_dark.png" />
-					<img className="logo-light" src="/tldraw_dev_light.png" />
-				</Link>
-				<h3 className="landing__blurb">An infinite canvas SDK.</h3>
-				<ul className="landing__links">
-					<li>
-						<Link href="/introduction">Docs</Link>
-					</li>
-					<li>
-						<Link href="/examples">Examples</Link>
-					</li>
-					<li>
-						<a href="https://github.com/tldraw/tldraw">GitHub</a>
-					</li>
-				</ul>
-			</div>
-		</div>
-	)
+	const db = await getDb()
+	const article = await db.db.get(`SELECT * FROM articles WHERE articles.path = ?`, `/quick-start`)
+	if (article) return <ArticleDocsPage article={article} />
+	throw notFound()
 }

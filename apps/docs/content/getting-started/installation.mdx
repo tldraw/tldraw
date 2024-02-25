@@ -3,14 +3,26 @@ title: Installation
 status: published
 author: steveruizok
 date: 3/22/2023
-order: 2
+order: 1
 ---
 
-Install the `@tldraw/tldraw` package from [NPM](https://npmjs.com/tldraw/tldraw) using `@beta` for the latest beta release.
+At the moment the `@tldraw/tldraw` package is in beta. We also ship a canary version which is always up to date with the main branch of tldraw [repository](https://github.com/tldraw/tldraw).
+
+## Beta
+
+First, install the `@tldraw/tldraw` package using `@beta` for the latest beta release.
 
 <CodeBlock code={{'yarn': 'yarn add @tldraw/tldraw@beta', 'npm': 'npm install @tldraw/tldraw@beta', 'pnpm': 'pnpm add @tldraw/tldraw@beta'}} />
 
-Use the [Tldraw](?) component inside of any React component.
+## Canary
+
+To get the very latest version, use the [latest canary release](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions). Docs for the very latest version are also available at [canary.tldraw.dev](https://canary.tldraw.dev).
+
+<CodeBlock code={{'yarn': 'yarn add @tldraw/tldraw@canary', 'npm': 'npm install @tldraw/tldraw@canary', 'pnpm': 'pnpm add @tldraw/tldraw@canary'}} />
+
+## Usage
+
+You can use the [Tldraw](?) component inside of any React component.
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
@@ -25,63 +37,45 @@ export default function () {
 }
 ```
 
-> 🙋‍♂️ Using tldraw in a framework like Vite or Next.js ? Visit our [framework examples repository](https://github.com/tldraw/examples) to see examples of how you can use tldraw in your favorite framework.
+### Wrapper
 
----
+It's important that the [Tldraw](?) component is wrapped in a parent container that has an explicit size. Its height and width are set to `100%`, so it will fill its parent container.
 
-## More info on installation
+### CSS
 
-The [Tldraw](?) component has a few requirements and best practices to keep in mind when using it in your app. This article will walk you through the necessary steps to get started.
-
-
-### CSS 
-
-The [Tldraw](?) component relies on CSS for styling. Depending on your framework or build system, you can import these in a JavaScript file:
+In addition to the [Tldraw](?) component itself, you should also import the `tldraw.css` file from the `@tldraw/tldraw` package.
 
 ```tsx
 import '@tldraw/tldraw/tldraw.css'
 ```
 
-...or from inside of another CSS file using the `@import` syntax:
+You can alternatively import this file inside of another CSS file using the `@import` syntax.
 
 ```css
 @import url('@tldraw/tldraw/tldraw.css');
 ```
 
-<Callout icon={"github"}>Want to change how tldraw looks? You can always use your own CSS. Make a new CSS file in your project, copy the contents of our `tldraw.css` file, make your changes, and import your file instead.</Callout>
-
-### Wrapper element
-
-You must wrap the [Tldraw](?) component in a parent container with a known size. The component's own height and width are set to `100%`, so it will fill its parent container.
-
-```tsx
-export function Example() {
-	return (
-		<div style={{width: 800, height: 600}}>
-			<Tldraw/>
-		</div>
-	)
-}
-```
-
-### Viewport
-
-If you're using the [Tldraw](?) component in a full-screen app, you may also want to update your `index.html`'s meta viewport element with the following properties:
-
-```html
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-```
+If you'd like to deeply change the way that tldraw looks, you can copy the `tldraw.css` file into a new CSS file, make your changes, and import that instead.
 
 ### Fonts
 
-The tldraw component's user interface will inherit the page's body font. If you'd like to use the same font that we use on [tldraw.com](https://tldraw.com), import the [Inter font](https://github.com/rsms/inter) from Google fonts:
+We also use Inter as the default tldraw font. You can import this font however you like (or use a different font!) but here's the CSS import from Google fonts that we use:
 
 ```css
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 ```
 
+### HTML
 
-### Server Rendering
+If you're using the [Tldraw](?) component in a full-screen app, you probably also want to update your `index.html`'s meta viewport element as shown below.
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+```
+
+This may not be critical to [Tldraw](?) performing correctly, however some features (such as safe area positioning) will only work correctly if these viewport options are set.
+
+## Server Rendering
 
 The [Tldraw](?) component can't be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you need to import it dynamically.
 
@@ -89,7 +83,21 @@ The [Tldraw](?) component can't be server-rendered. If you're using the componen
 const Tldraw = dynamic(async () => (await import('@tldraw/tldraw')).Tldraw, { ssr: false })
 ```
 
-See our [framework examples repository](https://github.com/tldraw/examples) for an example.
+### Using a bundler
+
+If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
+
+```tsx
+import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
+
+const assetUrls = getAssetUrlsByMetaUrl()
+
+<Tldraw assetUrls={assetUrls} />
+```
+
+## Usage in Frameworks
+
+Visit our [framework examples repository](https://github.com/tldraw/examples) to see examples of tldraw being used in various frameworks.
 
 ## Static Assets
 
@@ -113,18 +121,6 @@ const assetUrls = {
 
 This will use the custom icon for the `hand` tool and the default assets for everything else.
 
-### Using a bundler
-
-If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
-
-```tsx
-import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
-
-const assetUrls = getAssetUrlsByMetaUrl()
-
-<Tldraw assetUrls={assetUrls} />
-```
-
 ### Self-hosting static assets
 
 If you want more flexibility you can also host these assets yourself:
@@ -143,7 +139,7 @@ const assetUrls = getAssetUrls()
 <Tldraw assetUrls={assetUrls} />
 ```
 
-While these files must be available, you can overwrite the individual files. For example, to change our icons, you can place a new icon under the same name. You can also modify translations in this same way.
+While these files must be available, you can overwrite the individual files: for example, by placing different icons under the same name or modifying / adding translations.
 
 If you use a CDN for hosting these files you can specify the base url of your assets. To recreate the above option of serving the assets from unpkg you would do the following:
 
@@ -151,4 +147,43 @@ If you use a CDN for hosting these files you can specify the base url of your as
 const assetUrls = getAssetUrls({
 	baseUrl: 'https://unpkg.com/@tldraw/assets@2.0.0-alpha.12/',
 })
+```
+
+## Subcomponents
+
+The [Tldraw](?) component combines two lower-level components: [TldrawEditor](?) and [TldrawUi](?). If you want to have more granular control, you can use those lower-level components directly. See [this example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/examples/ExplodedExample.tsx) for reference.
+
+### Customize the default components
+
+You can customize the appearance of the tldraw editor and ui using the [Tldraw](?) (or [TldrawEditor](?)) component's `components` prop.
+
+```tsx
+
+const components: TLComponents = {
+	Background: YourCustomBackground,
+	SvgDefs: YourCustomSvgDefs,
+	Brush: YourCustomBrush,
+	ZoomBrush: YourCustomBrush,
+	CollaboratorBrush: YourCustomBrush,
+	Cursor: YourCustomCursor,
+	CollaboratorCursor: YourCustomCursor,
+	CollaboratorHint: YourCustomCollaboratorHint,
+	CollaboratorShapeIndicator: YourCustomdicator,
+	Grid: YourCustomGrid,
+	Scribble: YourCustomScribble,
+	SnapLine: YourCustomSnapLine,
+	Handles: YourCustomHandles,
+	Handle: YourCustomHandle,
+	CollaboratorScribble: YourCustomScribble,
+	ErrorFallback: YourCustomErrorFallback,
+	ShapeErrorFallback: YourCustomShapeErrorFallback,
+	ShapeIndicatorErrorFallback: YourCustomShapeIndicatorErrorFallback,
+	Spinner: YourCustomSpinner,
+	SelectionBackground: YourCustomSelectionBackground,
+	SelectionForeground: YourCustomSelectionForeground,
+	HoveredShapeIndicator: YourCustomHoveredShapeIndicator,
+	// ...
+}
+
+<Tldraw components={components}/>
 ```
