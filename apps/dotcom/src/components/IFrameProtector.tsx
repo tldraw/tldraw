@@ -63,10 +63,9 @@ export function IFrameProtector({
 
 		function handleMessageEvent(event: MessageEvent) {
 			if (!event.source) return
+
 			if (event.data === EXPECTED_QUESTION) {
-				event.source.postMessage(EXPECTED_RESPONSE, {
-					targetOrigin: event.origin,
-				})
+				event.source.postMessage(EXPECTED_RESPONSE)
 			}
 
 			if (event.data === EXPECTED_RESPONSE) {
@@ -87,7 +86,7 @@ export function IFrameProtector({
 						setEmbeddedState('iframe-not-allowed')
 						trackAnalyticsEvent('connect_to_room_in_iframe', { slug, context })
 					}
-				}, 1000)
+				}, 3000)
 			} else {
 				// We don't allow iframe embeddings on other routes
 				setEmbeddedState('iframe-not-allowed')
