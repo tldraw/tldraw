@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.35.4",
+    "toolVersion": "7.41.0",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -591,17 +591,13 @@
           "name": "compareRecordVersions"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/store!compareSchemas:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/store!compareSchemas:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "compareSchemas: "
-            },
-            {
-              "kind": "Content",
-              "text": "(a: "
+              "text": "compareSchemas: (a: "
             },
             {
               "kind": "Reference",
@@ -619,17 +615,39 @@
             },
             {
               "kind": "Content",
-              "text": ") => -1 | 0 | 1"
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "-1 | 0 | 1"
             }
           ],
           "fileUrlPath": "packages/store/src/lib/compareSchemas.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "compareSchemas",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
+          "returnTypeTokenRange": {
+            "startIndex": 5,
             "endIndex": 6
-          }
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "a",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "b",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "compareSchemas"
         },
         {
           "kind": "TypeAlias",
