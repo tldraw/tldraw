@@ -47,7 +47,7 @@
 	--border-radius-menu: 4px;
 
 	/* Sizes */
-	--header-height: 72px;
+	--header-height: 80px;
 }
 
 [data-theme='dark'] {
@@ -137,7 +137,7 @@ body {
 	z-index: 900;
 	top: 0px;
 	display: grid;
-	padding: 16px;
+	padding: 0px 16px;
 	grid-template-columns: 250px 1fr auto;
 	gap: 16px;
 	justify-content: center;
@@ -150,15 +150,26 @@ body {
 	height: auto;
 }
 
-.layout__header__sections_and_socials {
+.layout__header__links {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	gap: 16px;
+}
+
+.layout__header__sections {
+	display: flex;
+	align-items: center;
+}
+
+.layout__header__socials {
+	display: flex;
+	align-items: center;
 }
 
 .layout_header__section {
 	text-decoration: none;
-	padding: 8px 16px;
+	padding: 13px 12px;
 	font-size: 14px;
 	color: var(--color-text);
 	position: relative;
@@ -645,7 +656,7 @@ body {
 	font-size: 14px;
 	color: var(--color-text);
 	font-weight: 600;
-	height: 40px;
+	padding-bottom: 4px;
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -935,7 +946,7 @@ body {
 	margin-bottom: 4px;
 	position: relative;
 	letter-spacing: 0.5px;
-	height: 40px;
+	padding-bottom: 4px;
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
@@ -966,7 +977,6 @@ body {
 .sidebar__sections__list > *:nth-last-of-type(n + 2) > .sidebar__list {
 	padding-bottom: 12px;
 	margin-bottom: 12px;
-	border-bottom: 1px solid var(--color-tint-2);
 }
 
 @media (hover: hover) {
@@ -1108,8 +1118,7 @@ body {
 		grid-gap: 40px;
 	}
 
-	.layout__header .layout__header__sections_and_socials .layout_header__section,
-	.layout__header .layout__header__sections_and_socials .NavigationMenuRoot {
+	.layout__header .NavigationMenuRoot {
 		display: none;
 	}
 
@@ -1120,6 +1129,7 @@ body {
 		padding: 12px 0px;
 		border-bottom: 1px solid var(--color-tint-2);
 		margin-bottom: 12px;
+		margin-left: -8px;
 	}
 
 	.NavigationMenuTrigger {
@@ -1136,7 +1146,7 @@ body {
 	}
 
 	.layout__header {
-		grid-template-columns: auto auto;
+		grid-template-columns: auto 1fr;
 		justify-content: space-between;
 	}
 
@@ -1279,6 +1289,14 @@ body {
 	}
 
 	.layout__header .search {
+		display: none;
+	}
+
+	.layout__header__links {
+		justify-content: flex-end;
+	}
+
+	.layout__header__sections {
 		display: none;
 	}
 
