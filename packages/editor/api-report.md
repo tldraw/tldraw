@@ -1638,9 +1638,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onResize?: TLOnResizeHandler<Shape>;
     onResizeEnd?: TLOnResizeEndHandler<Shape>;
     onResizeStart?: TLOnResizeStartHandler<Shape>;
-    onRotate?: TLOnRotateHandler<Shape>;
-    onRotateEnd?: TLOnRotateEndHandler<Shape>;
-    onRotateStart?: TLOnRotateStartHandler<Shape>;
     // (undocumented)
     static props?: ShapeProps<TLUnknownShape>;
     // @internal
@@ -2325,15 +2322,6 @@ export type TLOnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo
 
 // @public (undocumented)
 export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>;
-
-// @public (undocumented)
-export type TLOnRotateEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
-
-// @public (undocumented)
-export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>;
-
-// @public (undocumented)
-export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
 
 // @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;

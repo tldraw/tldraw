@@ -1,4 +1,5 @@
 import { createShapeId, TLFrameShape, TLGeoShape } from '@tldraw/editor'
+import { Rotating } from '../lib/tools/SelectTool/childStates/Rotating'
 import { Translating } from '../lib/tools/SelectTool/childStates/Translating'
 import { TestEditor } from './TestEditor'
 
@@ -55,16 +56,15 @@ beforeEach(() => {
 describe('When interacting with a shape...', () => {
 	it('fires rotate events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
 		const fnStart = jest.fn()
-		util.onRotateStart = fnStart
-
 		const fnChange = jest.fn()
-		util.onRotate = fnChange
-
 		const fnEnd = jest.fn()
-		util.onRotateEnd = fnEnd
+
+		const rotating = editor.getStateDescendant<Rotating>('select.rotating')
+		rotating?.onRotateStart.addHandler('frame', fnStart)
+		rotating?.onRotate.addHandler('frame', fnChange)
+		rotating?.onRotateEnd.addHandler('frame', fnEnd)
 
 		editor.selectAll()
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
@@ -85,11 +85,6 @@ describe('When interacting with a shape...', () => {
 
 		// Once on end
 		expect(fnEnd).toHaveBeenCalledTimes(1)
-	})
-
-	it('cleans up events', () => {
-		const util = editor.getShapeUtil<TLGeoShape>('geo')
-		expect(util.onRotateStart).toBeUndefined()
 	})
 
 	it('fires double click handler event', () => {

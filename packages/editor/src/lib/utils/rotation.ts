@@ -108,19 +108,30 @@ export function applyRotationToSnapshotShapes({
 	shapeSnapshots.forEach(({ shape }) => {
 		const current = editor.getShape(shape.id)
 		if (!current) return
-		const util = editor.getShapeUtil(shape)
+		const memo = {}
+		const rotating = editor.getStateDescendant<any>('select.rotating')
+		if (rotating) {
+			if (stage === 'start' || stage === 'one-off') {
+				const handler = rotating.onRotateStart.getHandler(shape.type)
+				if (handler) {
+					const change = handler(shape, {}, memo)
+					if (change) changes.push(change)
+				}
+			}
 
-		if (stage === 'start' || stage === 'one-off') {
-			const changeStart = util.onRotateStart?.(shape)
-			if (changeStart) changes.push(changeStart)
-		}
+			const handler = rotating.onRotate.getHandler(shape.type)
+			if (handler) {
+				const change = handler(shape, {}, memo)
+				if (change) changes.push(change)
+			}
 
-		const changeUpdate = util.onRotate?.(shape, current)
-		if (changeUpdate) changes.push(changeUpdate)
-
-		if (stage === 'end' || stage === 'one-off') {
-			const changeEnd = util.onRotateEnd?.(shape, current)
-			if (changeEnd) changes.push(changeEnd)
+			if (stage === 'end' || stage === 'one-off') {
+				const handler = rotating.onRotateEnd.getHandler(shape.type)
+				if (handler) {
+					const change = handler(shape, {}, memo)
+					if (change) changes.push(change)
+				}
+			}
 		}
 	})
 

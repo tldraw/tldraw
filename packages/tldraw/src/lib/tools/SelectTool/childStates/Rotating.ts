@@ -4,6 +4,7 @@ import {
 	TLEventHandlers,
 	TLPointerEventInfo,
 	TLRotationSnapshot,
+	TLShape,
 	applyRotationToSnapshotShapes,
 	degreesToRadians,
 	getRotationSnapshot,
@@ -173,4 +174,8 @@ export class Rotating extends StateNode {
 
 		return newSelectionRotation - initialSelectionRotation
 	}
+
+	onRotateStart = StateNode.createStateHandler<TLShape, object, TLShape | undefined>()
+	onRotate = StateNode.createStateHandler<TLShape, object, TLShape | undefined>()
+	onRotateEnd = StateNode.createStateHandler<TLShape, object, TLShape | undefined>()
 }

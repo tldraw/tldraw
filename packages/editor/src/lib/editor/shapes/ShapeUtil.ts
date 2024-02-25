@@ -397,35 +397,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onHandleDrag?: TLOnHandleDragHandler<Shape>
 
 	/**
-	 * A callback called when a shape starts being rotated.
-	 *
-	 * @param shape - The shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onRotateStart?: TLOnRotateStartHandler<Shape>
-
-	/**
-	 * A callback called when a shape changes from a rotation.
-	 *
-	 * @param initial - The shape at the start of the rotation.
-	 * @param current - The current shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onRotate?: TLOnRotateHandler<Shape>
-
-	/**
-	 * A callback called when a shape finishes rotating.
-	 *
-	 * @param initial - The shape at the start of the rotation.
-	 * @param current - The current shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onRotateEnd?: TLOnRotateEndHandler<Shape>
-
-	/**
 	 * Not currently used.
 	 *
 	 * @internal
@@ -495,12 +466,6 @@ export type TLOnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T
 export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>
 /** @public */
 export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
-/** @public */
-export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>
-/** @public */
-export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>
-/** @public */
-export type TLOnRotateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
 
 /**
  * The type of resize.

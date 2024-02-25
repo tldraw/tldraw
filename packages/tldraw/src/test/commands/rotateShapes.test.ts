@@ -1,4 +1,5 @@
 import { createShapeId } from '@tldraw/editor'
+import { Rotating } from '../../lib/tools/SelectTool/childStates/Rotating'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -42,17 +43,16 @@ beforeEach(() => {
 describe('editor.rotateShapes', () => {
 	it('Rotates shapes and fires events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = editor.getShapeUtil('geo')
 
 		// Bad! who did this (did I do this)
 		const fnStart = jest.fn()
-		util.onRotateStart = fnStart
-
 		const fnChange = jest.fn()
-		util.onRotate = fnChange
-
 		const fnEnd = jest.fn()
-		util.onRotateEnd = fnEnd
+
+		const rotating = editor.getStateDescendant<Rotating>('select.rotating')
+		rotating?.onRotateStart.addHandler('frame', fnStart)
+		rotating?.onRotate.addHandler('frame', fnChange)
+		rotating?.onRotateEnd.addHandler('frame', fnEnd)
 
 		// Select the shape...
 		editor.select(ids.box1, ids.box2)
