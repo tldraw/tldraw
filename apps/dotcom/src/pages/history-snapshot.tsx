@@ -1,6 +1,7 @@
 import { RoomSnapshot } from '@tldraw/tlsync'
 import '../../styles/globals.css'
 import { BoardHistorySnapshot } from '../components/BoardHistorySnapshot/BoardHistorySnapshot'
+import { IFrameProtector } from '../components/IFrameProtector'
 import { defineLoader } from '../utils/defineLoader'
 
 const { loader, useData } = defineLoader(async (args) => {
@@ -25,5 +26,9 @@ export function Component() {
 	if (!result || !result.timestamp) return <div>Not found</div>
 
 	const { data, roomId, timestamp } = result
-	return <BoardHistorySnapshot data={data} roomId={roomId} timestamp={timestamp} />
+	return (
+		<IFrameProtector slug={roomId} context="history-snapshot">
+			<BoardHistorySnapshot data={data} roomId={roomId} timestamp={timestamp} />
+		</IFrameProtector>
+	)
 }
