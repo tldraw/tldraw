@@ -38,8 +38,39 @@ export class Rotating extends StateNode {
 		if (!snapshot) return this.parent.transition('idle', this.info)
 		this.snapshot = snapshot
 
-		// Trigger a pointer move
-		this.handleStart()
+		const newSelectionRotation = this._getRotationFromPointerPosition({
+			snapToNearestDegree: false,
+		})
+
+		const partials = applyRotationToSnapshotShapes({
+			editor: this.editor,
+			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
+			snapshot: this.snapshot,
+		})
+
+		this.editor.updateShapes(partials)
+
+		this.editor.updateShapes(
+			partials.map((partial) => {
+				const shape = this.editor.getShape(partial.id)!
+				const handler = this.onRotateStart.getHandler(shape.id)
+				if (handler) {
+					const memo = this.memos.get(shape.id)
+					const change = handler(shape, {}, memo)
+					if (change) {
+						return change
+					}
+				}
+			})
+		)
+
+		// Update cursor
+		this.editor.updateInstanceState({
+			cursor: {
+				type: CursorTypeMap[this.info.handle as RotateCorner],
+				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			},
+		})
 	}
 
 	override onExit = () => {
@@ -75,17 +106,34 @@ export class Rotating extends StateNode {
 
 	// ---
 
+	memos = new Map<string, any>()
+
 	private update = () => {
 		const newSelectionRotation = this._getRotationFromPointerPosition({
 			snapToNearestDegree: false,
 		})
 
-		applyRotationToSnapshotShapes({
+		const partials = applyRotationToSnapshotShapes({
 			editor: this.editor,
 			delta: newSelectionRotation,
 			snapshot: this.snapshot,
-			stage: 'update',
 		})
+
+		this.editor.updateShapes(partials)
+
+		this.editor.updateShapes(
+			partials.map((partial) => {
+				const shape = this.editor.getShape(partial.id)!
+				const handler = this.onRotate.getHandler(shape.id)
+				if (handler) {
+					const memo = this.memos.get(shape.id)
+					const change = handler(shape, {}, memo)
+					if (change) {
+						return change
+					}
+				}
+			})
+		)
 
 		// Update cursor
 		this.editor.updateInstanceState({
@@ -106,38 +154,33 @@ export class Rotating extends StateNode {
 	}
 
 	private complete = () => {
-		applyRotationToSnapshotShapes({
+		const partials = applyRotationToSnapshotShapes({
 			editor: this.editor,
 			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: true }),
 			snapshot: this.snapshot,
-			stage: 'end',
 		})
+
+		this.editor.updateShapes(partials)
+
+		this.editor.updateShapes(
+			partials.map((partial) => {
+				const shape = this.editor.getShape(partial.id)!
+				const handler = this.onRotateEnd.getHandler(shape.id)
+				if (handler) {
+					const memo = this.memos.get(shape.id)
+					const change = handler(shape, {}, memo)
+					if (change) {
+						return change
+					}
+				}
+			})
+		)
+
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('idle', this.info)
 		}
-	}
-
-	protected handleStart() {
-		const newSelectionRotation = this._getRotationFromPointerPosition({
-			snapToNearestDegree: false,
-		})
-
-		applyRotationToSnapshotShapes({
-			editor: this.editor,
-			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
-			snapshot: this.snapshot,
-			stage: 'start',
-		})
-
-		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
-		})
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {

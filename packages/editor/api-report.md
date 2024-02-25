@@ -85,12 +85,11 @@ export const ANIMATION_MEDIUM_MS = 320;
 export const ANIMATION_SHORT_MS = 80;
 
 // @internal (undocumented)
-export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
+export function applyRotationToSnapshotShapes({ delta, editor, snapshot, }: {
     delta: number;
     snapshot: TLRotationSnapshot;
     editor: Editor;
-    stage: 'end' | 'one-off' | 'start' | 'update';
-}): void;
+}): TLShapePartial[];
 
 // @public
 export function approximately(a: number, b: number, precision?: number): boolean;

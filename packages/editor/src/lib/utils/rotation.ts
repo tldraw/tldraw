@@ -63,79 +63,36 @@ export function applyRotationToSnapshotShapes({
 	delta,
 	editor,
 	snapshot,
-	stage,
 }: {
 	delta: number
 	snapshot: TLRotationSnapshot
 	editor: Editor
-	stage: 'start' | 'update' | 'end' | 'one-off'
-}) {
+}): TLShapePartial[] {
 	const { selectionPageCenter, shapeSnapshots } = snapshot
 
-	editor.updateShapes(
-		shapeSnapshots.map(({ shape, initialPagePoint }) => {
-			// We need to both rotate each shape individually and rotate the shapes
-			// around the pivot point (the average center of all rotating shapes.)
+	return shapeSnapshots.map(({ shape, initialPagePoint }) => {
+		// We need to both rotate each shape individually and rotate the shapes
+		// around the pivot point (the average center of all rotating shapes.)
+		const parentTransform = isShapeId(shape.parentId)
+			? editor.getShapePageTransform(shape.parentId)!
+			: Mat.Identity()
 
-			const parentTransform = isShapeId(shape.parentId)
-				? editor.getShapePageTransform(shape.parentId)!
-				: Mat.Identity()
+		const newPagePoint = Vec.RotWith(initialPagePoint, selectionPageCenter, delta)
 
-			const newPagePoint = Vec.RotWith(initialPagePoint, selectionPageCenter, delta)
+		const newLocalPoint = Mat.applyToPoint(
+			// use the current parent transform in case it has moved/resized since the start
+			// (e.g. if rotating a shape at the edge of a group)
+			Mat.Inverse(parentTransform),
+			newPagePoint
+		)
+		const newRotation = canonicalizeRotation(shape.rotation + delta)
 
-			const newLocalPoint = Mat.applyToPoint(
-				// use the current parent transform in case it has moved/resized since the start
-				// (e.g. if rotating a shape at the edge of a group)
-				Mat.Inverse(parentTransform),
-				newPagePoint
-			)
-			const newRotation = canonicalizeRotation(shape.rotation + delta)
-
-			return {
-				id: shape.id,
-				type: shape.type,
-				x: newLocalPoint.x,
-				y: newLocalPoint.y,
-				rotation: newRotation,
-			}
-		})
-	)
-
-	// Handle change
-
-	const changes: TLShapePartial[] = []
-
-	shapeSnapshots.forEach(({ shape }) => {
-		const current = editor.getShape(shape.id)
-		if (!current) return
-		const memo = {}
-		const rotating = editor.getStateDescendant<any>('select.rotating')
-		if (rotating) {
-			if (stage === 'start' || stage === 'one-off') {
-				const handler = rotating.onRotateStart.getHandler(shape.type)
-				if (handler) {
-					const change = handler(shape, {}, memo)
-					if (change) changes.push(change)
-				}
-			}
-
-			const handler = rotating.onRotate.getHandler(shape.type)
-			if (handler) {
-				const change = handler(shape, {}, memo)
-				if (change) changes.push(change)
-			}
-
-			if (stage === 'end' || stage === 'one-off') {
-				const handler = rotating.onRotateEnd.getHandler(shape.type)
-				if (handler) {
-					const change = handler(shape, {}, memo)
-					if (change) changes.push(change)
-				}
-			}
+		return {
+			id: shape.id,
+			type: shape.type,
+			x: newLocalPoint.x,
+			y: newLocalPoint.y,
+			rotation: newRotation,
 		}
 	})
-
-	if (changes.length > 0) {
-		editor.updateShapes(changes)
-	}
 }
