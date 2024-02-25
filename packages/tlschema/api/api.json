@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.35.4",
+    "toolVersion": "7.41.0",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -975,17 +975,13 @@
           "name": "createAssetValidator"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tlschema!createPresenceStateDerivation:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tlschema!createPresenceStateDerivation:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "createPresenceStateDerivation: "
-            },
-            {
-              "kind": "Content",
-              "text": "($user: "
+              "text": "createPresenceStateDerivation: ($user: "
             },
             {
               "kind": "Reference",
@@ -994,7 +990,11 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    id: string;\n    color: string;\n    name: string;\n}>, instanceId?: "
+              "text": "<{\n    id: string;\n    color: string;\n    name: string;\n}>"
+            },
+            {
+              "kind": "Content",
+              "text": ", instanceId?: "
             },
             {
               "kind": "Reference",
@@ -1003,7 +1003,15 @@
             },
             {
               "kind": "Content",
-              "text": "['id']) => (store: "
+              "text": "['id']"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "(store: "
             },
             {
               "kind": "Reference",
@@ -1034,13 +1042,31 @@
             }
           ],
           "fileUrlPath": "packages/tlschema/src/createPresenceStateDerivation.ts",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 7,
+            "endIndex": 14
+          },
           "releaseTag": "Public",
-          "name": "createPresenceStateDerivation",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 12
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "$user",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "instanceId",
+              "parameterTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 6
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "createPresenceStateDerivation"
         },
         {
           "kind": "Function",
