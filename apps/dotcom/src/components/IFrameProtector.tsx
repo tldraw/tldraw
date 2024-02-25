@@ -56,9 +56,10 @@ export function IFrameProtector({
 	const url = useUrl()
 
 	useEffect(() => {
-		if (typeof window === 'undefined') return
+		if (typeof window === 'undefined') {
+			return
+		}
 
-		let resolved = false
 		let timeout: any | undefined
 
 		function handleMessageEvent(event: MessageEvent) {
@@ -71,22 +72,20 @@ export function IFrameProtector({
 			if (event.data === EXPECTED_RESPONSE) {
 				// todo: check the origin?
 				setEmbeddedState('iframe-ok')
-				resolved = true
+				clearTimeout(timeout)
 			}
 		}
 
 		window.addEventListener('message', handleMessageEvent, false)
 
 		if (embeddedState === 'iframe-unknown') {
-			if (!WHITELIST_CONTEXT.includes(context)) {
-				// We iframe embeddings on multiplayer or readonly
+			// We iframe embeddings on multiplayer or readonly
+			if (WHITELIST_CONTEXT.includes(context)) {
 				window.parent.postMessage(EXPECTED_QUESTION, '*') // todo: send to a specific origin?
 				timeout = setTimeout(() => {
-					if (!resolved) {
-						setEmbeddedState('iframe-not-allowed')
-						trackAnalyticsEvent('connect_to_room_in_iframe', { slug, context })
-					}
-				}, 3000)
+					setEmbeddedState('iframe-not-allowed')
+					trackAnalyticsEvent('connect_to_room_in_iframe', { slug, context })
+				}, 1000)
 			} else {
 				// We don't allow iframe embeddings on other routes
 				setEmbeddedState('iframe-not-allowed')
@@ -101,7 +100,7 @@ export function IFrameProtector({
 
 	if (embeddedState === 'iframe-unknown') {
 		// We're in an iframe, but we don't know if it's a tldraw iframe
-		return <LoadingScreen> </LoadingScreen>
+		return <LoadingScreen>Loading in an iframe...</LoadingScreen>
 	}
 
 	if (embeddedState === 'iframe-not-allowed') {

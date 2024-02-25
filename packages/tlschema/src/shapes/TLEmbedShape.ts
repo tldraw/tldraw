@@ -18,7 +18,7 @@ export const EMBED_DEFINITIONS = [
 	{
 		type: 'tldraw',
 		title: 'tldraw',
-		hostnames: ['beta.tldraw.com', 'tldraw.com', 'pr-2947-preview-deploy.tldraw.com'],
+		hostnames: ['beta.tldraw.com', 'tldraw.com'],
 		minWidth: 300,
 		minHeight: 300,
 		width: 720,
