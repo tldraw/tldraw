@@ -51,7 +51,7 @@ export function IFrameProtector({
 }) {
 	const [embeddedState, setEmbeddedState] = useState<
 		'iframe-unknown' | 'iframe-not-allowed' | 'not-iframe' | 'iframe-ok'
-	>(isInIframe() ? 'iframe-not-allowed' : 'not-iframe')
+	>(isInIframe() ? 'iframe-unknown' : 'not-iframe')
 
 	const url = useUrl()
 
@@ -66,7 +66,11 @@ export function IFrameProtector({
 			if (!event.source) return
 
 			if (event.data === EXPECTED_QUESTION) {
-				event.source.postMessage(EXPECTED_RESPONSE)
+				if (!isInIframe()) {
+					// If _we're_ in an iframe, then we don't want to show a nested
+					// iframe, even if we're on a whitelisted host / context
+					event.source.postMessage(EXPECTED_RESPONSE)
+				}
 			}
 
 			if (event.data === EXPECTED_RESPONSE) {
