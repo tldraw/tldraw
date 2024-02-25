@@ -9,7 +9,7 @@ const { loader, useData } = defineLoader(async (args) => {
 	const result = await fetch(`/api/snapshot/${roomId}`)
 	return result.ok
 		? ((await result.json()) as {
-				slug: string
+				roomId: string
 				schema: SerializedSchema
 				records: TLRecord[]
 			})
@@ -19,11 +19,12 @@ const { loader, useData } = defineLoader(async (args) => {
 export { loader }
 
 export function Component() {
-	const roomData = useData()
-	if (!roomData) throw Error('Room not found')
+	const result = useData()
+	if (!result) throw Error('Room not found')
+	const { roomId, records, schema } = result
 	return (
-		<IFrameProtector slug={roomData.slug} context="public-snapshot">
-			<SnapshotsEditor records={roomData.records} schema={roomData.schema} />
+		<IFrameProtector slug={roomId} context="public-snapshot">
+			<SnapshotsEditor records={records} schema={schema} />
 		</IFrameProtector>
 	)
 }
