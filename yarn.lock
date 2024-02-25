@@ -7465,7 +7465,7 @@ __metadata:
     rimraf: "npm:^4.4.0"
     svgo: "npm:^3.0.2"
     tsx: "npm:^4.0.0"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
     vercel: "npm:^28.16.15"
   languageName: unknown
   linkType: soft
@@ -24204,7 +24204,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.2.2":
+"typescript@npm:^5.2.2, typescript@npm:^5.3.3":
   version: 5.3.3
   resolution: "typescript@npm:5.3.3"
   bin:
@@ -24234,7 +24234,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.3#optional!builtin<compat/typescript>":
   version: 5.3.3
   resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
   bin:
