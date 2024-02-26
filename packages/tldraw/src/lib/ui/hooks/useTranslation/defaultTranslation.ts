@@ -111,6 +111,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.zoom-to-100': 'Zoom to 100%',
 	'action.zoom-to-fit': 'Zoom to fit',
 	'action.zoom-to-selection': 'Zoom to selection',
+	'assets.files.upload-failed': 'Upload failed',
+	'assets.url.failed': 'Extracting bookmark info failed',
 	'color-style.black': 'Black',
 	'color-style.blue': 'Blue',
 	'color-style.green': 'Green',
