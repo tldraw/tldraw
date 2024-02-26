@@ -121,7 +121,7 @@ export function TldrawUiDropdownMenuSubTrigger({
 	disabled,
 }: TLUiDropdownMenuSubTriggerProps) {
 	return (
-		<_DropdownMenu.SubTrigger dir="ltr" asChild>
+		<_DropdownMenu.SubTrigger dir="ltr" asChild disabled={disabled}>
 			<TldrawUiButton
 				data-testid={id}
 				type="menu"
