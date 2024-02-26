@@ -1,7 +1,6 @@
 import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { ArticleNavLinks } from './ArticleNavLinks'
-import { Breadcrumb } from './Breadcrumb'
 import ExampleCodeBlock from './ExampleCodeBlock'
 import { Header } from './Header'
 import { Mdx } from './Mdx'
@@ -24,7 +23,6 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 			<Sidebar {...sidebar} />
 			<main className={`main-content article article__example`}>
 				<div className="page-header">
-					<Breadcrumb section={section} category={category} />
 					<h1>{article.title}</h1>
 					{article.description && <p>{article.description}</p>}
 				</div>
