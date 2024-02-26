@@ -144,7 +144,6 @@ function GridWrapper() {
 	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const { Grid } = useEditorComponents()
 
-	console.log({ Grid, isGridMode })
 	if (!(Grid && isGridMode)) return null
 
 	return <Grid x={x} y={y} z={z} size={gridSize} />
