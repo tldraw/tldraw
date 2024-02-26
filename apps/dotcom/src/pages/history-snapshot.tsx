@@ -1,6 +1,8 @@
 import { RoomSnapshot } from '@tldraw/tlsync'
 import '../../styles/globals.css'
 import { BoardHistorySnapshot } from '../components/BoardHistorySnapshot/BoardHistorySnapshot'
+import { ErrorPage } from '../components/ErrorPage/ErrorPage'
+import { IFrameProtector } from '../components/IFrameProtector'
 import { defineLoader } from '../utils/defineLoader'
 
 const { loader, useData } = defineLoader(async (args) => {
@@ -22,8 +24,22 @@ export { loader }
 
 export function Component() {
 	const result = useData()
-	if (!result || !result.timestamp) return <div>Not found</div>
+	if (!result || !result.timestamp)
+		return (
+			<ErrorPage
+				icon
+				messages={{
+					header: 'Page not found',
+					para1: 'The page you are looking does not exist or has been moved.',
+				}}
+				redirectTo="/"
+			/>
+		)
 
 	const { data, roomId, timestamp } = result
-	return <BoardHistorySnapshot data={data} roomId={roomId} timestamp={timestamp} />
+	return (
+		<IFrameProtector slug={roomId} context="history-snapshot">
+			<BoardHistorySnapshot data={data} roomId={roomId} timestamp={timestamp} />
+		</IFrameProtector>
+	)
 }
