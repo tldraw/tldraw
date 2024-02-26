@@ -6,7 +6,7 @@ import '../styles/hljs.css'
 import '../styles/parameters-table.css'
 import { Providers } from './providers'
 
-const TITLE = 'tldraw.dev'
+const TITLE = 'tldraw SDK'
 const DESCRIPTION =
 	'Infinite canvas SDK from tldraw. Build whiteboards, design tools, and canvas experiences for the web.'
 const TWITTER_HANDLE = '@tldraw'

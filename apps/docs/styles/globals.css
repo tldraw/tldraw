@@ -790,9 +790,9 @@ body {
 .layout__headings {
 	position: sticky;
 	align-self: start;
-	top: calc(var(--header-height) + var(--header-padding));
+	top: var(--header-height);
 	margin-left: -12px;
-	padding: 0px 28px 120px 12px;
+	padding: var(--header-padding) 28px 120px 12px;
 	max-height: calc(100vh);
 	width: 290px;
 	z-index: 800;
@@ -824,9 +824,9 @@ body {
 .sidebar {
 	position: sticky;
 	align-self: start;
-	top: calc(var(--header-height) + var(--header-padding));
+	top: var(--header-height);
 	margin-left: -12px;
-	padding: 0px 12px 120px 28px;
+	padding: var(--header-padding) 12px 120px 28px;
 	width: calc(100% + 24px);
 	max-height: calc(100vh);
 	z-index: 800;
