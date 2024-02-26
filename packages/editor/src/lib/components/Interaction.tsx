@@ -11,6 +11,7 @@ interface HandleControlProps {
 	onPointerDown: (event: PointerEvent) => void
 }
 
+/** @internal */
 export const HandleControl = track(function HandleControl({
 	position,
 	onPointerDown,

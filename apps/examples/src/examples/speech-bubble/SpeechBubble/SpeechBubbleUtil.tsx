@@ -9,7 +9,6 @@ import {
 	TLDefaultColorStyle,
 	TLDefaultSizeStyle,
 	TLOnBeforeUpdateHandler,
-	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
 	VecModel,
@@ -83,24 +82,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return body
 	}
 
-	// override getHandles(shape: SpeechBubbleShape) {
-	// 	const {
-	// 		handles: { handle },
-	// 		w,
-	// 		h,
-	// 	} = shape.props
-
-	// 	return [
-	// 		{
-	// 			...handle,
-	// 			// props.handles.handle coordinates are normalized
-	// 			// but here we need them in shape space
-	// 			x: handle.x * w,
-	// 			y: handle.y * h,
-	// 		},
-	// 	]
-	// }
-
 	// [4]
 	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (
 		_: SpeechBubbleShape,
@@ -135,13 +116,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const next = deepCopy(shape)
 		next.props.tail.x = newPoint.x / w
 		next.props.tail.y = newPoint.y / h
-
-		return next
-	}
-
-	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (_, { handle, initial }) => {
-		const next = deepCopy(initial!)
-		next.props.tail = { x: handle.x / initial!.props.w, y: handle.y / initial!.props.h }
 
 		return next
 	}
