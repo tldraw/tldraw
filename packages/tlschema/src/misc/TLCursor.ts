@@ -9,6 +9,7 @@ export const TL_CURSOR_TYPES = new Set([
 	'none',
 	'default',
 	'pointer',
+	'copy',
 	'cross',
 	'grab',
 	'rotate',

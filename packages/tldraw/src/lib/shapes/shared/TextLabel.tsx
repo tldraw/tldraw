@@ -29,6 +29,7 @@ export const TextLabel = React.memo(function TextLabel<
 	verticalAlign,
 	wrap,
 	bounds,
+	onKeyDown: handleKeyDownCustom,
 }: {
 	id: T['id']
 	type: T['type']
@@ -41,6 +42,7 @@ export const TextLabel = React.memo(function TextLabel<
 	text: string
 	labelColor: TLDefaultColorStyle
 	bounds?: Box
+	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 }) {
 	const {
 		rInput,
@@ -118,7 +120,7 @@ export const TextLabel = React.memo(function TextLabel<
 						defaultValue={text}
 						onFocus={handleFocus}
 						onChange={handleChange}
-						onKeyDown={handleKeyDown}
+						onKeyDown={handleKeyDownCustom ?? handleKeyDown}
 						onBlur={handleBlur}
 						onContextMenu={stopEventPropagation}
 						onPointerDown={handleInputPointerDown}

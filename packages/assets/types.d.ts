@@ -156,6 +156,7 @@ export type AssetUrls = {
 		'tool-laser': string
 		'tool-line': string
 		'tool-media': string
+		'tool-note-new': string
 		'tool-note': string
 		'tool-pencil': string
 		'tool-pointer': string

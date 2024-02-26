@@ -12,6 +12,8 @@ import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export const noteShapeProps = {
+	w: T.optional(T.nonZeroNumber),
+	h: T.optional(T.nonZeroNumber),
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,

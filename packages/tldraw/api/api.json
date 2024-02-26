@@ -11370,7 +11370,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            w: number | undefined;\n            h: number | undefined;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -11454,7 +11454,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            w: number | undefined;\n            h: number | undefined;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -11564,7 +11564,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        color: import(\"@tldraw/editor\")."
+                  "text": "{\n        w: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number | undefined>;\n        h: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number | undefined>;\n        color: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -11649,7 +11667,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 18
+                "endIndex": 22
               },
               "isStatic": true,
               "isProtected": false,
@@ -20385,7 +20403,7 @@
             },
             {
               "kind": "Content",
-              "text": "'align-bottom-center' | 'align-bottom-left' | 'align-bottom-right' | 'align-bottom' | 'align-center-center' | 'align-center-horizontal' | 'align-center-left' | 'align-center-right' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top-center' | 'align-top-left' | 'align-top-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'aspect-ratio' | 'avatar' | 'blob' | 'bring-forward' | 'bring-to-front' | 'check' | 'checkbox-checked' | 'checkbox-empty' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'collab' | 'color' | 'comment' | 'cross-2' | 'cross' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'file' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'hidden' | 'image' | 'info-circle' | 'leading' | 'link' | 'lock-small' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'page' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'ruler' | 'search' | 'send-backward' | 'send-to-back' | 'settings-horizontal' | 'settings-vertical-1' | 'settings-vertical' | 'share-1' | 'share-2' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'status-online' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-justify' | 'text-align-left' | 'text-align-right' | 'tool-arrow' | 'tool-embed' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-text' | 'trash' | 'triangle-down' | 'triangle-up' | 'twitter' | 'undo' | 'ungroup' | 'unlock-small' | 'unlock' | 'vertical-align-center' | 'vertical-align-end' | 'vertical-align-start' | 'visible' | 'warning-triangle' | 'zoom-in' | 'zoom-out'"
+              "text": "'align-bottom-center' | 'align-bottom-left' | 'align-bottom-right' | 'align-bottom' | 'align-center-center' | 'align-center-horizontal' | 'align-center-left' | 'align-center-right' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top-center' | 'align-top-left' | 'align-top-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'aspect-ratio' | 'avatar' | 'blob' | 'bring-forward' | 'bring-to-front' | 'check' | 'checkbox-checked' | 'checkbox-empty' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'collab' | 'color' | 'comment' | 'cross-2' | 'cross' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'file' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'hidden' | 'image' | 'info-circle' | 'leading' | 'link' | 'lock-small' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'page' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'ruler' | 'search' | 'send-backward' | 'send-to-back' | 'settings-horizontal' | 'settings-vertical-1' | 'settings-vertical' | 'share-1' | 'share-2' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'status-online' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-justify' | 'text-align-left' | 'text-align-right' | 'tool-arrow' | 'tool-embed' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note-new' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-text' | 'trash' | 'triangle-down' | 'triangle-up' | 'twitter' | 'undo' | 'ungroup' | 'unlock-small' | 'unlock' | 'vertical-align-center' | 'vertical-align-end' | 'vertical-align-start' | 'visible' | 'warning-triangle' | 'zoom-in' | 'zoom-out'"
             },
             {
               "kind": "Content",

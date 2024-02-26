@@ -166,6 +166,7 @@ export function getAssetUrls(opts) {
 			'tool-laser': formatAssetUrl('./icons/icon/tool-laser.svg', opts),
 			'tool-line': formatAssetUrl('./icons/icon/tool-line.svg', opts),
 			'tool-media': formatAssetUrl('./icons/icon/tool-media.svg', opts),
+			'tool-note-new': formatAssetUrl('./icons/icon/tool-note-new.svg', opts),
 			'tool-note': formatAssetUrl('./icons/icon/tool-note.svg', opts),
 			'tool-pencil': formatAssetUrl('./icons/icon/tool-pencil.svg', opts),
 			'tool-pointer': formatAssetUrl('./icons/icon/tool-pointer.svg', opts),

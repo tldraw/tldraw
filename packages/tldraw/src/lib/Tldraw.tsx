@@ -11,6 +11,7 @@ import {
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	assert,
+	featureFlags,
 	useEditor,
 	useEditorComponents,
 	useShallowArrayIdentity,
@@ -30,6 +31,8 @@ import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
+import { NoteShapeTool } from './shapes/sticky/NoteShapeTool'
+import { NoteShapeUtil } from './shapes/sticky/NoteShapeUtil'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
@@ -93,15 +96,27 @@ export function Tldraw(props: TldrawProps) {
 	)
 
 	const _shapeUtils = useShallowArrayIdentity(shapeUtils)
+	const isStickyExperiment = featureFlags.newStickies.get()
 	const shapeUtilsWithDefaults = useMemo(
-		() => [...defaultShapeUtils, ..._shapeUtils],
-		[_shapeUtils]
+		() => [
+			...defaultShapeUtils.map((util) =>
+				isStickyExperiment && util.type === 'note' ? NoteShapeUtil : util
+			),
+			..._shapeUtils,
+		],
+		[_shapeUtils, isStickyExperiment]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
-		() => [...defaultTools, ...defaultShapeTools, ..._tools],
-		[_tools]
+		() => [
+			...defaultTools,
+			...defaultShapeTools.map((tool) =>
+				isStickyExperiment && tool.id === 'note' ? NoteShapeTool : tool
+			),
+			..._tools,
+		],
+		[_tools, isStickyExperiment]
 	)
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)

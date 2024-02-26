@@ -1,4 +1,4 @@
-import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
+import { Editor, GeoShapeGeoStyle, featureFlags, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { useDialogs } from '../context/dialogs'
@@ -169,7 +169,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'note',
 				label: 'tool.note',
-				icon: 'tool-note',
+				icon: featureFlags.newStickies.get() ? 'tool-note-new' : 'tool-note',
 				kbd: 'n',
 				onSelect(source) {
 					editor.setCurrentTool('note')

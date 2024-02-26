@@ -696,6 +696,8 @@ export const noteShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const noteShapeProps: {
+    w: T.Validator<number | undefined>;
+    h: T.Validator<number | undefined>;
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;

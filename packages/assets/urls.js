@@ -502,6 +502,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/tool-media.svg', import.meta.url).href,
 				opts
 			),
+			'tool-note-new': formatAssetUrl(
+				new URL('./icons/icon/tool-note-new.svg', import.meta.url).href,
+				opts
+			),
 			'tool-note': formatAssetUrl(
 				new URL('./icons/icon/tool-note.svg', import.meta.url).href,
 				opts

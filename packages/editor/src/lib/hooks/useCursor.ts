@@ -36,6 +36,7 @@ function getCursorCss(
 const STATIC_CURSORS = [
 	'default',
 	'pointer',
+	'copy',
 	'cross',
 	'move',
 	'grab',

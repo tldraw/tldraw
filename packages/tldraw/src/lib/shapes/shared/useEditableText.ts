@@ -3,6 +3,7 @@
 import {
 	TLShape,
 	TLUnknownShape,
+	featureFlags,
 	getPointerInfo,
 	preventDefault,
 	stopEventPropagation,
@@ -39,20 +40,22 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		const skipSelect = rSkipSelectOnFocus.current
 		rSkipSelectOnFocus.current = false
 
-		// On the next frame, if we're not skipping select AND we have text in the element, then focus the text
-		requestAnimationFrame(() => {
-			const elm = rInput.current
-			if (!elm) return
+		if (!featureFlags.newStickies.get()) {
+			// On the next frame, if we're not skipping select AND we have text in the element, then focus the text
+			requestAnimationFrame(() => {
+				const elm = rInput.current
+				if (!elm) return
 
-			const shape = editor.getShape<TLShape & { props: { text: string } }>(id)
+				const shape = editor.getShape<TLShape & { props: { text: string } }>(id)
 
-			if (shape) {
-				elm.value = shape.props.text
-				if (elm.value.length && !skipSelect) {
-					elm.select()
+				if (shape) {
+					elm.value = shape.props.text
+					if (elm.value.length && !skipSelect) {
+						elm.select()
+					}
 				}
-			}
-		})
+			})
+		}
 	}, [editor, id])
 
 	// When the label blurs, deselect all of the text and complete.

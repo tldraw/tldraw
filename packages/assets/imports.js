@@ -171,6 +171,7 @@ import iconsToolHighlight from './icons/icon/tool-highlight.svg'
 import iconsToolLaser from './icons/icon/tool-laser.svg'
 import iconsToolLine from './icons/icon/tool-line.svg'
 import iconsToolMedia from './icons/icon/tool-media.svg'
+import iconsToolNoteNew from './icons/icon/tool-note-new.svg'
 import iconsToolNote from './icons/icon/tool-note.svg'
 import iconsToolPencil from './icons/icon/tool-pencil.svg'
 import iconsToolPointer from './icons/icon/tool-pointer.svg'
@@ -387,6 +388,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-laser': formatAssetUrl(iconsToolLaser, opts),
 			'tool-line': formatAssetUrl(iconsToolLine, opts),
 			'tool-media': formatAssetUrl(iconsToolMedia, opts),
+			'tool-note-new': formatAssetUrl(iconsToolNoteNew, opts),
 			'tool-note': formatAssetUrl(iconsToolNote, opts),
 			'tool-pencil': formatAssetUrl(iconsToolPencil, opts),
 			'tool-pointer': formatAssetUrl(iconsToolPointer, opts),

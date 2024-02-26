@@ -2856,7 +2856,25 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    color: import(\"..\")."
+              "text": "{\n    w: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number | undefined>;\n    h: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number | undefined>;\n    color: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2937,7 +2955,7 @@
           "name": "noteShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 18
+            "endIndex": 22
           }
         },
         {
