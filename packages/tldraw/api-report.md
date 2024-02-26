@@ -1034,6 +1034,9 @@ export function parseTldrawJsonFile({ json, schema, }: {
 // @public (undocumented)
 export function PreferencesGroup(): JSX_2.Element;
 
+// @public (undocumented)
+export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
+
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 
@@ -1187,7 +1190,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-export type TLComponents = TLEditorComponents & TLUiComponents;
+export type TLComponents = Expand<TLEditorComponents & TLUiComponents>;
 
 // @public (undocumented)
 export function Tldraw(props: TldrawProps): JSX_2.Element;
@@ -1234,7 +1237,7 @@ export type TldrawImageProps = Expand<{
 } & Partial<TLSvgOptions>>;
 
 // @public (undocumented)
-export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
+export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
     components?: TLComponents;
 }) & Partial<TLExternalContentProps> & ({
     store: TLStore | TLStoreWithStatus;
@@ -1244,7 +1247,7 @@ export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditor
     sessionId?: string;
     defaultName?: string;
     snapshot?: StoreSnapshot<TLRecord>;
-});
+})>;
 
 // @public (undocumented)
 export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
@@ -1347,7 +1350,7 @@ export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 export const TldrawUiInput: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
-export function TldrawUiKbd({ children }: TLUiKbdProps): JSX_2.Element | null;
+export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
@@ -1830,6 +1833,8 @@ export interface TLUiInputProps {
 export interface TLUiKbdProps {
     // (undocumented)
     children: string;
+    // (undocumented)
+    visibleOnMobileLayout?: boolean;
 }
 
 // @public (undocumented)
@@ -1943,7 +1948,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
-    onValueChange: (value: number, emphemeral: boolean) => void;
+    onValueChange: (value: number, squashing: boolean) => void;
     // (undocumented)
     steps: number;
     // (undocumented)
@@ -2085,6 +2090,12 @@ export function useAssetUrls(): TLUiAssetUrls;
 
 // @public (undocumented)
 export function useBreakpoint(): number;
+
+// @public (undocumented)
+export function useCanRedo(): boolean;
+
+// @public (undocumented)
+export function useCanUndo(): boolean;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;

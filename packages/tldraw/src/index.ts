@@ -1,5 +1,9 @@
 /// <reference types="react" />
 
+export { preloadFont } from './lib/utils/assets/preload-font'
+
+export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
+
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TldrawProps } from './lib/Tldraw'

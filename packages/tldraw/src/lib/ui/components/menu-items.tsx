@@ -87,7 +87,10 @@ export function FitFrameToContentMenuItem() {
 		() => {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
-			return editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
+			return (
+				editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame') &&
+				editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
+			)
 		},
 		[editor]
 	)
