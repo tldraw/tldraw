@@ -1,6 +1,7 @@
 import { test as base } from '@playwright/test'
 import { ActionsMenu } from './menus/ActionsMenu'
 import { HelpMenu } from './menus/HelpMenu'
+import { MainMenu } from './menus/MainMenu'
 import { StylePanel } from './menus/StylePanel'
 import { Toolbar } from './menus/Toolbar'
 
@@ -9,6 +10,7 @@ type Fixtures = {
 	stylePanel: StylePanel
 	actionsMenu: ActionsMenu
 	helpMenu: HelpMenu
+	mainMenu: MainMenu
 }
 
 const test = base.extend<Fixtures>({
@@ -27,6 +29,10 @@ const test = base.extend<Fixtures>({
 	helpMenu: async ({ page }, use) => {
 		const helpMenu = new HelpMenu(page)
 		await use(helpMenu)
+	},
+	mainMenu: async ({ page }, use) => {
+		const mainMenu = new MainMenu(page)
+		await use(mainMenu)
 	},
 })
 

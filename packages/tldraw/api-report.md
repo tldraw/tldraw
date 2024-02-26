@@ -412,8 +412,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
-        points: VecModel[];
         type: "free" | "straight";
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isClosed: Validator<boolean>;
@@ -760,8 +760,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
-        points: VecModel[];
         type: "free" | "straight";
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
@@ -891,9 +891,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
         id: string;
-        index: IndexKey;
         x: number;
         y: number;
+        index: IndexKey;
         }>;
     };
     // (undocumented)
@@ -1742,7 +1742,7 @@ export interface TLUiEventMap {
 }
 
 // @public (undocumented)
-export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'document-name' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'zoom-menu';
+export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'document-name' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'main-menu' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'style-panel' | 'toolbar' | 'unknown' | 'zoom-menu';
 
 // @public (undocumented)
 export type TLUiHelperButtonsProps = {
