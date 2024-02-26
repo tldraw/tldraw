@@ -19,6 +19,8 @@
 	--color-tint-5: rgb(144, 144, 144);
 	--color-tint-6: rgb(81, 81, 81);
 
+	--color-blockquote: rgb(242, 247, 255);
+
 	/* Light theme */
 	--color-text: #1d1d1d;
 	--color-text-secondary: #666;
@@ -70,6 +72,8 @@
 	--color-tint-4: rgba(144, 144, 144, 0.6);
 	--color-tint-5: rgb(144, 144, 144);
 	--color-tint-6: rgb(186, 186, 186);
+
+	--color-blockquote: rgb(34, 47, 55);
 
 	/* Code colors */
 	--hl: #c8c5f1;
@@ -475,10 +479,10 @@ body {
 
 .article > blockquote {
 	max-width: 100%;
-	margin: 20px 0px;
+	margin: 32px 0px;
 	padding: 16px;
 	border-radius: var(--border-radius-menu);
-	background-color: var(--color-tint-0);
+	background-color: var(--color-blockquote);
 }
 
 .article pre {
@@ -630,6 +634,7 @@ body {
 .article__embed--quickstart {
 	aspect-ratio: 16 / 9;
 	min-height: 405px;
+	margin: 32px 0px;
 }
 
 @media screen and (max-width: 520px) {
