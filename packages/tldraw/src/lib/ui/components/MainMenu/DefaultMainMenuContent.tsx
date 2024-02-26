@@ -5,8 +5,6 @@ import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
-	DeleteGroup,
-	DuplicateMenuItem,
 	EditLinkMenuItem,
 	EmbedsGroup,
 	FitFrameToContentMenuItem,
@@ -23,6 +21,7 @@ import {
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
+	ToggleTransparentBgMenuItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
 	ZoomTo100MenuItem,
@@ -38,6 +37,7 @@ export function DefaultMainMenuContent() {
 	return (
 		<>
 			<EditSubmenu />
+			<ObjectSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
@@ -45,7 +45,26 @@ export function DefaultMainMenuContent() {
 	)
 }
 
-function EditSubmenu() {
+/** @public */
+export function ExportFileContentSubMenu() {
+	const actions = useActions()
+
+	return (
+		<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
+			<TldrawUiMenuGroup id="export-as-group">
+				<TldrawUiMenuItem {...actions['export-as-svg']} />
+				<TldrawUiMenuItem {...actions['export-as-png']} />
+				<TldrawUiMenuItem {...actions['export-as-json']} />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="export-as-bg">
+				<ToggleTransparentBgMenuItem />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/** @public */
+export function EditSubmenu() {
 	const editor = useEditor()
 
 	const selectToolActive = useValue(
@@ -54,38 +73,70 @@ function EditSubmenu() {
 		[editor]
 	)
 
-	if (!selectToolActive) return null
-
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="menu.edit">
+		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
-			<ConversionsMenuGroup />
 			<SetSelectionGroup />
-			<SelectionMenuGroup />
-			<EmbedsGroup />
-			<DeleteGroup />
 		</TldrawUiMenuSubmenu>
 	)
 }
 
-function SelectionMenuGroup() {
+/** @public */
+export function ObjectSubmenu() {
+	const editor = useEditor()
+
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
 	return (
-		<TldrawUiMenuGroup id="selection">
+		<TldrawUiMenuSubmenu id="object" label="menu.object" disabled={!selectToolActive}>
+			<ConversionsMenuGroup />
+			<MultiShapeMenuGroup />
+			<MiscMenuGroup />
+			<EmbedsGroup />
+			<LockGroup />
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/** @public */
+export function MiscMenuGroup() {
+	return (
+		<TldrawUiMenuGroup id="misc">
 			<ToggleAutoSizeMenuItem />
 			<EditLinkMenuItem />
-			<DuplicateMenuItem />
-			<GroupMenuItem />
-			<UngroupMenuItem />
-			<RemoveFrameMenuItem />
-			<FitFrameToContentMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function LockGroup() {
+	return (
+		<TldrawUiMenuGroup id="lock">
 			<ToggleLockMenuItem />
 			<UnlockAllMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
 
-function UndoRedoGroup() {
+/** @public */
+export function MultiShapeMenuGroup() {
+	return (
+		<TldrawUiMenuGroup id="multi-shape">
+			<GroupMenuItem />
+			<UngroupMenuItem />
+			<RemoveFrameMenuItem />
+			<FitFrameToContentMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function UndoRedoGroup() {
 	const actions = useActions()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
@@ -97,7 +148,8 @@ function UndoRedoGroup() {
 	)
 }
 
-function ViewSubmenu() {
+/** @public */
+export function ViewSubmenu() {
 	const actions = useActions()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
@@ -112,7 +164,8 @@ function ViewSubmenu() {
 	)
 }
 
-function ExtrasGroup() {
+/** @public */
+export function ExtrasGroup() {
 	const actions = useActions()
 	return (
 		<TldrawUiMenuGroup id="extras">
@@ -124,7 +177,8 @@ function ExtrasGroup() {
 
 /* ------------------- Preferences ------------------ */
 
-function PreferencesGroup() {
+/** @public */
+export function PreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
