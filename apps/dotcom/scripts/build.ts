@@ -11,7 +11,7 @@ import { T } from '@tldraw/validate'
 
 function loadSpaRoutes() {
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const routesJson = require('../src/__snapshots__/routes.test.ts.snap')['the_routes 1']
+	const routesJson = require('../src/__snapshots__/routes.test.tsx.snap')['the_routes 1']
 	const routes = T.arrayOf(
 		T.object({
 			reactRouterPattern: T.string,

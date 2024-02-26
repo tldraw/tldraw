@@ -139,7 +139,9 @@ test('convertReactToVercel', () => {
 })
 
 function extract(...routes: ReactElement[]) {
-	return createRoutesFromElements(<Route>{routes}</Route>)
+	return createRoutesFromElements(
+		<Route>{routes.map((r, i) => ({ ...r, key: i.toString() }))}</Route>
+	)
 		.flatMap(extractContentPaths)
 		.sort()
 }
