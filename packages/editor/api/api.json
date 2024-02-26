@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.35.4",
+    "toolVersion": "7.41.0",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -6087,17 +6087,13 @@
           "name": "DefaultBackground"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultBrush:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultBrush:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultBrush: "
-            },
-            {
-              "kind": "Content",
-              "text": "({ brush, color, opacity, className }: "
+              "text": "DefaultBrush: ({ brush, color, opacity, className }: "
             },
             {
               "kind": "Reference",
@@ -6106,7 +6102,11 @@
             },
             {
               "kind": "Content",
-              "text": ") => import(\"react/jsx-runtime\")."
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
             },
             {
               "kind": "Reference",
@@ -6115,13 +6115,23 @@
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultBrush.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "DefaultBrush",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
             "endIndex": 5
-          }
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ brush, color, opacity, className }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultBrush"
         },
         {
           "kind": "Function",
@@ -6393,17 +6403,13 @@
           "name": "DefaultHandle"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultHandles:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultHandles:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultHandles: "
-            },
-            {
-              "kind": "Content",
-              "text": "({ children }: "
+              "text": "DefaultHandles: ({ children }: "
             },
             {
               "kind": "Reference",
@@ -6412,7 +6418,11 @@
             },
             {
               "kind": "Content",
-              "text": ") => import(\"react/jsx-runtime\")."
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
             },
             {
               "kind": "Reference",
@@ -6421,13 +6431,23 @@
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultHandles.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "DefaultHandles",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
             "endIndex": 5
-          }
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ children }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "DefaultHandles"
         },
         {
           "kind": "Function",
@@ -6767,27 +6787,28 @@
           "name": "DefaultSpinner"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultSvgDefs:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!DefaultSvgDefs:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "DefaultSvgDefs: "
+              "text": "DefaultSvgDefs: () => "
             },
             {
               "kind": "Content",
-              "text": "() => null"
+              "text": "null"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultSvgDefs.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "DefaultSvgDefs",
-          "variableTypeTokenRange": {
+          "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
-          }
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DefaultSvgDefs"
         },
         {
           "kind": "Variable",
@@ -24446,27 +24467,45 @@
           "name": "intersectPolygonPolygon"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!isSafeFloat:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!isSafeFloat:function(1)",
           "docComment": "/**\n * Check if a float is safe to use. ie: Not too big or small.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "isSafeFloat: "
+              "text": "isSafeFloat: (n: "
             },
             {
               "kind": "Content",
-              "text": "(n: number) => boolean"
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
           "releaseTag": "Public",
-          "name": "isSafeFloat",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "n",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "isSafeFloat"
         },
         {
           "kind": "Function",
@@ -32157,27 +32196,45 @@
           "name": "shortAngleDist"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!SIN:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!SIN:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "SIN: "
+              "text": "SIN: (x: "
             },
             {
               "kind": "Content",
-              "text": "(x: number) => number"
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/primitives/utils.ts",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
           "releaseTag": "Public",
-          "name": "SIN",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "x",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "SIN"
         },
         {
           "kind": "Function",
@@ -34246,27 +34303,45 @@
           ]
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!stopEventPropagation:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!stopEventPropagation:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "stopEventPropagation: "
+              "text": "stopEventPropagation: (e: "
             },
             {
               "kind": "Content",
-              "text": "(e: any) => any"
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/utils/dom.ts",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
           "releaseTag": "Public",
-          "name": "stopEventPropagation",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "e",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "stopEventPropagation"
         },
         {
           "kind": "Function",
@@ -36450,6 +36525,15 @@
             },
             {
               "kind": "Reference",
+              "text": "Expand",
+              "canonicalReference": "@tldraw/utils!Expand:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TldrawEditorBaseProps",
               "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps:interface"
             },
@@ -36509,7 +36593,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    persistenceKey?: string;\n    sessionId?: string;\n    defaultName?: string;\n})"
+              "text": ">;\n    persistenceKey?: string;\n    sessionId?: string;\n    defaultName?: string;\n})>"
             },
             {
               "kind": "Content",
@@ -36521,7 +36605,7 @@
           "name": "TldrawEditorProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 15
+            "endIndex": 17
           }
         },
         {

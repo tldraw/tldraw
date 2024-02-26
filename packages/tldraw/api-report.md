@@ -1169,7 +1169,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-export type TLComponents = TLEditorComponents & TLUiComponents;
+export type TLComponents = Expand<TLEditorComponents & TLUiComponents>;
 
 // @public (undocumented)
 export function Tldraw(props: TldrawProps): JSX_2.Element;
@@ -1216,7 +1216,7 @@ export type TldrawImageProps = Expand<{
 } & Partial<TLSvgOptions>>;
 
 // @public (undocumented)
-export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
+export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
     components?: TLComponents;
 }) & Partial<TLExternalContentProps> & ({
     store: TLStore | TLStoreWithStatus;
@@ -1226,7 +1226,7 @@ export type TldrawProps = (Omit<TldrawUiProps, 'components'> & Omit<TldrawEditor
     sessionId?: string;
     defaultName?: string;
     snapshot?: StoreSnapshot<TLRecord>;
-});
+})>;
 
 // @public (undocumented)
 export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;

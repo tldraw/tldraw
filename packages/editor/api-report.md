@@ -15,6 +15,7 @@ import { computed } from '@tldraw/state';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
+import { Expand } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -2032,7 +2033,7 @@ export interface TldrawEditorBaseProps {
 }
 
 // @public
-export type TldrawEditorProps = TldrawEditorBaseProps & ({
+export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
@@ -2041,7 +2042,7 @@ export type TldrawEditorProps = TldrawEditorBaseProps & ({
     persistenceKey?: string;
     sessionId?: string;
     defaultName?: string;
-});
+})>;
 
 // @public (undocumented)
 export type TLEditorComponents = Partial<{
