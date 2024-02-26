@@ -18,7 +18,6 @@ async function main() {
 		owner: 'tldraw',
 		repo: 'tldraw',
 		verbose: true,
-		disableTsNode: true,
 	})
 
 	// module was called directly
