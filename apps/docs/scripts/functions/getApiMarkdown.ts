@@ -217,7 +217,7 @@ async function addDocComment(result: Result, member: ApiItem) {
 
 		if (exampleBlocks.length) {
 			result.markdown += `\n\n`
-			result.markdown += `##### Example\n\n`
+			result.markdown += `<ApiHeading>Example</ApiHeading>\n\n`
 			for (const example of exampleBlocks) {
 				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, example.content)
 			}
