@@ -40,8 +40,8 @@ function extractContentPaths(routeObject: RouteObject): string[] {
 		path &&
 		(routeObject.element || routeObject.Component || routeObject.lazy || routeObject.loader)
 	) {
-		// this is a contentful route so it gets included on it's own
-		// technically not every route with a .lazy or a .loader has content, but we don't have a way to check that
+		// This is a contentful route so it gets included on its own.
+		// Technically not every route with a .lazy or a .loader has content, but we don't have a way to check that
 		// and it's not a huge deal if they don't 404 correctly.
 		paths.push(path)
 	}
@@ -89,10 +89,10 @@ const spaRoutes = router
 	.filter((path) => path !== '/*' && path !== '*')
 	.map((path) => ({
 		reactRouterPattern: path,
-		vercelRoutingPattern: convertReactToVercel(path),
+		vercelRouterPattern: convertReactToVercel(path),
 	}))
 
-const allVercelRoutingPatterns = spaRoutes.map((route) => route.vercelRoutingPattern)
+const allvercelRouterPatterns = spaRoutes.map((route) => route.vercelRouterPattern)
 
 test('the_routes', () => {
 	expect(spaRoutes).toMatchSnapshot()
@@ -100,25 +100,25 @@ test('the_routes', () => {
 
 test('all React routes match', () => {
 	for (const route of spaRoutes) {
-		expect(route.reactRouterPattern).toMatch(new RegExp(route.vercelRoutingPattern))
+		expect(route.reactRouterPattern).toMatch(new RegExp(route.vercelRouterPattern))
 		for (const otherRoute of spaRoutes) {
 			if (route === otherRoute) continue
-			expect(route.reactRouterPattern).not.toMatch(new RegExp(otherRoute.vercelRoutingPattern))
+			expect(route.reactRouterPattern).not.toMatch(new RegExp(otherRoute.vercelRouterPattern))
 		}
 	}
 })
 
 test("non-react routes don't match", () => {
 	// lil smoke test for basic patterns
-	expect('/').toMatchAny(allVercelRoutingPatterns)
-	expect('/new').toMatchAny(allVercelRoutingPatterns)
-	expect('/r/whatever').toMatchAny(allVercelRoutingPatterns)
-	expect('/r/whatever/').toMatchAny(allVercelRoutingPatterns)
+	expect('/').toMatchAny(allvercelRouterPatterns)
+	expect('/new').toMatchAny(allvercelRouterPatterns)
+	expect('/r/whatever').toMatchAny(allvercelRouterPatterns)
+	expect('/r/whatever/').toMatchAny(allvercelRouterPatterns)
 
-	expect('/assets/test.png').not.toMatchAny(allVercelRoutingPatterns)
-	expect('/twitter-social.png').not.toMatchAny(allVercelRoutingPatterns)
-	expect('/robots.txt').not.toMatchAny(allVercelRoutingPatterns)
-	expect('/static/css/index.css').not.toMatchAny(allVercelRoutingPatterns)
+	expect('/assets/test.png').not.toMatchAny(allvercelRouterPatterns)
+	expect('/twitter-social.png').not.toMatchAny(allvercelRouterPatterns)
+	expect('/robots.txt').not.toMatchAny(allvercelRouterPatterns)
+	expect('/static/css/index.css').not.toMatchAny(allvercelRouterPatterns)
 })
 
 test('convertReactToVercel', () => {

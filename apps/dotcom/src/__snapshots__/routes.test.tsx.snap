@@ -4,35 +4,35 @@ exports[`the_routes 1`] = `
 [
   {
     "reactRouterPattern": "/",
-    "vercelRoutingPattern": "^//?$",
+    "vercelRouterPattern": "^//?$",
   },
   {
     "reactRouterPattern": "/new",
-    "vercelRoutingPattern": "^/new/?$",
+    "vercelRouterPattern": "^/new/?$",
   },
   {
     "reactRouterPattern": "/r",
-    "vercelRoutingPattern": "^/r/?$",
+    "vercelRouterPattern": "^/r/?$",
   },
   {
     "reactRouterPattern": "/r/:boardId/history",
-    "vercelRoutingPattern": "^/r/[^/]*/history/?$",
+    "vercelRouterPattern": "^/r/[^/]*/history/?$",
   },
   {
     "reactRouterPattern": "/r/:boardId/history/:timestamp",
-    "vercelRoutingPattern": "^/r/[^/]*/history/[^/]*/?$",
+    "vercelRouterPattern": "^/r/[^/]*/history/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/r/:roomId",
-    "vercelRoutingPattern": "^/r/[^/]*/?$",
+    "vercelRouterPattern": "^/r/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/s/:roomId",
-    "vercelRoutingPattern": "^/s/[^/]*/?$",
+    "vercelRouterPattern": "^/s/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/v/:roomId",
-    "vercelRoutingPattern": "^/v/[^/]*/?$",
+    "vercelRouterPattern": "^/v/[^/]*/?$",
   },
 ]
 `;
