@@ -1,6 +1,6 @@
 import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
-import { Required, annotateError } from '@tldraw/utils'
+import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
 	memo,
 	useCallback,
@@ -41,20 +41,22 @@ import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
  *
  * @public
  **/
-export type TldrawEditorProps = TldrawEditorBaseProps &
-	(
-		| {
-				store: TLStore | TLStoreWithStatus
-		  }
-		| {
-				store?: undefined
-				snapshot?: StoreSnapshot<TLRecord>
-				initialData?: SerializedStore<TLRecord>
-				persistenceKey?: string
-				sessionId?: string
-				defaultName?: string
-		  }
-	)
+export type TldrawEditorProps = Expand<
+	TldrawEditorBaseProps &
+		(
+			| {
+					store: TLStore | TLStoreWithStatus
+			  }
+			| {
+					store?: undefined
+					snapshot?: StoreSnapshot<TLRecord>
+					initialData?: SerializedStore<TLRecord>
+					persistenceKey?: string
+					sessionId?: string
+					defaultName?: string
+			  }
+		)
+>
 
 /**
  * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.

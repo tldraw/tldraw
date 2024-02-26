@@ -11,10 +11,20 @@
 		"types": ["node", "@types/jest"]
 	},
 	"references": [
-		{ "path": "../tlschema" },
-		{ "path": "../store" },
-		{ "path": "../validate" },
-		{ "path": "../utils" },
-		{ "path": "../state" }
+		{
+			"path": "../state"
+		},
+		{
+			"path": "../store"
+		},
+		{
+			"path": "../tlschema"
+		},
+		{
+			"path": "../utils"
+		},
+		{
+			"path": "../validate"
+		}
 	]
 }

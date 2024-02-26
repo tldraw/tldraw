@@ -82,7 +82,7 @@
 		"sqlite": "^5.0.1",
 		"sqlite3": "^5.1.6",
 		"tsx": "^4.0.0",
-		"typescript": "^5.2.2",
+		"typescript": "^5.3.3",
 		"unist-util-is": "^6.0.0",
 		"unist-util-visit": "^5.0.0",
 		"vectra": "^0.4.4",

@@ -13,11 +13,12 @@ import {
 	TLOnResizeHandler,
 	Vec,
 	WeakMapCache,
-	ZERO_INDEX_KEY,
 	getDefaultColorTheme,
-	getIndexAbove,
+	getIndexBetween,
+	getIndices,
 	lineShapeMigrations,
 	lineShapeProps,
+	mapObjectMapValues,
 	sortByIndex,
 } from '@tldraw/editor'
 
@@ -47,21 +48,16 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsBg = () => true
 
 	override getDefaultProps(): TLLineShape['props'] {
+		const [start, end] = getIndices(2)
 		return {
 			dash: 'draw',
 			size: 'm',
 			color: 'black',
 			spline: 'line',
-			points: [
-				{
-					x: 0,
-					y: 0,
-				},
-				{
-					x: 0.1,
-					y: 0.1,
-				},
-			],
+			points: {
+				[start]: { id: start, index: start, x: 0, y: 0 },
+				[end]: { id: end, index: end, x: 0.1, y: 0.1 },
+			},
 		}
 	}
 
@@ -74,38 +70,26 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return handlesCache.get(shape.props, () => {
 			const spline = getGeometryForLineShape(shape)
 
-			const results: TLHandle[] = []
+			const points = linePointsToArray(shape)
+			const results: TLHandle[] = points.map((point) => ({
+				...point,
+				id: point.index,
+				type: 'vertex',
+				canSnap: true,
+			}))
 
-			const { points } = shape.props
-
-			let index = ZERO_INDEX_KEY
-
-			for (let i = 0; i < points.length; i++) {
-				const handle = points[i]
+			for (let i = 0; i < points.length - 1; i++) {
+				const index = getIndexBetween(points[i].index, points[i + 1].index)
+				const segment = spline.segments[i]
+				const point = segment.midPoint()
 				results.push({
-					...handle,
 					id: index,
+					type: 'create',
 					index,
-					type: 'vertex',
-					canBind: false,
+					x: point.x,
+					y: point.y,
 					canSnap: true,
 				})
-				index = getIndexAbove(index)
-
-				if (i < points.length - 1) {
-					const segment = spline.segments[i]
-					const point = segment.midPoint()
-					results.push({
-						id: index,
-						type: 'create',
-						index,
-						x: point.x,
-						y: point.y,
-						canSnap: true,
-						canBind: false,
-					})
-					index = getIndexAbove(index)
-				}
 			}
 
 			return results.sort(sortByIndex)
@@ -119,36 +103,28 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 		return {
 			props: {
-				points: shape.props.points.map(({ x, y }) => {
-					return {
-						x: x * scaleX,
-						y: y * scaleY,
-					}
-				}),
+				points: mapObjectMapValues(shape.props.points, (_, { id, index, x, y }) => ({
+					id,
+					index,
+					x: x * scaleX,
+					y: y * scaleY,
+				})),
 			},
 		}
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
 		// we should only ever be dragging vertex handles
-		if (handle.type !== 'vertex') {
-			return shape
-		}
-
-		// get the index of the point to which the vertex handle corresponds
-		const index = this.getHandles(shape)
-			.filter((h) => h.type === 'vertex')
-			.findIndex((h) => h.id === handle.id)!
-
-		// splice in the new point
-		const points = [...shape.props.points]
-		points[index] = { x: handle.x, y: handle.y }
+		if (handle.type !== 'vertex') return
 
 		return {
 			...shape,
 			props: {
 				...shape.props,
-				points,
+				points: {
+					...shape.props.points,
+					[handle.id]: { id: handle.id, index: handle.index, x: handle.x, y: handle.y },
+				},
 			},
 		}
 	}
@@ -387,7 +363,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
-		const { points } = shape.props
+		const points = linePointsToArray(shape)
 		return {
 			points,
 			getSelfSnapPoints: (handle) => {
@@ -418,17 +394,20 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 }
 
+function linePointsToArray(shape: TLLineShape) {
+	return Object.values(shape.props.points).sort(sortByIndex)
+}
+
 /** @public */
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
-	const { spline, points } = shape.props
-	const handlePoints = points.map(Vec.From)
+	const points = linePointsToArray(shape).map(Vec.From)
 
-	switch (spline) {
+	switch (shape.props.spline) {
 		case 'cubic': {
-			return new CubicSpline2d({ points: handlePoints })
+			return new CubicSpline2d({ points })
 		}
 		case 'line': {
-			return new Polyline2d({ points: handlePoints })
+			return new Polyline2d({ points })
 		}
 	}
 }

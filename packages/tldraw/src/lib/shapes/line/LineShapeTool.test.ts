@@ -65,10 +65,10 @@ describe('When dragging the line', () => {
 			x: 0,
 			y: 0,
 			props: {
-				points: [
-					{ x: 0, y: 0 },
-					{ x: 10, y: 10 },
-				],
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2', x: 10, y: 10 },
+				},
 			},
 		})
 		editor.expectToBeIn('select.dragging_handle')
@@ -128,7 +128,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
-		expect(line.props.points.length).toBe(3)
+		expect(Object.keys(line.props.points).length).toBe(3)
 	})
 
 	it('extends a line after a click by shift-click dragging', () => {
@@ -144,7 +144,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
-		expect(line.props.points.length).toBe(2)
+		expect(Object.keys(line.props.points).length).toBe(2)
 	})
 
 	it('extends a line by shift-click dragging', () => {
@@ -161,7 +161,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
-		expect(line.props.points.length).toBe(3)
+		expect(Object.keys(line.props.points).length).toBe(3)
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointerdown', () => {
@@ -180,7 +180,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
-		expect(line.props.points.length).toBe(3)
+		expect(Object.keys(line.props.points).length).toBe(3)
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointermove', () => {
@@ -201,7 +201,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
-		expect(line.props.points.length).toBe(3)
+		expect(Object.keys(line.props.points).length).toBe(3)
 	})
 })
 

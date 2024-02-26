@@ -80,10 +80,8 @@ export const PeopleMenu = track(function PeopleMenu({
 									data-testid="people-menu.invite"
 									onClick={() => editor.addOpenMenu('share menu')}
 								>
-									<TldrawUiButtonLabel>
-										{msg('people-menu.invite')}
-										<TldrawUiButtonIcon icon="plus" />
-									</TldrawUiButtonLabel>
+									<TldrawUiButtonLabel>{msg('people-menu.invite')}</TldrawUiButtonLabel>
+									<TldrawUiButtonIcon icon="plus" />
 								</TldrawUiButton>
 							</div>
 						)}

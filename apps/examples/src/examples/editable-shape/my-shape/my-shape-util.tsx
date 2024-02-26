@@ -17,32 +17,32 @@ import { useState } from 'react'
 // There's a guide at the bottom of this file!
 
 // [1]
-type ICatDog = TLBaseShape<
-	'catdog',
+type IMyshape = TLBaseShape<
+	'Myshape',
 	{
 		w: number
 		h: number
 	}
 >
 
-export class CatDogUtil extends ShapeUtil<ICatDog> {
+export class MyshapeUtil extends ShapeUtil<IMyshape> {
 	// [2]
-	static override type = 'catdog' as const
-	static override props: ShapeProps<ICatDog> = {
+	static override type = 'Myshape' as const
+	static override props: ShapeProps<IMyshape> = {
 		w: T.number,
 		h: T.number,
 	}
 
 	// [3]
-	override isAspectRatioLocked = (_shape: ICatDog) => true
-	override canResize = (_shape: ICatDog) => true
-	override canBind = (_shape: ICatDog) => true
+	override isAspectRatioLocked = (_shape: IMyshape) => true
+	override canResize = (_shape: IMyshape) => true
+	override canBind = (_shape: IMyshape) => true
 
 	// [4]
 	override canEdit = () => true
 
 	// [5]
-	getDefaultProps(): ICatDog['props'] {
+	getDefaultProps(): IMyshape['props'] {
 		return {
 			w: 170,
 			h: 165,
@@ -50,7 +50,7 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 	}
 
 	// [6]
-	getGeometry(shape: ICatDog) {
+	getGeometry(shape: IMyshape) {
 		return new Rectangle2d({
 			width: shape.props.w,
 			height: shape.props.h,
@@ -59,7 +59,7 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 	}
 
 	// [7]
-	component(shape: ICatDog) {
+	component(shape: IMyshape) {
 		// [a]
 		const isEditing = useIsEditing(shape.id)
 
@@ -111,18 +111,18 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 	}
 
 	// [8]
-	indicator(shape: ICatDog) {
+	indicator(shape: IMyshape) {
 		const isEditing = useIsEditing(shape.id)
 		return <rect stroke={isEditing ? 'red' : 'blue'} width={shape.props.w} height={shape.props.h} />
 	}
 
 	// [9]
-	override onResize: TLOnResizeHandler<ICatDog> = (shape, info) => {
+	override onResize: TLOnResizeHandler<IMyshape> = (shape, info) => {
 		return resizeBox(shape, info)
 	}
 
 	// [10]
-	override onEditEnd: TLOnEditEndHandler<ICatDog> = (shape) => {
+	override onEditEnd: TLOnEditEndHandler<IMyshape> = (shape) => {
 		const frame1 = structuredClone(shape)
 		const frame2 = structuredClone(shape)
 
@@ -142,7 +142,7 @@ export class CatDogUtil extends ShapeUtil<ICatDog> {
 }
 
 /* 
-This is a utility class for the catdog shape. This is where you define the shape's behavior, 
+This is a utility class for the Myshape shape. This is where you define the shape's behavior, 
 how it renders (its component and indicator), and how it handles different events.
 
 [1]

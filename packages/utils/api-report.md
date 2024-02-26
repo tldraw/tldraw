@@ -283,7 +283,7 @@ export function sortByIndex<T extends {
     index: IndexKey;
 }>(a: T, b: T): -1 | 0 | 1;
 
-// @public (undocumented)
+// @public
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 

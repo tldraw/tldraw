@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.35.4",
+    "toolVersion": "7.41.0",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -10637,21 +10637,21 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "ArrayOfValidator",
-                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
+                  "text": "DictValidator",
+                  "canonicalReference": "@tldraw/validate!DictValidator:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "<import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            id: string;\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "VecModel",
-                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
                 },
                 {
                   "kind": "Content",
-                  "text": ">;\n    }"
+                  "text": ";\n        }>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -11868,6 +11868,82 @@
             }
           ],
           "name": "parseTldrawJsonFile"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!preloadFont:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function preloadFont(id: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", font: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLTypeFace",
+              "canonicalReference": "@tldraw/tldraw!~TLTypeFace:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "FontFace",
+              "canonicalReference": "!FontFace:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/preload-font.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 9
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "id",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "font",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "preloadFont"
         },
         {
           "kind": "Function",
@@ -13552,6 +13628,15 @@
             },
             {
               "kind": "Reference",
+              "text": "Expand",
+              "canonicalReference": "@tldraw/utils!Expand:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLEditorComponents",
               "canonicalReference": "@tldraw/editor!TLEditorComponents:type"
             },
@@ -13566,6 +13651,10 @@
             },
             {
               "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
@@ -13574,7 +13663,7 @@
           "name": "TLComponents",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 7
           }
         },
         {
@@ -14038,8 +14127,13 @@
               "text": "export type TldrawProps = "
             },
             {
+              "kind": "Reference",
+              "text": "Expand",
+              "canonicalReference": "@tldraw/utils!Expand:type"
+            },
+            {
               "kind": "Content",
-              "text": "("
+              "text": "<("
             },
             {
               "kind": "Reference",
@@ -14138,7 +14232,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n})"
+              "text": ">;\n})>"
             },
             {
               "kind": "Content",
@@ -14150,7 +14244,7 @@
           "name": "TldrawProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 24
+            "endIndex": 25
           }
         },
         {
@@ -14209,17 +14303,13 @@
           "name": "TldrawScribble"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tldraw!TldrawSelectionBackground:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!TldrawSelectionBackground:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "TldrawSelectionBackground: "
-            },
-            {
-              "kind": "Content",
-              "text": "({ bounds, rotation }: "
+              "text": "TldrawSelectionBackground: ({ bounds, rotation }: "
             },
             {
               "kind": "Reference",
@@ -14228,7 +14318,11 @@
             },
             {
               "kind": "Content",
-              "text": ") => import(\"react/jsx-runtime\")."
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
             },
             {
               "kind": "Reference",
@@ -14241,13 +14335,23 @@
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawSelectionBackground.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "TldrawSelectionBackground",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
             "endIndex": 6
-          }
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ bounds, rotation }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawSelectionBackground"
         },
         {
           "kind": "Variable",
@@ -15826,7 +15930,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiKbd({ children }: "
+              "text": "export declare function TldrawUiKbd({ children, visibleOnMobileLayout }: "
             },
             {
               "kind": "Reference",
@@ -15864,7 +15968,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ children }",
+              "parameterName": "{ children, visibleOnMobileLayout }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -20948,6 +21052,33 @@
                 "startIndex": 1,
                 "endIndex": 2
               }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TLUiKbdProps#visibleOnMobileLayout:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "visibleOnMobileLayout?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "visibleOnMobileLayout",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
             }
           ],
           "extendsTokenRanges": []
@@ -22756,27 +22887,61 @@
           "name": "toolbarItem"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/tldraw!truncateStringWithEllipsis:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!truncateStringWithEllipsis:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "truncateStringWithEllipsis: "
+              "text": "truncateStringWithEllipsis: (str: "
             },
             {
               "kind": "Content",
-              "text": "(str: string, maxLength: number) => string"
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", maxLength: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/utils/text/text.ts",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 6
+          },
           "releaseTag": "Public",
-          "name": "truncateStringWithEllipsis",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "str",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "maxLength",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "truncateStringWithEllipsis"
         },
         {
           "kind": "Function",
@@ -22951,6 +23116,62 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useBreakpoint"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!useCanRedo:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useCanRedo(): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/menu-hooks.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useCanRedo"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!useCanUndo:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useCanUndo(): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/menu-hooks.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useCanUndo"
         },
         {
           "kind": "Function",
