@@ -6,10 +6,10 @@ import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 /** @public */
 export function DefaultHelpMenuContent() {
 	return (
-		<div data-testid="help-menu.content">
+		<>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
-		</div>
+		</>
 	)
 }
 

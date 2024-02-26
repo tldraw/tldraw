@@ -412,8 +412,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
-        type: "free" | "straight";
         points: VecModel[];
+        type: "free" | "straight";
         }>;
         isComplete: Validator<boolean>;
         isClosed: Validator<boolean>;
@@ -760,8 +760,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
-        type: "free" | "straight";
         points: VecModel[];
+        type: "free" | "straight";
         }>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
@@ -891,9 +891,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
         id: string;
+        index: IndexKey;
         x: number;
         y: number;
-        index: IndexKey;
         }>;
     };
     // (undocumented)

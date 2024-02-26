@@ -2,7 +2,6 @@ import { Locator, Page } from '@playwright/test'
 
 export class HelpMenu {
 	readonly helpMenuButton: Locator
-	readonly content: Locator
 	readonly languagesButton: Locator
 	readonly languagesContent: Locator
 	readonly keyboardShortcutsMenu: KeyboardShortcutsMenu
@@ -10,7 +9,6 @@ export class HelpMenu {
 
 	constructor(public readonly page: Page) {
 		this.page = page
-		this.content = this.page.getByTestId('help-menu.content')
 		this.helpMenuButton = this.page.getByTestId('help-menu.button')
 		this.languagesButton = this.page.getByTestId('help-menu-sub.language-button')
 		this.languagesContent = this.page.getByTestId('help-menu-sub.language-content')
@@ -22,17 +20,15 @@ export class HelpMenu {
 			about: this.page.getByTestId('help-menu.about'),
 		}
 	}
-
-	getElement() {
-		return this.content
-	}
 }
 class KeyboardShortcutsMenu {
 	readonly heading: Locator
 	readonly button: Locator
+	readonly closeButton: Locator
 
 	constructor(private readonly page: Page) {
 		this.heading = this.page.getByRole('dialog').getByText('Keyboard shortcuts')
 		this.button = this.page.getByTestId('help-menu.keyboard-shortcuts-button')
+		this.closeButton = this.page.getByRole('dialog').getByTestId('dialog.close')
 	}
 }
