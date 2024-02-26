@@ -112,7 +112,7 @@ function SidebarSection({ title, children }: SidebarContentSectionLink) {
 
 	return (
 		<li className="sidebar__section">
-			{title && <span className="sidebar__section__title">{title}</span>}
+			{title && <span className="sidebar__section__title uppercase_title">{title}</span>}
 			<ul className="sidebar__list">
 				{children.map((link) => (
 					<SidebarLink key={link.url} {...link} />

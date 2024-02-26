@@ -150,7 +150,7 @@ export const Footnotes = (props: any) => {
 /* -------------------- API docs -------------------- */
 
 export const ApiHeading = (props: any) => {
-	return <div {...props} />
+	return <div className="article__api-heading uppercase_title" {...props} />
 }
 
 export const Embed = (props: any) => {

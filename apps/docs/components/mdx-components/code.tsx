@@ -5,12 +5,7 @@ import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
 export const Code = (props: any) => {
-	if (!props.className) {
-		return <code {...props} />
-	}
-
-	const language = props.className.replace('language-', '')
-	return <CodeBlock code={{ [`App.${language}`]: props.children.trim() }} />
+	return <code {...props} />
 }
 
 export function CodeBlock({ code }: { code: SandpackFiles }) {

@@ -655,7 +655,7 @@ body {
 .breadcrumb {
 	font-size: 14px;
 	color: var(--color-text);
-	font-weight: 600;
+	font-weight: 500;
 	padding-bottom: 4px;
 	display: flex;
 	align-items: center;
@@ -940,18 +940,21 @@ body {
 	transition-delay: 0s;
 }
 
-.sidebar__section__title {
+.uppercase_title {
+	text-transform: uppercase;
 	font-size: 12px;
 	font-weight: 500;
+	letter-spacing: 0.5px;
+	color: var(--color-text-secondary);
+}
+
+.sidebar__section__title {
 	margin-bottom: 4px;
 	position: relative;
-	letter-spacing: 0.5px;
 	padding-bottom: 4px;
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
-	color: var(--color-text-secondary);
-	text-transform: uppercase;
 	--bg: transparent;
 	white-space: nowrap;
 }
@@ -964,7 +967,6 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	color: var(--color-text-secondary);
 	white-space: nowrap;
 	background: transparent;
 	border: 0;

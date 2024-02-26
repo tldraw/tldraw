@@ -6,7 +6,6 @@ import ExampleCodeBlock from './ExampleCodeBlock'
 import { Header } from './Header'
 import { Mdx } from './Mdx'
 import { Sidebar } from './Sidebar'
-import { Image } from './mdx-components/generic'
 
 export async function ExampleDocsPage({ article }: { article: Article }) {
 	const db = await getDb()
@@ -29,18 +28,15 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 					<h1>{article.title}</h1>
 					{article.description && <p>{article.description}</p>}
 				</div>
-				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}
 				{article.content && <Mdx content={article.content} />}
-				{article.componentCode && (
-					<ExampleCodeBlock
-						articleId={article.id}
-						files={{
-							'App.tsx': article.componentCode,
-							...(article.componentCodeFiles ? JSON.parse(article.componentCodeFiles) : null),
-						}}
-						activeFile={'App.tsx'}
-					/>
-				)}
+				<ExampleCodeBlock
+					articleId={article.id}
+					files={{
+						'App.tsx': article.componentCode,
+						...(article.componentCodeFiles ? JSON.parse(article.componentCodeFiles) : null),
+					}}
+					activeFile={'App.tsx'}
+				/>
 				{links && <ArticleNavLinks links={links} />}
 			</main>
 		</>
