@@ -120,24 +120,41 @@ export function execute(scenario: Scenario): Map<Name, Store> {
 	return result
 }
 
-class Store {
+type Context = {
+	auth: any
+	txId: string
+}
+type Mutation<Props extends object> = (store: Store<any>, props: Props, ctx: Context) => Store<any>
+
+type Mutations = Record<string, Mutation<any>>
+
+class Store<M extends Mutations> {
 	data: Array<{ id: string; property: number }> = []
 
-	mutations = {
-		add_square: (id: string, size: number) => {
-			this.data.push({ id, property: size })
-		},
+	constructor(readonly mutations: M) {}
+
+	mutate(name: keyof M, props: Parameters<M[keyof M]>[1]) {
+		this.mutations[name](this, props, { auth: '', txId: '123' })
 	}
 }
 
+function createStore() {
+	return new Store({
+		add_square: (store, { id, size }: { id: string; size: number }, _ctx) => {
+			store.data.push({ id, property: size })
+			return store
+		},
+	})
+}
+
+const store = createStore()
+
+createStore().mutate('add_square', { id: 'square:1', size: 7 })
+
 class ServerContext {
-	runtime: Runtime
+	constructor(readonly runtime: Runtime) {}
 
-	constructor(runtime: Runtime) {
-		this.runtime = runtime
-	}
-
-	getConnectedClients(): Array<ClientName> {
+	getConnectedClients(): ClientName[] {
 		return this.runtime.connectedClients
 	}
 
@@ -149,12 +166,9 @@ class ServerContext {
 }
 
 export class Server {
-	context: ServerContext
 	store: Store = new Store()
 
-	constructor(context: ServerContext) {
-		this.context = context
-	}
+	constructor(readonly context: ServerContext) {}
 
 	onPacket(from: ClientName, packet: Packet) {
 		this.context.broadcast(packet)
@@ -162,13 +176,10 @@ export class Server {
 }
 
 class ClientContext {
-	runtime: Runtime
-	name: ClientName
-
-	constructor(runtime: Runtime, name: ClientName) {
-		this.runtime = runtime
-		this.name = name
-	}
+	constructor(
+		readonly runtime: Runtime,
+		readonly name: ClientName
+	) {}
 
 	sendToServer(packet: Packet) {
 		this.runtime.send({ from: this.name, to: 'Server', packet })
@@ -179,11 +190,8 @@ export type ClientAction = 'drawSquare'
 
 export class Client {
 	store: Store = new Store()
-	context: ClientContext
 
-	constructor(context: ClientContext) {
-		this.context = context
-	}
+	constructor(readonly context: ClientContext) {}
 
 	drawSquare(id: number, size: number) {
 		this.store.mutations.add_square(`square:${id}`, size)
