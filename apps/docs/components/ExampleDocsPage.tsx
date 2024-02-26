@@ -22,7 +22,7 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 		<>
 			<Header sectionId={section.id} />
 			<Sidebar {...sidebar} />
-			<main className={`article article__example`}>
+			<main className={`main-content article article__example`}>
 				<div className="page-header">
 					<Breadcrumb section={section} category={category} />
 					<h1>{article.title}</h1>

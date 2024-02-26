@@ -687,7 +687,6 @@ body {
 	font-size: 12px;
 	gap: 24px;
 	color: var(--color-footer-text);
-	border-top: 1px solid rgba(144, 144, 144, 0.28);
 	overflow: hidden;
 }
 
