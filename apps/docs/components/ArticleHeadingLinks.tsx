@@ -20,7 +20,7 @@ export function ArticleHeadingLinks({
 						{headingLinks
 							.filter((heading) => heading.level < 4)
 							.map((heading) => (
-								<li className="sidebar__article" key={heading.slug}>
+								<li key={heading.slug} className="sidebar__article">
 									<Link href={`#${heading.slug}`} className="sidebar__link">
 										{heading.level > 2 ? (
 											<span className="sidebar__link__indent">{'–'}</span>

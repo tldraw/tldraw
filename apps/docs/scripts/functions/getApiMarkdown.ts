@@ -393,7 +393,7 @@ function addTags(result: Result, member: ApiItem) {
 		tags.push('readonly')
 	}
 	tags.push(member.kind.toLowerCase())
-	result.markdown += `<Small>${tags.join(' ')}</Small>\n\n`
+	result.markdown += `<Small>${tags.filter((t) => t.toLowerCase() !== 'none').join(' ')}</Small>\n\n`
 }
 
 function addReferences(result: Result, member: ApiItem) {
