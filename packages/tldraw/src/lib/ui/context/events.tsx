@@ -2,6 +2,7 @@ import * as React from 'react'
 
 /** @public */
 export type TLUiEventSource =
+	| 'menu'
 	| 'main-menu'
 	| 'context-menu'
 	| 'zoom-menu'
