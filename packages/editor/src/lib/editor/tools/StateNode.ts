@@ -1,4 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
+import { assert, assertExists } from '@tldraw/utils'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
@@ -74,6 +75,33 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	children?: Record<string, StateNode>
 	parent: StateNode
 
+	find(path: string | string[]): StateNode | undefined {
+		if (typeof path === 'string') {
+			return this.find(path.split('.'))
+		}
+
+		assert(path.length > 0, 'empty path')
+		const [childId, ...rest] = path
+
+		const child = this.children?.[childId]
+
+		if (!child) return undefined
+		if (rest.length) return child.find(rest)
+		return child
+	}
+
+	addChild(NodeCtor: TLStateNodeConstructor) {
+		if (this.type === 'leaf') {
+			throw new Error('Cannot add child to leaf node')
+		}
+
+		const children = assertExists(this.children)
+		if (children[NodeCtor.id]) return
+
+		const node = new NodeCtor(this.editor, this)
+		children[node.id] = node
+	}
+
 	/**
 	 * This node's path of active state nodes
 	 *
@@ -93,6 +121,12 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		return this._current.get()
 	}
 	private _current: Atom<StateNode | undefined>
+
+	getActiveChild(): StateNode | undefined {
+		const current = this.getCurrent()
+		if (!current) return undefined
+		return current.getActiveChild() ?? current
+	}
 
 	/**
 	 * Whether this node is active.

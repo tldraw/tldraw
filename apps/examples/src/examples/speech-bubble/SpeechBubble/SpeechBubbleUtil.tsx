@@ -8,16 +8,16 @@ import {
 	TLBaseShape,
 	TLDefaultColorStyle,
 	TLDefaultSizeStyle,
-	TLHandle,
 	TLOnBeforeUpdateHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
-	ZERO_INDEX_KEY,
+	VecModel,
 	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
+	vecModelValidator,
 } from '@tldraw/tldraw'
 import { getHandleIntersectionPoint, getSpeechBubbleVertices } from './helpers'
 
@@ -39,9 +39,7 @@ export type SpeechBubbleShape = TLBaseShape<
 		h: number
 		size: TLDefaultSizeStyle
 		color: TLDefaultColorStyle
-		handles: {
-			handle: TLHandle
-		}
+		tail: VecModel
 	}
 >
 
@@ -56,10 +54,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		h: T.number,
 		size: DefaultSizeStyle,
 		color: DefaultColorStyle,
-		handles: {
-			validate: handleValidator,
-			handle: { validate: handleValidator },
-		},
+		tail: vecModelValidator,
 	}
 
 	override isAspectRatioLocked = (_shape: SpeechBubbleShape) => false
@@ -75,17 +70,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			h: 130,
 			color: 'black',
 			size: 'm',
-			handles: {
-				handle: {
-					id: 'handle1',
-					type: 'vertex',
-					canBind: true,
-					canSnap: true,
-					index: ZERO_INDEX_KEY,
-					x: 0.5,
-					y: 1.5,
-				},
-			},
+			tail: { x: 0.5, y: 1.5 },
 		}
 	}
 
@@ -98,30 +83,30 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return body
 	}
 
-	override getHandles(shape: SpeechBubbleShape) {
-		const {
-			handles: { handle },
-			w,
-			h,
-		} = shape.props
+	// override getHandles(shape: SpeechBubbleShape) {
+	// 	const {
+	// 		handles: { handle },
+	// 		w,
+	// 		h,
+	// 	} = shape.props
 
-		return [
-			{
-				...handle,
-				// props.handles.handle coordinates are normalized
-				// but here we need them in shape space
-				x: handle.x * w,
-				y: handle.y * h,
-			},
-		]
-	}
+	// 	return [
+	// 		{
+	// 			...handle,
+	// 			// props.handles.handle coordinates are normalized
+	// 			// but here we need them in shape space
+	// 			x: handle.x * w,
+	// 			y: handle.y * h,
+	// 		},
+	// 	]
+	// }
 
 	// [4]
 	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (
 		_: SpeechBubbleShape,
 		shape: SpeechBubbleShape
 	) => {
-		const { w, h, handles } = shape.props
+		const { w, h, tail } = shape.props
 
 		const { segmentsIntersection, insideShape } = getHandleIntersectionPoint(shape)
 
@@ -129,13 +114,13 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const MIN_DISTANCE = slantedLength / 5
 		const MAX_DISTANCE = slantedLength / 1.5
 
-		const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
+		const tailInShapeSpace = new Vec(tail.x * w, tail.y * h)
 
-		const distanceToIntersection = handleInShapeSpace.dist(segmentsIntersection)
+		const distanceToIntersection = tailInShapeSpace.dist(segmentsIntersection)
 		const center = new Vec(w / 2, h / 2)
-		const vHandle = Vec.Sub(handleInShapeSpace, center).uni()
+		const vHandle = Vec.Sub(tailInShapeSpace, center).uni()
 
-		let newPoint = handleInShapeSpace
+		let newPoint = tailInShapeSpace
 
 		if (insideShape) {
 			newPoint = Vec.Add(segmentsIntersection, vHandle.mul(MIN_DISTANCE))
@@ -148,18 +133,15 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		}
 
 		const next = deepCopy(shape)
-		next.props.handles.handle.x = newPoint.x / w
-		next.props.handles.handle.y = newPoint.y / h
+		next.props.tail.x = newPoint.x / w
+		next.props.tail.y = newPoint.y / h
 
 		return next
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (_, { handle, initial }) => {
-		const newHandle = deepCopy(handle)
-		newHandle.x = newHandle.x / initial!.props.w
-		newHandle.y = newHandle.y / initial!.props.h
 		const next = deepCopy(initial!)
-		next.props.handles.handle = newHandle
+		next.props.tail = { x: handle.x / initial!.props.w, y: handle.y / initial!.props.h }
 
 		return next
 	}

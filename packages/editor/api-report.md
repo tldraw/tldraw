@@ -19,8 +19,10 @@ import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
+import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
+import { PointerEvent as PointerEvent_2 } from 'react';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
@@ -816,6 +818,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         y: number;
         z: number;
     };
+    // (undocumented)
+    pageToViewport(point: VecLike): Vec;
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
     popFocusedGroupId(): this;
@@ -1145,6 +1149,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 // @public (undocumented)
 export const HALF_PI: number;
+
+// @internal (undocumented)
+export const HandleControl: MemoExoticComponent<({ position, onPointerDown, }: HandleControlProps) => JSX_2.Element>;
 
 // @public
 export interface HandleSnapGeometry {
@@ -1723,6 +1730,8 @@ export class Stadium2d extends Ellipse2d {
 export abstract class StateNode implements Partial<TLEventHandlers> {
     constructor(editor: Editor, parent?: StateNode);
     // (undocumented)
+    addChild(NodeCtor: TLStateNodeConstructor): void;
+    // (undocumented)
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
@@ -1733,6 +1742,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     enter: (info: any, from: string) => void;
     // (undocumented)
     exit: (info: any, from: string) => void;
+    // (undocumented)
+    find(path: string | string[]): StateNode | undefined;
+    // (undocumented)
+    getActiveChild(): StateNode | undefined;
     getCurrent(): StateNode | undefined;
     // (undocumented)
     getCurrentToolIdMask(): string | undefined;

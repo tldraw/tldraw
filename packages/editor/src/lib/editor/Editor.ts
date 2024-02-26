@@ -2857,6 +2857,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
+	pageToViewport(point: VecLike) {
+		return Vec.Sub(this.pageToScreen(point), this.getViewportScreenBounds())
+	}
+
 	// Following
 
 	/**
