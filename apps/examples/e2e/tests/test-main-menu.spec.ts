@@ -5,13 +5,13 @@ import test from './fixtures/fixtures'
 test.describe('help menu', () => {
 	test.beforeEach(setup)
 
-	test('you can open and close the menu', async ({ mainMenu, page }) => {
+	test.only('you can open and close the menu', async ({ mainMenu, page }) => {
 		const { mainMenuButton, buttons } = mainMenu
 		const { editSubmenu, viewSubmenu, preferencesSubmenu } = mainMenu.subMenus
 		const submenus = [
+			{ name: 'preferences', submenu: preferencesSubmenu, button: buttons.preferences },
 			{ name: 'view', submenu: viewSubmenu, button: buttons.view },
 			{ name: 'edit', submenu: editSubmenu, button: buttons.edit },
-			{ name: 'preferences', submenu: preferencesSubmenu, button: buttons.preferences },
 		]
 
 		await test.step('open main menu', async () => {
@@ -19,7 +19,6 @@ test.describe('help menu', () => {
 			await mainMenuButton.click()
 			await expect(buttons.edit).toBeVisible()
 		})
-
 		for (const submenu of submenus) {
 			await test.step(`hovering opens ${submenu.name} submenu`, async () => {
 				await expect(submenu.submenu[0]).toBeHidden()
