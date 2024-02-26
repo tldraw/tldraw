@@ -3,7 +3,6 @@ import { getDb } from '@/utils/ContentDatabase'
 import { ArticleDetails } from './ArticleDetails'
 import { ArticleHeadingLinks } from './ArticleHeadingLinks'
 import { ArticleNavLinks } from './ArticleNavLinks'
-import { Breadcrumb } from './Breadcrumb'
 import { Header } from './Header'
 import { Mdx } from './Mdx'
 import { Sidebar } from './Sidebar'
@@ -27,7 +26,6 @@ export async function ArticleDocsPage({ article }: { article: Article }) {
 			<Sidebar {...sidebar} />
 			<main className="main-content article">
 				<div className="page-header">
-					<Breadcrumb section={section} category={category} />
 					<h1>{article.title}</h1>
 				</div>
 				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}

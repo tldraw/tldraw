@@ -50,6 +50,7 @@
 
 	/* Sizes */
 	--header-height: 80px;
+	--header-padding: 24px;
 }
 
 [data-theme='dark'] {
@@ -97,7 +98,7 @@
 html {
 	background-color: #000;
 	border-bottom: none;
-	scroll-padding-top: var(--header-height);
+	scroll-padding-top: calc(var(--header-height) + var(--header-padding));
 }
 
 body {
@@ -256,7 +257,7 @@ body {
 	justify-self: center;
 	width: 100%;
 	min-height: calc(100vh - 64px);
-	padding: 0px 0px 96px 0px;
+	padding: var(--header-padding) 0px 96px 0px;
 	font-weight: 400;
 	overflow-x: hidden;
 	overflow-y: visible;
@@ -790,7 +791,7 @@ body {
 .layout__headings {
 	position: sticky;
 	align-self: start;
-	top: var(--header-height);
+	top: calc(var(--header-height) + var(--header-padding));
 	margin-left: -12px;
 	padding: 0px 28px 120px 12px;
 	max-height: calc(100vh);
@@ -824,7 +825,7 @@ body {
 .sidebar {
 	position: sticky;
 	align-self: start;
-	top: var(--header-height);
+	top: calc(var(--header-height) + var(--header-padding));
 	margin-left: -12px;
 	padding: 0px 12px 120px 28px;
 	width: calc(100% + 24px);
