@@ -16,7 +16,7 @@ import { useScreenBounds } from '../../hooks/useScreenBounds'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
-import { debugFlags } from '../../utils/debug-flags'
+import { debugFlags, featureFlags } from '../../utils/debug-flags'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -364,14 +364,16 @@ function SelectedIdIndicators() {
 		() => {
 			// todo: move to tldraw selected ids wrapper
 			return (
-				editor.isInAny(
+				(editor.isInAny(
 					'select.idle',
 					'select.brushing',
 					'select.scribble_brushing',
 					'select.pointing_shape',
 					'select.pointing_selection',
 					'select.pointing_handle'
-				) && !editor.getInstanceState().isChangingStyle
+				) ||
+					(!featureFlags.newStickies.get() && editor.isInAny('select.editing_shape'))) &&
+				!editor.getInstanceState().isChangingStyle
 			)
 		},
 		[editor]
