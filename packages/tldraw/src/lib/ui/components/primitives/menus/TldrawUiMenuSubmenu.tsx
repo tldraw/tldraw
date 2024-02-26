@@ -50,12 +50,15 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 			return (
 				<TldrawUiDropdownMenuSub id={`${sourceId}-sub.${id}`}>
 					<TldrawUiDropdownMenuSubTrigger
-						id={`${sourceId}-sub.${id}`}
+						id={`${sourceId}-sub.${labelStr ? labelStr.toLowerCase() + '-button' : ''}`}
 						disabled={disabled}
 						label={labelStr!}
 						title={labelStr!}
 					/>
-					<TldrawUiDropdownMenuSubContent id={`${sourceId}-sub-content.${id}`} size={size}>
+					<TldrawUiDropdownMenuSubContent
+						id={`${sourceId}-sub.${labelStr ? labelStr.toLowerCase() + '-content' : ''}`}
+						size={size}
+					>
 						{children}
 					</TldrawUiDropdownMenuSubContent>
 				</TldrawUiDropdownMenuSub>

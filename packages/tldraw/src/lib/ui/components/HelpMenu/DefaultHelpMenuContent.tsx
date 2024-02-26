@@ -6,10 +6,10 @@ import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 /** @public */
 export function DefaultHelpMenuContent() {
 	return (
-		<>
+		<div data-testid="help-menu.content">
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
-		</>
+		</div>
 	)
 }
 
@@ -21,7 +21,7 @@ function KeyboardShortcutsMenuItem() {
 
 	return (
 		<TldrawUiMenuItem
-			id="keyboard-shortcuts"
+			id="keyboard-shortcuts-button"
 			label="help-menu.keyboard-shortcuts"
 			readonlyOk
 			onSelect={() => {

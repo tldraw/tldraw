@@ -115,6 +115,7 @@ export type TLUiDropdownMenuSubTriggerProps = {
 
 /** @public */
 export function TldrawUiDropdownMenuSubTrigger({
+	id,
 	label,
 	title,
 	disabled,
@@ -122,6 +123,7 @@ export function TldrawUiDropdownMenuSubTrigger({
 	return (
 		<_DropdownMenu.SubTrigger dir="ltr" asChild>
 			<TldrawUiButton
+				data-testid={id}
 				type="menu"
 				className="tlui-menu__submenu__trigger"
 				disabled={disabled}
@@ -145,6 +147,7 @@ export type TLUiDropdownMenuSubContentProps = {
 
 /** @public */
 export function TldrawUiDropdownMenuSubContent({
+	id,
 	alignOffset = -1,
 	sideOffset = -4,
 	size = 'small',
@@ -154,6 +157,7 @@ export function TldrawUiDropdownMenuSubContent({
 	return (
 		<_DropdownMenu.Portal container={container}>
 			<_DropdownMenu.SubContent
+				data-testid={id}
 				className="tlui-menu tlui-menu__submenu__content"
 				alignOffset={alignOffset}
 				sideOffset={sideOffset}

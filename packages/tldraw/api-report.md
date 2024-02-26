@@ -1308,7 +1308,7 @@ export function TldrawUiDropdownMenuRoot({ id, children, modal, debugOpen, }: TL
 export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuSubTrigger({ label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
+export function TldrawUiDropdownMenuSubTrigger({ id, label, title, disabled, }: TLUiDropdownMenuSubTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
