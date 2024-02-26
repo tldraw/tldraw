@@ -1,6 +1,18 @@
-import { TLSYNC_PROTOCOL_VERSION } from '@tldraw/tlsync'
-import * as ws from 'ws'
+import { TLRecord } from '@tldraw/tldraw'
+import { TLSocketClientSentEvent, TLSYNC_PROTOCOL_VERSION } from '@tldraw/tlsync'
+import path from 'node:path'
+import type { WebSocketServer as WebSocketServerType, WebSocket as WsWebSocketType } from 'ws/index'
 import { ClientWebSocketAdapter } from './ClientWebSocketAdapter'
+
+// Hack: the `ws` package has an import map mapping browser context to a dummy implementation
+// that just throws an error, because it's impossible to create a websocket in the browser
+// and `ws` tries to guard its users. Unfortunately, we also need to run Jest in dom context,
+// which causes it to select the browser version of the package.
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const ws = require('' + path.dirname(require.resolve('ws')) + '/index.js')
+// const WsWebSocket = ws.WebSocket as typeof WsWebSocketType
+const WebSocketServer = ws.WebSocketServer as typeof WebSocketServerType
 
 async function waitFor(predicate: () => boolean) {
 	let safety = 0
@@ -20,19 +32,16 @@ async function waitFor(predicate: () => boolean) {
 
 jest.useFakeTimers()
 
-// TODO: unskip this test. It accidentally got disabled a long time ago when we moved this file into
-// the dotcom folder which didn't have testing set up at the time. We need to spend some time fixing
-// it before it can be re-enabled.
-describe.skip(ClientWebSocketAdapter, () => {
+describe(ClientWebSocketAdapter, () => {
 	let adapter: ClientWebSocketAdapter
-	let wsServer: ws.Server
-	let connectedWs: ws.WebSocket
-	const connectMock = jest.fn<void, [socket: ws.WebSocket]>((socket) => {
+	let wsServer: WebSocketServerType
+	let connectedWs: WsWebSocketType
+	const connectMock = jest.fn<void, [socket: WsWebSocketType]>((socket) => {
 		connectedWs = socket
 	})
 	beforeEach(() => {
 		adapter = new ClientWebSocketAdapter(() => 'ws://localhost:2233')
-		wsServer = new ws.Server({ port: 2233 })
+		wsServer = new WebSocketServer({ port: 2233 })
 		wsServer.on('connection', connectMock)
 	})
 	afterEach(() => {
@@ -59,12 +68,17 @@ describe.skip(ClientWebSocketAdapter, () => {
 		adapter._ws?.onerror?.({} as any)
 		expect(adapter.connectionStatus).toBe('error')
 	})
-	it('should try to reopen the connection if there was an error', () => {
+	it('should try to reopen the connection if there was an error', async () => {
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+		expect(adapter._ws).toBeTruthy()
 		const prevWes = adapter._ws
+		const prevConnectedWs = connectedWs
 		adapter._ws?.onerror?.({} as any)
-		jest.advanceTimersByTime(1000)
+		// advanceTimersByTime is pointless when running against real network events
+		// jest.advanceTimersByTime(1000)
+		await waitFor(() => connectedWs !== prevConnectedWs)
 		expect(adapter._ws).not.toBe(prevWes)
-		expect(adapter._ws?.readyState).toBe(WebSocket.CONNECTING)
+		expect(adapter._ws?.readyState).toBe(WebSocket.OPEN)
 	})
 	it('should transition to online if a retry succeeds', async () => {
 		adapter._ws?.onerror?.({} as any)
@@ -72,6 +86,7 @@ describe.skip(ClientWebSocketAdapter, () => {
 		expect(adapter.connectionStatus).toBe('online')
 	})
 	it('should call .close on the underlying socket if .close is called before the socket opens', async () => {
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		const closeSpy = jest.spyOn(adapter._ws!, 'close')
 		adapter.close()
 		await waitFor(() => closeSpy.mock.calls.length > 0)
@@ -125,8 +140,7 @@ describe.skip(ClientWebSocketAdapter, () => {
 		expect(onMessage).toHaveBeenCalledWith({ type: 'message', data: 'hello' })
 	})
 
-	// TODO: this is failing on github actions, investigate
-	it.skip('supports sending messages', async () => {
+	it('supports sending messages', async () => {
 		const onMessage = jest.fn()
 		connectMock.mockImplementationOnce((ws) => {
 			ws.on('message', onMessage)
@@ -134,19 +148,19 @@ describe.skip(ClientWebSocketAdapter, () => {
 
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 
-		adapter.sendMessage({
+		const message: TLSocketClientSentEvent<TLRecord> = {
 			type: 'connect',
 			connectRequestId: 'test',
 			schema: { schemaVersion: 0, storeVersion: 0, recordVersions: {} },
 			protocolVersion: TLSYNC_PROTOCOL_VERSION,
 			lastServerClock: 0,
-		})
+		}
+
+		adapter.sendMessage(message)
 
 		await waitFor(() => onMessage.mock.calls.length === 1)
 
-		expect(onMessage.mock.calls[0][0].toString()).toBe(
-			'{"type":"connect","instanceId":"test","lastServerClock":0}'
-		)
+		expect(JSON.parse(onMessage.mock.calls[0][0].toString())).toEqual(message)
 	})
 
 	it('signals status changes', async () => {

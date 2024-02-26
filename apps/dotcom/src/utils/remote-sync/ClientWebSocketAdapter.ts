@@ -186,13 +186,13 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 }
 
 class ExponentialBackoffTimeout {
-	private timeout: NodeJS.Timeout | null = null
+	private timeout: ReturnType<typeof setTimeout> | null = null
 	private nextScheduledRunTimestamp = 0
 	intervalLength: number
 
 	constructor(
 		private cb: () => Promise<void>,
-		// five mins
+		// at most five seconds when idle
 		private readonly maxIdleIntervalLength: number = 1000 * 60 * 5,
 		// five seconds
 		private readonly maxInteractiveIntervalLength: number = 1000,
@@ -233,3 +233,8 @@ class ExponentialBackoffTimeout {
 		}
 	}
 }
+
+// todo:
+// - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/connection
+// - https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
+// - don't create overlapping attempts to reconnect
