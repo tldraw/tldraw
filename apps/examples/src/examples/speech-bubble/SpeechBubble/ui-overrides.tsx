@@ -8,7 +8,6 @@ import {
 	toolbarItem,
 	useTools,
 } from '@tldraw/tldraw'
-import { SpeechBubbleHandle } from './SpeechBubbleHandle'
 
 // There's a guide at the bottom of this file!
 
@@ -50,7 +49,6 @@ export const components: TLComponents = {
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},
-	InFrontOfTheCanvas: () => <SpeechBubbleHandle />,
 }
 
 /* 

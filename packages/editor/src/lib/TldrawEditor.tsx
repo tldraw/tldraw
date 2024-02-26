@@ -2,6 +2,7 @@ import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
+	ReactElement,
 	memo,
 	useCallback,
 	useLayoutEffect,
@@ -10,10 +11,12 @@ import React, {
 	useSyncExternalStore,
 } from 'react'
 
+import { EMPTY_ARRAY } from '@tldraw/state'
 import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { DefaultLoadingScreen } from './components/default-components/DefaultLoadingScreen'
+import { Accoutrement } from './config/Accotrements'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
@@ -30,6 +33,7 @@ import {
 import { useEvent } from './hooks/useEvent'
 import { useFocusEvents } from './hooks/useFocusEvents'
 import { useForceUpdate } from './hooks/useForceUpdate'
+import { useShallowArrayIdentity, useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
@@ -111,6 +115,8 @@ export interface TldrawEditorBaseProps {
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+
+	accoutrements?: Accoutrement[]
 }
 
 /**
@@ -137,24 +143,98 @@ const EMPTY_TOOLS_ARRAY = [] as const
 /** @public */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
-	components,
+	components: _components,
 	className,
 	user: _user,
+	accoutrements: _accoutrements,
+	onMount,
 	...rest
 }: TldrawEditorProps) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
 	const user = useMemo(() => _user ?? createTLUser(), [_user])
 
 	const ErrorFallback =
-		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
+		_components?.ErrorFallback === undefined ? DefaultErrorFallback : _components?.ErrorFallback
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
 	// defaults applied in @tldraw/tldraw.
+
+	const accoutrements = useShallowArrayIdentity(_accoutrements ?? EMPTY_ARRAY)
+
+	const rawShapeUtils = useShallowArrayIdentity(rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY)
+	const shapeUtils = useMemo(
+		() => [
+			...rawShapeUtils,
+			...accoutrements.flatMap((accoutrement) => accoutrement.shapeUtils ?? []),
+		],
+		[accoutrements, rawShapeUtils]
+	)
+
+	const rawTools = useShallowArrayIdentity(rest.tools ?? EMPTY_TOOLS_ARRAY)
+	const tools = useMemo(
+		() => [...rawTools, ...accoutrements.flatMap((accoutrement) => accoutrement.tools ?? [])],
+		[accoutrements, rawTools]
+	)
+
+	const accoutrementOnMount = useCallback(
+		(editor: Editor) => {
+			const disposes: (() => void)[] = []
+
+			if (onMount) {
+				const dispose = onMount(editor)
+				if (typeof dispose === 'function') {
+					disposes.push(dispose)
+				}
+			}
+
+			for (const accoutrement of accoutrements) {
+				if (!accoutrement.onMount) continue
+				const dispose = accoutrement.onMount(editor)
+				if (typeof dispose === 'function') {
+					disposes.push(dispose)
+				}
+			}
+			return () => {
+				for (const dispose of disposes) {
+					dispose()
+				}
+			}
+		},
+		[accoutrements, onMount]
+	)
+
+	const rawComponents = useShallowObjectIdentity(_components ?? {})
+	const components = useMemo(() => {
+		const onTheCanvasChildren: ReactElement[] = []
+		const inFrontOfTheCanvasChildren: ReactElement[] = []
+
+		if (rawComponents.OnTheCanvas) {
+			onTheCanvasChildren.push(<rawComponents.OnTheCanvas key="raw" />)
+		}
+		if (rawComponents.InFrontOfTheCanvas) {
+			inFrontOfTheCanvasChildren.push(<rawComponents.InFrontOfTheCanvas key="raw" />)
+		}
+
+		for (const { id, components } of accoutrements) {
+			if (!components) continue
+			const { OnTheCanvas, InFrontOfTheCanvas } = components
+			if (OnTheCanvas) onTheCanvasChildren.push(<OnTheCanvas key={id} />)
+			if (InFrontOfTheCanvas) inFrontOfTheCanvasChildren.push(<InFrontOfTheCanvas key={id} />)
+		}
+
+		return {
+			...rawComponents,
+			OnTheCanvas: () => <>{onTheCanvasChildren}</>,
+			InFrontOfTheCanvas: () => <>{inFrontOfTheCanvasChildren}</>,
+		}
+	}, [accoutrements, rawComponents])
+
 	const withDefaults = {
 		...rest,
-		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
-		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
+		shapeUtils: shapeUtils,
+		tools: tools,
+		onMount: accoutrementOnMount,
 		components,
 	}
 

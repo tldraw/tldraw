@@ -76,6 +76,20 @@ import { useValue } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
+// @public (undocumented)
+export interface Accoutrement {
+    // (undocumented)
+    components?: Pick<TLEditorComponents, 'InFrontOfTheCanvas' | 'OnTheCanvas'>;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    onMount?: TLOnMountHandler;
+    // (undocumented)
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    // (undocumented)
+    tools?: readonly TLStateNodeConstructor[];
+}
+
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
@@ -2031,6 +2045,8 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
+    // (undocumented)
+    accoutrements?: Accoutrement[];
     autoFocus?: boolean;
     children?: any;
     className?: string;

@@ -89,6 +89,7 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
+export { type Accoutrement } from './lib/config/Accotrements'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
