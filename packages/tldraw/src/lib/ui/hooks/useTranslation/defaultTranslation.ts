@@ -219,6 +219,7 @@ export const DEFAULT_TRANSLATION = {
 	'menu.title': 'Menu',
 	'menu.copy-as': 'Copy as',
 	'menu.edit': 'Edit',
+	'menu.object': 'Object',
 	'menu.export-as': 'Export as',
 	'menu.file': 'File',
 	'menu.language': 'Language',

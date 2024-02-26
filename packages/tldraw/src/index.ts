@@ -180,7 +180,15 @@ export {
 	DefaultMainMenu,
 	type TLUiMainMenuProps,
 } from './lib/ui/components/MainMenu/DefaultMainMenu'
-export { DefaultMainMenuContent } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
+export {
+	DefaultMainMenuContent,
+	EditSubmenu,
+	ExportFileContentSubMenu,
+	ExtrasGroup,
+	ObjectSubmenu,
+	PreferencesGroup,
+	ViewSubmenu,
+} from './lib/ui/components/MainMenu/DefaultMainMenuContent'
 
 export {
 	DefaultQuickActions,
