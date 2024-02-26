@@ -326,9 +326,6 @@ export const DefaultMainMenu: NamedExoticComponent<TLUiMainMenuProps>;
 export function DefaultMainMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultMainMenuFileContent(): JSX_2.Element;
-
-// @public (undocumented)
 export function DefaultMinimap(): JSX_2.Element;
 
 // @public (undocumented)
@@ -491,9 +488,6 @@ export function ExportFileContentSubMenu(): JSX_2.Element;
 
 // @public (undocumented)
 export function ExtrasGroup(): JSX_2.Element;
-
-// @public (undocumented)
-export function FileSubmenu(): JSX_2.Element;
 
 // @public
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {

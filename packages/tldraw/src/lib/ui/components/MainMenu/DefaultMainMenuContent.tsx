@@ -36,31 +36,12 @@ import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 export function DefaultMainMenuContent() {
 	return (
 		<>
-			<FileSubmenu />
 			<EditSubmenu />
 			<ObjectSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 		</>
-	)
-}
-
-/** @public */
-export function FileSubmenu() {
-	return (
-		<TldrawUiMenuSubmenu id="file" label="menu.file">
-			<DefaultMainMenuFileContent />
-		</TldrawUiMenuSubmenu>
-	)
-}
-
-/** @public */
-export function DefaultMainMenuFileContent() {
-	return (
-		<TldrawUiMenuGroup id="file-actions">
-			<ExportFileContentSubMenu />
-		</TldrawUiMenuGroup>
 	)
 }
 

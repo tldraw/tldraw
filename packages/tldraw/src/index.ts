@@ -182,11 +182,9 @@ export {
 } from './lib/ui/components/MainMenu/DefaultMainMenu'
 export {
 	DefaultMainMenuContent,
-	DefaultMainMenuFileContent,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	FileSubmenu,
 	ObjectSubmenu,
 	PreferencesGroup,
 	ViewSubmenu,

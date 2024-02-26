@@ -2882,39 +2882,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!DefaultMainMenuFileContent:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function DefaultMainMenuFileContent(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "DefaultMainMenuFileContent"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!DefaultMinimap:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -5532,39 +5499,6 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "ExtrasGroup"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/tldraw!FileSubmenu:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function FileSubmenu(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "FileSubmenu"
         },
         {
           "kind": "Function",
