@@ -1,18 +1,8 @@
 import { TLRecord } from '@tldraw/tldraw'
 import { TLSocketClientSentEvent, TLSYNC_PROTOCOL_VERSION } from '@tldraw/tlsync'
-import path from 'node:path'
-import type { WebSocketServer as WebSocketServerType, WebSocket as WsWebSocketType } from 'ws/index'
 import { ClientWebSocketAdapter } from './ClientWebSocketAdapter'
-
-// Hack: the `ws` package has an import map mapping browser context to a dummy implementation
-// that just throws an error, because it's impossible to create a websocket in the browser
-// and `ws` tries to guard its users. Unfortunately, we also need to run Jest in dom context,
-// which causes it to select the browser version of the package.
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const ws = require('' + path.dirname(require.resolve('ws')) + '/index.js')
-// const WsWebSocket = ws.WebSocket as typeof WsWebSocketType
-const WebSocketServer = ws.WebSocketServer as typeof WebSocketServerType
+// NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
+import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
 
 async function waitFor(predicate: () => boolean) {
 	let safety = 0
@@ -34,9 +24,9 @@ jest.useFakeTimers()
 
 describe(ClientWebSocketAdapter, () => {
 	let adapter: ClientWebSocketAdapter
-	let wsServer: WebSocketServerType
-	let connectedWs: WsWebSocketType
-	const connectMock = jest.fn<void, [socket: WsWebSocketType]>((socket) => {
+	let wsServer: WebSocketServer
+	let connectedWs: WsWebSocket
+	const connectMock = jest.fn<void, [socket: WsWebSocket]>((socket) => {
 		connectedWs = socket
 	})
 	beforeEach(() => {
