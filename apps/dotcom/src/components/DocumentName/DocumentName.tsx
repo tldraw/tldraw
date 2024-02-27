@@ -37,6 +37,7 @@ type NameState = {
 
 const MAX_TITLE_WIDTH_PX = 420
 const BUTTON_WIDTH = 44
+const STYLE_PANEL_WIDTH = 148
 const MARGIN_BETWEEN_ZONES = 12
 
 export const DocumentTopZone = track(function DocumentTopZone({
@@ -135,8 +136,13 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const totalWidth = layoutTop.offsetWidth
 		const leftWidth = leftPanel.offsetWidth
 		const rightWidth = rightPanel.offsetWidth
-		// ignore the width of the button:
-		const selfWidth = element.offsetWidth - BUTTON_WIDTH
+		let selfWidth = 0
+
+		// We want to ignore the width of the button to make the title centered
+		// unless the right panel has grown beyond the style panel width, in which
+		// case we want to include the button width in the calculation
+		if (rightWidth > STYLE_PANEL_WIDTH + BUTTON_WIDTH) selfWidth = element.offsetWidth
+		else selfWidth = element.offsetWidth - BUTTON_WIDTH
 
 		let xCoordIfCentered = (totalWidth - selfWidth) / 2
 
