@@ -37,7 +37,7 @@ export function DefaultMainMenuContent() {
 	return (
 		<>
 			<EditSubmenu />
-			<ObjectSubmenu />
+			<ShapeSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
@@ -50,13 +50,13 @@ export function ExportFileContentSubMenu() {
 	const actions = useActions()
 
 	return (
-		<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
-			<TldrawUiMenuGroup id="export-as-group">
-				<TldrawUiMenuItem {...actions['export-as-svg']} />
-				<TldrawUiMenuItem {...actions['export-as-png']} />
-				<TldrawUiMenuItem {...actions['export-as-json']} />
+		<TldrawUiMenuSubmenu id="export-all-as" label="context-menu.export-all-as" size="small">
+			<TldrawUiMenuGroup id="export-all-as-group">
+				<TldrawUiMenuItem {...actions['export-all-as-svg']} />
+				<TldrawUiMenuItem {...actions['export-all-as-png']} />
+				<TldrawUiMenuItem {...actions['export-all-as-json']} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="export-as-bg">
+			<TldrawUiMenuGroup id="export-all-as-bg">
 				<ToggleTransparentBgMenuItem />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
@@ -83,7 +83,7 @@ export function EditSubmenu() {
 }
 
 /** @public */
-export function ObjectSubmenu() {
+export function ShapeSubmenu() {
 	const editor = useEditor()
 
 	const selectToolActive = useValue(
@@ -93,7 +93,7 @@ export function ObjectSubmenu() {
 	)
 
 	return (
-		<TldrawUiMenuSubmenu id="object" label="menu.object" disabled={!selectToolActive}>
+		<TldrawUiMenuSubmenu id="shape" label="menu.shape" disabled={!selectToolActive}>
 			<ConversionsMenuGroup />
 			<MultiShapeMenuGroup />
 			<MiscMenuGroup />
