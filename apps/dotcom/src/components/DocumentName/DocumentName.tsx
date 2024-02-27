@@ -136,13 +136,9 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const totalWidth = layoutTop.offsetWidth
 		const leftWidth = leftPanel.offsetWidth
 		const rightWidth = rightPanel.offsetWidth
-		let selfWidth = 0
 
-		// We want to ignore the width of the button to make the title centered
-		// unless the right panel has grown beyond the style panel width, in which
-		// case we want to include the button width in the calculation
-		if (rightWidth > STYLE_PANEL_WIDTH + BUTTON_WIDTH) selfWidth = element.offsetWidth
-		else selfWidth = element.offsetWidth - BUTTON_WIDTH
+		// Ignore button width
+		const selfWidth = element.offsetWidth - BUTTON_WIDTH
 
 		let xCoordIfCentered = (totalWidth - selfWidth) / 2
 
@@ -154,13 +150,16 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const xCoordIfLeftAligned = leftWidth + MARGIN_BETWEEN_ZONES
 
 		const left = element.offsetLeft
-		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
 		const maxWidth = Math.min(
 			totalWidth - rightWidth - leftWidth - 2 * MARGIN_BETWEEN_ZONES,
 			MAX_TITLE_WIDTH_PX
 		)
 
-		element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
+		// We don't need to move the title if the panel hasn't grown past the style panel width
+		if (rightPanel.offsetWidth < STYLE_PANEL_WIDTH) {
+			const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
+			element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
+		}
 		element.style.setProperty('max-width', maxWidth + 'px')
 	}, [])
 
