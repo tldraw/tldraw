@@ -20,6 +20,7 @@ import {
 	compact,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
+import { updateMode } from '@tldraw/utils/src/lib/raf'
 
 type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -76,10 +77,19 @@ export class Resizing extends StateNode {
 
 	override onTick: TLTickEventHandler = () => {
 		moveCameraWhenCloseToEdge(this.editor)
+		if (updateMode !== 'onTick' || !this.isDirty) return
+		this.isDirty = false
+		this.updateShapes()
 	}
 
+	isDirty = false
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.updateShapes()
+		if (updateMode === 'onPointerMove') {
+			this.updateShapes()
+		} else {
+			this.isDirty = true
+		}
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {

@@ -6,25 +6,86 @@ const isTest = () =>
 
 const rafQueue: Array<() => void> = []
 
+type RenderingMode = 'raf' | 'sixtyFps'
+type UpdateMode = 'onTick' | 'onPointerMove'
+type ReactUpdateMode = 'original' | 'throttled'
+
+// How do we schedule the updates? Either every 16ms or on raf
+export const renderingMode: RenderingMode = 'sixtyFps'
+// export const renderingMode: RenderingMode = 'raf'
+// How does we process the updates? Either onTick or onPointerMove
+export const updateMode: UpdateMode = 'onTick'
+// export const updateMode: UpdateMode = 'onPointerMove'
+// How do we notifiy React about updates? Either original (as soon as the change occurs) or throttled
+export const reactUpdateMode: ReactUpdateMode = 'throttled'
+// export const reactUpdateMode: ReactUpdateMode = 'original'
+
+let timesBetweenFrames: number[] = []
+let lastFrameTime = 0
+
 const tick = () => {
+	const now = Date.now()
+	const timeSinceLastTick = now - lastFrameTime
+	if (timeSinceLastTick < 1000) {
+		timesBetweenFrames.push(timeSinceLastTick)
+	}
+	if (timesBetweenFrames.length > 100) {
+		console.log('resetting fps')
+		timesBetweenFrames = []
+	}
+	const average = timesBetweenFrames.reduce((a, b) => a + b, 0) / timesBetweenFrames.length
+	const fps = `${Math.round(1000 / average)}fps`
+	console.log('time since last tick', timeSinceLastTick, fps)
+	lastFrameTime = now
+
 	const queue = rafQueue.splice(0, rafQueue.length)
 	for (const fn of queue) {
 		fn()
 	}
 }
 
+const fps = 60
+const timePerFrame = 1000 / fps
 let frame: number | undefined
+let time = 0
+let last = 0
+
+function sixtyFps() {
+	if (frame) return
+	const now = Date.now()
+	const elapsed = now - last
+
+	// console.log('time, elapsed', time, elapsed)
+	if (time + elapsed < timePerFrame) {
+		// console.log('skipping frame')
+		frame = requestAnimationFrame(() => {
+			frame = undefined
+			sixtyFps()
+		})
+		return
+	}
+	frame = requestAnimationFrame(() => {
+		frame = undefined
+		last = now
+		// If we fall behind more than 100ms, we'll just skip some frames
+		time = Math.min(time + elapsed - timePerFrame, 500)
+		// time = time + elapsed - 16
+		tick()
+	})
+}
 
 function raf() {
 	if (frame) {
 		return
 	}
 
-	frame = requestAnimationFrame(() => {
+	requestAnimationFrame(() => {
 		frame = undefined
 		tick()
 	})
 }
+
+let started = false
 
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
@@ -42,7 +103,15 @@ export function rafThrottle(fn: () => void) {
 			return
 		}
 		rafQueue.push(fn)
-		raf()
+		if (renderingMode === 'sixtyFps') {
+			if (!started) {
+				started = true
+				last = Date.now() - 20
+			}
+			sixtyFps()
+		} else {
+			raf()
+		}
 	}
 }
 
@@ -63,5 +132,14 @@ export function throttledRaf(fn: () => void) {
 	}
 
 	rafQueue.push(fn)
-	raf()
+	if (frame) return
+	if (renderingMode === 'sixtyFps') {
+		if (!started) {
+			started = true
+			last = Date.now() - 20
+		}
+		sixtyFps()
+	} else {
+		raf()
+	}
 }

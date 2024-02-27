@@ -1,3 +1,5 @@
+import { rafThrottle } from '@tldraw/utils'
+import { reactUpdateMode } from '@tldraw/utils/src/lib/raf'
 import React from 'react'
 import { EffectScheduler } from '../core'
 
@@ -26,9 +28,12 @@ export function useStateTracking<T>(name: string, render: () => T): T {
 			() => renderRef.current?.(),
 			// this is what will be invoked when @tldraw/state detects a change in an upstream reactive value
 			{
-				scheduleEffect() {
-					scheduleUpdate?.()
-				},
+				scheduleEffect:
+					reactUpdateMode === 'throttled'
+						? rafThrottle(() => {
+								scheduleUpdate?.()
+							})
+						: () => scheduleUpdate?.(),
 			}
 		)
 

@@ -17,6 +17,7 @@ import {
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
+import { updateMode } from '@tldraw/utils/src/lib/raf'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
@@ -60,7 +61,20 @@ export class Drawing extends StateNode {
 		}
 	}
 
+	isDirty = false
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+		if (updateMode === 'onTick') {
+			this.isDirty = true
+		} else {
+			this.updateShapes()
+		}
+	}
+
+	override onTick = () => {
+		if (!this.isDirty || updateMode !== 'onTick') return
+
+		this.isDirty = false
 		const {
 			editor: { inputs },
 		} = this
