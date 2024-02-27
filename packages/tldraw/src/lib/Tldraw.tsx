@@ -33,7 +33,9 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
+import { useToasts } from './ui/context/toasts'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
+import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /**@public */
@@ -158,6 +160,8 @@ function InsideOfEditorAndUiContext({
 	onMount,
 }: Partial<TLExternalContentProps & { onMount: TLOnMountHandler }>) {
 	const editor = useEditor()
+	const toasts = useToasts()
+	const msg = useTranslation()
 
 	const onMountEvent = useEvent((editor: Editor) => {
 		const unsubs: (void | (() => void) | undefined)[] = []
@@ -165,12 +169,19 @@ function InsideOfEditorAndUiContext({
 		unsubs.push(...registerDefaultSideEffects(editor))
 
 		// for content handling, first we register the default handlers...
-		registerDefaultExternalContentHandlers(editor, {
-			maxImageDimension,
-			maxAssetSize,
-			acceptedImageMimeTypes,
-			acceptedVideoMimeTypes,
-		})
+		registerDefaultExternalContentHandlers(
+			editor,
+			{
+				maxImageDimension,
+				maxAssetSize,
+				acceptedImageMimeTypes,
+				acceptedVideoMimeTypes,
+			},
+			{
+				toasts,
+				msg,
+			}
+		)
 
 		// ...then we run the onMount prop, which may override the above
 		unsubs.push(onMount?.(editor))

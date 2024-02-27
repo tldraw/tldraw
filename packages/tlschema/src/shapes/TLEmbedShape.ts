@@ -18,13 +18,16 @@ export const EMBED_DEFINITIONS = [
 	{
 		type: 'tldraw',
 		title: 'tldraw',
-		hostnames: ['beta.tldraw.com', 'tldraw.com'],
+		hostnames: ['beta.tldraw.com', 'tldraw.com', 'localhost:3000'],
 		minWidth: 300,
 		minHeight: 300,
 		width: 720,
 		height: 500,
 		doesResize: true,
 		canUnmount: true,
+		overridePermissions: {
+			'allow-top-navigation': true,
+		},
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(TLDRAW_APP_RE)) {

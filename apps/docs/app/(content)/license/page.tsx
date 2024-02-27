@@ -10,7 +10,7 @@ export default async function LicensePage() {
 		<>
 			<Header />
 			<Sidebar {...sidebar} />
-			<main className="main-content article">
+			<main className="article">
 				<div className="page-header">
 					<h1>tldraw License</h1>
 				</div>
@@ -79,10 +79,6 @@ export default async function LicensePage() {
 				<hr />
 				<p>
 					Questions? Email <a href="mailto:sales@tldraw.com">sales@tldraw.com.</a>
-				</p>
-				<hr />
-				<p>
-					Questions or concerns? Email <a href="mailto:sales@tldraw.com">sales@tldraw.com.</a>
 				</p>
 			</main>
 		</>
