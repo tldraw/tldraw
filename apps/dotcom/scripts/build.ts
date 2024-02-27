@@ -61,6 +61,12 @@ async function build() {
 						}$1`,
 						check: true,
 					},
+					// rewrite api calls to the multiplayer server
+					{
+						src: '^/uploads(/(.*))?$',
+						dest: `https://tldraw-assets.tldraw.workers.dev/uploads$1`,
+						check: true,
+					},
 					// cache static assets immutably
 					{
 						src: '^/assets/(.*)$',

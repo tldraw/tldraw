@@ -7,12 +7,11 @@ import {
 	getHashForString,
 	uniqueId,
 } from '@tldraw/tldraw'
-import { ASSET_UPLOADER_URL } from './config'
 
 export async function createAssetFromFile({ file }: { type: 'file'; file: File }) {
 	const id = uniqueId()
 
-	const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
+	const UPLOAD_URL = `/uploads`
 	const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
 	const url = `${UPLOAD_URL}/${objectName}`
 
