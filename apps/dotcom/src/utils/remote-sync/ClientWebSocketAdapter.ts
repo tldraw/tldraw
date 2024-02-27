@@ -157,7 +157,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 class ReconnectManager {
 	private readonly activeMinDelay = 500
 	private readonly activeMaxDelay = 2000
-	private readonly inactiveMinDelay = 1000
+	readonly inactiveMinDelay = 1000
 	private readonly inactiveMaxDelay = 1000 * 60 * 5
 	private readonly delayExp = 1.5
 	private readonly attemptTimeout = 1000
@@ -296,8 +296,18 @@ class ReconnectManager {
 		) {
 			this.clearReconnectTimeout()
 
-			const delayLeft =
-				this.lastAttemptStart !== null ? this.lastAttemptStart + this.intendedDelay - Date.now() : 0
+			let delayLeft
+			if (this.state === 'connected') {
+				// it's the first sign that we got disconnected; the state will be updated below,
+				// just set the appropriate delay for now
+				this.intendedDelay = this.getMinDelay()
+				delayLeft = this.intendedDelay
+			} else {
+				delayLeft =
+					this.lastAttemptStart !== null
+						? this.lastAttemptStart + this.intendedDelay - Date.now()
+						: 0
+			}
 
 			if (delayLeft > 0) {
 				// try again later

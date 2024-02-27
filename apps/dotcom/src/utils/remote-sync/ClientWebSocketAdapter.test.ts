@@ -25,9 +25,9 @@ jest.useFakeTimers()
 describe(ClientWebSocketAdapter, () => {
 	let adapter: ClientWebSocketAdapter
 	let wsServer: WebSocketServer
-	let connectedWs: WsWebSocket
+	let connectedServerSocket: WsWebSocket
 	const connectMock = jest.fn<void, [socket: WsWebSocket]>((socket) => {
-		connectedWs = socket
+		connectedServerSocket = socket
 	})
 	beforeEach(() => {
 		adapter = new ClientWebSocketAdapter(() => 'ws://localhost:2233')
@@ -61,13 +61,11 @@ describe(ClientWebSocketAdapter, () => {
 	it('should try to reopen the connection if there was an error', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(adapter._ws).toBeTruthy()
-		const prevWes = adapter._ws
-		const prevConnectedWs = connectedWs
-		adapter._ws?.onerror?.({} as any)
-		// advanceTimersByTime is pointless when running against real network events
-		// jest.advanceTimersByTime(1000)
-		await waitFor(() => connectedWs !== prevConnectedWs)
-		expect(adapter._ws).not.toBe(prevWes)
+		const prevClientSocket = adapter._ws
+		const prevServerSocket = connectedServerSocket
+		prevServerSocket.terminate()
+		await waitFor(() => connectedServerSocket !== prevServerSocket)
+		expect(adapter._ws).not.toBe(prevClientSocket)
 		expect(adapter._ws?.readyState).toBe(WebSocket.OPEN)
 	})
 	it('should transition to online if a retry succeeds', async () => {
@@ -84,39 +82,41 @@ describe(ClientWebSocketAdapter, () => {
 	})
 	it('should transition to offline if the server disconnects', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(adapter.connectionStatus).toBe('offline')
 	})
 	it('retries to connect if the server disconnects', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(adapter.connectionStatus).toBe('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(adapter.connectionStatus).toBe('online')
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(adapter.connectionStatus).toBe('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(adapter.connectionStatus).toBe('online')
 	})
 
-	it('closes the socket if the window goes offline and attempts to reconnect', async () => {
+	it('attempts to reconnect early if the tab becomes active', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		const closeSpy = jest.spyOn(adapter._ws!, 'close')
-		window.dispatchEvent(new Event('offline'))
-		expect(closeSpy).toHaveBeenCalled()
-		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-	})
-
-	it('attempts to reconnect early if the window comes back online', async () => {
-		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+		const hiddenMock = jest.spyOn(document, 'hidden', 'get')
+		hiddenMock.mockReturnValue(true)
+		// it's necessary to close the socket, as otherwise the websocket might stay half-open
+		connectedServerSocket.close()
 		wsServer.close()
-		window.dispatchEvent(new Event('offline'))
-		adapter._reconnectManager.intendedDelay = 50000
-		window.dispatchEvent(new Event('online'))
-		expect(adapter._reconnectManager.intendedDelay).toBeLessThan(1000)
+		await waitFor(() => adapter._ws?.readyState !== WebSocket.OPEN)
+		expect(adapter._reconnectManager.intendedDelay).toBeGreaterThanOrEqual(
+			adapter._reconnectManager.inactiveMinDelay
+		)
+		hiddenMock.mockReturnValue(false)
+		document.dispatchEvent(new Event('visibilitychange'))
+		expect(adapter._reconnectManager.intendedDelay).toBeLessThan(
+			adapter._reconnectManager.inactiveMinDelay
+		)
+		hiddenMock.mockRestore()
 	})
 
 	it('supports receiving messages', async () => {
@@ -158,12 +158,12 @@ describe(ClientWebSocketAdapter, () => {
 		adapter.onStatusChange(onStatusChange)
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(onStatusChange).toHaveBeenCalledWith('online')
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(onStatusChange).toHaveBeenCalledWith('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(onStatusChange).toHaveBeenCalledWith('online')
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(onStatusChange).toHaveBeenCalledWith('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
