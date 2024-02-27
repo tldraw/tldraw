@@ -7230,7 +7230,7 @@ __metadata:
     strip-ansi: "npm:^7.1.0"
     toucan-js: "npm:^2.7.0"
     typescript: "npm:^5.3.3"
-    wrangler: "npm:3.16.0"
+    wrangler: "npm:3.19.0"
   languageName: unknown
   linkType: soft
 
@@ -11835,7 +11835,7 @@ __metadata:
     itty-cors: "npm:^0.3.4"
     itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
-    wrangler: "npm:3.16.0"
+    wrangler: "npm:3.19.0"
   languageName: unknown
   linkType: soft
 
@@ -15044,7 +15044,7 @@ __metadata:
     "@types/node": "npm:~20.11"
     discord-api-types: "npm:^0.37.67"
     typescript: "npm:^5.3.3"
-    wrangler: "npm:3.16.0"
+    wrangler: "npm:3.19.0"
   languageName: unknown
   linkType: soft
 
@@ -15506,9 +15506,9 @@ __metadata:
   linkType: hard
 
 "ip@npm:^1.1.5":
-  version: 1.1.8
-  resolution: "ip@npm:1.1.8"
-  checksum: 52975ebf84a090162d561fc6948fbc4c53775a8054c05371f09cfcb40e30a53aa225b4efb624f630cff5af2dd8124c82dd68e4df065dc1d1ca91d04e850e9cde
+  version: 1.1.9
+  resolution: "ip@npm:1.1.9"
+  checksum: 29261559b806f64929ada21e6d7e3bf4e67f2b43a4cb67500fdb72cead2e655ce97451a2e325eca3f404081c634ff5c3a68472814744b7f2148ddffc0fdfe66c
   languageName: node
   linkType: hard
 
@@ -18785,9 +18785,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"miniflare@npm:3.20231030.0":
-  version: 3.20231030.0
-  resolution: "miniflare@npm:3.20231030.0"
+"miniflare@npm:3.20231030.3":
+  version: 3.20231030.3
+  resolution: "miniflare@npm:3.20231030.3"
   dependencies:
     acorn: "npm:^8.8.0"
     acorn-walk: "npm:^8.2.0"
@@ -18803,7 +18803,7 @@ __metadata:
     zod: "npm:^3.20.6"
   bin:
     miniflare: bootstrap.js
-  checksum: f5b752cff7ddf6146a20aef8a345e64364f752079e5a271dc569aa05c7e91a6864e86dcdd9f327f1eaf7d0e80ecd41e712069ec5017e66d30d24292dfaf6f766
+  checksum: 988bec15ebef26770c5e6f3b8d1012748fcac404cb1040a2a806a097918c6cb3b45170238abca8b48060dfef74c433f66d50c422dac2995f7ad6000d6fa48e92
   languageName: node
   linkType: hard
 
@@ -20513,7 +20513,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.19, postcss@npm:^8.4.27, postcss@npm:^8.4.32, postcss@npm:^8.4.4":
+"postcss@npm:^8.4.19, postcss@npm:^8.4.27, postcss@npm:^8.4.4":
   version: 8.4.33
   resolution: "postcss@npm:8.4.33"
   dependencies:
@@ -20521,6 +20521,17 @@ __metadata:
     picocolors: "npm:^1.0.0"
     source-map-js: "npm:^1.0.2"
   checksum: e22a4594c255f26117f38419fb494d7ecab0f596cd409f7aadc8a6173abf180ed7ea970cd13fd366ab12b5840be901d2a09b25197700c2ebcb5a8077326bf519
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.35":
+  version: 8.4.35
+  resolution: "postcss@npm:8.4.35"
+  dependencies:
+    nanoid: "npm:^3.3.7"
+    picocolors: "npm:^1.0.0"
+    source-map-js: "npm:^1.0.2"
+  checksum: 93a7ce50cd6188f5f486a9ca98950ad27c19dfed996c45c414fa242944497e4d084a8760d3537f078630226f2bd3c6ab84b813b488740f4432e7c7039cd73a20
   languageName: node
   linkType: hard
 
@@ -22207,7 +22218,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.0.0, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:~7.5.4":
+"semver@npm:^7.0.0, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4":
+  version: 7.6.0
+  resolution: "semver@npm:7.6.0"
+  dependencies:
+    lru-cache: "npm:^6.0.0"
+  bin:
+    semver: bin/semver.js
+  checksum: 1b41018df2d8aca5a1db4729985e8e20428c650daea60fcd16e926e9383217d00f574fab92d79612771884a98d2ee2a1973f49d630829a8d54d6570defe62535
+  languageName: node
+  linkType: hard
+
+"semver@npm:~7.5.4":
   version: 7.5.4
   resolution: "semver@npm:7.5.4"
   dependencies:
@@ -24150,11 +24172,11 @@ __metadata:
   linkType: hard
 
 "undici@npm:^5.22.1, undici@npm:^5.25.4":
-  version: 5.28.2
-  resolution: "undici@npm:5.28.2"
+  version: 5.28.3
+  resolution: "undici@npm:5.28.3"
   dependencies:
     "@fastify/busboy": "npm:^2.0.0"
-  checksum: 07ab8b812c7322f5faba55268562e3626463171ace8a2e5861e5793e69f8901e809bcdeb4013126fe8d1602baac247ea3c0c996073dbf9709516295b0a4dd18f
+  checksum: 779856ce14ba6907c0759df8e4babd61608b1f502569d44de7dd1d014afb7c67a0a2997b4f706e0daff8a55d87ee2f25b830b195fc0202cb6fbd25abe2d941eb
   languageName: node
   linkType: hard
 
@@ -24849,8 +24871,8 @@ __metadata:
   linkType: hard
 
 "vite@npm:^3.0.0 || ^4.0.0, vite@npm:^4.1.4":
-  version: 4.5.1
-  resolution: "vite@npm:4.5.1"
+  version: 4.5.2
+  resolution: "vite@npm:4.5.2"
   dependencies:
     esbuild: "npm:^0.18.10"
     fsevents: "npm:~2.3.2"
@@ -24884,17 +24906,17 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 2ea9c030a5718ca0adaaa0ecc54402a725cff59131cf80bc84d0237f59c98168803ee59d23e697b98b1184be3af6c6edc2e81517f769c62159f11531b3341a4e
+  checksum: 3feb39f8da038fb2b1ad074c19a9579c263c1d7a872c5c6e0269b82d67805bb8c93cf9fc393e852807483ae9a918b1ac2861c72f73ee92fb3935ea68333a2cf7
   languageName: node
   linkType: hard
 
 "vite@npm:^5.0.0":
-  version: 5.0.11
-  resolution: "vite@npm:5.0.11"
+  version: 5.1.4
+  resolution: "vite@npm:5.1.4"
   dependencies:
     esbuild: "npm:^0.19.3"
     fsevents: "npm:~2.3.3"
-    postcss: "npm:^8.4.32"
+    postcss: "npm:^8.4.35"
     rollup: "npm:^4.2.0"
   peerDependencies:
     "@types/node": ^18.0.0 || >=20.0.0
@@ -24924,7 +24946,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: f1a8fea35ed9f162d7a10fd13efb2c96637028b0a319d726aeec8b31e20e4d047272bda5df82167618e7774a520236c66f3093ed172802660aec5227814072f4
+  checksum: e9003b853f0784260f4fe7ce0190124b347fd8fd6bf889a07080facd0d9a9667eaff4022eddb1ba3f0283ef69d15d77f84bca832082e48874a7a62e7f6d66b08
   languageName: node
   linkType: hard
 
@@ -25349,9 +25371,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wrangler@npm:3.16.0":
-  version: 3.16.0
-  resolution: "wrangler@npm:3.16.0"
+"wrangler@npm:3.19.0":
+  version: 3.19.0
+  resolution: "wrangler@npm:3.19.0"
   dependencies:
     "@cloudflare/kv-asset-handler": "npm:^0.2.0"
     "@esbuild-plugins/node-globals-polyfill": "npm:^0.2.3"
@@ -25360,7 +25382,7 @@ __metadata:
     chokidar: "npm:^3.5.3"
     esbuild: "npm:0.17.19"
     fsevents: "npm:~2.3.2"
-    miniflare: "npm:3.20231030.0"
+    miniflare: "npm:3.20231030.3"
     nanoid: "npm:^3.3.3"
     path-to-regexp: "npm:^6.2.0"
     resolve.exports: "npm:^2.0.2"
@@ -25374,7 +25396,7 @@ __metadata:
   bin:
     wrangler: bin/wrangler.js
     wrangler2: bin/wrangler.js
-  checksum: 415d2c06d69a0901c9ff2d7a7222e776e45b3a502840bc0b01b0da3b919187324dd969d5c52913e6f74286874facdf18cd878532175cc4825ed86238470a9061
+  checksum: 18ff7dfce24c34c077e77162f978a74021324a7f21653352436956915e7ceaa45220823bf5982bb11bb78233f5ea99c61b88c923f9021ef866709cbf75e12a52
   languageName: node
   linkType: hard
 
