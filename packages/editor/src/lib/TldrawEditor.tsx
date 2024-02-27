@@ -13,7 +13,6 @@ import React, {
 import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
-import { DefaultLoadingScreen } from './components/default-components/DefaultLoadingScreen'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
@@ -229,6 +228,8 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 		}
 	}, [container, user])
 
+	const { LoadingScreen } = useEditorComponents()
+
 	switch (store.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
@@ -237,8 +238,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 			throw store.error
 		}
 		case 'loading': {
-			const LoadingScreen = rest.components?.LoadingScreen ?? DefaultLoadingScreen
-			return <LoadingScreen />
+			return LoadingScreen ? <LoadingScreen /> : null
 		}
 		case 'not-synced': {
 			break
@@ -368,14 +368,7 @@ function Crash({ crashingError }: { crashingError: unknown }): null {
 
 /** @public */
 export function LoadingScreen({ children }: { children: any }) {
-	const { Spinner } = useEditorComponents()
-
-	return (
-		<div className="tl-loading">
-			{Spinner ? <Spinner /> : null}
-			{children}
-		</div>
-	)
+	return <div className="tl-loading">{children}</div>
 }
 
 /** @public */
