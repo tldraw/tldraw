@@ -5,6 +5,7 @@ import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckbo
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 
+/** @public */
 export const LanguageMenu = track(function LanguageMenu() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
