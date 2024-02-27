@@ -155,7 +155,7 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 			MAX_TITLE_WIDTH_PX
 		)
 
-		// We don't need to move the title if the panel hasn't grown past the style panel width
+		// We don't need to move the title if the panel has grown past the style panel width
 		if (rightPanel.offsetWidth < STYLE_PANEL_WIDTH) {
 			const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
 			element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
