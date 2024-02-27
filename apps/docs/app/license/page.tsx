@@ -80,10 +80,6 @@ export default async function LicensePage() {
 				<p>
 					Questions? Email <a href="mailto:sales@tldraw.com">sales@tldraw.com.</a>
 				</p>
-				<hr />
-				<p>
-					Questions or concerns? Email <a href="mailto:sales@tldraw.com">sales@tldraw.com.</a>
-				</p>
 			</main>
 		</>
 	)
