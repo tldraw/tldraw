@@ -55,9 +55,7 @@ function sixtyFps() {
 	const now = Date.now()
 	const elapsed = now - last
 
-	// console.log('time, elapsed', time, elapsed)
 	if (time + elapsed < timePerFrame) {
-		// console.log('skipping frame')
 		frame = requestAnimationFrame(() => {
 			frame = undefined
 			sixtyFps()
