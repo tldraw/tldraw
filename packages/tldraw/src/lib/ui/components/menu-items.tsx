@@ -113,7 +113,7 @@ export function ToggleTransparentBgMenuItem() {
 	const editor = useEditor()
 	const isTransparentBg = useValue(
 		'isTransparentBg',
-		() => editor.getInstanceState().exportBackground,
+		() => !editor.getInstanceState().exportBackground,
 		[editor]
 	)
 	return <TldrawUiMenuCheckboxItem {...actions['toggle-transparent']} checked={isTransparentBg} />
