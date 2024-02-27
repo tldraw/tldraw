@@ -9,7 +9,7 @@ export function Header({ sectionId }: { sectionId?: string }) {
 	return (
 		<div className="layout__header">
 			<div className="layout__header__left">
-				<Link href="/introduction">
+				<Link href="/quick-start">
 					<img className="logo-dark" src="/tldraw_dev_dark.png" />
 					<img className="logo-light" src="/tldraw_dev_light.png" />
 				</Link>
@@ -55,7 +55,7 @@ export function SectionLinks({ sectionId }: { sectionId?: string | null }) {
 	return (
 		<>
 			<a
-				href="/introduction"
+				href="/quick-start"
 				title="Learn"
 				data-active={!['reference', 'examples'].includes(sectionId || '')}
 				className="layout_header__section"
