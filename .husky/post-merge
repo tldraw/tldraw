@@ -3,10 +3,8 @@
 
 set -e
 
-rm -rf *.tsbuildinfo */*.tsbuildinfo */*/*.tsbuildinfo */*/*/*.tsbuildinfo */*/*/*/*.tsbuildinfo
-
 # This notifies the user if the yarn.lock file has changed.
-CHANGED=$(git diff "$1" "$2" --stat -- ./yarn.lock | wc -l)
+CHANGED=$(git diff HEAD@{1} --stat -- ./yarn.lock | wc -l)
 if (( CHANGED > 0 )); then
     echo
     echo "🚨 🚨 🚨 yarn.lock has changed! 🚨 🚨 🚨 "
