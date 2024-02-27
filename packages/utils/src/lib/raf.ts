@@ -67,9 +67,9 @@ function sixtyFps() {
 	frame = requestAnimationFrame(() => {
 		frame = undefined
 		last = now
-		// If we fall behind more than 100ms, we'll just skip some frames
-		time = Math.min(time + elapsed - timePerFrame, 500)
-		// time = time + elapsed - 16
+		// If we fall behind more than 10 frames, we'll just reset the time so we don't
+		// try to update a number of times
+		time = Math.min(time + elapsed - timePerFrame, timePerFrame * 10)
 		tick()
 	})
 }
