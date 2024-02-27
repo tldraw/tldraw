@@ -40,6 +40,7 @@ export {
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
+export { HandleControl } from './lib/components/Interaction'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
 export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'

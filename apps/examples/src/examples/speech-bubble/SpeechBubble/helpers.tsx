@@ -2,9 +2,9 @@ import { Vec, VecLike, lerp, pointInPolygon } from '@tldraw/tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
-	const { w, h, handles } = shape.props
+	const { w, h, tail } = shape.props
 
-	const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
+	const handleInShapeSpace = new Vec(tail.x * w, tail.y * h)
 
 	const [tl, tr, br, bl] = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
 
@@ -73,8 +73,8 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
 }
 
 export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
-	const { w, h, handles } = shape.props
-	const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
+	const { w, h, tail } = shape.props
+	const handleInShapeSpace = new Vec(tail.x * w, tail.y * h)
 
 	const center = new Vec(w / 2, h / 2)
 	const corners = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
