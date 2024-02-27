@@ -51,7 +51,9 @@ let time = 0
 let last = 0
 
 function sixtyFps() {
-	if (frame) return
+	if (frame) {
+		return
+	}
 	const now = Date.now()
 	const elapsed = now - last
 
@@ -130,7 +132,6 @@ export function throttledRaf(fn: () => void) {
 	}
 
 	rafQueue.push(fn)
-	if (frame) return
 	if (renderingMode === 'sixtyFps') {
 		if (!started) {
 			started = true
