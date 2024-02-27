@@ -234,13 +234,8 @@ export function PasteMenuItem() {
 /* ------------------- Conversions ------------------ */
 
 export function ConversionsMenuGroup() {
-	const editor = useEditor()
 	const actions = useActions()
-	const atLeastOneShapeOnPage = useValue(
-		'atLeastOneShapeOnPage',
-		() => editor.getCurrentPageShapeIds().size > 0,
-		[]
-	)
+	const shouldDisplay = useUnlockedSelectedShapesCount(1)
 
 	return (
 		<TldrawUiMenuGroup id="conversions">
@@ -248,7 +243,7 @@ export function ConversionsMenuGroup() {
 				id="export-as"
 				label="context-menu.export-as"
 				size="small"
-				disabled={!atLeastOneShapeOnPage}
+				disabled={!shouldDisplay}
 			>
 				<TldrawUiMenuGroup id="export-as-group">
 					<TldrawUiMenuItem {...actions['export-as-svg']} />
