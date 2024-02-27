@@ -111,6 +111,8 @@ export type TLUiTranslationKey =
 	| 'action.zoom-to-100'
 	| 'action.zoom-to-fit'
 	| 'action.zoom-to-selection'
+	| 'assets.files.upload-failed'
+	| 'assets.url.failed'
 	| 'color-style.black'
 	| 'color-style.blue'
 	| 'color-style.green'
