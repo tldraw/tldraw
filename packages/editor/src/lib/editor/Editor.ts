@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
+import { Atom, Computed, EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -120,6 +120,7 @@ import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/shar
 import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
+import { Control, ControlFn } from './types/Control'
 import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
@@ -8931,6 +8932,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		return this
+	}
+
+	// controls
+	private controlsMap: Atom<ReadonlyMap<ControlFn, Computed<readonly Control[]>>> = atom(
+		'controls',
+		new Map()
+	)
+	addControls(controlFn: ControlFn) {
+		this.controlsMap.update((prevControls) => {
+			if (prevControls.has(controlFn)) return prevControls
+			const nextControls = new Map(prevControls)
+			nextControls.set(
+				controlFn,
+				computed('control', () => {
+					const result = controlFn(this)
+					if (!result) return EMPTY_ARRAY
+					if (Array.isArray(result)) return result
+					return [result]
+				})
+			)
+			return nextControls
+		})
+	}
+	removeControls(controlFn: ControlFn) {
+		this.controlsMap.update((prevControls) => {
+			if (!prevControls.has(controlFn)) return prevControls
+			const nextControls = new Map(prevControls)
+			nextControls.delete(controlFn)
+			return nextControls
+		})
+	}
+
+	@computed getControls(): readonly Control[] {
+		const results = []
+		for (const controls of this.controlsMap.get().values()) {
+			for (const control of controls.get()) {
+				results.push(control)
+			}
+		}
+		return results
 	}
 }
 
