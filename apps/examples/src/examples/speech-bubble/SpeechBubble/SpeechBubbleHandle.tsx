@@ -1,13 +1,8 @@
 import { HandleControl, StateNode, Vec, track, useEditor } from '@tldraw/tldraw'
-import { useEffect } from 'react'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export const SpeechBubbleHandle = track(function SpeechBubbleHandle() {
 	const editor = useEditor()
-
-	useEffect(() => {
-		editor.root.find('select')!.addChild(DraggingSpeechBubble)
-	}, [editor])
 
 	if (!editor.isInAny('select.idle')) {
 		return null
@@ -41,13 +36,15 @@ export const SpeechBubbleHandle = track(function SpeechBubbleHandle() {
 // - tool masks (what even is this?)
 // - snapping/modifiers
 // - triggering updates on key presses?
+// - pointer capture
 //
 // drawbacks:
 // - need to manually handle cancellation, undo-redo, etc
 // - kinda funky with typescript to have properties on the state node
 // - how to pass data into this?
 // - feels pretty unfamiliar to devs - why do i have to do something special to add this to the state tree?
-class DraggingSpeechBubble extends StateNode {
+// - gesture recognition (can't transition this into a pinch because it never reached our state chart)
+export class DraggingSpeechBubble extends StateNode {
 	override id = 'draggingSpeechBubble'
 
 	initialShape!: SpeechBubbleShape

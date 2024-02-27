@@ -1,23 +1,17 @@
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { SpeechBubbleTool } from './SpeechBubble/SpeechBubbleTool'
-import { SpeechBubbleUtil } from './SpeechBubble/SpeechBubbleUtil'
+import { SpeechBubbleAccoutrement } from './SpeechBubble/SpeechBubbleAccoutrement'
 import { components, customAssetUrls, uiOverrides } from './SpeechBubble/ui-overrides'
 import './customhandles.css'
 
 // There's a guide at the bottom of this file!
-
-// [1]
-const shapeUtils = [SpeechBubbleUtil]
-const tools = [SpeechBubbleTool]
 
 // [2]
 export default function CustomShapeWithHandles() {
 	return (
 		<div style={{ position: 'absolute', inset: 0 }}>
 			<Tldraw
-				shapeUtils={shapeUtils}
-				tools={tools}
+				accoutrements={[SpeechBubbleAccoutrement]}
 				overrides={uiOverrides}
 				assetUrls={customAssetUrls}
 				components={components}
