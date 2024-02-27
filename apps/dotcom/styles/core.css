@@ -1,8 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;800&display=swap');
 
 :root {
-	font-family: Inter, -apple-system, 'system-ui', 'Segoe UI', 'Noto Sans', Helvetica, Arial,
-		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+	font-family:
+		Inter,
+		-apple-system,
+		'system-ui',
+		'Segoe UI',
+		'Noto Sans',
+		Helvetica,
+		Arial,
+		sans-serif,
+		'Apple Color Emoji',
+		'Segoe UI Emoji';
 
 	font-size: 12px;
 	font-weight: 500;
@@ -197,4 +206,29 @@ a {
 	position: fixed;
 	top: 8px;
 	right: 8px;
+}
+
+/* ----------------- Iframe warning ----------------- */
+
+.iframe-warning__container {
+	position: absolute;
+	inset: 0px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+}
+
+.iframe-warning__link {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 32px;
+	font-size: 14px;
+}
+
+.iframe-warning__link svg {
+	width: 14px;
+	height: 14px;
 }

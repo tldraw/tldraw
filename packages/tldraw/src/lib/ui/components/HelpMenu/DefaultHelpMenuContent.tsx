@@ -12,8 +12,8 @@ export function DefaultHelpMenuContent() {
 		</>
 	)
 }
-
-function KeyboardShortcutsMenuItem() {
+/** @public */
+export function KeyboardShortcutsMenuItem() {
 	const { KeyboardShortcutsDialog } = useTldrawUiComponents()
 	const { addDialog } = useDialogs()
 
