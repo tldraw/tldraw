@@ -9,9 +9,9 @@ import {
 	EditSubmenu,
 	Editor,
 	ExtrasGroup,
-	ObjectSubmenu,
 	OfflineIndicator,
 	PreferencesGroup,
+	ShapeSubmenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -69,7 +69,7 @@ const components: TLComponents = {
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
 			<EditSubmenu />
-			<ObjectSubmenu />
+			<ShapeSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
