@@ -1,6 +1,6 @@
 import { TLRecord } from '@tldraw/tldraw'
 import { TLSocketClientSentEvent, TLSYNC_PROTOCOL_VERSION } from '@tldraw/tlsync'
-import { ClientWebSocketAdapter } from './ClientWebSocketAdapter'
+import { ClientWebSocketAdapter, INACTIVE_MIN_DELAY } from './ClientWebSocketAdapter'
 // NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
 import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
 
@@ -108,14 +108,10 @@ describe(ClientWebSocketAdapter, () => {
 		connectedServerSocket.close()
 		wsServer.close()
 		await waitFor(() => adapter._ws?.readyState !== WebSocket.OPEN)
-		expect(adapter._reconnectManager.intendedDelay).toBeGreaterThanOrEqual(
-			adapter._reconnectManager.inactiveMinDelay
-		)
+		expect(adapter._reconnectManager.intendedDelay).toBeGreaterThanOrEqual(INACTIVE_MIN_DELAY)
 		hiddenMock.mockReturnValue(false)
 		document.dispatchEvent(new Event('visibilitychange'))
-		expect(adapter._reconnectManager.intendedDelay).toBeLessThan(
-			adapter._reconnectManager.inactiveMinDelay
-		)
+		expect(adapter._reconnectManager.intendedDelay).toBeLessThan(INACTIVE_MIN_DELAY)
 		hiddenMock.mockRestore()
 	})
 

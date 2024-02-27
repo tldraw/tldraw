@@ -154,15 +154,21 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 	}
 }
 
-class ReconnectManager {
-	// todo: use CONST_VALUES
-	private readonly activeMinDelay = 500
-	private readonly activeMaxDelay = 2000
-	readonly inactiveMinDelay = 1000
-	private readonly inactiveMaxDelay = 1000 * 60 * 5
-	private readonly delayExp = 1.5
-	private readonly attemptTimeout = 1000
+// Those constants are exported primarily for tests
+// ACTIVE_ means the tab is active, document.hidden is false
+export const ACTIVE_MIN_DELAY = 500
+export const ACTIVE_MAX_DELAY = 2000
+// Correspondingly, here document.hidden is true. It's intended to reduce the load and battery drain
+// on client devices somewhat when they aren't looking at the tab. We don't disconnect completely
+// to minimise issues with reconnection/sync when the tab becomes visible again
+export const INACTIVE_MIN_DELAY = 1000
+export const INACTIVE_MAX_DELAY = 1000 * 60 * 5
+export const DELAY_EXPONENT = 1.5
+// this is a tradeoff between quickly detecting connections stuck in the CONNECTING state and
+// not needlessly reconnecting if the connection is just slow to establish
+export const ATTEMPT_TIMEOUT = 1000
 
+class ReconnectManager {
 	private isDisposed = false
 	private disposables: (() => void)[] = [
 		() => {
@@ -174,7 +180,7 @@ class ReconnectManager {
 	private recheckConnectingTimeout: ReturnType<typeof setTimeout> | null = null
 
 	private lastAttemptStart: number | null = null
-	intendedDelay: number = this.activeMinDelay
+	intendedDelay: number = ACTIVE_MIN_DELAY
 	private state: 'pendingAttempt' | 'pendingAttemptResult' | 'delay' | 'connected'
 
 	constructor(
@@ -206,7 +212,7 @@ class ReconnectManager {
 		}
 
 		this.state = 'pendingAttempt'
-		this.intendedDelay = this.activeMinDelay
+		this.intendedDelay = ACTIVE_MIN_DELAY
 		this.scheduleAttempt()
 	}
 
@@ -223,11 +229,11 @@ class ReconnectManager {
 	}
 
 	private getMaxDelay() {
-		return document.hidden ? this.inactiveMaxDelay : this.activeMaxDelay
+		return document.hidden ? INACTIVE_MAX_DELAY : ACTIVE_MAX_DELAY
 	}
 
 	private getMinDelay() {
-		return document.hidden ? this.inactiveMinDelay : this.activeMinDelay
+		return document.hidden ? INACTIVE_MIN_DELAY : ACTIVE_MIN_DELAY
 	}
 
 	private clearReconnectTimeout() {
@@ -266,10 +272,10 @@ class ReconnectManager {
 				'ReadyState=CONNECTING without lastAttemptStart should be impossible'
 			)
 			const sinceLastStart = Date.now() - this.lastAttemptStart
-			if (sinceLastStart < this.attemptTimeout) {
+			if (sinceLastStart < ATTEMPT_TIMEOUT) {
 				this.recheckConnectingTimeout = setTimeout(
 					() => this.maybeReconnected(),
-					this.attemptTimeout - sinceLastStart
+					ATTEMPT_TIMEOUT - sinceLastStart
 				)
 			} else {
 				// Last connection attempt was started a while ago, it's possible that network conditions
@@ -287,7 +293,7 @@ class ReconnectManager {
 		// readyState is CLOSING or CLOSED, or the websocket is null
 		// Restart the backoff and retry ASAP (honouring the min delay)
 		// this.state doesn't really matter, because disconnected() will handle any state correctly
-		this.intendedDelay = this.activeMinDelay
+		this.intendedDelay = ACTIVE_MIN_DELAY
 		this.disconnected()
 	}
 
@@ -326,7 +332,7 @@ class ReconnectManager {
 
 				this.intendedDelay = Math.min(
 					this.getMaxDelay(),
-					Math.max(this.getMinDelay(), this.intendedDelay) * this.delayExp
+					Math.max(this.getMinDelay(), this.intendedDelay) * DELAY_EXPONENT
 				)
 				this.scheduleAttempt()
 			}
@@ -338,7 +344,7 @@ class ReconnectManager {
 		if (this.socketAdapter._ws?.readyState === WebSocket.OPEN) {
 			this.state = 'connected'
 			this.clearReconnectTimeout()
-			this.intendedDelay = this.activeMinDelay
+			this.intendedDelay = ACTIVE_MIN_DELAY
 		}
 	}
 
