@@ -42,14 +42,16 @@ export default function StoreEventsExample() {
 					let diff = _.reduce(
 						from,
 						(result: any[], value, key: string) =>
-							_.isEqual(value, (to as any)[key]) ? result : result.concat([key, value]),
+							_.isEqual(value, (to as any)[key]) ? result : result.concat([key, (to as any)[key]]),
 						[]
 					)
 					if (diff?.[0] === 'props') {
 						diff = _.reduce(
 							(from as any).props,
 							(result: any[], value, key) =>
-								_.isEqual(value, (to as any).props[key]) ? result : result.concat([key, value]),
+								_.isEqual(value, (to as any).props[key])
+									? result
+									: result.concat([key, (to as any).props[key]]),
 							[]
 						)
 					}

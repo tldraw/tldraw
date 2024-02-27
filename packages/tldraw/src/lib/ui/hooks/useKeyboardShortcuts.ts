@@ -33,13 +33,13 @@ export function useKeyboardShortcuts() {
 		hotkeys.setScope(editor.store.id)
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: container, scope: editor.store.id }, callback)
+			hotkeys(keys, { element: document.body, scope: editor.store.id }, callback)
 		}
 
 		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
 			hotkeys(
 				keys,
-				{ element: container, keyup: true, keydown: false, scope: editor.store.id },
+				{ element: document.body, keyup: true, keydown: false, scope: editor.store.id },
 				callback
 			)
 		}

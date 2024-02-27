@@ -1,6 +1,6 @@
 import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
-import { Required, annotateError } from '@tldraw/utils'
+import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
 	memo,
 	useCallback,
@@ -13,7 +13,6 @@ import React, {
 import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
-import { DefaultLoadingScreen } from './components/default-components/DefaultLoadingScreen'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
@@ -41,20 +40,22 @@ import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
  *
  * @public
  **/
-export type TldrawEditorProps = TldrawEditorBaseProps &
-	(
-		| {
-				store: TLStore | TLStoreWithStatus
-		  }
-		| {
-				store?: undefined
-				snapshot?: StoreSnapshot<TLRecord>
-				initialData?: SerializedStore<TLRecord>
-				persistenceKey?: string
-				sessionId?: string
-				defaultName?: string
-		  }
-	)
+export type TldrawEditorProps = Expand<
+	TldrawEditorBaseProps &
+		(
+			| {
+					store: TLStore | TLStoreWithStatus
+			  }
+			| {
+					store?: undefined
+					snapshot?: StoreSnapshot<TLRecord>
+					initialData?: SerializedStore<TLRecord>
+					persistenceKey?: string
+					sessionId?: string
+					defaultName?: string
+			  }
+		)
+>
 
 /**
  * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
@@ -227,6 +228,8 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 		}
 	}, [container, user])
 
+	const { LoadingScreen } = useEditorComponents()
+
 	switch (store.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
@@ -235,8 +238,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 			throw store.error
 		}
 		case 'loading': {
-			const LoadingScreen = rest.components?.LoadingScreen ?? DefaultLoadingScreen
-			return <LoadingScreen />
+			return LoadingScreen ? <LoadingScreen /> : null
 		}
 		case 'not-synced': {
 			break
@@ -366,14 +368,7 @@ function Crash({ crashingError }: { crashingError: unknown }): null {
 
 /** @public */
 export function LoadingScreen({ children }: { children: any }) {
-	const { Spinner } = useEditorComponents()
-
-	return (
-		<div className="tl-loading">
-			{Spinner ? <Spinner /> : null}
-			{children}
-		</div>
-	)
+	return <div className="tl-loading">{children}</div>
 }
 
 /** @public */

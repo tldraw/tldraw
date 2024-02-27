@@ -84,25 +84,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@auto-it/bot-list@npm:10.46.0":
-  version: 10.46.0
-  resolution: "@auto-it/bot-list@npm:10.46.0"
-  checksum: d616a67430f3db54d19b41f7516de44572e3217e481b66ce4f666cbdcebd3afe46c9d502c53f1e59dad14c36271dc49a3a07879e7c601b7042d23a55272e9b1f
+"@auto-it/bot-list@npm:11.1.1":
+  version: 11.1.1
+  resolution: "@auto-it/bot-list@npm:11.1.1"
+  checksum: 37b6d689d23d95ef05a618ac05123f310c1667daa42fdf76338fce8a9a120b90ebb787c6e8c87cbf8e55d34862b30dd37363b8dd41cd351a0e81c3340eade643
   languageName: node
   linkType: hard
 
-"@auto-it/bot-list@npm:11.0.7":
-  version: 11.0.7
-  resolution: "@auto-it/bot-list@npm:11.0.7"
-  checksum: c2f4ac6022dffa4e52f600f4854bb51811c4cbc594fed7465713cfcb0716758c37ac3e335c18da0dfa46ec60c52d8d4a334edbc9f5651b796150a70762b0458c
-  languageName: node
-  linkType: hard
-
-"@auto-it/core@npm:10.46.0":
-  version: 10.46.0
-  resolution: "@auto-it/core@npm:10.46.0"
+"@auto-it/core@npm:11.1.1, @auto-it/core@npm:^11.1.1":
+  version: 11.1.1
+  resolution: "@auto-it/core@npm:11.1.1"
   dependencies:
-    "@auto-it/bot-list": "npm:10.46.0"
+    "@auto-it/bot-list": "npm:11.1.1"
     "@endemolshinegroup/cosmiconfig-typescript-loader": "npm:^3.0.2"
     "@octokit/core": "npm:^3.5.1"
     "@octokit/plugin-enterprise-compatibility": "npm:1.3.0"
@@ -147,122 +140,16 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: f407cf3d931d57f4ec7ba1128c4fc2df1c717e93c9271fb461c67b304f1a0ad5aa45623dbe9c8c8072a0f58134a33870de42b876b95ce8d810d8b43bb16c70e0
+  checksum: 77e60dceecc3dd7e115a8034127b474ebc19109322ad6ee82e8b615ffb8af2845e9f732c43a489a0575e62e0bbdf5d2615c5e9e6fe42cdc444a66cd578478616
   languageName: node
   linkType: hard
 
-"@auto-it/core@npm:11.0.7":
-  version: 11.0.7
-  resolution: "@auto-it/core@npm:11.0.7"
+"@auto-it/npm@npm:11.1.1":
+  version: 11.1.1
+  resolution: "@auto-it/npm@npm:11.1.1"
   dependencies:
-    "@auto-it/bot-list": "npm:11.0.7"
-    "@endemolshinegroup/cosmiconfig-typescript-loader": "npm:^3.0.2"
-    "@octokit/core": "npm:^3.5.1"
-    "@octokit/plugin-enterprise-compatibility": "npm:1.3.0"
-    "@octokit/plugin-retry": "npm:^3.0.9"
-    "@octokit/plugin-throttling": "npm:^3.6.2"
-    "@octokit/rest": "npm:^18.12.0"
-    await-to-js: "npm:^3.0.0"
-    chalk: "npm:^4.0.0"
-    cosmiconfig: "npm:7.0.0"
-    deepmerge: "npm:^4.0.0"
-    dotenv: "npm:^8.0.0"
-    endent: "npm:^2.1.0"
-    enquirer: "npm:^2.3.4"
-    env-ci: "npm:^5.0.1"
-    fast-glob: "npm:^3.1.1"
-    fp-ts: "npm:^2.5.3"
-    fromentries: "npm:^1.2.0"
-    gitlog: "npm:^4.0.3"
-    https-proxy-agent: "npm:^5.0.0"
-    import-cwd: "npm:^3.0.0"
-    import-from: "npm:^3.0.0"
-    io-ts: "npm:^2.1.2"
-    lodash.chunk: "npm:^4.2.0"
-    log-symbols: "npm:^4.0.0"
-    node-fetch: "npm:2.6.7"
-    parse-author: "npm:^2.0.0"
-    parse-github-url: "npm:1.0.2"
-    pretty-ms: "npm:^7.0.0"
-    requireg: "npm:^0.2.2"
-    semver: "npm:^7.0.0"
-    signale: "npm:^1.4.0"
-    tapable: "npm:^2.2.0"
-    terminal-link: "npm:^2.1.1"
-    tinycolor2: "npm:^1.4.1"
-    ts-node: "npm:^10.9.1"
-    tslib: "npm:2.1.0"
-    type-fest: "npm:^0.21.1"
-    typescript-memoize: "npm:^1.0.0-alpha.3"
-    url-join: "npm:^4.0.0"
-  peerDependencies:
-    typescript: ">=2.7"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 52f71d5d59dc8898745cda28d008766ccbfc399416264ca77d0579334643c2dd4a76f19615f52d1777c04bec6aa84f6e44dcd575814cb9fd2a29085eaf0bbfa3
-  languageName: node
-  linkType: hard
-
-"@auto-it/core@patch:@auto-it/core@npm%3A10.46.0#./.yarn/patches/@auto-it-core-npm-10.46.0-4ce8f196af.patch::locator=%40tldraw%2Fmonorepo%40workspace%3A.":
-  version: 10.46.0
-  resolution: "@auto-it/core@patch:@auto-it/core@npm%3A10.46.0#./.yarn/patches/@auto-it-core-npm-10.46.0-4ce8f196af.patch::version=10.46.0&hash=3c4496&locator=%40tldraw%2Fmonorepo%40workspace%3A."
-  dependencies:
-    "@auto-it/bot-list": "npm:10.46.0"
-    "@endemolshinegroup/cosmiconfig-typescript-loader": "npm:^3.0.2"
-    "@octokit/core": "npm:^3.5.1"
-    "@octokit/plugin-enterprise-compatibility": "npm:1.3.0"
-    "@octokit/plugin-retry": "npm:^3.0.9"
-    "@octokit/plugin-throttling": "npm:^3.6.2"
-    "@octokit/rest": "npm:^18.12.0"
-    await-to-js: "npm:^3.0.0"
-    chalk: "npm:^4.0.0"
-    cosmiconfig: "npm:7.0.0"
-    deepmerge: "npm:^4.0.0"
-    dotenv: "npm:^8.0.0"
-    endent: "npm:^2.1.0"
-    enquirer: "npm:^2.3.4"
-    env-ci: "npm:^5.0.1"
-    fast-glob: "npm:^3.1.1"
-    fp-ts: "npm:^2.5.3"
-    fromentries: "npm:^1.2.0"
-    gitlog: "npm:^4.0.3"
-    https-proxy-agent: "npm:^5.0.0"
-    import-cwd: "npm:^3.0.0"
-    import-from: "npm:^3.0.0"
-    io-ts: "npm:^2.1.2"
-    lodash.chunk: "npm:^4.2.0"
-    log-symbols: "npm:^4.0.0"
-    node-fetch: "npm:2.6.7"
-    parse-author: "npm:^2.0.0"
-    parse-github-url: "npm:1.0.2"
-    pretty-ms: "npm:^7.0.0"
-    requireg: "npm:^0.2.2"
-    semver: "npm:^7.0.0"
-    signale: "npm:^1.4.0"
-    tapable: "npm:^2.2.0"
-    terminal-link: "npm:^2.1.1"
-    tinycolor2: "npm:^1.4.1"
-    ts-node: "npm:^10.9.1"
-    tslib: "npm:2.1.0"
-    type-fest: "npm:^0.21.1"
-    typescript-memoize: "npm:^1.0.0-alpha.3"
-    url-join: "npm:^4.0.0"
-  peerDependencies:
-    typescript: ">=2.7"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: dc91961d533a58277efb3cfd14ab8d91372b648483d5278095bb82cd0cd39334104c7ede3dea5f21a463596e0428a14cf5e43ca679a5aab74d8a5aa5edcd0c43
-  languageName: node
-  linkType: hard
-
-"@auto-it/npm@npm:11.0.7":
-  version: 11.0.7
-  resolution: "@auto-it/npm@npm:11.0.7"
-  dependencies:
-    "@auto-it/core": "npm:11.0.7"
-    "@auto-it/package-json-utils": "npm:11.0.7"
+    "@auto-it/core": "npm:11.1.1"
+    "@auto-it/package-json-utils": "npm:11.1.1"
     await-to-js: "npm:^3.0.0"
     endent: "npm:^2.1.0"
     env-ci: "npm:^5.0.1"
@@ -275,44 +162,44 @@ __metadata:
     typescript-memoize: "npm:^1.0.0-alpha.3"
     url-join: "npm:^4.0.0"
     user-home: "npm:^2.0.0"
-  checksum: 5efc7e1db71c4fa3c400d15a67f8e1f6b0b2d946e5b2e396a770733608b7974adcbb9cff5561a633da1d993df8d62a524ef2d0c8f9f904664d0c2959d384bfc7
+  checksum: f63ffa1c89096d32a51d1d90c9ac724b533bb640cac9b663fe114055e6eacae7875e731c6ec9c5bd3db1b5b3991e2ed12e92528ab09f65ce6a67fec4bf31b49e
   languageName: node
   linkType: hard
 
-"@auto-it/package-json-utils@npm:11.0.7":
-  version: 11.0.7
-  resolution: "@auto-it/package-json-utils@npm:11.0.7"
+"@auto-it/package-json-utils@npm:11.1.1":
+  version: 11.1.1
+  resolution: "@auto-it/package-json-utils@npm:11.1.1"
   dependencies:
     parse-author: "npm:^2.0.0"
     parse-github-url: "npm:1.0.2"
-  checksum: c563fe98c77096eed48cf3127acb35bd6a0f383ee589f18678f738e24720f49f0c01fb24cd3795e8d7e7b7682ada802a095b43c65dff4ed1702ce9b4e6441d7d
+  checksum: bc51c25039d4819e8bcf7034c0f5bbae7f29b6581b2b733a68318aacb9d1d42173e056997e1f5bc98e56e26136f441503947ab5532e16d096d5e40cc8635fb23
   languageName: node
   linkType: hard
 
-"@auto-it/released@npm:11.0.7":
-  version: 11.0.7
-  resolution: "@auto-it/released@npm:11.0.7"
+"@auto-it/released@npm:11.1.1":
+  version: 11.1.1
+  resolution: "@auto-it/released@npm:11.1.1"
   dependencies:
-    "@auto-it/bot-list": "npm:11.0.7"
-    "@auto-it/core": "npm:11.0.7"
+    "@auto-it/bot-list": "npm:11.1.1"
+    "@auto-it/core": "npm:11.1.1"
     deepmerge: "npm:^4.0.0"
     fp-ts: "npm:^2.5.3"
     io-ts: "npm:^2.1.2"
     tslib: "npm:2.1.0"
-  checksum: 22382c2234c8270aeb04414b2f85bb7258aeeeb8f527913d9f87c0d02c1a733a3161aa2ac433121f2881f92d02dd175156f3b878ecbad6f12f870ff965760721
+  checksum: d8660def9bd9daab92f1673832ca2753842586d18cc4300ff0b6dd9c9204ed29a4b06bf9a53927eefec89bc7853d5a4730184519a7232c30d9e76e9d81b32820
   languageName: node
   linkType: hard
 
-"@auto-it/version-file@npm:11.0.7":
-  version: 11.0.7
-  resolution: "@auto-it/version-file@npm:11.0.7"
+"@auto-it/version-file@npm:11.1.1":
+  version: 11.1.1
+  resolution: "@auto-it/version-file@npm:11.1.1"
   dependencies:
-    "@auto-it/core": "npm:11.0.7"
+    "@auto-it/core": "npm:11.1.1"
     fp-ts: "npm:^2.5.3"
     io-ts: "npm:^2.1.2"
     semver: "npm:^7.0.0"
     tslib: "npm:1.10.0"
-  checksum: ff34bfa2dce1b752211b3953c9b77cfcdd4fc07684cd460ac85ad1d0c0d9a94bace08197f9c5c6acdd78135c2e96cbd776aa5a0b5f4df6fd392955e60f626ad1
+  checksum: ac4e47264f8002feb344db4d056d78aea1cb4431ae4f45937609ca99f18e58863ea7a82cf664998055d155dbc47ba95dae510243bf85b74b5b0bbc25aa38dd59
   languageName: node
   linkType: hard
 
@@ -4125,69 +4012,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor-model@npm:7.27.3":
-  version: 7.27.3
-  resolution: "@microsoft/api-extractor-model@npm:7.27.3"
+"@microsoft/api-extractor-model@npm:7.28.13, @microsoft/api-extractor-model@npm:^7.26.4":
+  version: 7.28.13
+  resolution: "@microsoft/api-extractor-model@npm:7.28.13"
   dependencies:
     "@microsoft/tsdoc": "npm:0.14.2"
     "@microsoft/tsdoc-config": "npm:~0.16.1"
-    "@rushstack/node-core-library": "npm:3.59.4"
-  checksum: 9ed92235c52fa548274af016fb729f1739c808925ee27162aa1a6e9d8028f8ea588964ae25b8c9c678b884e11aa899581aba1fce54e9b13645763d889c89573a
+    "@rushstack/node-core-library": "npm:4.0.2"
+  checksum: af1d0457d76b909ac870c7c895caf773a3348312d8c308f73bf160c8b85ab6c0be6ed6c5568a5ee5ccedf29ee1b6826af0bb241264b02ed9f5f5bba49981e631
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor-model@npm:^7.26.4":
-  version: 7.28.4
-  resolution: "@microsoft/api-extractor-model@npm:7.28.4"
+"@microsoft/api-extractor@npm:^7.41.0":
+  version: 7.41.0
+  resolution: "@microsoft/api-extractor@npm:7.41.0"
   dependencies:
+    "@microsoft/api-extractor-model": "npm:7.28.13"
     "@microsoft/tsdoc": "npm:0.14.2"
     "@microsoft/tsdoc-config": "npm:~0.16.1"
-    "@rushstack/node-core-library": "npm:3.63.0"
-  checksum: ecabfab1a816a31fb6bb6fef26661dd200417c38687c9efdb0755e3347be0618377ce871146fb780d4e8b0a09ba5763f6825dd9e66d7a6c16177594c0d5cce6a
-  languageName: node
-  linkType: hard
-
-"@microsoft/api-extractor@npm:7.35.4":
-  version: 7.35.4
-  resolution: "@microsoft/api-extractor@npm:7.35.4"
-  dependencies:
-    "@microsoft/api-extractor-model": "npm:7.27.3"
-    "@microsoft/tsdoc": "npm:0.14.2"
-    "@microsoft/tsdoc-config": "npm:~0.16.1"
-    "@rushstack/node-core-library": "npm:3.59.4"
-    "@rushstack/rig-package": "npm:0.3.21"
-    "@rushstack/ts-command-line": "npm:4.15.1"
-    colors: "npm:~1.2.1"
+    "@rushstack/node-core-library": "npm:4.0.2"
+    "@rushstack/rig-package": "npm:0.5.2"
+    "@rushstack/terminal": "npm:0.10.0"
+    "@rushstack/ts-command-line": "npm:4.17.4"
     lodash: "npm:~4.17.15"
     resolve: "npm:~1.22.1"
-    semver: "npm:~7.3.0"
+    semver: "npm:~7.5.4"
     source-map: "npm:~0.6.1"
-    typescript: "npm:~5.0.4"
+    typescript: "npm:5.3.3"
   bin:
     api-extractor: bin/api-extractor
-  checksum: 104f889bd9dce621381f45ff1f6b4f4c377e913eb6361d365088a0ab2dfd3aca80295f146fb57a8e1adaff9a134151304724e28f0a5f756f9ca28ddbddce8816
-  languageName: node
-  linkType: hard
-
-"@microsoft/api-extractor@patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch::locator=%40tldraw%2Fmonorepo%40workspace%3A.":
-  version: 7.35.4
-  resolution: "@microsoft/api-extractor@patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch::version=7.35.4&hash=290713&locator=%40tldraw%2Fmonorepo%40workspace%3A."
-  dependencies:
-    "@microsoft/api-extractor-model": "npm:7.27.3"
-    "@microsoft/tsdoc": "npm:0.14.2"
-    "@microsoft/tsdoc-config": "npm:~0.16.1"
-    "@rushstack/node-core-library": "npm:3.59.4"
-    "@rushstack/rig-package": "npm:0.3.21"
-    "@rushstack/ts-command-line": "npm:4.15.1"
-    colors: "npm:~1.2.1"
-    lodash: "npm:~4.17.15"
-    resolve: "npm:~1.22.1"
-    semver: "npm:~7.3.0"
-    source-map: "npm:~0.6.1"
-    typescript: "npm:~5.0.4"
-  bin:
-    api-extractor: bin/api-extractor
-  checksum: d2d43c541d8da63443a9404069d804a25eabb8acc096a4a1272c6b6047736aac66fa3587b1b46ffb9014808e1daaec473c994b6babb8880c8a3e7f060001df12
+  checksum: 494feabecec7f1e0993255c9f74d3bebf7d129e5fecc9742f1c4d64d11fd772bd8d993b4e78518993afadb17bf15c9a24f3d5b0eee34bd919fd714a759c83881
   languageName: node
   linkType: hard
 
@@ -6039,31 +5893,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/node-core-library@npm:3.59.4":
-  version: 3.59.4
-  resolution: "@rushstack/node-core-library@npm:3.59.4"
+"@rushstack/node-core-library@npm:4.0.2":
+  version: 4.0.2
+  resolution: "@rushstack/node-core-library@npm:4.0.2"
   dependencies:
-    colors: "npm:~1.2.1"
-    fs-extra: "npm:~7.0.1"
-    import-lazy: "npm:~4.0.0"
-    jju: "npm:~1.4.0"
-    resolve: "npm:~1.22.1"
-    semver: "npm:~7.3.0"
-    z-schema: "npm:~5.0.2"
-  peerDependencies:
-    "@types/node": "*"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: d0335e2135223caabfc87e04bef57cf3833e7e183b473547da6e585f1c4a457e24193159ab59bafa77e3370d87bbae816547ca3116c66442a431ed9c9aa8c3bf
-  languageName: node
-  linkType: hard
-
-"@rushstack/node-core-library@npm:3.63.0":
-  version: 3.63.0
-  resolution: "@rushstack/node-core-library@npm:3.63.0"
-  dependencies:
-    colors: "npm:~1.2.1"
     fs-extra: "npm:~7.0.1"
     import-lazy: "npm:~4.0.0"
     jju: "npm:~1.4.0"
@@ -6075,29 +5908,44 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 14e635884bac94b7d2a73a2e5793389c0a770c9d8cc9a4f6b13975318d4e7361af5169cd7084d00ac883bf7623c5ea74581c5cfb0a4c6a5590d72b0ce6cbef83
+  checksum: d28ba48e4cb755f39ccc9050f0bbc2cdabe7e706b2e7ee2f7dd2c851129f2198e024c2b1f3b5932a0689c9b86d07ae72e58a6bd62f9349f398dbbcf85d399b85
   languageName: node
   linkType: hard
 
-"@rushstack/rig-package@npm:0.3.21":
-  version: 0.3.21
-  resolution: "@rushstack/rig-package@npm:0.3.21"
+"@rushstack/rig-package@npm:0.5.2":
+  version: 0.5.2
+  resolution: "@rushstack/rig-package@npm:0.5.2"
   dependencies:
     resolve: "npm:~1.22.1"
     strip-json-comments: "npm:~3.1.1"
-  checksum: 5cb9f6f0063d09d7132b86fce39c6789a389a3af6ea6540922fd6b4838a2c27a8ec62f7761afa1c02776a4aa1bdecafdee034fdb49c40d1feb034a798e8ecd9a
+  checksum: 2fd178a46c1662f110d06bcc7771898cc4316db62735f9b76281995b86263c1b248c60aead5c2f7ac6be023eb23f7ed28cff78ef813df7fb2b68a945e416814d
   languageName: node
   linkType: hard
 
-"@rushstack/ts-command-line@npm:4.15.1":
-  version: 4.15.1
-  resolution: "@rushstack/ts-command-line@npm:4.15.1"
+"@rushstack/terminal@npm:0.10.0":
+  version: 0.10.0
+  resolution: "@rushstack/terminal@npm:0.10.0"
   dependencies:
+    "@rushstack/node-core-library": "npm:4.0.2"
+    supports-color: "npm:~8.1.1"
+  peerDependencies:
+    "@types/node": "*"
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 4fb496558f4bf03235a6716fac3bbdefa92209c8ba05838b34b8986eaec59961938cb7b3ae5e7dfa4d96b692696291894b0cb7090d76ff29753e8c54624e5343
+  languageName: node
+  linkType: hard
+
+"@rushstack/ts-command-line@npm:4.17.4":
+  version: 4.17.4
+  resolution: "@rushstack/ts-command-line@npm:4.17.4"
+  dependencies:
+    "@rushstack/terminal": "npm:0.10.0"
     "@types/argparse": "npm:1.0.38"
     argparse: "npm:~1.0.9"
-    colors: "npm:~1.2.1"
     string-argv: "npm:~0.3.1"
-  checksum: 7d1cedc2d48d18bdb6f676a74dac9040b47521b0ebf3696ed595325859d4949573df733ff084185687c9a6bebf92a83a329e19ce31ad501cd302114c20eaaae9
+  checksum: 32bfc274bf41bce3eba72e3c950e392cb636ea39b2e830e9247da163d7f46077b74373743b383833cbb95cd0322a17fe78a87b2d32af8aa87d793cd276ac2888
   languageName: node
   linkType: hard
 
@@ -7292,7 +7140,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
     ts-node-dev: "npm:^1.1.8"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
 
@@ -7305,7 +7153,7 @@ __metadata:
     grabity: "npm:^1.0.5"
     lazyrepo: "npm:0.0.0-alpha.27"
     tslib: "npm:^2.6.2"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
 
@@ -7352,7 +7200,7 @@ __metadata:
     sqlite: "npm:^5.0.1"
     sqlite3: "npm:^5.1.6"
     tsx: "npm:^4.0.0"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
     unist-util-is: "npm:^6.0.0"
     unist-util-visit: "npm:^5.0.0"
     vectra: "npm:^0.4.4"
@@ -7381,7 +7229,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     strip-ansi: "npm:^7.1.0"
     toucan-js: "npm:^2.7.0"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
     wrangler: "npm:3.16.0"
   languageName: unknown
   linkType: soft
@@ -7430,7 +7278,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/monorepo@workspace:."
   dependencies:
-    "@microsoft/api-extractor": "npm:^7.35.4"
+    "@microsoft/api-extractor": "npm:^7.41.0"
     "@next/eslint-plugin-next": "npm:^13.3.0"
     "@sentry/cli": "npm:^2.25.0"
     "@swc/core": "npm:^1.3.55"
@@ -7443,7 +7291,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.57.0"
     "@typescript-eslint/parser": "npm:^5.57.0"
     "@yarnpkg/types": "npm:^4.0.0"
-    auto: "npm:^11.0.7"
+    auto: "npm:^11.1.1"
     cross-env: "npm:^7.0.3"
     eslint: "npm:^8.37.0"
     eslint-config-prettier: "npm:^8.8.0"
@@ -7465,7 +7313,7 @@ __metadata:
     rimraf: "npm:^4.4.0"
     svgo: "npm:^3.0.2"
     tsx: "npm:^4.0.0"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
     vercel: "npm:^28.16.15"
   languageName: unknown
   linkType: soft
@@ -7475,7 +7323,7 @@ __metadata:
   resolution: "@tldraw/scripts@workspace:scripts"
   dependencies:
     "@actions/github": "npm:^6.0.0"
-    "@auto-it/core": "npm:^10.45.0"
+    "@auto-it/core": "npm:^11.1.1"
     "@aws-sdk/client-s3": "npm:^3.440.0"
     "@aws-sdk/lib-storage": "npm:^3.440.0"
     "@types/is-ci": "npm:^3.0.0"
@@ -7498,7 +7346,7 @@ __metadata:
     semver: "npm:^7.3.8"
     svgo: "npm:^3.0.2"
     tar: "npm:^6.2.0"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
 
@@ -7596,7 +7444,7 @@ __metadata:
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
     nanoid: "npm:4.0.2"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
     uuid-by-string: "npm:^4.0.0"
     uuid-readable: "npm:^0.0.2"
     ws: "npm:^8.16.0"
@@ -9806,14 +9654,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"auto@npm:^11.0.7":
-  version: 11.0.7
-  resolution: "auto@npm:11.0.7"
+"auto@npm:^11.1.1":
+  version: 11.1.1
+  resolution: "auto@npm:11.1.1"
   dependencies:
-    "@auto-it/core": "npm:11.0.7"
-    "@auto-it/npm": "npm:11.0.7"
-    "@auto-it/released": "npm:11.0.7"
-    "@auto-it/version-file": "npm:11.0.7"
+    "@auto-it/core": "npm:11.1.1"
+    "@auto-it/npm": "npm:11.1.1"
+    "@auto-it/released": "npm:11.1.1"
+    "@auto-it/version-file": "npm:11.1.1"
     await-to-js: "npm:^3.0.0"
     chalk: "npm:^4.0.0"
     command-line-application: "npm:^0.10.1"
@@ -9824,7 +9672,7 @@ __metadata:
     tslib: "npm:2.1.0"
   bin:
     auto: dist/bin/auto.js
-  checksum: bb336d19f114cf6c4ab5b4a0bb7f0559ceaa5f2395158eb4aa74befdd8bb8f7dcbaf04d1246a8b7379f376385e3a7743741fa161c2b1f44f1cd9195d3b55b141
+  checksum: d0e71dc0752f2ad4fec97e0994dc5d5cb7665d39e667fb5fb703f5f2b1c2ab329c6577f0a490c665cdc38d03eeac25f67453866f5a08bea37765819005f106e0
   languageName: node
   linkType: hard
 
@@ -10988,13 +10836,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"colors@npm:~1.2.1":
-  version: 1.2.5
-  resolution: "colors@npm:1.2.5"
-  checksum: fe30007df0f62abedc2726990d0951f19292d85686dffcc76fa96ee9dc4e1a987d50b34aa02796e88627709c54a52f07c057bf1da4b7302c06eda8e1afd2f09a
-  languageName: node
-  linkType: hard
-
 "combined-stream2@npm:^1.0.2":
   version: 1.1.2
   resolution: "combined-stream2@npm:1.1.2"
@@ -12011,6 +11852,7 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@types/qrcode": "npm:^1.5.0"
     "@types/react": "npm:^18.2.47"
     "@typescript-eslint/utils": "npm:^5.59.0"
@@ -12021,6 +11863,7 @@ __metadata:
     eslint: "npm:^8.37.0"
     fast-glob: "npm:^3.3.1"
     idb: "npm:^7.1.1"
+    json5: "npm:^2.2.3"
     lazyrepo: "npm:0.0.0-alpha.27"
     nanoid: "npm:4.0.2"
     qrcode: "npm:^1.5.1"
@@ -15201,7 +15044,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@types/node": "npm:~20.11"
     discord-api-types: "npm:^0.37.67"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
     wrangler: "npm:3.16.0"
   languageName: unknown
   linkType: soft
@@ -22336,7 +22179,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.3.8, semver@npm:~7.3.0":
+"semver@npm:7.3.8":
   version: 7.3.8
   resolution: "semver@npm:7.3.8"
   dependencies:
@@ -23298,7 +23141,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"supports-color@npm:8.1.1, supports-color@npm:^8.0.0, supports-color@npm:^8.1.1":
+"supports-color@npm:8.1.1, supports-color@npm:^8.0.0, supports-color@npm:^8.1.1, supports-color@npm:~8.1.1":
   version: 8.1.1
   resolution: "supports-color@npm:8.1.1"
   dependencies:
@@ -23600,7 +23443,7 @@ __metadata:
     ts-loader: "npm:^9.2.5"
     tslib: "npm:^2.6.2"
     tsx: "npm:^4.0.0"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
     vsce: "npm:^2.15.0"
     webpack: "npm:^5.0.0"
   peerDependencies:
@@ -24205,23 +24048,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.2.2":
+"typescript@npm:5.3.3, typescript@npm:^5.3.3":
   version: 5.3.3
   resolution: "typescript@npm:5.3.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 6e4e6a14a50c222b3d14d4ea2f729e79f972fa536ac1522b91202a9a65af3605c2928c4a790a4a50aa13694d461c479ba92cedaeb1e7b190aadaa4e4b96b8e18
-  languageName: node
-  linkType: hard
-
-"typescript@npm:~5.0.4":
-  version: 5.0.4
-  resolution: "typescript@npm:5.0.4"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: e5c3adff09a138c0e27d13b5bb2b106ca17a162ffa945d66161669c265c65436309c5817358a2af1abb69d07440d358f8c1ed7cbb63a2c8680e19b9c268fe4ef
   languageName: node
   linkType: hard
 
@@ -24235,23 +24068,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.3#optional!builtin<compat/typescript>":
   version: 5.3.3
   resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: c93786fcc9a70718ba1e3819bab56064ead5817004d1b8186f8ca66165f3a2d0100fee91fa64c840dcd45f994ca5d615d8e1f566d39a7470fc1e014dbb4cf15d
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A~5.0.4#optional!builtin<compat/typescript>":
-  version: 5.0.4
-  resolution: "typescript@patch:typescript@npm%3A5.0.4#optional!builtin<compat/typescript>::version=5.0.4&hash=b5f058"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: b1b62606c7ec75efe9edc61e195d9e69f0440cac1bcd111dfa864f839255f0d9a7b79869f2823559c608826fc0c9894d2917ae4063e0aa06f5d0784a35170497
   languageName: node
   linkType: hard
 

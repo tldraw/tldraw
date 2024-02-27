@@ -1214,7 +1214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (partial.isChangingStyle === true) {
 				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
 				this._isChangingStyleTimeout = setTimeout(() => {
-					this.updateInstanceState({ isChangingStyle: false })
+					this.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
 				}, 2000)
 			}
 		}
