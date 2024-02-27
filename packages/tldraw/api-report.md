@@ -124,6 +124,17 @@ import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
 
 // @public (undocumented)
+export function AlignMenuItems(): JSX_2.Element;
+
+// @public (undocumented)
+export function ArrangeMenuSubmenu(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function ArrowheadStylePickerSet({ styles }: {
+    styles: ReadonlySharedStyleMap;
+}): JSX_2.Element | null;
+
+// @public (undocumented)
 export class ArrowShapeTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle | typeof Pointing)[];
@@ -269,11 +280,31 @@ export function BreakPointProvider({ forceMobile, children, }: {
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;
 
+// @public (undocumented)
+export function ClipboardMenuGroup(): JSX_2.Element;
+
+// @public (undocumented)
+export function CommonStylePickerSet({ styles }: {
+    styles: ReadonlySharedStyleMap;
+}): JSX_2.Element;
+
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
+// @public (undocumented)
+export function ConversionsMenuGroup(): JSX_2.Element;
+
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
+
+// @public (undocumented)
+export function CopyMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function CutMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function DebugFlags(): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
@@ -361,6 +392,12 @@ export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
 // @public (undocumented)
 export function DefaultZoomMenuContent(): JSX_2.Element;
 
+// @public (undocumented)
+export function DeleteMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function DistributeMenuItems(): JSX_2.Element;
+
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
     type?: string | undefined;
@@ -426,7 +463,16 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 }
 
 // @public (undocumented)
+export function DuplicateMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function EditLinkMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
+
+// @public (undocumented)
+export function EmbedsGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -480,6 +526,17 @@ export type EventsProviderProps = {
     children: any;
 };
 
+// @public (undocumented)
+export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, onCancel, onContinue, }: {
+    title?: string;
+    body?: string;
+    cancel?: string;
+    confirm?: string;
+    displayDontShowAgain?: boolean;
+    onCancel: () => void;
+    onContinue: () => void;
+}): JSX_2.Element;
+
 // @public
 export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
 
@@ -489,10 +546,16 @@ export function ExportFileContentSubMenu(): JSX_2.Element;
 // @public (undocumented)
 export function ExtrasGroup(): JSX_2.Element;
 
+// @public (undocumented)
+export function FeatureFlags(): JSX_2.Element | null;
+
 // @public
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
     padding: number;
 }): void;
+
+// @public (undocumented)
+export function FitFrameToContentMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
@@ -699,6 +762,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     static type: "geo";
 }
 
+// @public (undocumented)
+export function GeoStylePickerSet({ styles }: {
+    styles: ReadonlySharedStyleMap;
+}): JSX_2.Element | null;
+
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
@@ -711,6 +779,12 @@ export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
 
 // @public (undocumented)
 export function getSvgAsString(svg: SVGElement): Promise<string>;
+
+// @public (undocumented)
+export function GroupMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function GroupOrUngroupMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export class HandTool extends StateNode {
@@ -825,6 +899,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 export function isGifAnimated(file: Blob): Promise<boolean>;
 
 // @public (undocumented)
+export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export const LanguageMenu: MemoExoticComponent<() => JSX_2.Element>;
+
+// @public (undocumented)
 export class LaserTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_9 | typeof Lasering)[];
@@ -910,6 +990,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     static type: "line";
 }
+
+// @public (undocumented)
+export function LockGroup(): JSX_2.Element;
+
+// @public (undocumented)
+export function MiscMenuGroup(): JSX_2.Element;
+
+// @public (undocumented)
+export function MoveToPageMenu(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function MultiShapeMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
@@ -1013,6 +1105,19 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 // @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
+// @public (undocumented)
+export function OpacitySlider(): JSX_2.Element | null;
+
+// @public (undocumented)
+export const PageItemInput: ({ name, id, isCurrentPage, }: {
+    name: string;
+    id: TLPageId;
+    isCurrentPage: boolean;
+}) => JSX_2.Element;
+
+// @public (undocumented)
+export const PageItemSubmenu: MemoExoticComponent<({ index, listSize, item, onRename, }: PageItemSubmenuProps) => JSX_2.Element>;
+
 // @internal (undocumented)
 export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
@@ -1023,13 +1128,31 @@ export function parseTldrawJsonFile({ json, schema, }: {
 }): Result<TLStore, TldrawFileParseError>;
 
 // @public (undocumented)
+export function PasteMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function PreferencesGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
 
+// @public (undocumented)
+export function PrintItem(): JSX_2.Element;
+
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
+
+// @public (undocumented)
+export function RemoveFrameMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ReorderMenuItems(): JSX_2.Element;
+
+// @public (undocumented)
+export function ReorderMenuSubmenu(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function RotateCWMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export class SelectTool extends StateNode {
@@ -1060,10 +1183,21 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
 // @public (undocumented)
+export function SetSelectionGroup(): JSX_2.Element;
+
+// @public (undocumented)
 export function ShapeSubmenu(): JSX_2.Element;
 
 // @internal (undocumented)
 export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
+
+// @public (undocumented)
+export function SplineStylePickerSet({ styles }: {
+    styles: ReadonlySharedStyleMap;
+}): JSX_2.Element | null;
+
+// @public (undocumented)
+export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
@@ -1182,6 +1316,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     static type: "text";
 }
+
+// @public (undocumented)
+export function TextStylePickerSet({ styles }: {
+    styles: ReadonlySharedStyleMap;
+}): JSX_2.Element | null;
 
 // @public (undocumented)
 export type TLComponents = Expand<TLEditorComponents & TLUiComponents>;
@@ -2069,6 +2208,39 @@ export type TLUiZoomMenuProps = {
 };
 
 // @public (undocumented)
+export function ToggleAutoSizeMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleDarkModeItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleDebugModeItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleEdgeScrollingItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleFocusModeItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleGridItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleLockMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleReduceMotionItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleSnapModeItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleToolLockItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ToggleTransparentBgMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function toolbarItem(toolItem: TLUiToolItem): TLUiToolbarItem;
 
 // @public (undocumented)
@@ -2076,6 +2248,15 @@ export const truncateStringWithEllipsis: (str: string, maxLength: number) => str
 
 // @public (undocumented)
 export function UiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export function UndoRedoGroup(): JSX_2.Element;
+
+// @public (undocumented)
+export function UngroupMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function UnlockAllMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
@@ -2215,6 +2396,15 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 export function ViewSubmenu(): JSX_2.Element;
 
 // @public (undocumented)
+export function ZoomOrRotateMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ZoomTo100MenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ZoomToFitMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
 export class ZoomTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_12 | typeof Pointing_8 | typeof ZoomBrushing)[];
@@ -2239,6 +2429,9 @@ export class ZoomTool extends StateNode {
     // (undocumented)
     onKeyUp: TLKeyboardEvent;
 }
+
+// @public (undocumented)
+export function ZoomToSelectionMenuItem(): JSX_2.Element;
 
 
 export * from "@tldraw/editor";
