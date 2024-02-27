@@ -185,8 +185,8 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	ObjectSubmenu,
 	PreferencesGroup,
+	ShapeSubmenu,
 	ViewSubmenu,
 } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
 
