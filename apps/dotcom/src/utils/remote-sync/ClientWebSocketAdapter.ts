@@ -155,6 +155,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 }
 
 class ReconnectManager {
+	// todo: use CONST_VALUES
 	private readonly activeMinDelay = 500
 	private readonly activeMaxDelay = 2000
 	private readonly inactiveMinDelay = 1000
@@ -163,7 +164,12 @@ class ReconnectManager {
 	private readonly attemptTimeout = 1000
 
 	private isDisposed = false
-	private disposables: (() => void)[] = []
+	private disposables: (() => void)[] = [
+		() => {
+			if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout)
+			if (this.recheckConnectingTimeout) clearTimeout(this.recheckConnectingTimeout)
+		},
+	]
 	private reconnectTimeout: ReturnType<typeof setTimeout> | null = null
 	private recheckConnectingTimeout: ReturnType<typeof setTimeout> | null = null
 
