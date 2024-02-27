@@ -25,6 +25,7 @@
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",
 		"@tldraw/tlsync": "workspace:*",
+		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"browser-fs-access": "^0.33.0",
 		"idb": "^7.1.1",

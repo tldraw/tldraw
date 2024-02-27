@@ -114,9 +114,9 @@ describe(ClientWebSocketAdapter, () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		wsServer.close()
 		window.dispatchEvent(new Event('offline'))
-		adapter._reconnectTimeout.intervalLength = 50000
+		adapter._reconnectManager.intendedDelay = 50000
 		window.dispatchEvent(new Event('online'))
-		expect(adapter._reconnectTimeout.intervalLength).toBeLessThan(1000)
+		expect(adapter._reconnectManager.intendedDelay).toBeLessThan(1000)
 	})
 
 	it('supports receiving messages', async () => {

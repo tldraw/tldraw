@@ -7,11 +7,12 @@ import {
 	TLSocketClientSentEvent,
 	TLSocketServerSentEvent,
 } from '@tldraw/tlsync'
+import { assert } from '@tldraw/utils'
 
-function windowListen(...args: Parameters<typeof window.addEventListener>) {
-	window.addEventListener(...args)
+function listenTo<T extends EventTarget>(target: T, event: string, handler: () => void) {
+	target.addEventListener(event, handler)
 	return () => {
-		window.removeEventListener(...args)
+		target.removeEventListener(event, handler)
 	}
 }
 
@@ -26,87 +27,60 @@ function debug(...args: any[]) {
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 	_ws: WebSocket | null = null
 
-	wasManuallyClosed = false
+	isDisposed = false
 
-	disposables: (() => void)[] = []
+	readonly _reconnectManager: ReconnectManager
 
+	// TODO: .close should be a project-wide interface with a common contract (.close()d thing
+	//       can only be garbage collected, and can't be used anymore)
 	close() {
-		this.wasManuallyClosed = true
-		this.disposables.forEach((d) => d())
-		this._reconnectTimeout.clear()
-		if (this._ws?.readyState === WebSocket.OPEN) {
-			debug('close d')
-			this._ws.close()
-		}
+		this.isDisposed = true
+		this._reconnectManager.close()
+		//  WebSocket.close() is idempotent
+		this._ws?.close()
 	}
 
-	constructor(private getUri: () => Promise<string> | string) {
-		this.disposables.push(
-			windowListen('online', () => {
-				debug('window online')
-				if (this.connectionStatus !== 'online') {
-					this._reconnectTimeout.clear()
-					this._attemptReconnect()
-				}
-			}),
-			windowListen('offline', () => {
-				debug('window offline')
-				if (this.connectionStatus === 'online') {
-					this._ws?.close()
-					this._ws?.onclose?.(null as any)
-				}
-			}),
-			windowListen('pointermove', () => {
-				// if the pointer moves while we are offline, we should try to reconnect more
-				// often than every 5 mins!
-				if (this.connectionStatus !== 'online') {
-					this._reconnectTimeout.userInteractionOccurred()
-				}
-			}),
-			windowListen('keydown', () => {
-				// if the user pressed a key while we are offline, we should try to reconnect more
-				// often than every 5 mins!
-				if (this.connectionStatus !== 'online') {
-					this._reconnectTimeout.userInteractionOccurred()
-				}
-			})
-		)
-		this._reconnectTimeout.run()
+	// TODO: this constructor is an adhoc interface; maybe it should be in TLPersistentClientSocket?)
+	constructor(getUri: () => Promise<string> | string) {
+		this._reconnectManager = new ReconnectManager(this, getUri)
 	}
 
-	private handleDisconnect(status: Exclude<TLPersistentClientSocketStatus, 'online'>) {
+	private handleConnect() {
+		debug('handleConnect')
+		this._connectionStatus.set('online')
+		this.statusListeners.forEach((cb) => cb('online'))
+
+		this._reconnectManager.connected()
+	}
+
+	private handleDisconnect(status: 'offline' | 'error') {
 		debug('handleDisconnect', status, this.connectionStatus)
+
 		if (
-			// if the status is the same as before, don't do anything
-			this.connectionStatus === status ||
-			// if we receive an error we only care about it while we're in the initial state
-			(status === 'error' && this.connectionStatus === 'offline')
+			// it the status changed
+			this.connectionStatus !== status &&
+			// ignore errors if we're already in the offline state
+			!(status === 'error' && this.connectionStatus === 'offline')
 		) {
-			this._attemptReconnect()
-			return
+			this._connectionStatus.set(status)
+			this.statusListeners.forEach((cb) => cb(status))
 		}
-		this._connectionStatus.set(status)
-		this.statusListeners.forEach((cb) => cb(status))
-		this._reconnectTimeout.clear()
-		this._attemptReconnect()
+
+		this._reconnectManager.disconnected()
 	}
 
-	private configureSocket() {
-		const ws = this._ws
-		if (!ws) return
+	setNewSocket(ws: WebSocket) {
+		assert(!this.isDisposed, 'Tried to set a new websocket on a disposed socket')
+		assert(
+			this._ws === null ||
+				this._ws.readyState === WebSocket.CLOSED ||
+				this._ws.readyState === WebSocket.CLOSING,
+			`Tried to set a new websocket in when the existing one was ${this._ws?.readyState}`
+		)
+
 		ws.onopen = () => {
 			debug('ws.onopen')
-			// ws might be opened multiple times so need to check that it wasn't already supplanted
-			if (this._ws !== ws || this.wasManuallyClosed) {
-				if (ws.readyState === WebSocket.OPEN) {
-					debug('close a')
-					ws.close()
-				}
-				return
-			}
-			this._connectionStatus.set('online')
-			this.statusListeners.forEach((cb) => cb(this.connectionStatus))
-			this._reconnectTimeout.clear()
+			this.handleConnect()
 		}
 		ws.onclose = () => {
 			debug('ws.onclose')
@@ -120,22 +94,11 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 			const parsed = JSON.parse(ev.data.toString())
 			this.messageListeners.forEach((cb) => cb(parsed))
 		}
+
+		this._ws = ws
 	}
 
-	readonly _reconnectTimeout = new ExponentialBackoffTimeout(async () => {
-		debug('close b')
-		this._ws?.close()
-		this._ws = new WebSocket(await this.getUri())
-		this.configureSocket()
-	})
-
-	_attemptReconnect() {
-		debug('_attemptReconnect', this.wasManuallyClosed)
-		if (this.wasManuallyClosed) {
-			return
-		}
-		this._reconnectTimeout.run()
-	}
+	// TLPersistentClientSocket stuff
 
 	_connectionStatus: Atom<TLPersistentClientSocketStatus | 'initial'> = atom(
 		'websocket connection status',
@@ -149,6 +112,8 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 	}
 
 	sendMessage(msg: TLSocketClientSentEvent<TLRecord>) {
+		assert(!this.isDisposed, 'Tried to send message on a disposed socket')
+
 		if (!this._ws) return
 		if (this.connectionStatus === 'online') {
 			const chunks = chunk(serializeMessage(msg))
@@ -162,6 +127,8 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 
 	private messageListeners = new Set<(msg: TLSocketServerSentEvent<TLRecord>) => void>()
 	onReceiveMessage(cb: (val: TLSocketServerSentEvent<TLRecord>) => void) {
+		assert(!this.isDisposed, 'Tried to add message listener on a disposed socket')
+
 		this.messageListeners.add(cb)
 		return () => {
 			this.messageListeners.delete(cb)
@@ -170,6 +137,8 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 
 	private statusListeners = new Set<(status: TLPersistentClientSocketStatus) => void>()
 	onStatusChange(cb: (val: TLPersistentClientSocketStatus) => void) {
+		assert(!this.isDisposed, 'Tried to add status listener on a disposed socket')
+
 		this.statusListeners.add(cb)
 		return () => {
 			this.statusListeners.delete(cb)
@@ -177,64 +146,190 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 	}
 
 	restart() {
-		debug('close c')
-		this.close()
-		this.wasManuallyClosed = false
-		this._reconnectTimeout.clear()
-		this._reconnectTimeout.runNow()
+		assert(!this.isDisposed, 'Tried to restart a disposed socket')
+		debug('restarting')
+
+		this._ws?.close()
+		// reconnection will be handled by the ReconnectManager
 	}
 }
 
-class ExponentialBackoffTimeout {
-	private timeout: ReturnType<typeof setTimeout> | null = null
-	private nextScheduledRunTimestamp = 0
-	intervalLength: number
+class ReconnectManager {
+	private readonly activeMinDelay = 500
+	private readonly activeMaxDelay = 2000
+	private readonly inactiveMinDelay = 1000
+	private readonly inactiveMaxDelay = 1000 * 60 * 5
+	private readonly delayExp = 1.5
+	private readonly attemptTimeout = 1000
+
+	private isDisposed = false
+	private disposables: (() => void)[] = []
+	private reconnectTimeout: ReturnType<typeof setTimeout> | null = null
+	private recheckConnectingTimeout: ReturnType<typeof setTimeout> | null = null
+
+	private lastAttemptStart: number | null = null
+	intendedDelay: number = this.activeMinDelay
+	private state: 'pendingAttempt' | 'pendingAttemptResult' | 'delay' | 'connected'
 
 	constructor(
-		private cb: () => Promise<void>,
-		// at most five seconds when idle
-		private readonly maxIdleIntervalLength: number = 1000 * 60 * 5,
-		// five seconds
-		private readonly maxInteractiveIntervalLength: number = 1000,
-		private startIntervalLength: number = 500
+		private socketAdapter: ClientWebSocketAdapter,
+		private getUri: () => Promise<string> | string
 	) {
-		this.intervalLength = startIntervalLength
+		this.disposables.push(
+			listenTo(window, 'online', () => {
+				debug('window went online')
+				this.maybeReconnected()
+			}),
+			listenTo(document, 'visibilitychange', () => {
+				if (!document.hidden) {
+					debug('document became visible')
+
+					this.maybeReconnected()
+				}
+			})
+		)
+
+		if (Object.prototype.hasOwnProperty.call(navigator, 'connection')) {
+			const connection = (navigator as any)['connection'] as EventTarget
+			this.disposables.push(
+				listenTo(connection, 'change', () => {
+					debug('navigator.connection change')
+					this.maybeReconnected()
+				})
+			)
+		}
+
+		this.state = 'pendingAttempt'
+		this.intendedDelay = this.activeMinDelay
+		this.scheduleAttempt()
 	}
 
-	runNow() {
-		this.cb()
+	private scheduleAttempt() {
+		assert(this.state === 'pendingAttempt')
+		Promise.resolve(this.getUri()).then((uri) => {
+			// this can happen if the promise gets resolved too late
+			if (this.state !== 'pendingAttempt' || this.isDisposed) return
+
+			this.lastAttemptStart = Date.now()
+			this.socketAdapter.setNewSocket(new WebSocket(uri))
+			this.state = 'pendingAttemptResult'
+		})
 	}
 
-	run() {
-		if (this.timeout) return
-		this.timeout = setTimeout(() => {
-			this.cb()
-			this.intervalLength = Math.min(this.intervalLength * 2, this.maxIdleIntervalLength)
-			if (this.timeout) {
-				clearTimeout(this.timeout)
-				this.timeout = null
+	private getMaxDelay() {
+		return document.hidden ? this.inactiveMaxDelay : this.activeMaxDelay
+	}
+
+	private getMinDelay() {
+		return document.hidden ? this.inactiveMinDelay : this.activeMinDelay
+	}
+
+	private clearReconnectTimeout() {
+		if (this.reconnectTimeout) {
+			clearTimeout(this.reconnectTimeout)
+			this.reconnectTimeout = null
+		}
+	}
+
+	private clearRecheckConnectingTimeout() {
+		if (this.recheckConnectingTimeout) {
+			clearTimeout(this.recheckConnectingTimeout)
+			this.recheckConnectingTimeout = null
+		}
+	}
+
+	private maybeReconnected() {
+		// It doesn't make sense to have another check scheduled if we're already checking it now.
+		// If we have a CONNECTING check scheduled and relevant, it'll be recreated below anyway
+		this.clearRecheckConnectingTimeout()
+
+		// readyState can be CONNECTING, OPEN, CLOSING, CLOSED, or null (if getUri() is still pending)
+		if (this.socketAdapter._ws?.readyState === WebSocket.OPEN) {
+			// nothing to do, we're already OK
+			return
+		}
+
+		if (this.socketAdapter._ws?.readyState === WebSocket.CONNECTING) {
+			// We might be waiting for a TCP connection that sent SYN out and will never get it back,
+			// while a new connection appeared. On the other hand, we might have just started connecting
+			// and will succeed in a bit. Thus, we're checking how old the attempt is and retry anew
+			// if it's old enough. This by itself can delay the connection a bit, but shouldn't prevent
+			// new connections as long as `maybeReconnected` is not looped itself
+			assert(
+				this.lastAttemptStart,
+				'ReadyState=CONNECTING without lastAttemptStart should be impossible'
+			)
+			const sinceLastStart = Date.now() - this.lastAttemptStart
+			if (sinceLastStart < this.attemptTimeout) {
+				this.recheckConnectingTimeout = setTimeout(
+					() => this.maybeReconnected(),
+					this.attemptTimeout - sinceLastStart
+				)
+			} else {
+				// Last connection attempt was started a while ago, it's possible that network conditions
+				// changed, and it's worth retrying to connect. `disconnected` will handle reconnection
+				//
+				// NOTE: The danger here is looping in connection attemps if connections are slow.
+				//       Make sure that `maybeReconnected` is not called in the `disconnected` codepath!
+				this.clearRecheckConnectingTimeout()
+				this.socketAdapter._ws?.close()
 			}
-		}, this.intervalLength)
-		this.nextScheduledRunTimestamp = Date.now() + this.intervalLength
+
+			return
+		}
+
+		// readyState is CLOSING or CLOSED, or the websocket is null
+		// Restart the backoff and retry ASAP (honouring the min delay)
+		// this.state doesn't really matter, because disconnected() will handle any state correctly
+		this.intendedDelay = this.activeMinDelay
+		this.disconnected()
 	}
 
-	clear() {
-		this.intervalLength = this.startIntervalLength
-		if (this.timeout) {
-			clearTimeout(this.timeout)
-			this.timeout = null
+	disconnected() {
+		// This either means we're freshly disconnected, or the last connection attempt failed;
+		// either way, time to try again.
+
+		// Guard against delayed notifications and recheck synchronously
+		if (
+			this.socketAdapter._ws?.readyState !== WebSocket.OPEN &&
+			this.socketAdapter._ws?.readyState !== WebSocket.CONNECTING
+		) {
+			this.clearReconnectTimeout()
+
+			const delayLeft =
+				this.lastAttemptStart !== null ? this.lastAttemptStart + this.intendedDelay - Date.now() : 0
+
+			if (delayLeft > 0) {
+				// try again later
+				this.state = 'delay'
+
+				this.reconnectTimeout = setTimeout(() => this.disconnected(), delayLeft)
+			} else {
+				// not connected and not delayed, time to retry
+				this.state = 'pendingAttempt'
+
+				this.intendedDelay = Math.min(
+					this.getMaxDelay(),
+					Math.max(this.getMinDelay(), this.intendedDelay) * this.delayExp
+				)
+				this.scheduleAttempt()
+			}
 		}
 	}
 
-	userInteractionOccurred() {
-		if (Date.now() + this.maxInteractiveIntervalLength < this.nextScheduledRunTimestamp) {
-			this.clear()
-			this.run()
+	connected() {
+		// this notification cold've been delayed, recheck synchronously
+		if (this.socketAdapter._ws?.readyState === WebSocket.OPEN) {
+			this.state = 'connected'
+			this.clearReconnectTimeout()
+			this.intendedDelay = this.activeMinDelay
 		}
+	}
+
+	close() {
+		this.clearReconnectTimeout()
+		this.clearRecheckConnectingTimeout()
+		this.disposables.forEach((d) => d())
+		this.isDisposed = true
 	}
 }
-
-// todo:
-// - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/connection
-// - https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
-// - don't create overlapping attempts to reconnect

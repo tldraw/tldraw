@@ -11851,6 +11851,7 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
+    "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/qrcode": "npm:^1.5.0"
     "@types/react": "npm:^18.2.47"
