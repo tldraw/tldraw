@@ -1,5 +1,4 @@
-import { rafThrottle } from '@tldraw/utils'
-import { reactUpdateMode } from '@tldraw/utils/src/lib/raf'
+import { rafThrottle, reactUpdateMode } from '@tldraw/utils'
 import React from 'react'
 import { EffectScheduler } from '../core'
 

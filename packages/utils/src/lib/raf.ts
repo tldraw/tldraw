@@ -11,12 +11,15 @@ type UpdateMode = 'onTick' | 'onPointerMove'
 type ReactUpdateMode = 'original' | 'throttled'
 
 // How do we schedule the updates? Either every 16ms or on raf
+/** @internal */
 export const renderingMode: RenderingMode = 'sixtyFps'
 // export const renderingMode: RenderingMode = 'raf'
 // How does we process the updates? Either onTick or onPointerMove
+/** @internal */
 export const updateMode: UpdateMode = 'onTick'
 // export const updateMode: UpdateMode = 'onPointerMove'
 // How do we notifiy React about updates? Either original (as soon as the change occurs) or throttled
+/** @internal */
 export const reactUpdateMode: ReactUpdateMode = 'throttled'
 // export const reactUpdateMode: ReactUpdateMode = 'original'
 
@@ -30,11 +33,13 @@ const tick = () => {
 		timesBetweenFrames.push(timeSinceLastTick)
 	}
 	if (timesBetweenFrames.length > 100) {
+		// eslint-disable-next-line no-console
 		console.log('resetting fps')
 		timesBetweenFrames = []
 	}
 	const average = timesBetweenFrames.reduce((a, b) => a + b, 0) / timesBetweenFrames.length
 	const fps = `${Math.round(1000 / average)}fps`
+	// eslint-disable-next-line no-console
 	console.log('time since last tick', timeSinceLastTick, fps)
 	lastFrameTime = now
 

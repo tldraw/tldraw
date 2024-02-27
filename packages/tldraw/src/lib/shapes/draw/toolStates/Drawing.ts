@@ -17,8 +17,8 @@ import {
 	structuredClone,
 	toFixed,
 	uniqueId,
+	updateMode,
 } from '@tldraw/editor'
-import { updateMode } from '@tldraw/utils/src/lib/raf'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 
 type DrawableShape = TLDrawShape | TLHighlightShape

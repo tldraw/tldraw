@@ -19,8 +19,8 @@ import {
 	areAnglesCompatible,
 	compact,
 	moveCameraWhenCloseToEdge,
+	updateMode,
 } from '@tldraw/editor'
-import { updateMode } from '@tldraw/utils/src/lib/raf'
 
 type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'

@@ -38,7 +38,7 @@ export {
 	objectMapValues,
 } from './lib/object'
 export { PngHelpers } from './lib/png'
-export { rafThrottle, throttledRaf } from './lib/raf'
+export { rafThrottle, reactUpdateMode, throttledRaf, updateMode } from './lib/raf'
 export { type IndexKey } from './lib/reordering/IndexKey'
 export {
 	ZERO_INDEX_KEY,

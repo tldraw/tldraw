@@ -1,6 +1,5 @@
 /* eslint-disable prefer-rest-params */
-import { throttledRaf } from '@tldraw/utils'
-import { reactUpdateMode } from '@tldraw/utils/src/lib/raf'
+import { reactUpdateMode, throttledRaf } from '@tldraw/utils'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
 import { Signal, computed, react } from '../core'
 
