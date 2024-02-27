@@ -106,7 +106,7 @@ export function rafThrottle(fn: () => void) {
 		if (renderingMode === 'sixtyFps') {
 			if (!started) {
 				started = true
-				last = Date.now() - 20
+				last = Date.now() - timePerFrame - 1
 			}
 			sixtyFps()
 		} else {
@@ -135,7 +135,7 @@ export function throttledRaf(fn: () => void) {
 	if (renderingMode === 'sixtyFps') {
 		if (!started) {
 			started = true
-			last = Date.now() - 20
+			last = Date.now() - timePerFrame - 1
 		}
 		sixtyFps()
 	} else {
