@@ -5,7 +5,7 @@ import test from './fixtures/fixtures'
 test.describe('help menu', () => {
 	test.beforeEach(setup)
 
-	test.only('you can open and close the menu', async ({ mainMenu, page }) => {
+	test('you can open and close the menu', async ({ mainMenu, page }) => {
 		const { mainMenuButton, buttons } = mainMenu
 		const { editSubmenu, viewSubmenu, preferencesSubmenu } = mainMenu.subMenus
 		const submenus = [

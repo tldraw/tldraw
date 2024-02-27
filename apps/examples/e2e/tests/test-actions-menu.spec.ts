@@ -10,6 +10,8 @@ test.describe('actions menu', () => {
 		await expect(actionsMenuContent).toBeHidden()
 		await actionsMenuButton.click()
 		await expect(actionsMenuContent).toBeVisible()
+		await actionsMenuButton.click()
+		await expect(actionsMenuContent).toBeHidden()
 	})
 
 	// ...
