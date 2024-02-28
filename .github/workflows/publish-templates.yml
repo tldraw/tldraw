@@ -28,8 +28,8 @@ jobs:
 
       - name: Substitute the latest published version of tldraw
         run: |
-          npm view @tldraw/tldraw dist-tags --json | jq -r .beta > /tmp/latest_tldraw
-          cp templates/vite/package.json /tmp/template_package.json
+          npm view @tldraw/tldraw dist-tags --json | jq -r .beta > /tmp/latest_tldraw && \
+          cp templates/vite/package.json /tmp/template_package.json && \
           jq --arg latest_tldraw "$(< /tmp/latest_tldraw)" \
             '.dependencies."@tldraw/tldraw" |= $latest_tldraw' \ 
             /tmp/template_package.json | tee templates/vite/package.json
