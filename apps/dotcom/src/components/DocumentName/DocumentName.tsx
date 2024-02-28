@@ -154,13 +154,15 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 			totalWidth - rightWidth - leftWidth - 2 * MARGIN_BETWEEN_ZONES,
 			MAX_TITLE_WIDTH_PX
 		)
+		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
 
-		// We don't need to move the title if the panel has grown past the style panel width
-		if (rightPanel.offsetWidth < STYLE_PANEL_WIDTH) {
-			const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
-			element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
+		// Squeeze the title if the right panel is too wide on small screen
+		if (rightPanel.offsetWidth > STYLE_PANEL_WIDTH && totalWidth < 841) {
+			element.style.setProperty('max-width', maxWidth - 60 + 'px')
+		} else {
+			element.style.setProperty('max-width', maxWidth + 'px')
 		}
-		element.style.setProperty('max-width', maxWidth + 'px')
+		element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
 	}, [])
 
 	useLayoutEffect(() => {
