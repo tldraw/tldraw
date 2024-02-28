@@ -2,6 +2,7 @@ import { test as base } from '@playwright/test'
 import { ActionsMenu } from './menus/ActionsMenu'
 import { HelpMenu } from './menus/HelpMenu'
 import { MainMenu } from './menus/MainMenu'
+import { Minimap } from './menus/Minimap'
 import { PageMenu } from './menus/PageMenu'
 import { StylePanel } from './menus/StylePanel'
 import { Toolbar } from './menus/Toolbar'
@@ -13,6 +14,7 @@ type Fixtures = {
 	helpMenu: HelpMenu
 	mainMenu: MainMenu
 	pageMenu: PageMenu
+	minimap: Minimap
 }
 
 const test = base.extend<Fixtures>({
@@ -39,6 +41,10 @@ const test = base.extend<Fixtures>({
 	pageMenu: async ({ page }, use) => {
 		const pagemenu = new PageMenu(page)
 		await use(pagemenu)
+	},
+	minimap: async ({ page }, use) => {
+		const minimap = new Minimap(page)
+		await use(minimap)
 	},
 })
 
