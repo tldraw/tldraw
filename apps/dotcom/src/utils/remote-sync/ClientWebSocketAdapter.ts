@@ -24,6 +24,17 @@ function debug(...args: any[]) {
 	}
 }
 
+// NOTE: ClientWebSocketAdapter requires its users to implement their own connection loss
+//       detection, for example by regularly pinging the server and .restart()ing
+//       the connection when a number of pings goes unanswered. Without this mechanism,
+//       we might not be able to detect the websocket connection going down in a timely manner
+//       (it will probably time out on outgoing data packets at some point).
+//
+//       This is by design. Whilst the Websocket protocol specifies protocol-level pings,
+//       they don't seem to be surfaced in browser APIs and can't be relied on. Therefore,
+//       pings need to be implemented one level up, on the application API side, which for our
+//       codebase means whatever code that uses ClientWebSocketAdapter.
+
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 	_ws: WebSocket | null = null
 
