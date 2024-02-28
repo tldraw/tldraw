@@ -28,6 +28,7 @@ export async function getRoomSnapshot(request: IRequest, env: Environment): Prom
 	// Send back the snapshot!
 	return new Response(
 		JSON.stringify({
+			roomId,
 			records: data.documents.map((d) => d.state),
 			schema: data.schema,
 			error: false,
