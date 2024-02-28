@@ -2,12 +2,6 @@ export const BOOKMARK_ENDPOINT = 'https://bookmark-extractor.tldraw.com/api/book
 
 // some boilerplate to get the URL of the server to upload/fetch assets
 
-if (!process.env.ASSET_UPLOAD) {
-	throw new Error('Missing ASSET_UPLOAD env var')
-}
-
-export const ASSET_UPLOADER_URL: string = process.env.ASSET_UPLOAD
-
 export const CONTROL_SERVER: string =
 	process.env.NEXT_PUBLIC_CONTROL_SERVER || 'http://localhost:3001'
 

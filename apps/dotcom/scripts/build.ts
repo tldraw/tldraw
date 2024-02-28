@@ -33,7 +33,11 @@ config({
 	path: './.env.local',
 })
 
-nicelog('The multiplayer server is', process.env.MULTIPLAYER_SERVER)
+const multiplayerServer =
+	process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http') ?? 'http://127.0.0.1:8787'
+nicelog('The multiplayer server is', multiplayerServer)
+
+const assetServer = process.env.ASSET_UPLOAD ?? 'http://127.0.0.1:8788'
 
 async function build() {
 	// make sure we have the latest routes
@@ -56,15 +60,23 @@ async function build() {
 					// rewrite api calls to the multiplayer server
 					{
 						src: '^/api(/(.*))?$',
-						dest: `${
-							process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http') ?? 'http://127.0.0.1:8787'
-						}$1`,
+						dest: `${multiplayerServer}$1`,
 						check: true,
 					},
-					// rewrite api calls to the multiplayer server
+					// rewrite api calls to the assets upload server (our R2 facade worker)
 					{
-						src: '^/uploads(/(.*))?$',
-						dest: `https://tldraw-assets.tldraw.workers.dev/uploads$1`,
+						src: '^/uploads/(.+)$',
+						dest: `${assetServer}/uploads/$1`,
+						// configure GET to be cached forever
+						methods: ['GET'],
+						headers: { 'Cache-Control': 'public, max-age=31536000, immutable' },
+						check: true,
+					},
+					{
+						src: '^/uploads/(.+)$',
+						dest: `${assetServer}/uploads/$1`,
+						// configure POST to not have the caching header
+						methods: ['POST'],
 						check: true,
 					},
 					// cache static assets immutably

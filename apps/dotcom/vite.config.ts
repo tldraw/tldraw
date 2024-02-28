@@ -30,9 +30,6 @@ export default defineConfig({
 				.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
 		),
 		'process.env.MULTIPLAYER_SERVER': JSON.stringify(getMultiplayerServerURL()),
-		'process.env.ASSET_UPLOAD': JSON.stringify(
-			process.env.ASSET_UPLOAD ?? 'https://assets.tldraw.com'
-		),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
@@ -63,6 +60,9 @@ export default defineConfig({
 				// 		)
 				// 	})
 				// },
+			},
+			'/uploads': {
+				target: process.env.ASSET_UPLOAD ?? 'http://127.0.0.1:8788',
 			},
 		},
 	},

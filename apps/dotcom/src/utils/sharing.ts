@@ -19,7 +19,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
-import { ASSET_UPLOADER_URL } from './config'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
 import { trackAnalyticsEvent } from './trackAnalyticsEvent'
 import { UI_OVERRIDE_TODO_EVENT, useHandleUiEvents } from './useHandleUiEvent'
@@ -93,7 +92,7 @@ async function getSnapshotLink(
 export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
 	const id = useSearchParams()[0].get('id') ?? undefined
-	const uploadFileToAsset = useMultiplayerAssets(ASSET_UPLOADER_URL)
+	const uploadFileToAsset = useMultiplayerAssets()
 	const handleUiEvent = useHandleUiEvents()
 
 	return useMemo(
