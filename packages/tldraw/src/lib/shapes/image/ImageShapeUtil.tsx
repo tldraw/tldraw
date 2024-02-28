@@ -116,6 +116,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					}}
 				>
 					<BrokenAssetIcon />
+					{'url' in shape.props && shape.props.url && (
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+					)}
 				</div>
 			)
 		}
