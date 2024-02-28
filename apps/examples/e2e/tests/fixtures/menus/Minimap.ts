@@ -1,11 +1,11 @@
 import { Locator, Page } from '@playwright/test'
 
 export class Minimap {
-	readonly button: Locator
+	readonly zoomMenuButton: Locator
 	readonly items: { [key: string]: Locator }
 	constructor(private readonly page: Page) {
 		this.page = page
-		this.button = page.getByTestId('minimap.zoom-menu-button')
+		this.zoomMenuButton = page.getByTestId('minimap.zoom-menu-button')
 		this.items = {
 			zoomIn: page.getByRole('menuitem').getByText('Zoom in'),
 			zoomOut: page.getByRole('menuitem').getByText('Zoom out'),

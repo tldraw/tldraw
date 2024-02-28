@@ -8,12 +8,12 @@ test.describe('minimap', () => {
 	test('you can open and close the zoom menu', async ({ minimap, isMobile }) => {
 		// no minimap on mobile
 		test.skip(isMobile)
-		const { button } = minimap
+		const { zoomMenuButton } = minimap
 		const { zoomIn } = minimap.items
 		await expect(zoomIn).toBeHidden()
-		await button.click()
+		await zoomMenuButton.click()
 		await expect(zoomIn).toBeVisible()
-		await button.click()
+		await zoomMenuButton.click()
 		await expect(zoomIn).toBeHidden()
 	})
 
