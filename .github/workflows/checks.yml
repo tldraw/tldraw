@@ -77,7 +77,7 @@ jobs:
 
   test_templates:
     name: Test call to publish-templates
-    uses: tldraw/tldraw/.github/actions/publish-templates.yml@dan/mirror-examples
+    uses: tldraw/tldraw/.github/workflows/publish-templates.yml@dan/mirror-examples
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
