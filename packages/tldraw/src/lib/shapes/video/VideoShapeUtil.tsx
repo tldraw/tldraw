@@ -9,6 +9,7 @@ import {
 	videoShapeProps,
 } from '@tldraw/editor'
 import React from 'react'
+import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -204,7 +205,9 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 						>
 							<source src={asset.props.src} />
 						</video>
-					) : null}
+					) : (
+						<BrokenAssetIcon />
+					)}
 				</div>
 			</HTMLContainer>
 			{'url' in shape.props && shape.props.url && (
