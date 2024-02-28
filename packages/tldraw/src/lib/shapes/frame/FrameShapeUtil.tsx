@@ -6,7 +6,6 @@ import {
 	SelectionEdge,
 	SvgExportContext,
 	TLFrameShape,
-	TLGroupShape,
 	TLOnResizeEndHandler,
 	TLOnResizeHandler,
 	TLShape,
@@ -208,31 +207,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override canDropShapes = (shape: TLFrameShape, _shapes: TLShape[]): boolean => {
 		return !shape.isLocked
-	}
-
-	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
-		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.editor.reparentShapes(
-				shapes.map((shape) => shape.id),
-				frame.id
-			)
-			return { shouldHint: true }
-		}
-		return { shouldHint: false }
-	}
-
-	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
-		const parent = this.editor.getShape(_shape.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
-
-		// If frame is in a group, keep the shape
-		// moved out in that group
-
-		if (isInGroup) {
-			this.editor.reparentShapes(shapes, parent.id)
-		} else {
-			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-		}
 	}
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {

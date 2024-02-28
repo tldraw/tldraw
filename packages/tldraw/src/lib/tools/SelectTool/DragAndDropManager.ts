@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
+import { Editor, TLGroupShape, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
 
 const LAG_DURATION = 100
 
@@ -60,15 +60,22 @@ export class DragAndDropManager {
 		// the previous parent's onDragShapesOut
 
 		if (prevDroppingShape) {
-			this.editor.getShapeUtil(prevDroppingShape).onDragShapesOut?.(prevDroppingShape, movingShapes)
+			const parent = this.editor.getShape(prevDroppingShape.parentId)
+			const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
+
+			// If frame is in a group, keep the shape
+			// moved out in that group
+
+			if (isInGroup) {
+				this.editor.reparentShapes(movingShapes, parent.id)
+			} else {
+				this.editor.reparentShapes(movingShapes, this.editor.getCurrentPageId())
+			}
 		}
 
 		if (nextDroppingShape) {
-			const res = this.editor
-				.getShapeUtil(nextDroppingShape)
-				.onDragShapesOver?.(nextDroppingShape, movingShapes)
-
-			if (res && res.shouldHint) {
+			if (!movingShapes.every((child) => child.parentId === nextDroppingShape.id)) {
+				this.editor.reparentShapes(movingShapes, nextDroppingShape.id)
 				this.editor.setHintingShapes([nextDroppingShape.id])
 			}
 		} else {
@@ -90,7 +97,6 @@ export class DragAndDropManager {
 		if (prevDroppingShapeId) {
 			const shape = this.editor.getShape(prevDroppingShapeId)
 			if (!shape) return
-			this.editor.getShapeUtil(shape).onDropShapesOver?.(shape, shapes)
 		}
 	}
 
