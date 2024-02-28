@@ -74,7 +74,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	component(shape: TLImageShape) {
-		const containerStyle = getContainerStyle(shape)
 		const isCropping = useIsCropping(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
@@ -105,25 +104,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			}
 		}, [prefersReducedMotion, asset?.props])
 
-		if (!asset) {
-			return (
-				<div
-					className="tl-image-container"
-					style={{
-						...containerStyle,
-						backgroundColor: 'var(--color-panel)',
-						border: '1px solid var(--color-panel-contrast)',
-					}}
-				>
-					<BrokenAssetIcon />
-					{'url' in shape.props && shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-					)}
-				</div>
-			)
-		}
-
-		if (asset.type === 'bookmark') {
+		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
 		}
 
@@ -137,20 +118,26 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			prefersReducedMotion &&
 			(asset?.props.mimeType?.includes('video') || asset?.props.mimeType?.includes('gif'))
 
+		const containerStyle = getContainerStyle(shape)
+
 		return (
 			<>
 				{asset?.props.src && showCropPreview && (
 					<div style={containerStyle}>
-						<div
-							className="tl-image"
-							style={{
-								opacity: 0.1,
-								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
-								})`,
-							}}
-							draggable={false}
-						/>
+						{asset ? (
+							<div
+								className="tl-image"
+								style={{
+									opacity: 0.1,
+									backgroundImage: `url(${
+										!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									})`,
+								}}
+								draggable={false}
+							/>
+						) : (
+							<BrokenAssetIcon />
+						)}
 					</div>
 				)}
 				<HTMLContainer
@@ -158,21 +145,26 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
 				>
 					<div className="tl-image-container" style={containerStyle}>
-						{asset?.props.src ? (
-							<div
-								className="tl-image"
-								style={{
-									backgroundImage: `url(${
-										!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
-									})`,
-								}}
-								draggable={false}
-							/>
-						) : null}
+						{asset ? (
+							asset?.props.src ? (
+								<div
+									className="tl-image"
+									style={{
+										backgroundImage: `url(${
+											!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+										})`,
+									}}
+									draggable={false}
+								/>
+							) : null
+						) : (
+							<BrokenAssetIcon />
+						)}
 						{asset?.props.isAnimated && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
+					)
 					{'url' in shape.props && shape.props.url && (
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
@@ -196,6 +188,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override async toSvg(shape: TLImageShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
+
+		if (!asset) return g
 
 		let src = asset?.props.src || ''
 		if (this.shouldGetDataURI(src)) {
