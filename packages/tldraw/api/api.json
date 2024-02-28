@@ -6045,6 +6045,101 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!exportToBlob:function(1)",
+          "docComment": "/**\n * Export the given shapes as a blob.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to export.\n *\n * @param format - The format to export as.\n *\n * @param opts - Rendering options.\n *\n * @returns A promise that resolves to a blob.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function exportToBlob({ editor, ids, format, opts, }: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    editor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    ids: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    format: 'jpeg' | 'json' | 'png' | 'svg' | 'webp';\n    opts?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSvgOptions",
+              "canonicalReference": "@tldraw/editor!TLSvgOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Blob",
+              "canonicalReference": "!Blob:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/utils/export/export.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 11,
+            "endIndex": 15
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ editor, ids, format, opts, }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 10
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "exportToBlob"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!ExtrasGroup:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [

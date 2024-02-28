@@ -543,6 +543,14 @@ export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType 
 // @public (undocumented)
 export function ExportFileContentSubMenu(): JSX_2.Element;
 
+// @public
+export function exportToBlob({ editor, ids, format, opts, }: {
+    editor: Editor;
+    ids: TLShapeId[];
+    format: 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
+    opts?: Partial<TLSvgOptions>;
+}): Promise<Blob>;
+
 // @public (undocumented)
 export function ExtrasGroup(): JSX_2.Element;
 
