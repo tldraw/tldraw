@@ -7,4 +7,4 @@ priority: 3
 
 ---
 
-You can make dialogs pop out of the `Tldraw` component by overriding our default styles.
+You can make dialogs pop outside of the `Tldraw` component by overriding our default styles.
