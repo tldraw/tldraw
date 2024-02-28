@@ -105,6 +105,9 @@ export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, 
 export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
+export function groupBy<T, U>(items: readonly T[], getKey: (item: T) => U): Map<U, T[]>;
+
+// @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @public

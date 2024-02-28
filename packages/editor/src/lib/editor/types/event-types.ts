@@ -40,6 +40,11 @@ export type TLEventName =
 	| 'complete'
 	| 'interrupt'
 
+export type WithPreventDefault<T> = T & {
+	preventDefault: () => void
+	defaultPrevented: boolean
+}
+
 /** @public */
 export interface TLBaseEventInfo {
 	type: UiEventType
@@ -112,21 +117,21 @@ export type TLEventInfo =
 	| TLInterruptEventInfo
 
 /** @public */
-export type TLPointerEvent = (info: TLPointerEventInfo) => void
+export type TLPointerEvent = (info: WithPreventDefault<TLPointerEventInfo>) => void
 /** @public */
-export type TLClickEvent = (info: TLClickEventInfo) => void
+export type TLClickEvent = (info: WithPreventDefault<TLClickEventInfo>) => void
 /** @public */
-export type TLKeyboardEvent = (info: TLKeyboardEventInfo) => void
+export type TLKeyboardEvent = (info: WithPreventDefault<TLKeyboardEventInfo>) => void
 /** @public */
-export type TLPinchEvent = (info: TLPinchEventInfo) => void
+export type TLPinchEvent = (info: WithPreventDefault<TLPinchEventInfo>) => void
 /** @public */
-export type TLWheelEvent = (info: TLWheelEventInfo) => void
+export type TLWheelEvent = (info: WithPreventDefault<TLWheelEventInfo>) => void
 /** @public */
-export type TLCancelEvent = (info: TLCancelEventInfo) => void
+export type TLCancelEvent = (info: WithPreventDefault<TLCancelEventInfo>) => void
 /** @public */
-export type TLCompleteEvent = (info: TLCompleteEventInfo) => void
+export type TLCompleteEvent = (info: WithPreventDefault<TLCompleteEventInfo>) => void
 /** @public */
-export type TLInterruptEvent = (info: TLInterruptEventInfo) => void
+export type TLInterruptEvent = (info: WithPreventDefault<TLInterruptEventInfo>) => void
 
 /** @public */
 export type UiEvent =

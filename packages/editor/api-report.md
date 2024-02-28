@@ -26,6 +26,7 @@ import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { ReactNode } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -310,21 +311,13 @@ export function canonicalizeRotation(a: number): number;
 
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
-    constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
-        x?: number;
-        y?: number;
-        radius: number;
-        isFilled: boolean;
-    });
+    constructor(config: Circle2dOpts);
     // (undocumented)
     _center: Vec;
     // (undocumented)
-    config: Omit<Geometry2dOptions, 'isClosed'> & {
-        x?: number;
-        y?: number;
-        radius: number;
-        isFilled: boolean;
-    };
+    config: Circle2dOpts;
+    // (undocumented)
+    static fromCenter(config: Circle2dOpts): Circle2d;
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
@@ -360,6 +353,50 @@ export function ContainerProvider({ container, children, }: {
     container: HTMLDivElement;
     children: React.ReactNode;
 }): JSX_2.Element;
+
+// @public (undocumented)
+export abstract class Control {
+    constructor(editor: Editor, id: string);
+    // (undocumented)
+    component(props: ControlProps): ReactNode;
+    // (undocumented)
+    readonly editor: Editor;
+    // (undocumented)
+    abstract getGeometry(): Geometry2d;
+    // (undocumented)
+    getIndex(): number;
+    // (undocumented)
+    handleEvent(info: TLClickEventInfo | TLPointerEventInfo | TLWheelEventInfo): void;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    onDoubleClick?(info: WithPreventDefault<TLClickEventInfo>): void;
+    // (undocumented)
+    onMiddleClick?(info: WithPreventDefault<TLPointerEventInfo>): void;
+    // (undocumented)
+    onPointerDown?(info: WithPreventDefault<TLPointerEventInfo>): void;
+    // (undocumented)
+    onPointerMove?(info: WithPreventDefault<TLPointerEventInfo>): void;
+    // (undocumented)
+    onPointerUp?(info: WithPreventDefault<TLPointerEventInfo>): void;
+    // (undocumented)
+    onQuadrupleClick?(info: WithPreventDefault<TLClickEventInfo>): void;
+    // (undocumented)
+    onRightClick?(info: WithPreventDefault<TLPointerEventInfo>): void;
+    // (undocumented)
+    onTripleClick?(info: WithPreventDefault<TLClickEventInfo>): void;
+    // (undocumented)
+    onWheel?(info: WithPreventDefault<TLWheelEventInfo>): void;
+}
+
+// @public (undocumented)
+export type ControlFn = (editor: Editor) => Control | Control[] | null;
+
+// @public (undocumented)
+export interface ControlProps {
+    // (undocumented)
+    isHovered: boolean;
+}
 
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
@@ -569,6 +606,8 @@ export class Edge2d extends Geometry2d {
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: TLEditorOptions);
+    // (undocumented)
+    addControls(controlFn: ControlFn): void;
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
@@ -663,12 +702,29 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
+    getAtPoint(point: VecLike, opts?: {
+        shapes?: {
+            renderingOnly?: boolean | undefined;
+            margin?: number | undefined;
+            hitInside?: boolean | undefined;
+            hitLabels?: boolean | undefined;
+            hitFrameInside?: boolean | undefined;
+            filter?: ((shape: TLShape) => boolean) | undefined;
+        } | undefined;
+        controls?: {
+            filter?: ((control: Control) => boolean) | undefined;
+        } | undefined;
+    }): CanvasItem | null;
     getCamera(): TLCamera;
     getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    // (undocumented)
+    getControls(): readonly Control[];
+    // (undocumented)
+    getControlsGroupedByIndex(): ReadonlyMap<number, readonly Control[]>;
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
@@ -693,10 +749,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
     getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
+    // (undocumented)
+    getHovered(): CanvasItem | null;
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
+    // (undocumented)
+    getIsCoarsePointer(): boolean;
     getIsMenuOpen(): boolean;
     getOnlySelectedShape(): null | TLShape;
     getOpenMenus(): string[];
@@ -729,6 +789,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
+    // (undocumented)
     getShapeAtPoint(point: VecLike, opts?: {
         renderingOnly?: boolean | undefined;
         margin?: number | undefined;
@@ -778,6 +839,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         originScreenPoint: Vec;
         previousPagePoint: Vec;
         previousScreenPoint: Vec;
+        _currentPagePoint: Atom<Vec, unknown>;
         currentPagePoint: Vec;
         currentScreenPoint: Vec;
         keys: Set<string>;
@@ -834,6 +896,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
         type: T;
     } : TLExternalContent) => void) | null): this;
+    // (undocumented)
+    removeControls(controlFn: ControlFn): void;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     renderingBoundsMargin: number;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
@@ -1724,6 +1788,8 @@ export class Stadium2d extends Ellipse2d {
 export abstract class StateNode implements Partial<TLEventHandlers> {
     constructor(editor: Editor, parent?: StateNode);
     // (undocumented)
+    addChild(NodeCtor: TLStateNodeConstructor): this;
+    // (undocumented)
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
@@ -1734,13 +1800,15 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     enter: (info: any, from: string) => void;
     // (undocumented)
     exit: (info: any, from: string) => void;
+    // (undocumented)
+    find(path: string | string[]): StateNode | undefined;
     getCurrent(): StateNode | undefined;
     // (undocumented)
     getCurrentToolIdMask(): string | undefined;
     getIsActive(): boolean;
     getPath(): string;
     // (undocumented)
-    handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
+    handleEvent: (info: WithPreventDefault<Exclude<TLEventInfo, TLPinchEventInfo>>) => void;
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1925,7 +1993,7 @@ export type TLBrushProps = {
 };
 
 // @public (undocumented)
-export type TLCancelEvent = (info: TLCancelEventInfo) => void;
+export type TLCancelEvent = (info: WithPreventDefault<TLCancelEventInfo>) => void;
 
 // @public (undocumented)
 export type TLCancelEventInfo = {
@@ -1934,7 +2002,7 @@ export type TLCancelEventInfo = {
 };
 
 // @public (undocumented)
-export type TLClickEvent = (info: TLClickEventInfo) => void;
+export type TLClickEvent = (info: WithPreventDefault<TLClickEventInfo>) => void;
 
 // @public (undocumented)
 export type TLClickEventInfo = TLBaseEventInfo & {
@@ -1984,7 +2052,7 @@ export type TLCommandHistoryOptions = Partial<{
 }>;
 
 // @public (undocumented)
-export type TLCompleteEvent = (info: TLCompleteEventInfo) => void;
+export type TLCompleteEvent = (info: WithPreventDefault<TLCompleteEventInfo>) => void;
 
 // @public (undocumented)
 export type TLCompleteEventInfo = {
@@ -2247,7 +2315,7 @@ export type TLHoveredShapeIndicatorProps = {
 };
 
 // @public (undocumented)
-export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
+export type TLInterruptEvent = (info: WithPreventDefault<TLInterruptEventInfo>) => void;
 
 // @public (undocumented)
 export type TLInterruptEventInfo = {
@@ -2256,7 +2324,7 @@ export type TLInterruptEventInfo = {
 };
 
 // @public (undocumented)
-export type TLKeyboardEvent = (info: TLKeyboardEventInfo) => void;
+export type TLKeyboardEvent = (info: WithPreventDefault<TLKeyboardEventInfo>) => void;
 
 // @public (undocumented)
 export type TLKeyboardEventInfo = TLBaseEventInfo & {
@@ -2334,7 +2402,7 @@ export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>;
 export type TLOnTranslateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
 
 // @public (undocumented)
-export type TLPinchEvent = (info: TLPinchEventInfo) => void;
+export type TLPinchEvent = (info: WithPreventDefault<TLPinchEventInfo>) => void;
 
 // @public (undocumented)
 export type TLPinchEventInfo = TLBaseEventInfo & {
@@ -2348,7 +2416,7 @@ export type TLPinchEventInfo = TLBaseEventInfo & {
 export type TLPinchEventName = 'pinch_end' | 'pinch_start' | 'pinch';
 
 // @public (undocumented)
-export type TLPointerEvent = (info: TLPointerEventInfo) => void;
+export type TLPointerEvent = (info: WithPreventDefault<TLPointerEventInfo>) => void;
 
 // @public (undocumented)
 export type TLPointerEventInfo = TLBaseEventInfo & {
@@ -2596,7 +2664,7 @@ export interface TLUserPreferences {
 }
 
 // @public (undocumented)
-export type TLWheelEvent = (info: TLWheelEventInfo) => void;
+export type TLWheelEvent = (info: WithPreventDefault<TLWheelEventInfo>) => void;
 
 // @public (undocumented)
 export type TLWheelEventInfo = TLBaseEventInfo & {

@@ -4266,21 +4266,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Omit",
-                  "canonicalReference": "!Omit:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Geometry2dOptions",
-                  "canonicalReference": "@tldraw/editor!~Geometry2dOptions:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", 'isClosed'> & {\n        x?: number;\n        y?: number;\n        radius: number;\n        isFilled: boolean;\n    }"
+                  "text": "Circle2dOpts",
+                  "canonicalReference": "@tldraw/editor!~Circle2dOpts:type"
                 },
                 {
                   "kind": "Content",
@@ -4295,7 +4282,7 @@
                   "parameterName": "config",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
-                    "endIndex": 5
+                    "endIndex": 2
                   },
                   "isOptional": false
                 }
@@ -4312,21 +4299,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Omit",
-                  "canonicalReference": "!Omit:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Geometry2dOptions",
-                  "canonicalReference": "@tldraw/editor!~Geometry2dOptions:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", 'isClosed'> & {\n        x?: number;\n        y?: number;\n        radius: number;\n        isFilled: boolean;\n    }"
+                  "text": "Circle2dOpts",
+                  "canonicalReference": "@tldraw/editor!~Circle2dOpts:type"
                 },
                 {
                   "kind": "Content",
@@ -4339,11 +4313,61 @@
               "name": "config",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 5
+                "endIndex": 2
               },
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Circle2d.fromCenter:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static fromCenter(config: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Circle2dOpts",
+                  "canonicalReference": "@tldraw/editor!~Circle2dOpts:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Circle2d",
+                  "canonicalReference": "@tldraw/editor!Circle2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "config",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "fromCenter"
             },
             {
               "kind": "Method",
@@ -4885,6 +4909,971 @@
             }
           ],
           "name": "clockwiseAngleDist"
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/editor!Control:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare abstract class Control "
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/types/Control.tsx",
+          "releaseTag": "Public",
+          "isAbstract": true,
+          "name": "Control",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@tldraw/editor!Control:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `Control` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(editor: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Editor",
+                  "canonicalReference": "@tldraw/editor!Editor:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "editor",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "id",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#component:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "component(props: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ControlProps",
+                  "canonicalReference": "@tldraw/editor!ControlProps:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReactNode",
+                  "canonicalReference": "@types/react!React.ReactNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "props",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "component"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Control#editor:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly editor: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Editor",
+                  "canonicalReference": "@tldraw/editor!Editor:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "editor",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#getGeometry:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "abstract getGeometry(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Geometry2d",
+                  "canonicalReference": "@tldraw/editor!Geometry2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": true,
+              "name": "getGeometry"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#getIndex:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getIndex(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getIndex"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#handleEvent:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "handleEvent(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLClickEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLClickEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPointerEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLPointerEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLWheelEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLWheelEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "handleEvent"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Control#id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onDoubleClick:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onDoubleClick?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLClickEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLClickEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onDoubleClick"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onMiddleClick:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onMiddleClick?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPointerEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLPointerEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onMiddleClick"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onPointerDown:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onPointerDown?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPointerEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLPointerEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onPointerDown"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onPointerMove:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onPointerMove?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPointerEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLPointerEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onPointerMove"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onPointerUp:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onPointerUp?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPointerEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLPointerEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onPointerUp"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onQuadrupleClick:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onQuadrupleClick?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLClickEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLClickEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onQuadrupleClick"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onRightClick:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onRightClick?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPointerEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLPointerEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onRightClick"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onTripleClick:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onTripleClick?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLClickEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLClickEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onTripleClick"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Control#onWheel:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onWheel?(info: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLWheelEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLWheelEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onWheel"
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!ControlFn:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type ControlFn = "
+            },
+            {
+              "kind": "Content",
+              "text": "(editor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Reference",
+              "text": "Control",
+              "canonicalReference": "@tldraw/editor!Control:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Control",
+              "canonicalReference": "@tldraw/editor!Control:class"
+            },
+            {
+              "kind": "Content",
+              "text": "[] | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/types/Control.tsx",
+          "releaseTag": "Public",
+          "name": "ControlFn",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 8
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/editor!ControlProps:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface ControlProps "
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/types/Control.tsx",
+          "releaseTag": "Public",
+          "name": "ControlProps",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!ControlProps#isHovered:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isHovered: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isHovered",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
         },
         {
           "kind": "Variable",
@@ -7475,6 +8464,55 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#addControls:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "addControls(controlFn: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ControlFn",
+                  "canonicalReference": "@tldraw/editor!ControlFn:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "controlFn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "addControls"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#addOpenMenu:member(1)",
               "docComment": "/**\n * Add an open menu.\n *\n * @example\n * ```ts\n * editor.addOpenMenu('menu-id')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10019,6 +11057,94 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getAtPoint:member(1)",
+              "docComment": "/**\n * Get the thing at the current point.\n *\n * @param point - The point to check.\n *\n * @param opts - Options for the check: `hitInside` to check if the point is inside the shape, `margin` to check if the point is within a margin of the shape, `hitFrameInside` to check if the point is inside the frame, and `filter` to filter the shapes to check.\n *\n * @returns The shape at the given point, or undefined if there is no shape at the point.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAtPoint(point: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", opts?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        shapes?: {\n            renderingOnly?: boolean | undefined;\n            margin?: number | undefined;\n            hitInside?: boolean | undefined;\n            hitLabels?: boolean | undefined;\n            hitFrameInside?: boolean | undefined;\n            filter?: ((shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => boolean) | undefined;\n        } | undefined;\n        controls?: {\n            filter?: ((control: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Control",
+                  "canonicalReference": "@tldraw/editor!Control:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => boolean) | undefined;\n        } | undefined;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CanvasItem",
+                  "canonicalReference": "@tldraw/editor!~CanvasItem:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 11
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "point",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 8
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getAtPoint"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCamera:member(1)",
               "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10247,6 +11373,91 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getContentFromCurrentPage"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getControls:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getControls(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Control",
+                  "canonicalReference": "@tldraw/editor!Control:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getControls"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getControlsGroupedByIndex:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getControlsGroupedByIndex(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReadonlyMap",
+                  "canonicalReference": "!ReadonlyMap:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number, readonly "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Control",
+                  "canonicalReference": "@tldraw/editor!Control:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getControlsGroupedByIndex"
             },
             {
               "kind": "Method",
@@ -11120,6 +12331,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHovered:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHovered(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CanvasItem",
+                  "canonicalReference": "@tldraw/editor!~CanvasItem:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHovered"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getHoveredShape:member(1)",
               "docComment": "/**\n * The current hovered shape.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -11271,6 +12518,37 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getInstanceState"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getIsCoarsePointer:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getIsCoarsePointer(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getIsCoarsePointer"
             },
             {
               "kind": "Method",
@@ -12456,7 +13734,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShapeAtPoint:member(1)",
-              "docComment": "/**\n * Get the shape at the current point.\n *\n * @param point - The point to check.\n *\n * @param opts - Options for the check: `hitInside` to check if the point is inside the shape, `margin` to check if the point is within a margin of the shape, `hitFrameInside` to check if the point is inside the frame, and `filter` to filter the shapes to check.\n *\n * @returns The shape at the given point, or undefined if there is no shape at the point.\n */\n",
+              "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14284,7 +15562,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        currentPagePoint: "
+                  "text": ";\n        _currentPagePoint: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Atom",
+                  "canonicalReference": "@tldraw/state!Atom:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec",
+                  "canonicalReference": "@tldraw/editor!Vec:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", unknown>;\n        currentPagePoint: "
                 },
                 {
                   "kind": "Reference",
@@ -14342,7 +15638,7 @@
               "name": "inputs",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 20
+                "endIndex": 24
               },
               "isStatic": false,
               "isProtected": false,
@@ -15926,6 +17222,55 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "registerExternalContentHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#removeControls:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "removeControls(controlFn: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ControlFn",
+                  "canonicalReference": "@tldraw/editor!ControlFn:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "controlFn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "removeControls"
             },
             {
               "kind": "Method",
@@ -33027,6 +34372,55 @@
               ]
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#addChild:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "addChild(NodeCtor: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLStateNodeConstructor",
+                  "canonicalReference": "@tldraw/editor!TLStateNodeConstructor:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "NodeCtor",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "addChild"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#children:member",
               "docComment": "",
@@ -33202,6 +34596,59 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#find:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "find(path: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string | string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StateNode",
+                  "canonicalReference": "@tldraw/editor!StateNode:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "path",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "find"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!StateNode#getCurrent:member(1)",
               "docComment": "/**\n * This node's current active child node, if any.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -33344,6 +34791,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "WithPreventDefault",
+                  "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
                   "text": "Exclude",
                   "canonicalReference": "!Exclude:type"
                 },
@@ -33367,7 +34823,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ">) => void"
+                  "text": ">>) => void"
                 },
                 {
                   "kind": "Content",
@@ -33380,7 +34836,7 @@
               "name": "handleEvent",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 8
+                "endIndex": 10
               },
               "isStatic": false,
               "isProtected": false,
@@ -35581,12 +37037,21 @@
             },
             {
               "kind": "Reference",
+              "text": "WithPreventDefault",
+              "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLCancelEventInfo",
               "canonicalReference": "@tldraw/editor!TLCancelEventInfo:type"
             },
             {
               "kind": "Content",
-              "text": ") => void"
+              "text": ">) => void"
             },
             {
               "kind": "Content",
@@ -35598,7 +37063,7 @@
           "name": "TLCancelEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -35642,12 +37107,21 @@
             },
             {
               "kind": "Reference",
+              "text": "WithPreventDefault",
+              "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLClickEventInfo",
               "canonicalReference": "@tldraw/editor!TLClickEventInfo:type"
             },
             {
               "kind": "Content",
-              "text": ") => void"
+              "text": ">) => void"
             },
             {
               "kind": "Content",
@@ -35659,7 +37133,7 @@
           "name": "TLClickEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -35945,12 +37419,21 @@
             },
             {
               "kind": "Reference",
+              "text": "WithPreventDefault",
+              "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLCompleteEventInfo",
               "canonicalReference": "@tldraw/editor!TLCompleteEventInfo:type"
             },
             {
               "kind": "Content",
-              "text": ") => void"
+              "text": ">) => void"
             },
             {
               "kind": "Content",
@@ -35962,7 +37445,7 @@
           "name": "TLCompleteEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -38425,12 +39908,21 @@
             },
             {
               "kind": "Reference",
+              "text": "WithPreventDefault",
+              "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLInterruptEventInfo",
               "canonicalReference": "@tldraw/editor!TLInterruptEventInfo:type"
             },
             {
               "kind": "Content",
-              "text": ") => void"
+              "text": ">) => void"
             },
             {
               "kind": "Content",
@@ -38442,7 +39934,7 @@
           "name": "TLInterruptEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -38486,12 +39978,21 @@
             },
             {
               "kind": "Reference",
+              "text": "WithPreventDefault",
+              "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLKeyboardEventInfo",
               "canonicalReference": "@tldraw/editor!TLKeyboardEventInfo:type"
             },
             {
               "kind": "Content",
-              "text": ") => void"
+              "text": ">) => void"
             },
             {
               "kind": "Content",
@@ -38503,7 +40004,7 @@
           "name": "TLKeyboardEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -39644,12 +41145,21 @@
             },
             {
               "kind": "Reference",
+              "text": "WithPreventDefault",
+              "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLPinchEventInfo",
               "canonicalReference": "@tldraw/editor!TLPinchEventInfo:type"
             },
             {
               "kind": "Content",
-              "text": ") => void"
+              "text": ">) => void"
             },
             {
               "kind": "Content",
@@ -39661,7 +41171,7 @@
           "name": "TLPinchEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -39763,12 +41273,21 @@
             },
             {
               "kind": "Reference",
+              "text": "WithPreventDefault",
+              "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLPointerEventInfo",
               "canonicalReference": "@tldraw/editor!TLPointerEventInfo:type"
             },
             {
               "kind": "Content",
-              "text": ") => void"
+              "text": ">) => void"
             },
             {
               "kind": "Content",
@@ -39780,7 +41299,7 @@
           "name": "TLPointerEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -41722,12 +43241,21 @@
             },
             {
               "kind": "Reference",
+              "text": "WithPreventDefault",
+              "canonicalReference": "@tldraw/editor!~WithPreventDefault:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "TLWheelEventInfo",
               "canonicalReference": "@tldraw/editor!TLWheelEventInfo:type"
             },
             {
               "kind": "Content",
-              "text": ") => void"
+              "text": ">) => void"
             },
             {
               "kind": "Content",
@@ -41739,7 +43267,7 @@
           "name": "TLWheelEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {

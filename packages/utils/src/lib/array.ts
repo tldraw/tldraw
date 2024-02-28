@@ -83,3 +83,29 @@ export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[])
 	}
 	return true
 }
+
+/** @internal */
+export function groupBy<T, U>(items: readonly T[], getKey: (item: T) => U): Map<U, T[]> {
+	const map = new Map<U, T[]>()
+	for (const item of items) {
+		const key = getKey(item)
+		const collection = map.get(key)
+		if (collection) {
+			collection.push(item)
+		} else {
+			map.set(key, [item])
+		}
+	}
+	return map
+}
+
+/** @internal */
+export function sortBy<T, U>(items: readonly T[], getKey: (item: T) => U): T[] {
+	return items.slice().sort((a, b) => {
+		const keyA = getKey(a)
+		const keyB = getKey(b)
+		if (keyA < keyB) return -1
+		if (keyA > keyB) return 1
+		return 0
+	})
+}

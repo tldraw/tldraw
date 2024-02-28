@@ -2,6 +2,7 @@ export {
 	areArraysShallowEqual,
 	compact,
 	dedupe,
+	groupBy,
 	last,
 	minBy,
 	partition,

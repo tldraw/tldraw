@@ -54,6 +54,7 @@ import {
 	getIndicesAbove,
 	getIndicesBetween,
 	getOwnProperty,
+	groupBy,
 	hasOwnProperty,
 	objectMapValues,
 	sortById,
@@ -122,6 +123,7 @@ import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { Control, ControlFn } from './types/Control'
 import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
+import { CanvasItem } from './types/canvas-types'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import {
@@ -129,6 +131,7 @@ import {
 	TLPinchEventInfo,
 	TLPointerEventInfo,
 	TLWheelEventInfo,
+	WithPreventDefault,
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
@@ -1195,6 +1198,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getInstanceState(): TLInstance {
 		return this.store.get(TLINSTANCE_ID)!
+	}
+
+	@computed getIsCoarsePointer(): boolean {
+		return this.getInstanceState().isCoarsePointer
 	}
 
 	/**
@@ -4249,14 +4256,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
 
-	/**
-	 * Get the shape at the current point.
-	 *
-	 * @param point - The point to check.
-	 * @param opts - Options for the check: `hitInside` to check if the point is inside the shape, `margin` to check if the point is within a margin of the shape, `hitFrameInside` to check if the point is inside the frame, and `filter` to filter the shapes to check.
-	 *
-	 * @returns The shape at the given point, or undefined if there is no shape at the point.
-	 */
 	getShapeAtPoint(
 		point: VecLike,
 		opts = {} as {
@@ -4430,6 +4429,82 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// or else the hollow shape with the smallest area—or if we didn't hit
 		// any margins or any hollow shapes, then null.
 		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
+	}
+
+	/**
+	 * Get the thing at the current point.
+	 *
+	 * @param point - The point to check.
+	 * @param opts - Options for the check: `hitInside` to check if the point is inside the shape, `margin` to check if the point is within a margin of the shape, `hitFrameInside` to check if the point is inside the frame, and `filter` to filter the shapes to check.
+	 *
+	 * @returns The shape at the given point, or undefined if there is no shape at the point.
+	 */
+	getAtPoint(
+		point: VecLike,
+		opts = {} as {
+			shapes?: {
+				renderingOnly?: boolean
+				margin?: number
+				hitInside?: boolean
+				hitLabels?: boolean
+				hitFrameInside?: boolean
+				filter?: (shape: TLShape) => boolean
+			}
+			controls?: {
+				filter?: (control: Control) => boolean
+			}
+		}
+	): CanvasItem | null {
+		const pointVec = Vec.From(point)
+
+		// controls are always "above" shapes, so we check them first.
+		const controlOpts = opts.controls ?? {}
+
+		// we check controls according to their index. the higher the index, the higher the priority
+		// of the control. if two controls have the same index, we look for the one that is closer
+		// to the cursor.
+		const controlsByIndex = Array.from(this.getControlsGroupedByIndex())
+			.sort(([idxA], [idxB]) => idxA - idxB)
+			.reverse()
+
+		for (const [_, controls] of controlsByIndex) {
+			let closestControl: Control | null = null
+			let distanceToClosestControl = Infinity
+
+			for (const control of controls) {
+				if (controlOpts.filter && !controlOpts.filter(control)) continue
+
+				const geometry = control.getGeometry()
+				const distance = geometry.distanceToPoint(pointVec)
+
+				if (distance < 0 && distance < distanceToClosestControl) {
+					closestControl = control
+					distanceToClosestControl = distance
+				}
+			}
+
+			if (closestControl) {
+				return { type: 'control', control: closestControl }
+			}
+		}
+
+		const shape = this.getShapeAtPoint(point, opts.shapes)
+		if (shape) {
+			return { type: 'shape', shape }
+		}
+
+		return null
+	}
+
+	@computed getHovered(): CanvasItem | null {
+		return this.getAtPoint(this.inputs.currentPagePoint, {
+			shapes: {
+				hitInside: false,
+				hitLabels: false,
+				margin: HIT_TEST_MARGIN / this.getZoomLevel(),
+				renderingOnly: true,
+			},
+		})
 	}
 
 	/**
@@ -8264,8 +8339,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		previousPagePoint: new Vec(),
 		/** The previous pointer position in screen space. */
 		previousScreenPoint: new Vec(),
+		_currentPagePoint: atom('current page point', new Vec()),
 		/** The most recent pointer position in the current page space. */
-		currentPagePoint: new Vec(),
+		get currentPagePoint() {
+			return this._currentPagePoint.get()
+		},
+		set currentPagePoint(v: Vec) {
+			this._currentPagePoint.set(v)
+		},
 		/** The most recent pointer position in screen space. */
 		currentScreenPoint: new Vec(),
 		/** A set containing the currently pressed keys. */
@@ -8302,8 +8383,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _updateInputsFromEvent(
 		info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo
 	): void {
-		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
-			this.inputs
+		const { previousScreenPoint, previousPagePoint, currentScreenPoint } = this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -8313,14 +8393,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const sz = info.point.z
 
 		previousScreenPoint.setTo(currentScreenPoint)
-		previousPagePoint.setTo(currentPagePoint)
+		previousPagePoint.setTo(this.inputs.currentPagePoint)
 
 		// The "screen bounds" is relative to the user's actual screen.
 		// The "screen point" is relative to the "screen bounds";
 		// it will be 0,0 when its actual screen position is equal
 		// to screenBounds.point. This is confusing!
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
+		this.inputs.currentPagePoint = new Vec(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
+		const { currentPagePoint } = this.inputs
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
@@ -8518,7 +8599,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
-				this.root.handleEvent(info)
+				this.handleEvent(info)
 				return
 			}
 
@@ -8896,10 +8977,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						case 'pointer_down': {
 							const otherEvent = this._clickManager.transformPointerDownEvent(info)
 							if (info.name !== otherEvent.name) {
-								this.root.handleEvent(info)
-								this.emit('event', info)
-								this.root.handleEvent(otherEvent)
-								this.emit('event', otherEvent)
+								this.handleEvent(info)
+								this.handleEvent(otherEvent)
 								return
 							}
 
@@ -8908,10 +8987,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						case 'pointer_up': {
 							const otherEvent = this._clickManager.transformPointerUpEvent(info)
 							if (info.name !== otherEvent.name) {
-								this.root.handleEvent(info)
-								this.emit('event', info)
-								this.root.handleEvent(otherEvent)
-								this.emit('event', otherEvent)
+								this.handleEvent(info)
+								this.handleEvent(otherEvent)
 								return
 							}
 
@@ -8927,11 +9004,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Send the event to the statechart. It will be handled by all
 			// active states, starting at the root.
-			this.root.handleEvent(info)
-			this.emit('event', info)
+			this.handleEvent(info)
 		})
 
 		return this
+	}
+
+	private handleEvent(rawInfo: TLEventInfo) {
+		const info: WithPreventDefault<TLEventInfo> = {
+			...rawInfo,
+			preventDefault: () => {
+				info.defaultPrevented = true
+			},
+			defaultPrevented: false,
+		}
+
+		console.log('handleEvent', info.type, info.name)
+		if (info.name === 'double_click') {
+			console.trace(info)
+		}
+		if (info.type === 'pointer' || info.type === 'click' || info.type === 'wheel') {
+			// if we're a pointerish event, we might get handled by a control:
+			const hovered = this.getHovered()
+			if (hovered && hovered.type === 'control' && !this.getIsMenuOpen()) {
+				hovered.control.handleEvent(info)
+			}
+		}
+
+		console.log('  -> defaultPrevented', info.defaultPrevented)
+		// if we weren't prevented by the control, defer to the normal state chart:
+		if (info.type !== 'pinch' && !info.defaultPrevented) {
+			this.root.handleEvent(info)
+		}
+
+		// next, we hand it to the actual event system:
+		this.emit('event', info)
 	}
 
 	// controls
@@ -8972,6 +9079,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 		return results
+	}
+	@computed getControlsGroupedByIndex(): ReadonlyMap<number, readonly Control[]> {
+		return groupBy(this.getControls(), (control) => control.getIndex())
 	}
 }
 

@@ -1,6 +1,10 @@
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { speechBubbleControl } from './SpeechBubble/SpeechBubbleHandle'
+import {
+	DraggingSpeechBubble,
+	PointingSpeechBubble,
+	speechBubbleControl,
+} from './SpeechBubble/SpeechBubbleHandle'
 import { SpeechBubbleTool } from './SpeechBubble/SpeechBubbleTool'
 import { SpeechBubbleUtil } from './SpeechBubble/SpeechBubbleUtil'
 import { components, customAssetUrls, uiOverrides } from './SpeechBubble/ui-overrides'
@@ -18,6 +22,7 @@ export default function CustomShapeWithHandles() {
 		<div style={{ position: 'absolute', inset: 0 }}>
 			<Tldraw
 				onMount={(editor) => {
+					editor.root.find('select')!.addChild(DraggingSpeechBubble).addChild(PointingSpeechBubble)
 					editor.addControls(speechBubbleControl)
 				}}
 				shapeUtils={shapeUtils}
