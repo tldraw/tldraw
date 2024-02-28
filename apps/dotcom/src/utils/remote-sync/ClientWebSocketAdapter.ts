@@ -203,6 +203,16 @@ class ReconnectManager {
 				debug('window went online')
 				this.maybeReconnected()
 			}),
+			listenTo(window, 'offline', () => {
+				debug('window went offline')
+				// On the one hand, 'offline' event is not really reliable; on the other, the only
+				// alternative is to wait for pings not being delivered, which takes more than 20 seconds,
+				// which means we won't see the ClientWebSocketAdapter status change for more than
+				// 20 seconds after the tab goes offline. Our application layer must be resistent to
+				// connection restart anyway, so we can just try to reconnect and see if
+				// we're truly offline.
+				this.socketAdapter.restart()
+			}),
 			listenTo(document, 'visibilitychange', () => {
 				if (!document.hidden) {
 					debug('document became visible')
@@ -360,8 +370,6 @@ class ReconnectManager {
 	}
 
 	close() {
-		this.clearReconnectTimeout()
-		this.clearRecheckConnectingTimeout()
 		this.disposables.forEach((d) => d())
 		this.isDisposed = true
 	}
