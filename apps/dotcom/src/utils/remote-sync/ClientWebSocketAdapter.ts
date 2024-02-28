@@ -19,8 +19,13 @@ function listenTo<T extends EventTarget>(target: T, event: string, handler: () =
 function debug(...args: any[]) {
 	// @ts-ignore
 	if (typeof window !== 'undefined' && window.__tldraw_socket_debug) {
+		const now = new Date()
 		// eslint-disable-next-line no-console
-		console.log(...args, new Error().stack)
+		console.log(
+			`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}`,
+			...args
+			//, new Error().stack
+		)
 	}
 }
 
@@ -56,31 +61,48 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		this._reconnectManager = new ReconnectManager(this, getUri)
 	}
 
-	private handleConnect() {
+	private _handleConnect() {
 		debug('handleConnect')
+
 		this._connectionStatus.set('online')
 		this.statusListeners.forEach((cb) => cb('online'))
 
 		this._reconnectManager.connected()
 	}
 
-	private handleDisconnect(status: 'offline' | 'error') {
-		debug('handleDisconnect', status, this.connectionStatus)
+	private _handleDisconnect(reason: 'closed' | 'error' | 'manual') {
+		debug('handleDisconnect', {
+			currentStatus: this.connectionStatus,
+			reason,
+		})
+
+		let newStatus: 'offline' | 'error'
+		switch (reason) {
+			case 'closed':
+				newStatus = 'offline'
+				break
+			case 'error':
+				newStatus = 'error'
+				break
+			case 'manual':
+				newStatus = 'offline'
+				break
+		}
 
 		if (
 			// it the status changed
-			this.connectionStatus !== status &&
+			this.connectionStatus !== newStatus &&
 			// ignore errors if we're already in the offline state
-			!(status === 'error' && this.connectionStatus === 'offline')
+			!(newStatus === 'error' && this.connectionStatus === 'offline')
 		) {
-			this._connectionStatus.set(status)
-			this.statusListeners.forEach((cb) => cb(status))
+			this._connectionStatus.set(newStatus)
+			this.statusListeners.forEach((cb) => cb(newStatus))
 		}
 
 		this._reconnectManager.disconnected()
 	}
 
-	setNewSocket(ws: WebSocket) {
+	_setNewSocket(ws: WebSocket) {
 		assert(!this.isDisposed, 'Tried to set a new websocket on a disposed socket')
 		assert(
 			this._ws === null ||
@@ -88,25 +110,53 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 				this._ws.readyState === WebSocket.CLOSING,
 			`Tried to set a new websocket in when the existing one was ${this._ws?.readyState}`
 		)
-
+		// NOTE: Sockets can stay for quite a while in the CLOSING state. This is because the transition
+		//       between CLOSING and CLOSED happens either after the closing handshake, or after a
+		//       timeout, but in either case those sockets don't need any special handling, the browser
+		//       will close them eventually. We just "orphan" such sockets and ignore their onclose/onerror.
 		ws.onopen = () => {
 			debug('ws.onopen')
-			this.handleConnect()
+			assert(
+				this._ws === ws,
+				"sockets must only be orphaned when they are CLOSING or CLOSED, so they can't open"
+			)
+			this._handleConnect()
 		}
 		ws.onclose = () => {
 			debug('ws.onclose')
-			this.handleDisconnect('offline')
+			if (this._ws === ws) {
+				this._handleDisconnect('closed')
+			} else {
+				debug('ignoring onclose for an orphaned socket')
+			}
 		}
 		ws.onerror = () => {
 			debug('ws.onerror')
-			this.handleDisconnect('error')
+			if (this._ws === ws) {
+				this._handleDisconnect('error')
+			} else {
+				debug('ignoring onerror for an orphaned socket')
+			}
 		}
 		ws.onmessage = (ev) => {
+			assert(
+				this._ws === ws,
+				"sockets must only be orphaned when they are CLOSING or CLOSED, so they can't receive messages"
+			)
 			const parsed = JSON.parse(ev.data.toString())
 			this.messageListeners.forEach((cb) => cb(parsed))
 		}
 
 		this._ws = ws
+	}
+
+	_closeSocket() {
+		if (this._ws === null) return
+
+		this._ws.close()
+		// explicitly orphan the socket to ignore its onclose/onerror, because onclose can be delayed
+		this._ws = null
+		this._handleDisconnect('manual')
 	}
 
 	// TLPersistentClientSocket stuff
@@ -160,8 +210,8 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		assert(!this.isDisposed, 'Tried to restart a disposed socket')
 		debug('restarting')
 
-		this._ws?.close()
-		// reconnection will be handled by the ReconnectManager
+		this._closeSocket()
+		this._reconnectManager.maybeReconnected()
 	}
 }
 
@@ -198,11 +248,9 @@ class ReconnectManager {
 		private socketAdapter: ClientWebSocketAdapter,
 		private getUri: () => Promise<string> | string
 	) {
+		this.subscribeToReconnectHints()
+
 		this.disposables.push(
-			listenTo(window, 'online', () => {
-				debug('window went online')
-				this.maybeReconnected()
-			}),
 			listenTo(window, 'offline', () => {
 				debug('window went offline')
 				// On the one hand, 'offline' event is not really reliable; on the other, the only
@@ -211,12 +259,24 @@ class ReconnectManager {
 				// 20 seconds after the tab goes offline. Our application layer must be resistent to
 				// connection restart anyway, so we can just try to reconnect and see if
 				// we're truly offline.
-				this.socketAdapter._ws?.close()
+				this.socketAdapter._closeSocket()
+			})
+		)
+
+		this.state = 'pendingAttempt'
+		this.intendedDelay = ACTIVE_MIN_DELAY
+		this.scheduleAttempt()
+	}
+
+	private subscribeToReconnectHints() {
+		this.disposables.push(
+			listenTo(window, 'online', () => {
+				debug('window went online')
+				this.maybeReconnected()
 			}),
 			listenTo(document, 'visibilitychange', () => {
 				if (!document.hidden) {
 					debug('document became visible')
-
 					this.maybeReconnected()
 				}
 			})
@@ -231,20 +291,21 @@ class ReconnectManager {
 				})
 			)
 		}
-
-		this.state = 'pendingAttempt'
-		this.intendedDelay = ACTIVE_MIN_DELAY
-		this.scheduleAttempt()
 	}
 
 	private scheduleAttempt() {
 		assert(this.state === 'pendingAttempt')
+		debug('scheduling a connection attempt')
 		Promise.resolve(this.getUri()).then((uri) => {
 			// this can happen if the promise gets resolved too late
 			if (this.state !== 'pendingAttempt' || this.isDisposed) return
+			assert(
+				this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
+				'There should be no connection attempts while already connected'
+			)
 
 			this.lastAttemptStart = Date.now()
-			this.socketAdapter.setNewSocket(new WebSocket(uri))
+			this.socketAdapter._setNewSocket(new WebSocket(uri))
 			this.state = 'pendingAttemptResult'
 		})
 	}
@@ -271,18 +332,21 @@ class ReconnectManager {
 		}
 	}
 
-	private maybeReconnected() {
+	maybeReconnected() {
+		debug('ReconnectManager.maybeReconnected')
 		// It doesn't make sense to have another check scheduled if we're already checking it now.
 		// If we have a CONNECTING check scheduled and relevant, it'll be recreated below anyway
 		this.clearRecheckConnectingTimeout()
 
 		// readyState can be CONNECTING, OPEN, CLOSING, CLOSED, or null (if getUri() is still pending)
 		if (this.socketAdapter._ws?.readyState === WebSocket.OPEN) {
+			debug('ReconnectManager.maybeReconnected: already connected')
 			// nothing to do, we're already OK
 			return
 		}
 
 		if (this.socketAdapter._ws?.readyState === WebSocket.CONNECTING) {
+			debug('ReconnectManager.maybeReconnected: connecting')
 			// We might be waiting for a TCP connection that sent SYN out and will never get it back,
 			// while a new connection appeared. On the other hand, we might have just started connecting
 			// and will succeed in a bit. Thus, we're checking how old the attempt is and retry anew
@@ -294,23 +358,26 @@ class ReconnectManager {
 			)
 			const sinceLastStart = Date.now() - this.lastAttemptStart
 			if (sinceLastStart < ATTEMPT_TIMEOUT) {
+				debug('ReconnectManager.maybeReconnected: connecting, rechecking later')
 				this.recheckConnectingTimeout = setTimeout(
 					() => this.maybeReconnected(),
 					ATTEMPT_TIMEOUT - sinceLastStart
 				)
 			} else {
+				debug('ReconnectManager.maybeReconnected: connecting, but for too long, retry now')
 				// Last connection attempt was started a while ago, it's possible that network conditions
 				// changed, and it's worth retrying to connect. `disconnected` will handle reconnection
 				//
 				// NOTE: The danger here is looping in connection attemps if connections are slow.
 				//       Make sure that `maybeReconnected` is not called in the `disconnected` codepath!
 				this.clearRecheckConnectingTimeout()
-				this.socketAdapter._ws?.close()
+				this.socketAdapter._closeSocket()
 			}
 
 			return
 		}
 
+		debug('ReconnectManager.maybeReconnected: closing/closed/null, retry now')
 		// readyState is CLOSING or CLOSED, or the websocket is null
 		// Restart the backoff and retry ASAP (honouring the min delay)
 		// this.state doesn't really matter, because disconnected() will handle any state correctly
@@ -319,6 +386,7 @@ class ReconnectManager {
 	}
 
 	disconnected() {
+		debug('ReconnectManager.disconnected')
 		// This either means we're freshly disconnected, or the last connection attempt failed;
 		// either way, time to try again.
 
@@ -327,6 +395,7 @@ class ReconnectManager {
 			this.socketAdapter._ws?.readyState !== WebSocket.OPEN &&
 			this.socketAdapter._ws?.readyState !== WebSocket.CONNECTING
 		) {
+			debug('ReconnectManager.disconnected: websocket is not OPEN or CONNECTING')
 			this.clearReconnectTimeout()
 
 			let delayLeft
@@ -343,6 +412,7 @@ class ReconnectManager {
 			}
 
 			if (delayLeft > 0) {
+				debug('ReconnectManager.disconnected: delaying, delayLeft', delayLeft)
 				// try again later
 				this.state = 'delay'
 
@@ -355,14 +425,20 @@ class ReconnectManager {
 					this.getMaxDelay(),
 					Math.max(this.getMinDelay(), this.intendedDelay) * DELAY_EXPONENT
 				)
+				debug(
+					'ReconnectManager.disconnected: attempting a connection, next delay',
+					this.intendedDelay
+				)
 				this.scheduleAttempt()
 			}
 		}
 	}
 
 	connected() {
+		debug('ReconnectManager.connected')
 		// this notification cold've been delayed, recheck synchronously
 		if (this.socketAdapter._ws?.readyState === WebSocket.OPEN) {
+			debug('ReconnectManager.connected: websocket is OPEN')
 			this.state = 'connected'
 			this.clearReconnectTimeout()
 			this.intendedDelay = ACTIVE_MIN_DELAY
