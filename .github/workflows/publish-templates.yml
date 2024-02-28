@@ -1,12 +1,12 @@
 name: Publish templates
 
-# todo: replace with a manual run OR put into publish-manual/-new when
-#       this workflow is ready
 on:
-  pull_request:
-  merge_group:
-  push:
-    branches: [main]
+  workflow_call:
+    secrets:
+      VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY:
+        required: true
+      NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY:
+        required: true
 
 env:
   CI: 1

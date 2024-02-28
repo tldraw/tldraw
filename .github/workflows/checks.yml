@@ -74,3 +74,10 @@ jobs:
 
       - name: Pack public packages
         run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
+
+  test_templates:
+    name: Test call to publish-templates
+    uses: tldraw/tldraw/.github/actions/publish-templates.yml@dan/mirror-examples
+    secrets:
+      VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+      NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
