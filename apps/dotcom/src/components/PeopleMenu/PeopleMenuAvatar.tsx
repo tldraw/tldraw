@@ -1,7 +1,9 @@
-import { usePresence } from '@tldraw/tldraw'
-
 export function PeopleMenuAvatar({ userId }: { userId: string }) {
-	const presence = usePresence(userId)
+	//const presence = usePresence(userId)
+	const presence = {
+		color: 'red',
+		userName: 'New User',
+	}
 
 	if (!presence) return null
 	return (
