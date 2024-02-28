@@ -1,4 +1,5 @@
 import {
+	Box,
 	BoxModel,
 	Editor,
 	HALF_PI,
@@ -127,7 +128,7 @@ export class TestEditor extends Editor {
 		this.bounds.right = bounds.x + bounds.w
 		this.bounds.bottom = bounds.y + bounds.h
 
-		this.updateViewportScreenBounds(center)
+		this.updateViewportScreenBounds(Box.From(bounds), center)
 		this.updateRenderingBounds()
 		return this
 	}
@@ -206,7 +207,9 @@ export class TestEditor extends Editor {
 		}).toCloselyMatchObject({ x, y, z })
 	}
 
-	expectShapeToMatch = (...model: RequiredKeys<TLShapePartial, 'id'>[]) => {
+	expectShapeToMatch = <T extends TLShape = TLShape>(
+		...model: RequiredKeys<TLShapePartial<T>, 'id'>[]
+	) => {
 		model.forEach((model) => {
 			const shape = this.getShape(model.id)!
 			const next = { ...shape, ...model }

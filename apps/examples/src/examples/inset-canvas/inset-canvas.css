@@ -1,0 +1,4 @@
+.tldraw__editor-with-inset-canvas .tl-canvas {
+	position: absolute;
+	inset: 100px 200px 100px 100px;
+}

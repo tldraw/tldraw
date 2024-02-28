@@ -1,46 +1,82 @@
 ---
-title: Introduction
+title: Quick Start
 status: published
 author: steveruizok
 date: 3/22/2023
 order: 0
 ---
 
-Welcome to the developer docs for tldraw, a React library for creating whiteboards and other infinite canvas experiences. These docs are for the 2.0 version which is currently in beta.
+<h2>Add a tldraw canvas to your React app in just 5 minutes.</h2>
 
-<a className="hero__images" href="https://examples.tldraw.com">
-	<img src={'/images/hero_light.png'} alt="tldraw demo" className="article__image hero__light" />
-	<img src={'/images/hero_dark.png'} alt="tldraw demo" className="article__image hero__dark" />
-</a>
+The tldraw SDK provides a really simple way to craft infinite canvas experiences for the web. It's perfect for collaborative applications, productivity tools, interfacing with multi-modal AI, and more.
 
-- 🔗 Check out the [CodeSandbox](https://codesandbox.io/s/tldraw-example-canary-2lrzmy)
-- 🧑‍💻 Visit the [tldraw repo on Github](https://github.com/tldraw/tldraw)
-- 💬 Join the [Discord](https://discord.com/invite/SBBEVCA4PG)
+By the end of this guide you will have made something that looks like this: 
 
-## What can I do with tldraw?
+<Embed className="article__embed--quickstart" src="https://vite-template-five.vercel.app/" />
 
-You can use the [Tldraw](?) React component to embed a fully featured and extendable whiteboard in your app. See the [CodeSandbox](https://codesandbox.io/s/tldraw-example-canary-2lrzmy) for a minimal example.
 
-For multiplayer whiteboards, you can plug the component into the [collaboration backend](/docs/collaboration) of your choice. Check out our [Yjs example](https://github.com/tldraw/tldraw-yjs-example) to see how you might use tldraw together with [Yjs](https://yjs.dev/).
+<hr />
+<ol className="ordered-list__quickstart">
+  <li>
+    ### Installation
 
-You can use the [Editor](?) API to create, update, and delete shapes, control the camera—or do just about anything else. You can extend tldraw with your own [custom shapes](/docs/shapes) and [custom tools](/docs/tools). You can use our [user interface](/docs/user-interface) overrides to change the contents of menus and toolbars, or else hide the UI and replace it with your own.
+    - Set up a React project however you normally do. [We recommend Vite](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
+    - Install the tldraw library using this command:
+    
+    ```bash
+    npm install @tldraw/tldraw@beta
+    ```
+  </li>
+  <li>
+    ### Import Styles
+    <br />
+    To import fonts and CSS for tldraw:
 
-If you want to go even deeper, you can use the [TldrawEditor](?) component as a more minimal engine without the default tldraw shapes or user interface.
+    - Create or edit a css file called `index.css`
+    - Copy and paste this into the file:
+    ```CSS
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap");
+    @import url("@tldraw/tldraw/tldraw.css");
 
-## How do I learn tldraw?
+    body {
+      font-family: "Inter";
+    }
+    ```
+  </li>
+  <li>
+    ### Render Tldraw Component
+    <br />
+    To render the Tldraw component
 
-In addition to the docs on this website, we provide [many examples](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples) in the tldraw repo that demonstrate different ways of using the tldraw library. You can view them running [here](https://examples.tldraw.com/); or else you can clone the tldraw repo and start a local development server to see them in action.
+    - Import the `<Tldraw />` component from `@tldraw/tldraw`
+    - Import the `index.css` CSS file from earlier
+    - Wrap the Tldraw component in a `<div>` element with the style attribute set to: `{ position: 'fixed', inset: 0 }`
+    
+    <p className="">This will render a full screen canvas:</p>
 
-You can ask questions and get help on our [Discord](https://discord.com/invite/SBBEVCA4PG) channel or in our Github [issues](https://github.com/tldraw/tldraw/issues).
+    ```javascript
+    import { Tldraw } from "@tldraw/tldraw";
+    import "./index.css";
 
-## Community
+    export default function App() {
+      return (
+        <div style={{ position: 'fixed', inset: 0 }}>
+          <Tldraw />
+        </div>
+      );
+    }
+    ```
+  </li>
+</ol>
 
-Found a bug or want to request a feature? Create an issue [here](https://github.com/tldraw/tldraw/issues). To connect with the team and other users, join us on our [Discord](https://discord.gg/JMbeb96jsh). To follow along with updates, you can also [subscribe to our Substack newsletter](https://tldraw.substack.com/) or follow us on [Twitter/X](https://twitter.com/tldraw).
+<hr />
 
-## License
+### Next Steps
 
-tldraw's source code and distributed packages are provided under the non-commercial [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md).
+You did it! Now that you have your canvas working, you may be wondering: what next? You can try: 
 
-This license does not permit commercial use. If you wish to use tldraw in a commercial product or enterprise, you will need to purchase a commercial license. To obtain a commercial license, please contact us at [hello@tldraw.com](mailto:hello@tldraw.com).
+- Giving the editor a makeover by [customizing the UI](/docs/user-interface)
+- Adding your own [shapes](/docs/shapes) and [tools](/docs/tools)
+- Providing collaboration using [multiplayer](https://github.com/tldraw/tldraw-yjs-example) 
 
-To learn more, see our [license](/community/license) page.
+We provide the above examples and more in our [examples section](/examples/basic/develop). Go build something creative and please do share it with us in our [#show-and-tell](https://discord.com/invite/SBBEVCA4PG) channel on Discord!

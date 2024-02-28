@@ -1,7 +1,7 @@
 import { TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { TLExportType, exportAs } from '../../utils/export/exportAs'
-import { useToasts } from './useToastsProvider'
+import { useToasts } from '../context/toasts'
 import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
@@ -11,8 +11,8 @@ export function useExportAs() {
 	const msg = useTranslation()
 
 	return useCallback(
-		(ids: TLShapeId[], format: TLExportType = 'png') => {
-			exportAs(editor, ids, format, {
+		(ids: TLShapeId[], format: TLExportType = 'png', name: string | undefined) => {
+			exportAs(editor, ids, format, name, {
 				scale: 1,
 				background: editor.getInstanceState().exportBackground,
 			}).catch((e) => {

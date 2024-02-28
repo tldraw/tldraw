@@ -6,6 +6,7 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
+import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
@@ -44,12 +45,12 @@ export const arrowShapeProps: {
             normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
-        }>;
+        } & {}>;
         point: T.ObjectValidator<{
-            type: "point";
             x: number;
             y: number;
-        }>;
+            type: "point";
+        } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
         binding: T.ObjectValidator<{
@@ -58,12 +59,12 @@ export const arrowShapeProps: {
             normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
-        }>;
+        } & {}>;
         point: T.ObjectValidator<{
-            type: "point";
             x: number;
             y: number;
-        }>;
+            type: "point";
+        } & {}>;
     }, never>;
     bend: T.Validator<number>;
     text: T.Validator<string>;
@@ -115,13 +116,19 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
-    id: TLAssetId;
-    typeName: 'asset';
-    type: Type;
-    props: Props;
-    meta: JsonObject;
-}>;
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{ [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
+        id: TLAssetId;
+        typeName: 'asset';
+        type: Type;
+        props: Props;
+        meta: JsonObject;
+    }[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
+        id: TLAssetId;
+        typeName: 'asset';
+        type: Type;
+        props: Props;
+        meta: JsonObject;
+    }[P_1] | undefined; }>;
 
 // @public (undocumented)
 export const createPresenceStateDerivation: ($user: Signal<{
@@ -138,7 +145,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<TLBaseShape<Type, Props>>;
+}): T.ObjectValidator<{ [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>;
 
 // @public
 export function createTLSchema({ shapes }: {
@@ -195,7 +202,7 @@ export const drawShapeProps: {
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
         points: VecModel[];
-    }>;
+    } & {}>;
     isComplete: T.Validator<boolean>;
     isClosed: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -205,13 +212,16 @@ export const drawShapeProps: {
 export const EMBED_DEFINITIONS: readonly [{
     readonly type: "tldraw";
     readonly title: "tldraw";
-    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com"];
+    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "localhost:3000"];
     readonly minWidth: 300;
     readonly minHeight: 300;
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
     readonly canUnmount: true;
+    readonly overridePermissions: {
+        readonly 'allow-top-navigation': true;
+    };
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -514,7 +524,7 @@ export const highlightShapeProps: {
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
         points: VecModel[];
-    }>;
+    } & {}>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
 };
@@ -532,10 +542,10 @@ export const imageShapeProps: {
     playing: T.Validator<boolean>;
     url: T.Validator<string>;
     assetId: T.Validator<TLAssetId | null>;
-    crop: T.Validator<{
+    crop: T.Validator<({
         topLeft: VecModel;
         bottomRight: VecModel;
-    } | null>;
+    } & {}) | null>;
 };
 
 // @public (undocumented)
@@ -579,6 +589,9 @@ export const LANGUAGES: readonly [{
     readonly locale: "gl";
     readonly label: "Galego";
 }, {
+    readonly locale: "hr";
+    readonly label: "Hrvatski";
+}, {
     readonly locale: "it";
     readonly label: "Italiano";
 }, {
@@ -602,6 +615,9 @@ export const LANGUAGES: readonly [{
 }, {
     readonly locale: "ru";
     readonly label: "Russian";
+}, {
+    readonly locale: "sl";
+    readonly label: "Slovenščina";
 }, {
     readonly locale: "fi";
     readonly label: "Suomi";
@@ -667,7 +683,12 @@ export const lineShapeProps: {
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
-    handles: T.DictValidator<string, TLHandle>;
+    points: T.DictValidator<string, {
+        id: string;
+        x: number;
+        y: number;
+        index: IndexKey;
+    } & {}>;
 };
 
 // @public (undocumented)
@@ -709,12 +730,8 @@ export const rootShapeMigrations: Migrations;
 // @public (undocumented)
 export type SchemaShapeInfo = {
     migrations?: Migrations;
-    props?: Record<string, {
-        validate: (prop: any) => any;
-    }>;
-    meta?: Record<string, {
-        validate: (prop: any) => any;
-    }>;
+    props?: Record<string, AnyValidator>;
+    meta?: Record<string, AnyValidator>;
 };
 
 // @internal (undocumented)
@@ -748,7 +765,12 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     readonly type: T.Validatable<Type>;
     // (undocumented)
     validate(value: unknown): Type;
+    // (undocumented)
+    validateUsingKnownGoodVersion(prevValue: Type, newValue: unknown): Type;
 }
+
+// @public (undocumented)
+export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
 
 // @internal (undocumented)
 export const textShapeMigrations: Migrations;
@@ -814,7 +836,7 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 // @public (undocumented)
 export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     isLocked: boolean;
     // (undocumented)
@@ -962,7 +984,7 @@ export interface TLHandle {
     canSnap?: boolean;
     id: string;
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     type: TLHandleType;
     // (undocumented)
@@ -1146,7 +1168,7 @@ export type TLOpacityType = number;
 // @public
 export interface TLPage extends BaseRecord<'page', TLPageId> {
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)

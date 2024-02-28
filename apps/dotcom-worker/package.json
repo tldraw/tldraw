@@ -15,8 +15,8 @@
 		"dev-cron": "yarn run -T tsx ./scripts/cron.ts",
 		"dev-wrangler": "yarn run -T tsx ./scripts/dev-wrap.ts",
 		"report-size": "node scripts/report-size.js",
-		"test": "lazy inherit",
-		"test-dev": "yarn run -T jest --watch",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
@@ -40,7 +40,7 @@
 		"concurrently": "^8.2.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.0.0",
-		"typescript": "^5.2.2",
+		"typescript": "^5.3.3",
 		"wrangler": "3.16.0"
 	},
 	"jest": {

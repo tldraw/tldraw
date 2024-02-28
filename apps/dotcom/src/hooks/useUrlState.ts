@@ -46,7 +46,6 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 		const url = new URL(location.href)
 
 		if (url.searchParams.has(PARAMS.viewport)) {
-			editor.updateViewportScreenBounds()
 			const newViewportRaw = url.searchParams.get(PARAMS.viewport)
 			if (newViewportRaw) {
 				try {

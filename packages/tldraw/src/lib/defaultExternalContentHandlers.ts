@@ -19,6 +19,8 @@ import {
 	getHashForString,
 } from '@tldraw/editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
+import { TLUiToastsContextType } from './ui/context/toasts'
+import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize, downsizeImage, isGifAnimated } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
@@ -30,9 +32,9 @@ export type TLExternalContentProps = {
 	// The maximum size (in bytes) of an asset. Assets larger than this will be rejected. Defaults to 10mb (10 * 1024 * 1024).
 	maxAssetSize: number
 	// The mime types of images that are allowed to be handled. Defaults to ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].
-	acceptedImageMimeTypes: string[]
+	acceptedImageMimeTypes: readonly string[]
 	// The mime types of videos that are allowed to be handled. Defaults to ['video/mp4', 'video/webm', 'video/quicktime'].
-	acceptedVideoMimeTypes: string[]
+	acceptedVideoMimeTypes: readonly string[]
 }
 
 export function registerDefaultExternalContentHandlers(
@@ -42,7 +44,8 @@ export function registerDefaultExternalContentHandlers(
 		maxAssetSize,
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
-	}: TLExternalContentProps
+	}: TLExternalContentProps,
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
@@ -122,6 +125,9 @@ export function registerDefaultExternalContentHandlers(
 			}
 		} catch (error) {
 			console.error(error)
+			toasts.addToast({
+				title: msg('assets.url.failed'),
+			})
 			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
 
@@ -241,6 +247,9 @@ export function registerDefaultExternalContentHandlers(
 
 					assets[i] = asset
 				} catch (error) {
+					toasts.addToast({
+						title: msg('assets.files.upload-failed'),
+					})
 					console.error(error)
 					return null
 				}
@@ -352,9 +361,16 @@ export function registerDefaultExternalContentHandlers(
 		let shouldAlsoCreateAsset = false
 		if (!asset) {
 			shouldAlsoCreateAsset = true
-			const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
-			if (!bookmarkAsset) throw Error('Could not create an asset')
-			asset = bookmarkAsset
+			try {
+				const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
+				if (!bookmarkAsset) throw Error('Could not create an asset')
+				asset = bookmarkAsset
+			} catch (e) {
+				toasts.addToast({
+					title: msg('assets.url.failed'),
+				})
+				return
+			}
 		}
 
 		editor.batch(() => {

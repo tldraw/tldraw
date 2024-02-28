@@ -89,10 +89,9 @@
 		var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background);
 	/* own properties */
 	position: relative;
-	top: 0px;
-	left: 0px;
-	width: 100%;
+	inset: 0px;
 	height: 100%;
+	width: 100%;
 	overflow: clip;
 }
 
@@ -217,10 +216,9 @@ input,
 
 .tl-canvas {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
+	inset: 0px;
 	height: 100%;
+	width: 100%;
 	color: var(--color-text);
 	z-index: var(--layer-canvas);
 	cursor: var(--tl-cursor);
@@ -230,23 +228,18 @@ input,
 	contain: strict;
 }
 
-.tl-fixed-layer {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	contain: strict;
-	pointer-events: none;
-}
-
 .tl-shapes {
 	position: relative;
 	z-index: var(--layer-shapes);
 }
 
 .tl-overlays {
-	position: relative;
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	contain: strict;
+	pointer-events: none;
 	z-index: var(--layer-overlays);
 }
 
@@ -266,19 +259,14 @@ input,
 	pointer-events: none;
 }
 
-.tl-positioned {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	transform-origin: top left;
-}
-
 /* ------------------- Background ------------------- */
 
 .tl-background {
 	position: absolute;
 	background-color: var(--color-background);
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: var(--layer-background);
 }
 
@@ -286,8 +274,7 @@ input,
 
 .tl-grid {
 	position: absolute;
-	top: 0px;
-	left: 0px;
+	inset: 0px;
 	width: 100%;
 	height: 100%;
 	touch-action: none;
@@ -351,10 +338,9 @@ input,
 
 .tl-svg-container {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
+	inset: 0px;
 	height: 100%;
+	width: 100%;
 	pointer-events: none;
 	stroke-linecap: round;
 	stroke-linejoin: round;
@@ -364,10 +350,9 @@ input,
 
 .tl-html-container {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
+	inset: 0px;
 	height: 100%;
+	width: 100%;
 	pointer-events: none;
 	stroke-linecap: round;
 	stroke-linejoin: round;
@@ -798,10 +783,9 @@ input,
 .tl-text-input,
 .tl-text-content {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
+	inset: 0px;
 	height: 100%;
+	width: 100%;
 	min-width: 1px;
 	min-height: 1px;
 	overflow: visible;
@@ -1003,6 +987,8 @@ input,
 	line-height: inherit;
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: 10;
 }
 
@@ -1030,7 +1016,7 @@ input,
 	min-height: auto;
 }
 
-.tl-text-label__inner > .tl-text {
+.tl-text-label__inner > .tl-text-content {
 	position: relative;
 	top: 0px;
 	left: 0px;
@@ -1044,10 +1030,9 @@ input,
 
 .tl-text-label__inner > .tl-text-input {
 	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
+	inset: 0px;
 	height: 100%;
+	width: 100%;
 	padding: 16px;
 	z-index: 4;
 }
@@ -1222,10 +1207,9 @@ input,
 .tl-note__scrim {
 	position: absolute;
 	z-index: 1;
-	top: 0px;
-	left: 0px;
-	width: 100%;
+	inset: 0px;
 	height: 100%;
+	width: 100%;
 	background-color: var(--color-background);
 	opacity: 0.28;
 }
@@ -1316,13 +1300,13 @@ input,
 
 .tl-frame-name-input {
 	position: absolute;
-	top: 0px;
-	left: 0px;
 	border: none;
 	background: none;
 	outline: none;
 	padding: var(--space-3) var(--space-3);
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	font-size: inherit;
 	font-family: inherit;
 	font-weight: inherit;
@@ -1398,6 +1382,8 @@ input,
 .tl-error-boundary__overlay {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: 500;
 	background-color: var(--color-overlay);
 }
@@ -1412,6 +1398,8 @@ input,
 	pointer-events: none;
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: -1;
 }
 /* some browsers seem to have some weird interactions between stacking contexts
@@ -1422,6 +1410,8 @@ it from receiving any pointer events or affecting the cursor. */
 	display: block;
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: 600;
 	pointer-events: all;
 }
@@ -1455,6 +1445,14 @@ it from receiving any pointer events or affecting the cursor. */
 	font-weight: 500;
 }
 
+.tl-error-boundary__content h4 {
+	border: 1px solid var(--color-low-border);
+	margin: -6px 0 0 0;
+	padding: var(--space-5);
+	border-radius: var(--radius-2);
+	font-weight: normal;
+}
+
 .tl-error-boundary__content p {
 	line-height: 1.5;
 	margin: 0px;
@@ -1462,6 +1460,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-error-boundary__content pre {
 	background-color: var(--color-muted-2);
+	margin-top: 0;
 	padding: var(--space-5);
 	border-radius: var(--radius-2);
 	overflow: auto;
@@ -1496,7 +1495,9 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-error-boundary__content__error {
 	position: relative;
+	margin: -6px 0 0 0;
 }
+
 .tl-error-boundary__content__error button {
 	position: absolute;
 	top: var(--space-2);

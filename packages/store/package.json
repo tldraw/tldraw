@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/store",
 	"description": "A tiny little drawing app (store).",
-	"version": "2.0.0-beta.2",
+	"version": "2.0.0-beta.4",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -30,8 +30,8 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"test": "lazy inherit",
-		"test-dev": "yarn run -T jest --watch",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",

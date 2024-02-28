@@ -44,6 +44,9 @@ jobs:
       - name: Check scripts
         run: yarn check-scripts
 
+      - name: Check tsconfigs
+        run: yarn check-tsconfigs
+
       - name: Lint
         run: yarn lint
 
@@ -51,7 +54,7 @@ jobs:
         run: yarn api-check
 
       - name: Test
-        run: yarn test
+        run: yarn test-ci
 
   build:
     name: 'Build all projects'

@@ -7,6 +7,7 @@ import {
 	Group2d,
 	HALF_PI,
 	HTMLContainer,
+	HandleSnapGeometry,
 	PI2,
 	Polygon2d,
 	Polyline2d,
@@ -21,6 +22,7 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	VecLike,
+	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
 	getDefaultColorTheme,
@@ -89,7 +91,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override getGeometry(shape: TLGeoShape): Geometry2d {
+	override getGeometry(shape: TLGeoShape) {
 		const w = Math.max(1, shape.props.w)
 		const h = Math.max(1, shape.props.h + shape.props.growY)
 		const cx = w / 2
@@ -299,7 +301,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: w,
 					height: h,
 					isFilled,
-					isSnappable: true,
 				})
 				break
 			}
@@ -333,13 +334,44 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: labelWidth,
 					height: labelHeight,
 					isFilled: true,
-					isSnappable: false,
 					isLabel: true,
 				}),
 				...edges,
 			],
-			isSnappable: false,
 		})
+	}
+
+	override getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry {
+		const geometry = this.getGeometry(shape)
+		// we only want to snap handles to the outline of the shape - not to its label etc.
+		const outline = geometry.children[0]
+		switch (shape.props.geo) {
+			case 'arrow-down':
+			case 'arrow-left':
+			case 'arrow-right':
+			case 'arrow-up':
+			case 'check-box':
+			case 'diamond':
+			case 'hexagon':
+			case 'octagon':
+			case 'pentagon':
+			case 'rectangle':
+			case 'rhombus':
+			case 'rhombus-2':
+			case 'star':
+			case 'trapezoid':
+			case 'triangle':
+			case 'x-box':
+				// poly-line type shapes hand snap points for each vertex & the center
+				return { outline: outline, points: [...outline.getVertices(), geometry.bounds.center] }
+			case 'cloud':
+			case 'ellipse':
+			case 'oval':
+				// blobby shapes only have a snap point in their center
+				return { outline: outline, points: [geometry.bounds.center] }
+			default:
+				exhaustiveSwitchError(shape.props.geo)
+		}
 	}
 
 	override onEditEnd: TLOnEditEndHandler<TLGeoShape> = (shape) => {
@@ -586,7 +618,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const { id, props } = shape
 		const strokeWidth = STROKE_SIZES[props.size]
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		let svgElm: SVGElement
