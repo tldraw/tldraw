@@ -80,25 +80,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
-		if (asset?.type === 'bookmark') {
-			throw Error("Bookmark assets can't be rendered as images")
-		}
-
 		const isSelected = useValue(
 			'onlySelectedShape',
 			() => shape.id === this.editor.getOnlySelectedShape()?.id,
 			[this.editor]
 		)
-
-		const showCropPreview =
-			isSelected &&
-			isCropping &&
-			this.editor.isInAny('select.crop', 'select.cropping', 'select.pointing_crop_handle')
-
-		// We only want to reduce motion for mimeTypes that have motion
-		const reduceMotion =
-			prefersReducedMotion &&
-			(asset?.props.mimeType?.includes('video') || asset?.props.mimeType?.includes('gif'))
 
 		useEffect(() => {
 			if (asset?.props.src && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {
@@ -117,6 +103,48 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				}
 			}
 		}, [prefersReducedMotion, asset?.props])
+
+		if (!asset) {
+			return (
+				<div
+					className="tl-image-container"
+					style={{
+						...containerStyle,
+						backgroundColor: 'var(--color-panel)',
+						border: '1px solid var(--color-panel-contrast)',
+					}}
+				>
+					<svg
+						width="15"
+						height="15"
+						viewBox="0 0 30 30"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						stroke="currentColor"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
+						<path d="M3,11 L3,3 11,3" strokeWidth="2" />
+						<path d="M19,27 L27,27 L27,19" strokeWidth="2" />
+						<path d="M27,3 L3,27" strokeWidth="2" />
+					</svg>
+				</div>
+			)
+		}
+
+		if (asset.type === 'bookmark') {
+			throw Error("Bookmark assets can't be rendered as images")
+		}
+
+		const showCropPreview =
+			isSelected &&
+			isCropping &&
+			this.editor.isInAny('select.crop', 'select.cropping', 'select.pointing_crop_handle')
+
+		// We only want to reduce motion for mimeTypes that have motion
+		const reduceMotion =
+			prefersReducedMotion &&
+			(asset?.props.mimeType?.includes('video') || asset?.props.mimeType?.includes('gif'))
 
 		return (
 			<>
