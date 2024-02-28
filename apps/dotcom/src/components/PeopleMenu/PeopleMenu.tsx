@@ -7,6 +7,7 @@ import {
 	useContainer,
 	useEditor,
 	useMenuIsOpen,
+	usePeerIds,
 	useTranslation,
 	useValue,
 } from '@tldraw/tldraw'
@@ -26,8 +27,7 @@ export const PeopleMenu = track(function PeopleMenu({
 	const container = useContainer()
 	const editor = useEditor()
 
-	// const userIds = usePeerIds()
-	const userIds = ['1', '2', '3', '4', '5', '6']
+	const userIds = usePeerIds()
 	const userColor = useValue('user', () => editor.user.getColor(), [editor])
 	const userName = useValue('user', () => editor.user.getName(), [editor])
 

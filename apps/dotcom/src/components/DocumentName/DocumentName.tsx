@@ -15,7 +15,6 @@ import {
 	useEditor,
 	useTranslation,
 } from '@tldraw/tldraw'
-import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '@tldraw/tldraw/src/lib/ui/constants'
 import {
 	ChangeEvent,
 	KeyboardEvent,
@@ -127,6 +126,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 
 function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 	const ref = useRef<HTMLDivElement>(null)
+	const breakpoint = useBreakpoint()
 
 	const updateLayout = useCallback(() => {
 		const element = ref.current
@@ -159,17 +159,14 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		)
 		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
 
-		// Squeeze the title if the right panel is too wide on small screen
-		if (
-			rightPanel.offsetWidth > STYLE_PANEL_WIDTH &&
-			totalWidth <= PORTRAIT_BREAKPOINTS[PORTRAIT_BREAKPOINT.TABLET]
-		) {
+		// Squeeze the title if the right panel is too wide on small screens
+		if (rightPanel.offsetWidth > STYLE_PANEL_WIDTH && breakpoint <= 6) {
 			element.style.setProperty('max-width', maxWidth - SQUEEZE_FACTOR + 'px')
 		} else {
 			element.style.setProperty('max-width', maxWidth + 'px')
 		}
 		element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
-	}, [])
+	}, [breakpoint])
 
 	useLayoutEffect(() => {
 		const element = ref.current
