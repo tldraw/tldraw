@@ -1,6 +1,6 @@
 ---
-title: Escaping dialogs
-component: ./EscapingDialogs.tsx
+title: External dialog
+component: ./ExternalDialog.tsx
 category: ui
 priority: 3
 ---
