@@ -1,15 +1,14 @@
 import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
-import { ArticleDetails } from './ArticleDetails'
 import { ArticleNavLinks } from './ArticleNavLinks'
+import { Breadcrumb } from './Breadcrumb'
 import { Header } from './Header'
 import { Mdx } from './Mdx'
 import { Sidebar } from './Sidebar'
 import { Image } from './mdx-components/generic'
-import { Breadcrumb } from './Breadcrumb'
 
-/** For articles with human-written content. */
-export async function ArticleDocsPage({ article }: { article: Article & { isGenerated: false } }) {
+/** For articles generated from our TypeScript APIs (i.e. with API-extractor). */
+export async function ReferenceDocsPage({ article }: { article: Article & { isGenerated: true } }) {
 	const db = await getDb()
 	const section = await db.getSection(article.sectionId)
 	const category = await db.getCategory(article.categoryId)
@@ -25,14 +24,13 @@ export async function ArticleDocsPage({ article }: { article: Article & { isGene
 		<>
 			<Header sectionId={section.id} />
 			<Sidebar headings={headings} {...sidebar} />
-			<main className={`article`}>
+			<main className={`article article__api-docs`}>
 				<div className="page-header">
 					<Breadcrumb section={section} category={category} />
 					<h1>{article.title}</h1>
 				</div>
 				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}
 				{article.content && <Mdx content={article.content} />}
-				<ArticleDetails article={article} />
 				{links && <ArticleNavLinks links={links} />}
 			</main>
 		</>

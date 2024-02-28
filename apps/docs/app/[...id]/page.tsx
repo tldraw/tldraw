@@ -1,6 +1,7 @@
 import { ArticleDocsPage } from '@/components/ArticleDocsPage'
 import { CategoryDocsPage } from '@/components/CategoryDocsPage'
 import { ExampleDocsPage } from '@/components/ExampleDocsPage'
+import { ReferenceDocsPage } from '@/components/ReferenceDocsPage'
 import { SectionDocsPage } from '@/components/SectionDocsPage'
 import { getDb } from '@/utils/ContentDatabase'
 import { Metadata } from 'next'
@@ -111,9 +112,14 @@ export default async function ContentPage({ params }: { params: { id: string | s
 			return <CategoryDocsPage category={content.category} />
 		}
 		case 'article': {
+			if (content.article.sectionId === 'reference') {
+				return <ReferenceDocsPage article={content.article} />
+			}
+
 			if (content.article.componentCode) {
 				return <ExampleDocsPage article={content.article} />
 			}
+
 			return <ArticleDocsPage article={content.article} />
 		}
 		default: {

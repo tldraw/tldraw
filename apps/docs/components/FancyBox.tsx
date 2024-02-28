@@ -3,6 +3,7 @@
 import { debounce } from '@/utils/debounce'
 import { useEffect, useRef, useState } from 'react'
 
+/** A fancy box or the footer. Client only. Hopefully not toooo expensive. */
 export default function FancyBox() {
 	const rContainer = useRef<HTMLDivElement>(null)
 	const [items, setItems] = useState<number[]>([])

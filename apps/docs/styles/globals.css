@@ -654,6 +654,7 @@ body {
 	display: flex;
 	align-items: center;
 	gap: 4px;
+	visibility: hidden;
 }
 
 .breadcrumb a {
@@ -1144,6 +1145,10 @@ body {
 	.layout__header {
 		grid-template-columns: auto auto;
 		justify-content: space-between;
+	}
+
+	.breadcrumb {
+		visibility: visible;
 	}
 
 	.sidebar {

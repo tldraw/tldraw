@@ -3,6 +3,7 @@ import { getDb } from '@/utils/ContentDatabase'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 
+/** A page shown when the user visits a section route, i.e. tldraw.dev/docs */
 export async function SectionDocsPage({ section }: { section: Section }) {
 	const db = await getDb()
 	const sidebar = await db.getSidebarContentList({ sectionId: section.id })

@@ -69,7 +69,7 @@ export function SectionLinks({ sectionId }: { sectionId?: string | null }) {
 				data-active={sectionId === 'reference'}
 				className="layout_header__section"
 			>
-				Reference
+				API
 			</a>
 			<a
 				href="/examples/basic/basic"
