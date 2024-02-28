@@ -50,10 +50,11 @@ const tick = () => {
 }
 
 const fps = 60
-const timePerFrame = 1000 / fps
+const targetTimePerFrame = 1000 / fps
 let frame: number | undefined
 let time = 0
 let last = 0
+let timePerFrame = targetTimePerFrame
 
 function sixtyFps() {
 	if (frame) {
@@ -62,6 +63,14 @@ function sixtyFps() {
 	const now = Date.now()
 	const elapsed = now - last
 
+	// Variable frame rate
+	// if (elapsed < 1000 && elapsed > timePerFrame * 1.1) {
+	// 	timePerFrame *= 2
+	// } else if (elapsed < timePerFrame / 2) {
+	// 	timePerFrame = Math.max(targetTimePerFrame, timePerFrame / 2)
+	// }
+
+	console.log('elapsed', elapsed, 'timePerFrame', timePerFrame)
 	if (time + elapsed < timePerFrame) {
 		frame = requestAnimationFrame(() => {
 			frame = undefined
@@ -74,7 +83,7 @@ function sixtyFps() {
 		last = now
 		// If we fall behind more than 10 frames, we'll just reset the time so we don't
 		// try to update a number of times
-		time = Math.min(time + elapsed - timePerFrame, timePerFrame * 10)
+		time = Math.min(time + elapsed - targetTimePerFrame, targetTimePerFrame * 10)
 		tick()
 	})
 }
@@ -111,7 +120,7 @@ export function rafThrottle(fn: () => void) {
 		if (renderingMode === 'sixtyFps') {
 			if (!started) {
 				started = true
-				last = Date.now() - timePerFrame - 1
+				last = Date.now() - targetTimePerFrame - 1
 			}
 			sixtyFps()
 		} else {
@@ -140,7 +149,7 @@ export function throttledRaf(fn: () => void) {
 	if (renderingMode === 'sixtyFps') {
 		if (!started) {
 			started = true
-			last = Date.now() - timePerFrame - 1
+			last = Date.now() - targetTimePerFrame - 1
 		}
 		sixtyFps()
 	} else {
