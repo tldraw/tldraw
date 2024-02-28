@@ -211,7 +211,7 @@ class ReconnectManager {
 				// 20 seconds after the tab goes offline. Our application layer must be resistent to
 				// connection restart anyway, so we can just try to reconnect and see if
 				// we're truly offline.
-				this.socketAdapter.restart()
+				this.socketAdapter._ws?.close()
 			}),
 			listenTo(document, 'visibilitychange', () => {
 				if (!document.hidden) {
