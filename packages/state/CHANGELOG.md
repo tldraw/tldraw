@@ -1,3 +1,29 @@
+# v2.0.0-beta.4 (Wed Feb 21 2024)
+
+### Release Notes
+
+#### Improve signia error handling ([#2835](https://github.com/tldraw/tldraw/pull/2835))
+
+- Add a brief release note for your PR here.
+
+---
+
+#### 🐛 Bug Fix
+
+- Improve signia error handling [#2835](https://github.com/tldraw/tldraw/pull/2835) ([@ds300](https://github.com/ds300))
+
+#### 🏠 Internal
+
+- Check tsconfig "references" arrays [#2891](https://github.com/tldraw/tldraw/pull/2891) ([@ds300](https://github.com/ds300))
+- dev: swap yarn test and test-dev for better dx [#2773](https://github.com/tldraw/tldraw/pull/2773) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v2.0.0-beta.3 (Tue Feb 13 2024)
 
 ### Release Notes

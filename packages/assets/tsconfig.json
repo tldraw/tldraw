@@ -14,5 +14,9 @@
 		"rootDir": "src",
 		"resolveJsonModule": false
 	},
-	"references": [{ "path": "../utils" }]
+	"references": [
+		{
+			"path": "../utils"
+		}
+	]
 }

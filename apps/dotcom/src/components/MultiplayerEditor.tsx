@@ -6,13 +6,17 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	DefaultMainMenuContent,
+	EditSubmenu,
 	Editor,
+	ExtrasGroup,
 	OfflineIndicator,
+	PreferencesGroup,
+	ShapeSubmenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	ViewSubmenu,
 	atom,
 	debugFlags,
 	lns,
@@ -28,13 +32,11 @@ import { CursorChatMenuItem } from '../utils/context-menu/CursorChatMenuItem'
 import { createAssetFromFile } from '../utils/createAssetFromFile'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { useSharing } from '../utils/sharing'
-import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'
-import { EmbeddedInIFrameWarning } from './EmbeddedInIFrameWarning'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { PeopleMenu } from './PeopleMenu/PeopleMenu'
@@ -66,7 +68,12 @@ const components: TLComponents = {
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
-			<DefaultMainMenuContent />
+			<EditSubmenu />
+			<ShapeSubmenu />
+			<ViewSubmenu />
+			<ExtrasGroup />
+			<PreferencesGroup />
+			<Links />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
@@ -129,7 +136,6 @@ export function MultiplayerEditor({
 		shittyOfflineAtom.set(isOffline)
 	}, [isOffline])
 
-	const isEmbedded = useIsEmbedded(roomSlug)
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
@@ -145,10 +151,6 @@ export function MultiplayerEditor({
 
 	if (storeWithStatus.error) {
 		return <StoreErrorScreen error={storeWithStatus.error} />
-	}
-
-	if (isEmbedded) {
-		return <EmbeddedInIFrameWarning />
 	}
 
 	return (
@@ -185,21 +187,4 @@ export function UrlStateSync() {
 	useUrlState(syncViewport)
 
 	return null
-}
-
-function useIsEmbedded(slug: string) {
-	const isEmbedded =
-		typeof window !== 'undefined' &&
-		window.self !== window.top &&
-		window.location.host !== 'www.tldraw.com'
-
-	useEffect(() => {
-		if (isEmbedded) {
-			trackAnalyticsEvent('connect_to_room_in_iframe', {
-				roomId: slug,
-			})
-		}
-	}, [slug, isEmbedded])
-
-	return isEmbedded
 }

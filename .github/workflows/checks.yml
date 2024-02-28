@@ -44,6 +44,9 @@ jobs:
       - name: Check scripts
         run: yarn check-scripts
 
+      - name: Check tsconfigs
+        run: yarn check-tsconfigs
+
       - name: Lint
         run: yarn lint
 

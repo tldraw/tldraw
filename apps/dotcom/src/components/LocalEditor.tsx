@@ -6,12 +6,16 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	DefaultMainMenuContent,
+	EditSubmenu,
 	Editor,
+	ExtrasGroup,
+	PreferencesGroup,
+	ShapeSubmenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	ViewSubmenu,
 	useActions,
 } from '@tldraw/tldraw'
 import { useCallback } from 'react'
@@ -44,7 +48,12 @@ const components: TLComponents = {
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<LocalFileMenu />
-			<DefaultMainMenuContent />
+			<EditSubmenu />
+			<ShapeSubmenu />
+			<ViewSubmenu />
+			<ExtrasGroup />
+			<PreferencesGroup />
+			<Links />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {

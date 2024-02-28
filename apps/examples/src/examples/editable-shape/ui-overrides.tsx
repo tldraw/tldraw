@@ -13,20 +13,20 @@ import {
 export const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		// Create a tool item in the ui's context.
-		tools.catdog = {
-			id: 'catdog',
+		tools.Myshape = {
+			id: 'Myshape',
 			icon: 'color',
-			label: 'Catdog',
+			label: 'Myshape',
 			kbd: 'c',
 			onSelect: () => {
-				editor.setCurrentTool('catdog')
+				editor.setCurrentTool('Myshape')
 			},
 		}
 		return tools
 	},
 	toolbar(_app, toolbar, { tools }) {
 		// Add the tool item from the context to the toolbar.
-		toolbar.splice(4, 0, toolbarItem(tools.catdog))
+		toolbar.splice(4, 0, toolbarItem(tools.Myshape))
 		return toolbar
 	},
 }
@@ -38,7 +38,7 @@ export const components: TLComponents = {
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<DefaultKeyboardShortcutsDialogContent />
 				{/* Ideally, we'd interleave this into the tools group */}
-				<TldrawUiMenuItem {...tools['catdog']} />
+				<TldrawUiMenuItem {...tools['Myshape']} />
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},

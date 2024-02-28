@@ -12,10 +12,11 @@ function CustomKeyboardShortcutsDialog(props: TLUiKeyboardShortcutsDialogProps) 
 	return (
 		<DefaultKeyboardShortcutsDialog {...props}>
 			<TldrawUiMenuItem
-				id="about"
+				id="like-my-posts"
 				label="Like my posts"
 				icon="external-link"
 				readonlyOk
+				kbd=":)"
 				onSelect={() => {
 					window.open('https://x.com/tldraw', '_blank')
 				}}

@@ -7,10 +7,20 @@
 		"rootDir": "src"
 	},
 	"references": [
-		{ "path": "../tldraw" },
-		{ "path": "../tlschema" },
-		{ "path": "../state" },
-		{ "path": "../store" },
-		{ "path": "../utils" }
+		{
+			"path": "../state"
+		},
+		{
+			"path": "../store"
+		},
+		{
+			"path": "../tldraw"
+		},
+		{
+			"path": "../tlschema"
+		},
+		{
+			"path": "../utils"
+		}
 	]
 }

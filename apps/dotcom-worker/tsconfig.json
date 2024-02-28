@@ -7,10 +7,17 @@
 		"emitDeclarationOnly": false
 	},
 	"references": [
-		{ "path": "../../packages/tlsync" },
-		{ "path": "../../packages/tlschema" },
-		{ "path": "../../packages/validate" },
-		{ "path": "../../packages/store" },
-		{ "path": "../../packages/utils" }
+		{
+			"path": "../../packages/store"
+		},
+		{
+			"path": "../../packages/tlschema"
+		},
+		{
+			"path": "../../packages/tlsync"
+		},
+		{
+			"path": "../../packages/utils"
+		}
 	]
 }

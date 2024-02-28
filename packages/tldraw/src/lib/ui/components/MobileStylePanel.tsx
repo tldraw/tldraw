@@ -7,7 +7,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../context/components'
-import { useRelevantStyles } from '../hooks/useRevelantStyles'
+import { useRelevantStyles } from '../hooks/useRelevantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
@@ -37,7 +37,7 @@ export function MobileStylePanel() {
 	const handleStylesOpenChange = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
-				editor.updateInstanceState({ isChangingStyle: false })
+				editor.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
 			}
 		},
 		[editor]

@@ -13,7 +13,6 @@ import {
 	ReadonlySharedStyleMap,
 	StyleProp,
 	TLArrowShapeArrowheadStyle,
-	TLDefaultVerticalAlignStyle,
 	minBy,
 	useEditor,
 	useValue,
@@ -21,7 +20,7 @@ import {
 import React from 'react'
 import { STYLES } from '../../../styles'
 import { useUiEvents } from '../../context/events'
-import { useRelevantStyles } from '../../hooks/useRevelantStyles'
+import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -77,7 +76,7 @@ function useStyleChangeCallback() {
 						editor.setStyleForSelectedShapes(style, value, { squashing })
 					}
 					editor.setStyleForNextShapes(style, value, { squashing })
-					editor.updateInstanceState({ isChangingStyle: true })
+					editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
 				})
 
 				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
@@ -86,7 +85,8 @@ function useStyleChangeCallback() {
 	)
 }
 
-function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+/** @public */
+export function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const msg = useTranslation()
 
 	const handleValueChange = useStyleChangeCallback()
@@ -156,7 +156,8 @@ function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	)
 }
 
-function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+/** @public */
+export function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
@@ -201,7 +202,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 								<TldrawUiButtonIcon icon="vertical-align-center" />
 							</TldrawUiButton>
 						) : (
-							<DropdownPicker<TLDefaultVerticalAlignStyle>
+							<DropdownPicker
 								type="icon"
 								id="geo-vertical-alignment"
 								uiType="verticalAlign"
@@ -217,8 +218,8 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 		</div>
 	)
 }
-
-function GeoStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+/** @public */
+export function GeoStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const geo = styles.get(GeoShapeGeoStyle)
@@ -239,8 +240,8 @@ function GeoStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 		/>
 	)
 }
-
-function SplineStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+/** @public */
+export function SplineStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const spline = styles.get(LineShapeSplineStyle)
@@ -262,7 +263,8 @@ function SplineStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	)
 }
 
-function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+/** @public */
+export function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
@@ -290,22 +292,22 @@ function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap })
 }
 
 const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
-
-function OpacitySlider() {
+/** @public */
+export function OpacitySlider() {
 	const editor = useEditor()
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
-		(value: number, ephemeral: boolean) => {
+		(value: number, squashing: boolean) => {
 			const item = tldrawSupportedOpacities[value]
 			editor.batch(() => {
 				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item, { ephemeral })
+					editor.setOpacityForSelectedShapes(item, { squashing })
 				}
-				editor.setOpacityForNextShapes(item, { ephemeral })
-				editor.updateInstanceState({ isChangingStyle: true })
+				editor.setOpacityForNextShapes(item, { squashing })
+				editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
 			})
 
 			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })

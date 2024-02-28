@@ -156,12 +156,26 @@ export async function exportToString(
 	}
 }
 
-export async function exportToBlob(
-	editor: Editor,
-	ids: TLShapeId[],
-	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json',
-	opts = {} as Partial<TLSvgOptions>
-): Promise<Blob> {
+/**
+ * Export the given shapes as a blob.
+ * @param editor - The editor instance.
+ * @param ids - The ids of the shapes to export.
+ * @param format - The format to export as.
+ * @param opts - Rendering options.
+ * @returns A promise that resolves to a blob.
+ * @public
+ */
+export async function exportToBlob({
+	editor,
+	ids,
+	format,
+	opts = {} as Partial<TLSvgOptions>,
+}: {
+	editor: Editor
+	ids: TLShapeId[]
+	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
+	opts?: Partial<TLSvgOptions>
+}): Promise<Blob> {
 	switch (format) {
 		case 'svg':
 			return new Blob([await exportToString(editor, ids, 'svg', opts)], { type: 'text/plain' })
@@ -205,7 +219,7 @@ export function exportToBlobPromise(
 	opts = {} as Partial<TLSvgOptions>
 ): { blobPromise: Promise<Blob>; mimeType: string } {
 	return {
-		blobPromise: exportToBlob(editor, ids, format, opts),
+		blobPromise: exportToBlob({ editor, ids, format, opts }),
 		mimeType: mimeTypeByFormat[format],
 	}
 }
