@@ -62,6 +62,7 @@ export type TLUiIconType =
 	| 'drag-handle-dots'
 	| 'duplicate'
 	| 'edit'
+	| 'error'
 	| 'external-link'
 	| 'file'
 	| 'fill-none'
@@ -135,6 +136,7 @@ export type TLUiIconType =
 	| 'status-online'
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
+	| 'success'
 	| 'text-align-center'
 	| 'text-align-justify'
 	| 'text-align-left'
@@ -229,6 +231,7 @@ export const iconTypes = [
 	'drag-handle-dots',
 	'duplicate',
 	'edit',
+	'error',
 	'external-link',
 	'file',
 	'fill-none',
@@ -302,6 +305,7 @@ export const iconTypes = [
 	'status-online',
 	'stretch-horizontal',
 	'stretch-vertical',
+	'success',
 	'text-align-center',
 	'text-align-justify',
 	'text-align-left',

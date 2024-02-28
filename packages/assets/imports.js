@@ -85,6 +85,7 @@ import iconsDotsVertical from './icons/icon/dots-vertical.svg'
 import iconsDragHandleDots from './icons/icon/drag-handle-dots.svg'
 import iconsDuplicate from './icons/icon/duplicate.svg'
 import iconsEdit from './icons/icon/edit.svg'
+import iconsError from './icons/icon/error.svg'
 import iconsExternalLink from './icons/icon/external-link.svg'
 import iconsFile from './icons/icon/file.svg'
 import iconsFillNone from './icons/icon/fill-none.svg'
@@ -158,6 +159,7 @@ import iconsStatusOffline from './icons/icon/status-offline.svg'
 import iconsStatusOnline from './icons/icon/status-online.svg'
 import iconsStretchHorizontal from './icons/icon/stretch-horizontal.svg'
 import iconsStretchVertical from './icons/icon/stretch-vertical.svg'
+import iconsSuccess from './icons/icon/success.svg'
 import iconsTextAlignCenter from './icons/icon/text-align-center.svg'
 import iconsTextAlignJustify from './icons/icon/text-align-justify.svg'
 import iconsTextAlignLeft from './icons/icon/text-align-left.svg'
@@ -301,6 +303,7 @@ export function getAssetUrlsByImport(opts) {
 			'drag-handle-dots': formatAssetUrl(iconsDragHandleDots, opts),
 			duplicate: formatAssetUrl(iconsDuplicate, opts),
 			edit: formatAssetUrl(iconsEdit, opts),
+			error: formatAssetUrl(iconsError, opts),
 			'external-link': formatAssetUrl(iconsExternalLink, opts),
 			file: formatAssetUrl(iconsFile, opts),
 			'fill-none': formatAssetUrl(iconsFillNone, opts),
@@ -374,6 +377,7 @@ export function getAssetUrlsByImport(opts) {
 			'status-online': formatAssetUrl(iconsStatusOnline, opts),
 			'stretch-horizontal': formatAssetUrl(iconsStretchHorizontal, opts),
 			'stretch-vertical': formatAssetUrl(iconsStretchVertical, opts),
+			success: formatAssetUrl(iconsSuccess, opts),
 			'text-align-center': formatAssetUrl(iconsTextAlignCenter, opts),
 			'text-align-justify': formatAssetUrl(iconsTextAlignJustify, opts),
 			'text-align-left': formatAssetUrl(iconsTextAlignLeft, opts),

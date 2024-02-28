@@ -44,9 +44,10 @@ export function DefaultDebugMenuContent() {
 					onSelect={() => {
 						addToast({
 							id: uniqueId(),
-							title: 'Something happened',
+							title: 'Something good happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
+							severity: 'success',
 							// icon?: string
 							// title?: string
 							// description?: string
@@ -57,6 +58,7 @@ export function DefaultDebugMenuContent() {
 							title: 'Something happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
+							severity: 'info',
 							actions: [
 								{
 									label: 'Primary',
@@ -87,10 +89,10 @@ export function DefaultDebugMenuContent() {
 						})
 						addToast({
 							id: uniqueId(),
-							title: 'Something happened',
+							title: 'Something maybe bad happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
-							icon: 'twitter',
+							severity: 'warning',
 							actions: [
 								{
 									label: 'Primary',
@@ -114,6 +116,12 @@ export function DefaultDebugMenuContent() {
 									},
 								},
 							],
+						})
+						addToast({
+							id: uniqueId(),
+							title: 'Something bad happened',
+							severity: 'error',
+							keepOpen: true,
 						})
 					}}
 					label={untranslated('Show toast')}

@@ -227,6 +227,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 			duplicate: formatAssetUrl(new URL('./icons/icon/duplicate.svg', import.meta.url).href, opts),
 			edit: formatAssetUrl(new URL('./icons/icon/edit.svg', import.meta.url).href, opts),
+			error: formatAssetUrl(new URL('./icons/icon/error.svg', import.meta.url).href, opts),
 			'external-link': formatAssetUrl(
 				new URL('./icons/icon/external-link.svg', import.meta.url).href,
 				opts
@@ -450,6 +451,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/stretch-vertical.svg', import.meta.url).href,
 				opts
 			),
+			success: formatAssetUrl(new URL('./icons/icon/success.svg', import.meta.url).href, opts),
 			'text-align-center': formatAssetUrl(
 				new URL('./icons/icon/text-align-center.svg', import.meta.url).href,
 				opts

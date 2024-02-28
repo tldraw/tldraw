@@ -267,6 +267,7 @@ export async function parseAndLoadDocument(
 		addToast({
 			title: msg('file-system.file-open-error.title'),
 			description,
+			severity: 'error',
 		})
 
 		return

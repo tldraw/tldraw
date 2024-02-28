@@ -1023,6 +1023,38 @@
 	font-size: 12px;
 }
 
+.tlui-toast__container[data-severity='success'] {
+	background-color: var(--color-success);
+}
+
+.tlui-toast__container[data-severity='success'] .tlui-icon {
+	color: var(--color-success-accent);
+}
+
+.tlui-toast__container[data-severity='info'] {
+	background-color: var(--color-info);
+}
+
+.tlui-toast__container[data-severity='info'] .tlui-icon {
+	color: var(--color-info-accent);
+}
+
+.tlui-toast__container[data-severity='warning'] {
+	background-color: var(--color-warning);
+}
+
+.tlui-toast__container[data-severity='warning'] .tlui-icon {
+	color: var(--color-warning-accent);
+}
+
+.tlui-toast__container[data-severity='error'] {
+	background-color: var(--color-error);
+}
+
+.tlui-toast__container[data-severity='error'] .tlui-icon {
+	color: var(--color-error-accent);
+}
+
 .tlui-toast__main {
 	flex-grow: 2;
 	max-width: 280px;
@@ -1038,6 +1070,7 @@
 .tlui-toast__title {
 	font-weight: bold;
 	color: var(--color-text-1);
+	line-height: 1.2rem;
 }
 
 .tlui-toast__description {
@@ -1061,6 +1094,9 @@
 .tlui-toast__close {
 	align-self: flex-end;
 	flex-shrink: 0;
+
+	/* this makes the default toast look better */
+	height: 43px;
 }
 
 @media (prefers-reduced-motion: no-preference) {

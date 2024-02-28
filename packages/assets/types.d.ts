@@ -70,6 +70,7 @@ export type AssetUrls = {
 		'drag-handle-dots': string
 		duplicate: string
 		edit: string
+		error: string
 		'external-link': string
 		file: string
 		'fill-none': string
@@ -143,6 +144,7 @@ export type AssetUrls = {
 		'status-online': string
 		'stretch-horizontal': string
 		'stretch-vertical': string
+		success: string
 		'text-align-center': string
 		'text-align-justify': string
 		'text-align-left': string
