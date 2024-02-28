@@ -15,6 +15,7 @@ import {
 	useEditor,
 	useTranslation,
 } from '@tldraw/tldraw'
+import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '@tldraw/tldraw/src/lib/ui/constants'
 import {
 	ChangeEvent,
 	KeyboardEvent,
@@ -39,7 +40,6 @@ const MAX_TITLE_WIDTH_PX = 420
 const BUTTON_WIDTH = 44
 const STYLE_PANEL_WIDTH = 148
 const MARGIN_BETWEEN_ZONES = 12
-const SMALL_SCREEN_WIDTH = 841
 // the maximum amount the people menu will extend from the style panel
 const SQUEEZE_FACTOR = 52
 
@@ -160,7 +160,10 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
 
 		// Squeeze the title if the right panel is too wide on small screen
-		if (rightPanel.offsetWidth > STYLE_PANEL_WIDTH && totalWidth < SMALL_SCREEN_WIDTH) {
+		if (
+			rightPanel.offsetWidth > STYLE_PANEL_WIDTH &&
+			totalWidth <= PORTRAIT_BREAKPOINTS[PORTRAIT_BREAKPOINT.TABLET]
+		) {
 			element.style.setProperty('max-width', maxWidth - SQUEEZE_FACTOR + 'px')
 		} else {
 			element.style.setProperty('max-width', maxWidth + 'px')
