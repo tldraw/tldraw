@@ -382,7 +382,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	/**
 	 * Send a message to a particular client.
 	 *
-	 * @param client - The client to send the message to.
+	 * @param sessionKey - The session to send the message to.
 	 * @param message - The message to send.
 	 */
 	private sendMessage(sessionKey: string, message: TLSocketServerSentEvent<R>) {
@@ -461,10 +461,10 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Broadcast a message to all connected clients except the clientId provided.
+	 * Broadcast a message to all connected clients except the one with the sessionKey provided.
 	 *
 	 * @param message - The message to broadcast.
-	 * @param clientId - The client to exclude.
+	 * @param sourceSessionKey - The session to exclude.
 	 */
 	broadcastPatch({
 		diff,
@@ -507,7 +507,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 * When a client connects to the room, add them to the list of clients and then merge the history
 	 * down into the snapshots.
 	 *
-	 * @param client - The client that connected to the room.
+	 * @param sessionKey - The session of the client that connected to the room.
+	 * @param socket - Their socket.
 	 */
 	handleNewSession = (sessionKey: string, socket: TLRoomSocket<R>) => {
 		const existing = this.sessions.get(sessionKey)
@@ -564,10 +565,10 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/**
-	 * When the server receives a message from the clients Currently supports connect and patches.
-	 * Invalid messages types log a warning. Currently doesn't validate data.
+	 * When the server receives a message from the clients Currently, supports connect and patches.
+	 * Invalid messages types log a warning. Currently, doesn't validate data.
 	 *
-	 * @param client - The client that sent the message
+	 * @param sessionKey - The session that sent the message
 	 * @param message - The message that was sent
 	 */
 	handleMessage = async (sessionKey: string, message: TLSocketClientSentEvent<R>) => {
@@ -595,7 +596,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		}
 	}
 
-	/** If the client is out of date or we are out of date, we need to let them know */
+	/** If the client is out of date, or we are out of date, we need to let them know */
 	private rejectSession(session: RoomSession<R>, reason: TLIncompatibilityReason) {
 		try {
 			if (session.socket.isOpen) {
@@ -1002,7 +1003,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	/**
 	 * Handle the event when a client disconnects.
 	 *
-	 * @param client - The client that disconnected.
+	 * @param sessionKey - The session that disconnected.
 	 */
 	handleClose = (sessionKey: string) => {
 		this.cancelSession(sessionKey)
