@@ -1,3 +1,29 @@
+# v2.0.0-beta.6 (Thu Feb 29 2024)
+
+### Release Notes
+
+#### fix setAllVersions ([#3009](https://github.com/tldraw/tldraw/pull/3009))
+
+- Add a brief release note for your PR here.
+
+#### Fix publishing scripts ([#3008](https://github.com/tldraw/tldraw/pull/3008))
+
+- Add a brief release note for your PR here.
+
+---
+
+#### 🏠 Internal
+
+- fix setAllVersions [#3009](https://github.com/tldraw/tldraw/pull/3009) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`, `tldraw`
+  - Fix publishing scripts [#3008](https://github.com/tldraw/tldraw/pull/3008) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.0.0-beta.5 (Thu Feb 29 2024)
 
 ### Release Notes

@@ -1,3 +1,23 @@
+# v2.0.0-beta.6 (Thu Feb 29 2024)
+
+### Release Notes
+
+#### Fix publishing scripts ([#3008](https://github.com/tldraw/tldraw/pull/3008))
+
+- Add a brief release note for your PR here.
+
+---
+
+#### 🏠 Internal
+
+- Fix publishing scripts [#3008](https://github.com/tldraw/tldraw/pull/3008) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.0.0-beta.5 (Thu Feb 29 2024)
 
 ### Release Notes
