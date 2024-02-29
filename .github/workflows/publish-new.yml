@@ -30,7 +30,7 @@ jobs:
       - name: Check inputs
         run: |
           if [[ "${{ inputs.bump_type }}" != "override" ]] && ! [[ -z "${{ inputs.version_override }}" ]]; then
-            echo "Bump type ${{ inputs.bump_type }} and version override cannot be set simultaneously"
+            echo "ERROR You must set the Bump Type to 'override' if you supply a custom version number override."
             exit 1
           fi
       - name: Generate GH token
