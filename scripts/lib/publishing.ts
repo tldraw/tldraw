@@ -179,7 +179,7 @@ export async function publish() {
 				const newVersion = packageDetails.version
 				const unscopedName = packageDetails.name.replace('@tldraw/', '')
 
-				const url = `https://registry.npmjs.org/@tldraw/${unscopedName}/-/${unscopedName}-${newVersion}.tgz`
+				const url = `https://registry.npmjs.org/${packageDetails.name}/-/${unscopedName}-${newVersion}.tgz`
 				nicelog('looking for package at url: ', url)
 				const res = await fetch(url, {
 					method: 'HEAD',
