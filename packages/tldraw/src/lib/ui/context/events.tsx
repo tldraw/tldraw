@@ -84,6 +84,7 @@ export interface TLUiEventMap {
 	'toggle-tool-lock': null
 	'toggle-grid-mode': null
 	'toggle-dark-mode': null
+	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
 	'toggle-debug-mode': null
 	'toggle-lock': null
