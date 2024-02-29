@@ -505,6 +505,7 @@ body {
 }
 
 .article p code,
+.article li code,
 .article td code {
 	background-color: var(--color-tint-0);
 	font-size: 15px;
