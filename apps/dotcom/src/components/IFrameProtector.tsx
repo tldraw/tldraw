@@ -1,5 +1,5 @@
-import { LoadingScreen } from '@tldraw/tldraw'
 import { useEffect, useState, version } from 'react'
+import { LoadingScreen } from 'tldraw'
 import { useUrl } from '../hooks/useUrl'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 

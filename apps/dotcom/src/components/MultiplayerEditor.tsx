@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
 	DefaultContextMenuContent,
@@ -22,8 +23,7 @@ import {
 	lns,
 	useActions,
 	useValue,
-} from '@tldraw/tldraw'
-import { useCallback, useEffect } from 'react'
+} from 'tldraw'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'

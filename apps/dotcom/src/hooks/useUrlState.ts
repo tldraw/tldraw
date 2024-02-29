@@ -1,5 +1,5 @@
-import { Editor, MAX_ZOOM, MIN_ZOOM, TLPageId, debounce, react, useEditor } from '@tldraw/tldraw'
 import { default as React, useEffect } from 'react'
+import { Editor, MAX_ZOOM, MIN_ZOOM, TLPageId, debounce, react, useEditor } from 'tldraw'
 
 const PARAMS = {
 	viewport: 'viewport',

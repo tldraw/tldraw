@@ -6,6 +6,7 @@ import { compare, parse } from 'semver'
 import { exec } from './exec'
 import { REPO_ROOT } from './file'
 import { nicelog } from './nicelog'
+import { getAllWorkspacePackages } from './workspace'
 
 export type PackageDetails = {
 	name: string
@@ -14,7 +15,7 @@ export type PackageDetails = {
 	version: string
 }
 
-function getPackageDetails(dir: string): PackageDetails | null {
+async function getPackageDetails(dir: string): Promise<PackageDetails | null> {
 	const packageJsonPath = path.join(dir, 'package.json')
 	if (!existsSync(packageJsonPath)) {
 		return null
@@ -23,27 +24,30 @@ function getPackageDetails(dir: string): PackageDetails | null {
 	if (packageJson.private) {
 		return null
 	}
+
+	const workspacePackages = await getAllWorkspacePackages()
 	return {
 		name: packageJson.name,
 		dir,
 		version: packageJson.version,
 		localDeps: Object.keys(packageJson.dependencies ?? {}).filter((dep) =>
-			dep.startsWith('@tldraw')
+			workspacePackages.some((p) => p.name === dep)
 		),
 	}
 }
 
-export function getAllPackageDetails(): Record<string, PackageDetails> {
+export async function getAllPackageDetails(): Promise<Record<string, PackageDetails>> {
 	const dirs = readdirSync(join(REPO_ROOT, 'packages'))
-	const results = dirs
-		.map((dir) => getPackageDetails(path.join(REPO_ROOT, 'packages', dir)))
-		.filter((x): x is PackageDetails => Boolean(x))
+	const details = await Promise.all(
+		dirs.map((dir) => getPackageDetails(path.join(REPO_ROOT, 'packages', dir)))
+	)
+	const results = details.filter((x): x is PackageDetails => Boolean(x))
 
 	return Object.fromEntries(results.map((result) => [result.name, result]))
 }
 
-export function setAllVersions(version: string) {
-	const packages = getAllPackageDetails()
+export async function setAllVersions(version: string) {
+	const packages = await getAllPackageDetails()
 	for (const packageDetails of Object.values(packages)) {
 		const manifest = JSON.parse(readFileSync(path.join(packageDetails.dir, 'package.json'), 'utf8'))
 		manifest.version = version
@@ -55,7 +59,7 @@ export function setAllVersions(version: string) {
 			const versionFileContents = `export const version = '${version}'\n`
 			writeFileSync(path.join(packageDetails.dir, 'src', 'version.ts'), versionFileContents)
 		}
-		if (manifest.name === '@tldraw/tldraw') {
+		if (manifest.name === 'tldraw') {
 			const versionFileContents = `export const version = '${version}'\n`
 			writeFileSync(
 				path.join(packageDetails.dir, 'src', 'lib', 'ui', 'version.ts'),
@@ -117,7 +121,7 @@ export async function publish() {
 	execSync(`yarn config set npmAuthToken ${npmToken}`, { stdio: 'inherit' })
 	execSync(`yarn config set npmRegistryServer https://registry.npmjs.org`, { stdio: 'inherit' })
 
-	const packages = getAllPackageDetails()
+	const packages = await getAllPackageDetails()
 
 	const publishOrder = topologicalSortPackages(packages)
 

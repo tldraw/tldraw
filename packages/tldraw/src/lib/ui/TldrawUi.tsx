@@ -24,7 +24,7 @@ import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
 /**
- * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
+ * Base props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
  *
  * @public
  */

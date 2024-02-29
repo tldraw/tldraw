@@ -1,6 +1,6 @@
-import { Editor, Tldraw, useValue } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { createContext, useContext, useState } from 'react'
+import { Editor, Tldraw, useValue } from 'tldraw'
+import 'tldraw/tldraw.css'
 import './external-ui.css'
 
 // There's a guide at the bottom of this file!

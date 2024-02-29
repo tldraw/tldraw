@@ -36,7 +36,7 @@ import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
- * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @public
  **/
@@ -58,7 +58,7 @@ export type TldrawEditorProps = Expand<
 >
 
 /**
- * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ * Base props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @public
  */
@@ -151,7 +151,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
-	// defaults applied in @tldraw/tldraw.
+	// defaults applied in tldraw.
 	const withDefaults = {
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
