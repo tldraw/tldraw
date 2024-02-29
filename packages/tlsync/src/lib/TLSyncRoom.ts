@@ -403,6 +403,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			} else {
 				session.outstandingMessages.push(message)
 				if (session.debounceTimer === null) {
+					// TODO: debounce *after* sending the first message (if there is more stuff to send)
 					session.debounceTimer = setTimeout(
 						() => this.flushMessages(sessionKey),
 						MESSAGE_DEBOUNCE_INTERVAL
@@ -425,6 +426,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 		console.log(JSON.stringify(session.outstandingMessages))
 		session.outstandingMessages.forEach((msg) => {
+			// TODO: change the signature to a list
 			session.socket.sendMessage(msg)
 		})
 
