@@ -1,3 +1,17 @@
+# v2.0.0-beta.9 (Thu Feb 29 2024)
+
+#### ⚠️ Pushed to `main`
+
+- allow changes ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`, `tldraw`
+  - fix refresh-assets cache inputs ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.0.0-beta.8 (Thu Feb 29 2024)
 
 #### ⚠️ Pushed to `main`
