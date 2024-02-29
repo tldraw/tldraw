@@ -72,7 +72,7 @@ async function main() {
 
 	console.log('Releasing version', nextVersion)
 
-	setAllVersions(nextVersion)
+	await setAllVersions(nextVersion)
 
 	// stage the changes
 	const packageJsonFilesToAdd = []
@@ -83,9 +83,10 @@ async function main() {
 	}
 	await exec('git', [
 		'add',
+		'--update',
 		'lerna.json',
 		...packageJsonFilesToAdd,
-		REPO_ROOT + '/packages/*/src/**/version.ts',
+		REPO_ROOT + '/**/*/version.ts',
 	])
 
 	const auto = new Auto({
