@@ -57,6 +57,8 @@ export type TLRoomSocket<R extends UnknownRecord> = {
 export const MAX_TOMBSTONES = 3000
 // the number of tombstones to delete when the max is reached
 export const TOMBSTONE_PRUNE_BUFFER_SIZE = 300
+// how often do we send non-ping updates to clients
+export const MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
@@ -396,10 +398,37 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 		if (session.socket.isOpen) {
+			if (message.type === 'connect' || message.type === 'pong') {
+				session.socket.sendMessage(message)
+			} else {
+				session.outstandingMessages.push(message)
+				if (session.debounceTimer === null) {
+					session.debounceTimer = setTimeout(
+						() => this.flushMessages(sessionKey),
+						MESSAGE_DEBOUNCE_INTERVAL
+					)
+				}
+			}
+
 			session.socket.sendMessage(message)
 		} else {
 			this.cancelSession(session.sessionKey)
 		}
+	}
+
+	private flushMessages(sessionKey: string) {
+		const session = this.sessions.get(sessionKey)
+
+		if (!session || session.state !== RoomSessionState.CONNECTED) {
+			return
+		}
+
+		session.outstandingMessages.forEach((msg) => {
+			session.socket.sendMessage(msg)
+		})
+
+		session.debounceTimer = null
+		session.outstandingMessages = []
 	}
 
 	private removeSession(sessionKey: string) {
@@ -648,6 +677,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				socket: session.socket,
 				serializedSchema: sessionSchema,
 				lastInteractionTime: Date.now(),
+				debounceTimer: null,
+				outstandingMessages: [],
 			})
 			this.sendMessage(session.sessionKey, msg)
 		}
