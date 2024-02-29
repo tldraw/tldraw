@@ -1,3 +1,15 @@
+# v2.0.0 (Thu Feb 29 2024)
+
+#### ⚠️ Pushed to `main`
+
+- updatereadmes ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.9 (Thu Feb 29 2024)
 
 #### ⚠️ Pushed to `main`
