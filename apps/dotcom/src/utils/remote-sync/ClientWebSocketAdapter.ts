@@ -1,4 +1,3 @@
-import { atom, Atom, TLRecord } from '@tldraw/tldraw'
 import {
 	chunk,
 	serializeMessage,
@@ -7,6 +6,7 @@ import {
 	TLSocketClientSentEvent,
 	TLSocketServerSentEvent,
 } from '@tldraw/tlsync'
+import { atom, Atom, TLRecord } from 'tldraw'
 
 function windowListen(...args: Parameters<typeof window.addEventListener>) {
 	window.addEventListener(...args)

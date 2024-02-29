@@ -1,4 +1,4 @@
-import { BaseBoxShapeTool } from '@tldraw/tldraw'
+import { BaseBoxShapeTool } from 'tldraw'
 export class MyshapeTool extends BaseBoxShapeTool {
 	static override id = 'Myshape'
 	static override initial = 'idle'

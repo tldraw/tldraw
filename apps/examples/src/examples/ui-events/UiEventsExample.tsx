@@ -1,6 +1,6 @@
-import { TLUiEventHandler, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { Fragment, useCallback, useState } from 'react'
+import { TLUiEventHandler, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import { getCodeSnippet } from './codeSnippets'
 
 // There's a guide at the bottom of this file!

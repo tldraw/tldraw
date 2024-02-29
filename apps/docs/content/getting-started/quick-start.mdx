@@ -24,7 +24,7 @@ By the end of this guide you will have made something that looks like this:
     - Install the tldraw library using this command:
     
     ```bash
-    npm install @tldraw/tldraw@beta
+    npm install tldraw@beta
     ```
   </li>
   <li>
@@ -36,7 +36,7 @@ By the end of this guide you will have made something that looks like this:
     - Copy and paste this into the file:
     ```CSS
     @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap");
-    @import url("@tldraw/tldraw/tldraw.css");
+    @import url("tldraw/tldraw.css");
 
     body {
       font-family: "Inter";
@@ -48,14 +48,14 @@ By the end of this guide you will have made something that looks like this:
     <br />
     To render the Tldraw component
 
-    - Import the `<Tldraw />` component from `@tldraw/tldraw`
+    - Import the `<Tldraw />` component from `tldraw`
     - Import the `index.css` CSS file from earlier
     - Wrap the Tldraw component in a `<div>` element with the style attribute set to: `{ position: 'fixed', inset: 0 }`
     
     <p className="">This will render a full screen canvas:</p>
 
     ```javascript
-    import { Tldraw } from "@tldraw/tldraw";
+    import { Tldraw } from "tldraw";
     import "./index.css";
 
     export default function App() {

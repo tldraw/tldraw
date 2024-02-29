@@ -12,7 +12,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	useActions,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { StoreErrorScreen } from '../components/StoreErrorScreen'
 import { useLocalStore } from '../hooks/useLocalStore'

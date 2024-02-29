@@ -1,4 +1,4 @@
-import { Tldraw } from '@tldraw/tldraw'
+import { Tldraw } from 'tldraw'
 
 function App() {
 	return (
