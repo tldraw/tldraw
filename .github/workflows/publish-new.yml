@@ -1,8 +1,23 @@
-name: Publish new version of public packages
+name: Publish new version of public packages from main HEAD
 # This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
 
 # Package publishing is manually triggered on github actions dashboard
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        type: choice
+        description: Version Bump Type
+        required: true
+        default: 'minor'
+        options:
+          - minor
+          - major
+          - override
+      version_override:
+        type: string
+        description: Version Override
+        required: false
 
 jobs:
   deploy:
@@ -12,6 +27,13 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
 
     steps:
+      - name: Check inputs
+        run: |
+          if [ ${{ inputs.bump_type }} != 'override' ] && [ ${{ inputs.version_override }} != '' ]; then
+            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.version_override }}
+          else
+            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.bump_type }}
+          fi
       - name: Generate GH token
         id: generate_token
         uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
@@ -35,7 +57,11 @@ jobs:
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          yarn tsx ./scripts/publish-new.ts
+          if [ ${{ inputs.bump_type }} == 'override' ]; then
+            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.version_override }}
+          else
+            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.bump_type }}
+          fi
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

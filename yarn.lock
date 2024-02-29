@@ -7327,6 +7327,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.440.0"
     "@aws-sdk/lib-storage": "npm:^3.440.0"
     "@types/is-ci": "npm:^3.0.0"
+    "@types/minimist": "npm:^1.2.5"
     "@types/node": "npm:~20.11"
     "@types/tar": "npm:^6.1.7"
     "@typescript-eslint/utils": "npm:^5.59.0"
@@ -7340,6 +7341,7 @@ __metadata:
     is-ci: "npm:^3.0.1"
     kleur: "npm:^4.1.5"
     lazyrepo: "npm:0.0.0-alpha.27"
+    minimist: "npm:^1.2.8"
     prettier: "npm:^3.0.3"
     recast: "npm:^0.22.0"
     rimraf: "npm:^4.4.0"
@@ -8015,6 +8017,13 @@ __metadata:
   version: 5.1.2
   resolution: "@types/minimatch@npm:5.1.2"
   checksum: 94db5060d20df2b80d77b74dd384df3115f01889b5b6c40fa2dfa27cfc03a68fb0ff7c1f2a0366070263eb2e9d6bfd8c87111d4bc3ae93c3f291297c1bf56c85
+  languageName: node
+  linkType: hard
+
+"@types/minimist@npm:^1.2.5":
+  version: 1.2.5
+  resolution: "@types/minimist@npm:1.2.5"
+  checksum: 477047b606005058ab0263c4f58097136268007f320003c348794f74adedc3166ffc47c80ec3e94687787f2ab7f4e72c468223946e79892cf0fd9e25e9970a90
   languageName: node
   linkType: hard
 
@@ -18852,7 +18861,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimist@npm:^1.1.0, minimist@npm:^1.2.0, minimist@npm:^1.2.3, minimist@npm:^1.2.5, minimist@npm:^1.2.6":
+"minimist@npm:^1.1.0, minimist@npm:^1.2.0, minimist@npm:^1.2.3, minimist@npm:^1.2.5, minimist@npm:^1.2.6, minimist@npm:^1.2.8":
   version: 1.2.8
   resolution: "minimist@npm:1.2.8"
   checksum: 908491b6cc15a6c440ba5b22780a0ba89b9810e1aea684e253e43c4e3b8d56ec1dcdd7ea96dde119c29df59c936cde16062159eae4225c691e19c70b432b6e6f
