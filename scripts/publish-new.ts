@@ -1,10 +1,10 @@
 import { Auto } from '@auto-it/core'
 import fetch from 'cross-fetch'
+import glob from 'glob'
 import minimist from 'minimist'
 import { assert } from 'node:console'
 import { SemVer, parse } from 'semver'
 import { exec } from './lib/exec'
-import { REPO_ROOT } from './lib/file'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
@@ -81,12 +81,17 @@ async function main() {
 			packageJsonFilesToAdd.push(`${workspace.relativePath}/package.json`)
 		}
 	}
+	const versionFilesToAdd = glob.sync('**/*/version.ts', {
+		ignore: ['node_modules/**'],
+		follow: false,
+	})
+	console.log('versionFilesToAdd', versionFilesToAdd)
 	await exec('git', [
 		'add',
 		'--update',
 		'lerna.json',
 		...packageJsonFilesToAdd,
-		REPO_ROOT + '/**/*/version.ts',
+		...versionFilesToAdd,
 	])
 
 	const auto = new Auto({
