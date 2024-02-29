@@ -72,7 +72,7 @@ async function main() {
 
 	console.log('Releasing version', nextVersion)
 
-	setAllVersions(nextVersion)
+	await setAllVersions(nextVersion)
 
 	// stage the changes
 	const packageJsonFilesToAdd = []
