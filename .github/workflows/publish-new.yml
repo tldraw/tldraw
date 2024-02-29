@@ -1,4 +1,4 @@
-name: Publish new version of public packages from main HEAD
+name: Publish new packages from main
 # This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
 
 # Package publishing is manually triggered on github actions dashboard
