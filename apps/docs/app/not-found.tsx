@@ -7,15 +7,17 @@ export default async function NotFound() {
 	const sidebar = await db.getSidebarContentList({})
 
 	return (
-		<>
-			<Header />
-			<Sidebar {...sidebar} />
-			<main className="article">
-				<div className="page-header">
-					<h1>Not found.</h1>
-				</div>
-				<p>There's nothing here. :(</p>
-			</main>
-		</>
+		<div className="wrapper">
+			<div className="layout">
+				<Header />
+				<Sidebar {...sidebar} />
+				<main className="main-content article">
+					<div className="page-header">
+						<h1>Not found.</h1>
+					</div>
+					<p>There's nothing here. :(</p>
+				</main>
+			</div>
+		</div>
 	)
 }

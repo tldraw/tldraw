@@ -1,12 +1,13 @@
 import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { ArticleNavLinks } from './ArticleNavLinks'
-import ExampleCodeBlock from './ExampleCodeBlock'
+import { Breadcrumb } from './Breadcrumb'
 import { Header } from './Header'
 import { Mdx } from './Mdx'
 import { Sidebar } from './Sidebar'
+import { Image } from './mdx-components/generic'
 
-export async function ExampleDocsPage({ article }: { article: Article }) {
+export async function ArticleReferenceDocsPage({ article }: { article: Article }) {
 	const db = await getDb()
 	const section = await db.getSection(article.sectionId)
 	const category = await db.getCategory(article.categoryId)
@@ -21,20 +22,13 @@ export async function ExampleDocsPage({ article }: { article: Article }) {
 		<>
 			<Header sectionId={section.id} />
 			<Sidebar {...sidebar} />
-			<main className={`main-content article article__example`}>
+			<main className="main-content article article__api-docs">
 				<div className="page-header">
+					<Breadcrumb section={section} category={category} />
 					<h1>{article.title}</h1>
-					{article.description && <p>{article.description}</p>}
 				</div>
+				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}
 				{article.content && <Mdx content={article.content} />}
-				<ExampleCodeBlock
-					articleId={article.id}
-					files={{
-						'App.tsx': article.componentCode,
-						...(article.componentCodeFiles ? JSON.parse(article.componentCodeFiles) : null),
-					}}
-					activeFile={'App.tsx'}
-				/>
 				{links && <ArticleNavLinks links={links} />}
 			</main>
 		</>

@@ -1400,7 +1400,136 @@ export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgr
 export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
 
 // @public (undocumented)
-export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;
+export const TldrawUi: React_2.NamedExoticComponent<{
+    children?: any;
+    hideUi?: boolean | undefined;
+    components?: Partial<{
+        ContextMenu: null | React_2.ComponentType<TLUiContextMenuProps>;
+        ActionsMenu: null | React_2.ComponentType<TLUiActionsMenuProps>;
+        HelpMenu: null | React_2.ComponentType<TLUiHelpMenuProps>;
+        ZoomMenu: null | React_2.ComponentType<TLUiZoomMenuProps>;
+        MainMenu: null | React_2.ComponentType<TLUiMainMenuProps>;
+        Minimap: null | React_2.ComponentType;
+        StylePanel: null | React_2.ComponentType<TLUiStylePanelProps>;
+        PageMenu: null | React_2.ComponentType;
+        NavigationPanel: null | React_2.ComponentType;
+        Toolbar: null | React_2.ComponentType;
+        KeyboardShortcutsDialog: null | React_2.ComponentType<TLUiKeyboardShortcutsDialogProps>;
+        QuickActions: null | React_2.ComponentType<TLUiQuickActionsProps>;
+        HelperButtons: null | React_2.ComponentType<TLUiHelperButtonsProps>;
+        DebugMenu: null | React_2.ComponentType;
+        MenuPanel: null | React_2.ComponentType;
+        TopPanel: null | React_2.ComponentType;
+        SharePanel: null | React_2.ComponentType;
+    }> | undefined;
+    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
+    assetUrls?: (RecursivePartial<TLUiAssetUrls> & RecursivePartial<TLUiAssetUrls>) | undefined;
+    overrides?: Partial<{
+        actions: TLUiOverride<TLUiActionsContextType, {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        toolbar: TLUiOverride<TLUiToolbarSchemaContextType, {
+        tools: TLUiToolsContextType;
+        } & {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        tools: TLUiOverride<TLUiToolsContextType, {
+        insertMedia: () => void;
+        } & {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        translations: Record<string, Record<string, string>> | undefined;
+    }> | Partial<{
+        actions: TLUiOverride<TLUiActionsContextType, {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        toolbar: TLUiOverride<TLUiToolbarSchemaContextType, {
+        tools: TLUiToolsContextType;
+        } & {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        tools: TLUiOverride<TLUiToolsContextType, {
+        insertMedia: () => void;
+        } & {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        translations: Record<string, Record<string, string>> | undefined;
+    }>[] | undefined;
+    onUiEvent?: TLUiEventHandler | undefined;
+    forceMobile?: boolean | undefined;
+}>;
 
 // @public
 export interface TldrawUiBaseProps {
@@ -1518,7 +1647,7 @@ export function TldrawUiPopoverContent({ side, children, align, sideOffset, alig
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public
-export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
+export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderProps>;
 
 // @internal (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
