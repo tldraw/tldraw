@@ -26,10 +26,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      # TODO: start using .latest instead of .beta when we release 2.0
       - name: Substitute the latest published version of tldraw
         run: |
-          export TEMPLATE=vite NPM_TAG=beta && \
+          export TEMPLATE=vite NPM_TAG=latest && \
           npm view @tldraw/tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw && \
           cp "templates/$TEMPLATE/package.json" /tmp/template_package.json && \
           jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/tldraw" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json" 
@@ -54,10 +53,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      # TODO: start using .latest instead of .beta when we release 2.0
       - name: Substitute the latest published version of tldraw
         run: |
-          export TEMPLATE=nextjs NPM_TAG=beta && \
+          export TEMPLATE=nextjs NPM_TAG=latest && \
           npm view @tldraw/tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw && \
           cp "templates/$TEMPLATE/package.json" /tmp/template_package.json && \
           jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/tldraw" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json" 
