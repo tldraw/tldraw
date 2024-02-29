@@ -191,10 +191,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	shouldGetDataURI(src: string) {
-		return src && (src.startsWith('http') || src.startsWith('/') || src.startsWith('./'))
-	}
-
 	override async toSvg(shape: TLImageShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
@@ -202,7 +198,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!asset) return g
 
 		let src = asset?.props.src || ''
-		if (this.shouldGetDataURI(src)) {
+		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''
 		}
