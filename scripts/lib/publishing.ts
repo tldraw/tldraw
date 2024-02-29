@@ -55,18 +55,9 @@ export async function setAllVersions(version: string) {
 			path.join(packageDetails.dir, 'package.json'),
 			JSON.stringify(manifest, null, '\t') + '\n'
 		)
-		if (manifest.name === '@tldraw/editor') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(path.join(packageDetails.dir, 'src', 'version.ts'), versionFileContents)
-		}
-		if (manifest.name === 'tldraw') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(
-				path.join(packageDetails.dir, 'src', 'lib', 'ui', 'version.ts'),
-				versionFileContents
-			)
-		}
 	}
+
+	await exec('yarn', ['refresh-assets'])
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
 	lernaJson.version = version
