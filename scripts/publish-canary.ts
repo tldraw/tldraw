@@ -14,7 +14,7 @@ async function main() {
 			: latestVersion?.inc(bump)
 		const versionString = `${nextVersion.major}.${nextVersion.minor}.${nextVersion.patch}-canary.${sha}`
 
-		setAllVersions(versionString)
+		await setAllVersions(versionString)
 	}
 
 	// module was called directly

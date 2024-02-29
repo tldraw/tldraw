@@ -1,3 +1,24 @@
+# v2.0.0-beta.7 (Thu Feb 29 2024)
+
+### Release Notes
+
+#### Fix publish script one more time ([#3010](https://github.com/tldraw/tldraw/pull/3010))
+
+- Add a brief release note for your PR here.
+
+---
+
+#### 🏠 Internal
+
+- `@tldraw/editor`, `tldraw`
+  - Fix publish script one more time [#3010](https://github.com/tldraw/tldraw/pull/3010) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.0.0-beta.6 (Thu Feb 29 2024)
 
 ### Release Notes
