@@ -3,7 +3,6 @@ import { Article, ArticleHeading, ArticleHeadings } from '@/types/content-types'
 import Link from 'next/link'
 
 export function ArticleHeadingLinks({
-	article,
 	headingLinks,
 }: {
 	article: Article
