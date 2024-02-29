@@ -30,9 +30,8 @@ jobs:
       - name: Check inputs
         run: |
           if [[ "${{ inputs.bump_type }}" != "override" ]] && ! [[ -z "${{ inputs.version_override }}" ]]; then
-            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.version_override }}
-          else
-            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.bump_type }}
+            echo "Bump type ${{ inputs.bump_type }} and version override cannot be set simultaneously"
+            exit 1
           fi
       - name: Generate GH token
         id: generate_token
