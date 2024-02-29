@@ -4,4 +4,4 @@ updates:
     directory: '/'
     schedule:
       interval: 'daily'
-    versioning-strategy: auto
+    versioning-strategy: increase
