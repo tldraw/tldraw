@@ -91,6 +91,8 @@ export function LocalEditor() {
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
+		;(window as any).app = editor
+		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
 	}, [])
 

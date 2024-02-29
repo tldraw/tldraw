@@ -9,6 +9,9 @@ export default function EndToEnd() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
+					;(window as any).app = editor
+					;(window as any).editor = editor
+
 					editor.on('event', (info) => {
 						;(window as any).__tldraw_editor_events.push(info)
 					})

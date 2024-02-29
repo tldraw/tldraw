@@ -105,9 +105,6 @@ async function main() {
 		title: `v${nextVersion}`,
 	})
 
-	// Gonna test this in a quick and dirty 'dry-run' mode
-	return
-
 	// create and push a new tag
 	await exec('git', ['tag', '-f', `v${nextVersion}`])
 	await exec('git', ['push', '--follow-tags'])
