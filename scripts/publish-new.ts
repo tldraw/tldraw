@@ -33,12 +33,12 @@ function getReleaseType(): ReleaseType {
 	throw new Error('Invalid bump argument ' + JSON.stringify(arg))
 }
 
-function getNextVersion(releaseType: ReleaseType): string {
+async function getNextVersion(releaseType: ReleaseType): Promise<string> {
 	if (releaseType.bump === 'override') {
 		return releaseType.version.format()
 	}
 
-	const latestVersion = parse(getLatestVersion())!
+	const latestVersion = parse(await getLatestVersion())!
 
 	nicelog('latestVersion', latestVersion)
 
@@ -68,7 +68,7 @@ async function main() {
 	}
 
 	const releaseType = getReleaseType()
-	const nextVersion = getNextVersion(releaseType)
+	const nextVersion = await getNextVersion(releaseType)
 
 	console.log('Releasing version', nextVersion)
 

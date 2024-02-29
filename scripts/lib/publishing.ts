@@ -75,8 +75,8 @@ export async function setAllVersions(version: string) {
 	execSync('yarn')
 }
 
-export function getLatestVersion() {
-	const packages = getAllPackageDetails()
+export async function getLatestVersion() {
+	const packages = await getAllPackageDetails()
 
 	const allVersions = Object.values(packages).map((p) => parse(p.version)!)
 	allVersions.sort(compare)
