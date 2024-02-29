@@ -1,3 +1,74 @@
+# v2.0.0-beta.5 (Thu Feb 29 2024)
+
+### Release Notes
+
+#### tldraw_final_v6_final(old version).docx.pdf ([#2998](https://github.com/tldraw/tldraw/pull/2998))
+
+- The `@tldraw/tldraw` package has been renamed to `tldraw`. You can keep using the old version if you want though!
+
+#### Don't add editor / app to window. ([#2995](https://github.com/tldraw/tldraw/pull/2995))
+
+- Remove `window.editor` and `window.app` references to editor.
+
+#### [feature] wrap mode ([#2938](https://github.com/tldraw/tldraw/pull/2938))
+
+- Added `isWrapMode` to user preferences.
+- Added Wrap Mode toggle to user preferences menu.
+
+#### Don't allow edge scrolling when camera is frozen. ([#2992](https://github.com/tldraw/tldraw/pull/2992))
+
+- Don't allow edge scrolling when camera is frozen.
+
+#### Setup papercuts ([#2987](https://github.com/tldraw/tldraw/pull/2987))
+
+- Add a brief release note for your PR here.
+
+#### [fix] Corejs imports ([#2940](https://github.com/tldraw/tldraw/pull/2940))
+
+- Fixes a bug effecting some users related to corejs imports.
+
+#### Fix undo/redo for Opacity Slider + Style dropdowns. ([#2933](https://github.com/tldraw/tldraw/pull/2933))
+
+- Fixed issues where undo/redo entries were not being set up correctly for the opacity slider or the style dropdown menus.
+
+---
+
+#### 💥 Breaking Change
+
+- Don't add editor / app to window. [#2995](https://github.com/tldraw/tldraw/pull/2995) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🚀 Enhancement
+
+- [feature] wrap mode [#2938](https://github.com/tldraw/tldraw/pull/2938) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Don't allow edge scrolling when camera is frozen. [#2992](https://github.com/tldraw/tldraw/pull/2992) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Setup papercuts [#2987](https://github.com/tldraw/tldraw/pull/2987) ([@ds300](https://github.com/ds300))
+- migrate shapes / assets as a store on `putContent` [#2971](https://github.com/tldraw/tldraw/pull/2971) ([@steveruizok](https://github.com/steveruizok))
+- [fix] double spinner [#2963](https://github.com/tldraw/tldraw/pull/2963) ([@steveruizok](https://github.com/steveruizok))
+- Prevent iframe embedding for dotcom (except on tldraw.com) [#2947](https://github.com/tldraw/tldraw/pull/2947) ([@steveruizok](https://github.com/steveruizok))
+- Expand props [#2948](https://github.com/tldraw/tldraw/pull/2948) ([@steveruizok](https://github.com/steveruizok))
+- [fix] Corejs imports [#2940](https://github.com/tldraw/tldraw/pull/2940) ([@steveruizok](https://github.com/steveruizok))
+- Fix undo/redo for Opacity Slider + Style dropdowns. [#2933](https://github.com/tldraw/tldraw/pull/2933) ([@ds300](https://github.com/ds300))
+
+#### 🏠 Internal
+
+- tldraw_final_v6_final(old version).docx.pdf [#2998](https://github.com/tldraw/tldraw/pull/2998) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🔩 Dependency Updates
+
+- bump typescript / api-extractor [#2949](https://github.com/tldraw/tldraw/pull/2949) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.4 (Wed Feb 21 2024)
 
 ### Release Notes
