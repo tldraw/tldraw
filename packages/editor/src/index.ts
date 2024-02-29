@@ -18,6 +18,7 @@ export {
 	type Signal,
 } from '@tldraw/state'
 export type { TLCommandHistoryOptions } from './lib/editor/types/history-types'
+export { useEvent } from './lib/hooks/useEvent'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
