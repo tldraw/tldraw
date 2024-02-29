@@ -99,7 +99,7 @@
 			},
 			{
 				"id": "tldraw",
-				"title": "tldraw",
+				"title": "@tldraw/tldraw",
 				"description": "",
 				"groups": [
 					{
