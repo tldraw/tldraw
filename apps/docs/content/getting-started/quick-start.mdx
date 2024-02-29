@@ -8,7 +8,7 @@ order: 0
 
 <h2>Add a tldraw canvas to your React app in just 5 minutes.</h2>
 
-The tldraw SDK provides a really simple way to craft infinite canvas experiences for the web. It's perfect for collaborative applications, productivity tools, interfacing with multi-modal AI, and more.
+You can use the tldraw SDK to craft infinite canvas experiences for the web. It's perfect for collaborative whiteboards but you can use it for lots of other things, too.
 
 By the end of this guide you will have made something that looks like this: 
 
@@ -20,7 +20,7 @@ By the end of this guide you will have made something that looks like this:
 - Install the tldraw library using this command:
 
 ```bash
-npm install @tldraw/tldraw@beta
+npm install tldraw
 ```
 
 ### 2. Import Styles
@@ -32,7 +32,7 @@ To import fonts and CSS for tldraw:
 
 ```CSS
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;700;&display=swap");
-@import url("@tldraw/tldraw/tldraw.css");
+@import url("tldraw/tldraw.css");
 
 body {
   font-family: "Inter";
@@ -43,14 +43,14 @@ body {
 
 To render the Tldraw component
 
-- Import the `<Tldraw />` component from `@tldraw/tldraw`
+- Import the `<Tldraw />` component from the tldraw` package
 - Import the `index.css` CSS file from earlier
 - Wrap the Tldraw component in a `<div>` element with the style attribute set to: `{ position: 'fixed', inset: 0 }`
 
 This will render a full screen canvas:
 
 ```javascript
-import { Tldraw } from "@tldraw/tldraw";
+import { Tldraw } from "tldraw";
 import "./index.css";
 
 export default function App() {
