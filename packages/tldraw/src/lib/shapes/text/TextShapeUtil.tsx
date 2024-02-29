@@ -13,7 +13,6 @@ import {
 	Vec,
 	WeakMapCache,
 	getDefaultColorTheme,
-	stopEventPropagation,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
@@ -24,6 +23,7 @@ import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-c
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
 import { useEditableText } from '../shared/useEditableText'
+import { TextArea } from './TextArea'
 
 const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
 
@@ -74,17 +74,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		const { width, height } = this.getMinDimensions(shape)
 
-		const {
-			rInput,
-			isEmpty,
-			isEditing,
-			handleFocus,
-			handleChange,
-			handleKeyDown,
-			handleBlur,
-			handleInputPointerDown,
-			handleDoubleClick,
-		} = useEditableText(id, type, text)
+		const { rInput, isEmpty, isEditing, ...editableTextRest } = useEditableText(id, type, text)
 
 		return (
 			<HTMLContainer id={shape.id}>
@@ -108,33 +98,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
-					{isEditing ? (
-						<textarea
-							ref={rInput}
-							className="tl-text tl-text-input"
-							name="text"
-							tabIndex={-1}
-							autoComplete="false"
-							autoCapitalize="false"
-							autoCorrect="false"
-							autoSave="false"
-							autoFocus={isEditing}
-							placeholder=""
-							spellCheck="true"
-							wrap="off"
-							dir="ltr"
-							datatype="wysiwyg"
-							defaultValue={text}
-							onFocus={handleFocus}
-							onChange={handleChange}
-							onKeyDown={handleKeyDown}
-							onBlur={handleBlur}
-							onTouchEnd={stopEventPropagation}
-							onContextMenu={stopEventPropagation}
-							onPointerDown={handleInputPointerDown}
-							onDoubleClick={handleDoubleClick}
-						/>
-					) : null}
+					{isEditing && <TextArea rInput={rInput} text={text} {...editableTextRest} />}
 				</div>
 			</HTMLContainer>
 		)

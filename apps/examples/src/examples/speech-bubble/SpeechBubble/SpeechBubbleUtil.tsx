@@ -1,17 +1,19 @@
 import {
 	DefaultColorStyle,
+	DefaultFontStyle,
+	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
+	DefaultVerticalAlignStyle,
 	Geometry2d,
 	Polygon2d,
 	ShapeUtil,
 	T,
 	TLBaseShape,
-	TLDefaultColorStyle,
-	TLDefaultSizeStyle,
 	TLHandle,
 	TLOnBeforeUpdateHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
+	TextLabel,
 	Vec,
 	ZERO_INDEX_KEY,
 	deepCopy,
@@ -19,6 +21,7 @@ import {
 	resizeBox,
 	structuredClone,
 } from '@tldraw/tldraw'
+import { ShapePropsType } from '@tldraw/tlschema/src/shapes/TLBaseShape'
 import { getHandleIntersectionPoint, getSpeechBubbleVertices } from './helpers'
 
 // Copied from tldraw/tldraw
@@ -32,35 +35,38 @@ export const STROKE_SIZES = {
 // There's a guide at the bottom of this file!
 
 // [1]
-export type SpeechBubbleShape = TLBaseShape<
-	'speech-bubble',
-	{
-		w: number
-		h: number
-		size: TLDefaultSizeStyle
-		color: TLDefaultColorStyle
-		handles: {
-			handle: TLHandle
-		}
-	}
->
-
 export const handleValidator = () => true
+
+export const speechBubbleShapeProps = {
+	w: T.number,
+	h: T.number,
+	size: DefaultSizeStyle,
+	color: DefaultColorStyle,
+	font: DefaultFontStyle,
+	align: DefaultHorizontalAlignStyle,
+	verticalAlign: DefaultVerticalAlignStyle,
+	text: T.string,
+	handles: {
+		validate: handleValidator,
+		handle: { validate: handleValidator },
+	},
+}
+
+export type SpeechBubbleShapeProps = Omit<
+	ShapePropsType<typeof speechBubbleShapeProps>,
+	'handles'
+> & {
+	handles: {
+		handle: TLHandle
+	}
+}
+export type SpeechBubbleShape = TLBaseShape<'speech-bubble', SpeechBubbleShapeProps>
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	static override type = 'speech-bubble' as const
 
 	// [2]
-	static override props = {
-		w: T.number,
-		h: T.number,
-		size: DefaultSizeStyle,
-		color: DefaultColorStyle,
-		handles: {
-			validate: handleValidator,
-			handle: { validate: handleValidator },
-		},
-	}
+	static override props = speechBubbleShapeProps
 
 	override isAspectRatioLocked = (_shape: SpeechBubbleShape) => false
 
@@ -68,13 +74,19 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	override canBind = (_shape: SpeechBubbleShape) => true
 
+	override canEdit = () => true
+
 	// [3]
-	getDefaultProps(): SpeechBubbleShape['props'] {
+	getDefaultProps(): SpeechBubbleShapeProps {
 		return {
 			w: 200,
 			h: 130,
 			color: 'black',
 			size: 'm',
+			font: 'draw',
+			align: 'middle',
+			verticalAlign: 'start',
+			text: '',
 			handles: {
 				handle: {
 					id: 'handle1',
@@ -165,6 +177,11 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	}
 
 	component(shape: SpeechBubbleShape) {
+		const {
+			id,
+			type,
+			props: { color, font, size, align, text },
+		} = shape
 		const theme = getDefaultColorTheme({
 			isDarkMode: this.editor.user.getIsDarkMode(),
 		})
@@ -176,11 +193,23 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				<svg className="tl-svg-container">
 					<path
 						d={pathData}
-						strokeWidth={STROKE_SIZES[shape.props.size]}
-						stroke={theme[shape.props.color].solid}
+						strokeWidth={STROKE_SIZES[size]}
+						stroke={theme[color].solid}
 						fill={'none'}
 					/>
 				</svg>
+
+				<TextLabel
+					id={id}
+					type={type}
+					font={font}
+					size={size}
+					align={align}
+					verticalAlign="start"
+					text={text}
+					labelColor="black"
+					wrap
+				/>
 			</>
 		)
 	}

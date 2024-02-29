@@ -1,8 +1,9 @@
-import { TLArrowShape, TLShapeId, VecLike, stopEventPropagation } from '@tldraw/editor'
+import { TLArrowShape, TLShapeId, VecLike } from '@tldraw/editor'
 import * as React from 'react'
 import { TextHelpers } from '../../shared/TextHelpers'
 import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../shared/default-shape-constants'
 import { useEditableText } from '../../shared/useEditableText'
+import { TextArea } from '../../text/TextArea'
 
 export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	id,
@@ -16,17 +17,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	TLArrowShape['props'],
 	'text' | 'size' | 'font'
 >) {
-	const {
-		rInput,
-		isEditing,
-		handleFocus,
-		handleBlur,
-		handleKeyDown,
-		handleChange,
-		isEmpty,
-		handleInputPointerDown,
-		handleDoubleClick,
-	} = useEditableText(id, 'arrow', text)
+	const { rInput, isEditing, isEmpty, ...editableTextRest } = useEditableText(id, 'arrow', text)
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
@@ -54,33 +45,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				<p style={{ width: width ? width : '9px' }}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>
-				{isEditing && (
-					// Consider replacing with content-editable
-					<textarea
-						ref={rInput}
-						className="tl-text tl-text-input"
-						name="text"
-						tabIndex={-1}
-						autoComplete="false"
-						autoCapitalize="false"
-						autoCorrect="false"
-						autoSave="false"
-						autoFocus
-						placeholder=""
-						spellCheck="true"
-						wrap="off"
-						dir="auto"
-						datatype="wysiwyg"
-						defaultValue={text}
-						onFocus={handleFocus}
-						onChange={handleChange}
-						onKeyDown={handleKeyDown}
-						onBlur={handleBlur}
-						onContextMenu={stopEventPropagation}
-						onPointerDown={handleInputPointerDown}
-						onDoubleClick={handleDoubleClick}
-					/>
-				)}
+				{isEditing && <TextArea rInput={rInput} text={text} {...editableTextRest} />}
 			</div>
 		</div>
 	)

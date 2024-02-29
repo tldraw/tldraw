@@ -9754,6 +9754,43 @@
           "name": "isGifAnimated"
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!LABEL_FONT_SIZES:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "LABEL_FONT_SIZES: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultSizeStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultSizeStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", number>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/default-shape-constants.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "LABEL_FONT_SIZES",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
           "kind": "Class",
           "canonicalReference": "@tldraw/tldraw!LaserTool:class",
           "docComment": "/**\n * @public\n */\n",
@@ -12707,6 +12744,120 @@
             }
           ],
           "name": "setDefaultEditorAssetUrls"
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!TEXT_PROPS:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TEXT_PROPS: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    lineHeight: number;\n    fontWeight: string;\n    fontVariant: string;\n    fontStyle: string;\n    padding: string;\n}"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/default-shape-constants.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TEXT_PROPS",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tldraw!TextLabel:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TextLabel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    type: string;\n    size: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultSizeStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultSizeStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    font: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultFontStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultFontStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    fill?: \"none\" | \"pattern\" | \"semi\" | \"solid\" | undefined;\n    align: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultHorizontalAlignStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultHorizontalAlignStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    verticalAlign: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultVerticalAlignStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultVerticalAlignStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    wrap?: boolean | undefined;\n    text: string;\n    labelColor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    bounds?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | undefined;\n}>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/TextLabel.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TextLabel",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 17
+          }
         },
         {
           "kind": "Class",
@@ -23494,6 +23645,147 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useDialogs"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tldraw!useEditableText:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useEditableText(id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", type: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", text: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    rInput: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.RefObject",
+              "canonicalReference": "@types/react!React.RefObject:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n    isEditing: boolean;\n    handleFocus: () => void;\n    handleBlur: () => void;\n    handleKeyDown: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.KeyboardEvent",
+              "canonicalReference": "@types/react!React.KeyboardEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => void;\n    handleChange: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ChangeEvent",
+              "canonicalReference": "@types/react!React.ChangeEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => void;\n    handleInputPointerDown: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.PointerEvent",
+              "canonicalReference": "@types/react!React.PointerEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void;\n    handleDoubleClick: (e: any) => any;\n    isEmpty: boolean;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/useEditableText.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 7,
+            "endIndex": 22
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "id",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "type",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "text",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "useEditableText"
         },
         {
           "kind": "Function",
