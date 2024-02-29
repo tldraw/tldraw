@@ -209,7 +209,7 @@ function loadUserPreferences(): TLUserPreferences {
 	return migrateUserPreferences(userData)
 }
 
-const globalUserPreferences = atom<TLUserPreferences>('globalUserData', loadUserPreferences())
+const globalUserPreferences = atom<TLUserPreferences | null>('globalUserData', null)
 
 function storeUserPreferences() {
 	if (typeof window !== 'undefined' && window.localStorage) {
@@ -253,13 +253,18 @@ function broadcastUserPreferencesChange() {
 		type: broadcastEventKey,
 		origin: broadcastOrigin,
 		data: {
-			user: globalUserPreferences.get(),
+			user: getUserPreferences(),
 			version: userMigrations.currentVersion,
 		},
 	} satisfies UserChangeBroadcastMessage)
 }
 
 /** @public */
-export function getUserPreferences() {
-	return globalUserPreferences.get()
+export function getUserPreferences(): TLUserPreferences {
+	let prefs = globalUserPreferences.get()
+	if (!prefs) {
+		prefs = loadUserPreferences()
+		globalUserPreferences.set(prefs)
+	}
+	return prefs
 }

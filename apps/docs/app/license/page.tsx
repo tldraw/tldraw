@@ -30,7 +30,7 @@ export default async function LicensePage() {
 					commercial products or for internal products within commercial entities, or otherwise
 					using the Software in any way that provides you with a commercial benefit.
 				</p>
-				<p>To purchase an alternative license for commercial use, contact hello@tldraw.com.</p>
+				<p>To purchase an alternative license for commercial use, contact sales@tldraw.com.</p>
 				<p>
 					Subject to your compliance with the restrictions and obligations in this License, you may
 					modify this Software and distribute the modified Software for non-commercial purposes,
@@ -78,11 +78,7 @@ export default async function LicensePage() {
 				<p>tldraw reserves all rights not expressly granted to you in this license.</p>
 				<hr />
 				<p>
-					Questions? Email <a href="mailto:hello@tldraw.com">hello@tldraw.com.</a>
-				</p>
-				<hr />
-				<p>
-					Questions or concerns? Email <a href="mailto://hello@tldraw.com">hello@tldraw.com.</a>
+					Questions? Email <a href="mailto:sales@tldraw.com">sales@tldraw.com.</a>
 				</p>
 			</main>
 		</>

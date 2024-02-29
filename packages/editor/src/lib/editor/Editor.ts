@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
-import { ComputedCache, RecordType } from '@tldraw/store'
+import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
 	InstancePageStateRecordType,
@@ -26,6 +26,7 @@ import {
 	TLPage,
 	TLPageId,
 	TLParentId,
+	TLRecord,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -7721,7 +7722,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
 		const currentPageId = this.getCurrentPageId()
-		const { assets, shapes, rootShapeIds } = content
+		const { rootShapeIds } = content
+
+		// We need to collect the migrated shapes and assets
+		const assets: TLAsset[] = []
+		const shapes: TLShape[] = []
+
+		// Let's treat the content as a store, and then migrate that store.
+		const store: StoreSnapshot<TLRecord> = {
+			store: {
+				...Object.fromEntries(content.assets.map((asset) => [asset.id, asset] as const)),
+				...Object.fromEntries(content.shapes.map((asset) => [asset.id, asset] as const)),
+			},
+			schema: content.schema,
+		}
+		const result = this.store.schema.migrateStoreSnapshot(store)
+		if (result.type === 'error') {
+			throw Error('Could not put content: could not migrate content')
+		}
+		for (const record of Object.values(result.value)) {
+			switch (record.typeName) {
+				case 'asset': {
+					assets.push(record)
+					break
+				}
+				case 'shape': {
+					shapes.push(record)
+					break
+				}
+			}
+		}
 
 		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
 
@@ -7864,76 +7894,50 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let assetsToCreate: TLAsset[] = []
 
-		if (assets) {
-			for (let i = 0; i < assets.length; i++) {
-				const asset = assets[i]
-				const result = this.store.schema.migratePersistedRecord(asset, content.schema)
-				if (result.type === 'success') {
-					assets[i] = result.value as TLAsset
-				} else {
-					throw Error(
-						`Could not put content:\ncould not migrate content for asset:\n${asset.type}\nreason:${result.reason}`
-					)
+		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
+
+		assetsToCreate = assets
+			.filter((asset) => !this.store.has(asset.id))
+			.map((asset) => {
+				if (asset.type === 'image' || asset.type === 'video') {
+					if (asset.props.src && asset.props.src?.startsWith('data:image')) {
+						assetsToUpdate.push(structuredClone(asset))
+						asset.props.src = null
+					} else {
+						assetsToUpdate.push(structuredClone(asset))
+					}
 				}
-			}
 
-			const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
-
-			assetsToCreate = assets
-				.filter((asset) => !this.store.has(asset.id))
-				.map((asset) => {
-					if (asset.type === 'image' || asset.type === 'video') {
-						if (asset.props.src && asset.props.src?.startsWith('data:image')) {
-							assetsToUpdate.push(structuredClone(asset))
-							asset.props.src = null
-						} else {
-							assetsToUpdate.push(structuredClone(asset))
-						}
-					}
-
-					return asset
-				})
-
-			Promise.allSettled(
-				assetsToUpdate.map(async (asset) => {
-					const file = await dataUrlToFile(
-						asset.props.src!,
-						asset.props.name,
-						asset.props.mimeType ?? 'image/png'
-					)
-
-					const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
-
-					if (!newAsset) {
-						return null
-					}
-
-					return [asset, newAsset] as const
-				})
-			).then((assets) => {
-				this.updateAssets(
-					compact(
-						assets.map((result) =>
-							result.status === 'fulfilled' && result.value
-								? { ...result.value[1], id: result.value[0].id }
-								: undefined
-						)
-					)
-				)
+				return asset
 			})
-		}
 
-		for (let i = 0; i < newShapes.length; i++) {
-			const shape = newShapes[i]
-			const result = this.store.schema.migratePersistedRecord(shape, content.schema)
-			if (result.type === 'success') {
-				newShapes[i] = result.value as TLShape
-			} else {
-				throw Error(
-					`Could not put content:\ncould not migrate content for shape:\n${shape.type}\nreason:${result.reason}`
+		Promise.allSettled(
+			assetsToUpdate.map(async (asset) => {
+				const file = await dataUrlToFile(
+					asset.props.src!,
+					asset.props.name,
+					asset.props.mimeType ?? 'image/png'
 				)
-			}
-		}
+
+				const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
+
+				if (!newAsset) {
+					return null
+				}
+
+				return [asset, newAsset] as const
+			})
+		).then((assets) => {
+			this.updateAssets(
+				compact(
+					assets.map((result) =>
+						result.status === 'fulfilled' && result.value
+							? { ...result.value[1], id: result.value[0].id }
+							: undefined
+					)
+				)
+			)
+		})
 
 		this.batch(() => {
 			// Create any assets that need to be created

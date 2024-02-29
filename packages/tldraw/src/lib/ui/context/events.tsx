@@ -40,6 +40,7 @@ export interface TLUiEventMap {
 	'toggle-auto-size': null
 	'copy-as': { format: 'svg' | 'png' | 'json' }
 	'export-as': { format: 'svg' | 'png' | 'json' }
+	'export-all-as': { format: 'svg' | 'png' | 'json' }
 	'edit-link': null
 	'insert-embed': null
 	'insert-media': null
