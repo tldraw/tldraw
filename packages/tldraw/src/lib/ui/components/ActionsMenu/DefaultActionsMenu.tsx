@@ -47,7 +47,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 			<TldrawUiPopoverTrigger>
 				<TldrawUiButton
 					type="icon"
-					data-testid="main.action-menu"
+					data-testid="actions-menu.button"
 					title={msg('actions-menu.title')}
 				>
 					<TldrawUiButtonIcon icon="dots-vertical" small />
@@ -57,7 +57,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
 				sideOffset={6}
 			>
-				<div className="tlui-actions-menu tlui-buttons__grid">
+				<div className="tlui-actions-menu tlui-buttons__grid" data-testid="actions-menu.content">
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}
 					</TldrawUiMenuContextProvider>

@@ -1300,11 +1300,11 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function createTLSchema({ shapes }: "
+              "text": "export declare function createTLSchema({ shapes, }?: "
             },
             {
               "kind": "Content",
-              "text": "{\n    shapes: "
+              "text": "{\n    shapes?: "
             },
             {
               "kind": "Reference",
@@ -1347,12 +1347,12 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ shapes }",
+              "parameterName": "{ shapes, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 6
               },
-              "isOptional": false
+              "isOptional": true
             }
           ],
           "name": "createTLSchema"

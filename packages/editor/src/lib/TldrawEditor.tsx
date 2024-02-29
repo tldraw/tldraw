@@ -285,8 +285,6 @@ function TldrawEditorWithReadyStore({
 			initialState,
 			inferDarkMode,
 		})
-		;(window as any).app = editor
-		;(window as any).editor = editor
 		setEditor(editor)
 
 		return () => {
