@@ -1647,8 +1647,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     static props?: ShapeProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
-    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
-    toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
+    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): Element | Element[] | null | Promise<Element | Element[] | null>;
+    toSvg?(shape: Shape, ctx: SvgExportContext): Element | Element[] | null | Promise<Element | Element[] | null>;
     static type: string;
 }
 
@@ -2671,9 +2671,6 @@ export function useEditorComponents(): Partial<{
     InFrontOfTheCanvas: ComponentType | null;
     LoadingScreen: ComponentType | null;
 } & ErrorComponents> & ErrorComponents;
-
-// @public (undocumented)
-export function useIsCropping(shapeId: TLShapeId): boolean;
 
 // @public (undocumented)
 export function useIsDarkMode(): boolean;

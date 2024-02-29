@@ -8161,18 +8161,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const util = this.getShapeUtil(shape)
 
 					let shapeSvgElement = await util.toSvg?.(shape, exportContext)
+
 					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, exportContext)
 
 					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
 					if (shapeSvgElement) {
 						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(shapeSvgElement)
+						if (Array.isArray(shapeSvgElement)) {
+							for (const element of shapeSvgElement) outerElement.appendChild(element)
+						} else {
+							outerElement.appendChild(shapeSvgElement)
+						}
 						shapeSvgElement = outerElement
 					}
 
 					if (backgroundSvgElement) {
 						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(backgroundSvgElement)
+						if (Array.isArray(backgroundSvgElement)) {
+							for (const element of backgroundSvgElement) outerElement.appendChild(element)
+						} else {
+							outerElement.appendChild(backgroundSvgElement)
+						}
 						backgroundSvgElement = outerElement
 					}
 

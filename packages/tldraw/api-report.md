@@ -888,9 +888,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
         } | null>;
     };
     // (undocumented)
-    shouldGetDataURI(src: string): "" | boolean;
-    // (undocumented)
-    toSvg(shape: TLImageShape): Promise<SVGGElement>;
+    toSvg(shape: TLImageShape): Promise<HTMLElement | null>;
     // (undocumented)
     static type: "image";
 }

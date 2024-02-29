@@ -230,7 +230,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement>
+	toSvg?(
+		shape: Shape,
+		ctx: SvgExportContext
+	): Element | Element[] | Promise<Element | Element[] | null> | null
 
 	/**
 	 * Get the shape's background layer as an SVG object.
@@ -240,7 +243,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> | null
+	toBackgroundSvg?(
+		shape: Shape,
+		ctx: SvgExportContext
+	): Element | Element[] | Promise<Element | Element[] | null> | null
 
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {

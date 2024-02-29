@@ -31917,8 +31917,22 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Reference",
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
+                },
+                {
                   "kind": "Content",
-                  "text": "null | "
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | null | "
                 },
                 {
                   "kind": "Reference",
@@ -31931,17 +31945,21 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": "> | "
+                  "text": " | "
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | null>"
                 },
                 {
                   "kind": "Content",
@@ -31951,7 +31969,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 11
+                "endIndex": 15
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -32006,6 +32024,24 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | null | "
+                },
+                {
+                  "kind": "Reference",
                   "text": "Promise",
                   "canonicalReference": "!Promise:interface"
                 },
@@ -32015,17 +32051,21 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": "> | "
+                  "text": " | "
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | null>"
                 },
                 {
                   "kind": "Content",
@@ -32035,7 +32075,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 10
+                "endIndex": 15
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -42608,52 +42648,6 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useEditorComponents"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!useIsCropping:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useIsCropping(shapeId: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShapeId",
-              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "boolean"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/hooks/useIsCropping.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "shapeId",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "useIsCropping"
         },
         {
           "kind": "Function",
