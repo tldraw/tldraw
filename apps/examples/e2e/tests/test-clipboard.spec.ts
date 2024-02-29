@@ -45,11 +45,11 @@ test.describe.skip('clipboard tests', () => {
 		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(1)
 		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 
-		await page.getByTestId('main.menu').click()
+		await page.getByTestId('main-menu.button').click()
 		await page.getByTestId('main-menu-sub-trigger.edit').click()
 		await page.getByTestId('main-menu.copy').click()
 		await sleep(100)
-		await page.getByTestId('main.menu').click()
+		await page.getByTestId('main-menu.button').click()
 		await page.getByTestId('main-menu-sub-trigger.edit').click()
 		await page.getByTestId('main-menu.paste').click()
 

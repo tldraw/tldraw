@@ -118,11 +118,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 							autoCapitalize="false"
 							autoCorrect="false"
 							autoSave="false"
-							autoFocus={isEditing}
+							autoFocus
 							placeholder=""
 							spellCheck="true"
 							wrap="off"
-							dir="ltr"
+							dir="auto"
 							datatype="wysiwyg"
 							defaultValue={text}
 							onFocus={handleFocus}

@@ -33,7 +33,7 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 		<div className="tlui-help-menu">
 			<TldrawUiDropdownMenuRoot id="help menu">
 				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton type="help" title={msg('help-menu.title')}>
+					<TldrawUiButton type="help" title={msg('help-menu.title')} data-testid="help-menu.button">
 						<TldrawUiButtonIcon icon="question-mark" small />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
