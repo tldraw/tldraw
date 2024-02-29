@@ -28,6 +28,7 @@ export class Brushing extends StateNode {
 	brush = new Box()
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
+	isDirty = false
 
 	// The shape that the brush started on
 	initialStartShape: TLShape | null = null
@@ -64,10 +65,14 @@ export class Brushing extends StateNode {
 
 	override onTick: TLTickEventHandler = () => {
 		moveCameraWhenCloseToEdge(this.editor)
+		if (this.isDirty) {
+			this.isDirty = false
+			this.hitTestShapes()
+		}
 	}
 
 	override onPointerMove = () => {
-		this.hitTestShapes()
+		this.isDirty = true
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

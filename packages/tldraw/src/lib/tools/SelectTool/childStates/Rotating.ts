@@ -22,6 +22,7 @@ export class Rotating extends StateNode {
 	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & { onInteractionEnd?: string }
 
 	markId = ''
+	isDirty = false
 
 	override onEnter = (
 		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }
@@ -48,8 +49,15 @@ export class Rotating extends StateNode {
 		this.snapshot = {} as TLRotationSnapshot
 	}
 
+	override onTick = () => {
+		if (this.isDirty) {
+			this.isDirty = false
+			this.update()
+		}
+	}
+
 	override onPointerMove = () => {
-		this.update()
+		this.isDirty = true
 	}
 
 	override onKeyDown = () => {

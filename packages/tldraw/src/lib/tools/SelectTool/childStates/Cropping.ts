@@ -26,6 +26,7 @@ export class Cropping extends StateNode {
 	}
 
 	markId = ''
+	isDirty = false
 
 	private snapshot = {} as any as Snapshot
 
@@ -43,8 +44,15 @@ export class Cropping extends StateNode {
 		this.updateShapes()
 	}
 
+	override onTick = () => {
+		if (this.isDirty) {
+			this.isDirty = false
+			this.updateShapes()
+		}
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.updateShapes()
+		this.isDirty = true
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

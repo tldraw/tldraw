@@ -39,6 +39,7 @@ export class DraggingHandle extends StateNode {
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
+	isDirty = false
 
 	override onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
@@ -165,8 +166,15 @@ export class DraggingHandle extends StateNode {
 		}
 	}
 
+	override onTick = () => {
+		if (this.isDirty) {
+			this.isDirty = false
+			this.update()
+		}
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.update()
+		this.isDirty = true
 	}
 
 	override onKeyDown: TLKeyboardEvent | undefined = () => {
