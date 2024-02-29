@@ -36,5 +36,12 @@ export type RoomSession<R extends UnknownRecord> =
 			lastInteractionTime: number
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			// I don't see the point of delaying connects and pongs
-			outstandingMessages: Exclude<TLSocketServerSentEvent<R>, { type: 'connect' | 'pong' }>[]
+			// and they seem to be OK to reorder
+			// TODO: or is it?
+			// TODO: maybe only patches need to be delayed? is it OK to reorder
+			//       them with the rest of the message types?
+			outstandingMessages: Exclude<
+				TLSocketServerSentEvent<R>,
+				{ type: 'connect' | 'pong' | 'push_result' }
+			>[]
 	  }

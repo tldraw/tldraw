@@ -398,7 +398,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 		if (session.socket.isOpen) {
-			if (message.type === 'connect' || message.type === 'pong') {
+			if (message.type === 'connect' || message.type === 'pong' || message.type === 'push_result') {
 				session.socket.sendMessage(message)
 			} else {
 				session.outstandingMessages.push(message)
@@ -423,6 +423,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 
+		console.log(JSON.stringify(session.outstandingMessages))
 		session.outstandingMessages.forEach((msg) => {
 			session.socket.sendMessage(msg)
 		})
@@ -1040,3 +1041,55 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		this.cancelSession(sessionKey)
 	}
 }
+
+// squish target:
+// [
+// 	{
+// 		"type": "patch",
+// 		"diff": {
+// 			"instance_presence:s9jqdPL09x9j_4uo-TWxQ": [
+// 				"patch",
+// 				{
+// 					"lastActivityTimestamp": [
+// 						"put",
+// 						1709228611040
+// 					],
+// 					"cursor": [
+// 						"put",
+// 						{
+// 							"x": 328.57421875,
+// 							"y": 625.57421875,
+// 							"rotation": 0,
+// 							"type": "default"
+// 						}
+// 					]
+// 				}
+// 			]
+// 		},
+// 		"serverClock": 1601
+// 	},
+// 	{
+// 		"type": "patch",
+// 		"diff": {
+// 			"instance_presence:s9jqdPL09x9j_4uo-TWxQ": [
+// 				"patch",
+// 				{
+// 					"lastActivityTimestamp": [
+// 						"put",
+// 						1709228611108
+// 					],
+// 					"cursor": [
+// 						"put",
+// 						{
+// 							"x": 311.43359375,
+// 							"y": 617.234375,
+// 							"rotation": 0,
+// 							"type": "default"
+// 						}
+// 					]
+// 				}
+// 			]
+// 		},
+// 		"serverClock": 1602
+// 	}
+// ]
