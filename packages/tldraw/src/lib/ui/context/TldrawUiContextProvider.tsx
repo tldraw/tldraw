@@ -13,7 +13,7 @@ import { TLUiEventHandler, UiEventsProvider } from './events'
 import { ToastsProvider } from './toasts'
 
 /**
- * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
+ * Props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
  *
  * @public
  **/

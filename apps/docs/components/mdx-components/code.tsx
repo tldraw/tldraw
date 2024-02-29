@@ -36,7 +36,7 @@ export function CodeBlock({ code }: { code: SandpackFiles }) {
 				customSetup={{
 					dependencies: {
 						'@tldraw/assets': 'latest',
-						'@tldraw/tldraw': 'latest',
+						tldraw: 'latest',
 					},
 				}}
 				files={trimmedCode}

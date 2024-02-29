@@ -24,14 +24,14 @@ import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
 /**
- * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
+ * Props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
  *
  * @public
  */
 export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps
 
 /**
- * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
+ * Base props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
  *
  * @public
  */

@@ -1,4 +1,4 @@
-import { getDefaultColorTheme } from '@tldraw/tldraw'
+import { getDefaultColorTheme } from 'tldraw'
 import type {
 	SpeechBubbleShape,
 	SpeechBubbleShapeProps,

@@ -12,7 +12,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	useActions,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { StoreErrorScreen } from '../components/StoreErrorScreen'
 import { useLocalStore } from '../hooks/useLocalStore'
@@ -83,6 +83,8 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
+					;(window as any).app = editor
+					;(window as any).editor = editor
 					editor.updateInstanceState({ isReadonly: true })
 				}}
 				components={components}

@@ -205,6 +205,57 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'export-all-as-svg',
+				label: {
+					default: 'action.export-all-as-svg',
+					menu: 'action.export-all-as-svg.short',
+					['context-menu']: 'action.export-all-as-svg.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('export-all-as', { format: 'svg', source })
+					exportAs(
+						Array.from(editor.getCurrentPageShapeIds()),
+						'svg',
+						getExportName(editor, defaultDocumentName)
+					)
+				},
+			},
+			{
+				id: 'export-all-as-png',
+				label: {
+					default: 'action.export-all-as-png',
+					menu: 'action.export-all-as-png.short',
+					['context-menu']: 'action.export-all-as-png.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('export-all-as', { format: 'png', source })
+					exportAs(
+						Array.from(editor.getCurrentPageShapeIds()),
+						'png',
+						getExportName(editor, defaultDocumentName)
+					)
+				},
+			},
+			{
+				id: 'export-all-as-json',
+				label: {
+					default: 'action.export-all-as-json',
+					menu: 'action.export-all-as-json.short',
+					['context-menu']: 'action.export-all-as-json.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('export-all-as', { format: 'json', source })
+					exportAs(
+						Array.from(editor.getCurrentPageShapeIds()),
+						'json',
+						getExportName(editor, defaultDocumentName)
+					)
+				},
+			},
+			{
 				id: 'copy-as-svg',
 				label: {
 					default: 'action.copy-as-svg',
@@ -1003,6 +1054,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
 					editor.user.updateUserPreferences({ isDarkMode: !editor.user.getIsDarkMode() })
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-wrap-mode',
+				label: {
+					default: 'action.toggle-wrap-mode',
+					menu: 'action.toggle-wrap-mode.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-wrap-mode', { source })
+					editor.user.updateUserPreferences({
+						isWrapMode: !editor.user.getIsWrapMode(),
+					})
 				},
 				checkbox: true,
 			},

@@ -27,7 +27,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<_Dropdown.Trigger asChild dir="ltr">
-				<TldrawUiButton type="icon" data-testid="main.menu" title={msg('menu.title')}>
+				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
 					<TldrawUiButtonIcon icon="menu" small />
 				</TldrawUiButton>
 			</_Dropdown.Trigger>
@@ -40,7 +40,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 					alignOffset={0}
 					sideOffset={6}
 				>
-					<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+					<TldrawUiMenuContextProvider type="menu" sourceId="main-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
 				</_Dropdown.Content>

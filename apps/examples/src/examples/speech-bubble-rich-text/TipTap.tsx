@@ -1,5 +1,6 @@
 import { EditorContent, useEditor as useTipTapEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { useCallback, useEffect } from 'react'
 import {
 	LABEL_FONT_SIZES,
 	TEXT_PROPS,
@@ -14,9 +15,8 @@ import {
 	stopEventPropagation,
 	useEditor as useTldrawEditor,
 	useValue,
-} from '@tldraw/tldraw'
-import { useDefaultColorTheme } from '@tldraw/tldraw/src/lib/shapes/shared/ShapeFill'
-import { useCallback, useEffect } from 'react'
+} from 'tldraw'
+import { useDefaultColorTheme } from 'tldraw/src/lib/shapes/shared/ShapeFill'
 
 const extensions = [StarterKit]
 

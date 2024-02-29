@@ -8,7 +8,7 @@ import {
 	TLBaseShape,
 	TLDefaultColorStyle,
 	getDefaultColorTheme,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 
 // There's a guide at the bottom of this file!
 

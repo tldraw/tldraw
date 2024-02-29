@@ -5,20 +5,20 @@
 	</picture>
 </div>
 
-# @tldraw/tldraw
+# tldraw
 
 This package contains the source code for the tldraw library. Learn more at our docs site: [tldraw.dev](https://tldraw.dev).
 
 ## Installation
 
-Install the `@tldraw/tldraw` package using `@canary` for the latest canary release. (Or `@alpha` for the latest alpha release.)
+Install the `tldraw` package using `@canary` for the latest canary release. (Or `@alpha` for the latest alpha release.)
 
 ```bash
-yarn add @tldraw/tldraw@canary
+yarn add tldraw@canary
 # or
-npm install @tldraw/tldraw@canary
+npm install tldraw@canary
 # or
-pnpm i @tldraw/tldraw@canary
+pnpm i tldraw@canary
 ```
 
 Then start the local development server.
@@ -36,11 +36,11 @@ pnpm dev
 An extremely minimal usage (without our UI) might look like this:
 
 ```tsx
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 export default function () {
-	return <Tldraw/>
+	return <Tldraw />
 }
 ```
 
@@ -52,7 +52,7 @@ Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsy
 
 ## Distributions
 
-You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
+You can find tldraw on npm [here](https://www.npmjs.com/package/tldraw?activeTab=versions).
 
 ## Contribution
 
