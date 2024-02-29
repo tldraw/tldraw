@@ -37,13 +37,13 @@ To run the local development server, first clone this repo.
 Install dependencies:
 
 ```bash
-yarn i
+yarn
 ```
 
 Start the local development server:
 
 ```bash
-yarn run dev
+yarn dev
 ```
 
 Open the example project at `localhost:5420`.

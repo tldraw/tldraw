@@ -11,29 +11,19 @@ This package contains the source code for the tldraw library. Learn more at our 
 
 ## Installation
 
-Install the `tldraw` package using `@canary` for the latest canary release. (Or `@alpha` for the latest alpha release.)
+Install the `tldraw` package.
 
 ```bash
-yarn add tldraw@canary
-# or
-npm install tldraw@canary
-# or
-pnpm i tldraw@canary
+npm i tldraw
 ```
 
 Then start the local development server.
 
 ```bash
-yarn dev
-# or
 npm run dev
-# or
-pnpm dev
 ```
 
 ## Usage
-
-An extremely minimal usage (without our UI) might look like this:
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -44,7 +34,7 @@ export default function () {
 }
 ```
 
-See the [examples folder](https://github.com/tldraw/tldraw/tree/main/apps/examples) for more examples.
+Visit or [docs site](https://tldraw.dev) to learn more. See our [examples folder](https://github.com/tldraw/tldraw/tree/main/apps/examples) for more examples.
 
 ## Community
 
@@ -60,14 +50,14 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use.
+The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). This license does not permit commercial use.
 
-If you wish to use this project in commercial product, you need to purchase a commercial license. Please contact us at [hello@tldraw.com](mailto:hello@tldraw.com) for more inforion about obtaining a commercial license.
+If you wish to use this project in commercial product, you need to purchase a commercial license. Please contact us at [sales@tldraw.com](mailto:sales@tldraw.com) for more inforion about obtaining a commercial license.
 
 ## Trademarks
 
-Copyright (c) 2023-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
+Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
 
 ## Contact
 
-Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [hello@tldraw.com](mailto://hello@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.
+Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [sales@tldraw.com](mailto://sales@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.
