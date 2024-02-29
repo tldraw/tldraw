@@ -51,6 +51,9 @@ const perPackageExceptions: Record<string, Record<string, () => string | undefin
 		prepack: () => undefined,
 		postpack: () => undefined,
 	},
+	'@tldraw/tldraw': {
+		'build-api': () => undefined,
+	},
 }
 
 async function main({ fix }: { fix?: boolean }) {
