@@ -36,7 +36,7 @@ export async function exportAs(
 	}
 	name += `.${format}`
 
-	const blob = await exportToBlob(editor, ids, format, opts)
+	const blob = await exportToBlob({ editor, ids, format, opts })
 	const file = new File([blob], name, { type: blob.type })
 	downloadFile(file)
 }
