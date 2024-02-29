@@ -96,6 +96,7 @@ import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
+import { applyPartialToShape } from '../utils/applyPartialToShape'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
@@ -200,13 +201,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.store = store
 
-		this.snaps = new SnapManager(this)
+		this.getContainer = getContainer ?? (() => document.body)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
-		this.getContainer = getContainer ?? (() => document.body)
-
+		this._tickManager = new TickManager(this)
+		this.snaps = new SnapManager(this)
 		this.textMeasure = new TextManager(this)
+		this.environment = new EnvironmentManager(this)
+		this.scribbles = new ScribbleManager(this)
+
+		// State chart / Tools
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -214,6 +219,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root = new NewRoot(this)
 		this.root.children = {}
+
+		for (const Tool of [...tools]) {
+			if (hasOwnProperty(this.root.children!, Tool.id)) {
+				// these may not conflict with the root note's default or "baked in" tools
+				throw Error(`Can't override tool with id "${Tool.id}"`)
+			}
+			const tool = new Tool(this, this.root)
+			this.root.children![Tool.id] = tool
+		}
+
+		// Shapes
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 
@@ -257,21 +273,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this.shapeUtils = _shapeUtils
-		this.styleProps = _styleProps
-
-		// Tools.
-		// Accept tools from constructor parameters which may not conflict with the root note's default or
-		// "baked in" tools, select and zoom.
-		for (const Tool of [...tools]) {
-			if (hasOwnProperty(this.root.children!, Tool.id)) {
-				throw Error(`Can't override tool with id "${Tool.id}"`)
-			}
-			this.root.children![Tool.id] = new Tool(this, this.root)
+		// Call onCreate for all the new utils
+		for (const util of Object.values(_shapeUtils)) {
+			util.onCreate?.()
 		}
 
-		this.environment = new EnvironmentManager(this)
-		this.scribbles = new ScribbleManager(this)
+		this.shapeUtils = _shapeUtils
+		this.styleProps = _styleProps
 
 		// Cleanup
 
@@ -664,7 +672,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly disposables = new Set<() => void>()
 
 	/** @internal */
-	private _tickManager = new TickManager(this)
+	private _tickManager: TickManager
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -5057,36 +5065,81 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const snapshot = getRotationSnapshot({ editor: this })
 		if (!snapshot) return this
-		applyRotationToSnapshotShapes({ delta, snapshot, editor: this, stage: 'one-off' })
+		this.updateShapes(
+			applyRotationToSnapshotShapes({
+				delta,
+				snapshot,
+				editor: this,
+			}).map(({ id }) => {
+				const shape = this.getShape(id)
+				if (!shape) return
+				let workingShape = structuredClone(shape)
+
+				// Apply lifecycle events
+				const rotating = this.getStateDescendant<any>('select.rotating')
+				if (rotating) {
+					const memo = {}
+					if (rotating) {
+						const startHandler = rotating.onRotateStart.getHandler(shape.type)
+						if (startHandler) {
+							const change = startHandler(workingShape, {}, memo)
+							if (change) workingShape = applyPartialToShape(workingShape)
+						}
+
+						const changeHandler = rotating.onRotate.getHandler(shape.type)
+						if (changeHandler) {
+							const change = changeHandler(workingShape, {}, memo)
+							if (change) workingShape = applyPartialToShape(workingShape)
+						}
+
+						const endHandler = rotating.onRotateEnd.getHandler(shape.type)
+						if (endHandler) {
+							const change = endHandler(shape, {}, memo)
+							if (change) workingShape = applyPartialToShape(workingShape)
+						}
+					}
+				}
+
+				return workingShape
+			})
+		)
 
 		return this
 	}
 
-	private getChangesToTranslateShape(initialShape: TLShape, newShapeCoords: VecLike): TLShape {
+	private getChangesToTranslateShape(initialShape: TLShape, partial: TLShapePartial): TLShape {
 		let workingShape = initialShape
-		const util = this.getShapeUtil(initialShape)
 
-		workingShape = applyPartialToShape(
-			workingShape,
-			util.onTranslateStart?.(workingShape) ?? undefined
-		)
+		const translating = this.getStateDescendant<any>('select.translating')
+		if (translating) {
+			const memo = {}
 
-		workingShape = applyPartialToShape(workingShape, {
-			id: initialShape.id,
-			type: initialShape.type,
-			x: newShapeCoords.x,
-			y: newShapeCoords.y,
-		})
+			const startHandler = translating.onTranslateStart.getHandler(initialShape.type)
+			if (startHandler) {
+				const changes = startHandler(workingShape, {}, memo)
+				if (changes) {
+					workingShape = applyPartialToShape(workingShape, changes)
+				}
+			}
 
-		workingShape = applyPartialToShape(
-			workingShape,
-			util.onTranslate?.(initialShape, workingShape) ?? undefined
-		)
+			workingShape = { ...workingShape, ...partial }
 
-		workingShape = applyPartialToShape(
-			workingShape,
-			util.onTranslateEnd?.(initialShape, workingShape) ?? undefined
-		)
+			const changeHandler = translating.onTranslate.getHandler(initialShape.type)
+			if (changeHandler) {
+				const changes = changeHandler(workingShape, {}, memo)
+				if (changes) {
+					workingShape = applyPartialToShape(workingShape, changes)
+				}
+			}
+
+			const endHandler = translating.onTranslateEnd.getHandler(initialShape.type)
+			if (endHandler) {
+				const changes = endHandler(workingShape, {}, memo)
+				if (changes) {
+					workingShape = applyPartialToShape(workingShape, changes)
+				}
+			}
+		}
 
 		return workingShape
 	}
@@ -5123,7 +5176,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const parentTransform = this.getShapeParentTransform(shape)
 			if (parentTransform) localDelta.rot(-parentTransform.rotation())
 
-			changes.push(this.getChangesToTranslateShape(shape, localDelta.add(shape)))
+			const { x, y } = localDelta.add(shape)
+			changes.push(this.getChangesToTranslateShape(shape, { id: shape.id, type: shape.type, x, y }))
 		}
 
 		this.updateShapes(changes, {
@@ -5730,19 +5784,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? Vec.Rot(delta, -this.getShapePageTransform(parent)!.decompose().rotation)
 				: delta
 
-			const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
-
 			changes.push(
-				translateStartChanges
-					? {
-							...translateStartChanges,
-							[val]: shape[val] + localDelta[val],
-						}
-					: {
-							id: shape.id as any,
-							type: shape.type,
-							[val]: shape[val] + localDelta[val],
-						}
+				this.getChangesToTranslateShape(shape, {
+					...shape,
+					[val]: shape[val] + localDelta[val],
+				})
 			)
 
 			v += pageBounds[shape.id][dim] + shapeGap
@@ -5885,23 +5931,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const parentTransform = this.getShapeParentTransform(shape)
 			if (parentTransform) delta.rot(-parentTransform.rotation())
 
-			const change: TLShapePartial = {
-				id: shape.id,
-				type: shape.type,
-				x: shape.x + delta.x,
-				y: shape.y + delta.y,
-			}
-
-			const translateStartChange = this.getShapeUtil(shape).onTranslateStart?.({
-				...shape,
-				...change,
-			})
-
-			if (translateStartChange) {
-				changes.push({ ...change, ...translateStartChange })
-			} else {
-				changes.push(change)
-			}
+			changes.push(
+				this.getChangesToTranslateShape(shape, {
+					id: shape.id,
+					type: shape.type,
+					x: shape.x + delta.x,
+					y: shape.y + delta.y,
+				})
+			)
 		}
 
 		if (changes.length) {
@@ -5950,7 +5987,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pageBounds = shapePageBounds[shape.id]
 			if (!pageBounds) return
 
-			const delta = { x: 0, y: 0 }
+			const delta = new Vec(0, 0)
 
 			switch (operation) {
 				case 'top': {
@@ -5984,7 +6021,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? Vec.Rot(delta, -this.getShapePageTransform(parent)!.decompose().rotation)
 				: delta
 
-			changes.push(this.getChangesToTranslateShape(shape, Vec.Add(shape, localDelta)))
+			const { x, y } = localDelta.add(shape)
+			changes.push(this.getChangesToTranslateShape(shape, { ...shape, x, y }))
 		})
 
 		this.updateShapes(changes)
@@ -6055,7 +6093,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			.filter((shape) => shape !== first && shape !== last)
 			.sort((a, b) => pageBounds[a.id][mid] - pageBounds[b.id][mid])
 			.forEach((shape, i) => {
-				const delta = { x: 0, y: 0 }
+				const delta = new Vec(0, 0)
 				delta[val] = v + step * i - pageBounds[shape.id][dim] / 2 - pageBounds[shape.id][val]
 
 				const parent = this.getShapeParent(shape)
@@ -6063,7 +6101,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? Vec.Rot(delta, -this.getShapePageTransform(parent)!.rotation())
 					: delta
 
-				changes.push(this.getChangesToTranslateShape(shape, Vec.Add(shape, localDelta)))
+				const { x, y } = localDelta.add(shape)
+				changes.push(this.getChangesToTranslateShape(shape, { ...shape, x, y }))
 			})
 
 		this.updateShapes(changes)
@@ -8937,39 +8976,4 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
-}
-
-function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
-	if (!partial) return prev
-	let next = null as null | T
-	const entries = Object.entries(partial)
-	for (let i = 0, n = entries.length; i < n; i++) {
-		const [k, v] = entries[i]
-		if (v === undefined) continue
-
-		// Is the key a special key? We don't update those
-		if (k === 'id' || k === 'type' || k === 'typeName') continue
-
-		// Is the value the same as it was before?
-		if (v === (prev as any)[k]) continue
-
-		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
-		if (!next) next = { ...prev }
-
-		// for props / meta properties, we support updates with partials of this object
-		if (k === 'props' || k === 'meta') {
-			next[k] = { ...prev[k] } as JsonObject
-			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				if (nextValue !== undefined) {
-					;(next[k] as JsonObject)[nextKey] = nextValue
-				}
-			}
-			continue
-		}
-
-		// base property
-		;(next as any)[k] = v
-	}
-	if (!next) return prev
-	return next
 }

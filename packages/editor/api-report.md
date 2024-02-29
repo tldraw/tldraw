@@ -85,12 +85,11 @@ export const ANIMATION_MEDIUM_MS = 320;
 export const ANIMATION_SHORT_MS = 80;
 
 // @internal (undocumented)
-export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
+export function applyRotationToSnapshotShapes({ delta, editor, snapshot, }: {
     delta: number;
     snapshot: TLRotationSnapshot;
     editor: Editor;
-    stage: 'end' | 'one-off' | 'start' | 'update';
-}): void;
+}): TLShapePartial[];
 
 // @public
 export function approximately(a: number, b: number, precision?: number): boolean;
@@ -1625,6 +1624,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onBindingChange?: TLOnBindingChangeHandler<Shape>;
     onChildrenChange?: TLOnChildrenChangeHandler<Shape>;
     onClick?: TLOnClickHandler<Shape>;
+    onCreate?: () => void;
     onDoubleClick?: TLOnDoubleClickHandler<Shape>;
     onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>;
     onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>;
@@ -1638,12 +1638,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onResize?: TLOnResizeHandler<Shape>;
     onResizeEnd?: TLOnResizeEndHandler<Shape>;
     onResizeStart?: TLOnResizeStartHandler<Shape>;
-    onRotate?: TLOnRotateHandler<Shape>;
-    onRotateEnd?: TLOnRotateEndHandler<Shape>;
-    onRotateStart?: TLOnRotateStartHandler<Shape>;
-    onTranslate?: TLOnTranslateHandler<Shape>;
-    onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
-    onTranslateStart?: TLOnTranslateStartHandler<Shape>;
     // (undocumented)
     static props?: ShapeProps<TLUnknownShape>;
     // @internal
@@ -1728,6 +1722,19 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static children?: () => TLStateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
+    // (undocumented)
+    static createStateHandler<T extends TLUnknownShape, Opts extends object = object, Returns = void>(defaultHandler?: (shape: T, opts: Opts, memo: {
+        [key: string]: any;
+    }) => Returns): {
+        addHandler: <Shape extends T = T, Memo extends object = {
+            [key: string]: any;
+        }>(shapeType: Shape["type"], handler: (shape: Shape, opts: Opts, memo: Memo) => Returns) => void;
+        getHandler: <Shape_1 extends T = T, Memo_1 extends object = {
+            [key: string]: any;
+        }>(shapeType: Shape_1["type"]) => (shape: Shape_1, opts: Opts, memo: Memo_1) => Returns;
+        removeHandler: <Shape_2 extends T = T>(shapeType: Shape_2["type"]) => void;
+        clear: () => void;
+    };
     _currentToolIdMask: Atom<string | undefined, unknown>;
     // (undocumented)
     editor: Editor;
@@ -2315,24 +2322,6 @@ export type TLOnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo
 
 // @public (undocumented)
 export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>;
-
-// @public (undocumented)
-export type TLOnRotateEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
-
-// @public (undocumented)
-export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>;
-
-// @public (undocumented)
-export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
-
-// @public (undocumented)
-export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
-
-// @public (undocumented)
-export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>;
-
-// @public (undocumented)
-export type TLOnTranslateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
 
 // @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;

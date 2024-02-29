@@ -278,6 +278,11 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	//  Events
 
 	/**
+	 * A callback called when a shape util is first initialized. Use this to set event listeners and other things.
+	 */
+	onCreate?: () => void
+
+	/**
 	 * A callback called just before a shape is created. This method provides a last chance to modify
 	 * the created shape.
 	 *
@@ -382,35 +387,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onResizeEnd?: TLOnResizeEndHandler<Shape>
 
 	/**
-	 * A callback called when a shape starts being translated.
-	 *
-	 * @param shape - The shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onTranslateStart?: TLOnTranslateStartHandler<Shape>
-
-	/**
-	 * A callback called when a shape changes from a translation.
-	 *
-	 * @param initial - The shape at the start of the translation.
-	 * @param current - The current shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onTranslate?: TLOnTranslateHandler<Shape>
-
-	/**
-	 * A callback called when a shape finishes translating.
-	 *
-	 * @param initial - The shape at the start of the translation.
-	 * @param current - The current shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onTranslateEnd?: TLOnTranslateEndHandler<Shape>
-
-	/**
 	 * A callback called when a shape's handle changes.
 	 *
 	 * @param shape - The current shape.
@@ -419,35 +395,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onHandleDrag?: TLOnHandleDragHandler<Shape>
-
-	/**
-	 * A callback called when a shape starts being rotated.
-	 *
-	 * @param shape - The shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onRotateStart?: TLOnRotateStartHandler<Shape>
-
-	/**
-	 * A callback called when a shape changes from a rotation.
-	 *
-	 * @param initial - The shape at the start of the rotation.
-	 * @param current - The current shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onRotate?: TLOnRotateHandler<Shape>
-
-	/**
-	 * A callback called when a shape finishes rotating.
-	 *
-	 * @param initial - The shape at the start of the rotation.
-	 * @param current - The current shape.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onRotateEnd?: TLOnRotateEndHandler<Shape>
 
 	/**
 	 * Not currently used.
@@ -516,17 +463,9 @@ export type TLOnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void
 /** @public */
 export type TLOnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void
 /** @public */
-export type TLOnTranslateStartHandler<T extends TLShape> = TLEventStartHandler<T>
-/** @public */
 export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>
 /** @public */
 export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
-/** @public */
-export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>
-/** @public */
-export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>
-/** @public */
-export type TLOnRotateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
 
 /**
  * The type of resize.

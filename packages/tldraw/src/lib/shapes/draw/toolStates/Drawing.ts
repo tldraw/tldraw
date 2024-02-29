@@ -1,6 +1,7 @@
 import {
 	DRAG_DISTANCE,
 	Mat,
+	ShapeUtil,
 	StateNode,
 	TLDefaultSizeStyle,
 	TLDrawShape,
@@ -31,7 +32,7 @@ export class Drawing extends StateNode {
 
 	override shapeType = this.parent.id === 'highlight' ? ('highlight' as const) : ('draw' as const)
 
-	util = this.editor.getShapeUtil(this.shapeType)
+	util = {} as ShapeUtil<DrawableShape>
 
 	isPen = false
 
@@ -52,6 +53,7 @@ export class Drawing extends StateNode {
 	markId = null as null | string
 
 	override onEnter = (info: TLPointerEventInfo) => {
+		this.util = this.editor.getShapeUtil(this.shapeType)
 		this.markId = null
 		this.info = info
 		this.canDraw = !this.editor.getIsMenuOpen()

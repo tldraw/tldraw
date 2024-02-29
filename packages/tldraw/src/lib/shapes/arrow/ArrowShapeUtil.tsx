@@ -19,8 +19,6 @@ import {
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
-	TLOnTranslateHandler,
-	TLOnTranslateStartHandler,
 	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
@@ -36,6 +34,7 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
+import { Translating } from '../../tools/SelectTool/childStates/Translating'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -303,116 +302,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		return next
-	}
-
-	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
-		const startBindingId =
-			shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : null
-		const endBindingId = shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : null
-
-		const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(this.editor, shape)
-		const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
-
-		// If at least one bound shape is in the selection, do nothing;
-		// If no bound shapes are in the selection, unbind any bound shapes
-
-		const selectedShapeIds = this.editor.getSelectedShapeIds()
-
-		if (
-			(startBindingId &&
-				(selectedShapeIds.includes(startBindingId) ||
-					this.editor.isAncestorSelected(startBindingId))) ||
-			(endBindingId &&
-				(selectedShapeIds.includes(endBindingId) || this.editor.isAncestorSelected(endBindingId)))
-		) {
-			return
-		}
-
-		let result = shape
-
-		// When we start translating shapes, record where their bindings were in page space so we
-		// can maintain them as we translate the arrow
-		shapeAtTranslationStart.set(shape, {
-			pagePosition: shapePageTransform.applyToPoint(shape),
-			terminalBindings: mapObjectMapValues(terminalsInArrowSpace, (terminalName, point) => {
-				const terminal = shape.props[terminalName]
-				if (terminal.type !== 'binding') return null
-				return {
-					binding: terminal,
-					shapePosition: point,
-					pagePosition: shapePageTransform.applyToPoint(point),
-				}
-			}),
-		})
-
-		for (const handleName of [ARROW_HANDLES.START, ARROW_HANDLES.END] as const) {
-			const terminal = shape.props[handleName]
-			if (terminal.type !== 'binding') continue
-			result = {
-				...shape,
-				props: { ...shape.props, [handleName]: { ...terminal, isPrecise: true } },
-			}
-		}
-
-		return result
-	}
-
-	override onTranslate?: TLOnTranslateHandler<TLArrowShape> = (initialShape, shape) => {
-		const atTranslationStart = shapeAtTranslationStart.get(initialShape)
-		if (!atTranslationStart) return
-
-		const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
-		const pageDelta = Vec.Sub(
-			shapePageTransform.applyToPoint(shape),
-			atTranslationStart.pagePosition
-		)
-
-		let result = shape
-		for (const [terminalName, terminalBinding] of objectMapEntries(
-			atTranslationStart.terminalBindings
-		)) {
-			if (!terminalBinding) continue
-
-			const newPagePoint = Vec.Add(terminalBinding.pagePosition, Vec.Mul(pageDelta, 0.5))
-			const newTarget = this.editor.getShapeAtPoint(newPagePoint, {
-				hitInside: true,
-				hitFrameInside: true,
-				margin: 0,
-				filter: (targetShape) => {
-					return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
-				},
-			})
-
-			if (newTarget?.id === terminalBinding.binding.boundShapeId) {
-				const targetBounds = Box.ZeroFix(this.editor.getShapeGeometry(newTarget).bounds)
-				const pointInTargetSpace = this.editor.getPointInShapeSpace(newTarget, newPagePoint)
-				const normalizedAnchor = {
-					x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-					y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-				}
-				result = {
-					...result,
-					props: {
-						...result.props,
-						[terminalName]: { ...terminalBinding.binding, isPrecise: true, normalizedAnchor },
-					},
-				}
-			} else {
-				result = {
-					...result,
-					props: {
-						...result.props,
-						[terminalName]: {
-							type: 'point',
-							x: terminalBinding.shapePosition.x,
-							y: terminalBinding.shapePosition.y,
-						},
-					},
-				}
-			}
-		}
-
-		return result
 	}
 
 	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
@@ -1016,6 +905,138 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [getFillDefForCanvas()]
 	}
+
+	override onCreate = () => {
+		// Translate
+
+		const translating = this.editor.getStateDescendant<Translating>('select.translating')!
+
+		type ArrowTranslateMemo = {
+			initialBounds: Box
+			initialShape: TLArrowShape
+			pagePosition: Vec
+			terminalBindings: Record<
+				'start' | 'end',
+				{
+					pagePosition: Vec
+					shapePosition: Vec
+					binding: Extract<TLArrowShapeProps['start'], { type: 'binding' }>
+				} | null
+			>
+		}
+
+		translating.onTranslateStart.addHandler<TLArrowShape, ArrowTranslateMemo>(
+			'arrow',
+			(shape, _, memo) => {
+				memo.initialShape = structuredClone(shape)
+
+				const startBindingId =
+					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : null
+				const endBindingId =
+					shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : null
+
+				const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(this.editor, shape)
+				const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
+
+				// If at least one bound shape is in the selection, do nothing;
+				// If no bound shapes are in the selection, unbind any bound shapes
+
+				const selectedShapeIds = this.editor.getSelectedShapeIds()
+
+				if (
+					(startBindingId &&
+						(selectedShapeIds.includes(startBindingId) ||
+							this.editor.isAncestorSelected(startBindingId))) ||
+					(endBindingId &&
+						(selectedShapeIds.includes(endBindingId) ||
+							this.editor.isAncestorSelected(endBindingId)))
+				) {
+					return
+				}
+
+				let result = shape
+
+				// When we start translating shapes, record where their bindings were in page space so we
+				// can maintain them as we translate the arrow
+				memo.pagePosition = shapePageTransform.applyToPoint(shape)
+				memo.terminalBindings = mapObjectMapValues(terminalsInArrowSpace, (terminalName, point) => {
+					const terminal = shape.props[terminalName]
+					if (terminal.type !== 'binding') return null
+					return {
+						binding: terminal,
+						shapePosition: point,
+						pagePosition: shapePageTransform.applyToPoint(point),
+					}
+				})
+
+				for (const handleName of [ARROW_HANDLES.START, ARROW_HANDLES.END] as const) {
+					const terminal = shape.props[handleName]
+					if (terminal.type !== 'binding') continue
+					result = {
+						...shape,
+						props: { ...shape.props, [handleName]: { ...terminal, isPrecise: true } },
+					}
+				}
+
+				return result
+			}
+		)
+
+		translating.onTranslate.addHandler<TLArrowShape, ArrowTranslateMemo>(
+			'arrow',
+			(shape, _, { pagePosition, terminalBindings }) => {
+				const shapePageTransform = this.editor.getShapePageTransform(shape.id)!
+				const pageDelta = Vec.Sub(shapePageTransform.applyToPoint(shape), pagePosition)
+
+				let result = shape
+				for (const [terminalName, terminalBinding] of objectMapEntries(terminalBindings)) {
+					if (!terminalBinding) continue
+
+					const newPagePoint = Vec.Add(terminalBinding.pagePosition, Vec.Mul(pageDelta, 0.5))
+					const newTarget = this.editor.getShapeAtPoint(newPagePoint, {
+						hitInside: true,
+						hitFrameInside: true,
+						margin: 0,
+						filter: (targetShape) => {
+							return (
+								!targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+							)
+						},
+					})
+
+					if (newTarget?.id === terminalBinding.binding.boundShapeId) {
+						const targetBounds = Box.ZeroFix(this.editor.getShapeGeometry(newTarget).bounds)
+						const pointInTargetSpace = this.editor.getPointInShapeSpace(newTarget, newPagePoint)
+						const normalizedAnchor = {
+							x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+							y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+						}
+						result = {
+							...result,
+							props: {
+								...result.props,
+								[terminalName]: { ...terminalBinding.binding, isPrecise: true, normalizedAnchor },
+							},
+						}
+					} else {
+						result = {
+							...result,
+							props: {
+								...result.props,
+								[terminalName]: {
+									type: 'point',
+									x: terminalBinding.shapePosition.x,
+									y: terminalBinding.shapePosition.y,
+								},
+							},
+						}
+					}
+				}
+
+				return result
+			}
+		)
+	}
 }
 
 function getArrowheadSvgMask(d: string, arrowhead: TLArrowShapeArrowheadStyle) {
@@ -1067,18 +1088,3 @@ function getArrowheadSvgPath(
 		return path
 	}
 }
-
-const shapeAtTranslationStart = new WeakMap<
-	TLArrowShape,
-	{
-		pagePosition: Vec
-		terminalBindings: Record<
-			'start' | 'end',
-			{
-				pagePosition: Vec
-				shapePosition: Vec
-				binding: Extract<TLArrowShapeProps['start'], { type: 'binding' }>
-			} | null
-		>
-	}
->()
