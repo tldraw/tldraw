@@ -67,12 +67,12 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}
 
-  publish_templates:
-    name: Publishes code templates to separate repositories
-    uses: tldraw/tldraw/.github/workflows/publish-templates.yml@dan/mirror-examples
-    secrets:
-      VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-      NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-    needs: [
-      deploy
-    ]
+  # publish_templates:
+  #   name: Publishes code templates to separate repositories
+  #   uses: tldraw/tldraw/.github/workflows/publish-templates.yml@dan/mirror-examples
+  #   secrets:
+  #     VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+  #     NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+  #   needs: [
+  #     deploy
+  #   ]
