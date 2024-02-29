@@ -6,7 +6,7 @@ name: (Re)Publish public packages manually
 on: workflow_dispatch
 
 jobs:
-  publish:
+  deploy:
     name: '(Re)Publish public packages manually'
     environment: npm deploy
     timeout-minutes: 15
@@ -32,5 +32,5 @@ jobs:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
     needs: [
-      publish
+      deploy
     ]
