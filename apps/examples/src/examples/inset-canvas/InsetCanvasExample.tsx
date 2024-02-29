@@ -1,5 +1,5 @@
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import './inset-canvas.css'
 
 export default function InsetCanvasExample() {

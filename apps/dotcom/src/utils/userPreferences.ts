@@ -1,4 +1,4 @@
-import { T, atom } from '@tldraw/tldraw'
+import { T, atom } from 'tldraw'
 
 const channel =
 	typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('tldrawUserPreferences') : null

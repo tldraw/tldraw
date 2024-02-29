@@ -36208,7 +36208,7 @@
         {
           "kind": "Interface",
           "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps:interface",
-          "docComment": "/**\n * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Base props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -36517,7 +36517,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TldrawEditorProps:type",
-          "docComment": "/**\n * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

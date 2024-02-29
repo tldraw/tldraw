@@ -1,4 +1,4 @@
-import { Vec, VecLike, lerp, pointInPolygon } from '@tldraw/tldraw'
+import { Vec, VecLike, lerp, pointInPolygon } from 'tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {

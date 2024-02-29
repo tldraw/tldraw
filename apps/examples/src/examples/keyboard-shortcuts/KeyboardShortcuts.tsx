@@ -1,5 +1,5 @@
-import { TLUiActionsContextType, TLUiOverrides, TLUiToolsContextType, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { TLUiActionsContextType, TLUiOverrides, TLUiToolsContextType, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import jsonSnapshot from './snapshot.json'
 
 // There's a guide at the bottom of this file!

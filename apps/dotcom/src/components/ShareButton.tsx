@@ -1,5 +1,5 @@
-import { useTranslation } from '@tldraw/tldraw'
 import { ButtonHTMLAttributes, DetailedHTMLProps, forwardRef } from 'react'
+import { useTranslation } from 'tldraw'
 
 export type ShareButtonProps = DetailedHTMLProps<
 	ButtonHTMLAttributes<HTMLButtonElement>,

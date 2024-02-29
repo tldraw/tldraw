@@ -5,8 +5,8 @@ import {
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomDebugMenu() {
 	return (

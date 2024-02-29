@@ -1,5 +1,5 @@
-import { DefaultToolbar, TLComponents, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { DefaultToolbar, TLComponents, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomToolbar() {
 	return (

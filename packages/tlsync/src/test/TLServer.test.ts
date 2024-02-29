@@ -1,4 +1,4 @@
-import { TLRecord, createTLStore, defaultShapeUtils } from '@tldraw/tldraw'
+import { TLRecord, createTLStore, defaultShapeUtils } from 'tldraw'
 import { type WebSocket } from 'ws'
 import { RoomSessionState } from '../lib/RoomSession'
 import { DBLoadResult, TLServer } from '../lib/TLServer'
