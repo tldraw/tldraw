@@ -57,7 +57,7 @@ export async function setAllVersions(version: string) {
 		)
 	}
 
-	await exec('yarn', ['refresh-assets'])
+	await exec('yarn', ['refresh-assets', '--force'])
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
 	lernaJson.version = version
