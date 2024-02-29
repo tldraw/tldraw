@@ -16,30 +16,6 @@ import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
-const loadImage = async (url: string): Promise<HTMLImageElement> => {
-	return new Promise((resolve, reject) => {
-		const image = new Image()
-		image.onload = () => resolve(image)
-		image.onerror = () => reject(new Error('Failed to load image'))
-		image.crossOrigin = 'anonymous'
-		image.src = url
-	})
-}
-
-const getStateFrame = async (url: string) => {
-	const image = await loadImage(url)
-
-	const canvas = document.createElement('canvas')
-	canvas.width = image.width
-	canvas.height = image.height
-
-	const ctx = canvas.getContext('2d')
-	if (!ctx) return
-
-	ctx.drawImage(image, 0, 0)
-	return canvas.toDataURL()
-}
-
 async function getDataURIFromURL(url: string): Promise<string> {
 	const response = await fetch(url)
 	const blob = await response.blob()
