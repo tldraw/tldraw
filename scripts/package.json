@@ -54,7 +54,9 @@
 		"lint": "yarn run -T tsx lint.ts"
 	},
 	"dependencies": {
+		"@types/minimist": "^1.2.5",
 		"ignore": "^5.2.4",
+		"minimist": "^1.2.8",
 		"tar": "^6.2.0"
 	}
 }
