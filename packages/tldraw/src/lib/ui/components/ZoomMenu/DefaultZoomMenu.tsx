@@ -64,7 +64,7 @@ const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
 				{...props}
 				type="icon"
 				title={`${msg('navigation-zone.zoom')}`}
-				data-testid="minimap.zoom-menu"
+				data-testid="minimap.zoom-menu-button"
 				className={
 					breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 						? 'tlui-zoom-menu__button'

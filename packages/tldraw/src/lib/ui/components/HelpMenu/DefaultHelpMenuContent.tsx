@@ -21,7 +21,7 @@ export function KeyboardShortcutsMenuItem() {
 
 	return (
 		<TldrawUiMenuItem
-			id="keyboard-shortcuts"
+			id="keyboard-shortcuts-button"
 			label="help-menu.keyboard-shortcuts"
 			readonlyOk
 			onSelect={() => {
