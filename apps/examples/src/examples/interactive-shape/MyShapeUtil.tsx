@@ -91,7 +91,7 @@ export class MyShapeUtil extends BaseBoxShapeUtil<IMyInteractiveShape> {
 
 This is a custom shape, see our custom shape example to learn more about custom shapes...
 
-[2]
+[2]a
 In our component, we want the user to be able to click on the shape and drag it around...
 But also want to be able to click on the checkbox and check it without selecting the shape or starting a drag.
 
