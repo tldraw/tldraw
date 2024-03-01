@@ -1,4 +1,4 @@
-import { Editor, Tldraw } from '@tldraw/tldraw'
+import { Editor, Tldraw } from 'tldraw'
 import { PlayingCardTool } from './PlayingCardShape/playing-card-tool'
 import { PlayingCardUtil } from './PlayingCardShape/playing-card-util'
 import snapshot from './snapshot.json'

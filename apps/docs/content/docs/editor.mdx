@@ -29,7 +29,7 @@ The editor also exposes many _computed_ values which are derived from other reco
 You can use these properties directly or you can use them in signals.
 
 ```tsx
-import { track, useEditor } from '@tldraw/tldraw'
+import { track, useEditor } from 'tldraw'
 
 export const SelectedShapeIdsCount = track(() => {
 	const editor = useEditor()
@@ -159,7 +159,7 @@ Note that the paths you pass to [Editor#isIn](?) or [Editor#isInAny](?) can be t
 > If all you're interested in is the state below `root`, there is a convenience method, [Editor#getCurrentToolId](?), that can help with the editor's currently selected tool.
 
 ```tsx
-import { track, useEditor } from '@tldraw/tldraw'
+import { track, useEditor } from 'tldraw'
 
 export const BubbleToolUi = track(() => {
 	const editor = useEditor()
@@ -193,7 +193,7 @@ The editor's user preferences are shared between all instances. See the [TLUserP
 To create an id for a shape (a [TLShapeId](?)), use the libary's [createShapeId](?) helper.
 
 ```ts
-import { createShapeId } from '@tldraw/tldraw'
+import { createShapeId } from 'tldraw'
 
 createShapeId() // `shape:some-random-uuid`
 createShapeId('kyle') // `shape:kyle`

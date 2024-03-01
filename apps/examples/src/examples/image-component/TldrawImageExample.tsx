@@ -1,6 +1,6 @@
-import { Box, Editor, StoreSnapshot, TLPageId, TLRecord, Tldraw, TldrawImage } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { useState } from 'react'
+import { Box, Editor, StoreSnapshot, TLPageId, TLRecord, Tldraw, TldrawImage } from 'tldraw'
+import 'tldraw/tldraw.css'
 import initialSnapshot from './snapshot.json'
 
 // There's a guide at the bottom of this file!

@@ -1,12 +1,20 @@
 import { ArticleDocsPage } from '@/components/ArticleDocsPage'
+import { ArticleReferenceDocsPage } from '@/components/ArticleReferenceDocsPage'
 import { CategoryDocsPage } from '@/components/CategoryDocsPage'
 import { ExampleDocsPage } from '@/components/ExampleDocsPage'
 import { SectionDocsPage } from '@/components/SectionDocsPage'
+import { Article, Category, Section } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-async function getContentForPath(path: string) {
+async function getContentForPath(
+	path: string
+): Promise<
+	| { type: 'section'; section: Section }
+	| { type: 'category'; category: Category }
+	| { type: 'article'; article: Article }
+> {
 	const db = await getDb()
 
 	const section = await db.db.get(`SELECT * FROM sections WHERE sections.path = ?`, path)
@@ -105,6 +113,28 @@ export default async function ContentPage({ params }: { params: { id: string | s
 
 	switch (content.type) {
 		case 'section': {
+			const db = await getDb()
+			let firstArticleInSection: Article | undefined
+
+			const categories = await db.getCategoriesForSection(content.section.id)
+
+			for (const category of categories) {
+				const articles = await db.getCategoryArticles(content.section.id, category.id)
+				const article = articles[0]
+				if (article) {
+					firstArticleInSection = article
+					break
+				}
+			}
+
+			if (firstArticleInSection) {
+				const article = await db.getArticle(firstArticleInSection.id)
+				if (article?.componentCode) {
+					return <ExampleDocsPage article={article} />
+				}
+				return <ArticleDocsPage article={article} />
+			}
+
 			return <SectionDocsPage section={content.section} />
 		}
 		case 'category': {
@@ -114,6 +144,11 @@ export default async function ContentPage({ params }: { params: { id: string | s
 			if (content.article.componentCode) {
 				return <ExampleDocsPage article={content.article} />
 			}
+
+			if (content.article.sectionId === 'reference') {
+				return <ArticleReferenceDocsPage article={content.article} />
+			}
+
 			return <ArticleDocsPage article={content.article} />
 		}
 		default: {

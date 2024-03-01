@@ -47,9 +47,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -61,9 +61,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -148,8 +148,8 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<{ [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>;
 
 // @public
-export function createTLSchema({ shapes }: {
-    shapes: Record<string, SchemaShapeInfo>;
+export function createTLSchema({ shapes, }?: {
+    shapes?: Record<string, SchemaShapeInfo>;
 }): TLSchema;
 
 // @public (undocumented)
@@ -684,9 +684,9 @@ export const lineShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
     points: T.DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
     } & {}>;
 };

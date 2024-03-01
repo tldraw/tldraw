@@ -1,4 +1,4 @@
-import { TLAsset } from '@tldraw/tldraw'
+import { TLAsset } from 'tldraw'
 
 export async function cloneAssetForShare(
 	asset: TLAsset,

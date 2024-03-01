@@ -1,5 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { BoxModel, Editor } from '@tldraw/tldraw'
+import { BoxModel, Editor } from 'tldraw'
 import { setupPage } from '../shared-e2e'
 
 export function sleep(ms: number) {

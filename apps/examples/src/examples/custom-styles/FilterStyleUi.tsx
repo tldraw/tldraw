@@ -1,4 +1,4 @@
-import { track, useEditor } from '@tldraw/tldraw'
+import { track, useEditor } from 'tldraw'
 import { MyFilterStyle } from './CardShape'
 
 // There's a guide at the bottom of this file!
