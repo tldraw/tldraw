@@ -11,7 +11,6 @@ import {
 	resizeBox,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import snapshot from './snapshot.json'
 
 // There's a guide at the bottom of this file!
 
@@ -80,7 +79,12 @@ const customShape = [MyShapeUtil]
 export default function CustomShapeExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw shapeUtils={customShape} snapshot={snapshot} />
+			<Tldraw
+				shapeUtils={customShape}
+				onMount={(editor) => {
+					editor.createShape({ type: 'my-custom-shape', x: 100, y: 100 })
+				}}
+			/>
 		</div>
 	)
 }
@@ -134,9 +138,8 @@ BaseBoxShapeUtil class instead, we wouldn't have define methods such as `getGeom
 
 [3]
 This is where we render the Tldraw component with our custom shape. We're passing in our custom shape
-util as an array to the shapeUtils prop. We're also passing in a snapshot this is just for demo purposes
-so that it's displayed on the canvas. If you want to learn how to add a tool for your shape, check out
-the custom config example. If you want to learn how to programmatically control the canvas, check out the 
-Editor API examples.
+util as an array to the shapeUtils prop. We're also using the onMount callback to create a shape on 
+the canvas. If you want to learn how to add a tool for your shape, check out the custom config example. 
+If you want to learn how to programmatically control the canvas, check out the Editor API examples.
 
 */
