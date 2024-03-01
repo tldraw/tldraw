@@ -7768,6 +7768,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
+		// Ok, we've got our migrated shapes and assets, now we can continue!
 		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
 
 		// By default, the paste parent will be the current page.
@@ -7905,54 +7906,57 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		// Migrate the new shapes
+		// These are all the assets we need to create
+		const assetsToCreate: TLAsset[] = []
 
-		let assetsToCreate: TLAsset[] = []
-
+		// These assets have base64 data that may need to be hosted
 		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
 
-		assetsToCreate = assets
-			.filter((asset) => !this.store.has(asset.id))
-			.map((asset) => {
-				if (asset.type === 'image' || asset.type === 'video') {
-					if (asset.props.src && asset.props.src?.startsWith('data:image')) {
-						assetsToUpdate.push(structuredClone(asset))
-						asset.props.src = null
-					} else {
-						assetsToUpdate.push(structuredClone(asset))
-					}
-				}
+		for (const asset of assets) {
+			if (this.store.has(asset.id)) {
+				// We already have this asset
+				continue
+			}
 
-				return asset
-			})
+			if (
+				(asset.type === 'image' || asset.type === 'video') &&
+				asset.props.src?.startsWith('data:image')
+			) {
+				// it's src is a base64 image or video; we need to create a new asset without the src,
+				// then create a new asset from the original src. So we save a copy of the original asset,
+				// then delete the src from the original asset.
+				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
+				asset.props.src = null
+			}
 
+			// Add the asset to the list of assets to create
+			assetsToCreate.push(asset)
+		}
+
+		// Start loading the new assets, order does not matter
 		Promise.allSettled(
-			assetsToUpdate.map(async (asset) => {
+			(assetsToUpdate as (TLImageAsset | TLVideoAsset)[]).map(async (asset) => {
+				// Turn the data url into a file
 				const file = await dataUrlToFile(
 					asset.props.src!,
 					asset.props.name,
 					asset.props.mimeType ?? 'image/png'
 				)
 
+				// Get a new asset for the file
 				const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
 
 				if (!newAsset) {
-					return null
+					// If we don't have a new asset, delete the old asset.
+					// The shapes that reference this asset should break.
+					this.deleteAssets([asset.id])
+					return
 				}
 
-				return [asset, newAsset] as const
+				// Save the new asset under the old asset's id
+				this.updateAssets([{ ...newAsset, id: asset.id }])
 			})
-		).then((assets) => {
-			this.updateAssets(
-				compact(
-					assets.map((result) =>
-						result.status === 'fulfilled' && result.value
-							? { ...result.value[1], id: result.value[0].id }
-							: undefined
-					)
-				)
-			)
-		})
+		)
 
 		this.batch(() => {
 			// Create any assets that need to be created
