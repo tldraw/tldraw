@@ -1,4 +1,4 @@
-import { BaseBoxShapeUtil, HTMLContainer, ShapeProps, T, TLBaseShape } from '@tldraw/tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, ShapeProps, T, TLBaseShape } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 

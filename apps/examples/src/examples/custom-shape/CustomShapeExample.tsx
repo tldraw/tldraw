@@ -1,4 +1,4 @@
-import { Tldraw } from '@tldraw/tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 import { MyShapeUtil } from './MyShapeUtil'
