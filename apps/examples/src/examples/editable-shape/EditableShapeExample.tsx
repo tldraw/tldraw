@@ -1,5 +1,5 @@
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import { MyshapeTool } from './my-shape/my-shape-tool'
 import { MyshapeUtil } from './my-shape/my-shape-util'
 import { components, uiOverrides } from './ui-overrides'

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
 	HTMLContainer,
 	Rectangle2d,
@@ -5,8 +6,7 @@ import {
 	TLOnResizeHandler,
 	getDefaultColorTheme,
 	resizeBox,
-} from '@tldraw/tldraw'
-import { useState } from 'react'
+} from 'tldraw'
 import { cardShapeMigrations } from './card-shape-migrations'
 import { cardShapeProps } from './card-shape-props'
 import { ICardShape } from './card-shape-types'

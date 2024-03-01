@@ -1,5 +1,5 @@
-import { useEditor, useValue } from '@tldraw/tldraw'
 import { Helmet } from 'react-helmet-async'
+import { useEditor, useValue } from 'tldraw'
 
 export function ThemeUpdater() {
 	const editor = useEditor()

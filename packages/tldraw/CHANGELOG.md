@@ -1,3 +1,206 @@
+# v2.0.0 (Thu Feb 29 2024)
+
+#### ⚠️ Pushed to `main`
+
+- updatereadmes ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-beta.9 (Thu Feb 29 2024)
+
+#### ⚠️ Pushed to `main`
+
+- fix refresh-assets cache inputs ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v2.0.0-beta.8 (Thu Feb 29 2024)
+
+#### ⚠️ Pushed to `main`
+
+- use glob to pick up version files? ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v2.0.0-beta.7 (Thu Feb 29 2024)
+
+### Release Notes
+
+#### Fix publish script one more time ([#3010](https://github.com/tldraw/tldraw/pull/3010))
+
+- Add a brief release note for your PR here.
+
+---
+
+#### 🏠 Internal
+
+- Fix publish script one more time [#3010](https://github.com/tldraw/tldraw/pull/3010) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v2.0.0-beta.6 (Thu Feb 29 2024)
+
+### Release Notes
+
+#### Fix publishing scripts ([#3008](https://github.com/tldraw/tldraw/pull/3008))
+
+- Add a brief release note for your PR here.
+
+---
+
+#### 🏠 Internal
+
+- Fix publishing scripts [#3008](https://github.com/tldraw/tldraw/pull/3008) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v2.0.0-beta.5 (Thu Feb 29 2024)
+
+### Release Notes
+
+#### tldraw_final_v6_final(old version).docx.pdf ([#2998](https://github.com/tldraw/tldraw/pull/2998))
+
+- The `@tldraw/tldraw` package has been renamed to `tldraw`. You can keep using the old version if you want though!
+
+#### Adding a single E2E test per menu ([#2954](https://github.com/tldraw/tldraw/pull/2954))
+
+- Add a brief release note for your PR here.
+
+#### [feature] wrap mode ([#2938](https://github.com/tldraw/tldraw/pull/2938))
+
+- Added `isWrapMode` to user preferences.
+- Added Wrap Mode toggle to user preferences menu.
+
+#### Make exportToBlob public ([#2983](https://github.com/tldraw/tldraw/pull/2983))
+
+- Exposes the exportToBlob function for library users
+
+#### export default ui items ([#2973](https://github.com/tldraw/tldraw/pull/2973))
+
+- Components within default menu content components are now exported.
+
+#### Show toast on upload error ([#2959](https://github.com/tldraw/tldraw/pull/2959))
+
+- Adds a quick toast to show when image uploads fail.
+
+#### Fix transparency toggle ([#2964](https://github.com/tldraw/tldraw/pull/2964))
+
+- Fixes the Transparent toggle. The condition was accidentally flipped.
+
+#### menu: rework File menu / ensure Export menu is present ([#2783](https://github.com/tldraw/tldraw/pull/2783))
+
+- Composable UI: makes File items be more granularly accessible / usable
+- Menu: show Export under the File menu.
+
+#### ui events: prevent sending 2nd event unnecessarily ([#2921](https://github.com/tldraw/tldraw/pull/2921))
+
+- Some cleanup on duplicate UI events being sent.
+
+#### [fix] fit to content shown on groups ([#2946](https://github.com/tldraw/tldraw/pull/2946))
+
+- Fix bug where "fit frame to content" would be shown when a group is selected.
+
+#### fix structured clone reference in drawing ([#2945](https://github.com/tldraw/tldraw/pull/2945))
+
+- Fixes a reference to structuredClone that caused a crash on older browsers.
+
+#### Fix keyboard shortcuts bugs ([#2936](https://github.com/tldraw/tldraw/pull/2936))
+
+- [Fix] Keyboard shortcut focus bug
+
+#### Fix undo/redo for Opacity Slider + Style dropdowns. ([#2933](https://github.com/tldraw/tldraw/pull/2933))
+
+- Fixed issues where undo/redo entries were not being set up correctly for the opacity slider or the style dropdown menus.
+
+#### Add custom static assets example, extract preloadFont ([#2932](https://github.com/tldraw/tldraw/pull/2932))
+
+- Docs, added custom static assets example.
+
+#### Fix frames not preserving shape order ([#2928](https://github.com/tldraw/tldraw/pull/2928))
+
+- Fix an issue when framing shapes did not preserve the original order of the shapes.
+- You can now frame shapes inside of the frame.
+
+#### Improve dialog appearance on small components ([#2884](https://github.com/tldraw/tldraw/pull/2884))
+
+- Dev: Made default dialogs work better when used in small components.
+
+---
+
+#### 🚀 Enhancement
+
+- [feature] wrap mode [#2938](https://github.com/tldraw/tldraw/pull/2938) ([@steveruizok](https://github.com/steveruizok))
+- Make exportToBlob public [#2983](https://github.com/tldraw/tldraw/pull/2983) ([@ds300](https://github.com/ds300))
+- export default ui items [#2973](https://github.com/tldraw/tldraw/pull/2973) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- Fix keyboard shortcuts bugs [#2936](https://github.com/tldraw/tldraw/pull/2936) ([@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+- Add custom static assets example, extract preloadFont [#2932](https://github.com/tldraw/tldraw/pull/2932) ([@steveruizok](https://github.com/steveruizok))
+- Export history hooks [#2926](https://github.com/tldraw/tldraw/pull/2926) ([@steveruizok](https://github.com/steveruizok))
+- Improve dialog appearance on small components [#2884](https://github.com/tldraw/tldraw/pull/2884) ([@TodePond](https://github.com/TodePond))
+
+#### 🐛 Bug Fix
+
+- textfields: make them consistent [#2984](https://github.com/tldraw/tldraw/pull/2984) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Show toast on upload error [#2959](https://github.com/tldraw/tldraw/pull/2959) ([@ds300](https://github.com/ds300))
+- menu: export followup with different semantics for file menu [#2968](https://github.com/tldraw/tldraw/pull/2968) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix transparency toggle [#2964](https://github.com/tldraw/tldraw/pull/2964) ([@ds300](https://github.com/ds300))
+- Prevent iframe embedding for dotcom (except on tldraw.com) [#2947](https://github.com/tldraw/tldraw/pull/2947) ([@steveruizok](https://github.com/steveruizok))
+- menu: rework File menu / ensure Export menu is present [#2783](https://github.com/tldraw/tldraw/pull/2783) ([@mimecuvalo](https://github.com/mimecuvalo))
+- ui events: prevent sending 2nd event unnecessarily [#2921](https://github.com/tldraw/tldraw/pull/2921) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [fix] fit to content shown on groups [#2946](https://github.com/tldraw/tldraw/pull/2946) ([@steveruizok](https://github.com/steveruizok))
+- Expand props [#2948](https://github.com/tldraw/tldraw/pull/2948) ([@steveruizok](https://github.com/steveruizok))
+- fix structured clone reference in drawing [#2945](https://github.com/tldraw/tldraw/pull/2945) ([@steveruizok](https://github.com/steveruizok))
+- Fix undo/redo for Opacity Slider + Style dropdowns. [#2933](https://github.com/tldraw/tldraw/pull/2933) ([@ds300](https://github.com/ds300))
+- Fix frames not preserving shape order [#2928](https://github.com/tldraw/tldraw/pull/2928) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🏠 Internal
+
+- tldraw_final_v6_final(old version).docx.pdf [#2998](https://github.com/tldraw/tldraw/pull/2998) ([@SomeHats](https://github.com/SomeHats))
+- license: make them not be scrubbed out in code munging [#2976](https://github.com/tldraw/tldraw/pull/2976) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 📝 Documentation
+
+- [docs] design shuffle [#2951](https://github.com/tldraw/tldraw/pull/2951) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🧪 Tests
+
+- Adding a single E2E test per menu [#2954](https://github.com/tldraw/tldraw/pull/2954) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- bump typescript / api-extractor [#2949](https://github.com/tldraw/tldraw/pull/2949) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 7
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.0.0-beta.4 (Wed Feb 21 2024)
 
 ### Release Notes
