@@ -1,12 +1,10 @@
 import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
-import { MyshapeTool } from './my-shape/my-shape-tool'
-import { MyshapeUtil } from './my-shape/my-shape-util'
-import { components, uiOverrides } from './ui-overrides'
+import 'tldraw/tldraw.css'
+
+import { MyShapeUtil } from './MyShapeUtil'
 
 // [1]
-const customShapeUtils = [MyshapeUtil]
-const customTools = [MyshapeTool]
+const customShapeUtils = [MyShapeUtil]
 
 //[2]
 export default function EditableShapeExample() {
@@ -15,12 +13,10 @@ export default function EditableShapeExample() {
 			<Tldraw
 				// Pass in the array of custom shape classes
 				shapeUtils={customShapeUtils}
-				// Pass in the array of custom tools
-				tools={customTools}
-				// Pass in any overrides to the user interface
-				overrides={uiOverrides}
-				// pass in the new Keyboard Shortcuts component
-				components={components}
+				// snapshot={snapshot}
+				onMount={(editor) => {
+					editor.createShape({ type: 'my-editable-shape', x: 100, y: 100 })
+				}}
 			/>
 		</div>
 	)

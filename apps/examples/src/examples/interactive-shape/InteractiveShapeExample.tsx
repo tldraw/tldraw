@@ -1,32 +1,18 @@
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
-import { MyShapeTool } from './my-shape/my-shape-tool'
-import { MyShapeUtil } from './my-shape/my-shape-util'
-import snapshot from './snapshot.json'
-import { components, uiOverrides } from './ui-overrides'
+import { MyShapeUtil } from './MyShapeUtil'
 
 // There's a guide at the bottom of this file!
 
 // [1]
 const customShapeUtils = [MyShapeUtil]
-const customTools = [MyShapeTool]
 
 //[2]
 export default function InteractiveShapeExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				// Pass in the array of custom shape classes
-				shapeUtils={customShapeUtils}
-				// Pass in the array of custom tools
-				tools={customTools}
-				// Pass in any overrides to the user interface
-				overrides={uiOverrides}
-				// pass in the new Keyboard Shortcuts component
-				components={components}
-				snapshot={snapshot}
-			/>
+			<Tldraw shapeUtils={customShapeUtils} />
 		</div>
 	)
 }

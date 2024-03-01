@@ -3,118 +3,99 @@ import { BaseBoxShapeUtil, HTMLContainer, ShapeProps, T, TLBaseShape } from '@tl
 // There's a guide at the bottom of this file!
 
 // [1]
-type IMyShape = TLBaseShape<
+type IMyInteractiveShape = TLBaseShape<
 	'MyShape',
 	{
 		w: number
 		h: number
 		checked: boolean
-		color: string
+		text: string
 	}
 >
 
-export class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
-	// [2]
+export class MyShapeUtil extends BaseBoxShapeUtil<IMyInteractiveShape> {
 	static override type = 'MyShape' as const
-	static override props: ShapeProps<IMyShape> = {
+	static override props: ShapeProps<IMyInteractiveShape> = {
 		w: T.number,
 		h: T.number,
 		checked: T.boolean,
-		color: T.string,
+		text: T.string,
 	}
 
-	// [3]
-	getDefaultProps(): IMyShape['props'] {
-		const pastelColors: string[] = ['#FFD1DC', '#FFEF96', '#D0E6A5', '#A7D7F2', '#C9C9FF']
-		const color = pastelColors[Math.floor(Math.random() * pastelColors.length)]
+	getDefaultProps(): IMyInteractiveShape['props'] {
 		return {
 			w: 230,
 			h: 230,
 			checked: false,
-			color,
+			text: '',
 		}
 	}
 
 	// [4]
-	component(shape: IMyShape) {
+	component(shape: IMyInteractiveShape) {
 		return (
 			<HTMLContainer
 				style={{
+					padding: 16,
 					height: shape.props.h,
 					width: shape.props.w,
-					backgroundColor: shape.props.checked ? 'lightgrey' : shape.props.color,
-					borderRadius: 10,
-					padding: 20,
-					boxShadow: '0 0 5px rgba(0, 0, 0, 0.2)',
 					// [a] This is where we allow pointer events on our shape
 					pointerEvents: 'all',
+					backgroundColor: '#efefef',
+					overflow: 'hidden',
 				}}
-				id={shape.id}
 			>
-				<div
-					style={{
-						display: 'flex',
-						height: shape.props.h / 5,
-						alignItems: 'center',
-						position: 'relative',
-					}}
-				>
-					<input
-						style={{
-							position: 'absolute',
-							left: 10,
-							height: shape.props.h / 10,
-							width: shape.props.h / 10,
-						}}
-						type="checkbox"
-						checked={shape.props.checked}
-						onChange={() =>
-							this.editor.updateShape<IMyShape>({
-								id: shape.id,
-								type: 'MyShape',
-								props: { checked: !shape.props.checked },
-							})
+				<input
+					type="checkbox"
+					checked={shape.props.checked}
+					onChange={() =>
+						this.editor.updateShape<IMyInteractiveShape>({
+							id: shape.id,
+							type: 'MyShape',
+							props: { checked: !shape.props.checked },
+						})
+					}
+					// [b] This is where we stop event propagation
+					onPointerDown={(e) => e.stopPropagation()}
+				/>
+				<input
+					type="text"
+					placeholder="Enter a todo..."
+					readOnly={shape.props.checked}
+					value={shape.props.text}
+					onChange={(e) =>
+						this.editor.updateShape<IMyInteractiveShape>({
+							id: shape.id,
+							type: 'MyShape',
+							props: { text: e.currentTarget.value },
+						})
+					}
+					onPointerDown={(e) => {
+						if (!shape.props.checked) {
+							e.stopPropagation()
 						}
-						// [b] This is where we stop event propagation
-						onPointerDown={(e) => e.stopPropagation()}
-					/>
-					{shape.props.checked && (
-						<h1
-							style={{
-								flexGrow: 1,
-								textAlign: 'center',
-								fontFamily: 'monospace',
-								fontSize: shape.props.h / 15,
-								fontWeight: 200,
-							}}
-						>
-							done
-						</h1>
-					)}
-				</div>
-				<div
-					style={{
-						height: '100%',
-						width: '100%',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
 					}}
-				>
-					<h1 style={{ fontSize: shape.props.h / 10 }}>My Todo</h1>
-					<p style={{ fontSize: shape.props.h / 20 }}>Wash the dog</p>
-				</div>
+				/>
 			</HTMLContainer>
 		)
 	}
 
 	// [5]
-	indicator(shape: IMyShape) {
+	indicator(shape: IMyInteractiveShape) {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 }
 
 /* 
+[1]
+
+This is a custom shape, see our custom shape example to learn more about custom shapes...
+
+[2]
+In our component, we want the user to be able to click on the shape and drag it around...
+But also want to be able to click on the checkbox and check it without selecting the shape or starting a drag.
+
+
 This is a utility class for our todo shape. This is where you define the shape's behavior, 
 how it renders (its component and indicator), and how it handles different events. The most relevant
 part of the code to an interactive shape can be found in the component method [4].
