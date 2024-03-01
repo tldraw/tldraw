@@ -2,7 +2,6 @@ import { BaseBoxShapeUtil, HTMLContainer, ShapeProps, T, TLBaseShape } from 'tld
 
 // There's a guide at the bottom of this file!
 
-// [1]
 type IMyInteractiveShape = TLBaseShape<
 	'MyShape',
 	{
