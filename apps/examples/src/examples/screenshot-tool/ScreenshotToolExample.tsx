@@ -8,8 +8,8 @@ import {
 	toolbarItem,
 	useEditor,
 	useValue,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 import { ScreenshotTool } from './ScreenshotTool/ScreenshotTool'
 import { ScreenshotDragging } from './ScreenshotTool/childStates/Dragging'
 

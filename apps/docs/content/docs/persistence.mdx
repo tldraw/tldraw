@@ -20,8 +20,8 @@ Persistence in tldraw means storing information about the editor's state to a da
 Both the `<Tldraw>` or `<TldrawEditor>` components support local persitence and cross-tab synchronization via the `persistenceKey` prop. Passing a value to this prop will persist the contents of the editor locally to the browser's IndexedDb.
 
 ```tsx
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 export default function () {
 	return (
@@ -35,8 +35,8 @@ export default function () {
 Using a `persistenceKey` will synchronize data automatically with any other tldraw component with the same `persistenceKey` prop, even if that component is in a different browser tab.
 
 ```tsx
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 export default function () {
 	return (

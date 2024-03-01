@@ -120,6 +120,7 @@ export const TextLabel = React.memo(function TextLabel<
 						onChange={handleChange}
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
+						onTouchEnd={stopEventPropagation}
 						onContextMenu={stopEventPropagation}
 						onPointerDown={handleInputPointerDown}
 						onDoubleClick={handleDoubleClick}

@@ -63,7 +63,7 @@ export async function fetchReleases() {
 					fs.writeFileSync(filePath, m)
 				})
 		} else {
-			throw Error(`x Could not get releases for @tldraw/tldraw.`)
+			throw Error(`x Could not get releases for tldraw.`)
 		}
 	} catch (error) {
 		nicelog(`x Could not generate release content.`)

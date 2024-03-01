@@ -1,5 +1,5 @@
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import { CardShapeTool, CardShapeUtil } from './CardShape'
 import { FilterStyleUi } from './FilterStyleUi'
 import { components, uiOverrides } from './ui-overrides'

@@ -1,4 +1,4 @@
-import { DefaultColorStyle, ShapeProps, T } from '@tldraw/tldraw'
+import { DefaultColorStyle, ShapeProps, T } from 'tldraw'
 import { ICardShape } from './card-shape-types'
 
 // Validation for our custom card shape's props, using one of tldraw's default styles

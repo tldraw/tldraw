@@ -11,8 +11,8 @@ import {
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 

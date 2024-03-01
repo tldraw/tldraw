@@ -502,6 +502,7 @@ export const defaultUserPreferences: Readonly<{
     edgeScrollSpeed: 1;
     animationSpeed: 0 | 1;
     isSnapMode: false;
+    isWrapMode: false;
 }>;
 
 // @public
@@ -2589,6 +2590,8 @@ export interface TLUserPreferences {
     isDarkMode?: boolean | null;
     // (undocumented)
     isSnapMode?: boolean | null;
+    // (undocumented)
+    isWrapMode?: boolean | null;
     // (undocumented)
     locale?: null | string;
     // (undocumented)

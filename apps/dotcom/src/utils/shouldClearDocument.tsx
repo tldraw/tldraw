@@ -8,7 +8,7 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	useTranslation,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 
 export async function shouldClearDocument(addDialog: TLUiDialogsContextType['addDialog']) {
 	const shouldContinue = await new Promise<boolean>((resolve) => {

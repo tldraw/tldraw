@@ -6,7 +6,7 @@ async function main() {
 	const sha = (await exec('git', ['rev-parse', 'HEAD'])).trim().slice(0, 12)
 
 	async function setCanaryVersions(bump: 'major' | 'minor' | 'patch') {
-		const latestVersion = getLatestVersion()
+		const latestVersion = await getLatestVersion()
 
 		const nextVersion = latestVersion.prerelease.length
 			? // if the package is in prerelease mode, we want to release a canary for the current version rather than bumping
@@ -14,7 +14,7 @@ async function main() {
 			: latestVersion?.inc(bump)
 		const versionString = `${nextVersion.major}.${nextVersion.minor}.${nextVersion.patch}-canary.${sha}`
 
-		setAllVersions(versionString)
+		await setAllVersions(versionString)
 	}
 
 	// module was called directly

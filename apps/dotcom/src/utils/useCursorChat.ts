@@ -1,5 +1,5 @@
-import { TLUiOverrides } from '@tldraw/tldraw'
 import { useMemo } from 'react'
+import { TLUiOverrides } from 'tldraw'
 import { useHandleUiEvents } from './useHandleUiEvent'
 
 export const CURSOR_CHAT_ACTION = 'open-cursor-chat' as const

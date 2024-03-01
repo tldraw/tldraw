@@ -1,5 +1,5 @@
-import { DefaultActionsMenu, TLComponents, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { DefaultActionsMenu, TLComponents, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomActionsMenu() {
 	return (
