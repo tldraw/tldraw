@@ -143,7 +143,15 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		return (
 			<>
-				<HTMLContainer id={shape.id} className="tl-video-container tl-counter-scaled">
+				<HTMLContainer
+					id={shape.id}
+					className="tl-video-container tl-counter-scaled"
+					style={{
+						color: 'var(--color-text-3)',
+						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
+						border: asset ? 'none' : '1px solid var(--color-low-border)',
+					}}
+				>
 					{asset?.props.src ? (
 						<video
 							ref={rVideo}

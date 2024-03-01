@@ -105,10 +105,17 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			return (
 				<HTMLContainer
 					id={shape.id}
-					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+					style={{
+						overflow: 'hidden',
+						width: shape.props.w,
+						height: shape.props.h,
+						color: 'var(--color-text-3)',
+						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
+						border: asset ? 'none' : '1px solid var(--color-low-border)',
+					}}
 				>
 					<div className="tl-image-container" style={containerStyle}>
-						{asset ? <BrokenAssetIcon /> : null}
+						{asset ? null : <BrokenAssetIcon />}
 					</div>
 					)
 					{'url' in shape.props && shape.props.url && (
