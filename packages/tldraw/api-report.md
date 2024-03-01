@@ -2527,7 +2527,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
         assetId: Validator<TLAssetId | null>;
     };
     // (undocumented)
-    toSvg(shape: TLVideoShape): SVGGElement;
+    toSvg(shape: TLVideoShape): HTMLElement;
     // (undocumented)
     static type: "video";
 }

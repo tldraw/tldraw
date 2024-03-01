@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { getDataURIFromURL, getSvgFromString } from '../shared/svgs'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 /** @public */
@@ -161,12 +162,13 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const { assetId, crop } = shape.props
 		const asset = assetId ? this.editor.getAsset(assetId) : null
 		let src = asset?.props.src || ''
-		if (!src) return null
 
 		// If it's a remote image, we need to fetch it and convert it to a data URI
 		if (src && (src.startsWith('http') || src.startsWith('/') || src.startsWith('./'))) {
 			src = (await getDataURIFromURL(src)) || ''
 		}
+
+		if (!src) return null
 
 		// If we're cropping...
 		if (crop) {
@@ -290,21 +292,4 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 		width: shape.props.w,
 		height: shape.props.h,
 	}
-}
-
-async function getDataURIFromURL(url: string): Promise<string> {
-	const response = await fetch(url)
-	const blob = await response.blob()
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onloadend = () => resolve(reader.result as string)
-		reader.onerror = reject
-		reader.readAsDataURL(blob)
-	})
-}
-
-function getSvgFromString(htmlString: string) {
-	const parser = new DOMParser()
-	const doc = parser.parseFromString(htmlString, 'image/svg+xml').documentElement
-	return doc
 }
