@@ -83,5 +83,5 @@ export async function createApiMarkdown() {
 		1
 	)
 	sectionsJson.push(apiInputSection)
-	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t'))
+	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t') + '\n')
 }

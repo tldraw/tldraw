@@ -38360,8 +38360,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLCommand",
-              "canonicalReference": "@tldraw/editor!TLCommand:type"
+              "text": "TLHistoryMark",
+              "canonicalReference": "@tldraw/editor!TLHistoryMark:type"
             },
             {
               "kind": "Content",
@@ -38369,8 +38369,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLHistoryMark",
-              "canonicalReference": "@tldraw/editor!TLHistoryMark:type"
+              "text": "TLCommand",
+              "canonicalReference": "@tldraw/editor!TLCommand:type"
             },
             {
               "kind": "Content",
@@ -39151,7 +39151,7 @@
             },
             {
               "kind": "Content",
-              "text": ") => (() => undefined | void) | undefined | void"
+              "text": ") => (() => void | undefined) | undefined | void"
             },
             {
               "kind": "Content",
