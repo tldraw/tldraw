@@ -96,7 +96,8 @@ This is where we describe how our shape will render
 	[a] We need to set pointer-events to all so that we can interact with our shape
 
 	[b] We need to stop event propagation so that the editor doesn't select the shape
-		when we click on the checkbox.
+		when we click on the checkbox. The 'canvas container' forwards events that it receives
+		on to the editor, so stopping propagation here prevents the event from reaching the canvas.
 	
 	[c] If the shape is not checked, we stop event propagation so that the editor doesn't
 		select the shape when we click on the input.
