@@ -10,6 +10,7 @@ const hasLocalStorage = typeof window === 'undefined' || !('localStorage' in win
  */
 export function getFromLocalStorage(key: string, defaultValue = null) {
 	if (!hasLocalStorage) return defaultValue
+	// eslint-disable-next-line no-storage/no-browser-storage
 	const value = localStorage.getItem(key)
 	if (value === null) return defaultValue
 	return JSON.parse(value)
@@ -25,5 +26,6 @@ export function getFromLocalStorage(key: string, defaultValue = null) {
  */
 export function setInLocalStorage(key: string, value: any) {
 	if (!hasLocalStorage) return
+	// eslint-disable-next-line no-storage/no-browser-storage
 	localStorage.setItem(key, JSON.stringify(value))
 }

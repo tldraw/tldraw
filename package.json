@@ -88,6 +88,7 @@
 		"eslint-plugin-import": "^2.27.5",
 		"eslint-plugin-local": "^1.0.0",
 		"eslint-plugin-no-only-tests": "^3.1.0",
+		"eslint-plugin-no-storage": "^1.0.2",
 		"eslint-plugin-react": "^7.32.2",
 		"eslint-plugin-react-hooks": "^4.6.0",
 		"fs-extra": "^11.1.0",
