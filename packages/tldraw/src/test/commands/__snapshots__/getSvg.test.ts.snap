@@ -93,6 +93,8 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
           stroke-width="3.5"
         />
         <g>
+          
+	
           <text
             alignment-baseline="mathematical"
             dominant-baseline="mathematical"
@@ -105,14 +107,20 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
             stroke="rgb(249, 250, 251)"
             stroke-width="2"
           >
+            
+	
             <tspan
-              alignment-baseline="mathematical"
-              x="16px"
-              y="-17px"
+              x="16"
+              y="-17"
             >
               Hello world
             </tspan>
+            
+	
           </text>
+          
+	
+	
           <text
             alignment-baseline="mathematical"
             dominant-baseline="mathematical"
@@ -122,16 +130,20 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
             font-style="normal"
             font-weight="normal"
             line-height="29.700000000000003px"
-            stroke="none"
           >
+            
+	
             <tspan
-              alignment-baseline="mathematical"
-              x="16px"
-              y="-17px"
+              x="16"
+              y="-17"
             >
               Hello world
             </tspan>
+            
+	
           </text>
+          
+	
         </g>
       </g>
     </g>
