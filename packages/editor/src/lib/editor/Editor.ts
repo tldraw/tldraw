@@ -7196,7 +7196,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return sharedStyles
 	}
 
-	/** @internal */
+	/**
+	 * Get the style for the next shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const color = editor.getStyleForNextShape(DefaultColorStyle)
+	 * ```
+	 *
+	 * @param style - The style to get.
+	 *
+	 * @public */
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
 		const value = this.getInstanceState().stylesForNextShape[style.id]
 		return value === undefined ? style.defaultValue : (value as T)

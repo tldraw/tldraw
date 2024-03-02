@@ -13817,6 +13817,72 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getStyleForNextShape:member(1)",
+              "docComment": "/**\n * Get the style for the next shape.\n *\n * @param style - The style to get.\n *\n * @example\n * ```ts\n * const color = editor.getStyleForNextShape(DefaultColorStyle)\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getStyleForNextShape<T>(style: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StyleProp",
+                  "canonicalReference": "@tldraw/tlschema!StyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "style",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getStyleForNextShape"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSvg:member(1)",
               "docComment": "/**\n * Get an exported SVG of the given shapes.\n *\n * @param ids - The shapes (or shape ids) to export.\n *\n * @param opts - Options for the export.\n *\n * @returns The SVG element.\n *\n * @public\n */\n",
               "excerptTokens": [
