@@ -4,7 +4,7 @@ import path from 'path'
 
 // get all routes from examples/src/examples folder
 const examplesFolderList = fs.readdirSync(path.join(__dirname, '../../src/examples'))
-const examplesWithoutCanvas = ['image-component']
+const examplesWithoutCanvas = ['image-component', 'yjs']
 const exampelsToTest = examplesFolderList.filter((route) => !examplesWithoutCanvas.includes(route))
 
 test.describe('Routes', () => {
