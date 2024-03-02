@@ -10,11 +10,7 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowShape,
-	TLArrowShapeArrowheadStyle,
 	TLArrowShapeProps,
-	TLDefaultColorStyle,
-	TLDefaultColorTheme,
-	TLDefaultFillStyle,
 	TLHandle,
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
@@ -36,8 +32,8 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
-import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
+import { createTextSvgStringFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
@@ -45,8 +41,9 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { getSvgFromString } from '../shared/svgs'
 import { getArrowLabelPosition } from './arrowLabel'
-import { getArrowheadPathForType } from './arrowheads'
+import { getArrowheadMaskPathForType, getArrowheadPathForType } from './arrowheads'
 import {
 	getCurvedArrowHandlePath,
 	getSolidCurvedArrowPath,
@@ -840,231 +837,154 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
+		const { text, font, dash, fill, size, arrowheadEnd, arrowheadStart } = shape.props
+
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
-		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
+		ctx.addExportDef(getFillDefForExport(fill, theme))
 
 		const color = theme[shape.props.color].solid
+		const labelColor = theme[shape.props.labelColor].solid
+		const strokeWidth = STROKE_SIZES[size]
 
 		const info = this.editor.getArrowInfo(shape)
-
-		const strokeWidth = STROKE_SIZES[shape.props.size]
-
-		// Group for arrow
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-		if (!info) return g
-
-		// Arrowhead start path
-		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
-		// Arrowhead end path
-		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const bounds = geometry.bounds
-
-		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
+		if (!info) return null
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
 
-		// If we have any arrowheads, then mask the arrowheads
-		if (as || ae || !!labelGeometry) {
-			// Create mask for arrowheads
+		let labelMaskString = ''
+		let arrowheadStartString = ''
+		let arrowheadStartMaskString = ''
 
-			// Create defs
-			const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+		let arrowheadEndString = ''
+		let arrowheadEndMaskString = ''
 
-			// Create mask
-			const mask = document.createElementNS('http://www.w3.org/2000/svg', 'mask')
-			mask.id = maskId
+		let bigEnoughSquare = ''
+		let bigEnoughMaskSquare = ''
 
-			// Create large white shape for mask
-			const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-			rect.setAttribute('x', bounds.minX - 100 + '')
-			rect.setAttribute('y', bounds.minY - 100 + '')
-			rect.setAttribute('width', bounds.width + 200 + '')
-			rect.setAttribute('height', bounds.height + 200 + '')
-			rect.setAttribute('fill', 'white')
-			mask.appendChild(rect)
-
-			// add arrowhead start mask
-			if (as) mask.appendChild(getArrowheadSvgMask(as, info.start.arrowhead))
-
-			// add arrowhead end mask
-			if (ae) mask.appendChild(getArrowheadSvgMask(ae, info.end.arrowhead))
-
-			// Mask out text label if text is present
-			if (labelGeometry) {
-				const labelMask = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-				labelMask.setAttribute('x', labelGeometry.x + '')
-				labelMask.setAttribute('y', labelGeometry.y + '')
-				labelMask.setAttribute('width', labelGeometry.w + '')
-				labelMask.setAttribute('height', labelGeometry.h + '')
-				labelMask.setAttribute('fill', 'black')
-
-				mask.appendChild(labelMask)
+		if (fill !== 'none') {
+			const maskStartD = getArrowheadMaskPathForType(info, 'start', strokeWidth)
+			if (maskStartD) {
+				arrowheadStartMaskString = `<path aria-label="start-mask" d="${maskStartD}" fill="black" stroke="none"/>`
 			}
-
-			defs.appendChild(mask)
-			g.appendChild(defs)
+		}
+		const pathStartD = getArrowheadPathForType(info, 'start', strokeWidth)
+		if (pathStartD) {
+			arrowheadStartString = `<path aria-label="start-path" d="${pathStartD}" fill="${!fill || arrowheadStart === 'arrow' ? 'none' : theme[shape.props.color].semi}" stroke="${color}" stroke-width="${strokeWidth}"/>`
 		}
 
-		const g2 = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-		g2.setAttribute('mask', `url(#${maskId})`)
-		g.appendChild(g2)
+		// add arrowhead end mask
+		if (fill !== 'none') {
+			const maskEndD = getArrowheadMaskPathForType(info, 'end', strokeWidth)
+			if (maskEndD) {
+				arrowheadEndMaskString = `<path aria-label="end-mask" d="${maskEndD}" fill="black" stroke="none"/>`
+			}
+		}
+		const pathEndD = getArrowheadPathForType(info, 'end', strokeWidth)
+		if (pathEndD) {
+			arrowheadEndString = `<path aria-label="end-path" d="${pathEndD}" fill="${!fill || arrowheadEnd === 'arrow' ? 'none' : theme[shape.props.color].semi}" stroke="${color}" stroke-width="${strokeWidth}"/>`
+		}
 
-		// Dumb mask fix thing
-		const rect2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect2.setAttribute('x', '-100')
-		rect2.setAttribute('y', '-100')
-		rect2.setAttribute('width', bounds.width + 200 + '')
-		rect2.setAttribute('height', bounds.height + 200 + '')
-		rect2.setAttribute('fill', 'transparent')
-		rect2.setAttribute('stroke', 'none')
-		g2.appendChild(rect2)
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+		const { bounds } = geometry
+
+		// Label
+		const labelGeometry = text.trim() ? (geometry.children[1] as Rectangle2d) : null
+		if (labelGeometry) {
+			const { x, y, w, h } = labelGeometry
+			const t = Math.min(y, bounds.minY - 100)
+			const r = Math.max(x + w, bounds.maxX + 100)
+			const b = Math.max(y + h, bounds.maxY + 100)
+			const l = Math.min(x - 100, bounds.minX - 100)
+
+			bigEnoughMaskSquare = `<rect x="${bounds.minX - 100}" y="${bounds.minY - 100}" width="${bounds.width + 200}" height="${bounds.height + 200}" fill="white" />`
+			labelMaskString = `<rect aria-label="label-mask" x="${x}px" y="${y}px" width="${w}px" height="${h}px" fill="black"/>`
+			bigEnoughSquare = `<rect x="${l}" y="${t}" width="${r - l}" height="${b - t}" fill="transparent" />`
+		} else {
+			bigEnoughSquare = `<rect x="${bounds.minY - 100}" y="${bounds.minX - 100}" width="${bounds.width + 200}" height="${bounds.height + 200}" fill="transparent" />`
+		}
+
+		let defMaskString = ''
+
+		if (
+			labelMaskString ||
+			bigEnoughMaskSquare ||
+			arrowheadStartMaskString ||
+			arrowheadEndMaskString
+		) {
+			defMaskString = `
+			<defs>
+				<mask id="${maskId}">
+					${arrowheadStartMaskString}
+					${arrowheadEndMaskString}
+					${bigEnoughMaskSquare}
+					${labelMaskString}
+				</mask>
+			</defs>`
+		}
 
 		// Arrowhead body path
-		const path = getArrowSvgPath(
-			info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info),
-			color,
-			strokeWidth
-		)
-
 		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 			info.isStraight ? info.length : Math.abs(info.bodyArc.length),
 			strokeWidth,
-			{
-				style: shape.props.dash,
-			}
+			{ style: dash }
 		)
-
-		path.setAttribute('stroke-dasharray', strokeDasharray)
-		path.setAttribute('stroke-dashoffset', strokeDashoffset)
-
-		g2.appendChild(path)
-
-		// Arrowhead start path
-		if (as) {
-			g.appendChild(
-				getArrowheadSvgPath(
-					as,
-					shape.props.color,
-					strokeWidth,
-					shape.props.arrowheadStart === 'arrow' ? 'none' : shape.props.fill,
-					theme
-				)
-			)
-		}
-		// Arrowhead end path
-		if (ae) {
-			g.appendChild(
-				getArrowheadSvgPath(
-					ae,
-					shape.props.color,
-					strokeWidth,
-					shape.props.arrowheadEnd === 'arrow' ? 'none' : shape.props.fill,
-					theme
-				)
-			)
-		}
+		const bodyString = `<path aria-label="body" d="${info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}"/>`
 
 		// Text Label
+		let labelString = ''
 		if (labelGeometry) {
-			ctx.addExportDef(getFontDefForExport(shape.props.font))
+			ctx.addExportDef(getFontDefForExport(font))
 
 			const opts = {
-				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+				fontSize: ARROW_LABEL_FONT_SIZES[size],
 				lineHeight: TEXT_PROPS.lineHeight,
-				fontFamily: DefaultFontFamilies[shape.props.font],
+				fontFamily: DefaultFontFamilies[font],
 				padding: 0,
 				textAlign: 'middle' as const,
 				width: labelGeometry.w - 8,
-				verticalTextAlign: 'middle' as const,
 				height: labelGeometry.h,
+				verticalTextAlign: 'middle' as const,
 				fontStyle: 'normal',
 				fontWeight: 'normal',
 				overflow: 'wrap' as const,
 			}
 
-			const textElm = createTextSvgElementFromSpans(
-				this.editor,
-				this.editor.textMeasure.measureTextSpans(shape.props.text, opts),
-				opts
-			)
-			textElm.setAttribute('fill', theme[shape.props.labelColor].solid)
+			const spansSize = this.editor.textMeasure.measureTextSpans(text, opts)
 
-			const children = Array.from(textElm.children) as unknown as SVGTSpanElement[]
-
-			children.forEach((child) => {
-				const x = parseFloat(child.getAttribute('x') || '0')
-				const y = parseFloat(child.getAttribute('y') || '0')
-
-				child.setAttribute('x', x + 4 + labelGeometry.x + 'px')
-				child.setAttribute('y', y + labelGeometry.y + 'px')
+			const textBgEl = createTextSvgStringFromSpans(spansSize, {
+				...opts,
+				fill: theme.background,
+				stroke: theme.background,
+				strokeWidth: 2,
 			})
 
-			const textBgEl = textElm.cloneNode(true) as SVGTextElement
-			textBgEl.setAttribute('stroke-width', '2')
-			textBgEl.setAttribute('fill', theme.background)
-			textBgEl.setAttribute('stroke', theme.background)
+			const textElm = createTextSvgStringFromSpans(spansSize, {
+				...opts,
+				fill: labelColor,
+				offsetX: 4 + labelGeometry.x,
+				offsetY: 0,
+			})
 
-			g.appendChild(textBgEl)
-			g.appendChild(textElm)
+			labelString = `<g aria-label="label" transform="translate(${4 + labelGeometry.x}, ${labelGeometry.y})">${textBgEl}${textElm}</g>`
 		}
 
-		return g
+		const result = `
+			<g>
+				${defMaskString}
+				<g mask="url(#${maskId})">
+					${bodyString}
+					${bigEnoughSquare}
+				</g>
+				${arrowheadStartString}
+				${arrowheadEndString}
+				${labelString}
+			</g>
+		`
+		return getSvgFromString(result)
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [getFillDefForCanvas()]
-	}
-}
-
-function getArrowheadSvgMask(d: string, arrowhead: TLArrowShapeArrowheadStyle) {
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', d)
-	path.setAttribute('fill', arrowhead === 'arrow' ? 'none' : 'black')
-	path.setAttribute('stroke', 'none')
-	return path
-}
-
-function getArrowSvgPath(d: string, color: string, strokeWidth: number) {
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', d)
-	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', color)
-	path.setAttribute('stroke-width', strokeWidth + '')
-	return path
-}
-
-function getArrowheadSvgPath(
-	d: string,
-	color: TLDefaultColorStyle,
-	strokeWidth: number,
-	fill: TLDefaultFillStyle,
-	theme: TLDefaultColorTheme
-) {
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', d)
-	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', theme[color].solid)
-	path.setAttribute('stroke-width', strokeWidth + '')
-
-	// Get the fill element, if any
-	const shapeFill = getShapeFillSvg({
-		d,
-		fill,
-		color,
-		theme,
-	})
-
-	if (shapeFill) {
-		// If there is a fill element, return a group containing the fill and the path
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-		g.appendChild(shapeFill)
-		g.appendChild(path)
-		return g
-	} else {
-		// Otherwise, just return the path
-		return path
 	}
 }
 

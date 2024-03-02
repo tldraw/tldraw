@@ -8088,6 +8088,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bbox = maskedPageBounds.clone()
 				}
 			}
+			// ensure box is at least 32x32 unless otherwise specified
+			if (bbox) {
+				const diffX = bbox.w - 32
+				const diffY = bbox.h - 32
+				if (diffX < 0) {
+					bbox.x += diffX / 2
+					bbox.w -= diffX
+				}
+				if (diffY < 0) {
+					bbox.y += diffY / 2
+					bbox.h -= diffY
+				}
+			}
 		}
 
 		// no unmasked shapes to export

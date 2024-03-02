@@ -134,5 +134,31 @@ export function getArrowheadPathForType(
 			return getTriangleHead(points)
 	}
 
-	return ''
+	return
+}
+
+/** @public */
+export function getArrowheadMaskPathForType(
+	info: TLArrowInfo,
+	side: 'start' | 'end',
+	strokeWidth: number
+): string | undefined {
+	const type = side === 'end' ? info.end.arrowhead : info.start.arrowhead
+	if (type === 'none') return
+
+	const points = getArrowPoints(info, side, strokeWidth)
+	if (!points) return
+
+	switch (type) {
+		case 'square':
+			return getSquareHead(points)
+		case 'diamond':
+			return getDiamondHead(points)
+		case 'dot':
+			return getDotHead(points)
+		case 'triangle':
+			return getTriangleHead(points)
+	}
+
+	return
 }
