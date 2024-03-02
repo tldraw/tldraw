@@ -457,7 +457,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         isPen: Validator<boolean>;
     };
     // (undocumented)
-    toSvg(shape: TLDrawShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLDrawShape, ctx: SvgExportContext): HTMLElement;
     // (undocumented)
     static type: "draw";
 }
@@ -765,7 +765,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         text: Validator<string>;
     };
     // (undocumented)
-    toSvg(shape: TLGeoShape, ctx: SvgExportContext): SVGElement;
+    toSvg(shape: TLGeoShape, ctx: SvgExportContext): HTMLElement;
     // (undocumented)
     static type: "geo";
 }
@@ -1103,7 +1103,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         text: Validator<string>;
     };
     // (undocumented)
-    toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLNoteShape, ctx: SvgExportContext): HTMLElement;
     // (undocumented)
     static type: "note";
 }
@@ -1318,7 +1318,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         autoSize: Validator<boolean>;
     };
     // (undocumented)
-    toSvg(shape: TLTextShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLTextShape, ctx: SvgExportContext): HTMLElement;
     // (undocumented)
     static type: "text";
 }

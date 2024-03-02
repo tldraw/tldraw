@@ -14,9 +14,10 @@ import {
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { TextLabel } from '../shared/TextLabel'
+import { createTextSvgStringFromSpans } from '../shared/createTextSvgStringFromSpans'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
-import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
+import { getSvgFromString } from '../shared/svgs'
 
 const NOTE_SIZE = 200
 
@@ -114,40 +115,29 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
 		const adjustedColor = shape.props.color === 'black' ? 'yellow' : shape.props.color
 
-		const rect1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect1.setAttribute('rx', '10')
-		rect1.setAttribute('width', NOTE_SIZE.toString())
-		rect1.setAttribute('height', bounds.height.toString())
-		rect1.setAttribute('fill', theme[adjustedColor].solid)
-		rect1.setAttribute('stroke', theme[adjustedColor].solid)
-		rect1.setAttribute('stroke-width', '1')
-		g.appendChild(rect1)
+		const rect1 = `<rect rx="10" width="${NOTE_SIZE}" height="${bounds.height}" fill="${theme[adjustedColor].solid}" stroke="${theme[adjustedColor].solid}" stroke-width="1" />`
+		const rect2 = `<rect rx="10" width="${NOTE_SIZE}" height="${bounds.height}" fill="${theme.background}" opacity=".28" />`
 
-		const rect2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect2.setAttribute('rx', '10')
-		rect2.setAttribute('width', NOTE_SIZE.toString())
-		rect2.setAttribute('height', bounds.height.toString())
-		rect2.setAttribute('fill', theme.background)
-		rect2.setAttribute('opacity', '.28')
-		g.appendChild(rect2)
+		const opts = {
+			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			fontFamily: DefaultFontFamilies[shape.props.font],
+			textAlign: shape.props.align,
+			verticalTextAlign: shape.props.verticalAlign,
+			width: Math.ceil(bounds.width),
+			height: Math.ceil(bounds.height),
+			padding: 16,
+			lineHeight: TEXT_PROPS.lineHeight,
+			fontStyle: 'normal',
+			fontWeight: 'normal',
+			overflow: 'wrap' as const,
+			offsetX: 0,
+		}
 
-		const textElm = getTextLabelSvgElement({
-			editor: this.editor,
-			shape,
-			font: DefaultFontFamilies[shape.props.font],
-			bounds,
-		})
-
-		textElm.setAttribute('fill', theme.text)
-		textElm.setAttribute('stroke', 'none')
-		g.appendChild(textElm)
-
-		return g
+		const spans = this.editor.textMeasure.measureTextSpans(shape.props.text, opts)
+		const textString = createTextSvgStringFromSpans(spans, { ...opts, fill: theme.text })
+		return getSvgFromString(`<g>${rect1}${rect2}${textString}</g>`)
 	}
 
 	override onBeforeCreate = (next: TLNoteShape) => {

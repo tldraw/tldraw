@@ -5,7 +5,7 @@ export function getLegacyOffsetX(
 	padding: number,
 	spans: { text: string; box: BoxModel }[],
 	totalWidth: number
-): number | undefined {
+): number {
 	if ((align === 'start-legacy' || align === 'end-legacy') && spans.length !== 0) {
 		const spansBounds = Box.From(spans[0].box)
 		for (const { box } of spans) {
@@ -17,6 +17,8 @@ export function getLegacyOffsetX(
 			return -(totalWidth - 2 * padding - spansBounds.width) / 2
 		}
 	}
+
+	return 0
 }
 
 // sneaky TLDefaultHorizontalAlignStyle for legacies

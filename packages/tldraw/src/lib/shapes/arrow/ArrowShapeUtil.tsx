@@ -33,7 +33,7 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
-import { createTextSvgStringFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { createTextSvgStringFromSpans } from '../shared/createTextSvgStringFromSpans'
 import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
@@ -955,6 +955,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				...opts,
 				fill: theme.background,
 				stroke: theme.background,
+				offsetX: 4 + labelGeometry.x,
+				offsetY: labelGeometry.y,
 				strokeWidth: 2,
 			})
 
@@ -962,10 +964,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				...opts,
 				fill: labelColor,
 				offsetX: 4 + labelGeometry.x,
-				offsetY: 0,
+				offsetY: labelGeometry.y,
 			})
 
-			labelString = `<g transform="translate(${4 + labelGeometry.x}, ${labelGeometry.y})">${textBgEl}${textElm}</g>`
+			labelString = `<g>${textBgEl}${textElm}</g>`
 		}
 
 		const result = `

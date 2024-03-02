@@ -4804,8 +4804,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "HTMLElement",
+                  "canonicalReference": "!HTMLElement:interface"
                 },
                 {
                   "kind": "Content",
@@ -8393,8 +8393,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "HTMLElement",
+                  "canonicalReference": "!HTMLElement:interface"
                 },
                 {
                   "kind": "Content",
@@ -12827,8 +12827,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "HTMLElement",
+                  "canonicalReference": "!HTMLElement:interface"
                 },
                 {
                   "kind": "Content",
@@ -15224,8 +15224,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "HTMLElement",
+                  "canonicalReference": "!HTMLElement:interface"
                 },
                 {
                   "kind": "Content",

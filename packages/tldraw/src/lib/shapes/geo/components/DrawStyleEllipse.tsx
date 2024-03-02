@@ -2,7 +2,6 @@ import {
 	EASINGS,
 	HALF_PI,
 	PI2,
-	TLDefaultColorTheme,
 	TLGeoShape,
 	TLShapeId,
 	Vec,
@@ -12,12 +11,7 @@ import {
 } from '@tldraw/editor'
 
 import * as React from 'react'
-import {
-	ShapeFill,
-	getShapeFillSvg,
-	getSvgWithShapeFill,
-	useDefaultColorTheme,
-} from '../../shared/ShapeFill'
+import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
@@ -45,34 +39,6 @@ export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 		</>
 	)
 })
-
-export function DrawStyleEllipseSvg({
-	id,
-	w,
-	h,
-	strokeWidth: sw,
-	fill,
-	color,
-	theme,
-}: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
-	strokeWidth: number
-	id: TLShapeId
-	theme: TLDefaultColorTheme
-}) {
-	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	strokeElement.setAttribute('d', getEllipsePath(id, w, h, sw))
-	strokeElement.setAttribute('fill', theme[color].solid)
-
-	// Get the fill element, if any
-	const fillElement = getShapeFillSvg({
-		d: getEllipseIndicatorPath(id, w, h, sw),
-		fill,
-		color,
-		theme,
-	})
-
-	return getSvgWithShapeFill(strokeElement, fillElement)
-}
 
 export function getEllipseStrokeOptions(strokeWidth: number) {
 	return {

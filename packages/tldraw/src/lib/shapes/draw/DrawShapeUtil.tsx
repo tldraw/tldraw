@@ -20,7 +20,12 @@ import {
 	rng,
 	toFixed,
 } from '@tldraw/editor'
-import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
+import {
+	ShapeFill,
+	getShapeFillSvgString,
+	getSvgStringWithShapeFill,
+	useDefaultColorTheme,
+} from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
@@ -28,6 +33,7 @@ import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
+import { getSvgFromString } from '../shared/svgs'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -209,46 +215,24 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
 				: getDot(allPointsFromSegments[0], sw)
 
-		let foregroundPath: SVGPathElement | undefined
+		let strokePath = ''
 
 		if (shape.props.dash === 'draw' || strokePoints.length < 2) {
 			setStrokePointRadii(strokePoints, options)
 			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
-
-			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-			p.setAttribute('d', getSvgPathFromPoints(strokeOutlinePoints, true))
-			p.setAttribute('fill', theme[color].solid)
-			p.setAttribute('stroke-linecap', 'round')
-
-			foregroundPath = p
+			strokePath = `<path d="${getSvgPathFromPoints(strokeOutlinePoints, true)}" fill="${theme[color].solid}" stroke-linecap="round" />`
 		} else {
-			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-			p.setAttribute('d', solidStrokePath)
-			p.setAttribute('stroke', theme[color].solid)
-			p.setAttribute('fill', 'none')
-			p.setAttribute('stroke-linecap', 'round')
-			p.setAttribute('stroke-width', strokeWidth.toString())
-			p.setAttribute('stroke-dasharray', getDrawShapeStrokeDashArray(shape, strokeWidth))
-			p.setAttribute('stroke-dashoffset', '0')
-
-			foregroundPath = p
+			strokePath = `<path d="${solidStrokePath}" fill="none" stroke="${theme[color].solid}" stroke-width="${strokeWidth}" stroke-dasharray="${getDrawShapeStrokeDashArray(shape, strokeWidth)}" stroke-linecap="round"/>`
 		}
 
-		const fillPath = getShapeFillSvg({
+		const fillPath = getShapeFillSvgString({
 			fill: shape.props.isClosed ? shape.props.fill : 'none',
 			d: solidStrokePath,
 			color: shape.props.color,
 			theme,
 		})
 
-		if (fillPath) {
-			const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-			g.appendChild(fillPath)
-			g.appendChild(foregroundPath)
-			return g
-		}
-
-		return foregroundPath
+		return getSvgFromString(getSvgStringWithShapeFill(strokePath, fillPath))
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {

@@ -20,20 +20,6 @@ const textAlignmentsForLtr = {
 	'end-legacy': 'right',
 }
 
-type TLOverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
-type TLMeasureTextSpanOpts = {
-	overflow: TLOverflowMode
-	width: number
-	height: number
-	padding: number
-	fontSize: number
-	fontWeight: string
-	fontFamily: string
-	fontStyle: string
-	lineHeight: number
-	textAlign: TLDefaultHorizontalAlignStyle
-}
-
 const spaceCharacterRegex = /\s/
 
 export class TextManager {
@@ -191,7 +177,18 @@ export class TextManager {
 	 */
 	measureTextSpans(
 		textToMeasure: string,
-		opts: TLMeasureTextSpanOpts
+		opts: {
+			overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
+			width: number
+			height: number
+			padding: number
+			fontSize: number
+			fontWeight: string
+			fontFamily: string
+			fontStyle: string
+			lineHeight: number
+			textAlign: TLDefaultHorizontalAlignStyle
+		}
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 

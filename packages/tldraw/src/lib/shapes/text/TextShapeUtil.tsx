@@ -19,10 +19,11 @@ import {
 	toDomPrecision,
 	useEditor,
 } from '@tldraw/editor'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { createTextSvgStringFromSpans } from '../shared/createTextSvgStringFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
+import { getSvgFromString } from '../shared/svgs'
 import { useEditableText } from '../shared/useEditableText'
 
 const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
@@ -171,29 +172,21 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			overflow: 'wrap' as const,
 		}
 
-		const color = theme[shape.props.color].solid
-		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+		const spansSize = this.editor.textMeasure.measureTextSpans(text, opts)
+		const textBgEl = createTextSvgStringFromSpans(spansSize, {
+			...opts,
+			stroke: theme.background,
+			strokeWidth: 2,
+			fill: theme.background,
+		})
+		const textEl = createTextSvgStringFromSpans(spansSize, {
+			...opts,
+			fill: theme[shape.props.color].solid,
+		})
 
-		const textBgEl = createTextSvgElementFromSpans(
-			this.editor,
-			this.editor.textMeasure.measureTextSpans(text, opts),
-			{
-				...opts,
-				stroke: theme.background,
-				strokeWidth: 2,
-				fill: theme.background,
-				padding: 0,
-			}
-		)
+		const result = `<g>${textBgEl}${textEl}</g>`
 
-		const textElm = textBgEl.cloneNode(true) as SVGTextElement
-		textElm.setAttribute('fill', color)
-		textElm.setAttribute('stroke', 'none')
-
-		groupEl.append(textBgEl)
-		groupEl.append(textElm)
-
-		return groupEl
+		return getSvgFromString(result)
 	}
 
 	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {

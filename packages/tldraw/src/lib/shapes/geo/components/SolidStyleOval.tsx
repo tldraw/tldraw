@@ -1,11 +1,6 @@
-import { TLDefaultColorTheme, TLGeoShape } from '@tldraw/editor'
+import { TLGeoShape } from '@tldraw/editor'
 import * as React from 'react'
-import {
-	ShapeFill,
-	getShapeFillSvg,
-	getSvgWithShapeFill,
-	useDefaultColorTheme,
-} from '../../shared/ShapeFill'
+import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 
 export const SolidStyleOval = React.memo(function SolidStyleOval({
 	w,
@@ -25,37 +20,6 @@ export const SolidStyleOval = React.memo(function SolidStyleOval({
 		</>
 	)
 })
-
-export function SolidStyleOvalSvg({
-	w,
-	h,
-	strokeWidth: sw,
-	fill,
-	color,
-	theme,
-}: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
-	strokeWidth: number
-	theme: TLDefaultColorTheme
-}) {
-	const d = getOvalIndicatorPath(w, h)
-	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	strokeElement.setAttribute('d', d)
-	strokeElement.setAttribute('stroke-width', sw.toString())
-	strokeElement.setAttribute('width', w.toString())
-	strokeElement.setAttribute('height', h.toString())
-	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', theme[color].solid)
-
-	// Get the fill element, if any
-	const fillElement = getShapeFillSvg({
-		d,
-		fill,
-		color,
-		theme,
-	})
-
-	return getSvgWithShapeFill(strokeElement, fillElement)
-}
 
 export function getOvalIndicatorPath(w: number, h: number) {
 	let d: string

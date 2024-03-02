@@ -22,7 +22,7 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
-import { createTextSvgStringFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { createTextSvgStringFromSpans } from '../shared/createTextSvgStringFromSpans'
 import { getSvgFromString } from '../shared/svgs'
 import { FrameHeading } from './components/FrameHeading'
 

@@ -268,15 +268,6 @@ export function cloudSvgPath(
 	seed: string,
 	size: TLDefaultSizeStyle
 ) {
-	// const points = cloudOutline(width, height, seed, size)
-	// {
-	// 	let path = `M${toDomPrecision(points[0].x)},${toDomPrecision(points[0].y)}`
-	// 	for (const point of points.slice(1)) {
-	// 		path += ` L${toDomPrecision(point.x)},${toDomPrecision(point.y)}`
-	// 	}
-	// 	return path
-	// }
-
 	const arcs = getCloudArcs(width, height, seed, size)
 	let path = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`
 
