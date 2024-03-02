@@ -7200,6 +7200,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
                   "text": "Promise",
                   "canonicalReference": "!Promise:interface"
                 },
@@ -7209,17 +7218,12 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "Element",
+                  "canonicalReference": "!Element:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": "> | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": ">"
                 },
                 {
                   "kind": "Content",
@@ -7229,7 +7233,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 10
+                "endIndex": 11
               },
               "releaseTag": "Public",
               "isProtected": false,

@@ -616,7 +616,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
-    toSvg(shape: TLFrameShape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
+    toSvg(shape: TLFrameShape, ctx: SvgExportContext): Element | Promise<Element>;
     // (undocumented)
     static type: "frame";
 }

@@ -500,7 +500,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 				el.style.setProperty('overflow', 'visible')
 				el.setAttribute('preserveAspectRatio', 'xMidYMin slice')
 				el.style.setProperty('transform', `translate(${bb.x}px, ${bb.y + bb.h + 12}px)`)
-				el.style.setProperty('border', '1px solid black')
+				el.style.setProperty('border', '1px solid var(--color-low-border)')
 				setHtml(el?.outerHTML)
 			}
 		})
