@@ -2,8 +2,10 @@ import { default as React, useEffect } from 'react'
 import { Editor, MAX_ZOOM, MIN_ZOOM, TLPageId, debounce, react, useEditor } from 'tldraw'
 
 const PARAMS = {
+	// deprecated
 	viewport: 'viewport',
 	page: 'page',
+	// current
 	v: 'v',
 	p: 'p',
 } as const
