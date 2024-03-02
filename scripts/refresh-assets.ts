@@ -402,7 +402,7 @@ async function writeAssetDeclarationDTSFile() {
 }
 
 async function copyVersionToDotCom() {
-	const packageVersion = await import(join(REPO_ROOT, 'packages', 'tldraw', 'package.json')).then(
+	const packageVersion = await import('file://' + join(REPO_ROOT, 'packages', 'tldraw', 'package.json')).then(
 		(pkg) => pkg.version
 	)
 	const file = `export const version = '${packageVersion}'`
