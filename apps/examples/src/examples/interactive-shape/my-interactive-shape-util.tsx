@@ -88,7 +88,7 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 
 /* 
 This is a custom shape, for a more in-depth look at how to create a custom shape,
-check ur custom shape example. 
+see our custom shape example.
 
 [1]
 This is where we describe how our shape will render
