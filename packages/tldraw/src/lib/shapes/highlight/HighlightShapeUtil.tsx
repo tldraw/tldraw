@@ -23,6 +23,7 @@ import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoint
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { getSvgFromString } from '../shared/svgs'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useForceSolid } from '../shared/useForceSolid'
 
@@ -236,15 +237,9 @@ function highlighterToSvg(
 	theme: TLDefaultColorTheme
 ) {
 	const { solidStrokePath, sw } = getHighlightSvgPath(shape, strokeWidth, false)
-
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', solidStrokePath)
-	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', theme[shape.props.color].highlight.srgb)
-	path.setAttribute('stroke-width', `${sw}`)
-	path.setAttribute('opacity', `${opacity}`)
-
-	return path
+	return getSvgFromString(
+		`<path d="${solidStrokePath}" fill="none" stroke="${theme[shape.props.color].highlight.srgb}" stroke-width="${sw}" opacity="${opacity}" />`
+	)
 }
 
 function getStrokeWidth(shape: TLHighlightShape) {

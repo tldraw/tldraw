@@ -858,9 +858,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         isPen: Validator<boolean>;
     };
     // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape): SVGPathElement;
+    toBackgroundSvg(shape: TLHighlightShape): HTMLElement;
     // (undocumented)
-    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): SVGPathElement;
+    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): HTMLElement;
     // (undocumented)
     static type: "highlight";
 }
@@ -992,7 +992,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         }>;
     };
     // (undocumented)
-    toSvg(shape: TLLineShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLLineShape, ctx: SvgExportContext): HTMLElement;
     // (undocumented)
     static type: "line";
 }

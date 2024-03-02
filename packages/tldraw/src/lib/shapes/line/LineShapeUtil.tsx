@@ -26,6 +26,7 @@ import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getDrawLinePathData } from '../shared/polygon-helpers'
+import { getSvgFromString } from '../shared/svgs'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
 import {
 	getSvgPathForBezierCurve,
@@ -293,6 +294,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		const spline = getGeometryForLineShape(shape)
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 
+		let lineString: string
+
 		switch (shape.props.dash) {
 			case 'draw': {
 				let pathData: string
@@ -302,18 +305,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					const [_, outerPathData] = getDrawLinePathData(shape.id, spline.points, strokeWidth)
 					pathData = outerPathData
 				}
-
-				const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-				p.setAttribute('stroke-width', strokeWidth + 'px')
-				p.setAttribute('stroke', color)
-				p.setAttribute('fill', 'none')
-				p.setAttribute('d', pathData)
-
-				return p
+				lineString = `<path d="${pathData}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`
+				break
 			}
 			case 'solid': {
 				let pathData: string
-
 				if (spline instanceof CubicSpline2d) {
 					pathData = getSvgPathForCubicSpline(spline, false)
 				} else {
@@ -321,25 +317,17 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					pathData = 'M' + outline[0] + 'L' + outline.slice(1)
 				}
 
-				const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-				p.setAttribute('stroke-width', strokeWidth + 'px')
-				p.setAttribute('stroke', color)
-				p.setAttribute('fill', 'none')
-				p.setAttribute('d', pathData)
-
-				return p
+				lineString = `<path d="${pathData}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`
+				break
 			}
 			default: {
 				const { segments } = spline
 
-				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-				g.setAttribute('stroke', color)
-				g.setAttribute('stroke-width', strokeWidth.toString())
-
 				const fn = spline instanceof CubicSpline2d ? getSvgPathForBezierCurve : getSvgPathForEdge
 
+				const lines: string[] = []
+
 				segments.forEach((segment, i) => {
-					const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 					const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 						segment.length,
 						strokeWidth,
@@ -350,16 +338,16 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						}
 					)
 
-					path.setAttribute('stroke-dasharray', strokeDasharray.toString())
-					path.setAttribute('stroke-dashoffset', strokeDashoffset.toString())
-					path.setAttribute('d', fn(segment as any, true))
-					path.setAttribute('fill', 'none')
-					g.appendChild(path)
+					lines.push(
+						`<path d="${fn(segment as any, true)}" fill="none" stroke="${color}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}"/>`
+					)
 				})
 
-				return g
+				lineString = `<g stroke="${color}" stroke-width="${strokeWidth}" fill="none">${lines.join('')}</g>`
 			}
 		}
+
+		return getSvgFromString(lineString)
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
