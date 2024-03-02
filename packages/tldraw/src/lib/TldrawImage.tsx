@@ -119,7 +119,6 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 
 			if (svg && !isCancelled) {
 				if (format === 'svg') {
-					console.log('heello')
 					const string = await getSvgAsString(svg)
 					if (!isCancelled) {
 						const blob = new Blob([string], { type: 'image/svg+xml' })
