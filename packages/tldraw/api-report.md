@@ -231,7 +231,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         labelPosition: Validator<number>;
     };
     // (undocumented)
-    toSvg(shape: TLArrowShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLArrowShape, ctx: SvgExportContext): HTMLElement | null;
     // (undocumented)
     static type: "arrow";
 }

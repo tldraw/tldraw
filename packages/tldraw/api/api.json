@@ -1640,8 +1640,12 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "HTMLElement",
+                  "canonicalReference": "!HTMLElement:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
                 },
                 {
                   "kind": "Content",
@@ -1651,7 +1655,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,

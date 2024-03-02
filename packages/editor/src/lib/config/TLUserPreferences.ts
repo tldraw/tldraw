@@ -240,18 +240,24 @@ const channel =
 
 channel?.addEventListener('message', (e) => {
 	const data = e.data as undefined | UserChangeBroadcastMessage
-	if (data?.type === broadcastEventKey && data?.origin !== broadcastOrigin) {
+	if (data?.type === broadcastEventKey && data?.origin !== getBroadcastOrigin()) {
 		globalUserPreferences.set(migrateUserPreferences(data.data))
 	}
 })
 
-const broadcastOrigin = uniqueId()
+let _broadcastOrigin = null as null | string
+function getBroadcastOrigin() {
+	if (_broadcastOrigin === null) {
+		_broadcastOrigin = uniqueId()
+	}
+	return _broadcastOrigin
+}
 const broadcastEventKey = 'tldraw-user-preferences-change' as const
 
 function broadcastUserPreferencesChange() {
 	channel?.postMessage({
 		type: broadcastEventKey,
-		origin: broadcastOrigin,
+		origin: getBroadcastOrigin(),
 		data: {
 			user: getUserPreferences(),
 			version: userMigrations.currentVersion,

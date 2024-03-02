@@ -37,6 +37,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	component(shape: TLVideoShape) {
 		const { editor } = this
 		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
+
 		const { time, playing, assetId } = shape.props
 
 		const asset = assetId ? editor.getAsset(assetId) : null
@@ -147,36 +148,41 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		return (
 			<>
-				<HTMLContainer id={shape.id}>
-					<div className="tl-counter-scaled">
-						{asset?.props.src ? (
-							<video
-								ref={rVideo}
-								style={isEditing ? { pointerEvents: 'all' } : undefined}
-								id={`video-${shape.id.split(':')[1]}`}
-								className={`tl-video`}
-								width="100%"
-								height="100%"
-								draggable={false}
-								playsInline
-								autoPlay
-								muted
-								loop
-								disableRemotePlayback
-								disablePictureInPicture
-								controls={isEditing && showControls}
-								onPlay={handlePlay}
-								onPause={handlePause}
-								onTimeUpdate={handleSetCurrentTime}
-								onLoadedData={handleLoadedData}
-								hidden={!isLoaded}
-							>
-								<source src={asset.props.src} />
-							</video>
-						) : (
-							<BrokenAssetIcon />
-						)}
-					</div>
+				<HTMLContainer
+					id={shape.id}
+					className="tl-video-container tl-counter-scaled"
+					style={{
+						color: 'var(--color-text-3)',
+						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
+						border: asset ? 'none' : '1px solid var(--color-low-border)',
+					}}
+				>
+					{asset?.props.src ? (
+						<video
+							ref={rVideo}
+							style={isEditing ? { pointerEvents: 'all' } : undefined}
+							className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
+							width="100%"
+							height="100%"
+							draggable={false}
+							playsInline
+							autoPlay
+							muted
+							loop
+							disableRemotePlayback
+							disablePictureInPicture
+							controls={isEditing && showControls}
+							onPlay={handlePlay}
+							onPause={handlePause}
+							onTimeUpdate={handleSetCurrentTime}
+							onLoadedData={handleLoadedData}
+							hidden={!isLoaded}
+						>
+							<source src={asset.props.src} />
+						</video>
+					) : (
+						<BrokenAssetIcon />
+					)}
 				</HTMLContainer>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />

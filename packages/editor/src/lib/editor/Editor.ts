@@ -1661,6 +1661,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		return 0
 	}
+
 	/**
 	 * The bounds of the selection bounding box in the current page space.
 	 *
@@ -1699,6 +1700,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
 		return boxFromRotatedVertices
+	}
+
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed getSelectionRotatedScreenBounds(): Box | undefined {
+		const bounds = this.getSelectionRotatedPageBounds()
+		if (!bounds) return undefined
+		const { x, y } = this.pageToScreen(bounds.point)
+		const zoom = this.getZoomLevel()
+		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
 	// Focus Group
@@ -2848,7 +2863,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	pageToScreen(point: VecLike) {
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+		const screenBounds = this.getViewportScreenBounds()
 		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 
 		return {
