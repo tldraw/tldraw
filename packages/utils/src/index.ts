@@ -23,7 +23,7 @@ export { noop, omitFromStackTrace, throttle } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
-export { getFromLocalStorage, setInLocalStorage } from './lib/local-storage'
+export { deleteFromLocalStorage, getFromLocalStorage, setInLocalStorage } from './lib/local-storage'
 export { MediaHelpers } from './lib/media'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
@@ -53,6 +53,11 @@ export {
 	sortByIndex,
 	validateIndexKey,
 } from './lib/reordering/reordering'
+export {
+	deleteFromSessionStorage,
+	getFromSessionStorage,
+	setInSessionStorage,
+} from './lib/session-storage'
 export { sortById } from './lib/sort'
 export type { Expand, RecursivePartial, Required } from './lib/types'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'

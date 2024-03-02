@@ -29,3 +29,16 @@ export function setInLocalStorage(key: string, value: any) {
 	// eslint-disable-next-line no-storage/no-browser-storage
 	localStorage.setItem(key, JSON.stringify(value))
 }
+
+/**
+ * Remove a value from local storage. Will not throw an error if localStorage is not available.
+ *
+ * @param key - The key to set.
+ *
+ * @public
+ */
+export function deleteFromLocalStorage(key: string) {
+	if (!hasLocalStorage) return
+	// eslint-disable-next-line no-storage/no-browser-storage
+	localStorage.removeItem(key)
+}

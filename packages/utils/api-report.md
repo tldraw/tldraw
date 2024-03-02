@@ -34,6 +34,12 @@ export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[]
 // @public
 export function deepCopy<T = unknown>(obj: T): T;
 
+// @public
+export function deleteFromLocalStorage(key: string): void;
+
+// @public
+export function deleteFromSessionStorage(key: string): void;
+
 // @public (undocumented)
 export type ErrorResult<E> = {
     readonly ok: false;
@@ -70,6 +76,9 @@ export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
 // @public
 export function getFromLocalStorage(key: string, defaultValue?: null): any;
+
+// @public
+export function getFromSessionStorage(key: string, defaultValue?: null): any;
 
 // @public
 export function getHashForBuffer(buffer: ArrayBuffer): string;
@@ -278,6 +287,9 @@ export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public
 export function setInLocalStorage(key: string, value: any): void;
+
+// @public
+export function setInSessionStorage(key: string, value: any): void;
 
 // @public (undocumented)
 export function sortById<T extends {

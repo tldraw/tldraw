@@ -1,7 +1,7 @@
 import { atom } from '@tldraw/state'
 import { defineMigrations, migrate } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
-import { setInLocalStorage } from '@tldraw/utils'
+import { getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { uniqueId } from '../utils/uniqueId'
 
@@ -204,7 +204,7 @@ function loadUserPreferences(): TLUserPreferences {
 	const userData =
 		typeof window === 'undefined'
 			? null
-			: ((JSON.parse(window?.localStorage?.getItem(USER_DATA_KEY) || 'null') ??
+			: ((JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null') ??
 					null) as null | UserDataSnapshot)
 
 	return migrateUserPreferences(userData)

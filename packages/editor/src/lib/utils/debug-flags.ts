@@ -1,4 +1,5 @@
 import { Atom, atom, react } from '@tldraw/state'
+import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } from '@tldraw/utils'
 
 // --- 1. DEFINE ---
 //
@@ -128,9 +129,9 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 				const currentValue = valueAtom.get()
 				try {
 					if (currentValue === defaultValue) {
-						window.sessionStorage.removeItem(`tldraw_debug:${def.name}`)
+						deleteFromSessionStorage(`tldraw_debug:${def.name}`)
 					} else {
-						window.sessionStorage.setItem(`tldraw_debug:${def.name}`, JSON.stringify(currentValue))
+						setInSessionStorage(`tldraw_debug:${def.name}`, JSON.stringify(currentValue))
 					}
 				} catch {
 					// not a big deal
@@ -154,7 +155,7 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 
 function getStoredInitialValue(name: string) {
 	try {
-		return JSON.parse(window?.sessionStorage.getItem(`tldraw_debug:${name}`) ?? 'null')
+		return JSON.parse(getFromSessionStorage(`tldraw_debug:${name}`) ?? 'null')
 	} catch (err) {
 		return null
 	}

@@ -424,6 +424,96 @@
           "name": "deepCopy"
         },
         {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/utils!deleteFromLocalStorage:function(1)",
+          "docComment": "/**\n * Remove a value from local storage. Will not throw an error if localStorage is not available.\n *\n * @param key - The key to set.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function deleteFromLocalStorage(key: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/local-storage.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "key",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "deleteFromLocalStorage"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/utils!deleteFromSessionStorage:function(1)",
+          "docComment": "/**\n * Remove a value from session storage. Will not throw an error if sessionStorage is not available.\n *\n * @param key - The key to set.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function deleteFromSessionStorage(key: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/session-storage.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "key",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "deleteFromSessionStorage"
+        },
+        {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/utils!ErrorResult:type",
           "docComment": "/**\n * @public\n */\n",
@@ -714,6 +804,67 @@
             }
           ],
           "name": "getFromLocalStorage"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/utils!getFromSessionStorage:function(1)",
+          "docComment": "/**\n * Get a value from session storage.\n *\n * @param key - The key to get.\n *\n * @param defaultValue - The default value to return if the key is not found or if session storage is not available.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function getFromSessionStorage(key: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", defaultValue?: "
+            },
+            {
+              "kind": "Content",
+              "text": "null"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/session-storage.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "key",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "defaultValue",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "getFromSessionStorage"
         },
         {
           "kind": "Function",
@@ -3182,6 +3333,67 @@
             }
           ],
           "name": "setInLocalStorage"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/utils!setInSessionStorage:function(1)",
+          "docComment": "/**\n * Set a value in session storage. Will not throw an error if sessionStorage is not available.\n *\n * @param key - The key to set.\n *\n * @param value - The value to set.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function setInSessionStorage(key: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", value: "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/session-storage.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "key",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "value",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "setInSessionStorage"
         },
         {
           "kind": "Function",
