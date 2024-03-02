@@ -68,7 +68,7 @@ export function getFillDefForExport(
 				<svg>
 					<defs>
 						<mask id="hash_pattern_mask">
-							<rect x="0" y="0" width="8" height="8" fill="white" />
+							<rect xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="8" height="8" fill="white" />
 							<g
 								strokeLinecap="round"
 								stroke="black"
@@ -84,7 +84,7 @@ export function getFillDefForExport(
 							height="8"
 							patternUnits="userSpaceOnUse"
 						>
-							<rect x="0" y="0" width="8" height="8" fill="${theme.solid}" mask="url(#hash_pattern_mask)" />
+							<rect xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="8" height="8" fill="${theme.solid}" mask="url(#hash_pattern_mask)" />
 						</pattern>
 					</defs>
 				</svg>

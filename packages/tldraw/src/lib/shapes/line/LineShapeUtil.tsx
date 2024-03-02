@@ -305,7 +305,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					const [_, outerPathData] = getDrawLinePathData(shape.id, spline.points, strokeWidth)
 					pathData = outerPathData
 				}
-				lineString = `<path d="${pathData}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`
+				lineString = `<path xmlns="http://www.w3.org/2000/svg" d="${pathData}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`
 				break
 			}
 			case 'solid': {
@@ -317,7 +317,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					pathData = 'M' + outline[0] + 'L' + outline.slice(1)
 				}
 
-				lineString = `<path d="${pathData}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`
+				lineString = `<path xmlns="http://www.w3.org/2000/svg" d="${pathData}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`
 				break
 			}
 			default: {
@@ -339,7 +339,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					)
 
 					lines.push(
-						`<path d="${fn(segment as any, true)}" fill="none" stroke="${color}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}"/>`
+						`<path xmlns="http://www.w3.org/2000/svg" d="${fn(segment as any, true)}" fill="none" stroke="${color}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}"/>`
 					)
 				})
 

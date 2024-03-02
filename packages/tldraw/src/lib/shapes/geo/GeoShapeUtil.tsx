@@ -668,12 +668,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				strokeWidth: 2,
 			})
 
-			labelString = `<g>${textBgElm}${textElm}</g>`
+			labelString = `<g xmlns="http://www.w3.org/2000/svg">${textBgElm}${textElm}</g>`
 		}
 
 		const result =
 			labelString && shapeString
-				? `<g>${shapeString}${labelString}</g>`
+				? `<g xmlns="http://www.w3.org/2000/svg">${shapeString}${labelString}</g>`
 				: shapeString || labelString
 
 		return getSvgFromString(result)

@@ -157,13 +157,13 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 			labelString = `
 			<g style="transform: ${labelTranslate};">
-				<rect x="-8" y="0" width="${labelTextWidth + 16}" height="${opts.height}" rx="4" ry="4" fill="${theme.background}" />
+				<rect xmlns="http://www.w3.org/2000/svg" x="-8" y="0" width="${labelTextWidth + 16}" height="${opts.height}" rx="4" ry="4" fill="${theme.background}" />
 				${createTextSvgStringFromSpans(spans, opts)}
 			</g>`
 		}
 
-		const result = `<g>
-			<rect width="${shape.props.w}" height="${shape.props.h}" fill="${theme.solid}" stroke="${theme.black.solid}" stroke-width="1" rx="1" ry="1"/>
+		const result = `<g xmlns="http://www.w3.org/2000/svg">
+			<rect xmlns="http://www.w3.org/2000/svg" width="${shape.props.w}" height="${shape.props.h}" fill="${theme.solid}" stroke="${theme.black.solid}" stroke-width="1" rx="1" ry="1"/>
 			${labelString}
 		</g>`
 

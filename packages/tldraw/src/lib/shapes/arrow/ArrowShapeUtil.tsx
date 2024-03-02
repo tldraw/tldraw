@@ -864,24 +864,24 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (fill !== 'none') {
 			const maskStartD = getArrowheadMaskPathForType(info, 'start', strokeWidth)
 			if (maskStartD) {
-				arrowheadStartMaskString = `<path  d="${maskStartD}" fill="black" stroke="none"/>`
+				arrowheadStartMaskString = `<path xmlns="http://www.w3.org/2000/svg"  d="${maskStartD}" fill="black" stroke="none"/>`
 			}
 		}
 		const pathStartD = getArrowheadPathForType(info, 'start', strokeWidth)
 		if (pathStartD) {
-			arrowheadStartString = `<path  d="${pathStartD}" fill="${!fill || arrowheadStart === 'arrow' ? 'none' : theme[shape.props.color].semi}" stroke="${color}" stroke-width="${strokeWidth}"/>`
+			arrowheadStartString = `<path xmlns="http://www.w3.org/2000/svg"  d="${pathStartD}" fill="${!fill || arrowheadStart === 'arrow' ? 'none' : theme[shape.props.color].semi}" stroke="${color}" stroke-width="${strokeWidth}"/>`
 		}
 
 		// add arrowhead end mask
 		if (fill !== 'none') {
 			const maskEndD = getArrowheadMaskPathForType(info, 'end', strokeWidth)
 			if (maskEndD) {
-				arrowheadEndMaskString = `<path  d="${maskEndD}" fill="black" stroke="none"/>`
+				arrowheadEndMaskString = `<path xmlns="http://www.w3.org/2000/svg"  d="${maskEndD}" fill="black" stroke="none"/>`
 			}
 		}
 		const pathEndD = getArrowheadPathForType(info, 'end', strokeWidth)
 		if (pathEndD) {
-			arrowheadEndString = `<path  d="${pathEndD}" fill="${!fill || arrowheadEnd === 'arrow' ? 'none' : theme[shape.props.color].semi}" stroke="${color}" stroke-width="${strokeWidth}"/>`
+			arrowheadEndString = `<path xmlns="http://www.w3.org/2000/svg"  d="${pathEndD}" fill="${!fill || arrowheadEnd === 'arrow' ? 'none' : theme[shape.props.color].semi}" stroke="${color}" stroke-width="${strokeWidth}"/>`
 		}
 
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
@@ -896,11 +896,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const b = Math.max(y + h, bounds.maxY + 100)
 			const l = Math.min(x - 100, bounds.minX - 100)
 
-			bigEnoughMaskSquare = `<rect x="${bounds.minX - 100}" y="${bounds.minY - 100}" width="${bounds.width + 200}" height="${bounds.height + 200}" fill="white" />`
-			labelMaskString = `<rect  x="${x}px" y="${y}px" width="${w}px" height="${h}px" fill="black"/>`
-			bigEnoughSquare = `<rect x="${l}" y="${t}" width="${r - l}" height="${b - t}" fill="transparent" />`
+			bigEnoughMaskSquare = `<rect xmlns="http://www.w3.org/2000/svg" x="${bounds.minX - 100}" y="${bounds.minY - 100}" width="${bounds.width + 200}" height="${bounds.height + 200}" fill="white" />`
+			labelMaskString = `<rect xmlns="http://www.w3.org/2000/svg" x="${x}px" y="${y}px" width="${w}px" height="${h}px" fill="black"/>`
+			bigEnoughSquare = `<rect xmlns="http://www.w3.org/2000/svg" x="${l}" y="${t}" width="${r - l}" height="${b - t}" fill="transparent" />`
 		} else {
-			bigEnoughSquare = `<rect x="${bounds.minY - 100}" y="${bounds.minX - 100}" width="${bounds.width + 200}" height="${bounds.height + 200}" fill="transparent" />`
+			bigEnoughSquare = `<rect xmlns="http://www.w3.org/2000/svg" x="${bounds.minY - 100}" y="${bounds.minX - 100}" width="${bounds.width + 200}" height="${bounds.height + 200}" fill="transparent" />`
 		}
 
 		let defMaskString = ''
@@ -912,8 +912,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			arrowheadEndMaskString
 		) {
 			defMaskString = `
-			<defs>
-				<mask id="${maskId}">
+			<defs xmlns="http://www.w3.org/2000/svg">
+				<mask xmlns="http://www.w3.org/2000/svg" id="${maskId}">
 					${arrowheadStartMaskString}
 					${arrowheadEndMaskString}
 					${bigEnoughMaskSquare}
@@ -928,7 +928,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			strokeWidth,
 			{ style: dash }
 		)
-		const bodyString = `<path d="${info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}"/>`
+		const bodyString = `<path xmlns="http://www.w3.org/2000/svg" d="${info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}"/>`
 
 		// Text Label
 		let labelString = ''
@@ -967,13 +967,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				offsetY: labelGeometry.y,
 			})
 
-			labelString = `<g>${textBgEl}${textElm}</g>`
+			labelString = `<g xmlns="http://www.w3.org/2000/svg">${textBgEl}${textElm}</g>`
 		}
 
 		const result = `
-			<g>
+			<g xmlns="http://www.w3.org/2000/svg">
 				${defMaskString}
-				<g mask="url(#${maskId})">
+				<g xmlns="http://www.w3.org/2000/svg" mask="url(#${maskId})">
 					${bodyString}
 					${bigEnoughSquare}
 				</g>

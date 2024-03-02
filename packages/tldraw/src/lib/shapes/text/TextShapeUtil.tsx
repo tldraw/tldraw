@@ -145,7 +145,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const editor = useEditor()
 		if (shape.props.autoSize && editor.getEditingShapeId() === shape.id) return null
-		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
+		return (
+			<rect
+				xmlns="http://www.w3.org/2000/svg"
+				width={toDomPrecision(bounds.width)}
+				height={toDomPrecision(bounds.height)}
+			/>
+		)
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
@@ -184,7 +190,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			fill: theme[shape.props.color].solid,
 		})
 
-		const result = `<g>${textBgEl}${textEl}</g>`
+		const result = `<g xmlns="http://www.w3.org/2000/svg">${textBgEl}${textEl}</g>`
 
 		return getSvgFromString(result)
 	}

@@ -37,7 +37,7 @@ export function getEllipseSvg(shape: TLGeoShape, theme: TLDefaultColorTheme) {
 
 			const d = `M${cx - rx},${cy}a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
 
-			const strokeString = `<path d="${d}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
+			const strokeString = `<path xmlns="http://www.w3.org/2000/svg" d="${d}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
 			const fillString = getShapeFillSvgString({
 				d,
 				fill,
@@ -67,7 +67,7 @@ export function getEllipseSvg(shape: TLGeoShape, theme: TLDefaultColorTheme) {
 			)
 
 			const d = `M${cx - rx},${cy}a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
-			const strokeString = `<path d="${d}" stroke-width="${sw}" width="${w}" height="${h}" fill="none" stroke="${theme[color].solid}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`
+			const strokeString = `<path xmlns="http://www.w3.org/2000/svg" d="${d}" stroke-width="${sw}" width="${w}" height="${h}" fill="none" stroke="${theme[color].solid}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`
 			const fillString = getShapeFillSvgString({
 				d,
 				fill,
@@ -96,7 +96,7 @@ export function getOvalSvg(shape: TLGeoShape, theme: TLDefaultColorTheme) {
 		case 'draw':
 		case 'solid': {
 			const d = getOvalIndicatorPath(w, h)
-			const strokeString = `<path d="${d}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
+			const strokeString = `<path xmlns="http://www.w3.org/2000/svg" d="${d}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
 			const fillString = getShapeFillSvgString({
 				d,
 				fill,
@@ -121,7 +121,7 @@ export function getOvalSvg(shape: TLGeoShape, theme: TLDefaultColorTheme) {
 				}
 			)
 
-			const strokeString = `<path d="${d}" stroke-width="${sw}" width="${w}" height="${h}" fill="none" stroke="${theme[color].solid}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`
+			const strokeString = `<path xmlns="http://www.w3.org/2000/svg" d="${d}" stroke-width="${sw}" width="${w}" height="${h}" fill="none" stroke="${theme[color].solid}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`
 			const fillstring = getShapeFillSvgString({
 				d,
 				fill,
@@ -174,7 +174,7 @@ export function getCloudSvg(shape: TLGeoShape, theme: TLDefaultColorTheme) {
 					? `M${leftPoint.x},${leftPoint.y}A${radius},${radius},0,0,1,${rightPoint.x},${rightPoint.y}`
 					: `M${leftPoint.x},${leftPoint.y}L${rightPoint.x},${rightPoint.y}`
 				paths.push(
-					`<path d="${d}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`
+					`<path xmlns="http://www.w3.org/2000/svg" d="${d}" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`
 				)
 			}
 
@@ -191,7 +191,7 @@ export function getCloudSvg(shape: TLGeoShape, theme: TLDefaultColorTheme) {
 		default: {
 			const d = dash === 'draw' ? inkyCloudSvgPath(w, h, id, size) : cloudSvgPath(w, h, id, size)
 
-			const strokeString = `<path d="${d}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
+			const strokeString = `<path xmlns="http://www.w3.org/2000/svg" d="${d}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
 			const fillString = getShapeFillSvgString({
 				d: d,
 				fill,
@@ -226,7 +226,7 @@ export function getPolygonSvg(editor: Editor, shape: TLGeoShape, theme: TLDefaul
 				}
 			}
 
-			const strokeString = `<path d="${strokePathData}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
+			const strokeString = `<path xmlns="http://www.w3.org/2000/svg" d="${strokePathData}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
 
 			const innerPolygonPoints = getRoundedPolygonPoints(id, outline, 0, sw * 2, 1)
 			const innerPathData = getRoundedInkyPolygonPath(innerPolygonPoints)
@@ -250,7 +250,7 @@ export function getPolygonSvg(editor: Editor, shape: TLGeoShape, theme: TLDefaul
 				}
 			}
 
-			const strokeString = `<path d="${strokePathData}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
+			const strokeString = `<path xmlns="http://www.w3.org/2000/svg" d="${strokePathData}" stroke="${theme[color].solid}" stroke-width="${sw}" fill="none" />`
 			const fillString = getShapeFillSvgString({
 				d,
 				fill,

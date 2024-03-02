@@ -192,12 +192,18 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 
 	indicator(shape: TLVideoShape) {
-		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
+		return (
+			<rect
+				xmlns="http://www.w3.org/2000/svg"
+				width={toDomPrecision(shape.props.w)}
+				height={toDomPrecision(shape.props.h)}
+			/>
+		)
 	}
 
 	override toSvg(shape: TLVideoShape) {
 		return getSvgFromString(
-			`<g><image href="${serializeVideo(shape.id)}" width="${shape.props.w}" height="${shape.props.h}" /></g>`
+			`<g xmlns="http://www.w3.org/2000/svg"><image xmlns="http://www.w3.org/2000/svg" href="${serializeVideo(shape.id)}" width="${shape.props.w}" height="${shape.props.h}" /></g>`
 		)
 	}
 }

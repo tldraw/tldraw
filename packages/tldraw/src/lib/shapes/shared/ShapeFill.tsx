@@ -63,15 +63,17 @@ const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
 export function getShapeFillSvgString({ d, color, fill, theme }: ShapeFillProps) {
 	switch (fill) {
 		case 'pattern':
-			return `<g><path fill="${theme[color].pattern}" d="${d}"/><path fill="url(#hash_pattern)" d="${d}"/></g>`
+			return `<g xmlns="http://www.w3.org/2000/svg"><path xmlns="http://www.w3.org/2000/svg" d="${d}" fill="${theme[color].pattern}"/><path xmlns="http://www.w3.org/2000/svg" fill="url(#hash_pattern)" d="${d}"/></g>`
 		case 'semi':
-			return `<path d="${d}" fill="${theme.solid}"/>`
+			return `<path xmlns="http://www.w3.org/2000/svg" d="${d}" fill="${theme.solid}"/>`
 		case 'solid':
-			return `<path d="${d}" fill="${theme[color].semi}"/>`
+			return `<path xmlns="http://www.w3.org/2000/svg" d="${d}" fill="${theme[color].semi}"/>`
 	}
 	return ''
 }
 
 export function getSvgStringWithShapeFill(foregroundPath: string, backgroundPath?: string) {
-	return backgroundPath ? `<g>${backgroundPath}${foregroundPath}</g>` : foregroundPath
+	return backgroundPath
+		? `<g xmlns="http://www.w3.org/2000/svg">${backgroundPath}${foregroundPath}</g>`
+		: foregroundPath
 }

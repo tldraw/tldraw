@@ -162,7 +162,13 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	indicator(shape: TLImageShape) {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		if (isCropping) return null
-		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
+		return (
+			<rect
+				xmlns="http://www.w3.org/2000/svg"
+				width={toDomPrecision(shape.props.w)}
+				height={toDomPrecision(shape.props.h)}
+			/>
+		)
 	}
 
 	override async toSvg(shape: TLImageShape) {
@@ -193,14 +199,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				]
 
 				return getSvgFromString(
-					`<g>
-						<defs>
-							<clipPath id="cropClipPath">
-								<polygon points="${points.join(' ')}" />
+					`<g xmlns="http://www.w3.org/2000/svg">
+						<defs xmlns="http://www.w3.org/2000/svg">
+							<clipPath xmlns="http://www.w3.org/2000/svg" id="cropClipPath">
+								<polygon xmlns="http://www.w3.org/2000/svg" points="${points.join(' ')}" />
 							</clipPath>
 						</defs>
-						<g clip-path="url(#cropClipPath)">
-							<image href="${src}" width="${width}" height="${height}" style="transform: ${transform};"/>
+						<g xmlns="http://www.w3.org/2000/svg" clip-path="url(#cropClipPath)">
+							<image xmlns="http://www.w3.org/2000/svg" href="${src}" width="${width}" height="${height}" style="transform: ${transform};"/>
 						</g>
 					</g>`
 				)
@@ -208,7 +214,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		const { w, h } = shape.props
-		return getSvgFromString(`<image href="${src}" width="${w}" height="${h}"/>`)
+		return getSvgFromString(
+			`<image xmlns="http://www.w3.org/2000/svg" href="${src}" width="${w}" height="${h}"/>`
+		)
 	}
 
 	override onDoubleClick = (shape: TLImageShape) => {

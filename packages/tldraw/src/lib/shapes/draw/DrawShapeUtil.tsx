@@ -220,9 +220,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		if (shape.props.dash === 'draw' || strokePoints.length < 2) {
 			setStrokePointRadii(strokePoints, options)
 			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
-			strokePath = `<path d="${getSvgPathFromPoints(strokeOutlinePoints, true)}" fill="${theme[color].solid}" stroke-linecap="round" />`
+			strokePath = `<path xmlns="http://www.w3.org/2000/svg" d="${getSvgPathFromPoints(strokeOutlinePoints, true)}" fill="${theme[color].solid}" stroke-linecap="round" />`
 		} else {
-			strokePath = `<path d="${solidStrokePath}" fill="none" stroke="${theme[color].solid}" stroke-width="${strokeWidth}" stroke-dasharray="${getDrawShapeStrokeDashArray(shape, strokeWidth)}" stroke-linecap="round"/>`
+			strokePath = `<path xmlns="http://www.w3.org/2000/svg" d="${solidStrokePath}" fill="none" stroke="${theme[color].solid}" stroke-width="${strokeWidth}" stroke-dasharray="${getDrawShapeStrokeDashArray(shape, strokeWidth)}" stroke-linecap="round"/>`
 		}
 
 		const fillPath = getShapeFillSvgString({

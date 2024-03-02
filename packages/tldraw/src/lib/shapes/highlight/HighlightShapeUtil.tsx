@@ -238,7 +238,7 @@ function highlighterToSvg(
 ) {
 	const { solidStrokePath, sw } = getHighlightSvgPath(shape, strokeWidth, false)
 	return getSvgFromString(
-		`<path d="${solidStrokePath}" fill="none" stroke="${theme[shape.props.color].highlight.srgb}" stroke-width="${sw}" opacity="${opacity}" />`
+		`<path xmlns="http://www.w3.org/2000/svg" d="${solidStrokePath}" fill="none" stroke="${theme[shape.props.color].highlight.srgb}" stroke-width="${sw}" opacity="${opacity}" />`
 	)
 }
 
