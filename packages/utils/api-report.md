@@ -69,6 +69,9 @@ export function getErrorAnnotations(error: Error): ErrorAnnotations;
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
 // @public
+export function getFromLocalStorage(key: string, defaultValue?: null): any;
+
+// @public
 export function getHashForBuffer(buffer: ArrayBuffer): string;
 
 // @public
@@ -272,6 +275,9 @@ export function rng(seed?: string): () => number;
 
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
+
+// @public
+export function setInLocalStorage(key: string, value: any): void;
 
 // @public (undocumented)
 export function sortById<T extends {

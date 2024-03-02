@@ -1,6 +1,7 @@
 import { atom } from '@tldraw/state'
 import { defineMigrations, migrate } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
+import { setInLocalStorage } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { uniqueId } from '../utils/uniqueId'
 
@@ -212,15 +213,13 @@ function loadUserPreferences(): TLUserPreferences {
 const globalUserPreferences = atom<TLUserPreferences | null>('globalUserData', null)
 
 function storeUserPreferences() {
-	if (typeof window !== 'undefined' && window.localStorage) {
-		window.localStorage.setItem(
-			USER_DATA_KEY,
-			JSON.stringify({
-				version: userMigrations.currentVersion,
-				user: globalUserPreferences.get(),
-			})
-		)
-	}
+	setInLocalStorage(
+		USER_DATA_KEY,
+		JSON.stringify({
+			version: userMigrations.currentVersion,
+			user: globalUserPreferences.get(),
+		})
+	)
 }
 
 /** @public */
