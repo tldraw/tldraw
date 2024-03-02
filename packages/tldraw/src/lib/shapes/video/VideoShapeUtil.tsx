@@ -46,6 +46,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const handlePlay = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
 				const video = e.currentTarget
+				if (!video) return
 
 				editor.updateShapes([
 					{
@@ -64,6 +65,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const handlePause = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
 				const video = e.currentTarget
+				if (!video) return
 
 				editor.updateShapes([
 					{
@@ -82,6 +84,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const handleSetCurrentTime = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
 				const video = e.currentTarget
+				if (!video) return
 
 				if (isEditing) {
 					editor.updateShapes([
@@ -103,6 +106,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
 				const video = e.currentTarget
+				if (!video) return
 				if (time !== video.currentTime) {
 					video.currentTime = time
 				}
@@ -119,7 +123,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		// If the current time changes and we're not editing the video, update the video time
 		useEffect(() => {
 			const video = rVideo.current
-
 			if (!video) return
 
 			if (isLoaded && !isEditing && time !== video.currentTime) {
@@ -136,6 +139,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		useEffect(() => {
 			if (prefersReducedMotion) {
 				const video = rVideo.current
+				if (!video) return
 				video.pause()
 				video.currentTime = 0
 			}
