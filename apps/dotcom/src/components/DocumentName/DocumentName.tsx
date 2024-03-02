@@ -1,4 +1,15 @@
 import {
+	ChangeEvent,
+	KeyboardEvent,
+	ReactNode,
+	SetStateAction,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
+import {
 	OfflineIndicator,
 	TLUiTranslationKey,
 	TldrawUiButton,
@@ -14,18 +25,7 @@ import {
 	useBreakpoint,
 	useEditor,
 	useTranslation,
-} from '@tldraw/tldraw'
-import {
-	ChangeEvent,
-	KeyboardEvent,
-	ReactNode,
-	SetStateAction,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+} from 'tldraw'
 import { FORK_PROJECT_ACTION } from '../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION } from '../../utils/useFileSystem'
 import { getShareUrl } from '../ShareMenu'

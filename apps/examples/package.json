@@ -36,7 +36,6 @@
 		"@playwright/test": "^1.38.1",
 		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@tldraw/assets": "workspace:*",
-		"@tldraw/tldraw": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"classnames": "^2.3.2",
 		"lazyrepo": "0.0.0-alpha.27",
@@ -44,6 +43,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.17.0",
+		"tldraw": "workspace:*",
 		"vite": "^5.0.0"
 	},
 	"devDependencies": {

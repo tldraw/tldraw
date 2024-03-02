@@ -50,8 +50,9 @@ function iOS() {
  * A string that is unique per browser tab
  * @public
  */
-export const TAB_ID: string =
-	window?.[tabIdKey] ?? window?.sessionStorage[tabIdKey] ?? `TLDRAW_INSTANCE_STATE_V1_` + uniqueId()
+export const TAB_ID: string = window
+	? window[tabIdKey] ?? window.sessionStorage[tabIdKey] ?? `TLDRAW_INSTANCE_STATE_V1_` + uniqueId()
+	: '<error>'
 if (window) {
 	window[tabIdKey] = TAB_ID
 	if (iOS()) {

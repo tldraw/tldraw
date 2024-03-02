@@ -1,4 +1,3 @@
-import { preventDefault, track, useContainer, useEditor, useTranslation } from '@tldraw/tldraw'
 import {
 	ChangeEvent,
 	ClipboardEvent,
@@ -10,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { preventDefault, track, useContainer, useEditor, useTranslation } from 'tldraw'
 
 // todo:
 // - not cleaning up

@@ -4,8 +4,8 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomQuickActions() {
 	return (

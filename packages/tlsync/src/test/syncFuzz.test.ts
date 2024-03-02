@@ -1,3 +1,5 @@
+import isEqual from 'lodash.isequal'
+import { nanoid } from 'nanoid'
 import {
 	Editor,
 	TLArrowShape,
@@ -6,9 +8,7 @@ import {
 	computed,
 	createPresenceStateDerivation,
 	createTLStore,
-} from '@tldraw/tldraw'
-import isEqual from 'lodash.isequal'
-import { nanoid } from 'nanoid'
+} from 'tldraw'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { schema } from '../lib/schema'
 import { FuzzEditor, Op } from './FuzzEditor'

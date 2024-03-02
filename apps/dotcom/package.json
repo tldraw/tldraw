@@ -23,7 +23,6 @@
 		"@sentry/integrations": "^7.34.0",
 		"@sentry/react": "^7.77.0",
 		"@tldraw/assets": "workspace:*",
-		"@tldraw/tldraw": "workspace:*",
 		"@tldraw/tlsync": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"browser-fs-access": "^0.33.0",
@@ -33,7 +32,8 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-helmet-async": "^1.3.0",
-		"react-router-dom": "^6.17.0"
+		"react-router-dom": "^6.17.0",
+		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
 		"@jest/globals": "30.0.0-alpha.2",

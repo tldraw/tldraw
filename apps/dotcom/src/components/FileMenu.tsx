@@ -4,7 +4,7 @@ import {
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	useActions,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import {
 	FORK_PROJECT_ACTION,
 	LEAVE_SHARED_PROJECT_ACTION,

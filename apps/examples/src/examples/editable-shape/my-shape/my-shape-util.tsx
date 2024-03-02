@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+import { useState } from 'react'
 import {
 	HTMLContainer,
 	Rectangle2d,
@@ -11,8 +12,7 @@ import {
 	resizeBox,
 	structuredClone,
 	useIsEditing,
-} from '@tldraw/tldraw'
-import { useState } from 'react'
+} from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
