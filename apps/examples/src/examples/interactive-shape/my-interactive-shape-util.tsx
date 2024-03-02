@@ -93,7 +93,9 @@ check ur custom shape example.
 [1]
 This is where we describe how our shape will render
 
-	[a] We need to set pointer-events to all so that we can interact with our shape
+	[a] We need to set pointer-events to all so that we can interact with our shape. This CSS property is
+	set to "none" off by default. We need to manually opt-in to accepting pointer events by setting it to
+	'all' or 'auto'. 
 
 	[b] We need to stop event propagation so that the editor doesn't select the shape
 		when we click on the checkbox. The 'canvas container' forwards events that it receives
