@@ -102,6 +102,7 @@ This is where we describe how our shape will render
 		on to the editor, so stopping propagation here prevents the event from reaching the canvas.
 	
 	[c] If the shape is not checked, we stop event propagation so that the editor doesn't
-		select the shape when we click on the input.
+		select the shape when we click on the input. If the shape is checked then we allow that event to
+		propagate to the canvas and then get sent to the editor, triggering clicks or drags as usual.
 
 */
