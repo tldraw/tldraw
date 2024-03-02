@@ -9,7 +9,6 @@ import { getFromLocalStorage, setInLocalStorage } from 'tldraw'
 
 // DO NOT CHANGE THESE WITHOUT ADDING MIGRATION LOGIC. DOING SO WOULD WIPE ALL EXISTING LOCAL DATA.
 const defaultDocumentKey = 'TLDRAW_DEFAULT_DOCUMENT_NAME_v2'
-const w = typeof window === 'undefined' ? undefined : window
 
 export const SCRATCH_PERSISTENCE_KEY =
 	(getFromLocalStorage(defaultDocumentKey) as any) ?? 'tldraw_document_v3'

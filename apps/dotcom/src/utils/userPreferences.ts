@@ -37,8 +37,6 @@ function createPreference<Type>(key: string, validator: T.Validator<Type>, defau
 }
 
 function loadItemFromStorage<Type>(key: string, validator: T.Validator<Type>): Type | null {
-	if (typeof localStorage === 'undefined' || !localStorage) return null
-
 	const item = getFromLocalStorage(`tldrawUserPreferences.${key}`, null)
 	if (item == null) return null
 	try {
