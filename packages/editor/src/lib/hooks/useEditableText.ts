@@ -1,17 +1,10 @@
 /* eslint-disable no-inner-declarations */
-
-import {
-	TLShape,
-	TLShapeId,
-	TLUnknownShape,
-	getPointerInfo,
-	preventDefault,
-	stopEventPropagation,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { TLShape, TLShapeId, TLUnknownShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { INDENT, TextHelpers } from './TextHelpers'
+import { normalizeTextForDom, stopEventPropagation } from '../utils/dom'
+import { getPointerInfo } from '../utils/getPointerInfo'
+import { useEditor } from './useEditor'
 
 /** @public */
 export function useEditableText(id: TLShapeId, type: string, text: string) {
@@ -106,15 +99,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 					}
 					break
 				}
-				case 'Tab': {
-					preventDefault(e)
-					if (e.shiftKey) {
-						TextHelpers.unindent(e.currentTarget)
-					} else {
-						TextHelpers.indent(e.currentTarget)
-					}
-					break
-				}
 			}
 		},
 		[editor, isEditing]
@@ -125,10 +109,11 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
 
-			let text = TextHelpers.normalizeText(e.currentTarget.value)
+			let text = normalizeTextForDom(e.currentTarget.value)
 
 			// ------- Bug fix ------------
 			// Replace tabs with spaces when pasting
+			const INDENT = '  '
 			const untabbedText = text.replace(/\t/g, INDENT)
 			if (untabbedText !== text) {
 				const selectionStart = e.currentTarget.selectionStart

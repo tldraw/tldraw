@@ -1,12 +1,11 @@
-import { getDefaultColorTheme } from 'tldraw'
+import { LABEL_FONT_SIZES, TEXT_PROPS, TLDefaultSizeStyle, getDefaultColorTheme } from 'tldraw'
+import Tiptap from '../../shared/TipTap'
 import type {
 	SpeechBubbleShape,
 	SpeechBubbleShapeProps,
 } from '../speech-bubble/SpeechBubble/SpeechBubbleUtil'
 import { STROKE_SIZES, SpeechBubbleUtil } from '../speech-bubble/SpeechBubble/SpeechBubbleUtil'
 import { getSpeechBubbleVertices } from '../speech-bubble/SpeechBubble/helpers'
-import Tiptap from './TipTap'
-import './custom-rich-text.css'
 
 export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 	override getDefaultProps(): SpeechBubbleShapeProps {
@@ -15,7 +14,9 @@ export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 
 	override component(shape: SpeechBubbleShape) {
 		const {
-			props: { color, font, size, align },
+			id,
+			type,
+			props: { color, font, size, align, text },
 		} = shape
 		const theme = getDefaultColorTheme({
 			isDarkMode: this.editor.user.getIsDarkMode(),
@@ -36,13 +37,15 @@ export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 
 				<div style={{ padding: '1rem' }}>
 					<Tiptap
-						color={color}
+						id={id}
+						type={type}
+						labelColor={color}
 						font={font}
-						size={size}
+						fontSize={LABEL_FONT_SIZES[size as TLDefaultSizeStyle]}
+						lineHeight={TEXT_PROPS.lineHeight}
 						align={align}
 						verticalAlign="start"
-						shape={shape}
-						content={shape.props.text}
+						content={text}
 					/>
 				</div>
 			</>

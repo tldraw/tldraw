@@ -1,5 +1,6 @@
 import {
 	BaseBoxShapeUtil,
+	Box,
 	DefaultFontFamilies,
 	Editor,
 	Ellipse2d,
@@ -27,10 +28,10 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	useEditorComponents,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -395,12 +396,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	component(shape: TLGeoShape) {
-		const { id, type, props } = shape
+		const { id, props } = shape
 
 		const strokeWidth = STROKE_SIZES[props.size]
 
-		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
-			props
+		const { w, color, fill, dash, growY, size } = props
 
 		const getShape = () => {
 			const h = props.h + growY
@@ -546,17 +546,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					id={shape.id}
 					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h + props.growY }}
 				>
-					<TextLabel
-						id={id}
-						type={type}
-						font={font}
-						fill={fill}
-						size={size}
-						align={align}
-						verticalAlign={verticalAlign}
-						text={text}
-						labelColor={labelColor}
-						wrap
+					<TextLabelWrapper
+						shape={shape}
 						bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
 					/>
 					{shape.props.url && (
@@ -1109,6 +1100,35 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		w: size.w + LABEL_PADDING * 2,
 		h: size.h + LABEL_PADDING * 2,
 	}
+}
+
+function TextLabelWrapper({ shape, bounds }: { shape: TLGeoShape; bounds: Box | undefined }) {
+	const { TextLabel } = useEditorComponents()
+
+	const {
+		id,
+		type,
+		props: { labelColor, fill, font, align, verticalAlign, size, text },
+	} = shape
+
+	return (
+		TextLabel && (
+			<TextLabel
+				id={id}
+				type={type}
+				font={font}
+				fontSize={LABEL_FONT_SIZES[size]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				fill={fill}
+				align={align}
+				verticalAlign={verticalAlign}
+				text={text}
+				labelColor={labelColor}
+				wrap
+				bounds={bounds}
+			/>
+		)
+	)
 }
 
 function getLines(props: TLGeoShape['props'], sw: number) {

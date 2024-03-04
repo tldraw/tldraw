@@ -11,3 +11,7 @@
   display: inline-block;
   transform: skewX(-12deg);
 }
+
+.tiptap p {
+  margin: 0;
+}

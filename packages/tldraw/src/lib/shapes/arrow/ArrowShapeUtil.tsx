@@ -700,7 +700,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					size={shape.props.size}
 					position={labelPosition.box.center}
 					width={labelPosition.box.w}
-					labelColor={theme[shape.props.labelColor].solid}
+					labelColor={shape.props.labelColor}
 				/>
 			</>
 		)

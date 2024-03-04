@@ -1,15 +1,6 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
+import { normalizeTextForDom } from '../../utils/dom'
 import { Editor } from '../Editor'
-
-const fixNewLines = /\r?\n|\r/g
-
-function normalizeTextForDom(text: string) {
-	return text
-		.replace(fixNewLines, '\n')
-		.split('\n')
-		.map((x) => x || ' ')
-		.join('\n')
-}
 
 const textAlignmentsForLtr = {
 	start: 'left',

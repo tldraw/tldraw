@@ -17,13 +17,13 @@ import {
 	textShapeProps,
 	toDomPrecision,
 	useEditor,
+	useEditorComponents,
 } from '@tldraw/editor'
+import React from 'react'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
-import { useEditableText } from '../shared/useEditableText'
-import { TextArea } from './TextArea'
 
 const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
 
@@ -65,41 +65,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
 
 	component(shape: TLTextShape) {
-		const {
-			id,
-			type,
-			props: { text, color },
-		} = shape
-
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
 		const { width, height } = this.getMinDimensions(shape)
-
-		const { rInput, isEmpty, isEditing, ...editableTextRest } = useEditableText(id, type, text)
 
 		return (
 			<HTMLContainer id={shape.id}>
-				<div
-					className="tl-text-shape__wrapper tl-text-shadow"
-					data-font={shape.props.font}
-					data-align={shape.props.align}
-					data-hastext={!isEmpty}
-					data-isediting={isEditing}
-					data-textwrap={true}
-					style={{
-						fontSize: FONT_SIZES[shape.props.size],
-						lineHeight: FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + 'px',
-						transform: `scale(${shape.props.scale})`,
-						transformOrigin: 'top left',
-						width: Math.max(1, width),
-						height: Math.max(FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight, height),
-						color: theme[color].solid,
-					}}
-				>
-					<div className="tl-text tl-text-content" dir="ltr">
-						{text}
-					</div>
-					{isEditing && <TextArea rInput={rInput} text={text} {...editableTextRest} />}
-				</div>
+				<TextLabelWrapper shape={shape} width={width} height={height} />
 			</HTMLContainer>
 		)
 	}
@@ -332,6 +302,49 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 }
+
+const TextLabelWrapper = React.memo(function TextLabelWrapper({
+	shape,
+	width,
+	height,
+}: {
+	shape: TLTextShape
+	width: number
+	height: number
+}) {
+	const { TextLabel } = useEditorComponents()
+
+	const {
+		id,
+		props: { font, size, text, color, scale, align },
+	} = shape
+
+	return (
+		TextLabel && (
+			<TextLabel
+				id={id}
+				classNamePrefix="tl-text-shape"
+				type="text"
+				font={font}
+				fontSize={FONT_SIZES[size]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				align={align}
+				verticalAlign="middle"
+				text={text}
+				labelColor={color}
+				textWidth={width}
+				textHeight={height}
+				style={{
+					transform: `scale(${scale})`,
+					transformOrigin: 'top left',
+				}}
+				wrap
+			/>
+		)
+	)
+
+	// 				className="tl-text-shape__wrapper tl-text-shadow"
+})
 
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	const { font, text, autoSize, size, w } = props

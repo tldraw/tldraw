@@ -44,7 +44,11 @@ import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDefaultColorStyle } from '@tldraw/tlschema';
+import { TLDefaultFillStyle } from '@tldraw/tlschema';
+import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
+import { TLDefaultVerticalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
@@ -492,6 +496,9 @@ export function DefaultSpinner(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultSvgDefs: () => null;
+
+// @public (undocumented)
+export const DefaultTextLabel: React_2.NamedExoticComponent<TLTextLabelProps>;
 
 // @public (undocumented)
 export const defaultUserPreferences: Readonly<{
@@ -1365,6 +1372,9 @@ export function moveCameraWhenCloseToEdge(editor: Editor): void;
 // @internal (undocumented)
 export const MULTI_CLICK_DURATION = 200;
 
+// @public (undocumented)
+export function normalizeTextForDom(text: string): string;
+
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;
@@ -1827,6 +1837,18 @@ export interface SvgExportDef {
 
 // @public
 export const TAB_ID: string;
+
+// @public (undocumented)
+export function TextArea({ rInput, text, handleFocus, handleChange, handleKeyDown, handleBlur, handleInputPointerDown, handleDoubleClick, }: {
+    rInput: React_2.RefObject<HTMLTextAreaElement>;
+    text: string;
+    handleFocus: () => void;
+    handleBlur: () => void;
+    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
+    handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
+    handleInputPointerDown: (e: React_2.PointerEvent<HTMLTextAreaElement>) => void;
+    handleDoubleClick: (e: any) => any;
+}): JSX_2.Element;
 
 // @public (undocumented)
 export type TLAfterChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;
@@ -2571,6 +2593,26 @@ export type TLSvgOptions = {
 };
 
 // @public (undocumented)
+export type TLTextLabelProps = {
+    id: TLShapeId;
+    type: string;
+    font: TLDefaultFontStyle;
+    fontSize: number;
+    lineHeight: number;
+    fill?: TLDefaultFillStyle;
+    align: TLDefaultHorizontalAlignStyle;
+    verticalAlign: TLDefaultVerticalAlignStyle;
+    wrap?: boolean;
+    text: string;
+    labelColor: TLDefaultColorStyle;
+    bounds?: Box;
+    classNamePrefix?: string;
+    style?: React_2.CSSProperties;
+    textWidth?: number;
+    textHeight?: number;
+};
+
+// @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
 
 // @public (undocumented)
@@ -2645,6 +2687,19 @@ export { useComputed }
 export function useContainer(): HTMLDivElement;
 
 // @public (undocumented)
+export function useEditableText(id: TLShapeId, type: string, text: string): {
+    rInput: React_2.RefObject<HTMLTextAreaElement>;
+    isEditing: boolean;
+    handleFocus: () => void;
+    handleBlur: () => void;
+    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
+    handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
+    handleInputPointerDown: (e: React_2.PointerEvent) => void;
+    handleDoubleClick: (e: any) => any;
+    isEmpty: boolean;
+};
+
+// @public (undocumented)
 export function useEditor(): Editor;
 
 // @public (undocumented)
@@ -2673,6 +2728,7 @@ export function useEditorComponents(): Partial<{
     OnTheCanvas: ComponentType | null;
     InFrontOfTheCanvas: ComponentType | null;
     LoadingScreen: ComponentType | null;
+    TextLabel: ComponentType<TLTextLabelProps> | null;
 } & ErrorComponents> & ErrorComponents;
 
 // @public (undocumented)
