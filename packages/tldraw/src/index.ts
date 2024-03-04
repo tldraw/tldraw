@@ -87,12 +87,6 @@ export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
-	toolbarItem,
-	useToolbarSchema,
-	type TLUiToolbarItem,
-	type TLUiToolbarSchemaContextType,
-} from './lib/ui/hooks/useToolbarSchema'
-export {
 	useTools,
 	type TLUiToolItem,
 	type TLUiToolsContextType,
@@ -286,8 +280,6 @@ export {
 	FeatureFlags,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
 
-export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
-
 export { type TLComponents } from './lib/Tldraw'
 
 /* ------------------- Primitives ------------------- */
@@ -371,6 +363,11 @@ export {
 
 // Slider
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
+
+// Toolbar
+export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+export * from './lib/ui/components/Toolbar/DefaultToolbarContent'
+export { TldrawUiToolbarButton } from './lib/ui/components/Toolbar/TldrawUiToolbarButton'
 
 /* ----------------- Menu Primitives ---------------- */
 

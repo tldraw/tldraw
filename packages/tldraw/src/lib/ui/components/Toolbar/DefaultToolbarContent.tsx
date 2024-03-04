@@ -1,5 +1,4 @@
-import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
-import { TLUiToolItem, useTools } from '../../hooks/useTools'
+import { useTools } from '../../hooks/useTools'
 import { TldrawUiToolbarButton } from './TldrawUiToolbarButton'
 
 export function DefaultToolbarContent() {
@@ -37,140 +36,142 @@ export function DefaultToolbarContent() {
 	)
 }
 
-function DefaultToolbarItem({ tool }: { tool: TLUiToolItem }) {
-	const editor = useEditor()
-	const isSelected = useValue(
-		'is tool selected',
-		() => {
-			const activeToolId = editor.getCurrentToolId()
-			const geoState = editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle)
-			return tool.meta?.geo
-				? activeToolId === 'geo' && geoState === tool.meta?.geo
-				: activeToolId === tool.id
-		},
-		[editor, tool]
-	)
-	const isEnabled = useValue(
-		'is tool enabled',
-		() => {
-			const isReadonlyMode = editor.getInstanceState().isReadonly
-			return isReadonlyMode ? !!tool.readonlyOk : true
-		},
-		[editor, tool]
-	)
-
-	if (!isEnabled) return null
-	return <TldrawUiToolbarButton {...tool} isSelected={isSelected} />
-}
-
 export function SelectToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().select} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['select']} />
 }
 
 export function HandToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().hand} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['hand']} />
 }
 
 export function DrawToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().draw} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['draw']} />
 }
 
 export function EraserToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().eraser} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['eraser']} />
 }
 
 export function ArrowToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().arrow} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['arrow']} />
 }
 
 export function TextToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().text} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['text']} />
 }
 
 export function NoteToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().note} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['note']} />
 }
 
 export function AssetToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().asset} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['asset']} />
 }
 
 export function RectangleToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().rectangle} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['rectangle']} />
 }
 
 export function EllipseToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().ellipse} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['ellipse']} />
 }
 
 export function DiamondToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().diamond} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['diamond']} />
 }
 
 export function TriangleToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().triangle} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['triangle']} />
 }
 
 export function TrapezoidToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().trapezoid} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['trapezoid']} />
 }
 
 export function RhombusToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().rhombus} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['rhombus']} />
 }
 
 export function HexagonToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().hex} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['hexagon']} />
 }
 
 export function CloudToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().cloud} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['cloud']} />
 }
 
 export function StarToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().star} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['star']} />
 }
 
 export function OvalToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().oval} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['oval']} />
 }
 
 export function XBoxToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().xBox} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['xBox']} />
 }
 
 export function CheckBoxToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().checkBox} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['checkBox']} />
 }
 
 export function ArrowLeftToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().arrowLeft} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['arrowLeft']} />
 }
 
 export function ArrowUpToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().arrowUp} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['arrowUp']} />
 }
 
 export function ArrowDownToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().arrowDown} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['arrowDown']} />
 }
 
 export function ArrowRightToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().arrowRight} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['arrowRight']} />
 }
 
 export function LineToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().line} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['line']} />
 }
 
 export function HighlightToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().highlight} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['highlight']} />
 }
 
 export function FrameToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().frame} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['frame']} />
 }
 
 export function LaserToolbarItem() {
-	return <DefaultToolbarItem tool={useTools().laser} />
+	const tools = useTools()
+	return <TldrawUiToolbarButton {...tools['laser']} />
 }

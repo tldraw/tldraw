@@ -1,12 +1,14 @@
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
+	DefaultToolbar,
+	DefaultToolbarContent,
 	TLComponents,
 	TLUiOverrides,
 	TldrawUiMenuItem,
-	toolbarItem,
 	useTools,
 } from 'tldraw'
+import { TldrawUiToolbarButton } from 'tldraw/src/lib/ui/components/Toolbar/TldrawUiToolbarButton'
 
 // There's a guide at the bottom of this file!
 
@@ -24,11 +26,6 @@ export const uiOverrides: TLUiOverrides = {
 		}
 		return tools
 	},
-	toolbar(_app, toolbar, { tools }) {
-		// Add the tool item from the context to the toolbar.
-		toolbar.splice(4, 0, toolbarItem(tools.PlayingCard))
-		return toolbar
-	},
 }
 
 export const components: TLComponents = {
@@ -40,6 +37,15 @@ export const components: TLComponents = {
 				<TldrawUiMenuItem {...tools['PlayingCard']} />
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
+		)
+	},
+	Toolbar: (props) => {
+		const tools = useTools()
+		return (
+			<DefaultToolbar {...props}>
+				<TldrawUiToolbarButton {...tools['PlayingCard']} />
+				<DefaultToolbarContent />
+			</DefaultToolbar>
 		)
 	},
 }
