@@ -1,6 +1,6 @@
-import { Editor, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { useState } from 'react'
+import { Editor, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import snapshot from './snapshot.json'
 
 export default function TldrawImageExample() {
@@ -8,7 +8,7 @@ export default function TldrawImageExample() {
 	const [isEditing, setIsEditing] = useState(false)
 
 	return (
-		<div style={{ padding: 30 }}>
+		<div style={{ padding: 30, height: '150vh' }}>
 			<div
 				style={{ width: 600, height: 400, marginTop: 15 }}
 				onFocus={() => setIsEditing(true)}
@@ -24,7 +24,7 @@ export default function TldrawImageExample() {
 						setEditor(editor)
 						editor.updateInstanceState({ isDebugMode: false })
 					}}
-					// autoFocus={false}
+					autoFocus={false}
 				/>
 			</div>
 		</div>
