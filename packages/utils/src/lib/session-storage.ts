@@ -1,3 +1,5 @@
+/* eslint-disable no-storage/no-browser-storage */
+
 /**
  * Get a value from session storage.
  *
@@ -15,8 +17,6 @@ export function getFromSessionStorage(key: string, defaultValue = null) {
 		return defaultValue
 	}
 }
-
-localStorage
 
 /**
  * Set a value in session storage. Will not throw an error if sessionStorage is not available.
