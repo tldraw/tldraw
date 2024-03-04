@@ -1,12 +1,5 @@
 import { useLayoutEffect, useState } from 'react'
-import {
-	Tldraw,
-	createTLStore,
-	defaultShapeUtils,
-	getFromLocalStorage,
-	setInLocalStorage,
-	throttle,
-} from 'tldraw'
+import { Tldraw, createTLStore, defaultShapeUtils, throttle } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -27,7 +20,7 @@ export default function PersistenceExample() {
 		setLoadingState({ status: 'loading' })
 
 		// Get persisted data from local storage
-		const persistedSnapshot = getFromLocalStorage(PERSISTENCE_KEY)
+		const persistedSnapshot = localStorage.getItem(PERSISTENCE_KEY)
 
 		if (persistedSnapshot) {
 			try {
@@ -45,7 +38,7 @@ export default function PersistenceExample() {
 		const cleanupFn = store.listen(
 			throttle(() => {
 				const snapshot = store.getSnapshot()
-				setInLocalStorage(PERSISTENCE_KEY, JSON.stringify(snapshot))
+				localStorage.setItem(PERSISTENCE_KEY, JSON.stringify(snapshot))
 			}, 500)
 		)
 

@@ -1,4 +1,4 @@
-import { T, atom, getFromLocalStorage, setInLocalStorage } from 'tldraw'
+import { T, atom } from 'tldraw'
 
 const channel =
 	typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('tldrawUserPreferences') : null
@@ -37,7 +37,9 @@ function createPreference<Type>(key: string, validator: T.Validator<Type>, defau
 }
 
 function loadItemFromStorage<Type>(key: string, validator: T.Validator<Type>): Type | null {
-	const item = getFromLocalStorage(`tldrawUserPreferences.${key}`, null)
+	if (typeof localStorage === 'undefined' || !localStorage) return null
+
+	const item = localStorage.getItem(`tldrawUserPreferences.${key}`)
 	if (item == null) return null
 	try {
 		return validator.validate(JSON.parse(item))
@@ -47,5 +49,11 @@ function loadItemFromStorage<Type>(key: string, validator: T.Validator<Type>): T
 }
 
 function saveItemToStorage(key: string, value: unknown): void {
-	setInLocalStorage(`tldrawUserPreferences.${key}`, JSON.stringify(value))
+	if (typeof localStorage === 'undefined' || !localStorage) return
+
+	try {
+		localStorage.setItem(`tldrawUserPreferences.${key}`, JSON.stringify(value))
+	} catch (e) {
+		// not a big deal
+	}
 }

@@ -1,6 +1,5 @@
 import { RecordsDiff, SerializedSchema, SerializedStore } from '@tldraw/store'
 import { TLRecord, TLStoreSchema } from '@tldraw/tlschema'
-import { getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
 import { IDBPDatabase, openDB } from 'idb'
 import { TLSessionStateSnapshot } from '../../config/TLSessionStateSnapshot'
 
@@ -222,7 +221,7 @@ async function pruneSessionState({
 
 /** @internal */
 export function getAllIndexDbNames(): string[] {
-	const result = JSON.parse(getFromLocalStorage(dbNameIndexKey) || '[]') ?? []
+	const result = JSON.parse(window?.localStorage.getItem(dbNameIndexKey) || '[]') ?? []
 	if (!Array.isArray(result)) {
 		return []
 	}
@@ -232,5 +231,5 @@ export function getAllIndexDbNames(): string[] {
 function addDbName(name: string) {
 	const all = new Set(getAllIndexDbNames())
 	all.add(name)
-	setInLocalStorage(dbNameIndexKey, JSON.stringify([...all]))
+	window?.localStorage.setItem(dbNameIndexKey, JSON.stringify([...all]))
 }

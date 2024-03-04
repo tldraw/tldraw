@@ -1,4 +1,3 @@
-import { getFromLocalStorage, setInLocalStorage } from '@tldraw/editor'
 import React from 'react'
 
 /** @public */
@@ -6,7 +5,7 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
 	const [state, setState] = React.useState(defaultValue)
 
 	React.useLayoutEffect(() => {
-		const value = getFromLocalStorage(key)
+		const value = localStorage.getItem(key)
 		if (value) {
 			try {
 				setState(JSON.parse(value))
@@ -20,7 +19,7 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
 		(setter: T | ((value: T) => T)) => {
 			setState((s) => {
 				const value = typeof setter === 'function' ? (setter as any)(s) : setter
-				setInLocalStorage(key, JSON.stringify(value))
+				localStorage.setItem(key, JSON.stringify(value))
 				return value
 			})
 		},
