@@ -63,7 +63,7 @@ export type ActionsProviderProps = {
 		actions: TLUiActionsContextType,
 		helpers: undefined
 	) => TLUiActionsContextType
-	children: any
+	children: React.ReactNode
 }
 
 function makeActions(actions: TLUiActionItem[]) {

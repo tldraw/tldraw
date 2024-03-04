@@ -1,5 +1,6 @@
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
+import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
@@ -9,7 +10,7 @@ import { TldrawUiIcon } from './TldrawUiIcon'
 /** @public */
 export type TLUiDropdownMenuRootProps = {
 	id: string
-	children: any
+	children: ReactNode
 	modal?: boolean
 	debugOpen?: boolean
 }
@@ -37,7 +38,7 @@ export function TldrawUiDropdownMenuRoot({
 
 /** @public */
 export interface TLUiDropdownMenuTriggerProps {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
@@ -58,7 +59,7 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 /** @public */
 export type TLUiDropdownMenuContentProps = {
 	id?: string
-	children: any
+	children: ReactNode
 	alignOffset?: number
 	sideOffset?: number
 	align?: 'start' | 'center' | 'end'
@@ -92,7 +93,7 @@ export function TldrawUiDropdownMenuContent({
 }
 
 /** @public */
-export type TLUiDropdownMenuSubProps = { id: string; children: any }
+export type TLUiDropdownMenuSubProps = { id: string; children: ReactNode }
 
 /** @public */
 export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps) {
@@ -142,7 +143,7 @@ export type TLUiDropdownMenuSubContentProps = {
 	alignOffset?: number
 	sideOffset?: number
 	size?: 'tiny' | 'small' | 'medium' | 'wide'
-	children: any
+	children: ReactNode
 }
 
 /** @public */
@@ -172,7 +173,7 @@ export function TldrawUiDropdownMenuSubContent({
 
 /** @public */
 export type TLUiDropdownMenuGroupProps = {
-	children: any
+	children: ReactNode
 }
 
 /** @public */
@@ -196,7 +197,7 @@ export function TldrawUiDropdownMenuIndicator() {
 /** @public */
 export interface TLUiDropdownMenuItemProps {
 	noClose?: boolean
-	children: any
+	children: ReactNode
 }
 
 /** @public */
@@ -214,7 +215,7 @@ export interface TLUiDropdownMenuCheckboxItemProps {
 	onSelect?: (e: Event) => void
 	disabled?: boolean
 	title: string
-	children: any
+	children: ReactNode
 }
 
 /** @public */

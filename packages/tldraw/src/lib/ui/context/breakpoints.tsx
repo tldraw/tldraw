@@ -1,5 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import React, { useContext } from 'react'
+import React, { ReactNode, useContext } from 'react'
 import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
 
 const BreakpointContext = React.createContext(0)
@@ -10,7 +10,7 @@ export function BreakPointProvider({
 	children,
 }: {
 	forceMobile?: boolean
-	children: any
+	children: ReactNode
 }) {
 	const editor = useEditor()
 

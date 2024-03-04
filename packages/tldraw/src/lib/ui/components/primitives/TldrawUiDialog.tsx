@@ -1,12 +1,13 @@
 import * as _Dialog from '@radix-ui/react-dialog'
 import classNames from 'classnames'
+import { ReactNode } from 'react'
 import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 
 /** @public */
 export type TLUiDialogHeaderProps = {
 	className?: string
-	children: any
+	children: ReactNode
 }
 
 /** @public */
@@ -17,7 +18,7 @@ export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderPr
 /** @public */
 export type TLUiDialogTitleProps = {
 	className?: string
-	children: any
+	children: ReactNode
 }
 
 /** @public */
@@ -49,7 +50,7 @@ export function TldrawUiDialogCloseButton() {
 /** @public */
 export type TLUiDialogBodyProps = {
 	className?: string
-	children: any
+	children: ReactNode
 	style?: React.CSSProperties
 }
 
@@ -65,7 +66,7 @@ export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBod
 /** @public */
 export type TLUiDialogFooterProps = {
 	className?: string
-	children: any
+	children: ReactNode
 }
 
 /** @public */
