@@ -7299,6 +7299,7 @@ __metadata:
     eslint-plugin-import: "npm:^2.27.5"
     eslint-plugin-local: "npm:^1.0.0"
     eslint-plugin-no-only-tests: "npm:^3.1.0"
+    eslint-plugin-no-storage: "npm:^1.0.2"
     eslint-plugin-react: "npm:^7.32.2"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     fs-extra: "npm:^11.1.0"
@@ -12899,6 +12900,13 @@ __metadata:
   version: 3.1.0
   resolution: "eslint-plugin-no-only-tests@npm:3.1.0"
   checksum: 2a5de82f3a732dbd46792661dd0f8546cf819f76d8828968166dee35741e8039904ba473dafe1eed585f401a496d260c2c38354bb887c94bd4ced0ddca00fb62
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-no-storage@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "eslint-plugin-no-storage@npm:1.0.2"
+  checksum: 971323b852846a3eb1558ff68aa51e36ff6671cf99f261410768a3c4c2baebc1702decee3afbc16128d12d965ea00b574adf2ee35fc4b68b58d74810e6bcb37b
   languageName: node
   linkType: hard
 

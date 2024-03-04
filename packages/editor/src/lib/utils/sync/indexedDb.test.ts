@@ -9,6 +9,7 @@ import {
 const clearAll = async () => {
 	const dbs = (indexedDB as any)._databases as Map<any, any>
 	dbs.clear()
+	// eslint-disable-next-line no-storage/no-browser-storage
 	localStorage.clear()
 }
 
