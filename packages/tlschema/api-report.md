@@ -47,9 +47,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -61,9 +61,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;

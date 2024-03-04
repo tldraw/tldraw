@@ -19,6 +19,12 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
+// @public
+export function clearLocalStorage(): void;
+
+// @public
+export function clearSessionStorage(): void;
+
 // @internal (undocumented)
 export function compact<T>(arr: T[]): NonNullable<T>[];
 

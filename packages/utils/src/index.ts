@@ -23,7 +23,12 @@ export { noop, omitFromStackTrace, throttle } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
-export { deleteFromLocalStorage, getFromLocalStorage, setInLocalStorage } from './lib/local-storage'
+export {
+	clearLocalStorage,
+	deleteFromLocalStorage,
+	getFromLocalStorage,
+	setInLocalStorage,
+} from './lib/local-storage'
 export { MediaHelpers } from './lib/media'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
@@ -54,6 +59,7 @@ export {
 	validateIndexKey,
 } from './lib/reordering/reordering'
 export {
+	clearSessionStorage,
 	deleteFromSessionStorage,
 	getFromSessionStorage,
 	setInSessionStorage,

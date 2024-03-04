@@ -174,6 +174,62 @@
       "members": [
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/utils!clearLocalStorage:function(1)",
+          "docComment": "/**\n * Clear all values from local storage. Will not throw an error if localStorage is not available.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function clearLocalStorage(): "
+            },
+            {
+              "kind": "Content",
+              "text": "void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/local-storage.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "clearLocalStorage"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/utils!clearSessionStorage:function(1)",
+          "docComment": "/**\n * Clear all values from session storage. Will not throw an error if sessionStorage is not available.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function clearSessionStorage(): "
+            },
+            {
+              "kind": "Content",
+              "text": "void"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/session-storage.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "clearSessionStorage"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/utils!debounce:function(1)",
           "docComment": "/**\n * Debounce a function.\n *\n * @example\n * ```ts\n * const A = debounce(myFunction, 1000)\n * ```\n *\n * @see\n *\n * source - https://gist.github.com/ca0v/73a31f57b397606c9813472f7493a940\n *\n * @public\n */\n",
           "excerptTokens": [

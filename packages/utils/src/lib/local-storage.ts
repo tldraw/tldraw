@@ -42,3 +42,14 @@ export function deleteFromLocalStorage(key: string) {
 	// eslint-disable-next-line no-storage/no-browser-storage
 	localStorage.removeItem(key)
 }
+
+/**
+ * Clear all values from local storage. Will not throw an error if localStorage is not available.
+ *
+ * @public
+ */
+export function clearLocalStorage() {
+	if (!hasLocalStorage) return
+	// eslint-disable-next-line no-storage/no-browser-storage
+	localStorage.clear()
+}

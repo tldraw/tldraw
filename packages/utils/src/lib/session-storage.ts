@@ -42,3 +42,14 @@ export function deleteFromSessionStorage(key: string) {
 	// eslint-disable-next-line no-storage/no-browser-storage
 	sessionStorage.removeItem(key)
 }
+
+/**
+ * Clear all values from session storage. Will not throw an error if sessionStorage is not available.
+ *
+ * @public
+ */
+export function clearSessionStorage() {
+	if (!hasSessionStorage) return
+	// eslint-disable-next-line no-storage/no-browser-storage
+	sessionStorage.clear()
+}
