@@ -16,10 +16,11 @@ export interface TLUserPreferences {
 	name?: string | null
 	locale?: string | null
 	color?: string | null
-	isDarkMode?: boolean | null
 	animationSpeed?: number | null
 	edgeScrollSpeed?: number | null
+	isDarkMode?: boolean | null
 	isSnapMode?: boolean | null
+	isWrapMode?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -42,6 +43,7 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	animationSpeed: T.number.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),
 	isSnapMode: T.boolean.nullable().optional(),
+	isWrapMode: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -49,10 +51,11 @@ const Versions = {
 	AddIsSnapMode: 2,
 	MakeFieldsNullable: 3,
 	AddEdgeScrollSpeed: 4,
+	AddExcalidrawSelectMode: 5,
 } as const
 
 const userMigrations = defineMigrations({
-	currentVersion: Versions.AddEdgeScrollSpeed,
+	currentVersion: Versions.AddExcalidrawSelectMode,
 	migrators: {
 		[Versions.AddAnimationSpeed]: {
 			up: (user) => {
@@ -83,9 +86,10 @@ const userMigrations = defineMigrations({
 					name: user.name ?? defaultUserPreferences.name,
 					locale: user.locale ?? defaultUserPreferences.locale,
 					color: user.color ?? defaultUserPreferences.color,
-					isDarkMode: user.isDarkMode ?? defaultUserPreferences.isDarkMode,
 					animationSpeed: user.animationSpeed ?? defaultUserPreferences.animationSpeed,
+					isDarkMode: user.isDarkMode ?? defaultUserPreferences.isDarkMode,
 					isSnapMode: user.isSnapMode ?? defaultUserPreferences.isSnapMode,
+					isWrapMode: user.isWrapMode ?? defaultUserPreferences.isWrapMode,
 				}
 			},
 		},
@@ -97,6 +101,14 @@ const userMigrations = defineMigrations({
 				}
 			},
 			down: ({ edgeScrollSpeed: _, ...user }: TLUserPreferences) => {
+				return user
+			},
+		},
+		[Versions.AddExcalidrawSelectMode]: {
+			up: (user: TLUserPreferences) => {
+				return { ...user, isWrapMode: false }
+			},
+			down: ({ isWrapMode: _, ...user }: TLUserPreferences) => {
 				return user
 			},
 		},
@@ -148,6 +160,7 @@ export const defaultUserPreferences = Object.freeze({
 	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
+	isWrapMode: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */
@@ -196,7 +209,7 @@ function loadUserPreferences(): TLUserPreferences {
 	return migrateUserPreferences(userData)
 }
 
-const globalUserPreferences = atom<TLUserPreferences>('globalUserData', loadUserPreferences())
+const globalUserPreferences = atom<TLUserPreferences | null>('globalUserData', null)
 
 function storeUserPreferences() {
 	if (typeof window !== 'undefined' && window.localStorage) {
@@ -227,26 +240,37 @@ const channel =
 
 channel?.addEventListener('message', (e) => {
 	const data = e.data as undefined | UserChangeBroadcastMessage
-	if (data?.type === broadcastEventKey && data?.origin !== broadcastOrigin) {
+	if (data?.type === broadcastEventKey && data?.origin !== getBroadcastOrigin()) {
 		globalUserPreferences.set(migrateUserPreferences(data.data))
 	}
 })
 
-const broadcastOrigin = uniqueId()
+let _broadcastOrigin = null as null | string
+function getBroadcastOrigin() {
+	if (_broadcastOrigin === null) {
+		_broadcastOrigin = uniqueId()
+	}
+	return _broadcastOrigin
+}
 const broadcastEventKey = 'tldraw-user-preferences-change' as const
 
 function broadcastUserPreferencesChange() {
 	channel?.postMessage({
 		type: broadcastEventKey,
-		origin: broadcastOrigin,
+		origin: getBroadcastOrigin(),
 		data: {
-			user: globalUserPreferences.get(),
+			user: getUserPreferences(),
 			version: userMigrations.currentVersion,
 		},
 	} satisfies UserChangeBroadcastMessage)
 }
 
 /** @public */
-export function getUserPreferences() {
-	return globalUserPreferences.get()
+export function getUserPreferences(): TLUserPreferences {
+	let prefs = globalUserPreferences.get()
+	if (!prefs) {
+		prefs = loadUserPreferences()
+		globalUserPreferences.set(prefs)
+	}
+	return prefs
 }

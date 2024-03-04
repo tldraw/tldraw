@@ -1,6 +1,6 @@
-import { Tldraw, createTLStore, defaultShapeUtils, throttle } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { useLayoutEffect, useState } from 'react'
+import { Tldraw, createTLStore, defaultShapeUtils, throttle } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 

@@ -18,11 +18,7 @@ export function Footer() {
 				<p>tldraw © {new Date().getFullYear()}</p>
 			</a>
 			<div className="footer__socials">
-				<a
-					href="https://twitter.com/tldraw"
-					className="sidebar__button icon-button"
-					title="twitter"
-				>
+				<a href="https://x.com/tldraw" className="sidebar__button icon-button" title="x">
 					<Icon icon="twitter" />
 				</a>
 				<a

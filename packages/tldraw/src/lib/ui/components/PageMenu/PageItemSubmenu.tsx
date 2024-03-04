@@ -12,14 +12,14 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { onMovePage } from './edit-pages-shared'
-
+/** @public */
 export interface PageItemSubmenuProps {
 	index: number
 	item: { id: string; name: string }
 	listSize: number
 	onRename?: () => void
 }
-
+/** @public */
 export const PageItemSubmenu = track(function PageItemSubmenu({
 	index,
 	listSize,

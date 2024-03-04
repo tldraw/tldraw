@@ -6826,7 +6826,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    name: \"New User\";\n    locale: \"ar\" | \"ca\" | \"cs\" | \"da\" | \"de\" | \"en\" | \"es\" | \"fa\" | \"fi\" | \"fr\" | \"gl\" | \"he\" | \"hi-in\" | \"hr\" | \"hu\" | \"it\" | \"ja\" | \"ko-kr\" | \"ku\" | \"my\" | \"ne\" | \"no\" | \"pl\" | \"pt-br\" | \"pt-pt\" | \"ro\" | \"ru\" | \"sl\" | \"sv\" | \"te\" | \"th\" | \"tr\" | \"uk\" | \"vi\" | \"zh-cn\" | \"zh-tw\";\n    color: \"#02B1CC\" | \"#11B3A3\" | \"#39B178\" | \"#55B467\" | \"#7B66DC\" | \"#9D5BD2\" | \"#BD54C6\" | \"#E34BA9\" | \"#EC5E41\" | \"#F04F88\" | \"#F2555A\" | \"#FF802B\";\n    isDarkMode: false;\n    edgeScrollSpeed: 1;\n    animationSpeed: 0 | 1;\n    isSnapMode: false;\n}>"
+              "text": "<{\n    name: \"New User\";\n    locale: \"ar\" | \"ca\" | \"cs\" | \"da\" | \"de\" | \"en\" | \"es\" | \"fa\" | \"fi\" | \"fr\" | \"gl\" | \"he\" | \"hi-in\" | \"hr\" | \"hu\" | \"it\" | \"ja\" | \"ko-kr\" | \"ku\" | \"my\" | \"ne\" | \"no\" | \"pl\" | \"pt-br\" | \"pt-pt\" | \"ro\" | \"ru\" | \"sl\" | \"sv\" | \"te\" | \"th\" | \"tr\" | \"uk\" | \"vi\" | \"zh-cn\" | \"zh-tw\";\n    color: \"#02B1CC\" | \"#11B3A3\" | \"#39B178\" | \"#55B467\" | \"#7B66DC\" | \"#9D5BD2\" | \"#BD54C6\" | \"#E34BA9\" | \"#EC5E41\" | \"#F04F88\" | \"#F2555A\" | \"#FF802B\";\n    isDarkMode: false;\n    edgeScrollSpeed: 1;\n    animationSpeed: 0 | 1;\n    isSnapMode: false;\n    isWrapMode: false;\n}>"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/config/TLUserPreferences.ts",
@@ -12184,6 +12184,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectionRotatedScreenBounds:member(1)",
+              "docComment": "/**\n * The bounds of the selection bounding box in the current page space.\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectionRotatedScreenBounds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectionRotatedScreenBounds"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSelectionRotation:member(1)",
               "docComment": "/**\n * The rotation of the selection bounding box in the current page space.\n *\n * @readonly @public\n */\n",
               "excerptTokens": [
@@ -13778,6 +13814,72 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getStateDescendant"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getStyleForNextShape:member(1)",
+              "docComment": "/**\n * Get the style for the next shape.\n *\n * @param style - The style to get.\n *\n * @example\n * ```ts\n * const color = editor.getStyleForNextShape(DefaultColorStyle)\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getStyleForNextShape<T>(style: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StyleProp",
+                  "canonicalReference": "@tldraw/tlschema!StyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "style",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getStyleForNextShape"
             },
             {
               "kind": "Method",
@@ -36208,7 +36310,7 @@
         {
           "kind": "Interface",
           "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps:interface",
-          "docComment": "/**\n * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Base props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -36517,7 +36619,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TldrawEditorProps:type",
-          "docComment": "/**\n * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -41645,6 +41747,33 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "isSnapMode",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLUserPreferences#isWrapMode:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isWrapMode?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "isWrapMode",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

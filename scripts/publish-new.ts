@@ -1,40 +1,44 @@
 import { Auto } from '@auto-it/core'
 import fetch from 'cross-fetch'
+import glob from 'glob'
+import minimist from 'minimist'
 import { assert } from 'node:console'
-import { parse } from 'semver'
+import { SemVer, parse } from 'semver'
 import { exec } from './lib/exec'
-import { REPO_ROOT } from './lib/file'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
 
-async function main() {
-	const huppyToken = process.env.HUPPY_TOKEN
-	assert(huppyToken && typeof huppyToken === 'string', 'HUPPY_ACCESS_KEY env var must be set')
+type ReleaseType =
+	| {
+			bump: 'major' | 'minor'
+	  }
+	| {
+			bump: 'override'
+			version: SemVer
+	  }
 
-	const auto = new Auto({
-		plugins: ['npm'],
-		baseBranch: 'main',
-		owner: 'tldraw',
-		repo: 'tldraw',
-		verbose: true,
-		disableTsNode: true,
-	})
+function getReleaseType(): ReleaseType {
+	const arg = minimist(process.argv.slice(2))['bump']
+	if (!arg) {
+		throw new Error('Must provide a --bump argument')
+	}
+	if (arg === 'major' || arg === 'minor') {
+		return { bump: arg }
+	}
+	const parsed = parse(arg)
+	if (parsed) {
+		return { bump: 'override', version: parsed }
+	}
+	throw new Error('Invalid bump argument ' + JSON.stringify(arg))
+}
 
-	// module was called directly
-	const currentBranch = (await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).toString().trim()
-	if (currentBranch !== 'main') {
-		throw new Error('Must be on main branch to publish')
+async function getNextVersion(releaseType: ReleaseType): Promise<string> {
+	if (releaseType.bump === 'override') {
+		return releaseType.version.format()
 	}
 
-	await auto.loadConfig()
-	const bump = await auto.getVersion()
-	if (!bump) {
-		nicelog('nothing to do')
-		return
-	}
-
-	const latestVersion = parse(getLatestVersion())!
+	const latestVersion = parse(await getLatestVersion())!
 
 	nicelog('latestVersion', latestVersion)
 
@@ -48,9 +52,27 @@ async function main() {
 		? `${latestVersion.major}.${latestVersion.minor}.${latestVersion.patch}-${prereleaseTag}.${
 				Number(prereleaseNumber) + 1
 			}`
-		: latestVersion.inc(bump).format()
+		: latestVersion.inc(releaseType.bump).format()
 
-	setAllVersions(nextVersion)
+	return nextVersion
+}
+
+async function main() {
+	const huppyToken = process.env.HUPPY_TOKEN
+	assert(huppyToken && typeof huppyToken === 'string', 'HUPPY_ACCESS_KEY env var must be set')
+
+	// check we're on the main branch on HEAD
+	const currentBranch = (await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).toString().trim()
+	if (currentBranch !== 'main') {
+		throw new Error('Must be on main branch to publish')
+	}
+
+	const releaseType = getReleaseType()
+	const nextVersion = await getNextVersion(releaseType)
+
+	console.log('Releasing version', nextVersion)
+
+	await setAllVersions(nextVersion)
 
 	// stage the changes
 	const packageJsonFilesToAdd = []
@@ -59,12 +81,29 @@ async function main() {
 			packageJsonFilesToAdd.push(`${workspace.relativePath}/package.json`)
 		}
 	}
+	const versionFilesToAdd = glob.sync('**/*/version.ts', {
+		ignore: ['node_modules/**'],
+		follow: false,
+	})
+	console.log('versionFilesToAdd', versionFilesToAdd)
 	await exec('git', [
 		'add',
+		'--update',
 		'lerna.json',
 		...packageJsonFilesToAdd,
-		REPO_ROOT + '/packages/*/src/**/version.ts',
+		...versionFilesToAdd,
 	])
+
+	const auto = new Auto({
+		plugins: ['npm'],
+		baseBranch: 'main',
+		owner: 'tldraw',
+		repo: 'tldraw',
+		verbose: true,
+		disableTsNode: true,
+	})
+
+	await auto.loadConfig()
 
 	// this creates a new commit
 	await auto.changelog({
