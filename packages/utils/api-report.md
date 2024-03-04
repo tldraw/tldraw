@@ -267,9 +267,6 @@ export function promiseWithResolve<T>(): Promise<T> & {
 // @internal
 export function rafThrottle(fn: () => void): () => void;
 
-// @internal (undocumented)
-export const reactUpdateMode: ReactUpdateMode;
-
 // @public (undocumented)
 export type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
@@ -319,9 +316,6 @@ export function throttle<T extends (...args: any) => any>(func: T, limit: number
 
 // @internal
 export function throttledRaf(fn: () => void): void;
-
-// @internal (undocumented)
-export const updateMode: UpdateMode;
 
 // @internal (undocumented)
 export function validateIndexKey(key: string): asserts key is IndexKey;

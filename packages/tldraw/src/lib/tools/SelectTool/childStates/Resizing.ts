@@ -19,7 +19,6 @@ import {
 	areAnglesCompatible,
 	compact,
 	moveCameraWhenCloseToEdge,
-	updateMode,
 } from '@tldraw/editor'
 
 type ResizingInfo = TLPointerEventInfo & {
@@ -77,7 +76,7 @@ export class Resizing extends StateNode {
 
 	override onTick: TLTickEventHandler = () => {
 		moveCameraWhenCloseToEdge(this.editor)
-		if (updateMode !== 'onTick' || !this.isDirty) return
+		if (!this.isDirty) return
 		this.isDirty = false
 		this.updateShapes()
 	}
@@ -85,11 +84,7 @@ export class Resizing extends StateNode {
 	isDirty = false
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		if (updateMode === 'onPointerMove') {
-			this.updateShapes()
-		} else {
-			this.isDirty = true
-		}
+		this.isDirty = true
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {

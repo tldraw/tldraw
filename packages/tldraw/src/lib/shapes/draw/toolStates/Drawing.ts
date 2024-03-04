@@ -17,7 +17,6 @@ import {
 	structuredClone,
 	toFixed,
 	uniqueId,
-	updateMode,
 } from '@tldraw/editor'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 
@@ -65,15 +64,11 @@ export class Drawing extends StateNode {
 	isDirty = false
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		if (updateMode === 'onTick') {
-			this.isDirty = true
-		} else {
-			this.updateShapes()
-		}
+		this.isDirty = true
 	}
 
 	override onTick = () => {
-		if (!this.isDirty || updateMode !== 'onTick') return
+		if (!this.isDirty) return
 
 		this.isDirty = false
 		const {

@@ -6,43 +6,7 @@ const isTest = () =>
 
 const rafQueue: Array<() => void> = []
 
-type RenderingMode = 'raf' | 'sixtyFps'
-type UpdateMode = 'onTick' | 'onPointerMove'
-type ReactUpdateMode = 'original' | 'throttled'
-
-// How do we schedule the updates? Either every 16ms or on raf
-/** @internal */
-export const renderingMode: RenderingMode = 'sixtyFps'
-// export const renderingMode: RenderingMode = 'raf'
-// How does we process the updates? Either onTick or onPointerMove
-/** @internal */
-export const updateMode: UpdateMode = 'onTick'
-// export const updateMode: UpdateMode = 'onPointerMove'
-// How do we notifiy React about updates? Either original (as soon as the change occurs) or throttled
-/** @internal */
-export const reactUpdateMode: ReactUpdateMode = 'throttled'
-// export const reactUpdateMode: ReactUpdateMode = 'original'
-
-let timesBetweenFrames: number[] = []
-let lastFrameTime = 0
-
 const tick = () => {
-	const now = Date.now()
-	const timeSinceLastTick = now - lastFrameTime
-	if (timeSinceLastTick < 1000) {
-		timesBetweenFrames.push(timeSinceLastTick)
-	}
-	if (timesBetweenFrames.length > 100) {
-		// eslint-disable-next-line no-console
-		console.log('resetting fps')
-		timesBetweenFrames = []
-	}
-	const average = timesBetweenFrames.reduce((a, b) => a + b, 0) / timesBetweenFrames.length
-	const fps = `${Math.round(1000 / average)}fps`
-	// eslint-disable-next-line no-console
-	console.log('time since last tick', timeSinceLastTick, fps)
-	lastFrameTime = now
-
 	const queue = rafQueue.splice(0, rafQueue.length)
 	for (const fn of queue) {
 		fn()
@@ -54,7 +18,7 @@ const targetTimePerFrame = 1000 / fps
 let frame: number | undefined
 let time = 0
 let last = 0
-let timePerFrame = targetTimePerFrame
+const timePerFrame = targetTimePerFrame
 
 function sixtyFps() {
 	if (frame) {
@@ -88,17 +52,6 @@ function sixtyFps() {
 	})
 }
 
-function raf() {
-	if (frame) {
-		return
-	}
-
-	requestAnimationFrame(() => {
-		frame = undefined
-		tick()
-	})
-}
-
 let started = false
 
 /**
@@ -117,15 +70,11 @@ export function rafThrottle(fn: () => void) {
 			return
 		}
 		rafQueue.push(fn)
-		if (renderingMode === 'sixtyFps') {
-			if (!started) {
-				started = true
-				last = Date.now() - targetTimePerFrame - 1
-			}
-			sixtyFps()
-		} else {
-			raf()
+		if (!started) {
+			started = true
+			last = Date.now() - targetTimePerFrame - 1
 		}
+		sixtyFps()
 	}
 }
 
@@ -146,13 +95,9 @@ export function throttledRaf(fn: () => void) {
 	}
 
 	rafQueue.push(fn)
-	if (renderingMode === 'sixtyFps') {
-		if (!started) {
-			started = true
-			last = Date.now() - targetTimePerFrame - 1
-		}
-		sixtyFps()
-	} else {
-		raf()
+	if (!started) {
+		started = true
+		last = Date.now() - targetTimePerFrame - 1
 	}
+	sixtyFps()
 }

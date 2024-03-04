@@ -1,5 +1,5 @@
 /* eslint-disable prefer-rest-params */
-import { reactUpdateMode, throttledRaf } from '@tldraw/utils'
+import { throttledRaf } from '@tldraw/utils'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
 import { Signal, computed, react } from '../core'
 
@@ -80,7 +80,6 @@ export function useValue() {
 
 	try {
 		const { subscribe, getSnapshot } = useMemo(() => {
-			const scheduleEffect = reactUpdateMode === 'throttled' ? throttledRaf : undefined
 			return {
 				subscribe: (listen: () => void) => {
 					return react(
@@ -90,7 +89,7 @@ export function useValue() {
 							listen()
 						},
 						{
-							scheduleEffect,
+							scheduleEffect: throttledRaf,
 						}
 					)
 				},
