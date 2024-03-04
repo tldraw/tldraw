@@ -190,8 +190,6 @@ const CursorChatInput = track(function CursorChatInput({
 
 	const handlePaste = useCallback(
 		(e: ClipboardEvent) => {
-			const text = e.clipboardData.getData('text/plain')
-			setValue(text)
 			e.stopPropagation()
 		},
 		[setValue]
