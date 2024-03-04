@@ -18,7 +18,7 @@ import { StickerTool } from './sticker-tool-util'
 const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		// Create a tool item in the ui's context.
-		tools.card = {
+		tools.sticker = {
 			id: 'sticker',
 			icon: 'heart-icon',
 			label: 'Sticker',
@@ -31,7 +31,7 @@ const uiOverrides: TLUiOverrides = {
 	},
 	toolbar(_app, toolbar, { tools }) {
 		// Add the tool item from the context to the toolbar.
-		toolbar.splice(4, 0, toolbarItem(tools.card))
+		toolbar.splice(4, 0, toolbarItem(tools.sticker))
 		return toolbar
 	},
 }
@@ -44,7 +44,7 @@ const components: TLComponents = {
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<DefaultKeyboardShortcutsDialogContent />
 				{/* Ideally, we'd interleave this into the tools group */}
-				<TldrawUiMenuItem {...tools['card']} />
+				<TldrawUiMenuItem {...tools['sticker']} />
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},
@@ -87,22 +87,24 @@ example shows how to do that. For more information on how to implement custom
 tools, check out the custom tool example.
 
 [1]
-First, we define the uiOverrides object. This object has a tools and toolbar
-property. The tools property is a function that takes in the editor and the
-default tools and returns the default tools with the new tool added. The toolbar
-property is a function that takes in the app, the default toolbar, and the tools
-and returns the default toolbar with the new tool added.
+First, we define the uiOverrides object. We can override the tools function to
+add our custom tool to the ui's context. We can also override the toolbar function
+to add our custom tool to the toolbar. We are going to splice it into the toolbar
+so it appears in between the eraser and arrow tools.
 
 [2]
-Next, we define the components object. This object has a KeyboardShortcutsDialog
-property that is a function that takes in props and returns the default
-KeyboardShortcutsDialog component with the DefaultKeyboardShortcutsDialogContent
-component and the custom tool item added to it.
+Next, we want to override the default keyboard shortcuts dialog so that the 
+shortcut for our custom tool appears in the dialog. We don't want to change its 
+appearance very much, so we can use the DefaultKeyboardShortcutsDialog component 
+and pass in the DefaultKeyboardShortcutsDialogContent component. With the useTools 
+hook, we can get the tools from context and pass in the sticker tool to the keyboard 
+shortcuts dialog. This will make the keyboard shortcut for the sticker tool appear 
+in the dialog.
 
 [3]
-Then, we define the customAssetUrls object. This object has an icons property
-that is an object with the key being the id of the icon and the value being the
-url of the icon.
+We need to make sure the editor knows where to find the icon for our custom tool.
+We do this by defining the customAssetUrls object and passing in the asset url for
+our icon.
 
 [4]
 Finally, we define the customTools array. This array contains the custom tool

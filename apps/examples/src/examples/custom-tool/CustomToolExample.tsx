@@ -3,6 +3,8 @@ import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
+const OFFSET = 12
+
 // [1]
 class StickerTool extends StateNode {
 	static override id = 'sticker'
@@ -17,8 +19,8 @@ class StickerTool extends StateNode {
 		const { currentPagePoint } = this.editor.inputs
 		this.editor.createShape({
 			type: 'text',
-			x: currentPagePoint.x,
-			y: currentPagePoint.y,
+			x: currentPagePoint.x - OFFSET,
+			y: currentPagePoint.y - OFFSET,
 			props: { text: '❤️' },
 		})
 	}
@@ -73,7 +75,7 @@ with child states, check out the screenshot tool or minimal examples.
 
 [2]
 We pass our custom tool to the Tldraw component using the `tools` prop. We also set the
-initial state to our custom tool. We also hide the ui and add some helpful text to the 
-canvas using the `onMount` prop. This isn't necessary for the tool to work but it helps
-make the example more visually clear.
+initial state to our custom tool. We hide the ui and add some helpful text to the canvas 
+using the `onMount` prop. This is not necessary for the tool to work but it helps make the 
+example more visually clear.
 */
