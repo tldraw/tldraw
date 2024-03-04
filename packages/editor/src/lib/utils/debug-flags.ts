@@ -131,7 +131,7 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 					if (currentValue === defaultValue) {
 						deleteFromSessionStorage(`tldraw_debug:${def.name}`)
 					} else {
-						setInSessionStorage(`tldraw_debug:${def.name}`, JSON.stringify(currentValue))
+						setInSessionStorage(`tldraw_debug:${def.name}`, currentValue)
 					}
 				} catch {
 					// not a big deal
