@@ -53,6 +53,16 @@ export {
 	validateIndexKey,
 } from './lib/reordering/reordering'
 export { sortById } from './lib/sort'
+export {
+	clearLocalStorage,
+	clearSessionStorage,
+	deleteFromLocalStorage,
+	deleteFromSessionStorage,
+	getFromLocalStorage,
+	getFromSessionStorage,
+	setInLocalStorage,
+	setInSessionStorage,
+} from './lib/storage'
 export type { Expand, RecursivePartial, Required } from './lib/types'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'
 export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'

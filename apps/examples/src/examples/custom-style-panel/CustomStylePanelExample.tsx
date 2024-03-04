@@ -9,8 +9,8 @@ import {
 	TldrawUiButtonLabel,
 	useEditor,
 	useRelevantStyles,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomStylePanel(props: TLUiStylePanelProps) {
 	const editor = useEditor()

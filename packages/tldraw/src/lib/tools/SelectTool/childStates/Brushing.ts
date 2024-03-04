@@ -29,12 +29,15 @@ export class Brushing extends StateNode {
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
 	isDirty = false
+	isWrapMode = false
 
 	// The shape that the brush started on
 	initialStartShape: TLShape | null = null
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'canvas' }) => {
 		const { altKey, currentPagePoint } = this.editor.inputs
+
+		this.isWrapMode = this.editor.user.getIsWrapMode()
 
 		if (altKey) {
 			this.parent.transition('scribble_brushing', info)
@@ -128,7 +131,9 @@ export class Brushing extends StateNode {
 		// We'll be testing the corners of the brush against the shapes
 		const { corners } = this.brush
 
-		const { excludedShapeIds } = this
+		const { excludedShapeIds, isWrapMode } = this
+
+		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
 		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
 			shape = currentPageShapes[i]
@@ -147,7 +152,7 @@ export class Brushing extends StateNode {
 			// Should we even test for a single segment intersections? Only if
 			// we're not holding the ctrl key for alternate selection mode
 			// (only wraps count!), or if the shape is a frame.
-			if (ctrlKey || this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (isWrapping || this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
 				continue testAllShapes
 			}
 

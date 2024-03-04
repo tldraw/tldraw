@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -14,7 +14,7 @@ import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
 
 /** @public */
 export type TLUiHelpMenuProps = {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
@@ -33,7 +33,7 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 		<div className="tlui-help-menu">
 			<TldrawUiDropdownMenuRoot id="help menu">
 				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton type="help" title={msg('help-menu.title')}>
+					<TldrawUiButton type="help" title={msg('help-menu.title')} data-testid="help-menu.button">
 						<TldrawUiButtonIcon icon="question-mark" small />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
