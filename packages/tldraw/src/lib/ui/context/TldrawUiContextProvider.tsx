@@ -1,4 +1,5 @@
 import { RecursivePartial } from '@tldraw/editor'
+import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { ToolbarSchemaProvider } from '../hooks/useToolbarSchema'
 import { ToolsProvider } from '../hooks/useTools'
@@ -46,7 +47,7 @@ export interface TldrawUiContextProviderProps {
 	/**
 	 * The component's children.
 	 */
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */

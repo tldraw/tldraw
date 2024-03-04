@@ -2203,7 +2203,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    forceMobile?: boolean;\n    children: any;\n}"
+              "text": "{\n    forceMobile?: boolean;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -2225,8 +2234,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/context/breakpoints.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
+            "startIndex": 5,
+            "endIndex": 7
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -2235,7 +2244,7 @@
               "parameterName": "{ forceMobile, children, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 4
               },
               "isOptional": false
             }
@@ -5806,7 +5815,16 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    children: any;\n}"
+              "text": ";\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -5818,7 +5836,7 @@
           "name": "EventsProviderProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -16156,7 +16174,16 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    children?: any;\n    hideUi?: boolean | undefined;\n    components?: "
+              "text": "<{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    hideUi?: boolean | undefined;\n    components?: "
             },
             {
               "kind": "Reference",
@@ -16966,7 +16993,7 @@
           "name": "TldrawUi",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 181
+            "endIndex": 183
           }
         },
         {
@@ -17534,8 +17561,9 @@
                   "text": "children?: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "any"
+                  "kind": "Reference",
+                  "text": "ReactNode",
+                  "canonicalReference": "@types/react!React.ReactNode:type"
                 },
                 {
                   "kind": "Content",
@@ -18693,7 +18721,34 @@
             },
             {
               "kind": "Content",
-              "text": "any"
+              "text": "boolean | import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Iterable",
+              "canonicalReference": "!Iterable:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null | number | string | undefined"
             },
             {
               "kind": "Content",
@@ -18703,7 +18758,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuGroup.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
-            "endIndex": 4
+            "endIndex": 10
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -18874,7 +18929,34 @@
             },
             {
               "kind": "Content",
-              "text": "any"
+              "text": "boolean | import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Iterable",
+              "canonicalReference": "!Iterable:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null | number | string | undefined"
             },
             {
               "kind": "Content",
@@ -18884,7 +18966,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/menus/TldrawUiMenuSubmenu.tsx",
           "returnTypeTokenRange": {
             "startIndex": 8,
-            "endIndex": 9
+            "endIndex": 15
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -19474,19 +19556,28 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children?: any;\n}"
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ActionsMenu/DefaultActionsMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ActionsMenu/DefaultActionsMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiActionsMenuProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -19592,7 +19683,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children?: any;\n}"
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -19604,7 +19704,7 @@
           "name": "TLUiButtonLabelProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20000,7 +20100,16 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    children: any;\n}"
+              "text": ";\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -20012,7 +20121,7 @@
           "name": "TLUiComponentsProviderProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -20025,7 +20134,7 @@
               "text": "export interface TLUiContextMenuProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ContextMenu/DefaultContextMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/DefaultContextMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiContextMenuProps",
           "preserveMemberOrder": false,
@@ -20040,15 +20149,15 @@
                   "text": "children?: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "any"
+                  "kind": "Reference",
+                  "text": "ReactNode",
+                  "canonicalReference": "@types/react!React.ReactNode:type"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu/DefaultContextMenu.tsx",
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
@@ -20072,7 +20181,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children?: any;\n}"
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -20084,7 +20202,7 @@
           "name": "TLUiDebugMenuProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20211,7 +20329,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    className?: string;\n    children: any;\n    style?: "
+              "text": "{\n    className?: string;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    style?: "
             },
             {
               "kind": "Reference",
@@ -20232,7 +20359,7 @@
           "name": "TLUiDialogBodyProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 4
+            "endIndex": 6
           }
         },
         {
@@ -20246,7 +20373,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    className?: string;\n    children: any;\n}"
+              "text": "{\n    className?: string;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -20258,7 +20394,7 @@
           "name": "TLUiDialogFooterProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20272,19 +20408,28 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    className?: string;\n    children: any;\n}"
+              "text": "{\n    className?: string;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/primitives/TldrawUiDialog.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/primitives/TldrawUiDialog.tsx",
           "releaseTag": "Public",
           "name": "TLUiDialogHeaderProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20414,7 +20559,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    className?: string;\n    children: any;\n}"
+              "text": "{\n    className?: string;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -20426,7 +20580,7 @@
           "name": "TLUiDialogTitleProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20481,8 +20635,9 @@
                   "text": "children: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "any"
+                  "kind": "Reference",
+                  "text": "ReactNode",
+                  "canonicalReference": "@types/react!React.ReactNode:type"
                 },
                 {
                   "kind": "Content",
@@ -20602,7 +20757,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id?: string;\n    children: any;\n    alignOffset?: number;\n    sideOffset?: number;\n    align?: 'center' | 'end' | 'start';\n    side?: 'bottom' | 'left' | 'right' | 'top';\n}"
+              "text": "{\n    id?: string;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    alignOffset?: number;\n    sideOffset?: number;\n    align?: 'center' | 'end' | 'start';\n    side?: 'bottom' | 'left' | 'right' | 'top';\n}"
             },
             {
               "kind": "Content",
@@ -20614,7 +20778,7 @@
           "name": "TLUiDropdownMenuContentProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20628,7 +20792,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children: any;\n}"
+              "text": "{\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -20640,7 +20813,7 @@
           "name": "TLUiDropdownMenuGroupProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20668,8 +20841,9 @@
                   "text": "children: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "any"
+                  "kind": "Reference",
+                  "text": "ReactNode",
+                  "canonicalReference": "@types/react!React.ReactNode:type"
                 },
                 {
                   "kind": "Content",
@@ -20726,7 +20900,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    children: any;\n    modal?: boolean;\n    debugOpen?: boolean;\n}"
+              "text": "{\n    id: string;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    modal?: boolean;\n    debugOpen?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -20738,7 +20921,7 @@
           "name": "TLUiDropdownMenuRootProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20752,7 +20935,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    children: any;\n}"
+              "text": "{\n    id: string;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -20764,7 +20956,7 @@
           "name": "TLUiDropdownMenuSubProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -20818,8 +21010,9 @@
                   "text": "children?: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "any"
+                  "kind": "Reference",
+                  "text": "ReactNode",
+                  "canonicalReference": "@types/react!React.ReactNode:type"
                 },
                 {
                   "kind": "Content",
@@ -22807,7 +23000,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children?: any;\n}"
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -22819,7 +23021,7 @@
           "name": "TLUiHelperButtonsProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -22833,19 +23035,28 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children?: any;\n}"
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/HelpMenu/DefaultHelpMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/HelpMenu/DefaultHelpMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiHelpMenuProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -23179,8 +23390,9 @@
                   "text": "children?: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "any"
+                  "kind": "Reference",
+                  "text": "React.ReactNode",
+                  "canonicalReference": "@types/react!React.ReactNode:type"
                 },
                 {
                   "kind": "Content",
@@ -23695,7 +23907,16 @@
             },
             {
               "kind": "Content",
-              "text": " & {\n    children?: any;\n}"
+              "text": " & {\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -23707,7 +23928,7 @@
           "name": "TLUiKeyboardShortcutsDialogProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 5
           }
         },
         {
@@ -23721,19 +23942,28 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children?: any;\n}"
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/MainMenu/DefaultMainMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiMainMenuProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -23916,7 +24146,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    children?: any;\n}"
+              "text": "{\n    id: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -23941,7 +24180,7 @@
           ],
           "typeTokenRange": {
             "startIndex": 5,
-            "endIndex": 6
+            "endIndex": 8
           }
         },
         {
@@ -24071,7 +24310,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: any;\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
+              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
             },
             {
               "kind": "Content",
@@ -24096,7 +24344,7 @@
           ],
           "typeTokenRange": {
             "startIndex": 5,
-            "endIndex": 6
+            "endIndex": 8
           }
         },
         {
@@ -24347,19 +24595,28 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children?: any;\n}"
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/QuickActions/DefaultQuickActions.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/QuickActions/DefaultQuickActions.tsx",
           "releaseTag": "Public",
           "name": "TLUiQuickActionsProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {
@@ -24416,7 +24673,7 @@
               "text": "export interface TLUiStylePanelProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/StylePanel/DefaultStylePanel.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
           "releaseTag": "Public",
           "name": "TLUiStylePanelProps",
           "preserveMemberOrder": false,
@@ -24431,15 +24688,15 @@
                   "text": "children?: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "any"
+                  "kind": "Reference",
+                  "text": "ReactNode",
+                  "canonicalReference": "@types/react!React.ReactNode:type"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
@@ -24467,7 +24724,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanel.tsx",
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
@@ -25297,7 +25553,16 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    children: any;\n}"
+              "text": ";\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -25309,7 +25574,7 @@
           "name": "TLUiToolsProviderProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 8
+            "endIndex": 10
           }
         },
         {
@@ -25420,19 +25685,28 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children?: any;\n}"
+              "text": "{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ZoomMenu/DefaultZoomMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ZoomMenu/DefaultZoomMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiZoomMenuProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {

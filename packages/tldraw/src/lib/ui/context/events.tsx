@@ -120,7 +120,7 @@ export const EventsContext = React.createContext<TLUiEventContextType>({} as TLU
 /** @public */
 export type EventsProviderProps = {
 	onEvent?: TLUiEventHandler
-	children: any
+	children: React.ReactNode
 }
 
 /** @public */

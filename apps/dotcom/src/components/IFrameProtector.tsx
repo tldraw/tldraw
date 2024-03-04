@@ -1,4 +1,4 @@
-import { useEffect, useState, version } from 'react'
+import { ReactNode, useEffect, useState, version } from 'react'
 import { LoadingScreen } from 'tldraw'
 import { useUrl } from '../hooks/useUrl'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
@@ -47,7 +47,7 @@ export function IFrameProtector({
 		| 'history-snapshot'
 		| 'history'
 		| 'local'
-	children: any
+	children: ReactNode
 }) {
 	const [embeddedState, setEmbeddedState] = useState<
 		'iframe-unknown' | 'iframe-not-allowed' | 'not-iframe' | 'iframe-ok'
