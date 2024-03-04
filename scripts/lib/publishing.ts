@@ -103,7 +103,7 @@ function topologicalSortPackages(packages: Record<string, PackageDetails>) {
 	return sorted
 }
 
-export async function publish() {
+export async function publish(distTag?: string) {
 	const npmToken = process.env.NPM_TOKEN
 	if (!npmToken) {
 		throw new Error('NPM_TOKEN not set')
@@ -117,9 +117,9 @@ export async function publish() {
 	const publishOrder = topologicalSortPackages(packages)
 
 	for (const packageDetails of publishOrder) {
-		const prereleaseTag = parse(packageDetails.version)?.prerelease[0] ?? 'latest'
+		const tag = distTag ?? parse(packageDetails.version)?.prerelease[0] ?? 'latest'
 		nicelog(
-			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${prereleaseTag}`
+			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${tag}`
 		)
 
 		await retry(
@@ -128,15 +128,7 @@ export async function publish() {
 				try {
 					await exec(
 						`yarn`,
-						[
-							'npm',
-							'publish',
-							'--tag',
-							String(prereleaseTag),
-							'--tolerate-republish',
-							'--access',
-							'public',
-						],
+						['npm', 'publish', '--tag', String(tag), '--tolerate-republish', '--access', 'public'],
 						{
 							pwd: packageDetails.dir,
 							processStdoutLine: (line) => {
