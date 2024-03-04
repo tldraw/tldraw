@@ -8087,16 +8087,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.0":
-  version: 18.2.18
-  resolution: "@types/react-dom@npm:18.2.18"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 4ef7725b4cebd4a32e049097ddfdfd855a178e63ead97ab6d3084872e7d6c1acd71aa923488123cd1015f0e0b11489d2b44f674a1df8fe82d7827eabbec6dbf1
-  languageName: node
-  linkType: hard
-
-"@types/react-dom@npm:^18.2.19":
+"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.2.19":
   version: 18.2.19
   resolution: "@types/react-dom@npm:18.2.19"
   dependencies:
