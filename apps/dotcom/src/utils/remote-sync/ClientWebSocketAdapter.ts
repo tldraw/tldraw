@@ -56,7 +56,6 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		this._ws?.close()
 	}
 
-	// TODO: this constructor is an adhoc interface; maybe it should be in TLPersistentClientSocket?)
 	constructor(getUri: () => Promise<string> | string) {
 		this._reconnectManager = new ReconnectManager(this, getUri)
 	}
