@@ -5,7 +5,7 @@
  *
  * @param key - The key to get.
  *
- * @public
+ * @internal
  */
 export function getFromLocalStorage(key: string) {
 	try {
@@ -21,7 +21,7 @@ export function getFromLocalStorage(key: string) {
  * @param key - The key to set.
  * @param value - The value to set.
  *
- * @public
+ * @internal
  */
 export function setInLocalStorage(key: string, value: string) {
 	try {
@@ -36,7 +36,7 @@ export function setInLocalStorage(key: string, value: string) {
  *
  * @param key - The key to set.
  *
- * @public
+ * @internal
  */
 export function deleteFromLocalStorage(key: string) {
 	try {
@@ -49,7 +49,7 @@ export function deleteFromLocalStorage(key: string) {
 /**
  * Clear all values from local storage. Will not throw an error if localStorage is not available.
  *
- * @public
+ * @internal
  */
 export function clearLocalStorage() {
 	try {
@@ -64,7 +64,7 @@ export function clearLocalStorage() {
  *
  * @param key - The key to get.
  *
- * @public
+ * @internal
  */
 export function getFromSessionStorage(key: string) {
 	try {
@@ -80,7 +80,7 @@ export function getFromSessionStorage(key: string) {
  * @param key - The key to set.
  * @param value - The value to set.
  *
- * @public
+ * @internal
  */
 export function setInSessionStorage(key: string, value: string) {
 	try {
@@ -95,7 +95,7 @@ export function setInSessionStorage(key: string, value: string) {
  *
  * @param key - The key to set.
  *
- * @public
+ * @internal
  */
 export function deleteFromSessionStorage(key: string) {
 	try {
@@ -108,7 +108,7 @@ export function deleteFromSessionStorage(key: string) {
 /**
  * Clear all values from session storage. Will not throw an error if sessionStorage is not available.
  *
- * @public
+ * @internal
  */
 export function clearSessionStorage() {
 	try {

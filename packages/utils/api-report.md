@@ -19,10 +19,10 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
-// @public
+// @internal
 export function clearLocalStorage(): void;
 
-// @public
+// @internal
 export function clearSessionStorage(): void;
 
 // @internal (undocumented)
@@ -40,10 +40,10 @@ export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[]
 // @public
 export function deepCopy<T = unknown>(obj: T): T;
 
-// @public
+// @internal
 export function deleteFromLocalStorage(key: string): void;
 
-// @public
+// @internal
 export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
@@ -80,10 +80,10 @@ export function getErrorAnnotations(error: Error): ErrorAnnotations;
 // @public
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
-// @public
+// @internal
 export function getFromLocalStorage(key: string): null | string;
 
-// @public
+// @internal
 export function getFromSessionStorage(key: string): null | string;
 
 // @public
@@ -291,10 +291,10 @@ export function rng(seed?: string): () => number;
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
-// @public
+// @internal
 export function setInLocalStorage(key: string, value: string): void;
 
-// @public
+// @internal
 export function setInSessionStorage(key: string, value: string): void;
 
 // @public (undocumented)
