@@ -192,7 +192,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"arrow\" | \"triangle\" | \"square\" | \"dot\" | \"pipe\" | \"diamond\" | \"inverted\" | \"bar\">"
+              "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLArrowShape.ts",
@@ -224,7 +224,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"arrow\" | \"triangle\" | \"square\" | \"dot\" | \"pipe\" | \"diamond\" | \"inverted\" | \"bar\">"
+              "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLArrowShape.ts",
@@ -256,7 +256,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    color: import(\"../styles/StyleProp\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    color: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -265,7 +265,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    fill: import(\"../styles/StyleProp\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    fill: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -274,7 +274,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"semi\" | \"solid\" | \"pattern\">;\n    dash: import(\"../styles/StyleProp\")."
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    dash: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -283,7 +283,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"solid\" | \"draw\" | \"dashed\" | \"dotted\">;\n    size: import(\"../styles/StyleProp\")."
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    size: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -292,7 +292,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"m\" | \"s\" | \"l\" | \"xl\">;\n    arrowheadStart: import(\"../styles/StyleProp\")."
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    arrowheadStart: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -301,7 +301,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"arrow\" | \"triangle\" | \"square\" | \"dot\" | \"pipe\" | \"diamond\" | \"inverted\" | \"bar\">;\n    arrowheadEnd: import(\"../styles/StyleProp\")."
+              "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n    arrowheadEnd: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -310,7 +310,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"arrow\" | \"triangle\" | \"square\" | \"dot\" | \"pipe\" | \"diamond\" | \"inverted\" | \"bar\">;\n    font: import(\"../styles/StyleProp\")."
+              "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n    font: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -319,7 +319,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"draw\" | \"sans\" | \"serif\" | \"mono\">;\n    start: "
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    start: "
             },
             {
               "kind": "Reference",
@@ -514,7 +514,7 @@
             },
             {
               "kind": "Content",
-              "text": ", \"type\" | \"props\">"
+              "text": ", \"props\" | \"type\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/records/TLAsset.ts",
@@ -814,7 +814,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"accent\" | \"white\" | \"black\" | \"selection-stroke\" | \"selection-fill\" | \"laser\" | \"muted-1\">"
+              "text": "<\"accent\" | \"black\" | \"laser\" | \"muted-1\" | \"selection-fill\" | \"selection-stroke\" | \"white\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/misc/TLColor.ts",
@@ -880,7 +880,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{ [P in \"typeName\" | \"id\" | \"meta\" | (undefined extends Type ? never : \"type\") | (undefined extends Props ? never : \"props\")]: {\n    id: "
+              "text": "<{ [P in \"id\" | \"meta\" | \"typeName\" | (undefined extends Props ? never : \"props\") | (undefined extends Type ? never : \"type\")]: {\n    id: "
             },
             {
               "kind": "Reference",
@@ -898,7 +898,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}[P]; } & { [P_1 in (undefined extends Type ? \"type\" : never) | (undefined extends Props ? \"props\" : never)]?: {\n    id: "
+              "text": ";\n}[P]; } & { [P_1 in (undefined extends Props ? \"props\" : never) | (undefined extends Type ? \"type\" : never)]?: {\n    id: "
             },
             {
               "kind": "Reference",
@@ -1029,7 +1029,7 @@
             },
             {
               "kind": "Content",
-              "text": "<"
+              "text": "<null | "
             },
             {
               "kind": "Reference",
@@ -1038,7 +1038,7 @@
             },
             {
               "kind": "Content",
-              "text": " | null>"
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/createPresenceStateDerivation.ts",
@@ -1198,7 +1198,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{ [P in \"typeName\" | \"id\" | \"x\" | \"y\" | \"meta\" | \"rotation\" | \"opacity\" | \"index\" | \"parentId\" | \"isLocked\" | (undefined extends Type ? never : \"type\") | (undefined extends Props ? never : \"props\")]: "
+              "text": "<{ [P in \"id\" | \"index\" | \"isLocked\" | \"meta\" | \"opacity\" | \"parentId\" | \"rotation\" | \"typeName\" | \"x\" | \"y\" | (undefined extends Props ? never : \"props\") | (undefined extends Type ? never : \"type\")]: "
             },
             {
               "kind": "Reference",
@@ -1207,7 +1207,7 @@
             },
             {
               "kind": "Content",
-              "text": "<Type, Props>[P]; } & { [P_1 in (undefined extends Type ? \"type\" : never) | (undefined extends Props ? \"props\" : never)]?: "
+              "text": "<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? \"props\" : never) | (undefined extends Type ? \"type\" : never)]?: "
             },
             {
               "kind": "Reference",
@@ -1377,7 +1377,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">"
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/styles/TLColorStyle.ts",
@@ -1450,7 +1450,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"solid\" | \"draw\" | \"dashed\" | \"dotted\">"
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/styles/TLDashStyle.ts",
@@ -1482,7 +1482,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"semi\" | \"solid\" | \"pattern\">"
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/styles/TLFillStyle.ts",
@@ -1537,7 +1537,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"draw\" | \"sans\" | \"serif\" | \"mono\">"
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/styles/TLFontStyle.ts",
@@ -1569,7 +1569,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"start\" | \"end\" | \"middle\" | \"start-legacy\" | \"end-legacy\" | \"middle-legacy\">"
+              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/styles/TLHorizontalAlignStyle.ts",
@@ -1601,7 +1601,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"m\" | \"s\" | \"l\" | \"xl\">"
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/styles/TLSizeStyle.ts",
@@ -1633,7 +1633,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"start\" | \"end\" | \"middle\">"
+              "text": "<\"end\" | \"middle\" | \"start\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/styles/TLVerticalAlignStyle.ts",
@@ -1706,7 +1706,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    fill: import(\"..\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    fill: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -1715,7 +1715,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"semi\" | \"solid\" | \"pattern\">;\n    dash: import(\"..\")."
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    dash: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -1724,7 +1724,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"solid\" | \"draw\" | \"dashed\" | \"dotted\">;\n    size: import(\"..\")."
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    size: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -1733,7 +1733,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"m\" | \"s\" | \"l\" | \"xl\">;\n    segments: "
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    segments: "
             },
             {
               "kind": "Reference",
@@ -2070,7 +2070,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"triangle\" | \"diamond\" | \"rectangle\" | \"cloud\" | \"ellipse\" | \"pentagon\" | \"hexagon\" | \"octagon\" | \"star\" | \"rhombus\" | \"rhombus-2\" | \"oval\" | \"trapezoid\" | \"arrow-right\" | \"arrow-left\" | \"arrow-up\" | \"arrow-down\" | \"x-box\" | \"check-box\">"
+              "text": "<\"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLGeoShape.ts",
@@ -2102,7 +2102,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"triangle\" | \"diamond\" | \"rectangle\" | \"cloud\" | \"ellipse\" | \"pentagon\" | \"hexagon\" | \"octagon\" | \"star\" | \"rhombus\" | \"rhombus-2\" | \"oval\" | \"trapezoid\" | \"arrow-right\" | \"arrow-left\" | \"arrow-up\" | \"arrow-down\" | \"x-box\" | \"check-box\">;\n    labelColor: import(\"../styles/StyleProp\")."
+              "text": "<\"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\">;\n    labelColor: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2111,7 +2111,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    color: import(\"../styles/StyleProp\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    color: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2120,7 +2120,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    fill: import(\"../styles/StyleProp\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    fill: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2129,7 +2129,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"semi\" | \"solid\" | \"pattern\">;\n    dash: import(\"../styles/StyleProp\")."
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    dash: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2138,7 +2138,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"solid\" | \"draw\" | \"dashed\" | \"dotted\">;\n    size: import(\"../styles/StyleProp\")."
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    size: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2147,7 +2147,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"m\" | \"s\" | \"l\" | \"xl\">;\n    font: import(\"../styles/StyleProp\")."
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2156,7 +2156,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"draw\" | \"sans\" | \"serif\" | \"mono\">;\n    align: import(\"../styles/StyleProp\")."
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2165,7 +2165,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"start\" | \"end\" | \"middle\" | \"start-legacy\" | \"end-legacy\" | \"middle-legacy\">;\n    verticalAlign: import(\"../styles/StyleProp\")."
+              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    verticalAlign: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2174,7 +2174,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"start\" | \"end\" | \"middle\">;\n    url: "
+              "text": "<\"end\" | \"middle\" | \"start\">;\n    url: "
             },
             {
               "kind": "Reference",
@@ -2330,7 +2330,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    size: import(\"..\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    size: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2339,7 +2339,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"m\" | \"s\" | \"l\" | \"xl\">;\n    segments: "
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    segments: "
             },
             {
               "kind": "Reference",
@@ -2561,7 +2561,7 @@
             },
             {
               "kind": "Content",
-              "text": ", \"userId\" | \"userName\" | \"currentPageId\">"
+              "text": ", \"currentPageId\" | \"userId\" | \"userName\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/records/TLPresence.ts",
@@ -2782,7 +2782,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    dash: import(\"../styles/StyleProp\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    dash: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2791,7 +2791,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"solid\" | \"draw\" | \"dashed\" | \"dotted\">;\n    size: import(\"../styles/StyleProp\")."
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    size: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2800,7 +2800,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"m\" | \"s\" | \"l\" | \"xl\">;\n    spline: import(\"../styles/StyleProp\")."
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    spline: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2809,7 +2809,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"line\" | \"cubic\">;\n    points: "
+              "text": "<\"cubic\" | \"line\">;\n    points: "
             },
             {
               "kind": "Reference",
@@ -2859,7 +2859,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"line\" | \"cubic\">"
+              "text": "<\"cubic\" | \"line\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
@@ -2891,7 +2891,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    size: import(\"..\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    size: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2900,7 +2900,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"m\" | \"s\" | \"l\" | \"xl\">;\n    font: import(\"..\")."
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2909,7 +2909,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"draw\" | \"sans\" | \"serif\" | \"mono\">;\n    align: import(\"..\")."
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2918,7 +2918,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"start\" | \"end\" | \"middle\" | \"start-legacy\" | \"end-legacy\" | \"middle-legacy\">;\n    verticalAlign: import(\"..\")."
+              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    verticalAlign: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2927,7 +2927,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"start\" | \"end\" | \"middle\">;\n    growY: "
+              "text": "<\"end\" | \"middle\" | \"start\">;\n    growY: "
             },
             {
               "kind": "Reference",
@@ -2995,7 +2995,7 @@
             },
             {
               "kind": "Content",
-              "text": ", \"name\" | \"index\">"
+              "text": ", \"index\" | \"name\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/records/TLPage.ts",
@@ -3773,7 +3773,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"grey\" | \"light-violet\" | \"violet\" | \"blue\" | \"light-blue\" | \"yellow\" | \"orange\" | \"green\" | \"light-green\" | \"light-red\" | \"red\">;\n    size: import(\"..\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    size: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -3782,7 +3782,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"m\" | \"s\" | \"l\" | \"xl\">;\n    font: import(\"..\")."
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -3791,7 +3791,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"draw\" | \"sans\" | \"serif\" | \"mono\">;\n    align: import(\"..\")."
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -3800,7 +3800,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"start\" | \"end\" | \"middle\" | \"start-legacy\" | \"end-legacy\" | \"middle-legacy\">;\n    w: "
+              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    w: "
             },
             {
               "kind": "Reference",
@@ -3864,7 +3864,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"accent\" | \"white\" | \"black\" | \"selection-stroke\" | \"selection-fill\" | \"laser\" | \"muted-1\">"
+              "text": "<\"accent\" | \"black\" | \"laser\" | \"muted-1\" | \"selection-fill\" | \"selection-stroke\" | \"white\">"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/misc/TLColor.ts",
@@ -4047,6 +4047,15 @@
             },
             {
               "kind": "Reference",
+              "text": "TLBookmarkAsset",
+              "canonicalReference": "@tldraw/tlschema!TLBookmarkAsset:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
               "text": "TLImageAsset",
               "canonicalReference": "@tldraw/tlschema!TLImageAsset:type"
             },
@@ -4058,15 +4067,6 @@
               "kind": "Reference",
               "text": "TLVideoAsset",
               "canonicalReference": "@tldraw/tlschema!TLVideoAsset:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLBookmarkAsset",
-              "canonicalReference": "@tldraw/tlschema!TLBookmarkAsset:type"
             },
             {
               "kind": "Content",
@@ -4195,7 +4195,7 @@
             },
             {
               "kind": "Content",
-              "text": "<T, 'type' | 'id' | 'props' | 'meta'>> : never"
+              "text": "<T, 'id' | 'meta' | 'props' | 'type'>> : never"
             },
             {
               "kind": "Content",
@@ -4806,7 +4806,7 @@
             },
             {
               "kind": "Content",
-              "text": "<'bookmark', {\n    title: string;\n    description: string;\n    image: string;\n    src: string | null;\n}>"
+              "text": "<'bookmark', {\n    title: string;\n    description: string;\n    image: string;\n    src: null | string;\n}>"
             },
             {
               "kind": "Content",
@@ -5264,7 +5264,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    id: 'light' | 'dark';\n    text: string;\n    background: string;\n    solid: string;\n} & "
+              "text": "<{\n    id: 'dark' | 'light';\n    text: string;\n    background: string;\n    solid: string;\n} & "
             },
             {
               "kind": "Reference",
@@ -5566,6 +5566,15 @@
             },
             {
               "kind": "Reference",
+              "text": "TLHighlightShape",
+              "canonicalReference": "@tldraw/tlschema!TLHighlightShape:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
               "text": "TLImageShape",
               "canonicalReference": "@tldraw/tlschema!TLImageShape:type"
             },
@@ -5604,15 +5613,6 @@
               "kind": "Reference",
               "text": "TLVideoShape",
               "canonicalReference": "@tldraw/tlschema!TLVideoShape:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLHighlightShape",
-              "canonicalReference": "@tldraw/tlschema!TLHighlightShape:type"
             },
             {
               "kind": "Content",
@@ -6460,7 +6460,7 @@
             },
             {
               "kind": "Content",
-              "text": "<'image', {\n    w: number;\n    h: number;\n    name: string;\n    isAnimated: boolean;\n    mimeType: string | null;\n    src: string | null;\n}>"
+              "text": "<'image', {\n    w: number;\n    h: number;\n    name: string;\n    isAnimated: boolean;\n    mimeType: null | string;\n    src: null | string;\n}>"
             },
             {
               "kind": "Content",
@@ -6899,7 +6899,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "string | null"
+                  "text": "null | string"
                 },
                 {
                   "kind": "Content",
@@ -7568,13 +7568,13 @@
                   "text": "croppingShapeId: "
                 },
                 {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
                   "kind": "Reference",
                   "text": "TLShapeId",
                   "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | null"
                 },
                 {
                   "kind": "Content",
@@ -7600,13 +7600,13 @@
                   "text": "editingShapeId: "
                 },
                 {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
                   "kind": "Reference",
                   "text": "TLShapeId",
                   "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | null"
                 },
                 {
                   "kind": "Content",
@@ -7664,13 +7664,13 @@
                   "text": "focusedGroupId: "
                 },
                 {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
                   "kind": "Reference",
                   "text": "TLShapeId",
                   "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | null"
                 },
                 {
                   "kind": "Content",
@@ -7728,13 +7728,13 @@
                   "text": "hoveredShapeId: "
                 },
                 {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
                   "kind": "Reference",
                   "text": "TLShapeId",
                   "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | null"
                 },
                 {
                   "kind": "Content",
@@ -8084,7 +8084,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "string | null"
+                  "text": "null | string"
                 },
                 {
                   "kind": "Content",
@@ -8734,24 +8734,6 @@
             },
             {
               "kind": "Reference",
-              "text": "TLPage",
-              "canonicalReference": "@tldraw/tlschema!TLPage:interface"
-            },
-            {
-              "kind": "Content",
-              "text": " | "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShape",
-              "canonicalReference": "@tldraw/tlschema!TLShape:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | "
-            },
-            {
-              "kind": "Reference",
               "text": "TLInstancePresence",
               "canonicalReference": "@tldraw/tlschema!TLInstancePresence:interface"
             },
@@ -8761,8 +8743,26 @@
             },
             {
               "kind": "Reference",
+              "text": "TLPage",
+              "canonicalReference": "@tldraw/tlschema!TLPage:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
               "text": "TLPointer",
               "canonicalReference": "@tldraw/tlschema!~TLPointer:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShape",
+              "canonicalReference": "@tldraw/tlschema!TLShape:type"
             },
             {
               "kind": "Content",
@@ -9078,7 +9078,7 @@
             },
             {
               "kind": "Content",
-              "text": "<T, 'type' | 'id' | 'props' | 'meta'>> : never"
+              "text": "<T, 'id' | 'meta' | 'props' | 'type'>> : never"
             },
             {
               "kind": "Content",
@@ -9477,7 +9477,7 @@
             },
             {
               "kind": "Content",
-              "text": "<'video', {\n    w: number;\n    h: number;\n    name: string;\n    isAnimated: boolean;\n    mimeType: string | null;\n    src: string | null;\n}>"
+              "text": "<'video', {\n    w: number;\n    h: number;\n    name: string;\n    isAnimated: boolean;\n    mimeType: null | string;\n    src: null | string;\n}>"
             },
             {
               "kind": "Content",
