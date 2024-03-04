@@ -2676,6 +2676,9 @@ export function useEditorComponents(): Partial<{
     LoadingScreen: ComponentType | null;
 } & ErrorComponents> & ErrorComponents;
 
+// @internal
+export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
+
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
 

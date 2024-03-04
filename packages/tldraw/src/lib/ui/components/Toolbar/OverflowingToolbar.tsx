@@ -1,8 +1,10 @@
-import { useEvent } from '@tldraw/editor'
+import { preventDefault, useEditor, useEvent } from '@tldraw/editor'
 import classNames from 'classnames'
-import { createContext, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import hotkeys from 'hotkeys-js'
+import { createContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
+import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -16,6 +18,7 @@ import {
 export const IsInOverflowContext = createContext(false)
 
 export function OverflowingToolbar({ children }: { children: React.ReactNode }) {
+	const editor = useEditor()
 	const id = useId().replace(/:/g, '_')
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
@@ -96,21 +99,47 @@ export function OverflowingToolbar({ children }: { children: React.ReactNode }) 
 		}
 	}, [onDomUpdate])
 
-	// todo: get this working
-	// useEffect(() => {
-	// 	const itemsWithShortcuts = [...itemsInPanel, dropdownFirstItem]
-	// 	for (let i = 0; i < Math.min(10, itemsWithShortcuts.length); i++) {
-	// 		const indexKbd = `${i + 1}`.slice(-1)
-	// 		hotkeys(indexKbd, (event) => {
-	// 			if (areShortcutsDisabled(editor)) return
-	// 			preventDefault(event)
-	// 			itemsWithShortcuts[i].toolItem.onSelect('kbd')
-	// 		})
-	// 	}
-	// 	return () => {
-	// 		hotkeys.unbind('1,2,3,4,5,6,7,8,9,0')
-	// 	}
-	// }, [dropdownFirstItem, editor, itemsInPanel])
+	useEffect(() => {
+		const keys = [
+			['1', 0],
+			['2', 1],
+			['3', 2],
+			['4', 3],
+			['5', 4],
+			['6', 5],
+			['7', 6],
+			['8', 7],
+			['9', 8],
+			['0', 9],
+		] as const
+
+		for (const [key, index] of keys) {
+			hotkeys(key, (event) => {
+				if (areShortcutsDisabled(editor)) return
+				preventDefault(event)
+
+				const relevantEls = Array.from(mainToolsRef.current?.children ?? []).filter(
+					(el): el is HTMLElement => {
+						// only count html elements...
+						if (!(el instanceof HTMLElement)) return false
+
+						// ...that are buttons...
+						if (el.tagName.toLowerCase() !== 'button') return false
+
+						// ...that are actually visible
+						return !!(el.offsetWidth || el.offsetHeight)
+					}
+				)
+
+				const el = relevantEls[index]
+				if (el) el.click()
+			})
+		}
+
+		return () => {
+			hotkeys.unbind('1,2,3,4,5,6,7,8,9,0')
+		}
+	}, [editor])
 
 	return (
 		<>

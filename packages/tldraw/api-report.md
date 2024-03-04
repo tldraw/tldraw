@@ -130,9 +130,18 @@ export function AlignMenuItems(): JSX_2.Element;
 export function ArrangeMenuSubmenu(): JSX_2.Element | null;
 
 // @public (undocumented)
+export function ArrowDownToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function ArrowheadStylePickerSet({ styles }: {
     styles: ReadonlySharedStyleMap;
 }): JSX_2.Element | null;
+
+// @public (undocumented)
+export function ArrowLeftToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ArrowRightToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export class ArrowShapeTool extends StateNode {
@@ -236,6 +245,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     static type: "arrow";
 }
 
+// @public (undocumented)
+export function ArrowToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ArrowUpToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function AssetToolbarItem(): JSX_2.Element;
+
 // @internal (undocumented)
 export function AssetUrlsProvider({ assetUrls, children, }: {
     assetUrls: TLUiAssetUrls;
@@ -281,7 +299,13 @@ export function BreakPointProvider({ forceMobile, children, }: {
 export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;
 
 // @public (undocumented)
+export function CheckBoxToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function ClipboardMenuGroup(): JSX_2.Element;
+
+// @public (undocumented)
+export function CloudToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function CommonStylePickerSet({ styles }: {
@@ -380,8 +404,13 @@ export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 // @public (undocumented)
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
 
+// @public
+export const DefaultToolbar: NamedExoticComponent<    {
+children?: ReactNode;
+}>;
+
 // @public (undocumented)
-export const DefaultToolbar: React_2.NamedExoticComponent<object>;
+export function DefaultToolbarContent(): JSX_2.Element;
 
 // @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof LaserTool | typeof SelectTool | typeof ZoomTool)[];
@@ -394,6 +423,9 @@ export function DefaultZoomMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
 export function DeleteMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function DiamondToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function DistributeMenuItems(): JSX_2.Element;
@@ -463,6 +495,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 }
 
 // @public (undocumented)
+export function DrawToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function DuplicateMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -470,6 +505,9 @@ export function EditLinkMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
+
+// @public (undocumented)
+export function EllipseToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function EmbedsGroup(): JSX_2.Element;
@@ -519,6 +557,9 @@ export class EraserTool extends StateNode {
     // (undocumented)
     onEnter: () => void;
 }
+
+// @public (undocumented)
+export function EraserToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export type EventsProviderProps = {
@@ -620,6 +661,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     static type: "frame";
 }
+
+// @public (undocumented)
+export function FrameToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
@@ -811,6 +855,12 @@ export class HandTool extends StateNode {
 }
 
 // @public (undocumented)
+export function HandToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function HexagonToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Drawing | typeof Idle_2)[];
@@ -864,6 +914,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     static type: "highlight";
 }
+
+// @public (undocumented)
+export function HighlightToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -921,6 +974,9 @@ export class LaserTool extends StateNode {
     // (undocumented)
     onEnter: () => void;
 }
+
+// @public (undocumented)
+export function LaserToolbarItem(): JSX_2.Element;
 
 // @internal (undocumented)
 export interface LegacyTldrawDocument {
@@ -996,6 +1052,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     static type: "line";
 }
+
+// @public (undocumented)
+export function LineToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function LockGroup(): JSX_2.Element;
@@ -1109,10 +1168,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 // @public (undocumented)
+export function NoteToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function OfflineIndicator(): JSX_2.Element;
 
 // @public (undocumented)
 export function OpacitySlider(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export const PageItemInput: ({ name, id, isCurrentPage, }: {
@@ -1145,6 +1210,9 @@ export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
 // @public (undocumented)
 export function PrintItem(): JSX_2.Element;
 
+// @public (undocumented)
+export function RectangleToolbarItem(): JSX_2.Element;
+
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 
@@ -1156,6 +1224,9 @@ export function ReorderMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function ReorderMenuSubmenu(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function RhombusToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX_2.Element;
@@ -1175,6 +1246,9 @@ export class SelectTool extends StateNode {
     // (undocumented)
     reactor: (() => void) | undefined;
 }
+
+// @public (undocumented)
+export function SelectToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function serializeTldrawJson(store: TLStore): Promise<string>;
@@ -1204,6 +1278,9 @@ export function SplineStylePickerSet({ styles }: {
 
 // @public (undocumented)
 export function StackMenuItems(): JSX_2.Element;
+
+// @public (undocumented)
+export function StarToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
@@ -1329,6 +1406,9 @@ export function TextStylePickerSet({ styles }: {
 }): JSX_2.Element | null;
 
 // @public (undocumented)
+export function TextToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
 export type TLComponents = Expand<TLEditorComponents & TLUiComponents>;
 
 // @public (undocumented)
@@ -1438,23 +1518,6 @@ export const TldrawUi: React_2.NamedExoticComponent<{
         msg: (id?: string | undefined) => string;
         isMobile: boolean;
         }>;
-        toolbar: TLUiOverride<TLUiToolbarSchemaContextType, {
-        tools: TLUiToolsContextType;
-        } & {
-        addToast: (toast: Omit<TLUiToast, "id"> & {
-        id?: string | undefined;
-        }) => string;
-        removeToast: (id: string) => string;
-        clearToasts: () => void;
-        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
-        }) => string;
-        clearDialogs: () => void;
-        removeDialog: (id: string) => string;
-        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-        msg: (id?: string | undefined) => string;
-        isMobile: boolean;
-        }>;
         tools: TLUiOverride<TLUiToolsContextType, {
         insertMedia: () => void;
         } & {
@@ -1475,23 +1538,6 @@ export const TldrawUi: React_2.NamedExoticComponent<{
         translations: Record<string, Record<string, string>> | undefined;
     }> | Partial<{
         actions: TLUiOverride<TLUiActionsContextType, {
-        addToast: (toast: Omit<TLUiToast, "id"> & {
-        id?: string | undefined;
-        }) => string;
-        removeToast: (id: string) => string;
-        clearToasts: () => void;
-        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
-        }) => string;
-        clearDialogs: () => void;
-        removeDialog: (id: string) => string;
-        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-        msg: (id?: string | undefined) => string;
-        isMobile: boolean;
-        }>;
-        toolbar: TLUiOverride<TLUiToolbarSchemaContextType, {
-        tools: TLUiToolsContextType;
-        } & {
         addToast: (toast: Omit<TLUiToast, "id"> & {
         id?: string | undefined;
         }) => string;
@@ -1649,6 +1695,9 @@ export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderPr
 
 // @internal (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
+
+// @public (undocumented)
+export function TldrawUiToolbarButton({ id, label, kbd, icon, onSelect, meta, readonlyOk, }: TLUiToolItem): JSX_2.Element | null;
 
 // @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
@@ -2182,7 +2231,6 @@ export type TLUiMenuSubmenuProps<Translation extends string = string> = {
 // @public (undocumented)
 export type TLUiOverrides = Partial<{
     actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
-    toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
     tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>;
     translations: TLUiTranslationProviderProps['overrides'];
 }>;
@@ -2283,17 +2331,6 @@ export type TLUiToastsContextType = {
 };
 
 // @public (undocumented)
-export type TLUiToolbarItem = {
-    id: string;
-    type: 'item';
-    readonlyOk?: boolean;
-    toolItem: TLUiToolItem;
-};
-
-// @public (undocumented)
-export type TLUiToolbarSchemaContextType = TLUiToolbarItem[];
-
-// @public (undocumented)
 export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     icon: IconType;
@@ -2381,7 +2418,10 @@ export function ToggleTransparentBgMenuItem(): JSX_2.Element;
 export function ToggleWrapModeItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function toolbarItem(toolItem: TLUiToolItem): TLUiToolbarItem;
+export function TrapezoidToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function TriangleToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
@@ -2492,9 +2532,6 @@ export function useTldrawUiComponents(): Partial<{
 export function useToasts(): TLUiToastsContextType;
 
 // @public (undocumented)
-export function useToolbarSchema(): TLUiToolbarSchemaContextType;
-
-// @public (undocumented)
 export function useTools(): TLUiToolsContextType;
 
 // @public
@@ -2534,6 +2571,9 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 // @public (undocumented)
 export function ViewSubmenu(): JSX_2.Element;
+
+// @public (undocumented)
+export function XBoxToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ZoomOrRotateMenuItem(): JSX_2.Element;

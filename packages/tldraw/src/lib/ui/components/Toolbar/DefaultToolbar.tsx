@@ -14,6 +14,13 @@ export interface DefaultToolbarProps {
 	children?: ReactNode
 }
 
+/**
+ * The default toolbar for the editor. `children` defaults to the `DefaultToolbarContent` component.
+ * Depending on the screen size, the children will overflow into a drop-down menu, with the most
+ * recently active item from the overflow being shown in the main toolbar.
+ *
+ * @public
+ */
 export const DefaultToolbar = memo(function DefaultToolbar({ children }: { children?: ReactNode }) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()

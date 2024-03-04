@@ -1774,20 +1774,20 @@ it from receiving any pointer events or affecting the cursor. */
 		border-radius: 8px;
 	}
 
-	.tlui-button__tool[data-state='selected']:not(:disabled, :focus-visible):hover {
+	.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):hover {
 		color: var(--color-selected-contrast);
 	}
 }
 
-.tlui-button__tool[data-state='selected'] {
+.tlui-button__tool[aria-checked='true'] {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[data-state='selected']:not(:disabled, :focus-visible):active {
+.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):active {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[data-state='selected']:not(:disabled)::after {
+.tlui-button__tool[aria-checked='true']:not(:disabled)::after {
 	background: var(--color-selected);
 	opacity: 1;
 }
@@ -2412,14 +2412,19 @@ it from receiving any pointer events or affecting the cursor. */
 .tlui-toolbar__tools {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	background-color: var(--color-low);
 	border-radius: var(--radius-4);
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: relative;
-	align-items: center;
 	background: var(--color-panel);
 	box-shadow: var(--shadow-2);
+}
+.tlui-toolbar__tools__list {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
 }
 
 .tlui-toolbar__overflow {
@@ -3046,6 +3051,9 @@ it from receiving any pointer events or affecting the cursor. */
 	column-gap: var(--space-9);
 	pointer-events: all;
 	touch-action: auto;
+
+	/* Terrible fix to allow firefox users to scroll the dialog */
+	overflow-x: auto;
 }
 
 .tlui-shortcuts-dialog__body__tablet {
