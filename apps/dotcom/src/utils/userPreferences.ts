@@ -47,5 +47,5 @@ function loadItemFromStorage<Type>(key: string, validator: T.Validator<Type>): T
 }
 
 function saveItemToStorage(key: string, value: unknown): void {
-	setInLocalStorage(`tldrawUserPreferences.${key}`, JSON.stringify(value))
+	setInLocalStorage(`tldrawUserPreferences.${key}`, value)
 }

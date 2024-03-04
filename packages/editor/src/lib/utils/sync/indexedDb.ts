@@ -232,5 +232,5 @@ export function getAllIndexDbNames(): string[] {
 function addDbName(name: string) {
 	const all = new Set(getAllIndexDbNames())
 	all.add(name)
-	setInLocalStorage(dbNameIndexKey, JSON.stringify([...all]))
+	setInLocalStorage(dbNameIndexKey, [...all])
 }

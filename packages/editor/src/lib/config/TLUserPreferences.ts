@@ -201,10 +201,7 @@ function migrateUserPreferences(userData: unknown) {
 }
 
 function loadUserPreferences(): TLUserPreferences {
-	const userData =
-		typeof window === 'undefined'
-			? null
-			: (getFromLocalStorage(USER_DATA_KEY, null) as null | UserDataSnapshot)
+	const userData = getFromLocalStorage(USER_DATA_KEY, null) as null | UserDataSnapshot
 
 	return migrateUserPreferences(userData)
 }

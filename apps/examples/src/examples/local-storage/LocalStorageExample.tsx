@@ -45,7 +45,7 @@ export default function PersistenceExample() {
 		const cleanupFn = store.listen(
 			throttle(() => {
 				const snapshot = store.getSnapshot()
-				setInLocalStorage(PERSISTENCE_KEY, JSON.stringify(snapshot))
+				setInLocalStorage(PERSISTENCE_KEY, snapshot)
 			}, 500)
 		)
 
