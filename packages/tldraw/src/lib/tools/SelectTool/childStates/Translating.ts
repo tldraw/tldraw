@@ -213,17 +213,19 @@ export class Translating extends StateNode {
 	protected handleEnd() {
 		const { movingShapes } = this.snapshot
 
-		if (this.isCloning) {
+		if (this.isCloning && movingShapes.length > 0) {
 			const currentAveragePagePoint = Vec.Average(
 				movingShapes.map((s) => this.editor.getShapePageTransform(s.id)!.point())
 			)
 			const offset = Vec.Sub(currentAveragePagePoint, this.selectionSnapshot.averagePagePoint)
-			this.editor.updateInstanceState({
-				duplicateProps: {
-					shapeIds: movingShapes.map((s) => s.id),
-					offset: { x: offset.x, y: offset.y },
-				},
-			})
+			if (!Vec.IsNaN(offset)) {
+				this.editor.updateInstanceState({
+					duplicateProps: {
+						shapeIds: movingShapes.map((s) => s.id),
+						offset: { x: offset.x, y: offset.y },
+					},
+				})
+			}
 		}
 
 		const changes: TLShapePartial[] = []
@@ -338,7 +340,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	}
 
 	return {
-		averagePagePoint: Vec.Average(pagePoints),
+		averagePagePoint: pagePoints.length ? Vec.Average(pagePoints) : new Vec(0, 0),
 		movingShapes,
 		shapeSnapshots,
 		initialPageBounds: editor.getSelectionPageBounds()!,
