@@ -9,7 +9,7 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
 		const value = getFromLocalStorage(key)
 		if (value) {
 			try {
-				setState(JSON.parse(value))
+				setState(value)
 			} catch (e) {
 				console.error(`Could not restore value ${key} from local storage.`)
 			}
@@ -20,7 +20,7 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
 		(setter: T | ((value: T) => T)) => {
 			setState((s) => {
 				const value = typeof setter === 'function' ? (setter as any)(s) : setter
-				setInLocalStorage(key, JSON.stringify(value))
+				setInLocalStorage(key, value)
 				return value
 			})
 		},

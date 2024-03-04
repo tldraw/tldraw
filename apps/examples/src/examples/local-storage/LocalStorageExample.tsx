@@ -31,7 +31,7 @@ export default function PersistenceExample() {
 
 		if (persistedSnapshot) {
 			try {
-				const snapshot = JSON.parse(persistedSnapshot)
+				const snapshot = persistedSnapshot
 				store.loadSnapshot(snapshot)
 				setLoadingState({ status: 'ready' })
 			} catch (error: any) {

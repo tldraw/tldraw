@@ -40,7 +40,7 @@ function loadItemFromStorage<Type>(key: string, validator: T.Validator<Type>): T
 	const item = getFromLocalStorage(`tldrawUserPreferences.${key}`, null)
 	if (item == null) return null
 	try {
-		return validator.validate(JSON.parse(item))
+		return validator.validate(item)
 	} catch (e) {
 		return null
 	}

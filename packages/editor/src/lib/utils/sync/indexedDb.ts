@@ -222,7 +222,7 @@ async function pruneSessionState({
 
 /** @internal */
 export function getAllIndexDbNames(): string[] {
-	const result = JSON.parse(getFromLocalStorage(dbNameIndexKey) || '[]') ?? []
+	const result = getFromLocalStorage(dbNameIndexKey, [])
 	if (!Array.isArray(result)) {
 		return []
 	}
