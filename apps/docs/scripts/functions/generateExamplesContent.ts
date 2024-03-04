@@ -8,13 +8,14 @@ const section: InputSection = {
 	title: 'Examples',
 	description: 'Code recipes for bending tldraw to your will.',
 	categories: [
-		{ id: 'basic', title: 'Getting Started', description: '', groups: [] },
-		{ id: 'ui', title: 'UI/Theming', description: '', groups: [] },
-		{ id: 'shapes/tools', title: 'Shapes & Tools', description: '', groups: [] },
-		{ id: 'data/assets', title: 'Data & Assets', description: '', groups: [] },
-		{ id: 'editor-api', title: 'Editor API', description: '', groups: [] },
-		{ id: 'collaboration', title: 'Collaboration', description: '', groups: [] },
+		{ id: 'basic', title: 'Getting Started', description: '', groups: [], hero: null },
+		{ id: 'ui', title: 'UI & Theming', description: '', groups: [], hero: null },
+		{ id: 'shapes/tools', title: 'Shapes & Tools', description: '', groups: [], hero: null },
+		{ id: 'data/assets', title: 'Data & Assets', description: '', groups: [], hero: null },
+		{ id: 'editor-api', title: 'Editor API', description: '', groups: [], hero: null },
+		{ id: 'collaboration', title: 'Collaboration', description: '', groups: [], hero: null },
 	],
+	hero: null,
 	sidebar_behavior: 'show-links',
 }
 

@@ -25,8 +25,20 @@
 	"include": ["**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules", "_archive"],
 	"references": [
-		{ "path": "../../packages/tlsync" },
-		{ "path": "../../packages/tldraw" },
-		{ "path": "../../packages/assets" }
+		{
+			"path": "../../packages/assets"
+		},
+		{
+			"path": "../../packages/tldraw"
+		},
+		{
+			"path": "../../packages/tlsync"
+		},
+		{
+			"path": "../../packages/utils"
+		},
+		{
+			"path": "../../packages/validate"
+		}
 	]
 }

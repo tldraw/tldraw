@@ -12,8 +12,8 @@ export function DefaultHelpMenuContent() {
 		</>
 	)
 }
-
-function KeyboardShortcutsMenuItem() {
+/** @public */
+export function KeyboardShortcutsMenuItem() {
 	const { KeyboardShortcutsDialog } = useTldrawUiComponents()
 	const { addDialog } = useDialogs()
 
@@ -21,7 +21,7 @@ function KeyboardShortcutsMenuItem() {
 
 	return (
 		<TldrawUiMenuItem
-			id="keyboard-shortcuts"
+			id="keyboard-shortcuts-button"
 			label="help-menu.keyboard-shortcuts"
 			readonlyOk
 			onSelect={() => {

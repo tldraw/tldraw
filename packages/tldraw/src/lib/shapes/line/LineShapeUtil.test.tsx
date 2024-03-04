@@ -1,4 +1,11 @@
-import { TLGeoShape, TLLineShape, createShapeId, deepCopy, sortByIndex } from '@tldraw/editor'
+import {
+	IndexKey,
+	TLGeoShape,
+	TLLineShape,
+	createShapeId,
+	deepCopy,
+	sortByIndex,
+} from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TL } from '../../../test/test-jsx'
 
@@ -24,10 +31,10 @@ beforeEach(() => {
 				x: 150,
 				y: 150,
 				props: {
-					points: [
-						{ x: 0, y: 0 },
-						{ x: 100, y: 100 },
-					],
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
+					},
 				},
 			},
 		])
@@ -77,14 +84,14 @@ describe('Mid-point handles', () => {
 		editor.pointerMove(349, 349).pointerMove(350, 350) // Move handle by 150, 150
 		editor.pointerUp()
 
-		editor.expectShapeToMatch<TLLineShape>({
+		editor.expectShapeToMatch({
 			id: id,
 			props: {
-				points: [
-					{ x: 0, y: 0 },
-					{ x: 200, y: 200 },
-					{ x: 100, y: 100 },
-				],
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+					a1V: { id: 'a1V', index: 'a1V', x: 200, y: 200 },
+					a2: { id: 'a2', index: 'a2', x: 100, y: 100 },
+				},
 			},
 		})
 	})
@@ -105,10 +112,11 @@ describe('Mid-point handles', () => {
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
 		expect(editor.getShapeHandles(id)).toHaveLength(5) // 3 real + 2
 		const points = editor.getShape<TLLineShape>(id)!.props.points
-		expect(points).toHaveLength(3)
-		expect(points[0]).toMatchObject({ x: 0, y: 0 })
-		expect(points[1]).toMatchObject({ x: 50, y: 80 })
-		expect(points[2]).toMatchObject({ x: 100, y: 100 })
+		expect(points).toStrictEqual({
+			a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+			a1V: { id: 'a1V', index: 'a1V', x: 50, y: 80 },
+			a2: { id: 'a2', index: 'a2', x: 100, y: 100 },
+		})
 	})
 
 	it('allows snapping with created mid-point handles', () => {
@@ -145,10 +153,11 @@ describe('Mid-point handles', () => {
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
 		expect(editor.getShapeHandles(id)).toHaveLength(5) // 3 real + 2
 		const points = editor.getShape<TLLineShape>(id)!.props.points
-		expect(points).toHaveLength(3)
-		expect(points[0]).toMatchObject({ x: 0, y: 0 })
-		expect(points[1]).toMatchObject({ x: 50, y: 80 })
-		expect(points[2]).toMatchObject({ x: 100, y: 100 })
+		expect(points).toStrictEqual({
+			a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+			a1V: { id: 'a1V', index: 'a1V', x: 50, y: 80 },
+			a2: { id: 'a2', index: 'a2', x: 100, y: 100 },
+		})
 	})
 })
 
@@ -158,12 +167,12 @@ describe('Snapping', () => {
 			id: id,
 			type: 'line',
 			props: {
-				points: [
-					{ x: 0, y: 0 },
-					{ x: 100, y: 0 },
-					{ x: 100, y: 100 },
-					{ x: 0, y: 100 },
-				],
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2', x: 100, y: 0 },
+					a3: { id: 'a3', index: 'a3', x: 100, y: 100 },
+					a4: { id: 'a4', index: 'a4', x: 0, y: 100 },
+				},
 			},
 		})
 	})
@@ -176,15 +185,15 @@ describe('Snapping', () => {
 			.pointerMove(50, 95, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
-		editor.expectShapeToMatch<TLLineShape>({
+		editor.expectShapeToMatch({
 			id: id,
 			props: {
-				points: [
-					{ x: 50, y: 100 },
-					{ x: 100, y: 0 },
-					{ x: 100, y: 100 },
-					{ x: 0, y: 100 },
-				],
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 50, y: 100 },
+					a2: { id: 'a2', index: 'a2', x: 100, y: 0 },
+					a3: { id: 'a3', index: 'a3', x: 100, y: 100 },
+					a4: { id: 'a4', index: 'a4', x: 0, y: 100 },
+				},
 			},
 		})
 	})
@@ -200,12 +209,12 @@ describe('Snapping', () => {
 		editor.expectShapeToMatch({
 			id: id,
 			props: {
-				points: [
-					{ x: 0, y: 100 },
-					{ x: 100, y: 0 },
-					{ x: 100, y: 100 },
-					{ x: 0, y: 100 },
-				],
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 0, y: 100 },
+					a2: { id: 'a2', index: 'a2', x: 100, y: 0 },
+					a3: { id: 'a3', index: 'a3', x: 100, y: 100 },
+					a4: { id: 'a4', index: 'a4', x: 0, y: 100 },
+				},
 			},
 		})
 	})
@@ -218,15 +227,15 @@ describe('Snapping', () => {
 			.pointerMove(5, 2, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(0)
-		editor.expectShapeToMatch<TLLineShape>({
+		editor.expectShapeToMatch({
 			id: id,
 			props: {
-				points: [
-					{ x: 5, y: 2 },
-					{ x: 100, y: 0 },
-					{ x: 100, y: 100 },
-					{ x: 0, y: 100 },
-				],
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 5, y: 2 },
+					a2: { id: 'a2', index: 'a2', x: 100, y: 0 },
+					a3: { id: 'a3', index: 'a3', x: 100, y: 100 },
+					a4: { id: 'a4', index: 'a4', x: 0, y: 100 },
+				},
 			},
 		})
 	})
@@ -236,10 +245,10 @@ describe('Snapping', () => {
 			<TL.line
 				x={150}
 				y={150}
-				points={[
-					{ x: 200, y: 0 },
-					{ x: 300, y: 0 },
-				]}
+				points={{
+					a1: { id: 'a1', index: 'a1' as IndexKey, x: 200, y: 0 },
+					a2: { id: 'a2', index: 'a2' as IndexKey, x: 300, y: 0 },
+				}}
 			/>,
 		])
 
@@ -251,15 +260,15 @@ describe('Snapping', () => {
 			.pointerMove(205, 1, undefined, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
-		editor.expectShapeToMatch<TLLineShape>({
+		editor.expectShapeToMatch({
 			id: id,
 			props: {
-				points: [
-					{ x: 200, y: 0 },
-					{ x: 100, y: 0 },
-					{ x: 100, y: 100 },
-					{ x: 0, y: 100 },
-				],
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 200, y: 0 },
+					a2: { id: 'a2', index: 'a2', x: 100, y: 0 },
+					a3: { id: 'a3', index: 'a3', x: 100, y: 100 },
+					a4: { id: 'a4', index: 'a4', x: 0, y: 100 },
+				},
 			},
 		})
 	})

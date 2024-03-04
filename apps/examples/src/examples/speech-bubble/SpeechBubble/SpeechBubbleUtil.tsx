@@ -13,13 +13,15 @@ import {
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
+	VecModel,
 	ZERO_INDEX_KEY,
 	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
-} from '@tldraw/tldraw'
-import { getHandleIntersectionPoint, getSpeechBubbleVertices } from './helpers'
+	vecModelValidator,
+} from 'tldraw'
+import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
 
 // Copied from tldraw/tldraw
 export const STROKE_SIZES = {
@@ -39,13 +41,9 @@ export type SpeechBubbleShape = TLBaseShape<
 		h: number
 		size: TLDefaultSizeStyle
 		color: TLDefaultColorStyle
-		handles: {
-			handle: TLHandle
-		}
+		tail: VecModel
 	}
 >
-
-export const handleValidator = () => true
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	static override type = 'speech-bubble' as const
@@ -56,10 +54,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		h: T.number,
 		size: DefaultSizeStyle,
 		color: DefaultColorStyle,
-		handles: {
-			validate: handleValidator,
-			handle: { validate: handleValidator },
-		},
+		tail: vecModelValidator,
 	}
 
 	override isAspectRatioLocked = (_shape: SpeechBubbleShape) => false
@@ -75,17 +70,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			h: 130,
 			color: 'black',
 			size: 'm',
-			handles: {
-				handle: {
-					id: 'handle1',
-					type: 'vertex',
-					canBind: true,
-					canSnap: true,
-					index: ZERO_INDEX_KEY,
-					x: 0.5,
-					y: 1.5,
-				},
-			},
+			tail: { x: 0.5, y: 1.5 },
 		}
 	}
 
@@ -98,68 +83,69 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return body
 	}
 
-	override getHandles(shape: SpeechBubbleShape) {
-		const {
-			handles: { handle },
-			w,
-			h,
-		} = shape.props
+	// [4]
+	override getHandles(shape: SpeechBubbleShape): TLHandle[] {
+		const { tail, w, h } = shape.props
 
 		return [
 			{
-				...handle,
-				// props.handles.handle coordinates are normalized
+				id: 'tail',
+				type: 'vertex',
+				index: ZERO_INDEX_KEY,
+				// props.tail coordinates are normalized
 				// but here we need them in shape space
-				x: handle.x * w,
-				y: handle.y * h,
+				x: tail.x * w,
+				y: tail.y * h,
 			},
 		]
 	}
 
-	// [4]
+	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (shape, { handle }) => {
+		return {
+			...shape,
+			props: {
+				tail: {
+					x: handle.x / shape.props.w,
+					y: handle.y / shape.props.h,
+				},
+			},
+		}
+	}
+
+	// [5]
 	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (
 		_: SpeechBubbleShape,
 		shape: SpeechBubbleShape
 	) => {
-		const { w, h, handles } = shape.props
+		const { w, h, tail } = shape.props
 
-		const { segmentsIntersection, insideShape } = getHandleIntersectionPoint(shape)
+		const { segmentsIntersection, insideShape } = getTailIntersectionPoint(shape)
 
 		const slantedLength = Math.hypot(w, h)
 		const MIN_DISTANCE = slantedLength / 5
 		const MAX_DISTANCE = slantedLength / 1.5
 
-		const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
+		const tailInShapeSpace = new Vec(tail.x * w, tail.y * h)
 
-		const distanceToIntersection = handleInShapeSpace.dist(segmentsIntersection)
+		const distanceToIntersection = tailInShapeSpace.dist(segmentsIntersection)
 		const center = new Vec(w / 2, h / 2)
-		const vHandle = Vec.Sub(handleInShapeSpace, center).uni()
+		const tailDirection = Vec.Sub(tailInShapeSpace, center).uni()
 
-		let newPoint = handleInShapeSpace
+		let newPoint = tailInShapeSpace
 
 		if (insideShape) {
-			newPoint = Vec.Add(segmentsIntersection, vHandle.mul(MIN_DISTANCE))
+			newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MIN_DISTANCE))
 		} else {
 			if (distanceToIntersection <= MIN_DISTANCE) {
-				newPoint = Vec.Add(segmentsIntersection, vHandle.mul(MIN_DISTANCE))
+				newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MIN_DISTANCE))
 			} else if (distanceToIntersection >= MAX_DISTANCE) {
-				newPoint = Vec.Add(segmentsIntersection, vHandle.mul(MAX_DISTANCE))
+				newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MAX_DISTANCE))
 			}
 		}
 
 		const next = deepCopy(shape)
-		next.props.handles.handle.x = newPoint.x / w
-		next.props.handles.handle.y = newPoint.y / h
-
-		return next
-	}
-
-	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (_, { handle, initial }) => {
-		const newHandle = deepCopy(handle)
-		newHandle.x = newHandle.x / initial!.props.w
-		newHandle.y = newHandle.y / initial!.props.h
-		const next = deepCopy(initial!)
-		next.props.handles.handle = newHandle
+		next.props.tail.x = newPoint.x / w
+		next.props.tail.y = newPoint.y / h
 
 		return next
 	}
@@ -203,30 +189,34 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 }
 
 /*
-Introduction:
-This file contains our custom shape util. The shape util is a class that defines how our shape behaves.
-Most of the logic for how the speech bubble shape works is in the onBeforeUpdate handler [4]. Since this
-shape has a handle, we need to do some special stuff to make sure it updates the way we want it to.
+Introduction: This file contains our custom shape util. The shape util is a class that defines how
+our shape behaves. Most of the logic for how the speech bubble shape works is in the onBeforeUpdate
+handler [5]. Since this shape has a handle, we need to do some special stuff to make sure it updates
+the way we want it to.
 
 [1]
-Here is where we define the shape's type. For the handle we can use the `TLHandle` type from @tldraw/tldraw.
+Here is where we define the shape's type. For the tail we can use the `VecModel` type from `tldraw`.
 
 [2]
-This is where we define the shape's props and a type validator for each key. tldraw exports a bunch of handy
-validators for us to use. We can also define our own, at the moment our handle validator just returns true 
-though, because I like to live dangerously. Props you define here will determine which style options show 
-up in the style menu, e.g. we define 'size' and 'color' props, but we could add 'dash', 'fill' or any other
-of the default props.
+This is where we define the shape's props and a type validator for each key. tldraw exports a
+bunch of handy validators for us to use. Props you define here will determine which style options
+show up in the style menu, e.g. we define 'size' and 'color' props, but we could add 'dash', 'fill'
+or any other of the default props.
 
 [3]
-Here is where we set the default props for our shape, this will determine how the shape looks when we
-click-create it. You'll notice we don't store the handle's absolute position though, instead we record its 
-relative position. This is because we can also drag-create shapes. If we store the handle's position absolutely 
-it won't scale properly when drag-creating. Throughout the rest of the util we'll need to convert the
-handle's relative position to an absolute position and vice versa.
+Here is where we set the default props for our shape, this will determine how the shape looks
+when we click-create it. You'll notice we don't store the tail's absolute position though, instead
+we record its relative position. This is because we can also drag-create shapes. If we store the
+tail's position absolutely it won't scale properly when drag-creating. Throughout the rest of the
+util we'll need to convert the tail's relative position to an absolute position and vice versa.
 
 [4]
-This is the last method that fires  after a shape has been changed, we can use it to make sure the tail stays
-the right length and position. Check out helpers.tsx to get into some of the more specific geometry stuff.
+`getHandles` tells tldraw how to turn our shape into a list of handles that'll show up when it's
+selected. We only have one handle, the tail, which simplifies things for us a bit. In
+`onHandleDrag`, we tell tldraw how our shape should be updated when the handle is dragged.
 
+[5]
+This is the last method that fires after a shape has been changed, we can use it to make sure
+the tail stays the right length and position. Check out helpers.tsx to get into some of the more
+specific geometry stuff.
 */

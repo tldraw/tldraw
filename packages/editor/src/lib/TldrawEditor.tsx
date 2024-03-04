@@ -1,7 +1,8 @@
 import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
-import { Required, annotateError } from '@tldraw/utils'
+import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
+	ReactNode,
 	memo,
 	useCallback,
 	useLayoutEffect,
@@ -13,7 +14,6 @@ import React, {
 import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
-import { DefaultLoadingScreen } from './components/default-components/DefaultLoadingScreen'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
@@ -37,27 +37,29 @@ import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
- * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @public
  **/
-export type TldrawEditorProps = TldrawEditorBaseProps &
-	(
-		| {
-				store: TLStore | TLStoreWithStatus
-		  }
-		| {
-				store?: undefined
-				snapshot?: StoreSnapshot<TLRecord>
-				initialData?: SerializedStore<TLRecord>
-				persistenceKey?: string
-				sessionId?: string
-				defaultName?: string
-		  }
-	)
+export type TldrawEditorProps = Expand<
+	TldrawEditorBaseProps &
+		(
+			| {
+					store: TLStore | TLStoreWithStatus
+			  }
+			| {
+					store?: undefined
+					snapshot?: StoreSnapshot<TLRecord>
+					initialData?: SerializedStore<TLRecord>
+					persistenceKey?: string
+					sessionId?: string
+					defaultName?: string
+			  }
+		)
+>
 
 /**
- * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ * Base props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @public
  */
@@ -65,7 +67,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * The component's children.
 	 */
-	children?: any
+	children?: ReactNode
 
 	/**
 	 * An array of shape utils to use in the editor.
@@ -150,7 +152,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
-	// defaults applied in @tldraw/tldraw.
+	// defaults applied in tldraw.
 	const withDefaults = {
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
@@ -227,6 +229,8 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 		}
 	}, [container, user])
 
+	const { LoadingScreen } = useEditorComponents()
+
 	switch (store.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
@@ -235,8 +239,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 			throw store.error
 		}
 		case 'loading': {
-			const LoadingScreen = rest.components?.LoadingScreen ?? DefaultLoadingScreen
-			return <LoadingScreen />
+			return LoadingScreen ? <LoadingScreen /> : null
 		}
 		case 'not-synced': {
 			break
@@ -283,8 +286,6 @@ function TldrawEditorWithReadyStore({
 			initialState,
 			inferDarkMode,
 		})
-		;(window as any).app = editor
-		;(window as any).editor = editor
 		setEditor(editor)
 
 		return () => {
@@ -345,7 +346,7 @@ function Layout({
 	onMount,
 	autoFocus,
 }: {
-	children: any
+	children: ReactNode
 	autoFocus: boolean
 	onMount?: TLOnMountHandler
 }) {
@@ -365,19 +366,12 @@ function Crash({ crashingError }: { crashingError: unknown }): null {
 }
 
 /** @public */
-export function LoadingScreen({ children }: { children: any }) {
-	const { Spinner } = useEditorComponents()
-
-	return (
-		<div className="tl-loading">
-			{Spinner ? <Spinner /> : null}
-			{children}
-		</div>
-	)
+export function LoadingScreen({ children }: { children: ReactNode }) {
+	return <div className="tl-loading">{children}</div>
 }
 
 /** @public */
-export function ErrorScreen({ children }: { children: any }) {
+export function ErrorScreen({ children }: { children: ReactNode }) {
 	return <div className="tl-loading">{children}</div>
 }
 

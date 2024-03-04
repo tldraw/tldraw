@@ -290,7 +290,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 
 				for (const [key, validator] of Object.entries(config)) {
 					prefixError(key, () => {
-						;(validator as Validator<unknown>).validate(getOwnProperty(object, key))
+						;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
 					})
 				}
 
@@ -319,7 +319,12 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 						continue
 					}
 					const checked = prefixError(key, () => {
-						return (validator as Validator<unknown>).validateUsingKnownGoodVersion(prev, next)
+						const validatable = validator as Validatable<unknown>
+						if (validatable.validateUsingKnownGoodVersion) {
+							return validatable.validateUsingKnownGoodVersion(prev, next)
+						} else {
+							return validatable.validate(next)
+						}
 					})
 					if (!Object.is(checked, prev)) {
 						isDifferent = true

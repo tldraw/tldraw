@@ -1,6 +1,6 @@
-import { Editor, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { createContext, useContext, useState } from 'react'
+import { Editor, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 const FocusedEditorContext = createContext(
 	{} as {
@@ -23,10 +23,10 @@ export default function InlineExample() {
 					gap: 12,
 				}}
 			>
-				<InlineEditor width={900} height={600} />
-				<InlineEditor width={700} height={500} />
-				<InlineEditor width={600} height={400} />
 				<InlineEditor width={500} height={300} />
+				<InlineEditor width={600} height={400} />
+				<InlineEditor width={700} height={500} />
+				<InlineEditor width={900} height={600} />
 			</div>
 		</FocusedEditorContext.Provider>
 	)

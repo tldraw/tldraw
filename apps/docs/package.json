@@ -29,7 +29,7 @@
 		"dev": "concurrently \"NODE_ENV=development next dev --port=3001\" \"tsx ./watcher.ts\" --kill-others",
 		"next-dev": "next dev",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
-		"build": "yarn create-api-markdown && yarn refresh-content && next build",
+		"build": "yarn create-api-markdown && yarn refresh-content && next build && yarn check-links",
 		"start": "yarn create-api-markdown && yarn refresh-content && next start",
 		"fetch-api-source": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-api-source.ts",
 		"fetch-releases": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-releases.ts",
@@ -54,7 +54,6 @@
 		"@types/sqlite3": "^3.1.9",
 		"@types/ws": "^8.5.9",
 		"@vercel/analytics": "^1.1.1",
-		"broken-link-checker": "^0.7.8",
 		"classnames": "^2.3.2",
 		"concurrently": "^8.2.2",
 		"dotenv": "^16.3.1",
@@ -82,10 +81,13 @@
 		"sqlite": "^5.0.1",
 		"sqlite3": "^5.1.6",
 		"tsx": "^4.0.0",
-		"typescript": "^5.2.2",
+		"typescript": "^5.3.3",
 		"unist-util-is": "^6.0.0",
 		"unist-util-visit": "^5.0.0",
 		"vectra": "^0.4.4",
 		"ws": "^8.16.0"
+	},
+	"devDependencies": {
+		"linkinator": "^6.0.4"
 	}
 }
