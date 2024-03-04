@@ -148,37 +148,37 @@ export function OvalToolbarItem() {
 /** @public */
 export function XBoxToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['xBox']} />
+	return <TldrawUiToolbarButton {...tools['x-box']} />
 }
 
 /** @public */
 export function CheckBoxToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['checkBox']} />
+	return <TldrawUiToolbarButton {...tools['check-box']} />
 }
 
 /** @public */
 export function ArrowLeftToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrowLeft']} />
+	return <TldrawUiToolbarButton {...tools['arrow-left']} />
 }
 
 /** @public */
 export function ArrowUpToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrowUp']} />
+	return <TldrawUiToolbarButton {...tools['arrow-up']} />
 }
 
 /** @public */
 export function ArrowDownToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrowDown']} />
+	return <TldrawUiToolbarButton {...tools['arrow-down']} />
 }
 
 /** @public */
 export function ArrowRightToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrowRight']} />
+	return <TldrawUiToolbarButton {...tools['arrow-right']} />
 }
 
 /** @public */
