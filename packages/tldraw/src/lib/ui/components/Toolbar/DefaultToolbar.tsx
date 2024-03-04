@@ -5,6 +5,7 @@ import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 import { useReadonly } from '../../hooks/useReadonly'
 import { MobileStylePanel } from '../MobileStylePanel'
+import { DefaultToolbarContent } from './DefaultToolbarContent'
 import { OverflowingToolbar } from './OverflowingToolbar'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
@@ -13,7 +14,7 @@ export interface DefaultToolbarProps {
 	children?: ReactNode
 }
 
-export const DefaultToolbar = memo(function DefaultToolbar({ children }: { children: ReactNode }) {
+export const DefaultToolbar = memo(function DefaultToolbar({ children }: { children?: ReactNode }) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
@@ -36,7 +37,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: { child
 							<ToggleToolLockedButton activeToolId={activeToolId} />
 						</div>
 					)}
-					<OverflowingToolbar>{children}</OverflowingToolbar>
+					<OverflowingToolbar>{children ?? <DefaultToolbarContent />}</OverflowingToolbar>
 				</div>
 				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
 					<div className="tlui-toolbar__tools">

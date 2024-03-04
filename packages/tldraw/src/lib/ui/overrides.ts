@@ -5,7 +5,6 @@ import { ActionsProviderProps } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
 import { useDialogs } from './context/dialogs'
 import { useToasts } from './context/toasts'
-import { TLUiToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
 import { TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
@@ -54,14 +53,12 @@ type WithDefaultHelpers<T extends TLUiOverride<any, any>> =
 /** @public */
 export type TLUiOverrides = Partial<{
 	actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
-	toolbar: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
 	tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>
 	translations: TLUiTranslationProviderProps['overrides']
 }>
 
 export type TLUiOverridesWithoutDefaults = Partial<{
 	actions: ActionsProviderProps['overrides']
-	toolbar: TLUiToolbarSchemaProviderProps['overrides']
 	tools: TLUiToolsProviderProps['overrides']
 	translations: TLUiTranslationProviderProps['overrides']
 }>
@@ -87,14 +84,6 @@ export function mergeOverrides(
 			for (const override of overrides) {
 				if (override.actions) {
 					schema = override.actions(editor, schema, defaultHelpers)
-				}
-			}
-			return schema
-		},
-		toolbar: (editor, schema, helpers) => {
-			for (const override of overrides) {
-				if (override.toolbar) {
-					schema = override.toolbar(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
