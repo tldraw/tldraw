@@ -1,4 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
+import React, { useEffect, useState } from 'react'
 import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -8,8 +9,7 @@ import {
 	useActions,
 	useContainer,
 	useTranslation,
-} from '@tldraw/tldraw'
-import React, { useEffect, useState } from 'react'
+} from 'tldraw'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { createQRCodeImageDataString } from '../utils/qrcode'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'

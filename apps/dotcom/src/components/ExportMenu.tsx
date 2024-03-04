@@ -1,4 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
+import React, { useState } from 'react'
 import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -8,8 +9,7 @@ import {
 	useContainer,
 	useEditor,
 	useTranslation,
-} from '@tldraw/tldraw'
-import React, { useState } from 'react'
+} from 'tldraw'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
 import { getSaveFileCopyAction } from '../utils/useFileSystem'

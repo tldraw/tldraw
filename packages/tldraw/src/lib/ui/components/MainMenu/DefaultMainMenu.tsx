@@ -1,6 +1,6 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer } from '@tldraw/editor'
-import { memo } from 'react'
+import { ReactNode, memo } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -10,7 +10,7 @@ import { DefaultMainMenuContent } from './DefaultMainMenuContent'
 
 /** @public */
 export type TLUiMainMenuProps = {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
@@ -27,7 +27,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<_Dropdown.Trigger asChild dir="ltr">
-				<TldrawUiButton type="icon" data-testid="main.menu" title={msg('menu.title')}>
+				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
 					<TldrawUiButtonIcon icon="menu" small />
 				</TldrawUiButton>
 			</_Dropdown.Trigger>
@@ -40,7 +40,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 					alignOffset={0}
 					sideOffset={6}
 				>
-					<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+					<TldrawUiMenuContextProvider type="menu" sourceId="main-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
 				</_Dropdown.Content>

@@ -2,6 +2,7 @@ import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
+	ReactNode,
 	memo,
 	useCallback,
 	useLayoutEffect,
@@ -36,7 +37,7 @@ import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
- * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @public
  **/
@@ -58,7 +59,7 @@ export type TldrawEditorProps = Expand<
 >
 
 /**
- * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ * Base props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @public
  */
@@ -66,7 +67,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * The component's children.
 	 */
-	children?: any
+	children?: ReactNode
 
 	/**
 	 * An array of shape utils to use in the editor.
@@ -151,7 +152,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
-	// defaults applied in @tldraw/tldraw.
+	// defaults applied in tldraw.
 	const withDefaults = {
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
@@ -285,8 +286,6 @@ function TldrawEditorWithReadyStore({
 			initialState,
 			inferDarkMode,
 		})
-		;(window as any).app = editor
-		;(window as any).editor = editor
 		setEditor(editor)
 
 		return () => {
@@ -347,7 +346,7 @@ function Layout({
 	onMount,
 	autoFocus,
 }: {
-	children: any
+	children: ReactNode
 	autoFocus: boolean
 	onMount?: TLOnMountHandler
 }) {
@@ -367,12 +366,12 @@ function Crash({ crashingError }: { crashingError: unknown }): null {
 }
 
 /** @public */
-export function LoadingScreen({ children }: { children: any }) {
+export function LoadingScreen({ children }: { children: ReactNode }) {
 	return <div className="tl-loading">{children}</div>
 }
 
 /** @public */
-export function ErrorScreen({ children }: { children: any }) {
+export function ErrorScreen({ children }: { children: ReactNode }) {
 	return <div className="tl-loading">{children}</div>
 }
 

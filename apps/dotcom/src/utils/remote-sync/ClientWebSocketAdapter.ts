@@ -1,4 +1,3 @@
-import { atom, Atom, TLRecord } from '@tldraw/tldraw'
 import {
 	chunk,
 	serializeMessage,
@@ -8,6 +7,7 @@ import {
 	TLSocketServerSentEvent,
 } from '@tldraw/tlsync'
 import { assert } from '@tldraw/utils'
+import { atom, Atom, TLRecord } from 'tldraw'
 
 function listenTo<T extends EventTarget>(target: T, event: string, handler: () => void) {
 	target.addEventListener(event, handler)

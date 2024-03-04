@@ -1,5 +1,5 @@
-import { atom, useMenuIsOpen, useValue } from '@tldraw/tldraw'
 import { useEffect, useRef } from 'react'
+import { atom, useMenuIsOpen, useValue } from 'tldraw'
 
 // When people click the 'create shared project' in the share menu we want to make sure that
 // the menu is not dismissed when the new multiplayer editor mounts.

@@ -22,6 +22,7 @@ import {
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
+	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
 	ZoomTo100MenuItem,
@@ -186,6 +187,7 @@ export function PreferencesGroup() {
 					<ToggleSnapModeItem />
 					<ToggleToolLockItem />
 					<ToggleGridItem />
+					<ToggleWrapModeItem />
 					<ToggleDarkModeItem />
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
