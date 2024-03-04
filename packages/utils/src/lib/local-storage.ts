@@ -56,7 +56,6 @@ export function deleteFromLocalStorage(key: string) {
  */
 export function clearLocalStorage() {
 	try {
-		// eslint-disable-next-line no-storage/no-browser-storage
 		localStorage.clear()
 	} catch {
 		// noop
