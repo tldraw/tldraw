@@ -14,6 +14,7 @@ module.exports = {
 		'@next/next',
 		'react-hooks',
 		'deprecation',
+		'no-storage',
 	],
 	settings: {
 		next: {
@@ -21,6 +22,7 @@ module.exports = {
 		},
 	},
 	rules: {
+		'no-storage/no-browser-storage': 2,
 		'deprecation/deprecation': 'error',
 		'@next/next/no-html-link-for-pages': 'off',
 		'react/jsx-key': 'off',
