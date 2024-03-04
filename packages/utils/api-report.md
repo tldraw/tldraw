@@ -81,10 +81,10 @@ export function getErrorAnnotations(error: Error): ErrorAnnotations;
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
 // @public
-export function getFromLocalStorage(key: string, defaultValue?: null): any;
+export function getFromLocalStorage(key: string, defaultValue?: any): any;
 
 // @public
-export function getFromSessionStorage(key: string, defaultValue?: null): any;
+export function getFromSessionStorage(key: string, defaultValue?: any): any;
 
 // @public
 export function getHashForBuffer(buffer: ArrayBuffer): string;

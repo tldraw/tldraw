@@ -204,8 +204,7 @@ function loadUserPreferences(): TLUserPreferences {
 	const userData =
 		typeof window === 'undefined'
 			? null
-			: ((JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null') ??
-					null) as null | UserDataSnapshot)
+			: (getFromLocalStorage(USER_DATA_KEY, null) as null | UserDataSnapshot)
 
 	return migrateUserPreferences(userData)
 }

@@ -8,7 +8,7 @@
  *
  * @public
  */
-export function getFromSessionStorage(key: string, defaultValue = null) {
+export function getFromSessionStorage(key: string, defaultValue: any = null) {
 	try {
 		const value = sessionStorage.getItem(key)
 		if (value === null) return defaultValue

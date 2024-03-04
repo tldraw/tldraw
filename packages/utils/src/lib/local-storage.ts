@@ -8,7 +8,7 @@
  *
  * @public
  */
-export function getFromLocalStorage(key: string, defaultValue = null) {
+export function getFromLocalStorage(key: string, defaultValue: any = null) {
 	try {
 		const value = localStorage.getItem(key)
 		if (value === null) return defaultValue

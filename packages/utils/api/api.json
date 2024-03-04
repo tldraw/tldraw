@@ -819,7 +819,7 @@
             },
             {
               "kind": "Content",
-              "text": "null"
+              "text": "any"
             },
             {
               "kind": "Content",
@@ -880,7 +880,7 @@
             },
             {
               "kind": "Content",
-              "text": "null"
+              "text": "any"
             },
             {
               "kind": "Content",
