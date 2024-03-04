@@ -366,7 +366,37 @@ export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primit
 
 // Toolbar
 export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
-export * from './lib/ui/components/Toolbar/DefaultToolbarContent'
+export {
+	ArrowDownToolbarItem,
+	ArrowLeftToolbarItem,
+	ArrowRightToolbarItem,
+	ArrowToolbarItem,
+	ArrowUpToolbarItem,
+	AssetToolbarItem,
+	CheckBoxToolbarItem,
+	CloudToolbarItem,
+	DefaultToolbarContent,
+	DiamondToolbarItem,
+	DrawToolbarItem,
+	EllipseToolbarItem,
+	EraserToolbarItem,
+	FrameToolbarItem,
+	HandToolbarItem,
+	HexagonToolbarItem,
+	HighlightToolbarItem,
+	LaserToolbarItem,
+	LineToolbarItem,
+	NoteToolbarItem,
+	OvalToolbarItem,
+	RectangleToolbarItem,
+	RhombusToolbarItem,
+	SelectToolbarItem,
+	StarToolbarItem,
+	TextToolbarItem,
+	TrapezoidToolbarItem,
+	TriangleToolbarItem,
+	XBoxToolbarItem,
+} from './lib/ui/components/Toolbar/DefaultToolbarContent'
 export { TldrawUiToolbarButton } from './lib/ui/components/Toolbar/TldrawUiToolbarButton'
 
 /* ----------------- Menu Primitives ---------------- */

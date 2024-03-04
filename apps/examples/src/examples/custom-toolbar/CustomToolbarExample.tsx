@@ -1,10 +1,21 @@
-import { DefaultToolbar, TLComponents, Tldraw } from 'tldraw'
+import { DefaultToolbar, DefaultToolbarContent, TLComponents, Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function CustomToolbar() {
+	const editor = useEditor()
 	return (
 		<div style={{ transform: 'rotate(180deg)' }}>
-			<DefaultToolbar />
+			<DefaultToolbar>
+				<button
+					onClick={() => {
+						editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+					}}
+					title="delete all"
+				>
+					🧨
+				</button>
+				<DefaultToolbarContent />
+			</DefaultToolbar>
 		</div>
 	)
 }

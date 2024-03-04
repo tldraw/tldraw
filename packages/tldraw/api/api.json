@@ -244,6 +244,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!ArrowDownToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowDownToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowDownToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!ArrowheadStylePickerSet:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -304,6 +337,72 @@
             }
           ],
           "name": "ArrowheadStylePickerSet"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ArrowLeftToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowLeftToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowLeftToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ArrowRightToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowRightToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowRightToolbarItem"
         },
         {
           "kind": "Class",
@@ -1716,6 +1815,105 @@
           "implementsTokenRanges": []
         },
         {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ArrowToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ArrowUpToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowUpToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowUpToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!AssetToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function AssetToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "AssetToolbarItem"
+        },
+        {
           "kind": "Class",
           "canonicalReference": "tldraw!BookmarkShapeUtil:class",
           "docComment": "/**\n * @public\n */\n",
@@ -2253,6 +2451,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!CheckBoxToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function CheckBoxToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "CheckBoxToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!ClipboardMenuGroup:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -2283,6 +2514,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "ClipboardMenuGroup"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!CloudToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function CloudToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "CloudToolbarItem"
         },
         {
           "kind": "Function",
@@ -3717,20 +3981,33 @@
         {
           "kind": "Variable",
           "canonicalReference": "tldraw!DefaultToolbar:var",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * The default toolbar for the editor. `children` defaults to the `DefaultToolbarContent` component. Depending on the screen size, the children will overflow into a drop-down menu, with the most recently active item from the overflow being shown in the main toolbar.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
               "text": "DefaultToolbar: "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
               "kind": "Reference",
-              "text": "React.NamedExoticComponent",
+              "text": "NamedExoticComponent",
               "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
             },
             {
               "kind": "Content",
-              "text": "<object>"
+              "text": "<{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}>"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbar.tsx",
@@ -3739,8 +4016,41 @@
           "name": "DefaultToolbar",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 6
           }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!DefaultToolbarContent:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultToolbarContent(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DefaultToolbarContent"
         },
         {
           "kind": "Variable",
@@ -3916,6 +4226,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "DeleteMenuItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!DiamondToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DiamondToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DiamondToolbarItem"
         },
         {
           "kind": "Function",
@@ -4997,6 +5340,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!DrawToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DrawToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DrawToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!DuplicateMenuItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -5101,6 +5477,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "EditSubmenu"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!EllipseToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function EllipseToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "EllipseToolbarItem"
         },
         {
           "kind": "Class",
@@ -5880,6 +6289,39 @@
             "endIndex": 2
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!EraserToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function EraserToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "EraserToolbarItem"
         },
         {
           "kind": "TypeAlias",
@@ -7396,6 +7838,39 @@
             "endIndex": 5
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!FrameToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function FrameToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "FrameToolbarItem"
         },
         {
           "kind": "Class",
@@ -9133,6 +9608,72 @@
           "implementsTokenRanges": []
         },
         {
+          "kind": "Function",
+          "canonicalReference": "tldraw!HandToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function HandToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "HandToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!HexagonToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function HexagonToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "HexagonToolbarItem"
+        },
+        {
           "kind": "Class",
           "canonicalReference": "tldraw!HighlightShapeTool:class",
           "docComment": "/**\n * @public\n */\n",
@@ -10062,6 +10603,39 @@
           "implementsTokenRanges": []
         },
         {
+          "kind": "Function",
+          "canonicalReference": "tldraw!HighlightToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function HighlightToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "HighlightToolbarItem"
+        },
+        {
           "kind": "Class",
           "canonicalReference": "tldraw!ImageShapeUtil:class",
           "docComment": "/**\n * @public\n */\n",
@@ -10926,6 +11500,39 @@
             "endIndex": 2
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!LaserToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function LaserToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "LaserToolbarItem"
         },
         {
           "kind": "Class",
@@ -11876,6 +12483,39 @@
             "endIndex": 5
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!LineToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function LineToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "LineToolbarItem"
         },
         {
           "kind": "Function",
@@ -12934,6 +13574,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!NoteToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function NoteToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "NoteToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!OfflineIndicator:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -13001,6 +13674,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "OpacitySlider"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!OvalToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function OvalToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "OvalToolbarItem"
         },
         {
           "kind": "Function",
@@ -13361,6 +14067,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!RectangleToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function RectangleToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "RectangleToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!removeFrame:function(1)",
           "docComment": "/**\n * Remove a frame.\n *\n * @param editor - tlraw editor instance.\n *\n * @param ids - Ids of the frames you wish to remove.\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -13532,6 +14271,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "ReorderMenuSubmenu"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!RhombusToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function RhombusToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "RhombusToolbarItem"
         },
         {
           "kind": "Function",
@@ -13975,6 +14747,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!SelectToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function SelectToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "SelectToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!serializeTldrawJson:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -14225,6 +15030,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "StackMenuItems"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!StarToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function StarToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "StarToolbarItem"
         },
         {
           "kind": "Class",
@@ -15362,6 +16200,39 @@
             }
           ],
           "name": "TextStylePickerSet"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!TextToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TextToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "TextToolbarItem"
         },
         {
           "kind": "TypeAlias",
@@ -16543,87 +17414,6 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        toolbar: import(\"./overrides\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiOverride",
-              "canonicalReference": "tldraw!~TLUiOverride:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./hooks/useToolbarSchema\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarSchemaContextType",
-              "canonicalReference": "tldraw!TLUiToolbarSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", {\n            tools: import(\"./hooks/useTools\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolsContextType",
-              "canonicalReference": "tldraw!TLUiToolsContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        } & {\n            addToast: (toast: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/toasts\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToast",
-              "canonicalReference": "tldraw!TLUiToast:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Partial",
-              "canonicalReference": "!Partial:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
               "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        tools: import(\"./overrides\")."
             },
             {
@@ -16795,87 +17585,6 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        toolbar: import(\"./overrides\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiOverride",
-              "canonicalReference": "tldraw!~TLUiOverride:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./hooks/useToolbarSchema\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarSchemaContextType",
-              "canonicalReference": "tldraw!TLUiToolbarSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", {\n            tools: import(\"./hooks/useTools\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolsContextType",
-              "canonicalReference": "tldraw!TLUiToolsContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        } & {\n            addToast: (toast: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/toasts\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToast",
-              "canonicalReference": "tldraw!TLUiToast:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Partial",
-              "canonicalReference": "!Partial:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
               "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        tools: import(\"./overrides\")."
             },
             {
@@ -16984,7 +17693,7 @@
           "name": "TldrawUi",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 183
+            "endIndex": 147
           }
         },
         {
@@ -19187,6 +19896,61 @@
             "startIndex": 1,
             "endIndex": 7
           }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!TldrawUiToolbarButton:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TldrawUiToolbarButton({ id, label, kbd, icon, onSelect, meta, readonlyOk, }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolItem",
+              "canonicalReference": "tldraw!TLUiToolItem:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/TldrawUiToolbarButton.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ id, label, kbd, icon, onSelect, meta, readonlyOk, }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "TldrawUiToolbarButton"
         },
         {
           "kind": "Interface",
@@ -24381,33 +25145,6 @@
             },
             {
               "kind": "Content",
-              "text": "['overrides']>>;\n    toolbar: "
-            },
-            {
-              "kind": "Reference",
-              "text": "WithDefaultHelpers",
-              "canonicalReference": "tldraw!~WithDefaultHelpers:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "NonNullable",
-              "canonicalReference": "!NonNullable:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarSchemaProviderProps",
-              "canonicalReference": "tldraw!~TLUiToolbarSchemaProviderProps:type"
-            },
-            {
-              "kind": "Content",
               "text": "['overrides']>>;\n    tools: "
             },
             {
@@ -24456,7 +25193,7 @@
           "name": "TLUiOverrides",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 23
+            "endIndex": 17
           }
         },
         {
@@ -25099,72 +25836,6 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 10
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "tldraw!TLUiToolbarItem:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiToolbarItem = "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    id: string;\n    type: 'item';\n    readonlyOk?: boolean;\n    toolItem: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolItem",
-              "canonicalReference": "tldraw!TLUiToolItem:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n}"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToolbarSchema.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiToolbarItem",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 4
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "tldraw!TLUiToolbarSchemaContextType:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiToolbarSchemaContextType = "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarItem",
-              "canonicalReference": "tldraw!TLUiToolbarItem:type"
-            },
-            {
-              "kind": "Content",
-              "text": "[]"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToolbarSchema.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiToolbarSchemaContextType",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
           }
         },
         {
@@ -26106,50 +26777,69 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "tldraw!toolbarItem:function(1)",
+          "canonicalReference": "tldraw!TrapezoidToolbarItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function toolbarItem(toolItem: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolItem",
-              "canonicalReference": "tldraw!TLUiToolItem:interface"
+              "text": "export declare function TrapezoidToolbarItem(): "
             },
             {
               "kind": "Content",
-              "text": "): "
+              "text": "import(\"react/jsx-runtime\")."
             },
             {
               "kind": "Reference",
-              "text": "TLUiToolbarItem",
-              "canonicalReference": "tldraw!TLUiToolbarItem:type"
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToolbarSchema.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
+            "startIndex": 1,
+            "endIndex": 3
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
-          "parameters": [
+          "parameters": [],
+          "name": "TrapezoidToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!TriangleToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
             {
-              "parameterName": "toolItem",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
+              "kind": "Content",
+              "text": "export declare function TriangleToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
-          "name": "toolbarItem"
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "TriangleToolbarItem"
         },
         {
           "kind": "Function",
@@ -27419,35 +28109,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "tldraw!useToolbarSchema:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useToolbarSchema(): "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarSchemaContextType",
-              "canonicalReference": "tldraw!TLUiToolbarSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToolbarSchema.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "useToolbarSchema"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "tldraw!useTools:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -28039,6 +28700,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "ViewSubmenu"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!XBoxToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function XBoxToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "XBoxToolbarItem"
         },
         {
           "kind": "Function",

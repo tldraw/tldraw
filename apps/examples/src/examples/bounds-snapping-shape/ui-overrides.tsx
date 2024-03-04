@@ -29,16 +29,6 @@ export const uiOverrides: TLUiOverrides = {
 }
 
 export const components: TLComponents = {
-	KeyboardShortcutsDialog: (props) => {
-		const tools = useTools()
-		return (
-			<DefaultKeyboardShortcutsDialog {...props}>
-				{/* Ideally, we'd interleave this into the tools group */}
-				<TldrawUiMenuItem {...tools['PlayingCard']} />
-				<DefaultKeyboardShortcutsDialogContent />
-			</DefaultKeyboardShortcutsDialog>
-		)
-	},
 	Toolbar: (props) => {
 		const tools = useTools()
 		return (
@@ -48,19 +38,28 @@ export const components: TLComponents = {
 			</DefaultToolbar>
 		)
 	},
+	KeyboardShortcutsDialog: (props) => {
+		const tools = useTools()
+		return (
+			<DefaultKeyboardShortcutsDialog {...props}>
+				<TldrawUiMenuItem {...tools['PlayingCard']} />
+				<DefaultKeyboardShortcutsDialogContent />
+			</DefaultKeyboardShortcutsDialog>
+		)
+	},
 }
 
 /* 
 
-This file contains overrides for the Tldraw UI. These overrides are used to add your custom tools
-to the toolbar and the keyboard shortcuts menu.
+This file contains overrides for the Tldraw UI. These overrides are used to add your custom tools to
+the toolbar and the keyboard shortcuts menu.
 
-We do this by providing a custom toolbar override to the Tldraw component. This override is a 
-function that takes the current editor, the default toolbar items, and the default tools. 
-It returns the new toolbar items. We use the toolbarItem helper to create a new toolbar item
-for our custom tool. We then splice it into the toolbar items array at the 4th index. This puts 
-it after the eraser tool. We'll pass our overrides object into the Tldraw component's `overrides` 
-prop.
+First we have to add our new tool to the tools object in the tools override. This is where we define
+all the basic information about our new tool - its icon, label, keyboard shortcut, what happens when
+we select it, etc.
 
-
+Then, we replace the UI components for the toolbar and keyboard shortcut dialog with our own, that
+add our new tool to the existing default content. Ideally, we'd interleave our new tool into the
+ideal place among the default tools, but for now we're just adding it at the start to keep things
+simple.
 */
