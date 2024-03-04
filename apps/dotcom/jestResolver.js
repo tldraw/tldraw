@@ -1,5 +1,5 @@
 // HACK: `ws` has an import map mapping browser context to a dummy implementation that just
-// throws an error, because it's impossible to create a websocket in the browser
+// throws an error, because it's impossible to create a websocket server in the browser
 // and `ws` tries to be helpful. Unfortunately, it doesn't work well in our tests:
 // we run Jest in jsdom context, because we test browser APIs, but this causes Jest
 // to select the browser version of the package, which makes it impossible to run a test

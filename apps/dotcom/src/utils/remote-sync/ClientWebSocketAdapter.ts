@@ -435,7 +435,7 @@ class ReconnectManager {
 
 	connected() {
 		debug('ReconnectManager.connected')
-		// this notification cold've been delayed, recheck synchronously
+		// this notification could've been delayed, recheck synchronously
 		if (this.socketAdapter._ws?.readyState === WebSocket.OPEN) {
 			debug('ReconnectManager.connected: websocket is OPEN')
 			this.state = 'connected'
