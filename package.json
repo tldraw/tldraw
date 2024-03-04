@@ -91,7 +91,7 @@
 		"eslint-plugin-react": "^7.32.2",
 		"eslint-plugin-react-hooks": "^4.6.0",
 		"fs-extra": "^11.1.0",
-		"husky": "^8.0.0",
+		"husky": "^9.0.11",
 		"jest": "30.0.0-alpha.2",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
