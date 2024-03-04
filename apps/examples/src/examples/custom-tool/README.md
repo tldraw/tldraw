@@ -5,8 +5,8 @@ category: shapes/tools
 priority: 1
 ---
 
-Create custom shapes / tools
+Create a custom tool
 
 ---
 
-The card shape (select ⚫️ in the toolbar) is a custom shape - but also just a normal react component.
+Tools are nodes in tldraw's state machine. They are responsible for handling user input. You can create custom tools by extending the `StateNode` class and overriding its methods. In this example we make a very simple sticker tool that adds a heart emoji to the canvas when you click.
