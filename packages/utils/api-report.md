@@ -19,6 +19,12 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
+// @public
+export function clearLocalStorage(): void;
+
+// @public
+export function clearSessionStorage(): void;
+
 // @internal (undocumented)
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
@@ -33,6 +39,12 @@ export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[]
 
 // @public
 export function deepCopy<T = unknown>(obj: T): T;
+
+// @public
+export function deleteFromLocalStorage(key: string): void;
+
+// @public
+export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
 export type ErrorResult<E> = {
@@ -67,6 +79,12 @@ export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
+
+// @public
+export function getFromLocalStorage(key: string): null | string;
+
+// @public
+export function getFromSessionStorage(key: string): null | string;
 
 // @public
 export function getHashForBuffer(buffer: ArrayBuffer): string;
@@ -272,6 +290,12 @@ export function rng(seed?: string): () => number;
 
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
+
+// @public
+export function setInLocalStorage(key: string, value: string): void;
+
+// @public
+export function setInSessionStorage(key: string, value: string): void;
 
 // @public (undocumented)
 export function sortById<T extends {
