@@ -1,5 +1,3 @@
-const hasSessionStorage = typeof window === 'undefined' || !('sessionStorage' in window)
-
 /**
  * Get a value from session storage.
  *
@@ -9,12 +7,16 @@ const hasSessionStorage = typeof window === 'undefined' || !('sessionStorage' in
  * @public
  */
 export function getFromSessionStorage(key: string, defaultValue = null) {
-	if (!hasSessionStorage) return defaultValue
-	// eslint-disable-next-line no-storage/no-browser-storage
-	const value = sessionStorage.getItem(key)
-	if (value === null) return defaultValue
-	return JSON.parse(value)
+	try {
+		const value = sessionStorage.getItem(key)
+		if (value === null) return defaultValue
+		return JSON.parse(value)
+	} catch {
+		return defaultValue
+	}
 }
+
+localStorage
 
 /**
  * Set a value in session storage. Will not throw an error if sessionStorage is not available.
@@ -25,9 +27,11 @@ export function getFromSessionStorage(key: string, defaultValue = null) {
  * @public
  */
 export function setInSessionStorage(key: string, value: any) {
-	if (!hasSessionStorage) return
-	// eslint-disable-next-line no-storage/no-browser-storage
-	sessionStorage.setItem(key, JSON.stringify(value))
+	try {
+		sessionStorage.setItem(key, JSON.stringify(value))
+	} catch {
+		// noop
+	}
 }
 
 /**
@@ -38,9 +42,11 @@ export function setInSessionStorage(key: string, value: any) {
  * @public
  */
 export function deleteFromSessionStorage(key: string) {
-	if (!hasSessionStorage) return
-	// eslint-disable-next-line no-storage/no-browser-storage
-	sessionStorage.removeItem(key)
+	try {
+		sessionStorage.removeItem(key)
+	} catch {
+		// noop
+	}
 }
 
 /**
@@ -49,7 +55,9 @@ export function deleteFromSessionStorage(key: string) {
  * @public
  */
 export function clearSessionStorage() {
-	if (!hasSessionStorage) return
-	// eslint-disable-next-line no-storage/no-browser-storage
-	sessionStorage.clear()
+	try {
+		sessionStorage.clear()
+	} catch {
+		// noop
+	}
 }

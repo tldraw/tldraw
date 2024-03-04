@@ -1,4 +1,4 @@
-const hasLocalStorage = typeof window === 'undefined' || !('localStorage' in window)
+/* eslint-disable no-storage/no-browser-storage */
 
 /**
  * Get a value from local storage.
@@ -9,11 +9,13 @@ const hasLocalStorage = typeof window === 'undefined' || !('localStorage' in win
  * @public
  */
 export function getFromLocalStorage(key: string, defaultValue = null) {
-	if (!hasLocalStorage) return defaultValue
-	// eslint-disable-next-line no-storage/no-browser-storage
-	const value = localStorage.getItem(key)
-	if (value === null) return defaultValue
-	return JSON.parse(value)
+	try {
+		const value = localStorage.getItem(key)
+		if (value === null) return defaultValue
+		return JSON.parse(value)
+	} catch {
+		return defaultValue
+	}
 }
 
 /**
@@ -25,9 +27,11 @@ export function getFromLocalStorage(key: string, defaultValue = null) {
  * @public
  */
 export function setInLocalStorage(key: string, value: any) {
-	if (!hasLocalStorage) return
-	// eslint-disable-next-line no-storage/no-browser-storage
-	localStorage.setItem(key, JSON.stringify(value))
+	try {
+		localStorage.setItem(key, JSON.stringify(value))
+	} catch {
+		// noop
+	}
 }
 
 /**
@@ -38,9 +42,11 @@ export function setInLocalStorage(key: string, value: any) {
  * @public
  */
 export function deleteFromLocalStorage(key: string) {
-	if (!hasLocalStorage) return
-	// eslint-disable-next-line no-storage/no-browser-storage
-	localStorage.removeItem(key)
+	try {
+		localStorage.removeItem(key)
+	} catch {
+		// noop
+	}
 }
 
 /**
@@ -49,7 +55,10 @@ export function deleteFromLocalStorage(key: string) {
  * @public
  */
 export function clearLocalStorage() {
-	if (!hasLocalStorage) return
-	// eslint-disable-next-line no-storage/no-browser-storage
-	localStorage.clear()
+	try {
+		// eslint-disable-next-line no-storage/no-browser-storage
+		localStorage.clear()
+	} catch {
+		// noop
+	}
 }
