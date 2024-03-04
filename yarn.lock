@@ -11623,6 +11623,7 @@ __metadata:
     "@sentry/react": "npm:^7.77.0"
     "@tldraw/assets": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
+    "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/qrcode": "npm:^1.5.0"
     "@types/react": "npm:^18.2.47"
