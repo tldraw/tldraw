@@ -340,7 +340,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	}
 
 	return {
-		averagePagePoint: pagePoints.length ? Vec.Average(pagePoints) : new Vec(0, 0),
+		averagePagePoint: Vec.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
 		initialPageBounds: editor.getSelectionPageBounds()!,
