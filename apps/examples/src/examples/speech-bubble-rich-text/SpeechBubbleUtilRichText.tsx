@@ -1,4 +1,4 @@
-import { getDefaultColorTheme } from 'tldraw'
+import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS, getDefaultColorTheme } from 'tldraw'
 import type {
 	SpeechBubbleShape,
 	SpeechBubbleShapeProps,
@@ -47,6 +47,39 @@ export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 				</div>
 			</>
 		)
+	}
+
+	override getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
+		const PADDING = 17
+		const {
+			props: { w, h, text, font, size },
+		} = shape
+		const nextTextSize = this.editor.textMeasure.measureHTML(text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[font],
+			fontSize: LABEL_FONT_SIZES[size],
+			maxWidth: w - PADDING * 2,
+		})
+
+		const nextHeight = nextTextSize.h + PADDING * 2
+
+		let growY = 0
+
+		if (nextHeight > h) {
+			growY = nextHeight - h
+		} else {
+			if (prevGrowY) {
+				growY = 0
+			}
+		}
+
+		return {
+			...shape,
+			props: {
+				...shape.props,
+				growY,
+			},
+		}
 	}
 }
 

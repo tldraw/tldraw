@@ -45,7 +45,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				<p style={{ width: width ? width : '9px' }}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>
-				{isEditing && <TextArea rInput={rInput} text={text} {...editableTextRest} />}
+				{isEditing && <TextArea ref={rInput} text={text} {...editableTextRest} />}
 			</div>
 		</div>
 	)

@@ -1,16 +1,7 @@
 import { stopEventPropagation } from '@tldraw/editor'
+import { forwardRef } from 'react'
 
-export function TextArea({
-	rInput,
-	text,
-	handleFocus,
-	handleChange,
-	handleKeyDown,
-	handleBlur,
-	handleInputPointerDown,
-	handleDoubleClick,
-}: {
-	rInput: React.RefObject<HTMLTextAreaElement>
+type TextAreaProps = {
 	text: string
 	handleFocus: () => void
 	handleBlur: () => void
@@ -18,10 +9,23 @@ export function TextArea({
 	handleChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
 	handleInputPointerDown: (e: React.PointerEvent<HTMLTextAreaElement>) => void
 	handleDoubleClick: (e: any) => any
-}) {
+}
+
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
+	{
+		text,
+		handleFocus,
+		handleChange,
+		handleKeyDown,
+		handleBlur,
+		handleInputPointerDown,
+		handleDoubleClick,
+	},
+	ref
+) {
 	return (
 		<textarea
-			ref={rInput}
+			ref={ref}
 			className="tl-text tl-text-input"
 			name="text"
 			tabIndex={-1}
@@ -46,4 +50,4 @@ export function TextArea({
 			onDoubleClick={handleDoubleClick}
 		/>
 	)
-}
+})

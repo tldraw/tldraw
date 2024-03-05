@@ -401,4 +401,8 @@ export {
 
 /* ----------------- Constants ---------------- */
 
-export { LABEL_FONT_SIZES, TEXT_PROPS } from './lib/shapes/shared/default-shape-constants'
+export {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	TEXT_PROPS,
+} from './lib/shapes/shared/default-shape-constants'

@@ -11,3 +11,8 @@
   display: inline-block;
   transform: skewX(-12deg);
 }
+
+.tiptap p,
+.tl-text-measure p {
+  margin: 0;
+}

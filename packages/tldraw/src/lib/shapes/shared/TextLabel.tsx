@@ -88,7 +88,7 @@ export const TextLabel = React.memo(function TextLabel({
 				<div className="tl-text tl-text-content" dir="ltr">
 					{finalText}
 				</div>
-				{isEditing && <TextArea rInput={rInput} text={text} {...editableTextRest} />}
+				{isEditing && <TextArea ref={rInput} text={text} {...editableTextRest} />}
 			</div>
 		</div>
 	)

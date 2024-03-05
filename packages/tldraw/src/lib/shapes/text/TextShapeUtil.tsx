@@ -98,7 +98,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
-					{isEditing && <TextArea rInput={rInput} text={text} {...editableTextRest} />}
+					{isEditing && <TextArea ref={rInput} text={text} {...editableTextRest} />}
 				</div>
 			</HTMLContainer>
 		)

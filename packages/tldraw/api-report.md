@@ -570,6 +570,9 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 export function FitFrameToContentMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
+export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
+
+// @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static id: string;
