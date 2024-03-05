@@ -88,7 +88,6 @@ export class Drawing extends StateNode {
 		}
 
 		if (this.canDraw) {
-			this.isDirty = true
 			if (inputs.isPen) {
 				// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 				if (
