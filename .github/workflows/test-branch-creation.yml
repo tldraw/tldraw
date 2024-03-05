@@ -31,5 +31,6 @@ jobs:
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+          git fetch --tags
           git push origin v2.0.0:refs/heads/v2.0.x
 
