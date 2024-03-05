@@ -34,7 +34,7 @@ function sixtyFps() {
 	// 	timePerFrame = Math.max(targetTimePerFrame, timePerFrame / 2)
 	// }
 
-	console.log('elapsed', elapsed, 'timePerFrame', timePerFrame)
+	// console.log('elapsed', elapsed, 'timePerFrame', timePerFrame)
 	if (time + elapsed < timePerFrame) {
 		frame = requestAnimationFrame(() => {
 			frame = undefined
