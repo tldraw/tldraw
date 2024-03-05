@@ -35,6 +35,7 @@
 	"dependencies": {
 		"@playwright/test": "^1.38.1",
 		"@radix-ui/react-alert-dialog": "^1.0.5",
+		"@tiptap/core": "^2.2.4",
 		"@tiptap/pm": "^2.2.4",
 		"@tiptap/react": "^2.2.4",
 		"@tiptap/starter-kit": "^2.2.4",
