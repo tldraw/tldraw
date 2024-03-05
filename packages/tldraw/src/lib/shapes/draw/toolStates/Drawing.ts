@@ -628,7 +628,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				if (newPoints.length > 50) {
+				if (newPoints.length > 500) {
 					// It's easier to just apply this change directly, so we will mark that the shape is no longer dirty.
 					this.isDirty = false
 					// Also clear the changes as they were flushed.
