@@ -1,5 +1,5 @@
 /* eslint-disable prefer-rest-params */
-import { throttledRaf } from '@tldraw/utils'
+import { throttledToNextFrame } from '@tldraw/utils'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
 import { Signal, computed, react } from '../core'
 
@@ -89,7 +89,7 @@ export function useValue() {
 							listen()
 						},
 						{
-							scheduleEffect: throttledRaf,
+							scheduleEffect: throttledToNextFrame,
 						}
 					)
 				},

@@ -62,10 +62,7 @@ export {
 	setInLocalStorage,
 	setInSessionStorage,
 } from './lib/storage'
-export {
-	nextFrameThrottle as rafThrottle,
-	throttledOnNextFrame as throttledRaf,
-} from './lib/throttle'
+export { fpsThrottle, throttledToNextFrame } from './lib/throttle'
 export type { Expand, RecursivePartial, Required } from './lib/types'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'
 export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'

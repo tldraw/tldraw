@@ -51,7 +51,7 @@ let started = false
  * @returns
  * @internal
  */
-export function nextFrameThrottle(fn: () => void) {
+export function fpsThrottle(fn: () => void) {
 	if (isTest()) {
 		return fn
 	}
@@ -77,7 +77,7 @@ export function nextFrameThrottle(fn: () => void) {
  * @returns
  * @internal
  */
-export function throttledOnNextFrame(fn: () => void) {
+export function throttledToNextFrame(fn: () => void) {
 	if (isTest()) {
 		return fn()
 	}
