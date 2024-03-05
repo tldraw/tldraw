@@ -1,3 +1,8 @@
-import { appendFileSync } from 'fs'
+import { appendFileSync, readFileSync } from 'fs'
 
-appendFileSync(process.env.GITHUB_OUTPUT!, `the_output=hahaha lol ok\n`)
+console.log('Appending to output file...')
+appendFileSync(process.env.GITHUB_OUTPUT!, `the_output=hahaha\n`)
+
+console.log('Done!')
+console.log('output:', process.env.GITHUB_OUTPUT)
+console.log(readFileSync(process.env.GITHUB_OUTPUT!, 'utf8'))
