@@ -117,7 +117,7 @@ describe('When translating...', () => {
 			.expectToBeIn('select.idle')
 	})
 
-	it.only('translates a single shape', () => {
+	it('translates a single shape', () => {
 		editor
 			.pointerDown(50, 50, ids.box1) // point = [10, 10]
 			.pointerMove(50, 40) // [0, -10]
@@ -137,7 +137,7 @@ describe('When translating...', () => {
 
 		const before = editor.getShape<TLGeoShape>(ids.box1)!
 
-		editor.forceTick(6)
+		editor.forceTick(5)
 		editor
 			// The change is bigger than expected because the camera moves
 			.expectShapeToMatch({ id: ids.box1, x: -160, y: 10 })
@@ -159,12 +159,12 @@ describe('When translating...', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
 
-		jest.advanceTimersByTime(100)
 		editor
+			.forceTick(4)
 			// The change is bigger than expected because the camera moves
 			.expectShapeToMatch({ id: ids.box1, x: 1140, y: 10 })
 			.pointerMove(1080, 800)
-		jest.advanceTimersByTime(100)
+			.forceTick(6)
 		editor
 			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
 			.pointerUp()

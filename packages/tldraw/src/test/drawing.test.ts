@@ -197,13 +197,9 @@ for (const toolType of ['draw', 'highlight'] as const) {
 				.setCurrentTool(toolType)
 				.keyDown('Shift')
 				.pointerDown(0, 0)
-				.pointerUp()
-				.pointerDown(0, 10)
-				.pointerUp()
-				.pointerDown(10, 0)
-				.pointerUp()
-				.pointerDown(10, 0)
-				.pointerMove(1, 0)
+				.pointerMove(0, 100)
+				.pointerMove(100, 0)
+				.pointerMove(1, 0) // very close to first point
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
@@ -211,6 +207,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
+			editor.forceTick()
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
 			const point2 = last(segment2.points)!

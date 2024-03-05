@@ -315,6 +315,8 @@ export class Drawing extends StateNode {
 
 		const newPoint = { x, y, z: this.isPen ? +(z! * 1.25).toFixed(2) : 0.5 }
 
+		this.isDirty = true
+
 		switch (this.segmentMode) {
 			case 'starting_straight': {
 				const { pagePointWhereNextSegmentChanged } = this
