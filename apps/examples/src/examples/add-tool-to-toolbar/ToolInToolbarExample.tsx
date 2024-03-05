@@ -8,6 +8,7 @@ import {
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
+	TldrawUiToolbarButton,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -38,7 +39,7 @@ const components: TLComponents = {
 		const tools = useTools()
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...tools['sticker']} />
+				<TldrawUiToolbarButton {...tools['sticker']} />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)
