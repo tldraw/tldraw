@@ -49,7 +49,10 @@ import {
 /** @public */
 export type TLRoomSocket<R extends UnknownRecord> = {
 	isOpen: boolean
-	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
+	// Accepts a union to enable serialisation downstream to cache one-off messages. The cache is used
+	// to optimise broadcasting lone (non-debounced) messages, and it uses reference equality, so
+	// wrapping all messages in per-session buffer arrays would break the equality.
+	sendMessage: (msg: TLSocketServerSentEvent<R> | Array<TLSocketServerSentEvent<R>>) => void
 	close: () => void
 }
 
@@ -398,16 +401,20 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 		if (session.socket.isOpen) {
-			if (message.type === 'connect' || message.type === 'pong' || message.type === 'push_result') {
+			if (message.type !== 'patch' && message.type !== 'push_result') {
+				// see RoomSession for why we only debounce patch and push_result
 				session.socket.sendMessage(message)
 			} else {
-				session.outstandingMessages.push(message)
 				if (session.debounceTimer === null) {
-					// TODO: debounce *after* sending the first message (if there is more stuff to send)
+					// this is the first message since the last flush, don't delay it
+					session.socket.sendMessage(message)
+
 					session.debounceTimer = setTimeout(
 						() => this.flushMessages(sessionKey),
 						MESSAGE_DEBOUNCE_INTERVAL
 					)
+				} else {
+					session.outstandingMessages.push(message)
 				}
 			}
 
@@ -417,6 +424,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		}
 	}
 
+	// needs to accept sessionKey and not a session because the session might be dead by the time
+	// the timer fires
 	private flushMessages(sessionKey: string) {
 		const session = this.sessions.get(sessionKey)
 
@@ -424,12 +433,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 
-		console.log(JSON.stringify(session.outstandingMessages))
-		session.outstandingMessages.forEach((msg) => {
-			// TODO: change the signature to a list
-			session.socket.sendMessage(msg)
-		})
-
+		session.socket.sendMessage(session.outstandingMessages)
 		session.debounceTimer = null
 		session.outstandingMessages = []
 	}

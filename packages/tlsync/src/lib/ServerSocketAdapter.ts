@@ -11,7 +11,8 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 	get isOpen(): boolean {
 		return this.ws.readyState === 1 // ready state open
 	}
-	sendMessage(msg: TLSocketServerSentEvent<R>) {
+	// see TLRoomSocket for details on why this accepts a union and not just arrays
+	sendMessage(msg: TLSocketServerSentEvent<R> | Array<TLSocketServerSentEvent<R>>) {
 		this.ws.send(serializeMessage(msg))
 	}
 	close() {

@@ -34,7 +34,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 		get isOpen() {
 			return true
 		},
-		sendMessage: (msg: TLSocketServerSentEvent<R>) => {
+		sendMessage: (msg: TLSocketServerSentEvent<R> | Array<TLSocketServerSentEvent<R>>) => {
 			if (!this.callbacks.onReceiveMessage) {
 				throw new Error('Socket is closed')
 			}
@@ -42,7 +42,11 @@ export class TestSocketPair<R extends UnknownRecord> {
 				// client was closed, drop the packet
 				return
 			}
-			this.serverSentEventQueue.push(msg)
+			if (Array.isArray(msg)) {
+				this.serverSentEventQueue.push(...msg)
+			} else {
+				this.serverSentEventQueue.push(msg)
+			}
 		},
 	}
 	didReceiveFromClient?: (msg: TLSocketClientSentEvent<R>) => void = undefined
