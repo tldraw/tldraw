@@ -58,7 +58,7 @@ export class Brushing extends StateNode {
 		this.info = info
 		this.initialSelectedShapeIds = this.editor.getSelectedShapeIds().slice()
 		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
-		this.onPointerMove()
+		this.hitTestShapes()
 	}
 
 	override onExit = () => {

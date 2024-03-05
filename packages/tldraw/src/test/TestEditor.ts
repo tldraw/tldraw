@@ -289,6 +289,13 @@ export class TestEditor extends Editor {
 
 	/* ------------------ Input Events ------------------ */
 
+	forceTick = (count = 0) => {
+		for (let i = 0; i < count; i++) {
+			this.emit('tick', 16)
+		}
+		return this
+	}
+
 	pointerMove = (
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
@@ -299,6 +306,7 @@ export class TestEditor extends Editor {
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_move',
 		})
+		this.forceTick()
 		return this
 	}
 
