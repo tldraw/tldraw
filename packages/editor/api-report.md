@@ -2048,6 +2048,7 @@ export interface TldrawEditorBaseProps {
     children?: any;
     className?: string;
     components?: TLEditorComponents;
+    hooks?: TLEditorHooks;
     inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;
@@ -2072,6 +2073,11 @@ export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
 export type TLEditorComponents = Partial<{
     [K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null;
 } & ErrorComponents>;
+
+// @public (undocumented)
+export type TLEditorHooks = {
+    [K in keyof BaseEditorHooks]: BaseEditorHooks[K];
+};
 
 // @public (undocumented)
 export interface TLEditorOptions {
@@ -2732,6 +2738,9 @@ export function useEditorComponents(): Partial<{
     LoadingScreen: ComponentType | null;
     TextLabel: ComponentType<TLTextLabelProps> | null;
 } & ErrorComponents> & ErrorComponents;
+
+// @public (undocumented)
+export function useEditorHooks(): TLEditorHooks;
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;

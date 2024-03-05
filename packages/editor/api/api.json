@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.41.0",
+    "toolVersion": "7.42.3",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -36571,6 +36571,34 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps#hooks:member",
+              "docComment": "/**\n * Hooks into various logical entrypoints in the codebase. For example, for text input, we allow hooking into text trigger characters to enable #hashtags, \\@at-mentions, :emojis:\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hooks?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLEditorHooks",
+                  "canonicalReference": "@tldraw/editor!TLEditorHooks:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "hooks",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps#inferDarkMode:member",
               "docComment": "/**\n * Whether to infer dark mode from the user's OS. Defaults to false.\n */\n",
               "excerptTokens": [
@@ -36904,6 +36932,50 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 9
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLEditorHooks:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLEditorHooks = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    [K in keyof "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseEditorHooks",
+              "canonicalReference": "@tldraw/editor!~BaseEditorHooks:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "]: "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseEditorHooks",
+              "canonicalReference": "@tldraw/editor!~BaseEditorHooks:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[K];\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/hooks/useEditorHooks.tsx",
+          "releaseTag": "Public",
+          "name": "TLEditorHooks",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 6
           }
         },
         {
@@ -43132,6 +43204,35 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useEditorComponents"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!useEditorHooks:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useEditorHooks(): "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLEditorHooks",
+              "canonicalReference": "@tldraw/editor!TLEditorHooks:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/hooks/useEditorHooks.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useEditorHooks"
         },
         {
           "kind": "Function",

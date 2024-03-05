@@ -19,6 +19,7 @@
 		"test": "yarn run -T jest"
 	},
 	"dependencies": {
+		"@emoji-mart/data": "^1.1.2",
 		"@radix-ui/react-popover": "^1.0.7",
 		"@sentry/integrations": "^7.34.0",
 		"@sentry/react": "^7.77.0",
@@ -26,6 +27,7 @@
 		"@tldraw/tlsync": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"browser-fs-access": "^0.33.0",
+		"emoji-mart": "patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch",
 		"idb": "^7.1.1",
 		"nanoid": "4.0.2",
 		"qrcode": "^1.5.1",

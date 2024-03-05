@@ -1,16 +1,34 @@
-import { useState } from 'react'
-import { useDialogs } from '../../ui/hooks/useDialogsProvider'
-import EmojiDialog from './emojis'
-import { EmojiDialogSingleton } from './emojis/EmojiDialog'
+import React, { useEffect, useState } from 'react'
+import { Root, createRoot } from 'react-dom/client'
+import { Editor } from 'tldraw'
+import EmojiDialog from '../components/Emojis'
+import { EmojiDialogSingleton } from '../components/Emojis/EmojiDialog'
 
-export function useEmojis(inputEl: HTMLTextAreaElement | null, onComplete: (text: string) => void) {
-	const { addDialog, removeDialog } = useDialogs()
+export function useEmojis(
+	editor: Editor,
+	inputEl: HTMLTextAreaElement | null,
+	onComplete: (text: string) => void
+) {
 	const [emojiSearchText, setEmojiSearchText] = useState('')
 	const [isEmojiMenuOpen, setIsEmojiMenuOpen] = useState(false)
+	const [renderRoot, setRenderRoot] = useState<Root>()
+
+	useEffect(() => {
+		const div = document.createElement('div')
+		div.id = 'tl-emoji-menu-root'
+		document.body.appendChild(div)
+		const root = createRoot(div)
+		setRenderRoot(root)
+
+		return () => {
+			root.unmount()
+			document.body.removeChild(div)
+		}
+	}, [])
 
 	const closeMenu = () => {
 		setIsEmojiMenuOpen(false)
-		removeDialog('emoji')
+		renderRoot?.render(null)
 		setEmojiSearchText('')
 	}
 
@@ -44,18 +62,16 @@ export function useEmojis(inputEl: HTMLTextAreaElement | null, onComplete: (text
 				}
 
 				setEmojiSearchText('')
-				addDialog({
-					id: 'emoji',
-					component: () => (
-						<EmojiDialog
-							onEmojiSelect={onEmojiSelect}
-							onClickOutside={closeMenu}
-							top={coords?.top}
-							left={coords?.left}
-						/>
-					),
-					isCustomDialog: true,
-				})
+
+				renderRoot?.render(
+					<EmojiDialog
+						editor={editor}
+						onEmojiSelect={onEmojiSelect}
+						onClickOutside={closeMenu}
+						top={coords?.top}
+						left={coords?.left}
+					/>
+				)
 				setIsEmojiMenuOpen(true)
 
 				return true

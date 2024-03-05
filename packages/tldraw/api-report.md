@@ -67,6 +67,7 @@ import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
+import { TLEditorHooks } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEnterEventHandler } from '@tldraw/editor';
 import { TLEventHandlers } from '@tldraw/editor';
@@ -1536,6 +1537,9 @@ export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
 
 // @public (undocumented)
+export type TLHooks = Expand<TLEditorHooks>;
+
+// @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
@@ -1637,8 +1641,6 @@ export interface TLUiDialog {
     component: ComponentType<TLUiDialogProps>;
     // (undocumented)
     id: string;
-    // (undocumented)
-    isCustomDialog?: boolean;
     // (undocumented)
     onClose?: () => void;
 }

@@ -14,6 +14,7 @@ import {
 	PreferencesGroup,
 	ShapeSubmenu,
 	TLComponents,
+	TLHooks,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -35,6 +36,7 @@ import { useSharing } from '../utils/sharing'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { useTextTriggerCharacter } from '../utils/useTextTriggerCharacter'
 import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
@@ -114,6 +116,10 @@ const components: TLComponents = {
 	},
 }
 
+const hooks: TLHooks = {
+	useTextTriggerCharacter,
+}
+
 export function MultiplayerEditor({
 	isReadOnly,
 	roomSlug,
@@ -165,6 +171,7 @@ export function MultiplayerEditor({
 				initialState={isReadOnly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
+				hooks={hooks}
 				autoFocus
 				inferDarkMode
 			>

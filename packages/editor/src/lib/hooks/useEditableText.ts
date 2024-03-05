@@ -2,17 +2,19 @@
 import { useValue } from '@tldraw/state'
 import { TLShape, TLShapeId, TLUnknownShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
+import { Editor } from '../editor/Editor'
+import { Vec } from '../primitives/Vec'
 import { normalizeTextForDom, stopEventPropagation } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
-import { useEmojis } from './useEmojis'
-import { Editor } from '../editor/Editor'
+import { useEditorHooks } from './useEditorHooks'
 
 /** @public */
 export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
+	const { useTextTriggerCharacter } = useEditorHooks()
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const { onKeyDown: onEmojiKeyDown } = useEmojis(rInput.current, (text: string) => {
+	const { onKeyDown: onCustomKeyDown } = useTextTriggerCharacter(rInput.current, (text: string) => {
 		editor.updateShapes<TLUnknownShape & { props: { text: string } }>([
 			{ id, type, props: { text } },
 		])
@@ -99,10 +101,11 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			if (!isEditing) return
 
 			const inputEl = e.target as HTMLTextAreaElement
-			if (featureFlags.emojiMenu.get() && inputEl && inputEl.previousSibling) {
+			// Here we possibly pass control to a custom text handling component passed in by the user, if present.
+			if (inputEl && inputEl.previousSibling) {
 				const coords = getCaretPosition(editor, inputEl, inputEl.previousSibling)
-				const isHandledByEmoji = onEmojiKeyDown(e, coords)
-				if (isHandledByEmoji) {
+				const isHandledByCustomLogic = onCustomKeyDown(e, coords)
+				if (isHandledByCustomLogic) {
 					return
 				}
 			}
@@ -116,7 +119,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				}
 			}
 		},
-		[editor, isEditing, onEmojiKeyDown]
+		[editor, isEditing, onCustomKeyDown]
 	)
 
 	// When the text changes, update the text value.
