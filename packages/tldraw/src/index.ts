@@ -398,7 +398,6 @@ export {
 	TriangleToolbarItem,
 	XBoxToolbarItem,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
-export { TldrawUiToolbarButton } from './lib/ui/components/Toolbar/TldrawUiToolbarButton'
 
 /* ----------------- Menu Primitives ---------------- */
 

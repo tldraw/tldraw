@@ -1,5 +1,5 @@
 import { useTools } from '../../hooks/useTools'
-import { TldrawUiToolbarButton } from './TldrawUiToolbarButton'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public */
 export function DefaultToolbarContent() {
@@ -40,167 +40,167 @@ export function DefaultToolbarContent() {
 /** @public */
 export function SelectToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['select']} />
+	return <TldrawUiMenuItem {...tools['select']} />
 }
 
 /** @public */
 export function HandToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['hand']} />
+	return <TldrawUiMenuItem {...tools['hand']} />
 }
 
 /** @public */
 export function DrawToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['draw']} />
+	return <TldrawUiMenuItem {...tools['draw']} />
 }
 
 /** @public */
 export function EraserToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['eraser']} />
+	return <TldrawUiMenuItem {...tools['eraser']} />
 }
 
 /** @public */
 export function ArrowToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrow']} />
+	return <TldrawUiMenuItem {...tools['arrow']} />
 }
 
 /** @public */
 export function TextToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['text']} />
+	return <TldrawUiMenuItem {...tools['text']} />
 }
 
 /** @public */
 export function NoteToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['note']} />
+	return <TldrawUiMenuItem {...tools['note']} />
 }
 
 /** @public */
 export function AssetToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['asset']} />
+	return <TldrawUiMenuItem {...tools['asset']} />
 }
 
 /** @public */
 export function RectangleToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['rectangle']} />
+	return <TldrawUiMenuItem {...tools['rectangle']} />
 }
 
 /** @public */
 export function EllipseToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['ellipse']} />
+	return <TldrawUiMenuItem {...tools['ellipse']} />
 }
 
 /** @public */
 export function DiamondToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['diamond']} />
+	return <TldrawUiMenuItem {...tools['diamond']} />
 }
 
 /** @public */
 export function TriangleToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['triangle']} />
+	return <TldrawUiMenuItem {...tools['triangle']} />
 }
 
 /** @public */
 export function TrapezoidToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['trapezoid']} />
+	return <TldrawUiMenuItem {...tools['trapezoid']} />
 }
 
 /** @public */
 export function RhombusToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['rhombus']} />
+	return <TldrawUiMenuItem {...tools['rhombus']} />
 }
 
 /** @public */
 export function HexagonToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['hexagon']} />
+	return <TldrawUiMenuItem {...tools['hexagon']} />
 }
 
 /** @public */
 export function CloudToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['cloud']} />
+	return <TldrawUiMenuItem {...tools['cloud']} />
 }
 
 /** @public */
 export function StarToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['star']} />
+	return <TldrawUiMenuItem {...tools['star']} />
 }
 
 /** @public */
 export function OvalToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['oval']} />
+	return <TldrawUiMenuItem {...tools['oval']} />
 }
 
 /** @public */
 export function XBoxToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['x-box']} />
+	return <TldrawUiMenuItem {...tools['x-box']} />
 }
 
 /** @public */
 export function CheckBoxToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['check-box']} />
+	return <TldrawUiMenuItem {...tools['check-box']} />
 }
 
 /** @public */
 export function ArrowLeftToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrow-left']} />
+	return <TldrawUiMenuItem {...tools['arrow-left']} />
 }
 
 /** @public */
 export function ArrowUpToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrow-up']} />
+	return <TldrawUiMenuItem {...tools['arrow-up']} />
 }
 
 /** @public */
 export function ArrowDownToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrow-down']} />
+	return <TldrawUiMenuItem {...tools['arrow-down']} />
 }
 
 /** @public */
 export function ArrowRightToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['arrow-right']} />
+	return <TldrawUiMenuItem {...tools['arrow-right']} />
 }
 
 /** @public */
 export function LineToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['line']} />
+	return <TldrawUiMenuItem {...tools['line']} />
 }
 
 /** @public */
 export function HighlightToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['highlight']} />
+	return <TldrawUiMenuItem {...tools['highlight']} />
 }
 
 /** @public */
 export function FrameToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['frame']} />
+	return <TldrawUiMenuItem {...tools['frame']} />
 }
 
 /** @public */
 export function LaserToolbarItem() {
 	const tools = useTools()
-	return <TldrawUiToolbarButton {...tools['laser']} />
+	return <TldrawUiMenuItem {...tools['laser']} />
 }

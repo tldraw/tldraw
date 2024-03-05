@@ -1,5 +1,5 @@
 import { ContextMenuItem } from '@radix-ui/react-context-menu'
-import { preventDefault } from '@tldraw/editor'
+import { GeoShapeGeoStyle, preventDefault, useEditor, useValue } from '@tldraw/editor'
 import { useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
@@ -57,6 +57,10 @@ export type TLUiMenuItemProps<
 	 * Whether to show a spinner on the item.
 	 */
 	spinner?: boolean
+	/**
+	 * A meta property associated with this menu item.
+	 */
+	meta?: { [key: string]: any }
 }
 
 /** @public */
@@ -73,6 +77,7 @@ export function TldrawUiMenuItem<
 	icon,
 	onSelect,
 	noClose,
+	meta,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
@@ -196,8 +201,67 @@ export function TldrawUiMenuItem<
 				</TldrawUiButton>
 			)
 		}
+		case 'tools': {
+			return (
+				<TldrawUiMenuButton
+					id={id}
+					sourceId={sourceId}
+					titleStr={titleStr}
+					disabled={disabled}
+					meta={meta}
+					icon={icon}
+					onSelect={onSelect}
+				/>
+			)
+		}
 		default: {
 			return null
 		}
 	}
+}
+
+function TldrawUiMenuButton<
+	TranslationKey extends string = string,
+	IconType extends string = string,
+>({
+	sourceId,
+	id,
+	titleStr,
+	disabled,
+	onSelect,
+	icon,
+	meta,
+}: {
+	titleStr?: string
+	sourceId: TLUiEventSource
+} & Pick<
+	TLUiMenuItemProps<TranslationKey, IconType>,
+	'id' | 'meta' | 'icon' | 'disabled' | 'onSelect'
+>) {
+	const editor = useEditor()
+	const geo = meta?.geo
+	const isSelected = useValue(
+		'is tool selected',
+		() => {
+			const activeToolId = editor.getCurrentToolId()
+			const geoState = editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle)
+			return geo ? activeToolId === 'geo' && geoState === geo : activeToolId === id
+		},
+		[editor, meta, id, geo]
+	)
+
+	return (
+		<TldrawUiButton
+			data-state={isSelected ? 'selected' : ''}
+			data-testid={`${sourceId}.${id}`}
+			type="tool"
+			title={titleStr}
+			disabled={disabled}
+			role="radio"
+			aria-checked={isSelected ? 'true' : 'false'}
+			onClick={() => onSelect(sourceId)}
+		>
+			<TldrawUiButtonIcon icon={icon!} />
+		</TldrawUiButton>
+	)
 }

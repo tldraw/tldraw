@@ -312,6 +312,10 @@
 	margin-bottom: 0px;
 }
 
+.tlui-buttons[data-limit='5']:nth-child(n + 5) {
+	display: none;
+}
+
 /* Zoom button */
 
 .tlui-zoom-menu__button__pct {
@@ -867,14 +871,28 @@
 	background: var(--color-panel);
 	box-shadow: var(--shadow-2);
 }
+
 .tlui-toolbar__tools__list {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 }
-
 .tlui-toolbar__overflow {
 	width: 40px;
+}
+
+.tlui-toolbar__tools__list[data-limit='5'] > .tlui-button:nth-of-type(n + 7),
+.tlui-toolbar__tools__list[data-limit='6'] > .tlui-button:nth-of-type(n + 8),
+.tlui-toolbar__tools__list[data-limit='7'] > .tlui-button:nth-of-type(n + 9),
+.tlui-toolbar__tools__list[data-limit='8'] > .tlui-button:nth-of-type(n + 10),
+.tlui-toolbar__tools__list-overflow > .tlui-button {
+	display: none;
+}
+.tlui-toolbar__tools__list-overflow[data-limit='5'] > .tlui-button:nth-of-type(n + 7),
+.tlui-toolbar__tools__list-overflow[data-limit='6'] > .tlui-button:nth-of-type(n + 8),
+.tlui-toolbar__tools__list-overflow[data-limit='7'] > .tlui-button:nth-of-type(n + 9),
+.tlui-toolbar__tools__list-overflow[data-limit='8'] > .tlui-button:nth-of-type(n + 10) {
+	display: block;
 }
 
 .tlui-layout__mobile .tlui-toolbar__overflow {
