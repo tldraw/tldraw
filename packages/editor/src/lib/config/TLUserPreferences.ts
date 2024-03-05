@@ -1,6 +1,7 @@
 import { atom } from '@tldraw/state'
 import { defineMigrations, migrate } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
+import { getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { uniqueId } from '../utils/uniqueId'
 
@@ -200,11 +201,8 @@ function migrateUserPreferences(userData: unknown) {
 }
 
 function loadUserPreferences(): TLUserPreferences {
-	const userData =
-		typeof window === 'undefined'
-			? null
-			: ((JSON.parse(window?.localStorage?.getItem(USER_DATA_KEY) || 'null') ??
-					null) as null | UserDataSnapshot)
+	const userData = (JSON.parse(getFromLocalStorage(USER_DATA_KEY) || 'null') ??
+		null) as null | UserDataSnapshot
 
 	return migrateUserPreferences(userData)
 }
@@ -212,15 +210,10 @@ function loadUserPreferences(): TLUserPreferences {
 const globalUserPreferences = atom<TLUserPreferences | null>('globalUserData', null)
 
 function storeUserPreferences() {
-	if (typeof window !== 'undefined' && window.localStorage) {
-		window.localStorage.setItem(
-			USER_DATA_KEY,
-			JSON.stringify({
-				version: userMigrations.currentVersion,
-				user: globalUserPreferences.get(),
-			})
-		)
-	}
+	setInLocalStorage(
+		USER_DATA_KEY,
+		JSON.stringify({ version: userMigrations.currentVersion, user: globalUserPreferences.get() })
+	)
 }
 
 /** @public */
@@ -240,18 +233,24 @@ const channel =
 
 channel?.addEventListener('message', (e) => {
 	const data = e.data as undefined | UserChangeBroadcastMessage
-	if (data?.type === broadcastEventKey && data?.origin !== broadcastOrigin) {
+	if (data?.type === broadcastEventKey && data?.origin !== getBroadcastOrigin()) {
 		globalUserPreferences.set(migrateUserPreferences(data.data))
 	}
 })
 
-const broadcastOrigin = uniqueId()
+let _broadcastOrigin = null as null | string
+function getBroadcastOrigin() {
+	if (_broadcastOrigin === null) {
+		_broadcastOrigin = uniqueId()
+	}
+	return _broadcastOrigin
+}
 const broadcastEventKey = 'tldraw-user-preferences-change' as const
 
 function broadcastUserPreferencesChange() {
 	channel?.postMessage({
 		type: broadcastEventKey,
-		origin: broadcastOrigin,
+		origin: getBroadcastOrigin(),
 		data: {
 			user: getUserPreferences(),
 			version: userMigrations.currentVersion,

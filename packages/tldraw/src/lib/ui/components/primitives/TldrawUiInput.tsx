@@ -14,7 +14,7 @@ export interface TLUiInputProps {
 	iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>
 	autofocus?: boolean
 	autoselect?: boolean
-	children?: any
+	children?: React.ReactNode
 	defaultValue?: string
 	placeholder?: string
 	onComplete?: (value: string) => void

@@ -1,4 +1,3 @@
-import { Footer } from '@/components/Footer'
 import { Analytics } from '@vercel/analytics/react'
 import { Metadata, Viewport } from 'next'
 import AutoRefresh from '../components/AutoRefresh'
@@ -7,9 +6,9 @@ import '../styles/hljs.css'
 import '../styles/parameters-table.css'
 import { Providers } from './providers'
 
-const TITLE = 'tldraw docs'
+const TITLE = 'tldraw SDK'
 const DESCRIPTION =
-	'Developer documentation for tldraw. Build infinite canvas experiences for the web.'
+	'Infinite canvas SDK from tldraw. Build whiteboards, design tools, and canvas experiences for the web.'
 const TWITTER_HANDLE = '@tldraw'
 const TWITTER_CARD = 'social-twitter.png'
 const FACEBOOK_CARD = 'social-og.png'
@@ -70,10 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 			<html suppressHydrationWarning>
 				<body>
 					<Providers>
-						<div className="wrapper">
-							<div className="layout">{children}</div>
-							<Footer />
-						</div>
+						{children}
 						<Analytics />
 					</Providers>
 				</body>

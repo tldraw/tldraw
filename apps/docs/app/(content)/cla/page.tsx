@@ -10,7 +10,7 @@ export default async function ClaPage() {
 		<>
 			<Header />
 			<Sidebar {...sidebar} />
-			<main className="article">
+			<main className="main-content article">
 				<div className="page-header">
 					<h1>Contributor License Agreement</h1>
 				</div>

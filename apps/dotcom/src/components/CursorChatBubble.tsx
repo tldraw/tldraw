@@ -58,7 +58,11 @@ function usePositionBubble(ref: RefObject<HTMLInputElement>) {
 
 		// Positioning the chat bubble
 		function positionChatBubble(e: PointerEvent) {
-			ref.current?.style.setProperty('transform', `translate(${e.clientX}px, ${e.clientY}px)`)
+			const { minX, minY } = editor.getViewportScreenBounds()
+			ref.current?.style.setProperty(
+				'transform',
+				`translate(${e.clientX - minX}px, ${e.clientY - minY}px)`
+			)
 		}
 
 		window.addEventListener('pointermove', positionChatBubble)
@@ -185,8 +189,6 @@ const CursorChatInput = track(function CursorChatInput({
 	)
 
 	const handlePaste = useCallback((e: ClipboardEvent) => {
-		// todo: figure out what's an acceptable / sanitized paste
-		preventDefault(e)
 		e.stopPropagation()
 	}, [])
 

@@ -182,7 +182,7 @@ export function UrlStateSync() {
 		window.history.replaceState(
 			{},
 			document.title,
-			window.location.pathname + `?viewport=${params.viewport}&page=${params.page}`
+			window.location.pathname + `?v=${params.v}&p=${params.p}`
 		)
 	}, [])
 
