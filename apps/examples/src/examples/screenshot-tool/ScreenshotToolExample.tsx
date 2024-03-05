@@ -6,9 +6,10 @@ import {
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	Tldraw,
-	TldrawUiToolbarButton,
+	TldrawUiMenuItem,
 	Vec,
 	useEditor,
+	useIsToolSelected,
 	useTools,
 	useValue,
 } from 'tldraw'
@@ -41,9 +42,10 @@ const customUiOverrides: TLUiOverrides = {
 
 function CustomToolbar() {
 	const tools = useTools()
+	const isScreenshotSelected = useIsToolSelected(tools['screenshot'])
 	return (
 		<DefaultToolbar>
-			<TldrawUiToolbarButton {...tools['screenshot']} />
+			<TldrawUiMenuItem {...tools['screenshot']} isSelected={isScreenshotSelected} />
 			<DefaultToolbarContent />
 		</DefaultToolbar>
 	)

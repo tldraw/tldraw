@@ -7,7 +7,7 @@ import {
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	TldrawUiMenuItem,
-	TldrawUiToolbarButton,
+	useIsToolSelected,
 	useTools,
 } from 'tldraw'
 
@@ -39,9 +39,10 @@ export const customAssetUrls: TLUiAssetUrlOverrides = {
 export const components: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()
+		const isSpeechBubbleSelected = useIsToolSelected(tools['speech'])
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiToolbarButton {...tools['speech']} />
+				<TldrawUiMenuItem {...tools['speech']} isSelected={isSpeechBubbleSelected} />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)

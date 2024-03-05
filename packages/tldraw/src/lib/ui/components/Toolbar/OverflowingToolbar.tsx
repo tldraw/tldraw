@@ -14,6 +14,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 export const IsInOverflowContext = createContext(false)
 
@@ -151,7 +152,9 @@ export function OverflowingToolbar({ children }: { children: React.ReactNode }) 
 				role="radiogroup"
 			>
 				<div id={`${id}_main`} ref={mainToolsRef} className="tlui-toolbar__tools__list">
-					{children}
+					<TldrawUiMenuContextProvider type="toolbar" sourceId="toolbar">
+						{children}
+					</TldrawUiMenuContextProvider>
 				</div>
 				{totalItems > overflowIndex && (
 					<IsInOverflowContext.Provider value={true}>
@@ -172,7 +175,9 @@ export function OverflowingToolbar({ children }: { children: React.ReactNode }) 
 									data-testid="tools.more-content"
 									id={`${id}_more`}
 								>
-									{children}
+									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
+										{children}
+									</TldrawUiMenuContextProvider>
 								</div>
 							</TldrawUiDropdownMenuContent>
 						</TldrawUiDropdownMenuRoot>

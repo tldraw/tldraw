@@ -1673,7 +1673,7 @@ export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiM
 export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, title, isSelected, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
@@ -1692,9 +1692,6 @@ export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderPr
 
 // @internal (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
-
-// @public (undocumented)
-export function TldrawUiToolbarButton({ id, label, kbd, icon, onSelect, meta, readonlyOk, }: TLUiToolItem): JSX_2.Element | null;
 
 // @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
@@ -2212,6 +2209,7 @@ export type TLUiMenuItemProps<TranslationKey extends string = string, IconType e
     disabled?: boolean;
     noClose?: boolean;
     spinner?: boolean;
+    isSelected?: boolean;
 };
 
 // @public (undocumented)
@@ -2478,6 +2476,9 @@ export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+
+// @public (undocumented)
+export function useIsToolSelected(tool: TLUiToolItem): boolean;
 
 // @public (undocumented)
 export function useKeyboardShortcuts(): void;

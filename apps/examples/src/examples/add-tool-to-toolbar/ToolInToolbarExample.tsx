@@ -1,11 +1,14 @@
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
+	DefaultToolbar,
+	DefaultToolbarContent,
 	TLComponents,
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
+	useIsToolSelected,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -32,6 +35,16 @@ const uiOverrides: TLUiOverrides = {
 
 // [2]
 const components: TLComponents = {
+	Toolbar: (props) => {
+		const tools = useTools()
+		const isStickerSelected = useIsToolSelected(tools['sticker'])
+		return (
+			<DefaultToolbar {...props}>
+				<TldrawUiMenuItem {...tools['sticker']} isSelected={isStickerSelected} />
+				<DefaultToolbarContent />
+			</DefaultToolbar>
+		)
+	},
 	KeyboardShortcutsDialog: (props) => {
 		const tools = useTools()
 		return (
