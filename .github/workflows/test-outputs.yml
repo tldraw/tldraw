@@ -1,0 +1,31 @@
+name: Test outputs
+# This bumps the patch version, updates the changelogs in the release branch only, publishes a GitHub release, and publishes the packages to npm.
+
+# Path releases are triggered by merging a PR which targets a 'release' branch named e.g. 'v2.0.x'.
+on: pull_request
+
+jobs:
+  deploy:
+    name: Test outputs
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: thing
+        run: |
+          yarn tsx ./scripts/append_to_output.ts
+
+  other_thing:
+    name: Does a thing
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+    steps:
+      - name: Thing
+        run: echo ${{ needs.deploy.outputs.the_output }}
+    needs: deploy
