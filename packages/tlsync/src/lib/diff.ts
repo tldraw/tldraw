@@ -258,21 +258,3 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 
 	return newObject ?? object
 }
-
-export function squishNetworkDiffs<R extends UnknownRecord>(
-	diffs: NetworkDiff<R>[]
-): NetworkDiff<R>[] {
-	const squished: NetworkDiff<R>[] = []
-
-	// - uninterrupted runs of patch packets can be compressed into one patch
-	// - put + patches can be replaced by a single put (with patches applied)
-
-	for (const diff of diffs) {
-		if (squished.length === 0) {
-			squished.push(diff)
-		} else {
-			const last = squished[squished.length - 1]
-		}
-	}
-	return squished
-}

@@ -50,9 +50,6 @@ import {
 /** @public */
 export type TLRoomSocket<R extends UnknownRecord> = {
 	isOpen: boolean
-	// Accepts a union to enable serialisation downstream to cache one-off messages. The cache is used
-	// to optimise broadcasting lone (non-debounced) messages, and it uses reference equality, so
-	// wrapping all messages in per-session buffer arrays would break the equality.
 	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
 	close: () => void
 }
@@ -61,7 +58,7 @@ export type TLRoomSocket<R extends UnknownRecord> = {
 export const MAX_TOMBSTONES = 3000
 // the number of tombstones to delete when the max is reached
 export const TOMBSTONE_PRUNE_BUFFER_SIZE = 300
-// how often do we send non-ping updates to clients
+// the minimum time between data-related messages to the clients
 export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
@@ -406,7 +403,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		}
 		if (session.socket.isOpen) {
 			if (message.type !== 'patch' && message.type !== 'push_result') {
-				// see RoomSession for why we only debounce connect and pong
+				// this is not a data message
 				session.socket.sendMessage(message)
 			} else {
 				if (session.debounceTimer === null) {
@@ -1052,55 +1049,3 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		this.cancelSession(sessionKey)
 	}
 }
-
-// squish target:
-// [
-// 	{
-// 		"type": "patch",
-// 		"diff": {
-// 			"instance_presence:s9jqdPL09x9j_4uo-TWxQ": [
-// 				"patch",
-// 				{
-// 					"lastActivityTimestamp": [
-// 						"put",
-// 						1709228611040
-// 					],
-// 					"cursor": [
-// 						"put",
-// 						{
-// 							"x": 328.57421875,
-// 							"y": 625.57421875,
-// 							"rotation": 0,
-// 							"type": "default"
-// 						}
-// 					]
-// 				}
-// 			]
-// 		},
-// 		"serverClock": 1601
-// 	},
-// 	{
-// 		"type": "patch",
-// 		"diff": {
-// 			"instance_presence:s9jqdPL09x9j_4uo-TWxQ": [
-// 				"patch",
-// 				{
-// 					"lastActivityTimestamp": [
-// 						"put",
-// 						1709228611108
-// 					],
-// 					"cursor": [
-// 						"put",
-// 						{
-// 							"x": 311.43359375,
-// 							"y": 617.234375,
-// 							"rotation": 0,
-// 							"type": "default"
-// 						}
-// 					]
-// 				}
-// 			]
-// 		},
-// 		"serverClock": 1602
-// 	}
-// ]

@@ -227,10 +227,6 @@ function runTest(seed: number) {
 			}
 		}
 
-		// server.room.sessions.forEach((value, key) => {
-		// 	console.log('session', key, value.outstandingMessages)
-		// })
-
 		const equalityResults = []
 		for (let i = 0; i < peers.length; i++) {
 			const row = []
