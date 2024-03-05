@@ -55,18 +55,9 @@ export async function setAllVersions(version: string) {
 			path.join(packageDetails.dir, 'package.json'),
 			JSON.stringify(manifest, null, '\t') + '\n'
 		)
-		if (manifest.name === '@tldraw/editor') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(path.join(packageDetails.dir, 'src', 'version.ts'), versionFileContents)
-		}
-		if (manifest.name === 'tldraw') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(
-				path.join(packageDetails.dir, 'src', 'lib', 'ui', 'version.ts'),
-				versionFileContents
-			)
-		}
 	}
+
+	await exec('yarn', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
 	lernaJson.version = version
@@ -112,7 +103,7 @@ function topologicalSortPackages(packages: Record<string, PackageDetails>) {
 	return sorted
 }
 
-export async function publish() {
+export async function publish(distTag?: string) {
 	const npmToken = process.env.NPM_TOKEN
 	if (!npmToken) {
 		throw new Error('NPM_TOKEN not set')
@@ -126,9 +117,9 @@ export async function publish() {
 	const publishOrder = topologicalSortPackages(packages)
 
 	for (const packageDetails of publishOrder) {
-		const prereleaseTag = parse(packageDetails.version)?.prerelease[0] ?? 'latest'
+		const tag = distTag ?? parse(packageDetails.version)?.prerelease[0] ?? 'latest'
 		nicelog(
-			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${prereleaseTag}`
+			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${tag}`
 		)
 
 		await retry(
@@ -137,15 +128,7 @@ export async function publish() {
 				try {
 					await exec(
 						`yarn`,
-						[
-							'npm',
-							'publish',
-							'--tag',
-							String(prereleaseTag),
-							'--tolerate-republish',
-							'--access',
-							'public',
-						],
+						['npm', 'publish', '--tag', String(tag), '--tolerate-republish', '--access', 'public'],
 						{
 							pwd: packageDetails.dir,
 							processStdoutLine: (line) => {
@@ -179,7 +162,7 @@ export async function publish() {
 				const newVersion = packageDetails.version
 				const unscopedName = packageDetails.name.replace('@tldraw/', '')
 
-				const url = `https://registry.npmjs.org/@tldraw/${unscopedName}/-/${unscopedName}-${newVersion}.tgz`
+				const url = `https://registry.npmjs.org/${packageDetails.name}/-/${unscopedName}-${newVersion}.tgz`
 				nicelog('looking for package at url: ', url)
 				const res = await fetch(url, {
 					method: 'HEAD',

@@ -1,13 +1,13 @@
 import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, useCallback } from 'react'
+import { ReactNode, memo, useCallback } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 
 /** @public */
 export interface TLUiStylePanelProps {
 	isMobile?: boolean
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */

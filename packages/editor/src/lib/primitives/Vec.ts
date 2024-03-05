@@ -531,6 +531,9 @@ export class Vec {
 	static Average(arr: VecLike[]) {
 		const len = arr.length
 		const avg = new Vec(0, 0)
+		if (len === 0) {
+			return avg
+		}
 		for (let i = 0; i < len; i++) {
 			avg.add(arr[i])
 		}

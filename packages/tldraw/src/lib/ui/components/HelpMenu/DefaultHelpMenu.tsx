@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -14,7 +14,7 @@ import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
 
 /** @public */
 export type TLUiHelpMenuProps = {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */

@@ -1,0 +1,37 @@
+name: Dedupe Dependabot PRs
+
+on:
+  push:
+    branches: ['dependabot/**']
+
+permissions:
+  contents: write
+  pull-requests: write
+  repository-projects: write
+
+jobs:
+  dedupe:
+    name: Dedupe Dependabot PRs
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Dedupe dependencies
+        run: yarn dedupe
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m 'Dedupe' || true
+
+      - name: Push changes
+        run: git push
