@@ -197,8 +197,12 @@ for (const toolType of ['draw', 'highlight'] as const) {
 				.setCurrentTool(toolType)
 				.keyDown('Shift')
 				.pointerDown(0, 0)
-				.pointerMove(0, 100)
-				.pointerMove(100, 0)
+				.pointerUp()
+				.pointerDown(0, 10)
+				.pointerUp()
+				.pointerDown(10, 0)
+				.pointerUp()
+				.pointerDown(10, 0)
 				.pointerMove(1, 0) // very close to first point
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
