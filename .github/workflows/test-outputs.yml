@@ -28,6 +28,7 @@ jobs:
     name: Does a thing
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open
+    if: ${{ needs.deploy.outputs.my_output_name != 'hahaha' }}
     steps:
       - name: Thing
         run: echo ${{ needs.deploy.outputs.my_output_name }}
