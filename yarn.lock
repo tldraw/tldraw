@@ -13517,6 +13517,7 @@ __metadata:
   dependencies:
     "@playwright/test": "npm:^1.38.1"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
+    "@tiptap/core": "npm:^2.2.4"
     "@tiptap/pm": "npm:^2.2.4"
     "@tiptap/react": "npm:^2.2.4"
     "@tiptap/starter-kit": "npm:^2.2.4"
