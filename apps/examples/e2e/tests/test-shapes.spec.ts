@@ -122,6 +122,7 @@ test.describe('Shape Tools', () => {
 
 			// Click on the page
 			await page.mouse.click(200, 200)
+			await page.waitForTimeout(100)
 
 			// We should have a corresponding shape in the page
 			expect(await getAllShapeTypes(page)).toEqual([shape])
