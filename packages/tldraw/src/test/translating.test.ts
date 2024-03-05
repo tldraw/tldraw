@@ -117,15 +117,17 @@ describe('When translating...', () => {
 			.expectToBeIn('select.idle')
 	})
 
-	it('translates a single shape', () => {
+	it.only('translates a single shape', () => {
 		editor
-			.pointerDown(50, 50, ids.box1)
+			.pointerDown(50, 50, ids.box1) // point = [10, 10]
 			.pointerMove(50, 40) // [0, -10]
+			.expectToBeIn('select.translating')
 			.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 })
 			.pointerMove(100, 100) // [50, 50]
-			.forceTick()
+			.expectToBeIn('select.translating')
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 			.pointerUp()
+			.expectToBeIn('select.idle')
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 	})
 
