@@ -70,6 +70,8 @@ async function main() {
 	const releaseType = getReleaseType()
 	const nextVersion = await getNextVersion(releaseType)
 
+	const isPrerelease = parse(nextVersion)!.prerelease.length > 0
+
 	console.log('Releasing version', nextVersion)
 
 	await setAllVersions(nextVersion)
@@ -111,9 +113,17 @@ async function main() {
 		title: `v${nextVersion}`,
 	})
 
+	const gitTag = `v${nextVersion}`
+
 	// create and push a new tag
-	await exec('git', ['tag', '-f', `v${nextVersion}`])
+	await exec('git', ['tag', '-f', gitTag])
 	await exec('git', ['push', '--follow-tags'])
+
+	// create new 'release' branch called e.g. v2.0.x or v4.3.x, for making patch releases
+	if (!isPrerelease) {
+		const { major, minor } = parse(nextVersion)!
+		await exec('git', ['push', 'origin', `${gitTag}:refs/heads/v${major}.${minor}.x`])
+	}
 
 	// create a release on github
 	await auto.runRelease({ useVersion: nextVersion })
