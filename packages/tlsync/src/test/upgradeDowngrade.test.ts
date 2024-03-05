@@ -195,6 +195,8 @@ class TestInstance {
 	}
 
 	flush() {
+		this.server.flushDebouncingMessages()
+
 		while (this.oldSocketPair.getNeedsFlushing() || this.newSocketPair.getNeedsFlushing()) {
 			this.oldSocketPair.flushClientSentEvents()
 			this.oldSocketPair.flushServerSentEvents()

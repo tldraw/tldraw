@@ -175,6 +175,8 @@ function runTest(seed: number) {
 				peer.editor.applyOp(op)
 				allOk('after applyOp')
 
+				server.flushDebouncingMessages()
+
 				if (peer.socketPair.isConnected && peer.randomInt(6) === 0) {
 					// randomly disconnect a peer
 					peer.socketPair.disconnect()
@@ -213,6 +215,8 @@ function runTest(seed: number) {
 		}
 
 		while (peers.some((p) => p.socketPair.getNeedsFlushing())) {
+			server.flushDebouncingMessages()
+
 			for (const peer of peers) {
 				if (peer.socketPair.getNeedsFlushing()) {
 					peer.socketPair.flushServerSentEvents()
@@ -222,6 +226,10 @@ function runTest(seed: number) {
 				}
 			}
 		}
+
+		// server.room.sessions.forEach((value, key) => {
+		// 	console.log('session', key, value.outstandingMessages)
+		// })
 
 		const equalityResults = []
 		for (let i = 0; i < peers.length; i++) {

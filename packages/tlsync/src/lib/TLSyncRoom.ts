@@ -52,7 +52,7 @@ export type TLRoomSocket<R extends UnknownRecord> = {
 	// Accepts a union to enable serialisation downstream to cache one-off messages. The cache is used
 	// to optimise broadcasting lone (non-debounced) messages, and it uses reference equality, so
 	// wrapping all messages in per-session buffer arrays would break the equality.
-	sendMessage: (msg: TLSocketServerSentEvent<R> | Array<TLSocketServerSentEvent<R>>) => void
+	sendMessage: (msg: TLSocketServerSentEvent<R> | TLSocketServerSentEvent<R>[]) => void
 	close: () => void
 }
 
@@ -401,7 +401,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 		if (session.socket.isOpen) {
-			if (message.type !== 'patch' && message.type !== 'push_result') {
+			if (message.type === 'connect' || message.type === 'pong') {
 				// see RoomSession for why we only debounce patch and push_result
 				session.socket.sendMessage(message)
 			} else {
@@ -410,15 +410,13 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					session.socket.sendMessage(message)
 
 					session.debounceTimer = setTimeout(
-						() => this.flushMessages(sessionKey),
+						() => this._flushMessages(sessionKey),
 						MESSAGE_DEBOUNCE_INTERVAL
 					)
 				} else {
 					session.outstandingMessages.push(message)
 				}
 			}
-
-			session.socket.sendMessage(message)
 		} else {
 			this.cancelSession(session.sessionKey)
 		}
@@ -426,16 +424,19 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 	// needs to accept sessionKey and not a session because the session might be dead by the time
 	// the timer fires
-	private flushMessages(sessionKey: string) {
+	_flushMessages(sessionKey: string) {
 		const session = this.sessions.get(sessionKey)
 
 		if (!session || session.state !== RoomSessionState.CONNECTED) {
 			return
 		}
 
-		session.socket.sendMessage(session.outstandingMessages)
 		session.debounceTimer = null
-		session.outstandingMessages = []
+
+		if (session.outstandingMessages.length > 0) {
+			session.socket.sendMessage(session.outstandingMessages)
+			session.outstandingMessages = []
+		}
 	}
 
 	private removeSession(sessionKey: string) {

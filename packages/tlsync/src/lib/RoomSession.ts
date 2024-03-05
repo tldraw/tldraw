@@ -39,5 +39,5 @@ export type RoomSession<R extends UnknownRecord> =
 			// - other message types create negligible traffic
 			// - both patch and push_result contain serverClock, so if we only delay one of these types,
 			//   the clock might start going back between messages
-			outstandingMessages: Array<TLSocketServerSentEvent<R> & { type: 'patch' | 'push_result' }>
+			outstandingMessages: Array<Exclude<TLSocketServerSentEvent<R>, { type: 'connect' | 'ping' }>>
 	  }

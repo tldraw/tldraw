@@ -34,7 +34,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 		get isOpen() {
 			return true
 		},
-		sendMessage: (msg: TLSocketServerSentEvent<R> | Array<TLSocketServerSentEvent<R>>) => {
+		sendMessage: (msg: TLSocketServerSentEvent<R> | TLSocketServerSentEvent<R>[]) => {
 			if (!this.callbacks.onReceiveMessage) {
 				throw new Error('Socket is closed')
 			}
