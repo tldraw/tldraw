@@ -1,4 +1,11 @@
-import { StateNode, TLEventHandlers, TLUnknownShape, Tldraw, createShapeId } from 'tldraw'
+import {
+	StateNode,
+	TLEventHandlers,
+	TLShapePartial,
+	TLTextShape,
+	Tldraw,
+	createShapeId,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -31,17 +38,21 @@ class Idle extends StateNode {
 					})
 					return
 				}
-				editor.selectNone()
+				this.parent.transition('pointing', { shape: null })
 				break
 			}
 			case 'shape': {
 				if (editor.inputs.shiftKey) {
-					editor.select(...editor.getSelectedShapeIds(), info.shape.id)
+					editor.updateShape({
+						id: info.shape.id,
+						type: 'text',
+						props: { text: '👻 boo!' },
+					})
 				} else {
 					if (!editor.getSelectedShapeIds().includes(info.shape.id)) {
 						editor.select(info.shape.id)
 					}
-					this.parent.transition('pointing', info)
+					this.parent.transition('pointing', { shape: info.shape })
 				}
 				break
 			}
@@ -50,9 +61,11 @@ class Idle extends StateNode {
 	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
 		const { editor } = this
 		if (info.phase !== 'up') return
+
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint)
+
 				if (hitShape) {
 					this.onDoubleClick({
 						...info,
@@ -62,15 +75,12 @@ class Idle extends StateNode {
 					return
 				}
 				const { currentPagePoint } = editor.inputs
-				editor.createShapes([
-					{
-						id: createShapeId(),
-						type: 'text',
-						x: currentPagePoint.x + OFFSET,
-						y: currentPagePoint.y + OFFSET,
-						props: { text: '❤️' },
-					},
-				])
+				editor.createShape({
+					type: 'text',
+					x: currentPagePoint.x + OFFSET,
+					y: currentPagePoint.y + OFFSET,
+					props: { text: '❤️' },
+				})
 				break
 			}
 			case 'shape': {
@@ -82,44 +92,63 @@ class Idle extends StateNode {
 }
 class Pointing extends StateNode {
 	static override id = 'pointing'
+	private shape: TLTextShape | null = null
 
+	override onEnter = (info: { shape: TLTextShape | null }) => {
+		this.shape = info.shape
+	}
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
 		this.parent.transition('idle', info)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging', { shapes: [...this.editor.getSelectedShapes()] })
+			this.parent.transition('dragging', { shape: this.shape })
 		}
 	}
 }
 
 class Dragging extends StateNode {
 	static override id = 'dragging'
-	//[a]
-	private initialDraggingShapes = [] as TLUnknownShape[]
-	//[b]
-	override onEnter = (info: { shapes: TLUnknownShape[] }) => {
-		this.initialDraggingShapes = info.shapes
+	private shape: TLShapePartial | null = null
+	private emojiArray = ['❤️', '🔥', '👍', '👎', '😭', '🤣']
+
+	override onEnter = (info: { shape: TLShapePartial }) => {
+		const { currentPagePoint } = this.editor.inputs
+		const newShape = {
+			id: createShapeId(),
+			type: 'text',
+			x: currentPagePoint.x,
+			y: currentPagePoint.y,
+			props: { text: '❤️' },
+		}
+		if (info.shape) {
+			this.shape = info.shape
+		} else {
+			this.editor.createShape(newShape)
+			this.shape = { ...newShape }
+		}
 	}
 	//[c]
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
 		this.parent.transition('idle', info)
 	}
 	//[d]
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
-		const { initialDraggingShapes } = this
-		const { originPagePoint, currentPagePoint } = this.editor.inputs
 
-		this.editor.updateShapes(
-			initialDraggingShapes.map((shape) => {
-				return {
-					...shape,
-					x: shape.x + (currentPagePoint.x - originPagePoint.x),
-					y: shape.y + (currentPagePoint.y - originPagePoint.y),
-				}
+	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+		const { shape } = this
+		const { originPagePoint, currentPagePoint } = this.editor.inputs
+		// distance from the origin point
+		const distance = originPagePoint.dist(currentPagePoint)
+		if (shape) {
+			this.editor.updateShape({
+				id: shape.id,
+				type: 'text',
+				props: {
+					text: this.emojiArray[Math.floor(distance / 10) % this.emojiArray.length],
+				},
 			})
-		)
+		}
 	}
 }
 
@@ -141,7 +170,10 @@ export default function ToolWithChildStatesExample() {
 						type: 'text',
 						x: 100,
 						y: 100,
-						props: { text: 'Click anywhere to add a sticker' },
+						props: {
+							text: 'Double click the canvas to add a sticker\nDouble click a sticker to delete it\nClick and drag on a sticker to change it\nClick and drag on the canvas to create a sticker\nShift click a sticker for a surprise!',
+							align: 'start',
+						},
 					})
 				}}
 			/>
