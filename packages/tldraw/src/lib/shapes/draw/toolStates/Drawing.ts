@@ -583,9 +583,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				console.log('straight', shapePartial)
 				this.shapePartial = shapePartial
-				// this.editor.updateShapes([shapePartial], { squashing: true })
 
 				break
 			}
