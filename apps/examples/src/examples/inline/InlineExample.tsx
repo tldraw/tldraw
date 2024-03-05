@@ -1,6 +1,6 @@
-import { Editor, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { createContext, useContext, useState } from 'react'
+import { Editor, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 const FocusedEditorContext = createContext(
 	{} as {

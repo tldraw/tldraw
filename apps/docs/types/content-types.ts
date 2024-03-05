@@ -3,6 +3,7 @@ export type InputCategory = {
 	title: string
 	description: string
 	groups: InputGroup[]
+	hero: string | null
 }
 
 export type InputSection = {
@@ -10,6 +11,7 @@ export type InputSection = {
 	title: string
 	description: string
 	categories: InputCategory[]
+	hero: string | null
 	sidebar_behavior: 'show-links' | 'show-title' | 'hidden' | 'reference'
 }
 
@@ -56,6 +58,8 @@ export interface Section extends ContentPage {
 	categories: Category[]
 	/** How the section should appear in the sidebar. */
 	sidebar_behavior: 'show-links' | 'show-title' | 'hidden' | 'reference'
+	/** The section's hero image (optional). */
+	hero: string | null
 }
 
 export interface Category extends ContentPage {
@@ -66,6 +70,8 @@ export interface Category extends ContentPage {
 	index: number
 	/** The category's groups */
 	groups: Group[]
+	/** The category's hero image (optional). */
+	hero: string | null
 }
 
 export interface Group extends ContentPage {
@@ -179,7 +185,6 @@ export type SidebarContentLink =
 	| SidebarContentArticleLink
 
 export type SidebarContentList = {
-	headings?: ArticleHeadings
 	sectionId: string | null
 	categoryId: string | null
 	articleId: string | null

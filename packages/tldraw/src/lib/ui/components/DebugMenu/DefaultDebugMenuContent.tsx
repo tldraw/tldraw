@@ -169,6 +169,7 @@ export function DefaultDebugMenuContent() {
 				/>
 				{(() => {
 					if (error) throw Error('oh no!')
+					return null
 				})()}
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
 				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />

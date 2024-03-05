@@ -26,6 +26,7 @@ import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { ReactNode } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -726,6 +727,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSelectedShapes(): TLShape[];
     getSelectionPageBounds(): Box | null;
     getSelectionRotatedPageBounds(): Box | undefined;
+    getSelectionRotatedScreenBounds(): Box | undefined;
     getSelectionRotation(): number;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
@@ -763,7 +765,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSharedStyles(): ReadonlySharedStyleMap;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
-    // @internal (undocumented)
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
     getViewportPageBounds(): Box;
@@ -968,7 +969,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
 
 // @public (undocumented)
 export function ErrorScreen({ children }: {
-    children: any;
+    children: ReactNode;
 }): JSX_2.Element;
 
 // @public (undocumented)
@@ -1211,7 +1212,7 @@ export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): 
 
 // @public (undocumented)
 export function LoadingScreen({ children }: {
-    children: any;
+    children: ReactNode;
 }): JSX_2.Element;
 
 // @public
@@ -2021,7 +2022,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public
 export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
-    children?: any;
+    children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
     inferDarkMode?: boolean;
@@ -2228,7 +2229,7 @@ export type TLHandleProps = {
 
 // @public (undocumented)
 export type TLHandlesProps = {
-    children: any;
+    children: ReactNode;
 };
 
 // @public (undocumented)

@@ -1,4 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
+import React, { useCallback, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
@@ -8,8 +9,7 @@ import {
 	useEditor,
 	useTranslation,
 	useUiEvents,
-} from '@tldraw/tldraw'
-import React, { useCallback, useRef, useState } from 'react'
+} from 'tldraw'
 import { UI_OVERRIDE_TODO_EVENT } from '../../utils/useHandleUiEvent'
 
 export const UserPresenceColorPicker = track(function UserPresenceColorPicker() {

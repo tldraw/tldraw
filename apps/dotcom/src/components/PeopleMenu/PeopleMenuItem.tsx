@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
@@ -7,8 +8,7 @@ import {
 	usePresence,
 	useTranslation,
 	useUiEvents,
-} from '@tldraw/tldraw'
-import { useCallback } from 'react'
+} from 'tldraw'
 import { UI_OVERRIDE_TODO_EVENT } from '../../utils/useHandleUiEvent'
 
 export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId: string }) {
