@@ -2,6 +2,7 @@ import { Auto } from '@auto-it/core'
 import fetch from 'cross-fetch'
 import glob from 'glob'
 import { assert } from 'node:console'
+import { appendFileSync } from 'node:fs'
 import { exec } from './lib/exec'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
@@ -15,6 +16,10 @@ async function main() {
 	const latestVersionOnNpm = (await exec('npm', ['show', 'tldraw', 'version'])).trim()
 
 	const isLatestVersion = latestVersionInBranch.format() === latestVersionOnNpm
+	if (process.env.GITHUB_OUTPUT) {
+		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
+	}
+
 	const nextVersion = latestVersionInBranch.inc('patch').format()
 	// check we're on the main branch on HEAD
 	const currentBranch = (await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).toString().trim()

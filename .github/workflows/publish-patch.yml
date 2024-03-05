@@ -17,6 +17,8 @@ jobs:
     environment: npm deploy
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open
+    outputs:
+      is_latest_version: ${{ steps.publish_step.outputs.is_latest_version }}
 
     steps:
       - name: Generate GH token
@@ -39,6 +41,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Publish
+        id: publish_step
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
@@ -51,9 +54,8 @@ jobs:
   publish_templates:
     name: Publishes code templates to separate repositories
     uses: tldraw/tldraw/.github/workflows/publish-templates.yml@main
+    if: ${{ needs.deploy.outputs.is_latest_version == 'true' }}
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-    needs: [
-      deploy
-    ]
+    needs: deploy
