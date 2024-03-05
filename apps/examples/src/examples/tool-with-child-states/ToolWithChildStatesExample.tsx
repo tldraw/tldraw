@@ -51,9 +51,6 @@ class Idle extends StateNode {
 						props: { text: '👻 boo!' },
 					})
 				} else {
-					if (!editor.getSelectedShapeIds().includes(info.shape.id)) {
-						editor.select(info.shape.id)
-					}
 					this.parent.transition('pointing', { shape: info.shape })
 				}
 				break
@@ -100,8 +97,8 @@ class Pointing extends StateNode {
 	override onEnter = (info: { shape: TLTextShape | null }) => {
 		this.shape = info.shape
 	}
-	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
-		this.parent.transition('idle', info)
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+		this.parent.transition('idle')
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
@@ -136,8 +133,8 @@ class Dragging extends StateNode {
 		}
 	}
 	//[c]
-	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
-		this.parent.transition('idle', info)
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+		this.parent.transition('idle')
 	}
 	//[d]
 
@@ -196,12 +193,66 @@ In this example we make expand on the sticker tool example to show how to create
 with child states.
 
 [1]
-We extend the `StateNode` class to create a new tool called `StickerTool`. We set its id
-to "sticker". 
+This is our custom tool. It has three child states: `Idle`, `Pointing`, and `Dragging`.
+We need to define the `id` and `initial` properties, the id is a unique string that
+identifies the tool to the editor, and the initial property is the initial state of the
+tool. We also need to define a `children` method that returns an array of the tool's
+child states.
 
 [2]
-We pass our custom tool to the Tldraw component using the `tools` prop. We also set the
-initial state to our custom tool. We also hide the ui and add some helpful text to the 
-canvas using the `onMount` prop. This isn't necessary for the tool to work but it helps
-make the example more visually clear.
+This is our Idle state. It is the initial state of the tool. It's job is to figure out
+what the user is trying to do and transition to the appropriate state. When transitioning 
+between states we can use the second argument to pass data to the new state. It has three 
+methods:
+
+	[a] `onEnter` 
+	When entering any state, the `onEnter` method is called. In this case, we set the cursor to 
+	a crosshair.
+
+	[b] `onPointerDown`
+	This method is called when the user presses the mouse button. The target parameter is always
+	the canvas, so we can use an editor method to check if we're over a shape, and call the 
+	method again with the shape as the target. If we are over a shape, we transition to the
+	`pointing` state with the shape in the info object. If we're over a shape and holding the 
+	shift key, we update the shape's text. If we're over the canvas, we transition to the 
+	`pointing` state with a null shape in the info object.
+	
+	[c] `onDoubleClick`
+	This method is called when the user double clicks the mouse button. We're using some similar
+	logic here to check if we're over a shape, and if we are, we delete it. If we're over the canvas,
+	we create a new shape.
+
+[3]
+This is our `Pointing` state. It's a transitionary state, we use it to store the shape we're pointing
+at, and transition to the dragging state if the user starts dragging. It has three methods:
+
+	[a] `onEnter`
+	When entering this state, we store the shape we're pointing at by getting it from the info object.
+
+	[b] `onPointerUp`
+	This method is called when the user releases the mouse button. We transition to the `idle` state.
+
+	[c] `onPointerMove`
+	This method is called when the user moves the mouse. If the user starts dragging, we transition to
+	the `dragging` state and pass the shape we're pointing at.
+
+[4]
+This is our `Dragging` state. It's responsible for creating and updating the shape that the user is 
+dragging.
+
+	[a] `onEnter`
+	When entering this state, we create a new shape if we're not dragging an existing one. If we are, 
+	we store the shape we're dragging.
+
+	[b] `onPointerUp`
+	This method is called when the user releases the mouse button. We transition to the `idle` state.
+
+	[c] `onPointerMove`
+	This method is called when the user moves the mouse. We use the distance between the origin and 
+	current mouse position to cycle through an array of emojis and update the shape's text.
+
+[5]
+We pass our custom tool to the `Tldraw` component as an array. We also set the initial state to our
+custom tool. For the purposes of this demo, we're also hiding the UI and adding some helpful text to
+the canvas.
 */
