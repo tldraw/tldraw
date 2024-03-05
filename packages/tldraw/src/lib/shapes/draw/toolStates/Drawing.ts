@@ -58,6 +58,8 @@ export class Drawing extends StateNode {
 		this.info = info
 		this.canDraw = !this.editor.getIsMenuOpen()
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
+		this.shapePartial = null
+		this.isDirty = false
 		if (this.canDraw) {
 			this.startShape()
 		}
@@ -109,56 +111,9 @@ export class Drawing extends StateNode {
 	override onTick = () => {
 		if (!this.isDirty) return
 		this.isDirty = false
-
 		if (!this.shapePartial) return
 
-		const shape = this.editor.getShape<DrawableShape>(this.shapePartial.id)
-		if (!shape) return
-		const { inputs } = this.editor
-		const { z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
-		const { id, props } = this.shapePartial
-		const segments = props?.segments
-		if (!segments || !segments.length) return
-		const lastSegment = segments[segments.length - 1]
-		const newPoints = lastSegment.points
-		if (lastSegment.type === 'free' && newPoints.length > 500) {
-			this.editor.updateShapes([
-				{
-					id,
-					type: this.shapeType,
-					props: { segments: this.shapePartial.props?.segments, isComplete: true },
-				},
-			])
-
-			const { currentPagePoint } = inputs
-
-			const newShapeId = createShapeId()
-
-			this.editor.createShapes<DrawableShape>([
-				{
-					id: newShapeId,
-					type: this.shapeType,
-					x: toFixed(currentPagePoint.x),
-					y: toFixed(currentPagePoint.y),
-					props: {
-						isPen: this.isPen,
-						segments: [
-							{
-								type: 'free',
-								points: [{ x: 0, y: 0, z: this.isPen ? +(z! * 1.25).toFixed() : 0.5 }],
-							},
-						],
-					},
-				},
-			])
-
-			this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
-			this.mergeNextPoint = false
-			this.lastRecordedPoint = inputs.currentPagePoint.clone()
-			this.currentLineLength = 0
-		} else {
-			this.editor.updateShapes([this.shapePartial], { squashing: true })
-		}
+		this.editor.updateShapes([this.shapePartial], { squashing: true })
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
@@ -675,9 +630,44 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				console.log('free', shapePartial.id)
-				this.shapePartial = shapePartial
-				// this.editor.updateShapes([shapePartial], { squashing: true })
+				if (newPoints.length > 50) {
+					this.isDirty = false
+					if (shapePartial?.props) {
+						console.log('new shpae')
+						shapePartial.props.isComplete = true
+						this.editor.updateShapes([shapePartial])
+					}
+					this.shapePartial = null
+
+					const { currentPagePoint } = inputs
+
+					const newShapeId = createShapeId()
+
+					this.editor.createShapes<DrawableShape>([
+						{
+							id: newShapeId,
+							type: this.shapeType,
+							x: toFixed(currentPagePoint.x),
+							y: toFixed(currentPagePoint.y),
+							props: {
+								isPen: this.isPen,
+								segments: [
+									{
+										type: 'free',
+										points: [{ x: 0, y: 0, z: this.isPen ? +(z! * 1.25).toFixed() : 0.5 }],
+									},
+								],
+							},
+						},
+					])
+
+					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
+					this.mergeNextPoint = false
+					this.lastRecordedPoint = inputs.currentPagePoint.clone()
+					this.currentLineLength = 0
+				} else {
+					this.shapePartial = shapePartial
+				}
 			}
 		}
 	}
