@@ -1,5 +1,5 @@
 import { Editor, uniqueId } from '@tldraw/editor'
-import { createContext, useCallback, useContext, useState } from 'react'
+import { ReactNode, createContext, useCallback, useContext, useState } from 'react'
 import { TLUiIconType } from '../icon-types'
 
 /** @public */
@@ -34,7 +34,7 @@ export const ToastsContext = createContext({} as TLUiToastsContextType)
 /** @internal */
 export type ToastsProviderProps = {
 	overrides?: (editor: Editor) => TLUiToastsContextType
-	children: any
+	children: ReactNode
 }
 
 /** @internal */

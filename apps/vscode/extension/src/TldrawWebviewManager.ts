@@ -1,4 +1,4 @@
-import { uniqueId } from '@tldraw/tldraw'
+import { uniqueId } from 'tldraw'
 import * as vscode from 'vscode'
 import { TLDrawDocument } from './TldrawDocument'
 import { GlobalStateKeys, WebViewMessageHandler } from './WebViewMessageHandler'

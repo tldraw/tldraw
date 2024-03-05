@@ -1,5 +1,5 @@
-import { useDialogs, useEditor, useToasts } from '@tldraw/tldraw'
 import { useEffect } from 'react'
+import { useDialogs, useEditor, useToasts } from 'tldraw'
 import { MigrationAnnouncement } from './MigrationAnnouncement'
 import { importFromV1LocalRoom, isEditorEmpty } from './migration'
 

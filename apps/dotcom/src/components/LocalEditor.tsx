@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -17,8 +18,7 @@ import {
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	useActions,
-} from '@tldraw/tldraw'
-import { useCallback } from 'react'
+} from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'

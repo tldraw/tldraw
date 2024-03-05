@@ -1,5 +1,5 @@
 import { Editor, uniqueId, useEditor } from '@tldraw/editor'
-import { ComponentType, createContext, useCallback, useContext, useState } from 'react'
+import { ComponentType, ReactNode, createContext, useCallback, useContext, useState } from 'react'
 import { useUiEvents } from './events'
 
 /** @public */
@@ -29,7 +29,7 @@ export const DialogsContext = createContext({} as TLUiDialogsContextType)
 /** @internal */
 export type DialogsProviderProps = {
 	overrides?: (editor: Editor) => TLUiDialogsContextType
-	children: any
+	children: ReactNode
 }
 
 /** @internal */

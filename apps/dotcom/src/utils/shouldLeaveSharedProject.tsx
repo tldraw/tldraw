@@ -10,7 +10,7 @@ import {
 	TldrawUiDialogTitle,
 	useLocalStorageState,
 	useTranslation,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import { userPreferences } from './userPreferences'
 
 export async function shouldLeaveSharedProject(addDialog: TLUiDialogsContextType['addDialog']) {

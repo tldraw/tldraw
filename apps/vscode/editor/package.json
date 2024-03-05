@@ -33,7 +33,6 @@
 	},
 	"devDependencies": {
 		"@tldraw/assets": "workspace:*",
-		"@tldraw/tldraw": "workspace:*",
 		"@types/fs-extra": "^11.0.1",
 		"@types/node": "~20.11",
 		"@types/react": "^18.2.47",
@@ -47,6 +46,7 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
+		"tldraw": "workspace:*",
 		"tslib": "^2.6.2"
 	},
 	"gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"

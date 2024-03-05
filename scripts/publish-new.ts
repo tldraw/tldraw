@@ -1,10 +1,10 @@
 import { Auto } from '@auto-it/core'
 import fetch from 'cross-fetch'
+import glob from 'glob'
 import minimist from 'minimist'
 import { assert } from 'node:console'
 import { SemVer, parse } from 'semver'
 import { exec } from './lib/exec'
-import { REPO_ROOT } from './lib/file'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
@@ -33,12 +33,12 @@ function getReleaseType(): ReleaseType {
 	throw new Error('Invalid bump argument ' + JSON.stringify(arg))
 }
 
-function getNextVersion(releaseType: ReleaseType): string {
+async function getNextVersion(releaseType: ReleaseType): Promise<string> {
 	if (releaseType.bump === 'override') {
 		return releaseType.version.format()
 	}
 
-	const latestVersion = parse(getLatestVersion())!
+	const latestVersion = parse(await getLatestVersion())!
 
 	nicelog('latestVersion', latestVersion)
 
@@ -68,11 +68,13 @@ async function main() {
 	}
 
 	const releaseType = getReleaseType()
-	const nextVersion = getNextVersion(releaseType)
+	const nextVersion = await getNextVersion(releaseType)
+
+	const isPrerelease = parse(nextVersion)!.prerelease.length > 0
 
 	console.log('Releasing version', nextVersion)
 
-	setAllVersions(nextVersion)
+	await setAllVersions(nextVersion)
 
 	// stage the changes
 	const packageJsonFilesToAdd = []
@@ -81,11 +83,17 @@ async function main() {
 			packageJsonFilesToAdd.push(`${workspace.relativePath}/package.json`)
 		}
 	}
+	const versionFilesToAdd = glob.sync('**/*/version.ts', {
+		ignore: ['node_modules/**'],
+		follow: false,
+	})
+	console.log('versionFilesToAdd', versionFilesToAdd)
 	await exec('git', [
 		'add',
+		'--update',
 		'lerna.json',
 		...packageJsonFilesToAdd,
-		REPO_ROOT + '/packages/*/src/**/version.ts',
+		...versionFilesToAdd,
 	])
 
 	const auto = new Auto({
@@ -105,9 +113,17 @@ async function main() {
 		title: `v${nextVersion}`,
 	})
 
+	const gitTag = `v${nextVersion}`
+
 	// create and push a new tag
-	await exec('git', ['tag', '-f', `v${nextVersion}`])
+	await exec('git', ['tag', '-f', gitTag])
 	await exec('git', ['push', '--follow-tags'])
+
+	// create new 'release' branch called e.g. v2.0.x or v4.3.x, for making patch releases
+	if (!isPrerelease) {
+		const { major, minor } = parse(nextVersion)!
+		await exec('git', ['push', 'origin', `${gitTag}:refs/heads/v${major}.${minor}.x`])
+	}
 
 	// create a release on github
 	await auto.runRelease({ useVersion: nextVersion })

@@ -5,6 +5,7 @@ import {
 	ContextMenuSubTrigger,
 } from '@radix-ui/react-context-menu'
 import { useContainer } from '@tldraw/editor'
+import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -23,7 +24,7 @@ export type TLUiMenuSubmenuProps<Translation extends string = string> = {
 	id: string
 	label?: Translation | { [key: string]: Translation }
 	disabled?: boolean
-	children: any
+	children: ReactNode
 	size?: 'tiny' | 'small' | 'medium' | 'wide'
 }
 
@@ -102,7 +103,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 }
 
 /** @private */
-export type TLUiContextMenuSubProps = { id: string; children: any }
+export type TLUiContextMenuSubProps = { id: string; children: ReactNode }
 
 /** @private */
 export function ContextMenuSubWithMenu({ id, children }: TLUiContextMenuSubProps) {

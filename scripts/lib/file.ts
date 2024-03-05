@@ -62,7 +62,7 @@ export async function writeStringFile(filePath: string, contents: string) {
 }
 
 export async function writeFile(filePath: string, contents: Buffer) {
-	if (process.env.CI) {
+	if (process.env.CI && !process.env.ALLOW_REFRESH_ASSETS_CHANGES) {
 		let existingContents: Buffer | null = null
 		try {
 			existingContents = await readFile(filePath)

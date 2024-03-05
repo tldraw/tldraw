@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
 	DefaultContextMenuContent,
@@ -22,8 +23,7 @@ import {
 	lns,
 	useActions,
 	useValue,
-} from '@tldraw/tldraw'
-import { useCallback, useEffect } from 'react'
+} from 'tldraw'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
@@ -182,7 +182,7 @@ export function UrlStateSync() {
 		window.history.replaceState(
 			{},
 			document.title,
-			window.location.pathname + `?viewport=${params.viewport}&page=${params.page}`
+			window.location.pathname + `?v=${params.v}&p=${params.p}`
 		)
 	}, [])
 

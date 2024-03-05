@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test'
-import { Editor, TLGeoShape } from '@tldraw/tldraw'
+import { Editor, TLGeoShape } from 'tldraw'
 import { getAllShapeTypes, setup } from '../shared-e2e'
 import test from './fixtures/fixtures'
 
