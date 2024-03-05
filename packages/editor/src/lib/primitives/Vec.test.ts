@@ -377,12 +377,12 @@ describe('Vec.snapToGrid', () => {
 })
 
 describe('Vec.Average', () => {
-	it('correctly calcuates the average of an array of vectors', () => {
+	it('correctly calculates the average of an array of vectors', () => {
 		const vecs = [new Vec(2, 4), new Vec(8, 16)]
 		expect(Vec.Average(vecs)).toMatchObject(new Vec(5, 10))
 	})
 
-	it('returns a 0,0 vector when passing any empty array', () => {
+	it('returns a (0,0) vector when passing any empty array', () => {
 		expect(Vec.Average([])).toMatchObject(new Vec(0, 0))
 	})
 })
