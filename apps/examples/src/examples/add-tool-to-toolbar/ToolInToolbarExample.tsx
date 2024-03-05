@@ -6,7 +6,6 @@ import {
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
-	toolbarItem,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -28,11 +27,6 @@ const uiOverrides: TLUiOverrides = {
 			},
 		}
 		return tools
-	},
-	toolbar(_app, toolbar, { tools }) {
-		// Add the tool item from the context to the toolbar.
-		toolbar.splice(4, 0, toolbarItem(tools.sticker))
-		return toolbar
 	},
 }
 
