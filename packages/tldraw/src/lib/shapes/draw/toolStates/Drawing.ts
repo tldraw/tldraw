@@ -631,13 +631,16 @@ export class Drawing extends StateNode {
 				}
 
 				if (newPoints.length > 50) {
+					// It's easier to just apply this change directly, so we will mark that the shape is no longer dirty.
 					this.isDirty = false
+					// Also clear the changes as they were flushed.
+					// The next pointerMove will establish a new partial from the new shape created below.
+					this.shapePartial = null
+
 					if (shapePartial?.props) {
-						console.log('new shpae')
 						shapePartial.props.isComplete = true
 						this.editor.updateShapes([shapePartial])
 					}
-					this.shapePartial = null
 
 					const { currentPagePoint } = inputs
 
