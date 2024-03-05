@@ -493,10 +493,15 @@ describe('when the client is too new', () => {
 		})
 
 		expect(v2SendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 11,
+				},
+			],
 		} satisfies TLSocketServerSentEvent<RV2>)
 	})
 
@@ -531,10 +536,15 @@ describe('when the client is too new', () => {
 		})
 
 		expect(data.v1SendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 11,
+				},
+			],
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(data.v2SendMessage).toHaveBeenCalledWith({
@@ -690,10 +700,15 @@ describe('when the client is too old', () => {
 		})
 
 		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 11,
+				},
+			],
 		} satisfies TLSocketServerSentEvent<RV2>)
 	})
 
@@ -707,23 +722,33 @@ describe('when the client is too old', () => {
 		})
 
 		expect(data.v1SendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 11,
+				},
+			],
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'patch',
-			diff: {
-				[data.steve.id]: [
-					RecordOpType.Patch,
-					{
-						name: [ValueOpType.Put, 'Jeff'],
+			type: 'data',
+			data: [
+				{
+					type: 'patch',
+					diff: {
+						[data.steve.id]: [
+							RecordOpType.Patch,
+							{
+								name: [ValueOpType.Put, 'Jeff'],
+							},
+						],
 					},
-				],
-			},
-			serverClock: 11,
+					serverClock: 11,
+				},
+			],
 		} satisfies TLSocketServerSentEvent<RV2>)
 	})
 })
@@ -819,23 +844,33 @@ describe('when the client is the same version', () => {
 		})
 
 		expect(data.v2ClientASendMessage).toHaveBeenCalledWith({
-			type: 'push_result',
-			action: 'commit',
-			clientClock: 1,
-			serverClock: 11,
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 11,
+				},
+			],
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(data.v2ClientBSendMessage).toHaveBeenCalledWith({
-			type: 'patch',
-			diff: {
-				[data.steve.id]: [
-					RecordOpType.Patch,
-					{
-						name: [ValueOpType.Put, 'Jeff'],
+			type: 'data',
+			data: [
+				{
+					type: 'patch',
+					diff: {
+						[data.steve.id]: [
+							RecordOpType.Patch,
+							{
+								name: [ValueOpType.Put, 'Jeff'],
+							},
+						],
 					},
-				],
-			},
-			serverClock: 11,
+					serverClock: 11,
+				},
+			],
 		} satisfies TLSocketServerSentEvent<RV2>)
 	})
 })

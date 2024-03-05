@@ -43,6 +43,7 @@ import {
 	TLIncompatibilityReason,
 	TLSYNC_PROTOCOL_VERSION,
 	TLSocketClientSentEvent,
+	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 } from './protocol'
 
@@ -52,7 +53,7 @@ export type TLRoomSocket<R extends UnknownRecord> = {
 	// Accepts a union to enable serialisation downstream to cache one-off messages. The cache is used
 	// to optimise broadcasting lone (non-debounced) messages, and it uses reference equality, so
 	// wrapping all messages in per-session buffer arrays would break the equality.
-	sendMessage: (msg: TLSocketServerSentEvent<R> | TLSocketServerSentEvent<R>[]) => void
+	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
 	close: () => void
 }
 
@@ -61,7 +62,7 @@ export const MAX_TOMBSTONES = 3000
 // the number of tombstones to delete when the max is reached
 export const TOMBSTONE_PRUNE_BUFFER_SIZE = 300
 // how often do we send non-ping updates to clients
-export const MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
+export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
@@ -385,12 +386,15 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Send a message to a particular client.
+	 * Send a message to a particular client. Debounces data events
 	 *
 	 * @param sessionKey - The session to send the message to.
 	 * @param message - The message to send.
 	 */
-	private sendMessage(sessionKey: string, message: TLSocketServerSentEvent<R>) {
+	private sendMessage(
+		sessionKey: string,
+		message: TLSocketServerSentEvent<R> | TLSocketServerSentDataEvent<R>
+	) {
 		const session = this.sessions.get(sessionKey)
 		if (!session) {
 			console.warn('Tried to send message to unknown session', message.type)
@@ -401,20 +405,20 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 		if (session.socket.isOpen) {
-			if (message.type === 'connect' || message.type === 'pong') {
-				// see RoomSession for why we only debounce patch and push_result
+			if (message.type !== 'patch' && message.type !== 'push_result') {
+				// see RoomSession for why we only debounce connect and pong
 				session.socket.sendMessage(message)
 			} else {
 				if (session.debounceTimer === null) {
 					// this is the first message since the last flush, don't delay it
-					session.socket.sendMessage(message)
+					session.socket.sendMessage({ type: 'data', data: [message] })
 
 					session.debounceTimer = setTimeout(
-						() => this._flushMessages(sessionKey),
-						MESSAGE_DEBOUNCE_INTERVAL
+						() => this._flushDataMessages(sessionKey),
+						DATA_MESSAGE_DEBOUNCE_INTERVAL
 					)
 				} else {
-					session.outstandingMessages.push(message)
+					session.outstandingDataMessages.push(message)
 				}
 			}
 		} else {
@@ -424,7 +428,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 	// needs to accept sessionKey and not a session because the session might be dead by the time
 	// the timer fires
-	_flushMessages(sessionKey: string) {
+	_flushDataMessages(sessionKey: string) {
 		const session = this.sessions.get(sessionKey)
 
 		if (!session || session.state !== RoomSessionState.CONNECTED) {
@@ -433,9 +437,9 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 		session.debounceTimer = null
 
-		if (session.outstandingMessages.length > 0) {
-			session.socket.sendMessage(session.outstandingMessages)
-			session.outstandingMessages = []
+		if (session.outstandingDataMessages.length > 0) {
+			session.socket.sendMessage({ type: 'data', data: session.outstandingDataMessages })
+			session.outstandingDataMessages = []
 		}
 	}
 
@@ -603,7 +607,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 	/**
 	 * When the server receives a message from the clients Currently, supports connect and patches.
-	 * Invalid messages types log a warning. Currently, doesn't validate data.
+	 * Invalid messages types throws an error. Currently, doesn't validate data.
 	 *
 	 * @param sessionKey - The session that sent the message
 	 * @param message - The message that was sent
@@ -686,7 +690,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				serializedSchema: sessionSchema,
 				lastInteractionTime: Date.now(),
 				debounceTimer: null,
-				outstandingMessages: [],
+				outstandingDataMessages: [],
 			})
 			this.sendMessage(session.sessionKey, msg)
 		}

@@ -17,6 +17,7 @@ import {
 	TLPushRequest,
 	TLSYNC_PROTOCOL_VERSION,
 	TLSocketClientSentEvent,
+	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 } from './protocol'
 import './requestAnimationFrame.polyfill'
@@ -350,7 +351,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.lastServerClock = event.serverClock
 	}
 
-	incomingDiffBuffer: Extract<TLSocketServerSentEvent<R>, { type: 'patch' | 'push_result' }>[] = []
+	incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
 
 	/** Handle events received from the server */
 	private handleServerEvent = (event: TLSocketServerSentEvent<R>) => {
@@ -366,11 +367,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				console.error('Restarting socket')
 				this.socket.restart()
 				break
-			case 'patch':
-			case 'push_result':
+			case 'data':
 				// wait for a connect to succeed before processing more events
 				if (!this.isConnectedToRoom) break
-				this.incomingDiffBuffer.push(event)
+				this.incomingDiffBuffer.push(...event.data)
 				this.scheduleRebase()
 				break
 			case 'incompatibility_error':
