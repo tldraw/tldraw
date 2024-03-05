@@ -14,7 +14,6 @@ import {
 	createShapeId,
 	last,
 	snapAngle,
-	structuredClone,
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
@@ -51,6 +50,9 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
+	isDirty = false
+	shapePartial: TLShapePartial<DrawableShape> | null = null
+
 	override onEnter = (info: TLPointerEventInfo) => {
 		this.markId = null
 		this.info = info
@@ -61,16 +63,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	isDirty = false
-
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.isDirty = true
-	}
-
-	override onTick = () => {
-		if (!this.isDirty) return
-
-		this.isDirty = false
 		const {
 			editor: { inputs },
 		} = this
@@ -93,8 +86,9 @@ export class Drawing extends StateNode {
 		}
 
 		if (this.canDraw) {
-			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
+			this.isDirty = true
 			if (inputs.isPen) {
+				// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 				if (
 					Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
 					1 / this.editor.getZoomLevel()
@@ -109,6 +103,61 @@ export class Drawing extends StateNode {
 			}
 
 			this.updateShapes()
+		}
+	}
+
+	override onTick = () => {
+		if (!this.isDirty) return
+		this.isDirty = false
+
+		if (!this.shapePartial) return
+
+		const shape = this.editor.getShape<DrawableShape>(this.shapePartial.id)
+		if (!shape) return
+		const { inputs } = this.editor
+		const { z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
+		const { id, props } = this.shapePartial
+		const segments = props?.segments
+		if (!segments || !segments.length) return
+		const lastSegment = segments[segments.length - 1]
+		const newPoints = lastSegment.points
+		if (lastSegment.type === 'free' && newPoints.length > 500) {
+			this.editor.updateShapes([
+				{
+					id,
+					type: this.shapeType,
+					props: { segments: this.shapePartial.props?.segments, isComplete: true },
+				},
+			])
+
+			const { currentPagePoint } = inputs
+
+			const newShapeId = createShapeId()
+
+			this.editor.createShapes<DrawableShape>([
+				{
+					id: newShapeId,
+					type: this.shapeType,
+					x: toFixed(currentPagePoint.x),
+					y: toFixed(currentPagePoint.y),
+					props: {
+						isPen: this.isPen,
+						segments: [
+							{
+								type: 'free',
+								points: [{ x: 0, y: 0, z: this.isPen ? +(z! * 1.25).toFixed() : 0.5 }],
+							},
+						],
+					},
+				},
+			])
+
+			this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
+			this.mergeNextPoint = false
+			this.lastRecordedPoint = inputs.currentPagePoint.clone()
+			this.currentLineLength = 0
+		} else {
+			this.editor.updateShapes([this.shapePartial], { squashing: true })
 		}
 	}
 
@@ -305,7 +354,7 @@ export class Drawing extends StateNode {
 
 		if (!shape) return
 
-		const { segments } = shape.props
+		const segments = this.shapePartial?.props?.segments || shape.props.segments
 
 		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
 
@@ -379,9 +428,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial], {
-						squashing: true,
-					})
+					this.shapePartial = shapePartial
 				}
 				break
 			}
@@ -439,7 +486,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShapes([shapePartial], { squashing: true })
+					this.shapePartial = shapePartial
 				}
 
 				break
@@ -581,7 +628,9 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes([shapePartial], { squashing: true })
+				console.log('straight', shapePartial)
+				this.shapePartial = shapePartial
+				// this.editor.updateShapes([shapePartial], { squashing: true })
 
 				break
 			}
@@ -626,41 +675,9 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes([shapePartial], { squashing: true })
-
-				// Set a maximum length for the lines array; after 200 points, complete the line.
-				if (newPoints.length > 500) {
-					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
-
-					const { currentPagePoint } = this.editor.inputs
-
-					const newShapeId = createShapeId()
-
-					this.editor.createShapes<DrawableShape>([
-						{
-							id: newShapeId,
-							type: this.shapeType,
-							x: toFixed(currentPagePoint.x),
-							y: toFixed(currentPagePoint.y),
-							props: {
-								isPen: this.isPen,
-								segments: [
-									{
-										type: 'free',
-										points: [{ x: 0, y: 0, z: this.isPen ? +(z! * 1.25).toFixed() : 0.5 }],
-									},
-								],
-							},
-						},
-					])
-
-					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
-					this.mergeNextPoint = false
-					this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
-					this.currentLineLength = 0
-				}
-
-				break
+				console.log('free', shapePartial.id)
+				this.shapePartial = shapePartial
+				// this.editor.updateShapes([shapePartial], { squashing: true })
 			}
 		}
 	}
