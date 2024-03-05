@@ -275,7 +275,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 // @public (undocumented)
 export function BreakPointProvider({ forceMobile, children, }: {
     forceMobile?: boolean;
-    children: any;
+    children: ReactNode;
 }): JSX_2.Element;
 
 // @internal (undocumented)
@@ -524,7 +524,7 @@ export class EraserTool extends StateNode {
 // @public (undocumented)
 export type EventsProviderProps = {
     onEvent?: TLUiEventHandler;
-    children: any;
+    children: React_3.ReactNode;
 };
 
 // @public (undocumented)
@@ -896,8 +896,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
         bottomRight: VecModel;
         } | null>;
     };
-    // (undocumented)
-    shouldGetDataURI(src: string): "" | boolean;
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<SVGGElement>;
     // (undocumented)
@@ -1413,7 +1411,136 @@ export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgr
 export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
 
 // @public (undocumented)
-export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;
+export const TldrawUi: React_2.NamedExoticComponent<{
+    children?: ReactNode;
+    hideUi?: boolean | undefined;
+    components?: Partial<{
+        ContextMenu: null | React_2.ComponentType<TLUiContextMenuProps>;
+        ActionsMenu: null | React_2.ComponentType<TLUiActionsMenuProps>;
+        HelpMenu: null | React_2.ComponentType<TLUiHelpMenuProps>;
+        ZoomMenu: null | React_2.ComponentType<TLUiZoomMenuProps>;
+        MainMenu: null | React_2.ComponentType<TLUiMainMenuProps>;
+        Minimap: null | React_2.ComponentType;
+        StylePanel: null | React_2.ComponentType<TLUiStylePanelProps>;
+        PageMenu: null | React_2.ComponentType;
+        NavigationPanel: null | React_2.ComponentType;
+        Toolbar: null | React_2.ComponentType;
+        KeyboardShortcutsDialog: null | React_2.ComponentType<TLUiKeyboardShortcutsDialogProps>;
+        QuickActions: null | React_2.ComponentType<TLUiQuickActionsProps>;
+        HelperButtons: null | React_2.ComponentType<TLUiHelperButtonsProps>;
+        DebugMenu: null | React_2.ComponentType;
+        MenuPanel: null | React_2.ComponentType;
+        TopPanel: null | React_2.ComponentType;
+        SharePanel: null | React_2.ComponentType;
+    }> | undefined;
+    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
+    assetUrls?: (RecursivePartial<TLUiAssetUrls> & RecursivePartial<TLUiAssetUrls>) | undefined;
+    overrides?: Partial<{
+        actions: TLUiOverride<TLUiActionsContextType, {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        toolbar: TLUiOverride<TLUiToolbarSchemaContextType, {
+        tools: TLUiToolsContextType;
+        } & {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        tools: TLUiOverride<TLUiToolsContextType, {
+        insertMedia: () => void;
+        } & {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        translations: Record<string, Record<string, string>> | undefined;
+    }> | Partial<{
+        actions: TLUiOverride<TLUiActionsContextType, {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        toolbar: TLUiOverride<TLUiToolbarSchemaContextType, {
+        tools: TLUiToolsContextType;
+        } & {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        tools: TLUiOverride<TLUiToolsContextType, {
+        insertMedia: () => void;
+        } & {
+        addToast: (toast: Omit<TLUiToast, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
+        updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
+        }>;
+        translations: Record<string, Record<string, string>> | undefined;
+    }>[] | undefined;
+    onUiEvent?: TLUiEventHandler | undefined;
+    forceMobile?: boolean | undefined;
+}>;
 
 // @public
 export interface TldrawUiBaseProps {
@@ -1448,7 +1575,7 @@ export function TldrawUiContextProvider({ overrides, components, assetUrls, onUi
 // @public
 export interface TldrawUiContextProviderProps {
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
-    children?: any;
+    children?: ReactNode;
     components?: TLUiComponents;
     forceMobile?: boolean;
     onUiEvent?: TLUiEventHandler;
@@ -1513,13 +1640,13 @@ export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string,
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): any;
+export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
 export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): any;
+export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
 export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
@@ -1531,7 +1658,7 @@ export function TldrawUiPopoverContent({ side, children, align, sideOffset, alig
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public
-export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
+export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderProps>;
 
 // @internal (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
@@ -1566,7 +1693,7 @@ export type TLUiActionsContextType = Record<string, TLUiActionItem>;
 
 // @public (undocumented)
 export type TLUiActionsMenuProps = {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)
@@ -1586,7 +1713,7 @@ export type TLUiButtonIconProps = {
 
 // @public (undocumented)
 export type TLUiButtonLabelProps = {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)
@@ -1621,18 +1748,18 @@ export type TLUiComponents = Partial<{
 // @public (undocumented)
 export type TLUiComponentsProviderProps = {
     overrides?: TLUiComponents;
-    children: any;
+    children: ReactNode;
 };
 
 // @public (undocumented)
 export interface TLUiContextMenuProps {
     // (undocumented)
-    children?: any;
+    children?: ReactNode;
 }
 
 // @public (undocumented)
 export type TLUiDebugMenuProps = {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)
@@ -1648,20 +1775,20 @@ export interface TLUiDialog {
 // @public (undocumented)
 export type TLUiDialogBodyProps = {
     className?: string;
-    children: any;
+    children: ReactNode;
     style?: React.CSSProperties;
 };
 
 // @public (undocumented)
 export type TLUiDialogFooterProps = {
     className?: string;
-    children: any;
+    children: ReactNode;
 };
 
 // @public (undocumented)
 export type TLUiDialogHeaderProps = {
     className?: string;
-    children: any;
+    children: ReactNode;
 };
 
 // @public (undocumented)
@@ -1684,7 +1811,7 @@ export type TLUiDialogsContextType = {
 // @public (undocumented)
 export type TLUiDialogTitleProps = {
     className?: string;
-    children: any;
+    children: ReactNode;
 };
 
 // @public (undocumented)
@@ -1692,7 +1819,7 @@ export interface TLUiDropdownMenuCheckboxItemProps {
     // (undocumented)
     checked?: boolean;
     // (undocumented)
-    children: any;
+    children: ReactNode;
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
@@ -1704,7 +1831,7 @@ export interface TLUiDropdownMenuCheckboxItemProps {
 // @public (undocumented)
 export type TLUiDropdownMenuContentProps = {
     id?: string;
-    children: any;
+    children: ReactNode;
     alignOffset?: number;
     sideOffset?: number;
     align?: 'center' | 'end' | 'start';
@@ -1713,13 +1840,13 @@ export type TLUiDropdownMenuContentProps = {
 
 // @public (undocumented)
 export type TLUiDropdownMenuGroupProps = {
-    children: any;
+    children: ReactNode;
 };
 
 // @public (undocumented)
 export interface TLUiDropdownMenuItemProps {
     // (undocumented)
-    children: any;
+    children: ReactNode;
     // (undocumented)
     noClose?: boolean;
 }
@@ -1727,7 +1854,7 @@ export interface TLUiDropdownMenuItemProps {
 // @public (undocumented)
 export type TLUiDropdownMenuRootProps = {
     id: string;
-    children: any;
+    children: ReactNode;
     modal?: boolean;
     debugOpen?: boolean;
 };
@@ -1735,7 +1862,7 @@ export type TLUiDropdownMenuRootProps = {
 // @public (undocumented)
 export type TLUiDropdownMenuSubProps = {
     id: string;
-    children: any;
+    children: ReactNode;
 };
 
 // @public (undocumented)
@@ -1749,7 +1876,7 @@ export type TLUiDropdownMenuSubTriggerProps = {
 // @public (undocumented)
 export interface TLUiDropdownMenuTriggerProps {
     // (undocumented)
-    children?: any;
+    children?: ReactNode;
 }
 
 // @public (undocumented)
@@ -1930,12 +2057,12 @@ export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 
 
 // @public (undocumented)
 export type TLUiHelperButtonsProps = {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)
 export type TLUiHelpMenuProps = {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)
@@ -1964,7 +2091,7 @@ export interface TLUiInputProps {
     // (undocumented)
     autoselect?: boolean;
     // (undocumented)
-    children?: any;
+    children?: React_3.ReactNode;
     // (undocumented)
     className?: string;
     // (undocumented)
@@ -2002,12 +2129,12 @@ export interface TLUiKbdProps {
 
 // @public (undocumented)
 export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)
 export type TLUiMainMenuProps = {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)
@@ -2038,7 +2165,7 @@ export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)
@@ -2064,7 +2191,7 @@ export type TLUiMenuSubmenuProps<Translation extends string = string> = {
         [key: string]: Translation;
     } | Translation;
     disabled?: boolean;
-    children: any;
+    children: ReactNode;
     size?: 'medium' | 'small' | 'tiny' | 'wide';
 };
 
@@ -2101,7 +2228,7 @@ export interface TLUiPopoverTriggerProps {
 
 // @public (undocumented)
 export type TLUiQuickActionsProps = {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @internal (undocumented)
@@ -2128,7 +2255,7 @@ export type TLUiStylePanelContentProps = {
 // @public (undocumented)
 export interface TLUiStylePanelProps {
     // (undocumented)
-    children?: any;
+    children?: ReactNode;
     // (undocumented)
     isMobile?: boolean;
 }
@@ -2212,7 +2339,7 @@ export type TLUiToolsProviderProps = {
     overrides?: (editor: Editor, tools: TLUiToolsContextType, helpers: {
         insertMedia: () => void;
     }) => TLUiToolsContextType;
-    children: any;
+    children: React_3.ReactNode;
 };
 
 // @public (undocumented)
@@ -2230,7 +2357,7 @@ export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-ho
 
 // @public (undocumented)
 export type TLUiZoomMenuProps = {
-    children?: any;
+    children?: ReactNode;
 };
 
 // @public (undocumented)

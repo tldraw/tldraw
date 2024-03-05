@@ -25,6 +25,7 @@
 		"@sentry/react": "^7.77.0",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/tlsync": "workspace:*",
+		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"browser-fs-access": "^0.33.0",
 		"emoji-mart": "patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch",
@@ -54,6 +55,7 @@
 		"ws": "^8.16.0"
 	},
 	"jest": {
+		"resolver": "<rootDir>/jestResolver.js",
 		"preset": "config/jest/node",
 		"roots": [
 			"<rootDir>"

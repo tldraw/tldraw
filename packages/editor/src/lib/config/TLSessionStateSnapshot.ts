@@ -17,7 +17,12 @@ import {
 	pageIdValidator,
 	shapeIdValidator,
 } from '@tldraw/tlschema'
-import { objectMapFromEntries } from '@tldraw/utils'
+import {
+	deleteFromSessionStorage,
+	getFromSessionStorage,
+	objectMapFromEntries,
+	setInSessionStorage,
+} from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { uniqueId } from '../utils/uniqueId'
 
@@ -26,8 +31,6 @@ const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
 const window = globalThis.window as
 	| {
 			navigator: Window['navigator']
-			localStorage: Window['localStorage']
-			sessionStorage: Window['sessionStorage']
 			addEventListener: Window['addEventListener']
 			TLDRAW_TAB_ID_v2?: string
 	  }
@@ -50,8 +53,9 @@ function iOS() {
  * A string that is unique per browser tab
  * @public
  */
-export const TAB_ID: string =
-	window?.[tabIdKey] ?? window?.sessionStorage[tabIdKey] ?? `TLDRAW_INSTANCE_STATE_V1_` + uniqueId()
+export const TAB_ID: string = window
+	? window[tabIdKey] ?? getFromSessionStorage(tabIdKey) ?? `TLDRAW_INSTANCE_STATE_V1_` + uniqueId()
+	: '<error>'
 if (window) {
 	window[tabIdKey] = TAB_ID
 	if (iOS()) {
@@ -61,14 +65,14 @@ if (window) {
 		// in which case they'll have two tabs with the same UI state.
 		// It's not a big deal, but it's not ideal.
 		// And anyway I can't see a way to duplicate a tab in iOS Safari.
-		window.sessionStorage[tabIdKey] = TAB_ID
+		setInSessionStorage(tabIdKey, TAB_ID)
 	} else {
-		delete window.sessionStorage[tabIdKey]
+		deleteFromSessionStorage(tabIdKey)
 	}
 }
 
 window?.addEventListener('beforeunload', () => {
-	window.sessionStorage[tabIdKey] = TAB_ID
+	setInSessionStorage(tabIdKey, TAB_ID)
 })
 
 const Versions = {

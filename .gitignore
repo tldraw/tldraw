@@ -51,6 +51,7 @@ api-json
 api-md
 
 packages/tldraw/tldraw.css
+packages/namespaced-tldraw/tldraw.css
 
 packages/assets/embed-icons
 packages/assets/fonts
