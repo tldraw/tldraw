@@ -375,3 +375,14 @@ describe('Vec.snapToGrid', () => {
 		expect(Vec.SnapToGrid(new Vec(12, 49), 10)).toMatchObject(new Vec(10, 50))
 	})
 })
+
+describe('Vec.Average', () => {
+	it('correctly calculates the average of an array of vectors', () => {
+		const vecs = [new Vec(2, 4), new Vec(8, 16)]
+		expect(Vec.Average(vecs)).toMatchObject(new Vec(5, 10))
+	})
+
+	it('returns a (0,0) vector when passing any empty array', () => {
+		expect(Vec.Average([])).toMatchObject(new Vec(0, 0))
+	})
+})

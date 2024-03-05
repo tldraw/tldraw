@@ -149,39 +149,42 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			<>
 				<HTMLContainer
 					id={shape.id}
-					className="tl-video-container tl-counter-scaled"
 					style={{
 						color: 'var(--color-text-3)',
 						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
 						border: asset ? 'none' : '1px solid var(--color-low-border)',
 					}}
 				>
-					{asset?.props.src ? (
-						<video
-							ref={rVideo}
-							style={isEditing ? { pointerEvents: 'all' } : undefined}
-							className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
-							width="100%"
-							height="100%"
-							draggable={false}
-							playsInline
-							autoPlay
-							muted
-							loop
-							disableRemotePlayback
-							disablePictureInPicture
-							controls={isEditing && showControls}
-							onPlay={handlePlay}
-							onPause={handlePause}
-							onTimeUpdate={handleSetCurrentTime}
-							onLoadedData={handleLoadedData}
-							hidden={!isLoaded}
-						>
-							<source src={asset.props.src} />
-						</video>
-					) : (
-						<BrokenAssetIcon />
-					)}
+					<div className="tl-counter-scaled">
+						<div className="tl-video-container">
+							{asset?.props.src ? (
+								<video
+									ref={rVideo}
+									style={isEditing ? { pointerEvents: 'all' } : undefined}
+									className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
+									width="100%"
+									height="100%"
+									draggable={false}
+									playsInline
+									autoPlay
+									muted
+									loop
+									disableRemotePlayback
+									disablePictureInPicture
+									controls={isEditing && showControls}
+									onPlay={handlePlay}
+									onPause={handlePause}
+									onTimeUpdate={handleSetCurrentTime}
+									onLoadedData={handleLoadedData}
+									hidden={!isLoaded}
+								>
+									<source src={asset.props.src} />
+								</video>
+							) : (
+								<BrokenAssetIcon />
+							)}
+						</div>
+					</div>
 				</HTMLContainer>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
