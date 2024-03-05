@@ -27,13 +27,15 @@ async function main() {
 		throw new Error('Branch name does not match expected format: v{major}.{minor}.x')
 	}
 
+	// we could probably do this a lot earlier in the yml file but 🤷‍♂️
 	const numberOfCommitsSinceBranch = Number(
 		(await exec('git', ['rev-list', '--count', `HEAD`, '^main'])).toString().trim()
 	)
 
 	if (numberOfCommitsSinceBranch === 0) {
-		// skip release if there are no commits since the last release
-		nicelog('No commits since last release, skipping release')
+		// Skip release if there are no commits since this branch was created during the initial release
+		// for this <major>.<minor> version.
+		nicelog('Initial push, skipping release')
 		return
 	}
 
