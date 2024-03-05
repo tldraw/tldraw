@@ -19,12 +19,14 @@ class StickerTool extends StateNode {
 	static override children = () => [Idle, Pointing, Dragging]
 }
 
+// [2]
 class Idle extends StateNode {
 	static override id = 'idle'
+	//[a]
 	override onEnter = () => {
 		this.editor.setCursor({ type: 'cross' })
 	}
-	// [b]
+	//[b]
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		const { editor } = this
 		switch (info.target) {
@@ -58,10 +60,10 @@ class Idle extends StateNode {
 			}
 		}
 	}
+	//[c]
 	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
 		const { editor } = this
 		if (info.phase !== 'up') return
-
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint)
@@ -90,6 +92,7 @@ class Idle extends StateNode {
 		}
 	}
 }
+// [3]
 class Pointing extends StateNode {
 	static override id = 'pointing'
 	private shape: TLTextShape | null = null
@@ -108,18 +111,21 @@ class Pointing extends StateNode {
 	}
 }
 
+// [4]
 class Dragging extends StateNode {
 	static override id = 'dragging'
+	// [a]
 	private shape: TLShapePartial | null = null
 	private emojiArray = ['❤️', '🔥', '👍', '👎', '😭', '🤣']
 
+	// [b]
 	override onEnter = (info: { shape: TLShapePartial }) => {
 		const { currentPagePoint } = this.editor.inputs
 		const newShape = {
 			id: createShapeId(),
 			type: 'text',
-			x: currentPagePoint.x,
-			y: currentPagePoint.y,
+			x: currentPagePoint.x + OFFSET,
+			y: currentPagePoint.y + OFFSET,
 			props: { text: '❤️' },
 		}
 		if (info.shape) {
@@ -138,21 +144,20 @@ class Dragging extends StateNode {
 	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
 		const { shape } = this
 		const { originPagePoint, currentPagePoint } = this.editor.inputs
-		// distance from the origin point
 		const distance = originPagePoint.dist(currentPagePoint)
 		if (shape) {
 			this.editor.updateShape({
 				id: shape.id,
 				type: 'text',
 				props: {
-					text: this.emojiArray[Math.floor(distance / 10) % this.emojiArray.length],
+					text: this.emojiArray[Math.floor(distance / 20) % this.emojiArray.length],
 				},
 			})
 		}
 	}
 }
 
-// [2]
+// [5]
 const customTools = [StickerTool]
 export default function ToolWithChildStatesExample() {
 	return (
@@ -168,10 +173,11 @@ export default function ToolWithChildStatesExample() {
 				onMount={(editor) => {
 					editor.createShape({
 						type: 'text',
-						x: 100,
-						y: 100,
+						x: 50,
+						y: 50,
 						props: {
-							text: 'Double click the canvas to add a sticker\nDouble click a sticker to delete it\nClick and drag on a sticker to change it\nClick and drag on the canvas to create a sticker\nShift click a sticker for a surprise!',
+							text: '-Double click the canvas to add a sticker\n-Double click a sticker to delete it\n-Click and drag on a sticker to change it\n-Click and drag on the canvas to create a sticker\n-Shift click a sticker for a surprise!',
+							size: 's',
 							align: 'start',
 						},
 					})
@@ -186,21 +192,12 @@ Introduction:
 
 Tools are nodes in tldraw's state machine. They are responsible for handling user input. 
 You can create custom tools by extending the `StateNode` class and overriding its methods.
-In this example we make a very simple sticker tool that adds a heart emoji to the canvas 
-when you click. 
+In this example we make expand on the sticker tool example to show how to create a tool
+with child states.
 
 [1]
 We extend the `StateNode` class to create a new tool called `StickerTool`. We set its id
-to "sticker". We are not implementing any child states in this example, so we don't need
-to set an initial state or define any children states. To see an example of a custom tool
-with child states, check out the screenshot tool or minimal examples.
-
-	[a] The onEnter method is called when the tool is activated. We use it to set the cursor
-		to a crosshair.
-	
-	[b] The onPointerDown method is called when the user clicks on the canvas. We use it to
-		create a new shape at the click location. We can get the click location from the
-		editor's inputs.
+to "sticker". 
 
 [2]
 We pass our custom tool to the Tldraw component using the `tools` prop. We also set the
