@@ -12078,8 +12078,8 @@ __metadata:
 
 "emoji-mart@patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch":
   version: 5.5.2
-  resolution: "emoji-mart@patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch::version=5.5.2&hash=61a502"
-  checksum: 219b8f4b146f439564d40b0b25bb2090c307e7225890e585aea9d949be405d09526090d80d096fd1eebb778d43f4b354bf3c511ed6919d92780bed8735348d40
+  resolution: "emoji-mart@patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch::version=5.5.2&hash=1fc67b"
+  checksum: dac96d98c602986447e3af7bdae67ab6f8d5ca11d18bc660f867d2a09307816e4d38dddec3174d06469d7e906f60a6af8c8e97a2d1f6dfbeb3cec4c388bc9c10
   languageName: node
   linkType: hard
 
