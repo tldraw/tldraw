@@ -34868,22 +34868,36 @@
           }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!TextArea:function(1)",
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/editor!TextArea:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TextArea({ rInput, text, handleFocus, handleChange, handleKeyDown, handleBlur, handleInputPointerDown, handleDoubleClick, }: "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    rInput: "
+              "text": "TextArea: "
             },
             {
               "kind": "Reference",
-              "text": "React.RefObject",
-              "canonicalReference": "@types/react!React.RefObject:interface"
+              "text": "React.ForwardRefExoticComponent",
+              "canonicalReference": "@types/react!React.ForwardRefExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TextAreaProps",
+              "canonicalReference": "@tldraw/editor!~TextAreaProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": " & "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.RefAttributes",
+              "canonicalReference": "@types/react!React.RefAttributes:interface"
             },
             {
               "kind": "Content",
@@ -34896,98 +34910,17 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    text: string;\n    handleFocus: () => void;\n    handleBlur: () => void;\n    handleKeyDown: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.KeyboardEvent",
-              "canonicalReference": "@types/react!React.KeyboardEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleChange: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ChangeEvent",
-              "canonicalReference": "@types/react!React.ChangeEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleInputPointerDown: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.PointerEvent",
-              "canonicalReference": "@types/react!React.PointerEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleDoubleClick: (e: any) => any;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "text": ">>"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultTextLabel.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 19,
-            "endIndex": 21
-          },
+          "isReadonly": true,
           "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ rInput, text, handleFocus, handleChange, handleKeyDown, handleBlur, handleInputPointerDown, handleDoubleClick, }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 18
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "TextArea"
+          "name": "TextArea",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
         },
         {
           "kind": "TypeAlias",

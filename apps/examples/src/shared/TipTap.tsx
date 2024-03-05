@@ -96,6 +96,7 @@ const Tiptap = ({
 
 	return (
 		<div
+			key={`tl-tiptap-${isEditing}`}
 			className="tl-text-label tl-text-wrapper"
 			data-font={font}
 			data-align={align}

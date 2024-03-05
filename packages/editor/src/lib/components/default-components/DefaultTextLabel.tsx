@@ -7,7 +7,7 @@ import {
 	TLShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
-import React from 'react'
+import React, { forwardRef } from 'react'
 import { useEditableText } from '../../hooks/useEditableText'
 import { useIsDarkMode } from '../../hooks/useIsDarkMode'
 import { Box } from '../../primitives/Box'
@@ -103,24 +103,13 @@ export const DefaultTextLabel = React.memo(function DefaultTextLabel({
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="ltr">
 					{finalText}
 				</div>
-				{isEditing && <TextArea rInput={rInput} text={text} {...editableTextRest} />}
+				{isEditing && <TextArea ref={rInput} text={text} {...editableTextRest} />}
 			</div>
 		</div>
 	)
 })
 
-/** @public */
-export function TextArea({
-	rInput,
-	text,
-	handleFocus,
-	handleChange,
-	handleKeyDown,
-	handleBlur,
-	handleInputPointerDown,
-	handleDoubleClick,
-}: {
-	rInput: React.RefObject<HTMLTextAreaElement>
+type TextAreaProps = {
 	text: string
 	handleFocus: () => void
 	handleBlur: () => void
@@ -128,10 +117,24 @@ export function TextArea({
 	handleChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
 	handleInputPointerDown: (e: React.PointerEvent<HTMLTextAreaElement>) => void
 	handleDoubleClick: (e: any) => any
-}) {
+}
+
+/** @public */
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
+	{
+		text,
+		handleFocus,
+		handleChange,
+		handleKeyDown,
+		handleBlur,
+		handleInputPointerDown,
+		handleDoubleClick,
+	},
+	ref
+) {
 	return (
 		<textarea
-			ref={rInput}
+			ref={ref}
 			className="tl-text tl-text-input"
 			name="text"
 			tabIndex={-1}
@@ -156,7 +159,7 @@ export function TextArea({
 			onDoubleClick={handleDoubleClick}
 		/>
 	)
-}
+})
 
 // sneaky TLDefaultHorizontalAlignStyle for legacies
 function isLegacyAlign(align: TLDefaultHorizontalAlignStyle | string): boolean {

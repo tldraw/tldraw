@@ -1840,16 +1840,7 @@ export interface SvgExportDef {
 export const TAB_ID: string;
 
 // @public (undocumented)
-export function TextArea({ rInput, text, handleFocus, handleChange, handleKeyDown, handleBlur, handleInputPointerDown, handleDoubleClick, }: {
-    rInput: React_2.RefObject<HTMLTextAreaElement>;
-    text: string;
-    handleFocus: () => void;
-    handleBlur: () => void;
-    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
-    handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
-    handleInputPointerDown: (e: React_2.PointerEvent<HTMLTextAreaElement>) => void;
-    handleDoubleClick: (e: any) => any;
-}): JSX_2.Element;
+export const TextArea: React_2.ForwardRefExoticComponent<TextAreaProps & React_2.RefAttributes<HTMLTextAreaElement>>;
 
 // @public (undocumented)
 export type TLAfterChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;

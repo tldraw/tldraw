@@ -6339,6 +6339,43 @@
           "name": "FitFrameToContentMenuItem"
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "tldraw!FONT_FAMILIES:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "FONT_FAMILIES: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultFontStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultFontStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", string>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/default-shape-constants.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "FONT_FAMILIES",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
           "kind": "Class",
           "canonicalReference": "tldraw!FrameShapeTool:class",
           "docComment": "/**\n * @public\n */\n",

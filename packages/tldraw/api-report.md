@@ -62,6 +62,7 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -564,6 +565,9 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 
 // @public (undocumented)
 export function FitFrameToContentMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 
 // @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
