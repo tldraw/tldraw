@@ -14,6 +14,7 @@ import {
 	createShapeId,
 	last,
 	snapAngle,
+	structuredClone,
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
