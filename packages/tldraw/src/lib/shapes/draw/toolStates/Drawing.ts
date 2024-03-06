@@ -296,8 +296,8 @@ export class Drawing extends StateNode {
 	}
 
 	/**
-	 * This function is called to process user actions like moving the mouse or pressing the a key.
-	 * The updates are not directly propagated to the Editor. Instead they are store in the `shapePartial`
+	 * This function is called to process user actions like moving the mouse or pressing a key.
+	 * The updates are not directly propagated to the Editor. Instead they are stored in the `shapePartial`
 	 * and only sent to the Editor on the next tick.
 	 */
 	private processUpdates() {
