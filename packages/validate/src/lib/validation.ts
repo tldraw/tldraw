@@ -948,7 +948,7 @@ export const linkUrl = string.check((value) => {
 	}
 })
 
-const validSrcProtocols = new Set(['http:', 'https:', 'data:'])
+const validSrcProtocols = new Set(['http:', 'https:', 'data:', 'blob:'])
 
 /**
  * Validates that a valid is a url safe to load as an asset.
