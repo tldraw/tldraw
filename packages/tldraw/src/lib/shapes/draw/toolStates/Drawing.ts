@@ -315,6 +315,8 @@ export class Drawing extends StateNode {
 
 		if (!shape) return
 
+		// We default to the partial, as it might have some segments / points that the editor
+		// does not know about yet.
 		const segments = this.shapePartial?.props?.segments || shape.props.segments
 
 		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
