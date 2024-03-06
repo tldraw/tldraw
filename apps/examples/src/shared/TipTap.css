@@ -12,6 +12,7 @@
   transform: skewX(-12deg);
 }
 
-.tiptap p {
+.tiptap p,
+.tl-text-measure p {
   margin: 0;
 }

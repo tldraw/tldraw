@@ -80,19 +80,3 @@ export function releasePointerCapture(
 
 /** @public */
 export const stopEventPropagation = (e: any) => e.stopPropagation()
-
-const fixNewLines = /\r?\n|\r/g
-
-/** @public */
-export function normalizeTextForDom(text: string) {
-	return text
-		.replace(fixNewLines, '\n')
-		.split('\n')
-		.map((x) => x || ' ')
-		.join('\n')
-}
-
-/** @public */
-export function normalizeText(text: string) {
-	return text.replace(fixNewLines, '\n')
-}

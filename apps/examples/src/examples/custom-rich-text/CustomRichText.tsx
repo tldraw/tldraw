@@ -1,8 +1,9 @@
-import { TLComponents, TLTextLabelProps, Tldraw } from 'tldraw'
+import React from 'react'
+import { TLComponents, TLTextLabel, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import Tiptap from '../../shared/TipTap'
 
-function CustomRichText({
+const CustomRichText: TLTextLabel = React.memo(function CustomRichText({
 	id,
 	type,
 	text,
@@ -14,7 +15,7 @@ function CustomRichText({
 	verticalAlign,
 	wrap,
 	bounds,
-}: TLTextLabelProps) {
+}) {
 	return (
 		<Tiptap
 			id={id}
@@ -30,7 +31,8 @@ function CustomRichText({
 			bounds={bounds}
 		/>
 	)
-}
+})
+CustomRichText.measureMethod = 'html'
 
 const components: TLComponents = {
 	TextLabel: CustomRichText,

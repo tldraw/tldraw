@@ -289,6 +289,8 @@ export {
 
 export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 
+export { TextArea, TldrawTextLabel } from './lib/shapes/shared/text/TldrawTextLabel'
+
 export { type TLComponents, type TLHooks } from './lib/Tldraw'
 
 /* ------------------- Primitives ------------------- */
@@ -399,4 +401,8 @@ export {
 
 /* ----------------- Constants ---------------- */
 
-export { LABEL_FONT_SIZES, TEXT_PROPS } from './lib/shapes/shared/default-shape-constants'
+export {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	TEXT_PROPS,
+} from './lib/shapes/shared/default-shape-constants'

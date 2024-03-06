@@ -6812,43 +6812,6 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultTextLabel:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "DefaultTextLabel: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.NamedExoticComponent",
-              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLTextLabelProps",
-              "canonicalReference": "@tldraw/editor!TLTextLabelProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultTextLabel.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "DefaultTextLabel",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 5
-          }
-        },
-        {
-          "kind": "Variable",
           "canonicalReference": "@tldraw/editor!defaultUserPreferences:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -7484,7 +7447,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: "
+                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, measureMethod, }: "
                 },
                 {
                   "kind": "Reference",
@@ -7501,7 +7464,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }",
+                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, measureMethod, }",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -27365,51 +27328,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/editor!normalizeTextForDom:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function normalizeTextForDom(text: "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/utils/dom.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "text",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "normalizeTextForDom"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "@tldraw/editor!openWindow:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -34904,128 +34822,6 @@
           }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!TextArea:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function TextArea({ rInput, text, handleFocus, handleChange, handleKeyDown, handleBlur, handleInputPointerDown, handleDoubleClick, }: "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    rInput: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.RefObject",
-              "canonicalReference": "@types/react!React.RefObject:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n    text: string;\n    handleFocus: () => void;\n    handleBlur: () => void;\n    handleKeyDown: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.KeyboardEvent",
-              "canonicalReference": "@types/react!React.KeyboardEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleChange: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ChangeEvent",
-              "canonicalReference": "@types/react!React.ChangeEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleInputPointerDown: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.PointerEvent",
-              "canonicalReference": "@types/react!React.PointerEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleDoubleClick: (e: any) => any;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultTextLabel.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 19,
-            "endIndex": 21
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ rInput, text, handleFocus, handleChange, handleKeyDown, handleBlur, handleInputPointerDown, handleDoubleClick, }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 18
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "TextArea"
-        },
-        {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLAfterChangeHandler:type",
           "docComment": "/**\n * @public\n */\n",
@@ -37195,6 +36991,34 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "initialState",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLEditorOptions#measureMethod:member",
+              "docComment": "/**\n * Specifies how to measure text, whether pure text or as HTML.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "measureMethod?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "MeasureMethod",
+                  "canonicalReference": "@tldraw/editor!~MeasureMethod:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "measureMethod",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -41865,88 +41689,30 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLTextLabelProps:type",
-          "docComment": "/**\n * @public\n */\n",
+          "canonicalReference": "@tldraw/editor!TLTextLabel:type",
+          "docComment": "/**\n * @alpha\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type TLTextLabelProps = "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    id: "
+              "text": "export type TLTextLabel = "
             },
             {
               "kind": "Reference",
-              "text": "TLShapeId",
-              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+              "text": "ITextLabel",
+              "canonicalReference": "@tldraw/editor!~ITextLabel:type"
             },
             {
               "kind": "Content",
-              "text": ";\n    type: string;\n    font: "
+              "text": "<"
             },
             {
               "kind": "Reference",
-              "text": "TLDefaultFontStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultFontStyle:type"
+              "text": "TextLabelProps",
+              "canonicalReference": "@tldraw/editor!~TextLabelProps:type"
             },
             {
               "kind": "Content",
-              "text": ";\n    fontSize: number;\n    lineHeight: number;\n    fill?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultFillStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultFillStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    align: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultHorizontalAlignStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultHorizontalAlignStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    verticalAlign: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultVerticalAlignStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultVerticalAlignStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    wrap?: boolean;\n    text: string;\n    labelColor: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultColorStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultColorStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    bounds?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Box",
-              "canonicalReference": "@tldraw/editor!Box:class"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    classNamePrefix?: string;\n    style?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.CSSProperties",
-              "canonicalReference": "@types/react!React.CSSProperties:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    textWidth?: number;\n    textHeight?: number;\n}"
+              "text": ">"
             },
             {
               "kind": "Content",
@@ -41954,11 +41720,11 @@
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultTextLabel.tsx",
-          "releaseTag": "Public",
-          "name": "TLTextLabelProps",
+          "releaseTag": "Alpha",
+          "name": "TLTextLabel",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 18
+            "endIndex": 5
           }
         },
         {
@@ -42724,147 +42490,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/editor!useEditableText:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useEditableText(id: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLShapeId",
-              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", type: "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": ", text: "
-            },
-            {
-              "kind": "Content",
-              "text": "string"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    rInput: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.RefObject",
-              "canonicalReference": "@types/react!React.RefObject:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n    isEditing: boolean;\n    handleFocus: () => void;\n    handleBlur: () => void;\n    handleKeyDown: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.KeyboardEvent",
-              "canonicalReference": "@types/react!React.KeyboardEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleChange: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ChangeEvent",
-              "canonicalReference": "@types/react!React.ChangeEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleInputPointerDown: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.PointerEvent",
-              "canonicalReference": "@types/react!React.PointerEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ") => void;\n    handleDoubleClick: (e: any) => any;\n    isEmpty: boolean;\n}"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/hooks/useEditableText.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 22
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "id",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "type",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "text",
-              "parameterTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "useEditableText"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "@tldraw/editor!useEditor:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -43286,25 +42911,16 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n    TextLabel: "
+              "text": " | null;\n    TextLabel: null | "
             },
             {
               "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
+              "text": "TLTextLabel",
+              "canonicalReference": "@tldraw/editor!TLTextLabel:type"
             },
             {
               "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLTextLabelProps",
-              "canonicalReference": "@tldraw/editor!TLTextLabelProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> | null;\n} & "
+              "text": ";\n} & "
             },
             {
               "kind": "Reference",
@@ -43328,7 +42944,7 @@
           "fileUrlPath": "packages/editor/src/lib/hooks/useEditorComponents.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 94
+            "endIndex": 92
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

@@ -62,6 +62,7 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -113,6 +114,7 @@ import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
+import { TLTextLabel } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTickEventHandler } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
@@ -565,6 +567,9 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 
 // @public (undocumented)
 export function FitFrameToContentMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 
 // @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
@@ -1218,6 +1223,9 @@ export const TEXT_PROPS: {
     padding: string;
 };
 
+// @alpha (undocumented)
+export const TextArea: React_2.ForwardRefExoticComponent<TextAreaProps & React_2.RefAttributes<HTMLTextAreaElement>>;
+
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
     // (undocumented)
@@ -1409,6 +1417,9 @@ export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgr
 
 // @public (undocumented)
 export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
+
+// @alpha (undocumented)
+export const TldrawTextLabel: TLTextLabel;
 
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<{

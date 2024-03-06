@@ -1,13 +1,18 @@
 /* eslint-disable no-inner-declarations */
-import { useValue } from '@tldraw/state'
-import { TLShape, TLShapeId, TLUnknownShape } from '@tldraw/tlschema'
+import {
+	Editor,
+	TLShape,
+	TLShapeId,
+	TLUnknownShape,
+	Vec,
+	getPointerInfo,
+	stopEventPropagation,
+	useEditor,
+	useEditorHooks,
+	useValue,
+} from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { Editor } from '../editor/Editor'
-import { Vec } from '../primitives/Vec'
-import { normalizeTextForDom, stopEventPropagation } from '../utils/dom'
-import { getPointerInfo } from '../utils/getPointerInfo'
-import { useEditor } from './useEditor'
-import { useEditorHooks } from './useEditorHooks'
+import { INDENT, TextHelpers } from './TextHelpers'
 
 /** @public */
 export function useEditableText(id: TLShapeId, type: string, text: string) {
@@ -127,11 +132,10 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
 
-			let text = normalizeTextForDom(e.currentTarget.value)
+			let text = TextHelpers.normalizeTextForDom(e.currentTarget.value)
 
 			// ------- Bug fix ------------
 			// Replace tabs with spaces when pasting
-			const INDENT = '  '
 			const untabbedText = text.replace(/\t/g, INDENT)
 			if (untabbedText !== text) {
 				const selectionStart = e.currentTarget.selectionStart

@@ -205,7 +205,7 @@ function TextLabelWrapper({ shape }: { shape: TLNoteShape }) {
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 	const PADDING = 17
 
-	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
+	const nextTextSize = editor.textMeasure.measure(shape.props.text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],

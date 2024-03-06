@@ -283,7 +283,7 @@ function TldrawEditorWithReadyStore({
 	},
 	'shapeUtils' | 'tools'
 >) {
-	const { ErrorFallback } = useEditorComponents()
+	const { ErrorFallback, TextLabel } = useEditorComponents()
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
 
@@ -296,13 +296,14 @@ function TldrawEditorWithReadyStore({
 			user,
 			initialState,
 			inferDarkMode,
+			measureMethod: TextLabel!.measureMethod,
 		})
 		setEditor(editor)
 
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode])
+	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode, TextLabel])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

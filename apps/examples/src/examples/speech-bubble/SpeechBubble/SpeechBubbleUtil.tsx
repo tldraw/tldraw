@@ -5,6 +5,7 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
+	FONT_FAMILIES,
 	Geometry2d,
 	LABEL_FONT_SIZES,
 	Polygon2d,
@@ -47,6 +48,7 @@ export const speechBubbleShapeProps = {
 	font: DefaultFontStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
+	growY: T.positiveNumber,
 	text: T.string,
 	tail: vecModelValidator,
 }
@@ -78,9 +80,14 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			font: 'draw',
 			align: 'middle',
 			verticalAlign: 'start',
+			growY: 0,
 			text: '',
 			tail: { x: 0.5, y: 1.5 },
 		}
+	}
+
+	getHeight(shape: SpeechBubbleShape) {
+		return shape.props.h + shape.props.growY
 	}
 
 	getGeometry(shape: SpeechBubbleShape): Geometry2d {
@@ -94,7 +101,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	// [4]
 	override getHandles(shape: SpeechBubbleShape): TLHandle[] {
-		const { tail, w, h } = shape.props
+		const { tail, w } = shape.props
 
 		return [
 			{
@@ -104,7 +111,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				// props.tail coordinates are normalized
 				// but here we need them in shape space
 				x: tail.x * w,
-				y: tail.y * h,
+				y: tail.y * this.getHeight(shape),
 			},
 		]
 	}
@@ -115,29 +122,34 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			props: {
 				tail: {
 					x: handle.x / shape.props.w,
-					y: handle.y / shape.props.h,
+					y: handle.y / this.getHeight(shape),
 				},
 			},
 		}
 	}
 
+	override onBeforeCreate = (next: SpeechBubbleShape) => {
+		return this.getGrowY(next, next.props.growY)
+	}
+
 	// [5]
 	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (
-		_: SpeechBubbleShape,
+		prev: SpeechBubbleShape,
 		shape: SpeechBubbleShape
 	) => {
-		const { w, h, tail } = shape.props
+		const { w, tail } = shape.props
+		const fullHeight = this.getHeight(shape)
 
 		const { segmentsIntersection, insideShape } = getTailIntersectionPoint(shape)
 
-		const slantedLength = Math.hypot(w, h)
+		const slantedLength = Math.hypot(w, fullHeight)
 		const MIN_DISTANCE = slantedLength / 5
 		const MAX_DISTANCE = slantedLength / 1.5
 
-		const tailInShapeSpace = new Vec(tail.x * w, tail.y * h)
+		const tailInShapeSpace = new Vec(tail.x * w, tail.y * fullHeight)
 
 		const distanceToIntersection = tailInShapeSpace.dist(segmentsIntersection)
-		const center = new Vec(w / 2, h / 2)
+		const center = new Vec(w / 2, fullHeight / 2)
 		const tailDirection = Vec.Sub(tailInShapeSpace, center).uni()
 
 		let newPoint = tailInShapeSpace
@@ -154,9 +166,9 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 		const next = deepCopy(shape)
 		next.props.tail.x = newPoint.x / w
-		next.props.tail.y = newPoint.y / h
+		next.props.tail.y = newPoint.y / fullHeight
 
-		return next
+		return this.getGrowY(next, prev.props.growY)
 	}
 
 	component(shape: SpeechBubbleShape) {
@@ -199,6 +211,37 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		next.props.w = resized.props.w
 		next.props.h = resized.props.h
 		return next
+	}
+
+	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
+		const PADDING = 17
+
+		const nextTextSize = this.editor.textMeasure.measure(shape.props.text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			maxWidth: shape.props.w - PADDING * 2,
+		})
+
+		const nextHeight = nextTextSize.h + PADDING * 2
+
+		let growY = 0
+
+		if (nextHeight > shape.props.h) {
+			growY = nextHeight - shape.props.h
+		} else {
+			if (prevGrowY) {
+				growY = 0
+			}
+		}
+
+		return {
+			...shape,
+			props: {
+				...shape.props,
+				growY,
+			},
+		}
 	}
 }
 

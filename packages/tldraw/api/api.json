@@ -6339,6 +6339,43 @@
           "name": "FitFrameToContentMenuItem"
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "tldraw!FONT_FAMILIES:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "FONT_FAMILIES: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultFontStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultFontStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", string>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/default-shape-constants.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "FONT_FAMILIES",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
           "kind": "Class",
           "canonicalReference": "tldraw!FrameShapeTool:class",
           "docComment": "/**\n * @public\n */\n",
@@ -14296,6 +14333,61 @@
           }
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "tldraw!TextArea:var",
+          "docComment": "/**\n * @alpha\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TextArea: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ForwardRefExoticComponent",
+              "canonicalReference": "@types/react!React.ForwardRefExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TextAreaProps",
+              "canonicalReference": "tldraw!~TextAreaProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": " & "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.RefAttributes",
+              "canonicalReference": "@types/react!React.RefAttributes:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/text/TldrawTextLabel.tsx",
+          "isReadonly": true,
+          "releaseTag": "Alpha",
+          "name": "TextArea",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
+        },
+        {
           "kind": "Class",
           "canonicalReference": "tldraw!TextShapeTool:class",
           "docComment": "/**\n * @public\n */\n",
@@ -16216,6 +16308,30 @@
           "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 8
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tldraw!TldrawTextLabel:var",
+          "docComment": "/**\n * @alpha\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TldrawTextLabel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLTextLabel",
+              "canonicalReference": "@tldraw/editor!TLTextLabel:type"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/text/TldrawTextLabel.tsx",
+          "isReadonly": true,
+          "releaseTag": "Alpha",
+          "name": "TldrawTextLabel",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
           }
         },
         {
