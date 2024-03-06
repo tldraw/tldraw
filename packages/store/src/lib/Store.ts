@@ -5,7 +5,7 @@ import {
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
-	throttledToNextFrame,
+	throttleToNextFrame,
 } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
@@ -205,7 +205,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				// If we have accumulated history, flush it and update listeners
 				this._flushHistory()
 			},
-			{ scheduleEffect: (cb) => throttledToNextFrame(cb) }
+			{ scheduleEffect: (cb) => throttleToNextFrame(cb) }
 		)
 		this.scopedTypes = {
 			document: new Set(

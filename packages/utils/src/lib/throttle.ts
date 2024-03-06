@@ -77,7 +77,7 @@ export function fpsThrottle(fn: () => void) {
  * @returns
  * @internal
  */
-export function throttledToNextFrame(fn: () => void) {
+export function throttleToNextFrame(fn: () => void) {
 	if (isTest()) {
 		return fn()
 	}
