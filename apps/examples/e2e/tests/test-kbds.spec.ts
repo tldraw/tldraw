@@ -87,7 +87,6 @@ test.describe('Keyboard Shortcuts', () => {
 		for (const [key, tool] of positionalToolKbds) {
 			await page.keyboard.press('v') // set back to select
 			await page.keyboard.press(key)
-			await page.waitForTimeout(100)
 			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'select-tool',
 				data: { id: tool, source: 'kbd' },
