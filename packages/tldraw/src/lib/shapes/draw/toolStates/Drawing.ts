@@ -679,6 +679,7 @@ export class Drawing extends StateNode {
 				} else {
 					this.shapePartial = shapePartial
 				}
+
 				break
 			}
 		}
