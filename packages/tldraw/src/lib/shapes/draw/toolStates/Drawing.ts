@@ -50,7 +50,9 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
+	// Used to track whether we have changes that have not yet been pushed to the Editor.
 	isDirty = false
+	// The changes that have not yet been pushed to the Editor.
 	shapePartial: TLShapePartial<DrawableShape> | null = null
 
 	override onEnter = (info: TLPointerEventInfo) => {
@@ -103,7 +105,7 @@ export class Drawing extends StateNode {
 				this.mergeNextPoint = false
 			}
 
-			this.updateShapes()
+			this.processUpdates()
 		}
 	}
 
@@ -129,7 +131,7 @@ export class Drawing extends StateNode {
 				}
 			}
 		}
-		this.updateShapes()
+		this.processUpdates()
 	}
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
@@ -151,7 +153,7 @@ export class Drawing extends StateNode {
 			}
 		}
 
-		this.updateShapes()
+		this.processUpdates()
 	}
 
 	override onExit? = () => {
@@ -293,7 +295,12 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
-	private updateShapes() {
+	/**
+	 * This function is called to process user actions like moving the mouse or pressing the a key.
+	 * The updates are not directly propagated to the Editor. Instead they are store in the `shapePartial`
+	 * and only sent to the Editor on the next tick.
+	 */
+	private processUpdates() {
 		const { inputs } = this.editor
 		const { initialShape } = this
 
