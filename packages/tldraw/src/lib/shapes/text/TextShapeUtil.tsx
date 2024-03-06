@@ -354,17 +354,17 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 
 	const cw = autoSize
 		? null
-		: // `measureText` floors the number so we need to do the same here to avoid issues.
+		: // `measure` floors the number so we need to do the same here to avoid issues.
 			Math.floor(Math.max(minWidth, w))
 
-	const result = editor.textMeasure.measureText(text, {
+	const result = editor.textMeasure.measure(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
 		maxWidth: cw,
 	})
 
-	// // If we're autosizing the measureText will essentially `Math.floor`
+	// // If we're autosizing the `measure` will essentially `Math.floor`
 	// // the numbers so `19` rather than `19.3`, this means we must +1 to
 	// // whatever we get to avoid wrapping.
 	if (autoSize) {

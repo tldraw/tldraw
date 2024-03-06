@@ -110,7 +110,7 @@ import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SideEffectManager } from './managers/SideEffectManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
-import { TextManager } from './managers/TextManager'
+import { MeasureMethod, TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
@@ -183,6 +183,10 @@ export interface TLEditorOptions {
 	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+	/**
+	 * Specifies how to measure text, whether pure text or as HTML.
+	 */
+	measureMethod?: MeasureMethod
 }
 
 /** @public */
@@ -195,6 +199,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		getContainer,
 		initialState,
 		inferDarkMode,
+		measureMethod,
 	}: TLEditorOptions) {
 		super()
 
@@ -206,7 +211,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.getContainer = getContainer ?? (() => document.body)
 
-		this.textMeasure = new TextManager(this)
+		this.textMeasure = new TextManager(this, measureMethod)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''

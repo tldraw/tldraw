@@ -1,6 +1,15 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
-import { normalizeTextForDom } from '../../utils/dom'
 import { Editor } from '../Editor'
+
+const fixNewLines = /\r?\n|\r/g
+
+function normalizeTextForDom(text: string) {
+	return text
+		.replace(fixNewLines, '\n')
+		.split('\n')
+		.map((x) => x || ' ')
+		.join('\n')
+}
 
 const textAlignmentsForLtr = {
 	start: 'left',
@@ -27,11 +36,18 @@ type TLMeasureTextSpanOpts = {
 
 const spaceCharacterRegex = /\s/
 
+/** @internal */
+export type MeasureMethod = 'text' | 'html'
+
 export class TextManager {
 	baseElm: HTMLDivElement
 	baseReactComponentElm: HTMLDivElement
+	measureMethod: MeasureMethod
 
-	constructor(public editor: Editor) {
+	constructor(
+		public editor: Editor,
+		measureMethod: MeasureMethod = 'text'
+	) {
 		const elm = document.createElement('div')
 		elm.id = `tldraw_text_measure`
 		elm.classList.add('tl-text')
@@ -47,6 +63,33 @@ export class TextManager {
 		reactComponentElm.tabIndex = -1
 		this.editor.getContainer().appendChild(reactComponentElm)
 		this.baseReactComponentElm = reactComponentElm
+
+		this.measureMethod = measureMethod
+	}
+
+	measure = (
+		content: string,
+		opts: {
+			fontStyle: string
+			fontWeight: string
+			fontFamily: string
+			fontSize: number
+			lineHeight: number
+			/**
+			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+			 * is null, the text will be measured without wrapping, but explicit line breaks and
+			 * space are preserved.
+			 */
+			maxWidth: null | number
+			minWidth?: string
+			padding: string
+		}
+	): BoxModel => {
+		if (this.measureMethod === 'html') {
+			return this.measureHTML(content, opts)
+		} else {
+			return this.measureText(content, opts)
+		}
 	}
 
 	measureText = (

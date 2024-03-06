@@ -88,11 +88,7 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
-export {
-	DefaultTextLabel,
-	TextArea,
-	type TLTextLabelProps,
-} from './lib/components/default-components/DefaultTextLabel'
+export { type TLTextLabel } from './lib/components/default-components/DefaultTextLabel'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
@@ -249,7 +245,6 @@ export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-ty
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditableText } from './lib/hooks/useEditableText'
 export { EditorContext, useEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
@@ -343,7 +338,6 @@ export { dataUrlToFile } from './lib/utils/assets'
 export { debugFlags, featureFlags, type DebugFlag } from './lib/utils/debug-flags'
 export {
 	loopToHtmlElement,
-	normalizeTextForDom,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,

@@ -113,6 +113,7 @@ import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
+import { TLTextLabel } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTickEventHandler } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
@@ -1221,6 +1222,9 @@ export const TEXT_PROPS: {
     padding: string;
 };
 
+// @alpha (undocumented)
+export const TextArea: React_2.ForwardRefExoticComponent<TextAreaProps & React_2.RefAttributes<HTMLTextAreaElement>>;
+
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
     // (undocumented)
@@ -1412,6 +1416,9 @@ export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgr
 
 // @public (undocumented)
 export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
+
+// @alpha (undocumented)
+export const TldrawTextLabel: TLTextLabel;
 
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<{

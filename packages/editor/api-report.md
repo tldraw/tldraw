@@ -499,9 +499,6 @@ export function DefaultSpinner(): JSX_2.Element;
 export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
-export const DefaultTextLabel: React_2.NamedExoticComponent<TLTextLabelProps>;
-
-// @public (undocumented)
 export const defaultUserPreferences: Readonly<{
     name: "New User";
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
@@ -577,7 +574,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, measureMethod, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
@@ -1373,9 +1370,6 @@ export function moveCameraWhenCloseToEdge(editor: Editor): void;
 // @internal (undocumented)
 export const MULTI_CLICK_DURATION = 200;
 
-// @public (undocumented)
-export function normalizeTextForDom(text: string): string;
-
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;
@@ -1840,9 +1834,6 @@ export interface SvgExportDef {
 export const TAB_ID: string;
 
 // @public (undocumented)
-export const TextArea: React_2.ForwardRefExoticComponent<TextAreaProps & React_2.RefAttributes<HTMLTextAreaElement>>;
-
-// @public (undocumented)
 export type TLAfterChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;
 
 // @public (undocumented)
@@ -2068,6 +2059,7 @@ export interface TLEditorOptions {
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    measureMethod?: MeasureMethod;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
@@ -2584,25 +2576,8 @@ export type TLSvgOptions = {
     preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
 };
 
-// @public (undocumented)
-export type TLTextLabelProps = {
-    id: TLShapeId;
-    type: string;
-    font: TLDefaultFontStyle;
-    fontSize: number;
-    lineHeight: number;
-    fill?: TLDefaultFillStyle;
-    align: TLDefaultHorizontalAlignStyle;
-    verticalAlign: TLDefaultVerticalAlignStyle;
-    wrap?: boolean;
-    text: string;
-    labelColor: TLDefaultColorStyle;
-    bounds?: Box;
-    classNamePrefix?: string;
-    style?: React_2.CSSProperties;
-    textWidth?: number;
-    textHeight?: number;
-};
+// @alpha (undocumented)
+export type TLTextLabel = ITextLabel<TextLabelProps>;
 
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
@@ -2679,19 +2654,6 @@ export { useComputed }
 export function useContainer(): HTMLDivElement;
 
 // @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string): {
-    rInput: React_2.RefObject<HTMLTextAreaElement>;
-    isEditing: boolean;
-    handleFocus: () => void;
-    handleBlur: () => void;
-    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
-    handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
-    handleInputPointerDown: (e: React_2.PointerEvent) => void;
-    handleDoubleClick: (e: any) => any;
-    isEmpty: boolean;
-};
-
-// @public (undocumented)
 export function useEditor(): Editor;
 
 // @public (undocumented)
@@ -2720,7 +2682,7 @@ export function useEditorComponents(): Partial<{
     OnTheCanvas: ComponentType | null;
     InFrontOfTheCanvas: ComponentType | null;
     LoadingScreen: ComponentType | null;
-    TextLabel: ComponentType<TLTextLabelProps> | null;
+    TextLabel: null | TLTextLabel;
 } & ErrorComponents> & ErrorComponents;
 
 // @public (undocumented)
@@ -3011,6 +2973,10 @@ export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
 export * from "@tldraw/utils";
 export * from "@tldraw/validate";
+
+// Warnings were encountered during analysis:
+//
+// src/lib/hooks/useEditorComponents.tsx:150:36 - (ae-incompatible-release-tags) The symbol "TextLabel" is marked as @public, but its signature references "TLTextLabel" which is marked as @alpha
 
 // (No @packageDocumentation comment for this package)
 
