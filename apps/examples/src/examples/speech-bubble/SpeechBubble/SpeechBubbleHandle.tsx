@@ -1,4 +1,6 @@
+// todo: fix imports
 import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '@tldraw/editor/src/lib/constants'
+// todo: fix imports
 import {
 	TLClickEventInfo,
 	WithPreventDefault,
@@ -12,7 +14,7 @@ import {
 	StateNode,
 	TLPointerEventInfo,
 	Vec,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export function speechBubbleControl(editor: Editor) {
