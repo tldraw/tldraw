@@ -6,7 +6,6 @@ import {
 	TLOnResizeHandler,
 	Tldraw,
 	resizeBox,
-	structuredClone,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import snapshot from './snapshot.json'
@@ -38,19 +37,20 @@ export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		migrators: {
 			1: {
 				up(shape: IMyShape) {
-					const newShape = structuredClone(shape)
-					newShape.props.color = 'lightblue'
-
-					return newShape
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							color: 'lightblue',
+						},
+					}
 				},
 				down(shape: IMyShape) {
-					const migratedDownShape = structuredClone(shape)
-					// remove the color prop
-					const newShape = {
-						...migratedDownShape,
-						props: { w: migratedDownShape.props.w, h: migratedDownShape.props.h },
+					const { color: _, ...propsWithoutColor } = shape.props
+					return {
+						...shape,
+						props: propsWithoutColor,
 					}
-					return newShape
 				},
 			},
 		},
@@ -85,7 +85,6 @@ export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 	}
 }
 
-// [2]
 const customShapeUtils = [MigratedShapeUtil]
 
 export default function ShapeWithMigrationsExample() {
@@ -104,30 +103,71 @@ export default function ShapeWithMigrationsExample() {
 /* 
 Introduction:
 
-Sometimes you'll want to update the way a shape works in your application. When 
-this happens there can be a risk of errors and bugs. For example, users with an 
-old version of a shape in their documents might encounter errors when the editor 
-tries to access a property that doesn't exist. This example shows how you can 
-use our migrations system to preserve your users' data between versions.
+Sometimes you'll want to update the way a shape works in your application without
+breaking older versions of the shape that a user may have stored or persisted in
+memory. 
 
-To simulate this scenario, we first created a shape using the code you'll find
-in OriginalShapeUtil.tsx. It's a shape that only has height and width props.
-Then we created a snapshot of that shape on the canvas and loaded it using the
-snapshot prop. See the snapshot example for a closer look at this.
-
-We then updated our shape to take a 'color' prop. Without the migrations being 
-applied, the editor would search for the color prop in the shape contained within 
-the snapshot, and throw an error when it wasn't found. You can test this yourself 
-by running the examples app and commenting out the code in [1].
+This example shows how you can use our migrations system to upgrade (or downgrade)
+user's data between different versions. Most of the code above is general "custom
+shape" code—see our custom shape example for more details.
 
 [1] 
-To define migrations we have to override the migrations property of our shape util. 
-When loading a document, the editor will check the versions of the document and the 
-util against each other to see whether it should run migrations. We've only updated 
-our shape once, so we only need to include one migrator. When migrating a shape, it's 
-important not to modify and return the original shape. Instead we can use the 
-structuredClone helper from the tldraw library to modify the shape and return a new 
-version. Here, we're adding a color prop and putting in a default value when migrating 
-up, and removing the prop when migrating down.
+To define migrations, we can override the migrations property of our shape util. Each migration
+had two parts: an `up` migration and `down` migration. In this case, the `up` migration adds
+the `color` prop to the shape, and the `down` migration removes it.
 
+In some cases (mainly in multiplayer sessions) a peer or server may need to take a later 
+version of a shape and migrate it down to an older version—in this case, it would run the
+down migrations in order to get it to the needed version.
+
+How it works:
+
+Each time the editor's store creates a snapshot (`editor.store.createSnapshot`), it 
+serializes all of the records (the snapshot's `store`) as well as versions of each 
+record that it contains (the snapshot's `scena`). When the editor loads a snapshot, 
+it compares its current schema with the snapshot's schema to determine which migrations
+to apply to each record.
+
+In this example, we have a snapshot (snapshot.json) that we created in version 0,
+however our shape now has a 'color' prop that was added in version 1. 
+
+The snapshot looks something like this:
+
+```json{
+{
+	"store": {
+		"shape:BqG5uIAa9ig2-ukfnxwBX": {
+			...,
+			"props": {
+				"w": 300,
+				"h": 300
+			},
+		},
+		"schema": {
+			...,
+			"recordVersions": {
+				...,
+				"shape": {
+					"version": 3,
+					"subTypeKey": "type",
+					"subTypeVersions": {
+						...,
+						"myshape": 0
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+Note that the shape in the snapshot doesn't have a 'color' prop. 
+
+Note also that the schema's version for this shape is 0.
+
+When the editor loads the snapshot, it will compare the serialzied schema's version with 
+its current schema's version for the shape, which is 1 as defined in our shape's migrations.
+Since the serialized version is older than its current version, it will use our migration
+to bring it up to date: it will run the migration's `up` function, which will add the 'color'
+prop to the shape.
 */
