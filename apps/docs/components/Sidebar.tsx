@@ -33,7 +33,7 @@ const linkContext = createContext<{
 // it keeps re-rendering.
 let scrollPosition = 0
 
-export function Sidebar({ headings, links, sectionId, categoryId, articleId }: SidebarProps) {
+export function Sidebar({ links, sectionId, categoryId, articleId }: SidebarProps) {
 	const activeId = articleId ?? categoryId ?? sectionId
 	const sidebarRef = useRef<HTMLDivElement>(null)
 
@@ -72,7 +72,7 @@ export function Sidebar({ headings, links, sectionId, categoryId, articleId }: S
 					<div className="sidebar__section__links">
 						<SectionLinks sectionId={sectionId} />
 					</div>
-					<SidebarLinks headings={headings} links={links} />
+					<SidebarLinks links={links} />
 					<SidebarCloseButton />
 				</div>
 				<ToggleMenuButton />
@@ -81,62 +81,48 @@ export function Sidebar({ headings, links, sectionId, categoryId, articleId }: S
 	)
 }
 
-export function SidebarLinks({
-	headings,
-	links,
-}: {
-	headings?: ArticleHeadings
-	links: SidebarContentLink[]
-}) {
+export function SidebarLinks({ links }: { links: SidebarContentLink[] }) {
 	return (
 		<nav className="sidebar__nav">
 			<ul className="sidebar__list sidebar__sections__list">
 				{links.map((link) => (
-					<SidebarLink key={link.url} headings={headings} {...link} />
+					<SidebarLink key={link.url} {...link} />
 				))}
 			</ul>
 		</nav>
 	)
 }
 
-function SidebarLink({ headings, ...props }: SidebarContentLink & { headings?: ArticleHeadings }) {
+function SidebarLink(props: SidebarContentLink) {
 	switch (props.type) {
 		case 'section': {
-			return <SidebarSection headings={headings} {...props} />
+			return <SidebarSection {...props} />
 		}
 		case 'article': {
-			return <SidebarArticle headings={headings} {...props} />
+			return <SidebarArticle {...props} />
 		}
 		case 'category': {
-			return <SidebarCategory headings={headings} {...props} />
+			return <SidebarCategory {...props} />
 		}
 	}
 }
 
-function SidebarSection({
-	title,
-	children,
-	headings,
-}: SidebarContentSectionLink & { headings?: ArticleHeadings }) {
+function SidebarSection({ title, children }: SidebarContentSectionLink) {
 	if (children.length === 0) return null
 
 	return (
 		<li className="sidebar__section">
-			{title && <span className="sidebar__section__title">{title}</span>}
+			{title && <span className="sidebar__section__title uppercase_title">{title}</span>}
 			<ul className="sidebar__list">
 				{children.map((link) => (
-					<SidebarLink key={link.url} headings={headings} {...link} />
+					<SidebarLink key={link.url} {...link} />
 				))}
 			</ul>
 		</li>
 	)
 }
 
-function SidebarCategory({
-	title,
-	children,
-	headings,
-}: SidebarContentCategoryLink & { headings?: ArticleHeadings }) {
+function SidebarCategory({ title, children }: SidebarContentCategoryLink) {
 	const linkCtx = useContext(linkContext)
 	if (children.length === 0) return null
 	const hasGroups = children.some((child) => !!(child as SidebarContentArticleLink).groupId)
@@ -171,7 +157,7 @@ function SidebarCategory({
 									<Accordion.Content>
 										<ul className="sidebar__list sidebar__group">
 											{articles.map((link) => (
-												<SidebarLink key={link.url} headings={headings} {...link} />
+												<SidebarLink key={link.url} {...link} />
 											))}
 										</ul>
 									</Accordion.Content>

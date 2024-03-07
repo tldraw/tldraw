@@ -217,7 +217,7 @@ async function addDocComment(result: Result, member: ApiItem) {
 
 		if (exampleBlocks.length) {
 			result.markdown += `\n\n`
-			result.markdown += `##### Example\n\n`
+			result.markdown += `<ApiHeading>Example</ApiHeading>\n\n`
 			for (const example of exampleBlocks) {
 				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, example.content)
 			}
@@ -393,7 +393,7 @@ function addTags(result: Result, member: ApiItem) {
 		tags.push('readonly')
 	}
 	tags.push(member.kind.toLowerCase())
-	result.markdown += `<Small>${tags.join(' ')}</Small>\n\n`
+	result.markdown += `<Small>${tags.filter((t) => t.toLowerCase() !== 'none').join(' ')}</Small>\n\n`
 }
 
 function addReferences(result: Result, member: ApiItem) {

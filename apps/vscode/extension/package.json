@@ -130,7 +130,6 @@
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
-		"@tldraw/tldraw": "workspace:*",
 		"@types/fs-extra": "^11.0.1",
 		"@types/node-fetch": "^2.6.2",
 		"@types/vscode": "^1.75.1",
@@ -144,6 +143,7 @@
 		"lodash": "^4.17.21",
 		"mocha": "^9.1.1",
 		"process": "^0.11.10",
+		"tldraw": "workspace:*",
 		"ts-loader": "^9.2.5",
 		"tslib": "^2.6.2",
 		"tsx": "^4.0.0",

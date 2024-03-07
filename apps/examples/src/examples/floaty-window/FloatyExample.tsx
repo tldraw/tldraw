@@ -1,6 +1,6 @@
-import { Tldraw, Vec, useContainer, useEditor } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
+import { Tldraw, Vec, useContainer, useEditor } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 export default function FloatyExample() {
 	return (

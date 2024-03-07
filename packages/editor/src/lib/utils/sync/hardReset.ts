@@ -1,3 +1,4 @@
+import { clearLocalStorage, clearSessionStorage } from '@tldraw/utils'
 import { deleteDB } from 'idb'
 import { getAllIndexDbNames } from './indexedDb'
 
@@ -6,11 +7,11 @@ import { getAllIndexDbNames } from './indexedDb'
  *
  * @public */
 export async function hardReset({ shouldReload = true } = {}) {
-	sessionStorage.clear()
+	clearSessionStorage()
 
 	await Promise.all(getAllIndexDbNames().map((db) => deleteDB(db)))
 
-	localStorage.clear()
+	clearLocalStorage()
 	if (shouldReload) {
 		window.location.reload()
 	}

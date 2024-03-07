@@ -1,11 +1,11 @@
 import test from '@playwright/test'
-import { TLShapeId, TLShapePartial } from '@tldraw/tldraw'
+import { TLShapeId, TLShapePartial } from 'tldraw'
 
 // import test, { Page, expect } from '@playwright/test'
 // import assert from 'assert'
 // import { rename, writeFile } from 'fs/promises'
 // import { setupPage } from '../shared-e2e'
-// import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
+// import { Editor, TLShapeId, TLShapePartial } from 'tldraw'
 
 // declare const editor: Editor
 

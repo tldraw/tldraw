@@ -1669,6 +1669,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		return 0
 	}
+
 	/**
 	 * The bounds of the selection bounding box in the current page space.
 	 *
@@ -1707,6 +1708,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
 		return boxFromRotatedVertices
+	}
+
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed getSelectionRotatedScreenBounds(): Box | undefined {
+		const bounds = this.getSelectionRotatedPageBounds()
+		if (!bounds) return undefined
+		const { x, y } = this.pageToScreen(bounds.point)
+		const zoom = this.getZoomLevel()
+		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
 	// Focus Group
@@ -2856,7 +2871,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	pageToScreen(point: VecLike) {
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+		const screenBounds = this.getViewportScreenBounds()
 		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 
 		return {
@@ -7257,7 +7272,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return sharedStyles
 	}
 
-	/** @internal */
+	/**
+	 * Get the style for the next shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const color = editor.getStyleForNextShape(DefaultColorStyle)
+	 * ```
+	 *
+	 * @param style - The style to get.
+	 *
+	 * @public */
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
 		const value = this.getInstanceState().stylesForNextShape[style.id]
 		return value === undefined ? style.defaultValue : (value as T)
@@ -7829,6 +7854,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
+		// Ok, we've got our migrated shapes and assets, now we can continue!
 		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
 
 		// By default, the paste parent will be the current page.
@@ -7966,54 +7992,57 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		// Migrate the new shapes
+		// These are all the assets we need to create
+		const assetsToCreate: TLAsset[] = []
 
-		let assetsToCreate: TLAsset[] = []
-
+		// These assets have base64 data that may need to be hosted
 		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
 
-		assetsToCreate = assets
-			.filter((asset) => !this.store.has(asset.id))
-			.map((asset) => {
-				if (asset.type === 'image' || asset.type === 'video') {
-					if (asset.props.src && asset.props.src?.startsWith('data:image')) {
-						assetsToUpdate.push(structuredClone(asset))
-						asset.props.src = null
-					} else {
-						assetsToUpdate.push(structuredClone(asset))
-					}
-				}
+		for (const asset of assets) {
+			if (this.store.has(asset.id)) {
+				// We already have this asset
+				continue
+			}
 
-				return asset
-			})
+			if (
+				(asset.type === 'image' || asset.type === 'video') &&
+				asset.props.src?.startsWith('data:image')
+			) {
+				// it's src is a base64 image or video; we need to create a new asset without the src,
+				// then create a new asset from the original src. So we save a copy of the original asset,
+				// then delete the src from the original asset.
+				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
+				asset.props.src = null
+			}
 
+			// Add the asset to the list of assets to create
+			assetsToCreate.push(asset)
+		}
+
+		// Start loading the new assets, order does not matter
 		Promise.allSettled(
-			assetsToUpdate.map(async (asset) => {
+			(assetsToUpdate as (TLImageAsset | TLVideoAsset)[]).map(async (asset) => {
+				// Turn the data url into a file
 				const file = await dataUrlToFile(
 					asset.props.src!,
 					asset.props.name,
 					asset.props.mimeType ?? 'image/png'
 				)
 
+				// Get a new asset for the file
 				const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
 
 				if (!newAsset) {
-					return null
+					// If we don't have a new asset, delete the old asset.
+					// The shapes that reference this asset should break.
+					this.deleteAssets([asset.id])
+					return
 				}
 
-				return [asset, newAsset] as const
+				// Save the new asset under the old asset's id
+				this.updateAssets([{ ...newAsset, id: asset.id }])
 			})
-		).then((assets) => {
-			this.updateAssets(
-				compact(
-					assets.map((result) =>
-						result.status === 'fulfilled' && result.value
-							? { ...result.value[1], id: result.value[0].id }
-							: undefined
-					)
-				)
-			)
-		})
+		)
 
 		this.batch(() => {
 			// Create any assets that need to be created

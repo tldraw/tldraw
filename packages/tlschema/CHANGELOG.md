@@ -1,3 +1,34 @@
+# v2.0.0-beta.5 (Thu Feb 29 2024)
+
+### Release Notes
+
+#### Setup papercuts ([#2987](https://github.com/tldraw/tldraw/pull/2987))
+
+- Add a brief release note for your PR here.
+
+#### fix structured clone reference in drawing ([#2945](https://github.com/tldraw/tldraw/pull/2945))
+
+- Fixes a reference to structuredClone that caused a crash on older browsers.
+
+---
+
+#### 🐛 Bug Fix
+
+- Setup papercuts [#2987](https://github.com/tldraw/tldraw/pull/2987) ([@ds300](https://github.com/ds300))
+- Prevent iframe embedding for dotcom (except on tldraw.com) [#2947](https://github.com/tldraw/tldraw/pull/2947) ([@steveruizok](https://github.com/steveruizok))
+- fix structured clone reference in drawing [#2945](https://github.com/tldraw/tldraw/pull/2945) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- bump typescript / api-extractor [#2949](https://github.com/tldraw/tldraw/pull/2949) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-beta.4 (Wed Feb 21 2024)
 
 ### Release Notes

@@ -1,4 +1,4 @@
-import { SerializedSchema, TLRecord } from '@tldraw/tldraw'
+import { SerializedSchema, TLRecord } from 'tldraw'
 import '../../styles/globals.css'
 import { IFrameProtector } from '../components/IFrameProtector'
 import { SnapshotsEditor } from '../components/SnapshotsEditor'

@@ -1,6 +1,6 @@
-import { Editor, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { useEffect, useRef, useState } from 'react'
+import { Editor, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 export default function EditorFocusExample() {
 	const [focused, setFocused] = useState(false)

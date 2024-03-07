@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { memo } from 'react'
+import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiDialogProps } from '../../context/dialogs'
@@ -15,7 +15,7 @@ import { DefaultKeyboardShortcutsDialogContent } from './DefaultKeyboardShortcut
 
 /** @public */
 export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */

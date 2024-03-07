@@ -1,4 +1,5 @@
 import { createTLSchema } from '@tldraw/tlschema'
+import { clearLocalStorage } from '@tldraw/utils'
 import {
 	getAllIndexDbNames,
 	loadDataFromStore,
@@ -9,7 +10,7 @@ import {
 const clearAll = async () => {
 	const dbs = (indexedDB as any)._databases as Map<any, any>
 	dbs.clear()
-	localStorage.clear()
+	clearLocalStorage()
 }
 
 beforeEach(async () => {
