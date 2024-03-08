@@ -1,5 +1,5 @@
 import { useShallowObjectIdentity } from '@tldraw/editor'
-import { ComponentType, createContext, useContext, useMemo } from 'react'
+import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
 import {
 	DefaultActionsMenu,
 	TLUiActionsMenuProps,
@@ -61,7 +61,7 @@ const TldrawUiComponentsContext = createContext({} as TLUiComponents)
 /** @public */
 export type TLUiComponentsProviderProps = {
 	overrides?: TLUiComponents
-	children: any
+	children: ReactNode
 }
 
 /** @public */

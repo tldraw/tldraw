@@ -1,4 +1,4 @@
-import { Box, StateNode, atom, copyAs, exportAs } from '@tldraw/tldraw'
+import { Box, StateNode, atom, copyAs, exportAs } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 

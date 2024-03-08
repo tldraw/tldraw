@@ -33,6 +33,12 @@
 		},
 		{
 			"path": "../../packages/tlsync"
+		},
+		{
+			"path": "../../packages/utils"
+		},
+		{
+			"path": "../../packages/validate"
 		}
 	]
 }

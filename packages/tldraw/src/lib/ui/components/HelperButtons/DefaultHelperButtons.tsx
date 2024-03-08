@@ -1,9 +1,10 @@
+import { ReactNode } from 'react'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultHelperButtonsContent } from './DefaultHelperButtonsContent'
 
 /** @public */
 export type TLUiHelperButtonsProps = {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */

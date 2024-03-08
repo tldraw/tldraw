@@ -3,8 +3,6 @@ import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
-	DeleteGroup,
-	DuplicateMenuItem,
 	EditLinkMenuItem,
 	EmbedsGroup,
 	FitFrameToContentMenuItem,
@@ -36,7 +34,6 @@ export function DefaultContextMenuContent() {
 			<TldrawUiMenuGroup id="selection">
 				<ToggleAutoSizeMenuItem />
 				<EditLinkMenuItem />
-				<DuplicateMenuItem />
 				<GroupMenuItem />
 				<UngroupMenuItem />
 				<RemoveFrameMenuItem />
@@ -52,7 +49,6 @@ export function DefaultContextMenuContent() {
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
 			<SetSelectionGroup />
-			<DeleteGroup />
 		</>
 	)
 }

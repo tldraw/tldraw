@@ -37,7 +37,7 @@ export type TLUiToolsProviderProps = {
 		tools: TLUiToolsContextType,
 		helpers: { insertMedia: () => void }
 	) => TLUiToolsContextType
-	children: any
+	children: React.ReactNode
 }
 
 /** @internal */

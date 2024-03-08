@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -6,15 +7,18 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	DefaultMainMenuContent,
+	EditSubmenu,
 	Editor,
+	ExtrasGroup,
+	PreferencesGroup,
+	ShapeSubmenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	ViewSubmenu,
 	useActions,
-} from '@tldraw/tldraw'
-import { useCallback } from 'react'
+} from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
@@ -44,7 +48,12 @@ const components: TLComponents = {
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<LocalFileMenu />
-			<DefaultMainMenuContent />
+			<EditSubmenu />
+			<ShapeSubmenu />
+			<ViewSubmenu />
+			<ExtrasGroup />
+			<PreferencesGroup />
+			<Links />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
@@ -82,6 +91,8 @@ export function LocalEditor() {
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
+		;(window as any).app = editor
+		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
 	}, [])
 

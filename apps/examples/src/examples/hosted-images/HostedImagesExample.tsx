@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
 	AssetRecordType,
 	Editor,
@@ -8,9 +9,8 @@ import {
 	getHashForString,
 	isGifAnimated,
 	uniqueId,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
-import { useCallback } from 'react'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // [1]
 const UPLOAD_URL = '/SOME_ENDPOINT'

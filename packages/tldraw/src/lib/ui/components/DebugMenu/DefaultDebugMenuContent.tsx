@@ -169,6 +169,7 @@ export function DefaultDebugMenuContent() {
 				/>
 				{(() => {
 					if (error) throw Error('oh no!')
+					return null
 				})()}
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
 				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
@@ -182,8 +183,8 @@ export function DefaultDebugMenuContent() {
 		</>
 	)
 }
-
-function DebugFlags() {
+/** @public */
+export function DebugFlags() {
 	const items = Object.values(debugFlags)
 	if (!items.length) return null
 	return (
@@ -196,8 +197,8 @@ function DebugFlags() {
 		</TldrawUiMenuSubmenu>
 	)
 }
-
-function FeatureFlags() {
+/** @public */
+export function FeatureFlags() {
 	const items = Object.values(featureFlags)
 	if (!items.length) return null
 	return (
@@ -210,8 +211,8 @@ function FeatureFlags() {
 		</TldrawUiMenuSubmenu>
 	)
 }
-
-function ExampleDialog({
+/** @public */
+export function ExampleDialog({
 	title = 'title',
 	body = 'hello hello hello',
 	cancel = 'Cancel',

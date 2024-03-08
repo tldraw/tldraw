@@ -1,5 +1,8 @@
-// Adapted (mostly copied) the work of https://github.com/fregante
-// Copyright (c) Federico Brigante <opensource@bfred.it> (bfred.it)
+/*!
+ * MIT License
+ * Adapted (mostly copied) the work of https://github.com/fregante/text-field-edit
+ * Copyright (c) Federico Brigante <opensource@bfred.it> (bfred.it)
+ */
 
 // TODO: Most of this file can be moved into a DOM utils library.
 

@@ -1,6 +1,6 @@
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { createContext, useCallback, useContext, useState } from 'react'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
 
@@ -31,6 +31,8 @@ export default function MultipleExample() {
 				backgroundColor: '#fff',
 				padding: 32,
 			}}
+			// Sorry you need to do this yourself
+			onPointerDown={() => setFocusedEditor(null)}
 		>
 			<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
 				<h1>Focusing: {focusedEditor ?? 'none'}</h1>

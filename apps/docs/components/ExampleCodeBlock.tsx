@@ -35,7 +35,7 @@ export default function ExampleCodeBlock({
 				customSetup={{
 					dependencies: {
 						'@tldraw/assets': 'latest',
-						'@tldraw/tldraw': 'latest',
+						tldraw: 'latest',
 					},
 				}}
 				files={{

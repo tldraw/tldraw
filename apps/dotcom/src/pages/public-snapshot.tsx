@@ -1,5 +1,6 @@
-import { SerializedSchema, TLRecord } from '@tldraw/tldraw'
+import { SerializedSchema, TLRecord } from 'tldraw'
 import '../../styles/globals.css'
+import { IFrameProtector } from '../components/IFrameProtector'
 import { SnapshotsEditor } from '../components/SnapshotsEditor'
 import { defineLoader } from '../utils/defineLoader'
 
@@ -8,6 +9,7 @@ const { loader, useData } = defineLoader(async (args) => {
 	const result = await fetch(`/api/snapshot/${roomId}`)
 	return result.ok
 		? ((await result.json()) as {
+				roomId: string
 				schema: SerializedSchema
 				records: TLRecord[]
 			})
@@ -17,7 +19,12 @@ const { loader, useData } = defineLoader(async (args) => {
 export { loader }
 
 export function Component() {
-	const roomData = useData()
-	if (!roomData) throw Error('Room not found')
-	return <SnapshotsEditor records={roomData.records} schema={roomData.schema} />
+	const result = useData()
+	if (!result) throw Error('Room not found')
+	const { roomId, records, schema } = result
+	return (
+		<IFrameProtector slug={roomId} context="public-snapshot">
+			<SnapshotsEditor records={records} schema={schema} />
+		</IFrameProtector>
+	)
 }
