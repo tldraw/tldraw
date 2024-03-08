@@ -1222,7 +1222,7 @@ export const TEXT_PROPS: {
     padding: string;
 };
 
-// @alpha (undocumented)
+// @public
 export const TextArea: React_2.ForwardRefExoticComponent<TextAreaProps & React_2.RefAttributes<HTMLTextAreaElement>>;
 
 // @public (undocumented)
@@ -1417,7 +1417,7 @@ export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgr
 // @public (undocumented)
 export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
 
-// @alpha (undocumented)
+// @public
 export const TldrawTextLabel: TLTextLabel;
 
 // @public (undocumented)
