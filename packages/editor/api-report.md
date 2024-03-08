@@ -2577,7 +2577,7 @@ export type TLSvgOptions = {
     preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
 };
 
-// @alpha (undocumented)
+// @public
 export type TLTextLabel = ITextLabel<TextLabelProps>;
 
 // @public (undocumented)
@@ -2974,10 +2974,6 @@ export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
 export * from "@tldraw/utils";
 export * from "@tldraw/validate";
-
-// Warnings were encountered during analysis:
-//
-// src/lib/hooks/useEditorComponents.tsx:150:36 - (ae-incompatible-release-tags) The symbol "TextLabel" is marked as @public, but its signature references "TLTextLabel" which is marked as @alpha
 
 // (No @packageDocumentation comment for this package)
 

@@ -39,7 +39,10 @@ type TLMeasureTextSpanOpts = {
 
 const spaceCharacterRegex = /\s/
 
-/** @internal */
+/**
+ * @public
+ * This is an _experimental_ component that we are still exploring.
+ */
 export type MeasureMethod = 'text' | ((content: string) => ReactNode)
 
 export class TextManager {

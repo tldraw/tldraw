@@ -14335,7 +14335,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "tldraw!TextArea:var",
-          "docComment": "/**\n * @alpha\n */\n",
+          "docComment": "/**\n * This is an _experimental_ component that we are still exploring.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -14380,7 +14380,7 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/text/TldrawTextLabel.tsx",
           "isReadonly": true,
-          "releaseTag": "Alpha",
+          "releaseTag": "Public",
           "name": "TextArea",
           "variableTypeTokenRange": {
             "startIndex": 1,
@@ -16313,7 +16313,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "tldraw!TldrawTextLabel:var",
-          "docComment": "/**\n * @alpha\n */\n",
+          "docComment": "/**\n * This is an _experimental_ component that we are still exploring.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -16327,7 +16327,7 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/text/TldrawTextLabel.tsx",
           "isReadonly": true,
-          "releaseTag": "Alpha",
+          "releaseTag": "Public",
           "name": "TldrawTextLabel",
           "variableTypeTokenRange": {
             "startIndex": 1,
