@@ -5,7 +5,7 @@ import {
 	TLDefaultSizeStyle,
 	getDefaultColorTheme,
 } from 'tldraw'
-import Tiptap from '../../shared/TipTap'
+import Tiptap, { TipTapMeasure } from '../../shared/TipTap'
 import type {
 	SpeechBubbleShape,
 	SpeechBubbleShapeProps,
@@ -15,7 +15,10 @@ import { getSpeechBubbleVertices } from '../speech-bubble/SpeechBubble/helpers'
 
 export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 	override getDefaultProps(): SpeechBubbleShapeProps {
-		return { ...super.getDefaultProps(), text: '<p>Hello <b>World</b>! Some <i>rich</i> text</p>' }
+		return {
+			...super.getDefaultProps(),
+			text: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello "},{"type":"text","marks":[{"type":"bold"}],"text":"world! "},{"type":"text","text":"Some "},{"type":"text","marks":[{"type":"italic"}],"text":"rich"},{"type":"text","text":" text"}]}]}',
+		}
 	}
 
 	override component(shape: SpeechBubbleShape) {
@@ -63,12 +66,16 @@ export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 		const {
 			props: { w, h, text, font, size },
 		} = shape
-		const nextTextSize = this.editor.textMeasure.measureHTML(text, {
-			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[font],
-			fontSize: LABEL_FONT_SIZES[size],
-			maxWidth: w - PADDING * 2,
-		})
+		const nextTextSize = this.editor.textMeasure.measureComponent(
+			text,
+			{
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[font],
+				fontSize: LABEL_FONT_SIZES[size],
+				maxWidth: w - PADDING * 2,
+			},
+			() => <TipTapMeasure content={text} />
+		)
 
 		const nextHeight = nextTextSize.h + PADDING * 2
 
