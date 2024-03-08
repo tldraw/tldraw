@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { Root, createRoot } from 'react-dom/client'
 import { Editor } from 'tldraw'
 import EmojiDialog from '../components/Emojis'
-import { EmojiDialogSingleton } from '../components/Emojis/EmojiDialog'
+
+// Used in combination with our lazy loading so that we don't import the emoji logic if not needed.
+async function getEmojiDialogSingleton() {
+	return (await import('../components/Emojis/EmojiDialog')).EmojiDialogSingleton
+}
 
 export function useEmojis(
 	editor: Editor,
@@ -32,10 +36,11 @@ export function useEmojis(
 		setEmojiSearchText('')
 	}
 
-	const onEmojiSelect = (emoji: any) => {
+	const onEmojiSelect = async (emoji: any) => {
 		if (!inputEl) return
 
-		const searchText = EmojiDialogSingleton?.component.refs.searchInput.current.value || ''
+		const emojiPicker = (await getEmojiDialogSingleton())?.component
+		const searchText = emojiPicker?.refs.searchInput.current.value || ''
 		inputEl.focus()
 		inputEl.setSelectionRange(
 			inputEl.selectionStart - searchText.length - 1,
@@ -48,12 +53,10 @@ export function useEmojis(
 		closeMenu()
 	}
 
-	const onKeyDown = (
+	const onKeyDown = async (
 		e: React.KeyboardEvent<HTMLTextAreaElement>,
 		coords: { top: number; left: number } | null
 	) => {
-		const emojiPicker = EmojiDialogSingleton?.component
-
 		switch (e.key) {
 			case ':': {
 				if (isEmojiMenuOpen) {
@@ -94,7 +97,9 @@ export function useEmojis(
 			case 'ArrowUp':
 			case 'ArrowDown': {
 				if (isEmojiMenuOpen) {
-					emojiPicker.handleSearchKeyDown({
+					e.preventDefault()
+					const emojiPicker = (await getEmojiDialogSingleton())?.component
+					emojiPicker?.handleSearchKeyDown({
 						...e,
 						preventDefault: () => {
 							/* shim */
@@ -103,7 +108,6 @@ export function useEmojis(
 							/* shim */
 						},
 					})
-					e.preventDefault()
 					return true
 				}
 
@@ -112,14 +116,17 @@ export function useEmojis(
 
 			case 'Backspace':
 				if (isEmojiMenuOpen) {
+					const emojiPicker = (await getEmojiDialogSingleton())?.component
 					if (!emojiSearchText) {
 						closeMenu()
 						return true
 					}
 
 					const text = emojiSearchText.slice(0, -1)
-					emojiPicker.refs.searchInput.current.value = text
-					emojiPicker.handleSearchInput()
+					if (emojiPicker) {
+						emojiPicker.refs.searchInput.current.value = text
+						emojiPicker.handleSearchInput()
+					}
 					setEmojiSearchText(text)
 					return true
 				}
@@ -128,8 +135,11 @@ export function useEmojis(
 
 			default:
 				if (isEmojiMenuOpen && e.key.length === 1 && e.key.match(/[a-zA-Z0-9]/)) {
-					emojiPicker.refs.searchInput.current.value = emojiSearchText + e.key
-					emojiPicker.handleSearchInput()
+					const emojiPicker = (await getEmojiDialogSingleton())?.component
+					if (emojiPicker) {
+						emojiPicker.refs.searchInput.current.value = emojiSearchText + e.key
+						emojiPicker.handleSearchInput()
+					}
 					setEmojiSearchText(emojiSearchText + e.key)
 					return true
 				}

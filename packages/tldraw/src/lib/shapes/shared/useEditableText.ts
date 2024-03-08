@@ -3,22 +3,31 @@ import {
 	Editor,
 	TLShape,
 	TLShapeId,
+	TLTextTriggerHook,
 	TLUnknownShape,
 	Vec,
 	getPointerInfo,
 	stopEventPropagation,
 	useEditor,
-	useEditorHooks,
 	useValue,
 } from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
+const DefaultTextTriggerHook = () => ({ onKeyDown: () => false })
+
 /** @public */
-export function useEditableText(id: TLShapeId, type: string, text: string) {
+export function useEditableText(
+	id: TLShapeId,
+	type: string,
+	text: string,
+	options: {
+		useTextTriggerCharacter?: TLTextTriggerHook
+	}
+) {
 	const editor = useEditor()
-	const { useTextTriggerCharacter } = useEditorHooks()
 	const rInput = useRef<HTMLTextAreaElement>(null)
+	const useTextTriggerCharacter = options.useTextTriggerCharacter || DefaultTextTriggerHook
 	const { onKeyDown: onCustomKeyDown } = useTextTriggerCharacter(rInput.current, (text: string) => {
 		editor.updateShapes<TLUnknownShape & { props: { text: string } }>([
 			{ id, type, props: { text } },

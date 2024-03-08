@@ -27,7 +27,6 @@ import {
 	TLEditorComponents,
 	useEditorComponents,
 } from './hooks/useEditorComponents'
-import { EditorHooksProvider, TLEditorHooks } from './hooks/useEditorHooks'
 import { useEvent } from './hooks/useEvent'
 import { useFocusEvents } from './hooks/useFocusEvents'
 import { useForceUpdate } from './hooks/useForceUpdate'
@@ -91,13 +90,6 @@ export interface TldrawEditorBaseProps {
 	components?: TLEditorComponents
 
 	/**
-	 * Hooks into various logical entrypoints in the codebase.
-	 * For example, for text input, we allow hooking into text trigger characters
-	 * to enable #hashtags, \@at-mentions, :emojis:
-	 */
-	hooks?: TLEditorHooks
-
-	/**
 	 * Called when the editor has mounted.
 	 */
 	onMount?: TLOnMountHandler
@@ -148,7 +140,6 @@ const EMPTY_TOOLS_ARRAY = [] as const
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
-	hooks,
 	className,
 	user: _user,
 	...rest
@@ -184,20 +175,18 @@ export const TldrawEditor = memo(function TldrawEditor({
 				{container && (
 					<ContainerProvider container={container}>
 						<EditorComponentsProvider overrides={components}>
-							<EditorHooksProvider overrides={hooks}>
-								{store ? (
-									store instanceof Store ? (
-										// Store is ready to go, whether externally synced or not
-										<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
-									) : (
-										// Store is a synced store, so handle syncing stages internally
-										<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
-									)
+							{store ? (
+								store instanceof Store ? (
+									// Store is ready to go, whether externally synced or not
+									<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
 								) : (
-									// We have no store (it's undefined) so create one and possibly sync it
-									<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
-								)}
-							</EditorHooksProvider>
+									// Store is a synced store, so handle syncing stages internally
+									<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+								)
+							) : (
+								// We have no store (it's undefined) so create one and possibly sync it
+								<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+							)}
 						</EditorComponentsProvider>
 					</ContainerProvider>
 				)}

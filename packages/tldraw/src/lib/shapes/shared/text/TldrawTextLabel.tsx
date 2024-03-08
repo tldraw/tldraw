@@ -26,8 +26,11 @@ export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
 	style,
 	textWidth,
 	textHeight,
+	useTextTriggerCharacter,
 }) {
-	const { rInput, isEmpty, isEditing, ...editableTextRest } = useEditableText(id, type, text)
+	const { rInput, isEmpty, isEditing, ...editableTextRest } = useEditableText(id, type, text, {
+		useTextTriggerCharacter,
+	})
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.length > 0

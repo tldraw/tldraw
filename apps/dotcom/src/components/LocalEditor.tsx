@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import React, { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -13,8 +13,8 @@ import {
 	PreferencesGroup,
 	ShapeSubmenu,
 	TLComponents,
-	TLHooks,
 	Tldraw,
+	TldrawTextLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
@@ -85,10 +85,9 @@ const components: TLComponents = {
 			</div>
 		)
 	},
-}
-
-const hooks: TLHooks = {
-	useTextTriggerCharacter,
+	TextLabel: React.memo((props) => {
+		return <TldrawTextLabel {...props} useTextTriggerCharacter={useTextTriggerCharacter} />
+	}),
 }
 
 export function LocalEditor() {
@@ -112,7 +111,6 @@ export function LocalEditor() {
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
-				hooks={hooks}
 				inferDarkMode
 			>
 				<LocalMigration />

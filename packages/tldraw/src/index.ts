@@ -291,7 +291,7 @@ export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 
 export { TextArea, TldrawTextLabel } from './lib/shapes/shared/text/TldrawTextLabel'
 
-export { type TLComponents, type TLHooks } from './lib/Tldraw'
+export { type TLComponents } from './lib/Tldraw'
 
 /* ------------------- Primitives ------------------- */
 

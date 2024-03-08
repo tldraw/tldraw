@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
 	DefaultContextMenuContent,
@@ -14,8 +14,8 @@ import {
 	PreferencesGroup,
 	ShapeSubmenu,
 	TLComponents,
-	TLHooks,
 	Tldraw,
+	TldrawTextLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
@@ -114,10 +114,9 @@ const components: TLComponents = {
 			</div>
 		)
 	},
-}
-
-const hooks: TLHooks = {
-	useTextTriggerCharacter,
+	TextLabel: React.memo((props) => {
+		return <TldrawTextLabel {...props} useTextTriggerCharacter={useTextTriggerCharacter} />
+	}),
 }
 
 export function MultiplayerEditor({
@@ -171,7 +170,6 @@ export function MultiplayerEditor({
 				initialState={isReadOnly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
-				hooks={hooks}
 				autoFocus
 				inferDarkMode
 			>

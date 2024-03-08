@@ -88,7 +88,10 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
-export { type TLTextLabel } from './lib/components/default-components/DefaultTextLabel'
+export {
+	type TLTextLabel,
+	type TLTextTriggerHook,
+} from './lib/components/default-components/DefaultTextLabel'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
@@ -248,8 +251,6 @@ export { getCursor } from './lib/hooks/useCursor'
 export { EditorContext, useEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
-export { useEditorHooks } from './lib/hooks/useEditorHooks'
-export type { TLEditorHooks } from './lib/hooks/useEditorHooks'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
