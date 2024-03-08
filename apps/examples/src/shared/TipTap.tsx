@@ -54,12 +54,12 @@ const Tiptap = ({
 	])
 	const tiptapEditor = useTipTapEditor({
 		extensions,
-		content,
+		content: content ? JSON.parse(content) : '',
 		autofocus: true,
 		onUpdate: ({ editor }) => {
-			const html = editor.getHTML()
+			const json = editor.getJSON()
 			tldrawEditor.updateShapes<TLUnknownShape & { props: { text: string } }>([
-				{ id, type, props: { text: html } },
+				{ id, type, props: { text: JSON.stringify(json) } },
 			])
 		},
 		onBlur: () => {
@@ -68,7 +68,7 @@ const Tiptap = ({
 	})
 
 	useEffect(() => {
-		if (tiptapEditor?.getHTML() !== content) {
+		if (content && JSON.stringify(tiptapEditor?.getJSON()) !== content) {
 			tiptapEditor?.commands.setContent(content)
 		}
 	}, [tiptapEditor, content])
@@ -134,6 +134,22 @@ const Tiptap = ({
 			</div>
 		</div>
 	)
+}
+
+// This strictly renders just so we can get an accurate size of the div being rendered.
+export function TipTapMeasure({ content }: { content: string }) {
+	const tiptapEditor = useTipTapEditor({
+		extensions: [StarterKit],
+		content: content ? JSON.parse(content) : '',
+	})
+
+	useEffect(() => {
+		if (content && JSON.stringify(tiptapEditor?.getJSON()) !== content) {
+			tiptapEditor?.commands.setContent(JSON.parse(content))
+		}
+	}, [tiptapEditor, content])
+
+	return <EditorContent editor={tiptapEditor} />
 }
 
 export default Tiptap

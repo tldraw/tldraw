@@ -1066,7 +1066,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		return { w: 0, h: 0 }
 	}
 
-	const minSize = editor.textMeasure.measure('w', {
+	const minSize = editor.textMeasure.measureText('w', {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
