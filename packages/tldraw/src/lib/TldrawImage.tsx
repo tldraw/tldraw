@@ -8,13 +8,14 @@ import {
 	TLPageId,
 	TLRecord,
 	TLSvgOptions,
+	getSvgAsString,
 	useShallowArrayIdentity,
 	useTLStore,
 } from '@tldraw/editor'
 import { memo, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
-import { getSvgAsImage, getSvgAsString } from './utils/export/export'
+import { getSvgAsImage } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /**

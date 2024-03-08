@@ -5,6 +5,7 @@ import {
 	TLSvgOptions,
 	debugFlags,
 	exhaustiveSwitchError,
+	getSvgAsString,
 } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 
@@ -18,10 +19,31 @@ export async function getSvgAsImage(
 		scale: number
 	}
 ) {
-	const { type, quality, scale } = options
-
 	const width = +svg.getAttribute('width')!
 	const height = +svg.getAttribute('height')!
+	const svgString = await getSvgAsString(svg)
+
+	return getSvgStringAsImage(svgString, isSafari, {
+		...options,
+		width,
+		height,
+	})
+}
+
+/** @public */
+export async function getSvgStringAsImage(
+	svgString: string,
+	isSafari: boolean,
+	options: {
+		type: 'png' | 'jpeg' | 'webp'
+		quality: number
+		scale: number
+		width: number
+		height: number
+	}
+) {
+	const { type, quality, scale, width, height } = options
+
 	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
 		width * scale,
 		height * scale
@@ -30,7 +52,6 @@ export async function getSvgAsImage(
 	clampedHeight = Math.floor(clampedHeight)
 	const effectiveScale = clampedWidth / width
 
-	const svgString = await getSvgAsString(svg)
 	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
@@ -89,39 +110,6 @@ export async function getSvgAsImage(
 	return PngHelpers.setPhysChunk(view, effectiveScale, {
 		type: 'image/' + type,
 	})
-}
-
-/** @public */
-export async function getSvgAsString(svg: SVGElement) {
-	const clone = svg.cloneNode(true) as SVGGraphicsElement
-
-	svg.setAttribute('width', +svg.getAttribute('width')! + '')
-	svg.setAttribute('height', +svg.getAttribute('height')! + '')
-
-	const fileReader = new FileReader()
-	const imgs = Array.from(clone.querySelectorAll('image')) as SVGImageElement[]
-
-	for (const img of imgs) {
-		const src = img.getAttribute('xlink:href')
-		if (src) {
-			if (!src.startsWith('data:')) {
-				const blob = await (await fetch(src)).blob()
-				const base64 = await new Promise<string>((resolve, reject) => {
-					fileReader.onload = () => resolve(fileReader.result as string)
-					fileReader.onerror = () => reject(fileReader.error)
-					fileReader.readAsDataURL(blob)
-				})
-				img.setAttribute('xlink:href', base64)
-			}
-		}
-	}
-
-	const out = new XMLSerializer()
-		.serializeToString(clone)
-		.replaceAll('&#10;      ', '')
-		.replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
-
-	return out
 }
 
 async function getSvg(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
@@ -184,6 +172,31 @@ export async function exportToBlob({
 		case 'jpeg':
 		case 'png':
 		case 'webp': {
+			const getSvgTimes = []
+			const svgToImageTimes = []
+			const totalTimes = []
+			for (let i = 0; i < 400; i++) {
+				const a = performance.now()
+				const svg = await getSvg(editor, ids, opts)
+				const b = performance.now()
+				await getSvgAsImage(svg, editor.environment.isSafari, {
+					type: format,
+					quality: 1,
+					scale: 2,
+				})
+				const c = performance.now()
+				getSvgTimes.push(b - a)
+				svgToImageTimes.push(c - b)
+				totalTimes.push(c - a)
+			}
+
+			const avgGetSvgTime = (getSvgTimes.reduce((a, b) => a + b, 0) / getSvgTimes.length).toFixed(2)
+			const avgSvgToImageTime = (
+				svgToImageTimes.reduce((a, b) => a + b, 0) / svgToImageTimes.length
+			).toFixed(2)
+			const avgTotalTime = (totalTimes.reduce((a, b) => a + b, 0) / totalTimes.length).toFixed(2)
+			console.log({ avgGetSvgTime, avgSvgToImageTime, avgTotalTime })
+
 			const image = await getSvgAsImage(
 				await getSvg(editor, ids, opts),
 				editor.environment.isSafari,

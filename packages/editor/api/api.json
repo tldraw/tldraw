@@ -13884,7 +13884,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSvg:member(1)",
-              "docComment": "/**\n * Get an exported SVG of the given shapes.\n *\n * @param ids - The shapes (or shape ids) to export.\n *\n * @param opts - Options for the export.\n *\n * @returns The SVG element.\n *\n * @public\n */\n",
+              "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13986,6 +13986,103 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getSvg"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSvgString:member(1)",
+              "docComment": "/**\n * Get an exported SVG string of the given shapes.\n *\n * @param ids - The shapes (or shape ids) to export.\n *\n * @param opts - Options for the export.\n *\n * @returns The SVG element.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSvgString(shapes: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", opts?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLSvgOptions",
+                  "canonicalReference": "@tldraw/editor!TLSvgOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string | undefined>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 11,
+                "endIndex": 13
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shapes",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 10
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSvgString"
             },
             {
               "kind": "Method",
@@ -22232,6 +22329,57 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/editor!getSvgAsString:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function getSvgAsString(svg: "
+            },
+            {
+              "kind": "Reference",
+              "text": "SVGElement",
+              "canonicalReference": "!SVGElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/utils/getSvgAsString.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "svg",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "getSvgAsString"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/editor!getSvgPathFromPoints:function(1)",
           "docComment": "/**\n * Turn an array of points into a path of quadradic curves.\n *\n * @param points - The points returned from perfect-freehand\n *\n * @param closed - Whether the stroke is closed\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -24580,7 +24728,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!isSafeFloat:function(1)",
-          "docComment": "/**\n * Check if a float is safe to use. ie: Not too big or small.\n *\n * @public\n */\n",
+          "docComment": "/**\n * ] Check if a float is safe to use. ie: Not too big or small.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -32047,12 +32195,12 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "<null | "
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "ReactElement",
+                  "canonicalReference": "@types/react!React.ReactElement:interface"
                 },
                 {
                   "kind": "Content",
@@ -32060,8 +32208,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "ReactElement",
+                  "canonicalReference": "@types/react!React.ReactElement:interface"
                 },
                 {
                   "kind": "Content",
@@ -32125,18 +32273,22 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
                   "kind": "Reference",
                   "text": "Promise",
                   "canonicalReference": "!Promise:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "<null | "
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "ReactElement",
+                  "canonicalReference": "@types/react!React.ReactElement:interface"
                 },
                 {
                   "kind": "Content",
@@ -32144,8 +32296,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "ReactElement",
+                  "canonicalReference": "@types/react!React.ReactElement:interface"
                 },
                 {
                   "kind": "Content",
@@ -32155,7 +32307,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 10
+                "endIndex": 11
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -34684,39 +34836,17 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "ReactElement",
+                  "canonicalReference": "@types/react!React.ReactElement:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": " | "
+                  "text": "> | "
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]> | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
+                  "text": "ReactElement",
+                  "canonicalReference": "@types/react!React.ReactElement:interface"
                 },
                 {
                   "kind": "Content",
@@ -34729,7 +34859,7 @@
               "name": "getElement",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 12
+                "endIndex": 7
               }
             },
             {
@@ -42976,6 +43106,34 @@
             }
           ],
           "name": "useSelectionEvents"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/editor!useSvgExportContext:function(1)",
+          "docComment": "/**\n * Returns the read-only parts of {@link SvgExportContext}.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useSvgExportContext(): "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    isDarkMode: boolean;\n} | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/types/SvgExportContext.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useSvgExportContext"
         },
         {
           "kind": "Function",

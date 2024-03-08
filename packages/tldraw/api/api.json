@@ -1639,9 +1639,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -1651,7 +1655,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -4808,9 +4812,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4820,7 +4828,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -7213,27 +7221,13 @@
                   "text": "): "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "Promise",
-                  "canonicalReference": "!Promise:interface"
-                },
-                {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "import(\"react/jsx-runtime\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "> | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -7243,7 +7237,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 10
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -8402,9 +8396,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -8414,7 +8412,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -8678,57 +8676,6 @@
             }
           ],
           "name": "getSvgAsImage"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "tldraw!getSvgAsString:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getSvgAsString(svg: "
-            },
-            {
-              "kind": "Reference",
-              "text": "SVGElement",
-              "canonicalReference": "!SVGElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Reference",
-              "text": "Promise",
-              "canonicalReference": "!Promise:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<string>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/export/export.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "svg",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getSvgAsString"
         },
         {
           "kind": "Function",
@@ -9832,9 +9779,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGPathElement",
-                  "canonicalReference": "!SVGPathElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -9844,7 +9795,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -9879,21 +9830,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", ctx: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SvgExportContext",
-                  "canonicalReference": "@tldraw/editor!SvgExportContext:interface"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGPathElement",
-                  "canonicalReference": "!SVGPathElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -9902,8 +9848,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 3,
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -9914,14 +9860,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "ctx",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }
@@ -10467,16 +10405,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "<import(\"react/jsx-runtime\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": ">"
+                  "text": " | null>"
                 },
                 {
                   "kind": "Content",
@@ -11078,17 +11016,13 @@
                 },
                 {
                   "kind": "Content",
-                  "text": " | undefined"
-                },
-                {
-                  "kind": "Content",
                   "text": ";"
                 }
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 6
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -11703,21 +11637,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", ctx: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SvgExportContext",
-                  "canonicalReference": "@tldraw/editor!SvgExportContext:interface"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -11726,8 +11655,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 3,
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -11738,14 +11667,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "ctx",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }
@@ -12836,9 +12757,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -12848,7 +12773,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -15233,9 +15158,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -15245,7 +15174,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -27936,9 +27865,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -27948,7 +27881,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,

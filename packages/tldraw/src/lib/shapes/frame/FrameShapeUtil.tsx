@@ -3,7 +3,6 @@ import {
 	Geometry2d,
 	Rectangle2d,
 	SVGContainer,
-	SelectionEdge,
 	SvgExportContext,
 	TLFrameShape,
 	TLGroupShape,
@@ -11,18 +10,15 @@ import {
 	TLOnResizeHandler,
 	TLShape,
 	TLShapeId,
-	canonicalizeRotation,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
-	last,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FrameHeading } from './components/FrameHeading'
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -97,93 +93,97 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override toSvg(shape: TLFrameShape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> {
+	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
-		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect.setAttribute('width', shape.props.w.toString())
-		rect.setAttribute('height', shape.props.h.toString())
-		rect.setAttribute('fill', theme.solid)
-		rect.setAttribute('stroke', theme.black.solid)
-		rect.setAttribute('stroke-width', '1')
-		rect.setAttribute('rx', '1')
-		rect.setAttribute('ry', '1')
-		g.appendChild(rect)
-
-		// Text label
-		const pageRotation = canonicalizeRotation(
-			this.editor.getShapePageTransform(shape.id)!.rotation()
-		)
-		// rotate right 45 deg
-		const offsetRotation = pageRotation + Math.PI / 4
-		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-		const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
-			Math.floor(scaledRotation)
-		]
-
-		let labelTranslate: string
-		switch (labelSide) {
-			case 'top':
-				labelTranslate = ``
-				break
-			case 'right':
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, 0px) rotate(90deg)`
-				break
-			case 'bottom':
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, ${toDomPrecision(
-					shape.props.h
-				)}px) rotate(180deg)`
-				break
-			case 'left':
-				labelTranslate = `translate(0px, ${toDomPrecision(shape.props.h)}px) rotate(270deg)`
-				break
-			default:
-				labelTranslate = ``
-		}
-
-		// Truncate with ellipsis
-		const opts = {
-			fontSize: 12,
-			fontFamily: 'Inter, sans-serif',
-			textAlign: 'start' as const,
-			width: shape.props.w,
-			height: 32,
-			padding: 0,
-			lineHeight: 1,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			overflow: 'truncate-ellipsis' as const,
-			verticalTextAlign: 'middle' as const,
-		}
-
-		const spans = this.editor.textMeasure.measureTextSpans(
-			defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
-			opts
+		return (
+			<>
+				<rect
+					width={shape.props.w}
+					height={shape.props.h}
+					fill={theme.solid}
+					stroke={theme.black.solid}
+					strokeWidth={1}
+					rx={1}
+					ry={1}
+				/>
+			</>
 		)
 
-		const firstSpan = spans[0]
-		const lastSpan = last(spans)!
-		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = createTextSvgElementFromSpans(this.editor, spans, {
-			offsetY: -opts.height - 2,
-			...opts,
-		})
-		text.style.setProperty('transform', labelTranslate)
+		// TODO: text label
 
-		const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		textBg.setAttribute('x', '-8px')
-		textBg.setAttribute('y', -opts.height - 4 + 'px')
-		textBg.setAttribute('width', labelTextWidth + 16 + 'px')
-		textBg.setAttribute('height', `${opts.height}px`)
-		textBg.setAttribute('rx', 4 + 'px')
-		textBg.setAttribute('ry', 4 + 'px')
-		textBg.setAttribute('fill', theme.background)
+		// // Text label
+		// const pageRotation = canonicalizeRotation(
+		// 	this.editor.getShapePageTransform(shape.id)!.rotation()
+		// )
+		// // rotate right 45 deg
+		// const offsetRotation = pageRotation + Math.PI / 4
+		// const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
+		// const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
+		// 	Math.floor(scaledRotation)
+		// ]
 
-		g.appendChild(textBg)
-		g.appendChild(text)
+		// let labelTranslate: string
+		// switch (labelSide) {
+		// 	case 'top':
+		// 		labelTranslate = ``
+		// 		break
+		// 	case 'right':
+		// 		labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, 0px) rotate(90deg)`
+		// 		break
+		// 	case 'bottom':
+		// 		labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, ${toDomPrecision(
+		// 			shape.props.h
+		// 		)}px) rotate(180deg)`
+		// 		break
+		// 	case 'left':
+		// 		labelTranslate = `translate(0px, ${toDomPrecision(shape.props.h)}px) rotate(270deg)`
+		// 		break
+		// 	default:
+		// 		labelTranslate = ``
+		// }
 
-		return g
+		// // Truncate with ellipsis
+		// const opts = {
+		// 	fontSize: 12,
+		// 	fontFamily: 'Inter, sans-serif',
+		// 	textAlign: 'start' as const,
+		// 	width: shape.props.w,
+		// 	height: 32,
+		// 	padding: 0,
+		// 	lineHeight: 1,
+		// 	fontStyle: 'normal',
+		// 	fontWeight: 'normal',
+		// 	overflow: 'truncate-ellipsis' as const,
+		// 	verticalTextAlign: 'middle' as const,
+		// }
+
+		// const spans = this.editor.textMeasure.measureTextSpans(
+		// 	defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
+		// 	opts
+		// )
+
+		// const firstSpan = spans[0]
+		// const lastSpan = last(spans)!
+		// const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
+		// const text = createTextSvgElementFromSpans(this.editor, spans, {
+		// 	offsetY: -opts.height - 2,
+		// 	...opts,
+		// })
+		// text.style.setProperty('transform', labelTranslate)
+
+		// const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+		// textBg.setAttribute('x', '-8px')
+		// textBg.setAttribute('y', -opts.height - 4 + 'px')
+		// textBg.setAttribute('width', labelTextWidth + 16 + 'px')
+		// textBg.setAttribute('height', `${opts.height}px`)
+		// textBg.setAttribute('rx', 4 + 'px')
+		// textBg.setAttribute('ry', 4 + 'px')
+		// textBg.setAttribute('fill', theme.background)
+
+		// g.appendChild(textBg)
+		// g.appendChild(text)
+
+		// return g
 	}
 
 	indicator(shape: TLFrameShape) {

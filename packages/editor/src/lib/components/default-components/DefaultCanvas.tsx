@@ -480,7 +480,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
 	const shape = editor.getShape(id)
 
-	const [html, setHtml] = React.useState('')
+	const [src, setSrc] = React.useState<string | null>(null)
 
 	const isInRoot = shape?.parentId === editor.getCurrentPageId()
 
@@ -491,18 +491,23 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getShapePageBounds(id)
-			const el = await editor.getSvg([id], {
+			console.time(`getSvgString ${renderId}`)
+			const svgString = await editor.getSvgString([id], {
 				padding: 0,
 				background: editor.getInstanceState().exportBackground,
 			})
-			if (el && bb && latest === renderId) {
-				el.style.setProperty('overflow', 'visible')
-				el.setAttribute('preserveAspectRatio', 'xMidYMin slice')
-				el.style.setProperty('transform', `translate(${bb.x}px, ${bb.y + bb.h + 12}px)`)
-				el.style.setProperty('border', '1px solid black')
-				setHtml(el?.outerHTML)
+
+			for (let i = 0; i < 100; i++) {
+				const svgString = await editor.getSvgString([id], {
+					padding: 0,
+					background: editor.getInstanceState().exportBackground,
+				})
 			}
+			console.timeEnd(`getSvgString ${renderId}`)
+			if (latest !== renderId || !svgString) return
+
+			const svgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgString)}`
+			setSrc(svgDataUrl)
 		})
 
 		return () => {
@@ -510,13 +515,23 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			unsubscribe()
 		}
 	}, [editor, id, isInRoot])
+	const bb = editor.getShapePageBounds(id)
 
-	if (!isInRoot) return null
+	if (!isInRoot || !src || !bb) return null
 
 	return (
-		<div style={{ paddingTop: 12, position: 'absolute' }}>
-			<div style={{ display: 'flex' }} dangerouslySetInnerHTML={{ __html: html }} />
-		</div>
+		<img
+			src={src}
+			width={bb.width}
+			height={bb.height}
+			style={{
+				position: 'absolute',
+				top: 0,
+				left: 0,
+				transform: `translate(${bb.x}px, ${bb.y + bb.h + 12}px)`,
+				border: '1px solid black',
+			}}
+		/>
 	)
 })
 
