@@ -33,10 +33,12 @@ it('requires a move to begin drawing', () => {
 })
 
 describe('Making an arrow on the page', () => {
-	it('creates an arrow on pointer down ', () => {
+	it('creates an arrow on drag', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerMove(0, 0)
 		editor.pointerDown()
+		expect(editor.getCurrentPageShapes().length).toBe(0)
+		editor.pointerMove(0, 10)
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
