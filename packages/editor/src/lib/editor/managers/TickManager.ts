@@ -73,8 +73,7 @@ export class TickManager {
 		if (Math.abs(next.x) < 0.01) next.x = 0
 		if (Math.abs(next.y) < 0.01) next.y = 0
 
-		if (!pointerVelocity.equals(next)) {
-			this.editor.inputs.pointerVelocity = next
-		}
+		if (Vec.Equals(pointerVelocity, next)) return
+		this.editor.inputs.pointerVelocity.setTo(next)
 	}
 }

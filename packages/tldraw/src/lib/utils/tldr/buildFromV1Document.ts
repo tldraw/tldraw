@@ -559,7 +559,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 										x: point.x,
 										y: point.y,
 									},
-									isPrecise: point.x !== 0.5 || point.y !== 0.5,
+									timeInBoundShape: 0, // point.x !== 0.5 || point.y !== 0.5,
 								})
 
 								if (change) {

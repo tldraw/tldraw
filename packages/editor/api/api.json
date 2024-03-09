@@ -39188,7 +39188,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    isPrecise: boolean;\n    initial?: T | undefined;\n}) => "
+              "text": ";\n    timeInBoundShape: number;\n}) => "
             },
             {
               "kind": "Reference",
