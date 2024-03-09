@@ -36,7 +36,7 @@ export function CustomRenderer() {
 			const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
 			const currentPageId = editor.getCurrentPageId()
 
-			for (const { shape, maskedPageBounds } of renderingShapes) {
+			for (const { shape, maskedPageBounds, opacity } of renderingShapes) {
 				if (!maskedPageBounds) continue
 				ctx.save()
 
@@ -52,6 +52,9 @@ export function CustomRenderer() {
 				}
 
 				ctx.beginPath()
+
+				ctx.globalAlpha = opacity
+
 				const transform = editor.getShapePageTransform(shape.id)
 				ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f)
 
