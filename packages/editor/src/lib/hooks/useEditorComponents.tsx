@@ -48,7 +48,7 @@ import {
 } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
-import { TLTextLabel } from '../components/default-components/DefaultTextLabel'
+import { DefaultTextLabel, TLTextLabel } from '../components/default-components/DefaultTextLabel'
 import { useShallowObjectIdentity } from './useIdentity'
 
 export interface BaseEditorComponents {
@@ -136,6 +136,7 @@ export function EditorComponentsProvider({
 					OnTheCanvas: null,
 					InFrontOfTheCanvas: null,
 					Canvas: DefaultCanvas,
+					TextLabel: DefaultTextLabel,
 					..._overrides,
 				}),
 				[_overrides]
