@@ -10,7 +10,7 @@ import { TLEventInfo } from '../types/event-types'
 export abstract class Session<T extends object = object> {
 	constructor(
 		public editor: Editor,
-		public options = {} as T
+		public info = {} as T
 	) {}
 
 	dispose = () => {

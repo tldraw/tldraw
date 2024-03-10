@@ -5,7 +5,7 @@ import {
 	TLEventHandlers,
 	TLImageShape,
 } from '@tldraw/editor'
-import { CroppingSession } from '../../../sessions/CroppingSession'
+import { CroppingSession } from '../../../../../sessions/CroppingSession'
 
 export class Cropping extends StateNode {
 	static override id = 'cropping'

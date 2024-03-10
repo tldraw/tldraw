@@ -30009,7 +30009,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", options?: "
+                  "text": ", info?: "
                 },
                 {
                   "kind": "Content",
@@ -30033,7 +30033,7 @@
                   "isOptional": false
                 },
                 {
-                  "parameterName": "options",
+                  "parameterName": "info",
                   "parameterTypeTokenRange": {
                     "startIndex": 3,
                     "endIndex": 4
@@ -30194,6 +30194,36 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": true
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Session#info:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "info: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "info",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Method",
@@ -30380,36 +30410,6 @@
               "isOptional": false,
               "isAbstract": true,
               "name": "onUpdate"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Session#options:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "options: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "T"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "options",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Method",

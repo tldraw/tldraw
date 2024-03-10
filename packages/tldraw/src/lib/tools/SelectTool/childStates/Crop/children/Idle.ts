@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLExitEventHandler, TLGroupShape, Vec } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLGroupShape, Vec } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
@@ -24,7 +24,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onExit: TLExitEventHandler = () => {
+	override onExit = () => {
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
@@ -33,7 +33,7 @@ export class Idle extends StateNode {
 		this.editor.off('change-history', this.cleanupCroppingState)
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel = () => {
 		this.editor.setCroppingShape(null)
 		this.editor.setCurrentTool('select.idle', {})
 	}
@@ -67,13 +67,13 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				if (info.shape.id === this.editor.getCroppingShapeId()) {
-					this.editor.setCurrentTool('select.crop.pointing_crop', info)
+					this.parent.transition('pointing_crop', info)
 					return
 				} else {
 					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
 						this.editor.setCroppingShape(info.shape.id)
 						this.editor.setSelectedShapes([info.shape.id])
-						this.editor.setCurrentTool('select.crop.pointing_crop', info)
+						this.parent.transition('pointing_crop', info)
 					} else {
 						this.cancel()
 						// feed the event back into the statechart
@@ -98,21 +98,12 @@ export class Idle extends StateNode {
 					case 'top':
 					case 'right':
 					case 'bottom':
-					case 'left': {
-						this.editor.setCurrentTool('select.pointing_crop_handle', {
-							...info,
-							onInteractionEnd: 'select.crop',
-						})
-						break
-					}
+					case 'left':
 					case 'top_left':
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
-						this.editor.setCurrentTool('select.pointing_crop_handle', {
-							...info,
-							onInteractionEnd: 'select.crop',
-						})
+						this.parent.transition('pointing_crop_handle', info)
 						break
 					}
 					default: {
@@ -142,11 +133,11 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {
+	override onKeyDown = () => {
 		this.nudgeCroppingImage(false)
 	}
 
-	override onKeyRepeat: TLEventHandlers['onKeyRepeat'] = () => {
+	override onKeyRepeat = () => {
 		this.nudgeCroppingImage(true)
 	}
 
