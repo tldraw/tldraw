@@ -6,10 +6,7 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onEnter = () => {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 

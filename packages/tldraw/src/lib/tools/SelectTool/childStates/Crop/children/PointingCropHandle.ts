@@ -12,27 +12,15 @@ export class PointingCropHandle extends StateNode {
 
 	override onEnter = (info: TLPointingCropHandleInfo) => {
 		this.info = info
-		const shape = this.editor.getOnlySelectedShape()
-		if (!shape) return
-
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState(
-			{
-				cursor: {
-					type: cursorType,
-					rotation: this.editor.getSelectionRotation(),
-				},
-			},
-			{ ephemeral: true }
-		)
-		this.editor.setCroppingShape(shape.id)
+		this.editor.setCursor({
+			type: cursorType,
+			rotation: this.editor.getSelectionRotation(),
+		})
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
@@ -47,7 +35,6 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		this.editor.setCroppingShape(null)
 		this.parent.transition('idle')
 	}
 
@@ -64,7 +51,6 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.setCroppingShape(null)
 		this.parent.transition('idle')
 	}
 }
