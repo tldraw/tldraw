@@ -1577,6 +1577,25 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 // @public (undocumented)
 export type SelectionHandle = SelectionCorner | SelectionEdge;
 
+// @public
+export abstract class Session {
+    constructor(editor: Editor);
+    // (undocumented)
+    abstract cancel(): void;
+    // (undocumented)
+    abstract complete(): void;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    abstract readonly id: string;
+    // (undocumented)
+    abstract interrupt(): void;
+    // (undocumented)
+    abstract start(): void;
+    // (undocumented)
+    abstract update(): void;
+}
+
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 

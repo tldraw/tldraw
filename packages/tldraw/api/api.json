@@ -13726,15 +13726,6 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "ScribbleBrushing",
-                  "canonicalReference": "tldraw!~ScribbleBrushing:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | typeof "
-                },
-                {
-                  "kind": "Reference",
                   "text": "Translating",
                   "canonicalReference": "tldraw!~Translating:class"
                 },
@@ -13753,7 +13744,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 38
+                "endIndex": 36
               },
               "isStatic": true,
               "isProtected": false,

@@ -15,7 +15,6 @@ import { PointingSelection } from './childStates/PointingSelection'
 import { PointingShape } from './childStates/PointingShape'
 import { Resizing } from './childStates/Resizing'
 import { Rotating } from './childStates/Rotating'
-import { ScribbleBrushing } from './childStates/ScribbleBrushing'
 import { Translating } from './childStates/Translating'
 
 /** @public */
@@ -32,7 +31,6 @@ export class SelectTool extends StateNode {
 		PointingShape,
 		Translating,
 		Brushing,
-		ScribbleBrushing,
 		PointingCropHandle,
 		PointingSelection,
 		PointingResizeHandle,

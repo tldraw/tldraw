@@ -1640,7 +1640,7 @@ describe('scribble brushes to add to the selection', () => {
 		editor.keyDown('Alt')
 		editor.pointerDown()
 		editor.pointerMove(-1, -1)
-		editor.expectToBeIn('select.scribble_brushing')
+		editor.expectToBeIn('select.brushing')
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 
@@ -1701,9 +1701,10 @@ describe('scribble brushes to add to the selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
 		editor.pointerMove(450, 250) // below box 3
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
-		editor.keyUp('Alt') // scribble
+		editor.keyUp('Alt') // end scribble
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // still in timer
-		jest.advanceTimersByTime(1000) // let timer expire
+		jest.advanceTimersByTime(1000)
+		editor.forceTick() // let timer expire
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box3, ids.box4]) // brushed!
 		editor.keyDown('Alt') // scribble
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // back to brushed only
@@ -1846,7 +1847,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerMove(0, 0)
 		// still only box 1...
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		jest.advanceTimersByTime(100)
+		editor.forceTick(6)
 		// ...but now viewport will have moved to select box2 as well
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		editor.pointerUp()

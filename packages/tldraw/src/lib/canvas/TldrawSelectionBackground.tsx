@@ -15,7 +15,6 @@ export const TldrawSelectionBackground = ({ bounds, rotation }: TLSelectionBackg
 			editor.isInAny(
 				'select.idle',
 				'select.brushing',
-				'select.scribble_brushing',
 				'select.pointing_shape',
 				'select.pointing_selection',
 				'text.resizing'

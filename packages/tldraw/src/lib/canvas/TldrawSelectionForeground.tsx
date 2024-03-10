@@ -84,7 +84,6 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			editor.isInAny(
 				'select.idle',
 				'select.brushing',
-				'select.scribble_brushing',
 				'select.pointing_canvas',
 				'select.pointing_selection',
 				'select.pointing_shape',

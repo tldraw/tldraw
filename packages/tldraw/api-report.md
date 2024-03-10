@@ -47,6 +47,7 @@ import { SelectionCorner } from '@tldraw/editor';
 import { SelectionEdge } from '@tldraw/editor';
 import { SelectionHandle } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
+import { Session } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
@@ -1163,7 +1164,7 @@ export function RotateCWMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class SelectTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
+    static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof Translating)[];
     // (undocumented)
     static id: string;
     // (undocumented)
