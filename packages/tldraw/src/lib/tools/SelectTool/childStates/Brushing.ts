@@ -7,12 +7,10 @@ export class Brushing extends StateNode {
 	session = {} as BrushingSession
 
 	override onEnter = () => {
-		this.session = new BrushingSession(this.editor)
-		this.session.start()
+		this.session = new BrushingSession(this.editor).start()
 	}
 
 	override onPointerUp = () => {
 		this.session.complete()
-		this.session.dispose()
 	}
 }
