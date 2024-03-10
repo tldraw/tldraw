@@ -1578,12 +1578,12 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 export type SelectionHandle = SelectionCorner | SelectionEdge;
 
 // @public
-export abstract class Session {
-    constructor(editor: Editor);
+export abstract class Session<T extends object = object> {
+    constructor(editor: Editor, options?: T);
     // (undocumented)
-    abstract cancel(): void;
+    cancel(): this;
     // (undocumented)
-    abstract complete(): void;
+    complete(): this;
     // (undocumented)
     dispose: () => void;
     // (undocumented)
@@ -1591,11 +1591,23 @@ export abstract class Session {
     // (undocumented)
     abstract readonly id: string;
     // (undocumented)
-    abstract interrupt(): void;
+    interrupt(): this;
     // (undocumented)
-    abstract start(): void;
+    protected abstract onCancel(): void;
     // (undocumented)
-    abstract update(): void;
+    protected abstract onComplete(): void;
+    // (undocumented)
+    protected abstract onInterrupt(): void;
+    // (undocumented)
+    protected abstract onStart(): void;
+    // (undocumented)
+    protected abstract onUpdate(): void;
+    // (undocumented)
+    options: T;
+    // (undocumented)
+    start(): this;
+    // (undocumented)
+    update(): this;
 }
 
 // @public (undocumented)

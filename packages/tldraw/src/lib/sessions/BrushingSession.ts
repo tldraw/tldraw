@@ -33,7 +33,7 @@ export class BrushingSession extends Session {
 
 	scribbledShapeIds = new Set<TLShapeId>()
 
-	start() {
+	onStart() {
 		const { altKey, currentPagePoint } = this.editor.inputs
 
 		this.strategy = altKey ? 'scribble' : 'box'
@@ -54,7 +54,7 @@ export class BrushingSession extends Session {
 		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
 	}
 
-	update() {
+	onUpdate() {
 		moveCameraWhenCloseToEdge(this.editor)
 
 		const strategy = this.editor.inputs.altKey ? 'scribble' : 'box'
@@ -77,20 +77,18 @@ export class BrushingSession extends Session {
 		}
 	}
 
-	complete() {
+	onComplete() {
 		this.clearStuff()
 		this.editor.setCurrentTool('select.idle')
-		return
 	}
 
-	cancel() {
+	onCancel() {
 		this.clearStuff()
 		this.editor.setSelectedShapes(this.initialSelectedShapeIds, { squashing: true })
 		this.editor.setCurrentTool('select.idle')
-		return
 	}
 
-	interrupt() {
+	onInterrupt() {
 		this.editor.updateInstanceState({ brush: null })
 	}
 

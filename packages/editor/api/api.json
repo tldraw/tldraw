@@ -29955,11 +29955,40 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare abstract class Session "
+              "text": "export declare abstract class Session<T extends "
+            },
+            {
+              "kind": "Content",
+              "text": "object"
+            },
+            {
+              "kind": "Content",
+              "text": " = "
+            },
+            {
+              "kind": "Content",
+              "text": "object"
+            },
+            {
+              "kind": "Content",
+              "text": "> "
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/editor/sessions/Session.ts",
           "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              }
+            }
+          ],
           "isAbstract": true,
           "name": "Session",
           "preserveMemberOrder": false,
@@ -29980,6 +30009,14 @@
                 },
                 {
                   "kind": "Content",
+                  "text": ", options?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
                   "text": ");"
                 }
               ],
@@ -29994,6 +30031,14 @@
                     "endIndex": 2
                   },
                   "isOptional": false
+                },
+                {
+                  "parameterName": "options",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
                 }
               ]
             },
@@ -30004,11 +30049,11 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "abstract cancel(): "
+                  "text": "cancel(): "
                 },
                 {
                   "kind": "Content",
-                  "text": "void"
+                  "text": "this"
                 },
                 {
                   "kind": "Content",
@@ -30025,7 +30070,7 @@
               "overloadIndex": 1,
               "parameters": [],
               "isOptional": false,
-              "isAbstract": true,
+              "isAbstract": false,
               "name": "cancel"
             },
             {
@@ -30035,11 +30080,11 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "abstract complete(): "
+                  "text": "complete(): "
                 },
                 {
                   "kind": "Content",
-                  "text": "void"
+                  "text": "this"
                 },
                 {
                   "kind": "Content",
@@ -30056,7 +30101,7 @@
               "overloadIndex": 1,
               "parameters": [],
               "isOptional": false,
-              "isAbstract": true,
+              "isAbstract": false,
               "name": "complete"
             },
             {
@@ -30157,11 +30202,11 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "abstract interrupt(): "
+                  "text": "interrupt(): "
                 },
                 {
                   "kind": "Content",
-                  "text": "void"
+                  "text": "this"
                 },
                 {
                   "kind": "Content",
@@ -30178,8 +30223,193 @@
               "overloadIndex": 1,
               "parameters": [],
               "isOptional": false,
-              "isAbstract": true,
+              "isAbstract": false,
               "name": "interrupt"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Session#onCancel:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected abstract onCancel(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": true,
+              "name": "onCancel"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Session#onComplete:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected abstract onComplete(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": true,
+              "name": "onComplete"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Session#onInterrupt:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected abstract onInterrupt(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": true,
+              "name": "onInterrupt"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Session#onStart:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected abstract onStart(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": true,
+              "name": "onStart"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Session#onUpdate:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected abstract onUpdate(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": true,
+              "name": "onUpdate"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Session#options:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "options: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "options",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Method",
@@ -30188,11 +30418,11 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "abstract start(): "
+                  "text": "start(): "
                 },
                 {
                   "kind": "Content",
-                  "text": "void"
+                  "text": "this"
                 },
                 {
                   "kind": "Content",
@@ -30209,7 +30439,7 @@
               "overloadIndex": 1,
               "parameters": [],
               "isOptional": false,
-              "isAbstract": true,
+              "isAbstract": false,
               "name": "start"
             },
             {
@@ -30219,11 +30449,11 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "abstract update(): "
+                  "text": "update(): "
                 },
                 {
                   "kind": "Content",
-                  "text": "void"
+                  "text": "this"
                 },
                 {
                   "kind": "Content",
@@ -30240,7 +30470,7 @@
               "overloadIndex": 1,
               "parameters": [],
               "isOptional": false,
-              "isAbstract": true,
+              "isAbstract": false,
               "name": "update"
             }
           ],

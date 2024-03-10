@@ -7,10 +7,15 @@ import { TLEventInfo } from '../types/event-types'
  *
  * @public
  */
-export abstract class Session {
-	constructor(public editor: Editor) {
-		this.editor.on('tick', this.handleTick)
-		this.editor.on('event', this.handleEditorEvent)
+export abstract class Session<T extends object = object> {
+	constructor(
+		public editor: Editor,
+		public options = {} as T
+	) {}
+
+	dispose = () => {
+		this.editor.off('tick', this.handleTick)
+		this.editor.off('event', this.handleEditorEvent)
 	}
 
 	private handleTick = () => {
@@ -45,20 +50,45 @@ export abstract class Session {
 		}
 	}
 
-	dispose = () => {
-		this.editor.off('tick', this.handleTick)
-		this.editor.off('event', this.handleEditorEvent)
-	}
-
 	abstract readonly id: string
 
-	abstract start(): void
+	start() {
+		this.onStart()
+		this.onUpdate()
+		this.editor.on('tick', this.handleTick)
+		this.editor.on('event', this.handleEditorEvent)
+		return this
+	}
 
-	abstract update(): void
+	update() {
+		this.onUpdate()
+		return this
+	}
 
-	abstract complete(): void
+	complete() {
+		this.onComplete()
+		this.dispose()
+		return this
+	}
 
-	abstract cancel(): void
+	cancel() {
+		this.onCancel()
+		this.dispose()
+		return this
+	}
 
-	abstract interrupt(): void
+	interrupt() {
+		this.onInterrupt()
+		return this
+	}
+
+	protected abstract onStart(): void
+
+	protected abstract onUpdate(): void
+
+	protected abstract onComplete(): void
+
+	protected abstract onCancel(): void
+
+	protected abstract onInterrupt(): void
 }
