@@ -52,7 +52,7 @@ export function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	if (shape.props.text.trim()) {
 		const bodyBounds = bodyGeom.bounds
 
-		const { w, h } = editor.textMeasure.measureText(shape.props.text, {
+		const { w, h } = editor.textMeasure.measure(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
@@ -65,15 +65,12 @@ export function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 		if (bodyBounds.width > bodyBounds.height) {
 			width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
 
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-					maxWidth: width,
-				}
-			)
+			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measure(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+				maxWidth: width,
+			})
 
 			width = squishedWidth
 			height = squishedHeight
@@ -82,15 +79,12 @@ export function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 		if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
 			width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
 
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-					maxWidth: width,
-				}
-			)
+			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measure(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+				maxWidth: width,
+			})
 
 			width = squishedWidth
 			height = squishedHeight

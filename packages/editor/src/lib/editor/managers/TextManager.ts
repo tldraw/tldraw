@@ -1,4 +1,7 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
+import { ReactNode } from 'react'
+import { flushSync } from 'react-dom'
+import { Root, createRoot } from 'react-dom/client'
 import { Editor } from '../Editor'
 
 const fixNewLines = /\r?\n|\r/g
@@ -36,11 +39,24 @@ type TLMeasureTextSpanOpts = {
 
 const spaceCharacterRegex = /\s/
 
+/**
+ * @public
+ * This is an _experimental_ component that we are still exploring.
+ */
+export type MeasureMethod = 'text' | ((content: string) => ReactNode)
+
 export class TextManager {
 	baseElm: HTMLDivElement
-	baseReactComponentElm: HTMLDivElement
 
-	constructor(public editor: Editor) {
+	reactComponentElm: HTMLDivElement
+	reactRoot?: Root
+	reactComponentInitialized = false
+	measureMethod: MeasureMethod
+
+	constructor(
+		public editor: Editor,
+		measureMethod: MeasureMethod = 'text'
+	) {
 		const elm = document.createElement('div')
 		elm.id = `tldraw_text_measure`
 		elm.classList.add('tl-text')
@@ -55,7 +71,35 @@ export class TextManager {
 		reactComponentElm.classList.add('tl-text-measure')
 		reactComponentElm.tabIndex = -1
 		this.editor.getContainer().appendChild(reactComponentElm)
-		this.baseReactComponentElm = reactComponentElm
+		this.reactComponentElm = reactComponentElm
+
+		this.measureMethod = measureMethod
+		this.reactRoot = createRoot(this.reactComponentElm)
+	}
+
+	measure = (
+		content: string,
+		opts: {
+			fontStyle: string
+			fontWeight: string
+			fontFamily: string
+			fontSize: number
+			lineHeight: number
+			/**
+			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+			 * is null, the text will be measured without wrapping, but explicit line breaks and
+			 * space are preserved.
+			 */
+			maxWidth: null | number
+			minWidth?: string
+			padding: string
+		}
+	): BoxModel => {
+		if (this.measureMethod === 'text') {
+			return this.measureText(content, opts)
+		} else {
+			return this.measureComponent(content, opts, this.measureMethod)
+		}
 	}
 
 	measureText = (
@@ -102,8 +146,8 @@ export class TextManager {
 		}
 	}
 
-	measureHTML = (
-		html: string,
+	measureComponent = (
+		content: string,
 		opts: {
 			fontStyle: string
 			fontWeight: string
@@ -118,14 +162,12 @@ export class TextManager {
 			maxWidth: null | number
 			minWidth?: string
 			padding: string
-		}
+		},
+		renderFn: (content: string) => ReactNode
 	): BoxModel => {
-		// Duplicate our base element; we don't need to clone deep
-		const elm = this.baseReactComponentElm?.cloneNode() as HTMLDivElement
-		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
-		this.baseReactComponentElm.insertAdjacentElement('afterend', elm)
-
+		const elm = this.reactComponentElm
 		elm.setAttribute('dir', 'ltr')
+		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
 		elm.style.setProperty('font-family', opts.fontFamily)
 		elm.style.setProperty('font-style', opts.fontStyle)
 		elm.style.setProperty('font-weight', opts.fontWeight)
@@ -135,10 +177,11 @@ export class TextManager {
 		elm.style.setProperty('min-width', opts.minWidth ?? null)
 		elm.style.setProperty('padding', opts.padding)
 
-		elm.innerHTML = html
-		const rect = elm.getBoundingClientRect()
-		elm.remove()
+		flushSync(() => {
+			this.reactRoot!.render(renderFn(content))
+		})
 
+		const rect = elm.getBoundingClientRect()
 		return {
 			x: 0,
 			y: 0,

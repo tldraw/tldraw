@@ -27,6 +27,7 @@ import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactNode } from 'react';
+import { Root } from 'react-dom/client';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -45,7 +46,11 @@ import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDefaultColorStyle } from '@tldraw/tlschema';
+import { TLDefaultFillStyle } from '@tldraw/tlschema';
+import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
+import { TLDefaultVerticalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
@@ -570,7 +575,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, measureMethod, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
@@ -2055,6 +2060,7 @@ export interface TLEditorOptions {
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    measureMethod?: MeasureMethod;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
@@ -2571,6 +2577,9 @@ export type TLSvgOptions = {
     preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
 };
 
+// @public
+export type TLTextLabel = ITextLabel<TextLabelProps>;
+
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
 
@@ -2674,6 +2683,7 @@ export function useEditorComponents(): Partial<{
     OnTheCanvas: ComponentType | null;
     InFrontOfTheCanvas: ComponentType | null;
     LoadingScreen: ComponentType | null;
+    TextLabel: null | TLTextLabel;
 } & ErrorComponents> & ErrorComponents;
 
 // @public (undocumented)

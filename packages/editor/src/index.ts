@@ -88,6 +88,7 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
+export { type TLTextLabel } from './lib/components/default-components/DefaultTextLabel'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,

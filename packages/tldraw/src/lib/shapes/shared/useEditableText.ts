@@ -1,11 +1,9 @@
 /* eslint-disable no-inner-declarations */
-
 import {
 	TLShape,
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
-	preventDefault,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -106,15 +104,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 					}
 					break
 				}
-				case 'Tab': {
-					preventDefault(e)
-					if (e.shiftKey) {
-						TextHelpers.unindent(e.currentTarget)
-					} else {
-						TextHelpers.indent(e.currentTarget)
-					}
-					break
-				}
 			}
 		},
 		[editor, isEditing]
@@ -125,7 +114,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
 
-			let text = TextHelpers.normalizeText(e.currentTarget.value)
+			let text = TextHelpers.normalizeTextForDom(e.currentTarget.value)
 
 			// ------- Bug fix ------------
 			// Replace tabs with spaces when pasting

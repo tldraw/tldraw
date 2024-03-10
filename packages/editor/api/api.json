@@ -7447,7 +7447,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: "
+                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, measureMethod, }: "
                 },
                 {
                   "kind": "Reference",
@@ -7464,7 +7464,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }",
+                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, measureMethod, }",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -36890,6 +36890,34 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLEditorOptions#measureMethod:member",
+              "docComment": "/**\n * Specifies how to measure text, whether pure text or as HTML.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "measureMethod?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "MeasureMethod",
+                  "canonicalReference": "@tldraw/editor!~MeasureMethod:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "measureMethod",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEditorOptions#shapeUtils:member",
               "docComment": "/**\n * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.\n */\n",
               "excerptTokens": [
@@ -41553,6 +41581,46 @@
         },
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLTextLabel:type",
+          "docComment": "/**\n * This is an _experimental_ component that we are still exploring.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLTextLabel = "
+            },
+            {
+              "kind": "Reference",
+              "text": "ITextLabel",
+              "canonicalReference": "@tldraw/editor!~ITextLabel:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TextLabelProps",
+              "canonicalReference": "@tldraw/editor!~TextLabelProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultTextLabel.tsx",
+          "releaseTag": "Public",
+          "name": "TLTextLabel",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLTickEvent:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -42735,7 +42803,16 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n} & "
+              "text": " | null;\n    TextLabel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLTextLabel",
+              "canonicalReference": "@tldraw/editor!TLTextLabel:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} & "
             },
             {
               "kind": "Reference",
@@ -42759,7 +42836,7 @@
           "fileUrlPath": "packages/editor/src/lib/hooks/useEditorComponents.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 90
+            "endIndex": 92
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

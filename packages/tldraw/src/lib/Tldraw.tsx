@@ -31,6 +31,7 @@ import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
+import { TldrawTextLabel } from './shapes/shared/text/TldrawTextLabel'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
@@ -91,6 +92,7 @@ export function Tldraw(props: TldrawProps) {
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
 			HoveredShapeIndicator: TldrawHoveredShapeIndicator,
+			TextLabel: TldrawTextLabel,
 			..._components,
 		}),
 		[_components]

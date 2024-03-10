@@ -1,21 +1,31 @@
-import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS, getDefaultColorTheme } from 'tldraw'
+import {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	TEXT_PROPS,
+	TLDefaultSizeStyle,
+	getDefaultColorTheme,
+} from 'tldraw'
+import Tiptap, { TipTapMeasure } from '../../shared/TipTap'
 import type {
 	SpeechBubbleShape,
 	SpeechBubbleShapeProps,
 } from '../speech-bubble/SpeechBubble/SpeechBubbleUtil'
 import { STROKE_SIZES, SpeechBubbleUtil } from '../speech-bubble/SpeechBubble/SpeechBubbleUtil'
 import { getSpeechBubbleVertices } from '../speech-bubble/SpeechBubble/helpers'
-import Tiptap from './TipTap'
-import './custom-rich-text.css'
 
 export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 	override getDefaultProps(): SpeechBubbleShapeProps {
-		return { ...super.getDefaultProps(), text: '<p>Hello <b>World</b>! Some <i>rich</i> text</p>' }
+		return {
+			...super.getDefaultProps(),
+			text: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello "},{"type":"text","marks":[{"type":"bold"}],"text":"world! "},{"type":"text","text":"Some "},{"type":"text","marks":[{"type":"italic"}],"text":"rich"},{"type":"text","text":" text"}]}]}',
+		}
 	}
 
 	override component(shape: SpeechBubbleShape) {
 		const {
-			props: { color, font, size, align },
+			id,
+			type,
+			props: { color, font, size, align, text },
 		} = shape
 		const theme = getDefaultColorTheme({
 			isDarkMode: this.editor.user.getIsDarkMode(),
@@ -36,13 +46,15 @@ export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 
 				<div style={{ padding: '1rem' }}>
 					<Tiptap
-						color={color}
+						id={id}
+						type={type}
+						labelColor={color}
 						font={font}
-						size={size}
+						fontSize={LABEL_FONT_SIZES[size as TLDefaultSizeStyle]}
+						lineHeight={TEXT_PROPS.lineHeight}
 						align={align}
 						verticalAlign="start"
-						shape={shape}
-						content={shape.props.text}
+						content={text}
 					/>
 				</div>
 			</>
@@ -54,12 +66,16 @@ export class SpeechBubbleUtilRichText extends SpeechBubbleUtil {
 		const {
 			props: { w, h, text, font, size },
 		} = shape
-		const nextTextSize = this.editor.textMeasure.measureHTML(text, {
-			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[font],
-			fontSize: LABEL_FONT_SIZES[size],
-			maxWidth: w - PADDING * 2,
-		})
+		const nextTextSize = this.editor.textMeasure.measureComponent(
+			text,
+			{
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[font],
+				fontSize: LABEL_FONT_SIZES[size],
+				maxWidth: w - PADDING * 2,
+			},
+			() => <TipTapMeasure content={text} />
+		)
 
 		const nextHeight = nextTextSize.h + PADDING * 2
 

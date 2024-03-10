@@ -17,13 +17,13 @@ import {
 	TLOnBeforeUpdateHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
-	TextLabel,
 	Vec,
 	ZERO_INDEX_KEY,
 	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
+	useEditorComponents,
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
@@ -173,9 +173,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	component(shape: SpeechBubbleShape) {
 		const {
-			id,
-			type,
-			props: { color, font, size, align, text },
+			props: { color, size },
 		} = shape
 		const theme = getDefaultColorTheme({
 			isDarkMode: this.editor.user.getIsDarkMode(),
@@ -194,17 +192,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					/>
 				</svg>
 
-				<TextLabel
-					id={id}
-					type={type}
-					font={font}
-					size={size}
-					align={align}
-					verticalAlign="start"
-					text={text}
-					labelColor="black"
-					wrap
-				/>
+				<TextLabelWrapper shape={shape} />
 			</>
 		)
 	}
@@ -228,7 +216,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
 		const PADDING = 17
 
-		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
+		const nextTextSize = this.editor.textMeasure.measure(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: LABEL_FONT_SIZES[shape.props.size],
@@ -255,6 +243,33 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			},
 		}
 	}
+}
+
+function TextLabelWrapper({ shape }: { shape: SpeechBubbleShape }) {
+	const { TextLabel } = useEditorComponents()
+
+	const {
+		id,
+		type,
+		props: { color, font, align, size, text },
+	} = shape
+
+	return (
+		TextLabel && (
+			<TextLabel
+				id={id}
+				type={type}
+				font={font}
+				fontSize={LABEL_FONT_SIZES[size]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				align={align}
+				verticalAlign="start"
+				text={text}
+				labelColor={color}
+				wrap
+			/>
+		)
+	)
 }
 
 /*

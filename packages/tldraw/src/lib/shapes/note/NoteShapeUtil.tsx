@@ -10,10 +10,10 @@ import {
 	noteShapeMigrations,
 	noteShapeProps,
 	toDomPrecision,
+	useEditorComponents,
 } from '@tldraw/editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
-import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
@@ -54,9 +54,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	component(shape: TLNoteShape) {
 		const {
-			id,
-			type,
-			props: { color, font, size, align, text, verticalAlign },
+			props: { color },
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -80,17 +78,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						}}
 					>
 						<div className="tl-note__scrim" />
-						<TextLabel
-							id={id}
-							type={type}
-							font={font}
-							size={size}
-							align={align}
-							verticalAlign={verticalAlign}
-							text={text}
-							labelColor="black"
-							wrap
-						/>
+						<TextLabelWrapper shape={shape} />
 					</div>
 				</div>
 				{'url' in shape.props && shape.props.url && (
@@ -187,10 +175,37 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 }
 
+function TextLabelWrapper({ shape }: { shape: TLNoteShape }) {
+	const { TextLabel } = useEditorComponents()
+
+	const {
+		id,
+		type,
+		props: { font, size, align, text, verticalAlign },
+	} = shape
+
+	return (
+		TextLabel && (
+			<TextLabel
+				id={id}
+				type={type}
+				font={font}
+				fontSize={LABEL_FONT_SIZES[size]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				align={align}
+				verticalAlign={verticalAlign}
+				text={text}
+				labelColor="black"
+				wrap
+			/>
+		)
+	)
+}
+
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 	const PADDING = 17
 
-	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
+	const nextTextSize = editor.textMeasure.measure(shape.props.text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
