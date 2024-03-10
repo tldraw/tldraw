@@ -110,7 +110,7 @@ export class BrushingSession extends Session {
 		const currentPageShapes = this.editor.getCurrentPageShapes()
 
 		const {
-			inputs: { originPagePoint, previousPagePoint, currentPagePoint, shiftKey, ctrlKey },
+			inputs: { originPagePoint, previousPagePoint, currentPagePoint, shiftKey },
 		} = this.editor
 
 		if (!this.scribbleId) {
