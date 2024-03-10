@@ -17,7 +17,7 @@ export class PointingCropHandle extends StateNode {
 		this.editor.updateInstanceState({
 			cursor: {
 				type: cursorType,
-				rotation: shape.rotation,
+				rotation: this.editor.getShapePageTransform(shape).rotation(),
 			},
 		})
 	}
