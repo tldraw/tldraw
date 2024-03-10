@@ -6,6 +6,22 @@ export class RootState extends StateNode {
 	static override initial = ''
 	static override children = () => []
 
+	override onTick = () => {
+		this.editor.sessions.getSessions().forEach((session) => session.update())
+	}
+
+	override onKeyUp = () => {
+		this.editor.sessions.getSessions().forEach((session) => session.update())
+	}
+
+	override onCancel = () => {
+		this.editor.sessions.getSessions().forEach((session) => session.cancel())
+	}
+
+	override onInterrupt = () => {
+		this.editor.sessions.getSessions().forEach((session) => session.interrupt())
+	}
+
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		// todo: move this logic up to the tldraw library, as the "zoom" tool only exists there
 		switch (info.code) {
@@ -19,5 +35,7 @@ export class RootState extends StateNode {
 				break
 			}
 		}
+
+		this.editor.sessions.getSessions().forEach((session) => session.update())
 	}
 }

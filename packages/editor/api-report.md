@@ -821,6 +821,20 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
+    // (undocumented)
+    pointers: Map<number, {
+        id: number;
+        originPagePoint: Vec;
+        originScreenPoint: Vec;
+        previousPagePoint: Vec;
+        previousScreenPoint: Vec;
+        prevFrameScreenPoint: Vec;
+        currentPagePoint: Vec;
+        currentScreenPoint: Vec;
+        velocity: Vec;
+        buttons: Set<number>;
+        isPen: boolean;
+    }>;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, options?: {
         point?: VecLike;
@@ -854,6 +868,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
+    readonly sessions: SessionManager;
     setCamera(point: VecLike, animation?: TLAnimationOptions): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     setCurrentPage(page: TLPage | TLPageId, historyOptions?: TLCommandHistoryOptions): this;
@@ -1578,8 +1593,8 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 export type SelectionHandle = SelectionCorner | SelectionEdge;
 
 // @public
-export abstract class Session {
-    constructor(editor: Editor);
+export abstract class Session<T extends object = object> {
+    constructor(editor: Editor, options?: T);
     // (undocumented)
     abstract cancel(): void;
     // (undocumented)
@@ -1587,13 +1602,30 @@ export abstract class Session {
     // (undocumented)
     editor: Editor;
     // (undocumented)
-    abstract readonly id: string;
+    readonly id: string;
     // (undocumented)
     abstract interrupt(): void;
     // (undocumented)
+    options: T;
+    // (undocumented)
+    remove(): void;
+    // (undocumented)
     abstract start(): void;
     // (undocumented)
+    abstract readonly type: string;
+    // (undocumented)
     abstract update(): void;
+}
+
+// @public (undocumented)
+export class SessionManager {
+    constructor(editor: Editor);
+    addSession(session: Session): void;
+    clearSessions(): void;
+    // (undocumented)
+    editor: Editor;
+    getSessions(): Session<object>[];
+    removeSession(session: Session): void;
 }
 
 // @public (undocumented)

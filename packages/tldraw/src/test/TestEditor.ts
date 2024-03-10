@@ -374,12 +374,12 @@ export class TestEditor extends Editor {
 	}
 
 	keyDown = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
 	}
 
 	keyRepeat = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) }).forceTick()
 		return this
 	}
 
@@ -391,7 +391,7 @@ export class TestEditor extends Editor {
 				altKey: this.inputs.altKey && key !== 'Alt',
 				...options,
 			}),
-		})
+		}).forceTick()
 		return this
 	}
 

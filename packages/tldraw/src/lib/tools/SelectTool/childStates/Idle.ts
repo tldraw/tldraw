@@ -15,6 +15,7 @@ import {
 	createShapeId,
 	pointInPolygon,
 } from '@tldraw/editor'
+import { BrushingSession } from '../../../sessions/BrushingSession'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
@@ -41,6 +42,8 @@ export class Idle extends StateNode {
 
 		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
 
+		console.log('hello')
+
 		if (info.ctrlKey && !shouldEnterCropMode) {
 			// On Mac, you can right click using the Control keys + Click.
 			if (info.target === 'shape' && this.isDarwin && this.editor.inputs.keys.has('ControlLeft')) {
@@ -49,8 +52,8 @@ export class Idle extends StateNode {
 					return
 				}
 			}
-
-			this.parent.transition('brushing', info)
+			new BrushingSession(this.editor, { pointerId: info.pointerId })
+			// this.parent.transition('brushing', info)
 			return
 		}
 

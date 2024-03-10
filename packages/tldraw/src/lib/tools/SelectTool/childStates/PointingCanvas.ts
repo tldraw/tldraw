@@ -1,4 +1,5 @@
 import { StateNode, TLEventHandlers } from '@tldraw/editor'
+import { BrushingSession } from '../../../sessions/BrushingSession'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 
 export class PointingCanvas extends StateNode {
@@ -17,7 +18,10 @@ export class PointingCanvas extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('brushing', info)
+			const session = new BrushingSession(this.editor, { pointerId: info.pointerId })
+			session.start()
+			session.update()
+			this.parent.transition('idle', info)
 		}
 	}
 

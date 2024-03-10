@@ -108,6 +108,7 @@ import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
+import { SessionManager } from './managers/SessionManager'
 import { SideEffectManager } from './managers/SideEffectManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -154,7 +155,7 @@ export type TLResizeShapeOptions = Partial<{
 /** @public */
 export interface TLEditorOptions {
 	/**
-	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
+	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 	 * from a server or database.
 	 */
 	store: TLStore
@@ -201,6 +202,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store = store
 
 		this.snaps = new SnapManager(this)
+
+		this.sessions = new SessionManager(this)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -667,7 +670,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _tickManager = new TickManager(this)
 
 	/**
-	 * A manager for the app's snapping feature.
+	 * A manager for the editor's sessions.
+	 */
+	readonly sessions: SessionManager
+
+	/**
+	 * A manager for the editor's snapping feature.
 	 *
 	 * @public
 	 */
@@ -769,7 +777,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- History -------------------- */
 
 	/**
-	 * A manager for the app's history.
+	 * A manager for the editor's history.
 	 *
 	 * @readonly
 	 */
@@ -1023,7 +1031,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * we're in a transaction that's about to be rolled back due to the same error we're currently
 	 * reporting.
 	 *
-	 * Instead, to listen to changes to this value, you need to listen to app's `crash` event.
+	 * Instead, to listen to changes to this value, you need to listen to editor's `crash` event.
 	 *
 	 * @internal
 	 */
@@ -1610,7 +1618,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The app's only selected shape.
+	 * The editor's only selected shape.
 	 *
 	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected
 	 *   shape.
@@ -8278,8 +8286,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Events --------------------- */
 
+	pointers = new Map<
+		number,
+		{
+			id: number
+			originPagePoint: Vec
+			originScreenPoint: Vec
+			previousPagePoint: Vec
+			previousScreenPoint: Vec
+			prevFrameScreenPoint: Vec
+			currentPagePoint: Vec
+			currentScreenPoint: Vec
+			velocity: Vec
+			buttons: Set<number>
+			isPen: boolean
+		}
+	>()
+
 	/**
-	 * The app's current input state.
+	 * The editor's current input state.
 	 *
 	 * @public
 	 */
@@ -8339,6 +8364,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const sx = info.point.x - screenBounds.x
 		const sy = info.point.y - screenBounds.y
 		const sz = info.point.z
+
+		if (info.type === 'pointer') {
+			switch (info.name) {
+				case 'pointer_down': {
+					this.pointers.set(info.pointerId, {
+						id: info.pointerId,
+						originPagePoint: new Vec(sx / cz - cx, sy / cz - cy, sz ?? 0.5),
+						originScreenPoint: new Vec(sx, sy),
+						previousPagePoint: new Vec(sx / cz - cx, sy / cz - cy, sz ?? 0.5),
+						previousScreenPoint: new Vec(sx, sy),
+						prevFrameScreenPoint: new Vec(sx, sy),
+						currentPagePoint: new Vec(sx / cz - cx, sy / cz - cy, sz ?? 0.5),
+						currentScreenPoint: new Vec(sx, sy),
+						velocity: new Vec(0, 0),
+						isPen: info.type === 'pointer' && info.isPen,
+						buttons: new Set([info.button]),
+					})
+					break
+				}
+				case 'pointer_move': {
+					const pointer = this.pointers.get(info.pointerId)
+					if (pointer) {
+						pointer.previousPagePoint.setTo(pointer.currentPagePoint)
+						pointer.previousScreenPoint.setTo(pointer.currentScreenPoint)
+						pointer.currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
+						pointer.currentScreenPoint.set(sx, sy)
+					}
+					break
+				}
+				case 'pointer_up': {
+					this.pointers.delete(info.pointerId)
+					break
+				}
+			}
+		}
 
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)

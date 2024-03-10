@@ -16,24 +16,26 @@ import {
 	polygonsIntersect,
 } from '@tldraw/editor'
 
-export class BrushingSession extends Session {
-	readonly id = 'brushing'
+export class BrushingSession extends Session<{ pointerId: number }> {
+	readonly type = 'brushing'
 
+	pointerId = -1
 	strategy: 'box' | 'scribble' = 'box'
-
 	isWrapMode = false
-
 	brush = new Box()
-
 	scribbleId: string | null = null
-
 	excludedShapeIds = new Set<TLShapeId>()
 	initialSelectedShapeIds: TLShapeId[] = []
 	initialStartShape?: TLShape
-
 	scribbledShapeIds = new Set<TLShapeId>()
 
 	start() {
+		if (!this.editor.pointers.has(this.options.pointerId)) {
+			throw Error('no pointer id')
+			this.cancel()
+			return
+		}
+
 		const { altKey, currentPagePoint } = this.editor.inputs
 
 		this.strategy = altKey ? 'scribble' : 'box'
@@ -55,6 +57,11 @@ export class BrushingSession extends Session {
 	}
 
 	update() {
+		if (!this.editor.pointers.has(this.options.pointerId)) {
+			this.complete()
+			return
+		}
+
 		moveCameraWhenCloseToEdge(this.editor)
 
 		const strategy = this.editor.inputs.altKey ? 'scribble' : 'box'
@@ -80,6 +87,7 @@ export class BrushingSession extends Session {
 	complete() {
 		this.clearStuff()
 		this.editor.setCurrentTool('select.idle')
+		this.remove()
 		return
 	}
 
@@ -87,6 +95,7 @@ export class BrushingSession extends Session {
 		this.clearStuff()
 		this.editor.setSelectedShapes(this.initialSelectedShapeIds, { squashing: true })
 		this.editor.setCurrentTool('select.idle')
+		this.remove()
 		return
 	}
 
@@ -110,8 +119,12 @@ export class BrushingSession extends Session {
 		const currentPageShapes = this.editor.getCurrentPageShapes()
 
 		const {
-			inputs: { originPagePoint, previousPagePoint, currentPagePoint, shiftKey },
+			inputs: { shiftKey },
 		} = this.editor
+
+		const pointer = this.editor.pointers.get(this.options.pointerId)
+		if (!pointer) throw Error('no pointer')
+		const { originPagePoint, previousPagePoint, currentPagePoint } = pointer
 
 		if (!this.scribbleId) {
 			// start the scribble brushing
@@ -125,7 +138,7 @@ export class BrushingSession extends Session {
 
 		const { scribbledShapeIds } = this
 
-		const { x, y } = this.editor.inputs.currentPagePoint
+		const { x, y } = currentPagePoint
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 
 		const shapes = currentPageShapes
@@ -189,8 +202,12 @@ export class BrushingSession extends Session {
 
 	private boxBrush() {
 		const {
-			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
+			inputs: { shiftKey, ctrlKey },
 		} = this.editor
+
+		const pointer = this.editor.pointers.get(this.options.pointerId)
+		if (!pointer) throw Error('no pointer')
+		const { originPagePoint, currentPagePoint } = pointer
 
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapes = this.editor.getCurrentPageShapes()

@@ -1,12 +1,4 @@
-import {
-	StateNode,
-	TLCancelEvent,
-	TLEventHandlers,
-	TLInterruptEvent,
-	TLKeyboardEvent,
-	TLShape,
-	TLTickEventHandler,
-} from '@tldraw/editor'
+import { StateNode, TLShape } from '@tldraw/editor'
 import { BrushingSession } from '../../../sessions/BrushingSession'
 
 export class Brushing extends StateNode {
@@ -23,27 +15,21 @@ export class Brushing extends StateNode {
 		this.session.update()
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		this.session.update()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp = () => {
 		this.session.complete()
+		this.session.remove()
 	}
 
-	override onCancel?: TLCancelEvent | undefined = () => {
+	override onCancel = () => {
 		this.session.cancel()
+		this.session.remove()
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {
-		this.session.update()
-	}
-
-	override onKeyUp?: TLKeyboardEvent | undefined = () => {
-		this.session.update()
-	}
-
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt = () => {
 		this.session.interrupt()
 	}
 }

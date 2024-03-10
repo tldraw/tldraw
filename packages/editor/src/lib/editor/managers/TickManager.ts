@@ -50,6 +50,30 @@ export class TickManager {
 
 	private prevPoint = new Vec()
 
+	private updatePointersVelocity = (elapsed: number) => {
+		if (elapsed === 0) return
+
+		this.editor.pointers.forEach((pointer) => {
+			const { currentScreenPoint, prevFrameScreenPoint, velocity } = pointer
+			const delta = Vec.Sub(currentScreenPoint, prevFrameScreenPoint)
+			prevFrameScreenPoint.setTo(currentScreenPoint)
+
+			const length = delta.len()
+			const direction = length ? delta.div(length) : new Vec(0, 0)
+
+			// consider adjusting this with an easing rather than a linear interpolation
+			const next = velocity.clone().lrp(direction.mul(length / elapsed), 0.5)
+
+			// if the velocity is very small, just set it to 0
+			if (Math.abs(next.x) < 0.01) next.x = 0
+			if (Math.abs(next.y) < 0.01) next.y = 0
+
+			if (!velocity.equals(next)) {
+				velocity.setTo(next)
+			}
+		})
+	}
+
 	private updatePointerVelocity = (elapsed: number) => {
 		const {
 			prevPoint,
