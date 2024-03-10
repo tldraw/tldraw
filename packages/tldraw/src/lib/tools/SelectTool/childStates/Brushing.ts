@@ -4,13 +4,14 @@ import { BrushingSession } from '../../../sessions/BrushingSession'
 export class Brushing extends StateNode {
 	static override id = 'brushing'
 
-	session = {} as BrushingSession
+	session?: BrushingSession
 
 	override onEnter = () => {
 		this.session = new BrushingSession(this.editor).start()
 	}
 
 	override onPointerUp = () => {
-		this.session.complete()
+		this.session?.complete()
+		delete this.session
 	}
 }

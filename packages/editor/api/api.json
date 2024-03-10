@@ -30045,7 +30045,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Session#cancel:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Cancel the session. This is called automatically on editor's `cancel` events. Calls `onCancel` and disposes of the session.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -30076,7 +30076,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Session#complete:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Complete the session. This is called automatically on editor's `complete` events. Calls `onComplete` and disposes of the session.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -30198,7 +30198,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Session#interrupt:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Interrupt the session. This is called automatically on editor's `interrupt` events. Calls `onInterrupt`. It does not dispose the session.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -30414,7 +30414,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Session#start:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Start the session. Sets up event listeners and calls `onStart` and `onUpdate`.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -30445,7 +30445,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Session#update:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Update the session. Calls `onUpdate`. This is called automatically on every tick and on editor `keyboard` events.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

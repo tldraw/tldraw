@@ -52,6 +52,10 @@ export abstract class Session<T extends object = object> {
 
 	abstract readonly id: string
 
+	/**
+	 * Start the session. Sets up event listeners and calls `onStart` and `onUpdate`.
+	 * @public
+	 */
 	start() {
 		this.onStart()
 		this.onUpdate()
@@ -60,23 +64,39 @@ export abstract class Session<T extends object = object> {
 		return this
 	}
 
+	/**
+	 * Update the session. Calls `onUpdate`. This is called automatically on every tick and on editor `keyboard` events.
+	 * @public
+	 */
 	update() {
 		this.onUpdate()
 		return this
 	}
 
+	/**
+	 * Complete the session. This is called automatically on editor's `complete` events. Calls `onComplete` and disposes of the session.
+	 * @public
+	 */
 	complete() {
 		this.onComplete()
 		this.dispose()
 		return this
 	}
 
+	/**
+	 * Cancel the session. This is called automatically on editor's `cancel` events. Calls `onCancel` and disposes of the session.
+	 * @public
+	 */
 	cancel() {
 		this.onCancel()
 		this.dispose()
 		return this
 	}
 
+	/**
+	 * Interrupt the session. This is called automatically on editor's `interrupt` events. Calls `onInterrupt`. It does not dispose the session.
+	 * @public
+	 */
 	interrupt() {
 		this.onInterrupt()
 		return this
