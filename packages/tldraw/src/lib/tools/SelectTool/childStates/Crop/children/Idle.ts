@@ -1,6 +1,6 @@
-import { StateNode, TLEventHandlers, TLGroupShape, Vec } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLGroupShape, TLImageShape, Vec } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
+import { getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -185,7 +185,7 @@ export class Idle extends StateNode {
 
 		if (shiftKey) delta.mul(10)
 
-		const shape = this.editor.getShape(this.editor.getCroppingShapeId()!) as ShapeWithCrop
+		const shape = this.editor.getShape(this.editor.getCroppingShapeId()!) as TLImageShape
 		if (!shape) return
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 
@@ -196,7 +196,7 @@ export class Idle extends StateNode {
 				this.editor.mark('translate crop')
 			}
 
-			this.editor.updateShapes<ShapeWithCrop>([partial])
+			this.editor.updateShape<TLImageShape>(partial)
 		}
 	}
 }

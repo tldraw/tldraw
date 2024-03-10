@@ -1,5 +1,4 @@
 import { StateNode, TLPointerEvent } from '@tldraw/editor'
-import { info } from 'console'
 
 export class PointingCrop extends StateNode {
 	static override id = 'pointing_crop'
@@ -19,6 +18,6 @@ export class PointingCrop extends StateNode {
 	}
 
 	private complete() {
-		this.editor.setCurrentTool('select.crop.idle', info)
+		this.parent.transition('idle', {})
 	}
 }

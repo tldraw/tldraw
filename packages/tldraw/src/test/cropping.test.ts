@@ -500,7 +500,7 @@ describe('When in the select.crop.translating_crop state', () => {
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
 
-	it('pressing enter / pointer up / complete should transition to select.crop.idle', () => {
+	it('pointer up / complete should transition to select.crop.idle', () => {
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
@@ -514,7 +514,7 @@ describe('When in the select.crop.translating_crop state', () => {
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 
-		editor.keyDown('Enter').keyUp('Enter').expectToBeIn('select.crop.idle')
+		editor.complete().expectToBeIn('select.crop.idle')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 	})
