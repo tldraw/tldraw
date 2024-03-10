@@ -8547,6 +8547,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				this.root.handleEvent(info)
+				this.emit('event', info)
 				return
 			}
 

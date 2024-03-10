@@ -212,16 +212,14 @@ describe('When in the select.idle state', () => {
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
 			.expectToBeIn('select.brushing')
 
-		// one shape / edge
-		editor
+			// one shape / edge
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
 			.pointerDown(500, 550, { target: 'selection', handle: 'bottom', ctrlKey: true })
 			.expectToBeIn('select.pointing_crop_handle')
 
-		// one shape / corner
-		editor
+			// one shape / corner
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)

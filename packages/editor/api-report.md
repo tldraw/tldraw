@@ -1585,6 +1585,8 @@ export abstract class Session {
     // (undocumented)
     abstract complete(): void;
     // (undocumented)
+    dispose: () => void;
+    // (undocumented)
     editor: Editor;
     // (undocumented)
     abstract readonly id: string;
