@@ -1520,7 +1520,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1565,7 +1565,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -3417,15 +3417,6 @@
             },
             {
               "kind": "Reference",
-              "text": "DrawShapeTool",
-              "canonicalReference": "tldraw!DrawShapeTool:class"
-            },
-            {
-              "kind": "Content",
-              "text": " | typeof "
-            },
-            {
-              "kind": "Reference",
               "text": "FrameShapeTool",
               "canonicalReference": "tldraw!FrameShapeTool:class"
             },
@@ -3437,6 +3428,15 @@
               "kind": "Reference",
               "text": "GeoShapeTool",
               "canonicalReference": "tldraw!GeoShapeTool:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "HighlightShapeTool",
+              "canonicalReference": "tldraw!HighlightShapeTool:class"
             },
             {
               "kind": "Content",
@@ -3997,7 +3997,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "tldraw!~Idle_2:class"
+                  "canonicalReference": "tldraw!~Idle_3:class"
                 },
                 {
                   "kind": "Content",
@@ -7348,7 +7348,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "tldraw!~Idle_3:class"
+                  "canonicalReference": "tldraw!~Idle_2:class"
                 },
                 {
                   "kind": "Content",
@@ -9088,7 +9088,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "tldraw!~Idle_2:class"
+                  "canonicalReference": "tldraw!~Idle_3:class"
                 },
                 {
                   "kind": "Content",

@@ -1,17 +1,18 @@
-import { getVectorDb } from '@/utils/ContentVectorDatabase'
 import { nicelog } from '@/utils/nicelog'
 ;(async function () {
-	nicelog('• Refreshing vector db content...')
+	nicelog('✔ Skipping vector db content!')
 
-	const db = await getVectorDb({
-		rebuildIndex: false,
-		updateContent: true,
-	})
+	// nicelog('• Refreshing vector db content...')
 
-	const results = await db.query('editor')
+	// const db = await getVectorDb({
+	// 	rebuildIndex: false,
+	// 	updateContent: true,
+	// })
 
-	nicelog(results)
+	// const results = await db.query('editor')
 
-	nicelog('✔ Complete!')
+	// nicelog(results)
+
+	// nicelog('✔ Complete!')
 	process.exit()
 })()

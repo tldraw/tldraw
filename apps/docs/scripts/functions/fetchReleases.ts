@@ -3,7 +3,7 @@ import { Octokit } from 'octokit'
 import path from 'path'
 
 const octokit = new Octokit({
-	auth: process.env.GITHUB_ACCESS_TOKEN,
+	auth: process.env.ACCESS_TOKEN,
 })
 
 const { log: nicelog } = console
