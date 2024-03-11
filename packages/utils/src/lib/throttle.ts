@@ -11,14 +11,14 @@ let frame: number | undefined
 let time = 0
 let last = 0
 
-const tick = () => {
+const flush = () => {
 	const queue = fpsQueue.splice(0, fpsQueue.length)
 	for (const fn of queue) {
 		fn()
 	}
 }
 
-function fps() {
+function tick() {
 	if (frame) {
 		return
 	}
@@ -28,7 +28,7 @@ function fps() {
 	if (time + elapsed < targetTimePerFrame) {
 		frame = requestAnimationFrame(() => {
 			frame = undefined
-			fps()
+			tick()
 		})
 		return
 	}
@@ -38,7 +38,7 @@ function fps() {
 		// If we fall behind more than 10 frames, we'll just reset the time so we don't try to update a number of times
 		// This can happen if we don't interact with the page for a while
 		time = Math.min(time + elapsed - targetTimePerFrame, targetTimePerFrame * 10)
-		tick()
+		flush()
 	})
 }
 
@@ -66,7 +66,7 @@ export function fpsThrottle(fn: () => void) {
 			// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
 			last = Date.now() - targetTimePerFrame - 1
 		}
-		fps()
+		tick()
 	}
 }
 
@@ -92,5 +92,5 @@ export function throttleToNextFrame(fn: () => void) {
 		// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
 		last = Date.now() - targetTimePerFrame - 1
 	}
-	fps()
+	tick()
 }
