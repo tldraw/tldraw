@@ -10,7 +10,6 @@ import {
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	RemoveFrameMenuItem,
-	SetSelectionGroup,
 	ToggleAutoSizeMenuItem,
 	ToggleDarkModeItem,
 	ToggleDebugModeItem,
@@ -39,7 +38,7 @@ export function DefaultMainMenuContent() {
 		<>
 			<EditSubmenu />
 			<ViewSubmenu />
-			<ExportFileContentSubMenu />
+			<ExportAllSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 		</>
@@ -47,7 +46,7 @@ export function DefaultMainMenuContent() {
 }
 
 /** @public */
-export function ExportFileContentSubMenu() {
+export function ExportAllSubmenu() {
 	const actions = useActions()
 
 	return (
@@ -78,11 +77,9 @@ export function EditSubmenu() {
 		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
-			<ConversionsMenuGroup />
-			<MultiShapeMenuGroup />
 			<MiscMenuGroup />
 			<EmbedsGroup />
-			<SetSelectionGroup />
+			<ConversionsMenuGroup />
 			<LockGroup />
 		</TldrawUiMenuSubmenu>
 	)
@@ -92,6 +89,10 @@ export function EditSubmenu() {
 export function MiscMenuGroup() {
 	return (
 		<TldrawUiMenuGroup id="misc">
+			<GroupMenuItem />
+			<UngroupMenuItem />
+			<RemoveFrameMenuItem />
+			<FitFrameToContentMenuItem />
 			<ToggleAutoSizeMenuItem />
 			<EditLinkMenuItem />
 		</TldrawUiMenuGroup>
@@ -104,18 +105,6 @@ export function LockGroup() {
 		<TldrawUiMenuGroup id="lock">
 			<ToggleLockMenuItem />
 			<UnlockAllMenuItem />
-		</TldrawUiMenuGroup>
-	)
-}
-
-/** @public */
-export function MultiShapeMenuGroup() {
-	return (
-		<TldrawUiMenuGroup id="multi-shape">
-			<GroupMenuItem />
-			<UngroupMenuItem />
-			<RemoveFrameMenuItem />
-			<FitFrameToContentMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }

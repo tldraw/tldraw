@@ -179,15 +179,17 @@ export function ZoomToSelectionMenuItem() {
 }
 
 /* -------------------- Clipboard ------------------- */
+
 /** @public */
 export function ClipboardMenuGroup() {
 	return (
 		<TldrawUiMenuGroup id="clipboard">
 			<CutMenuItem />
 			<CopyMenuItem />
-			<DuplicateMenuItem />
 			<PasteMenuItem />
+			<DuplicateMenuItem />
 			<DeleteMenuItem />
+			<SelectAllMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -280,7 +282,7 @@ export function ConversionsMenuGroup() {
 
 /* ------------------ Set Selection ----------------- */
 /** @public */
-export function SetSelectionGroup() {
+export function SelectAllMenuItem() {
 	const actions = useActions()
 	const editor = useEditor()
 	const atLeastOneShapeOnPage = useValue(
@@ -289,11 +291,7 @@ export function SetSelectionGroup() {
 		[editor]
 	)
 
-	return (
-		<TldrawUiMenuGroup id="set-selection-group">
-			<TldrawUiMenuItem {...actions['select-all']} disabled={!atLeastOneShapeOnPage} />
-		</TldrawUiMenuGroup>
-	)
+	return <TldrawUiMenuItem {...actions['select-all']} disabled={!atLeastOneShapeOnPage} />
 }
 
 /* ------------------ Delete Group ------------------ */

@@ -6084,7 +6084,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function ExportFileContentSubMenu(): "
+              "text": "export declare function ExportAllSubmenu(): "
             },
             {
               "kind": "Content",
@@ -11944,39 +11944,6 @@
           "name": "MoveToPageMenu"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "tldraw!MultiShapeMenuGroup:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function MultiShapeMenuGroup(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "MultiShapeMenuGroup"
-        },
-        {
           "kind": "Class",
           "canonicalReference": "tldraw!NoteShapeTool:class",
           "docComment": "/**\n * @public\n */\n",
@@ -13596,6 +13563,39 @@
           "name": "RotateCWMenuItem"
         },
         {
+          "kind": "Function",
+          "canonicalReference": "tldraw!SelectAllMenuItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function SelectAllMenuItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "SelectAllMenuItem"
+        },
+        {
           "kind": "Class",
           "canonicalReference": "tldraw!SelectTool:class",
           "docComment": "/**\n * @public\n */\n",
@@ -14125,39 +14125,6 @@
             }
           ],
           "name": "setDefaultEditorAssetUrls"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "tldraw!SetSelectionGroup:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function SetSelectionGroup(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "SetSelectionGroup"
         },
         {
           "kind": "Function",

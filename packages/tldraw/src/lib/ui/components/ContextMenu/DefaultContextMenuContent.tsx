@@ -10,7 +10,7 @@ import {
 	MoveToPageMenu,
 	RemoveFrameMenuItem,
 	ReorderMenuSubmenu,
-	SetSelectionGroup,
+	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleLockMenuItem,
 	UngroupMenuItem,
@@ -48,7 +48,7 @@ export function DefaultContextMenuContent() {
 			</TldrawUiMenuGroup>
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
-			<SetSelectionGroup />
+			<SelectAllMenuItem />
 		</>
 	)
 }

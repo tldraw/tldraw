@@ -233,7 +233,7 @@
 	"context-menu.arrange": "Arrange",
 	"context-menu.copy-as": "Copy as",
 	"context-menu.export-as": "Export as",
-	"context-menu.export-all-as": "Export as",
+	"context-menu.export-all-as": "Export",
 	"context-menu.move-to-page": "Move to page",
 	"context-menu.reorder": "Reorder",
 	"page-menu.title": "Pages",
