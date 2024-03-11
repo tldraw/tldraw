@@ -1,6 +1,8 @@
-import { TLSYNC_PROTOCOL_VERSION } from '@tldraw/tlsync'
-import * as ws from 'ws'
-import { ClientWebSocketAdapter } from './ClientWebSocketAdapter'
+import { TLSocketClientSentEvent, TLSYNC_PROTOCOL_VERSION } from '@tldraw/tlsync'
+import { TLRecord } from 'tldraw'
+import { ClientWebSocketAdapter, INACTIVE_MIN_DELAY } from './ClientWebSocketAdapter'
+// NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
+import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
 
 async function waitFor(predicate: () => boolean) {
 	let safety = 0
@@ -20,19 +22,16 @@ async function waitFor(predicate: () => boolean) {
 
 jest.useFakeTimers()
 
-// TODO: unskip this test. It accidentally got disabled a long time ago when we moved this file into
-// the dotcom folder which didn't have testing set up at the time. We need to spend some time fixing
-// it before it can be re-enabled.
-describe.skip(ClientWebSocketAdapter, () => {
+describe(ClientWebSocketAdapter, () => {
 	let adapter: ClientWebSocketAdapter
-	let wsServer: ws.Server
-	let connectedWs: ws.WebSocket
-	const connectMock = jest.fn<void, [socket: ws.WebSocket]>((socket) => {
-		connectedWs = socket
+	let wsServer: WebSocketServer
+	let connectedServerSocket: WsWebSocket
+	const connectMock = jest.fn<void, [socket: WsWebSocket]>((socket) => {
+		connectedServerSocket = socket
 	})
 	beforeEach(() => {
 		adapter = new ClientWebSocketAdapter(() => 'ws://localhost:2233')
-		wsServer = new ws.Server({ port: 2233 })
+		wsServer = new WebSocketServer({ port: 2233 })
 		wsServer.on('connection', connectMock)
 	})
 	afterEach(() => {
@@ -59,12 +58,18 @@ describe.skip(ClientWebSocketAdapter, () => {
 		adapter._ws?.onerror?.({} as any)
 		expect(adapter.connectionStatus).toBe('error')
 	})
-	it('should try to reopen the connection if there was an error', () => {
-		const prevWes = adapter._ws
-		adapter._ws?.onerror?.({} as any)
-		jest.advanceTimersByTime(1000)
-		expect(adapter._ws).not.toBe(prevWes)
-		expect(adapter._ws?.readyState).toBe(WebSocket.CONNECTING)
+	it('should try to reopen the connection if there was an error', async () => {
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+		expect(adapter._ws).toBeTruthy()
+		const prevClientSocket = adapter._ws
+		const prevServerSocket = connectedServerSocket
+		prevServerSocket.terminate()
+		await waitFor(() => connectedServerSocket !== prevServerSocket)
+		// there is a race here, the server could've opened a new socket already, but it hasn't
+		// transitioned to OPEN yet, thus the second waitFor
+		await waitFor(() => connectedServerSocket.readyState === WebSocket.OPEN)
+		expect(adapter._ws).not.toBe(prevClientSocket)
+		expect(adapter._ws?.readyState).toBe(WebSocket.OPEN)
 	})
 	it('should transition to online if a retry succeeds', async () => {
 		adapter._ws?.onerror?.({} as any)
@@ -72,6 +77,7 @@ describe.skip(ClientWebSocketAdapter, () => {
 		expect(adapter.connectionStatus).toBe('online')
 	})
 	it('should call .close on the underlying socket if .close is called before the socket opens', async () => {
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		const closeSpy = jest.spyOn(adapter._ws!, 'close')
 		adapter.close()
 		await waitFor(() => closeSpy.mock.calls.length > 0)
@@ -79,39 +85,37 @@ describe.skip(ClientWebSocketAdapter, () => {
 	})
 	it('should transition to offline if the server disconnects', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(adapter.connectionStatus).toBe('offline')
 	})
 	it('retries to connect if the server disconnects', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(adapter.connectionStatus).toBe('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(adapter.connectionStatus).toBe('online')
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(adapter.connectionStatus).toBe('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(adapter.connectionStatus).toBe('online')
 	})
 
-	it('closes the socket if the window goes offline and attempts to reconnect', async () => {
+	it('attempts to reconnect early if the tab becomes active', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		const closeSpy = jest.spyOn(adapter._ws!, 'close')
-		window.dispatchEvent(new Event('offline'))
-		expect(closeSpy).toHaveBeenCalled()
-		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-	})
-
-	it('attempts to reconnect early if the window comes back online', async () => {
-		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+		const hiddenMock = jest.spyOn(document, 'hidden', 'get')
+		hiddenMock.mockReturnValue(true)
+		// it's necessary to close the socket, as otherwise the websocket might stay half-open
+		connectedServerSocket.close()
 		wsServer.close()
-		window.dispatchEvent(new Event('offline'))
-		adapter._reconnectTimeout.intervalLength = 50000
-		window.dispatchEvent(new Event('online'))
-		expect(adapter._reconnectTimeout.intervalLength).toBeLessThan(1000)
+		await waitFor(() => adapter._ws?.readyState !== WebSocket.OPEN)
+		expect(adapter._reconnectManager.intendedDelay).toBeGreaterThanOrEqual(INACTIVE_MIN_DELAY)
+		hiddenMock.mockReturnValue(false)
+		document.dispatchEvent(new Event('visibilitychange'))
+		expect(adapter._reconnectManager.intendedDelay).toBeLessThan(INACTIVE_MIN_DELAY)
+		hiddenMock.mockRestore()
 	})
 
 	it('supports receiving messages', async () => {
@@ -125,8 +129,7 @@ describe.skip(ClientWebSocketAdapter, () => {
 		expect(onMessage).toHaveBeenCalledWith({ type: 'message', data: 'hello' })
 	})
 
-	// TODO: this is failing on github actions, investigate
-	it.skip('supports sending messages', async () => {
+	it('supports sending messages', async () => {
 		const onMessage = jest.fn()
 		connectMock.mockImplementationOnce((ws) => {
 			ws.on('message', onMessage)
@@ -134,19 +137,19 @@ describe.skip(ClientWebSocketAdapter, () => {
 
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 
-		adapter.sendMessage({
+		const message: TLSocketClientSentEvent<TLRecord> = {
 			type: 'connect',
 			connectRequestId: 'test',
 			schema: { schemaVersion: 0, storeVersion: 0, recordVersions: {} },
 			protocolVersion: TLSYNC_PROTOCOL_VERSION,
 			lastServerClock: 0,
-		})
+		}
+
+		adapter.sendMessage(message)
 
 		await waitFor(() => onMessage.mock.calls.length === 1)
 
-		expect(onMessage.mock.calls[0][0].toString()).toBe(
-			'{"type":"connect","instanceId":"test","lastServerClock":0}'
-		)
+		expect(JSON.parse(onMessage.mock.calls[0][0].toString())).toEqual(message)
 	})
 
 	it('signals status changes', async () => {
@@ -154,12 +157,12 @@ describe.skip(ClientWebSocketAdapter, () => {
 		adapter.onStatusChange(onStatusChange)
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(onStatusChange).toHaveBeenCalledWith('online')
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(onStatusChange).toHaveBeenCalledWith('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(onStatusChange).toHaveBeenCalledWith('online')
-		connectedWs.terminate()
+		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
 		expect(onStatusChange).toHaveBeenCalledWith('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)

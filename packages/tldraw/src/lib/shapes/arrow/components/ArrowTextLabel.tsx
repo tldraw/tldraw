@@ -61,10 +61,10 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 						className="tl-text tl-text-input"
 						name="text"
 						tabIndex={-1}
-						autoComplete="false"
-						autoCapitalize="false"
-						autoCorrect="false"
-						autoSave="false"
+						autoComplete="off"
+						autoCapitalize="off"
+						autoCorrect="off"
+						autoSave="off"
 						autoFocus
 						placeholder=""
 						spellCheck="true"

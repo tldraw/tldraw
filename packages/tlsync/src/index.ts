@@ -31,5 +31,4 @@ export {
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
 export { schema } from './lib/schema'
-export { serializeMessage } from './lib/serializeMessage'
 export type { PersistedRoomSnapshotForSupabase, RoomState as RoomState } from './lib/server-types'

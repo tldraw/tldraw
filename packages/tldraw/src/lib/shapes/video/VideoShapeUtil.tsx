@@ -46,6 +46,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const handlePlay = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
 				const video = e.currentTarget
+				if (!video) return
 
 				editor.updateShapes([
 					{
@@ -64,6 +65,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const handlePause = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
 				const video = e.currentTarget
+				if (!video) return
 
 				editor.updateShapes([
 					{
@@ -82,6 +84,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const handleSetCurrentTime = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
 				const video = e.currentTarget
+				if (!video) return
 
 				if (isEditing) {
 					editor.updateShapes([
@@ -103,6 +106,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
 				const video = e.currentTarget
+				if (!video) return
 				if (time !== video.currentTime) {
 					video.currentTime = time
 				}
@@ -119,7 +123,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		// If the current time changes and we're not editing the video, update the video time
 		useEffect(() => {
 			const video = rVideo.current
-
 			if (!video) return
 
 			if (isLoaded && !isEditing && time !== video.currentTime) {
@@ -136,6 +139,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		useEffect(() => {
 			if (prefersReducedMotion) {
 				const video = rVideo.current
+				if (!video) return
 				video.pause()
 				video.currentTime = 0
 			}
@@ -145,39 +149,42 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			<>
 				<HTMLContainer
 					id={shape.id}
-					className="tl-video-container tl-counter-scaled"
 					style={{
 						color: 'var(--color-text-3)',
 						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
 						border: asset ? 'none' : '1px solid var(--color-low-border)',
 					}}
 				>
-					{asset?.props.src ? (
-						<video
-							ref={rVideo}
-							style={isEditing ? { pointerEvents: 'all' } : undefined}
-							className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
-							width="100%"
-							height="100%"
-							draggable={false}
-							playsInline
-							autoPlay
-							muted
-							loop
-							disableRemotePlayback
-							disablePictureInPicture
-							controls={isEditing && showControls}
-							onPlay={handlePlay}
-							onPause={handlePause}
-							onTimeUpdate={handleSetCurrentTime}
-							onLoadedData={handleLoadedData}
-							hidden={!isLoaded}
-						>
-							<source src={asset.props.src} />
-						</video>
-					) : (
-						<BrokenAssetIcon />
-					)}
+					<div className="tl-counter-scaled">
+						<div className="tl-video-container">
+							{asset?.props.src ? (
+								<video
+									ref={rVideo}
+									style={isEditing ? { pointerEvents: 'all' } : undefined}
+									className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
+									width="100%"
+									height="100%"
+									draggable={false}
+									playsInline
+									autoPlay
+									muted
+									loop
+									disableRemotePlayback
+									disablePictureInPicture
+									controls={isEditing && showControls}
+									onPlay={handlePlay}
+									onPause={handlePause}
+									onTimeUpdate={handleSetCurrentTime}
+									onLoadedData={handleLoadedData}
+									hidden={!isLoaded}
+								>
+									<source src={asset.props.src} />
+								</video>
+							) : (
+								<BrokenAssetIcon />
+							)}
+						</div>
+					</div>
 				</HTMLContainer>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />

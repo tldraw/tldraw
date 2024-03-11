@@ -7,7 +7,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffs,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, objectMapEntries, rafThrottle } from '@tldraw/utils'
+import { exhaustiveSwitchError, fpsThrottle, objectMapEntries } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { nanoid } from 'nanoid'
 import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord, getNetworkDiff } from './diff'
@@ -17,6 +17,7 @@ import {
 	TLPushRequest,
 	TLSYNC_PROTOCOL_VERSION,
 	TLSocketClientSentEvent,
+	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 } from './protocol'
 import './requestAnimationFrame.polyfill'
@@ -350,7 +351,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.lastServerClock = event.serverClock
 	}
 
-	incomingDiffBuffer: Extract<TLSocketServerSentEvent<R>, { type: 'patch' | 'push_result' }>[] = []
+	incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
 
 	/** Handle events received from the server */
 	private handleServerEvent = (event: TLSocketServerSentEvent<R>) => {
@@ -366,11 +367,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				console.error('Restarting socket')
 				this.socket.restart()
 				break
-			case 'patch':
-			case 'push_result':
+			case 'data':
 				// wait for a connect to succeed before processing more events
 				if (!this.isConnectedToRoom) break
-				this.incomingDiffBuffer.push(event)
+				this.incomingDiffBuffer.push(...event.data)
 				this.scheduleRebase()
 				break
 			case 'incompatibility_error':
@@ -461,7 +461,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/** Send any unsent push requests to the server */
-	private flushPendingPushRequests = rafThrottle(() => {
+	private flushPendingPushRequests = fpsThrottle(() => {
 		this.debug('flushing pending push requests', {
 			isConnectedToRoom: this.isConnectedToRoom,
 			pendingPushRequests: this.pendingPushRequests,
@@ -587,5 +587,5 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = rafThrottle(this.rebase)
+	private scheduleRebase = fpsThrottle(this.rebase)
 }

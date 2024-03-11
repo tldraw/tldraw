@@ -1,4 +1,5 @@
 /* eslint-disable prefer-rest-params */
+import { throttleToNextFrame } from '@tldraw/utils'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
 import { Signal, computed, react } from '../core'
 
@@ -69,7 +70,7 @@ export function useValue() {
 					// unmount us instead of re-rendering so the error is
 					// irrelevant. if we're not in a zombie-child, react will
 					// call `getSnapshot` again in the render phase, and the
-					// error will be thrown as expected.å
+					// error will be thrown as expected.
 					return {}
 				}
 			}
@@ -81,10 +82,16 @@ export function useValue() {
 		const { subscribe, getSnapshot } = useMemo(() => {
 			return {
 				subscribe: (listen: () => void) => {
-					return react(`useValue(${name})`, () => {
-						$val.get()
-						listen()
-					})
+					return react(
+						`useValue(${name})`,
+						() => {
+							$val.get()
+							listen()
+						},
+						{
+							scheduleEffect: throttleToNextFrame,
+						}
+					)
 				},
 				getSnapshot: () => $val.get(),
 			}

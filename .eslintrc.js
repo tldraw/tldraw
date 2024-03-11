@@ -57,6 +57,14 @@ module.exports = {
 			'error',
 			{ selector: "MethodDefinition[kind='set']", message: 'Property setters are not allowed' },
 			{ selector: "MethodDefinition[kind='get']", message: 'Property getters are not allowed' },
+			{
+				selector: 'Identifier[name=localStorage]',
+				message: 'Use the getFromLocalStorage/setInLocalStorage helpers instead',
+			},
+			{
+				selector: 'Identifier[name=sessionStorage]',
+				message: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
+			},
 		],
 	},
 	parser: '@typescript-eslint/parser',
@@ -88,6 +96,7 @@ module.exports = {
 			files: ['apps/examples/**/*'],
 			rules: {
 				'import/no-internal-modules': 'off',
+				'no-restricted-syntax': 'off',
 			},
 		},
 		{
