@@ -1032,7 +1032,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getGeometry(shape: TLNoteShape): Rectangle2d;
     // (undocumented)
-    getHeight(shape: TLNoteShape): number;
+    getSize(shape: TLNoteShape): number;
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
@@ -1045,6 +1045,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     onBeforeCreate: (next: TLNoteShape) => {
         props: {
             growY: number;
+            w: number | undefined;
+            h: number | undefined;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
@@ -1069,6 +1071,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     onBeforeUpdate: (prev: TLNoteShape, next: TLNoteShape) => {
         props: {
             growY: number;
+            w: number | undefined;
+            h: number | undefined;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
@@ -1093,10 +1097,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
     static props: {
+        w: Validator<number | undefined>;
+        h: Validator<number | undefined>;
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">; /** @public */
         verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
         growY: Validator<number>;
         url: Validator<string>;

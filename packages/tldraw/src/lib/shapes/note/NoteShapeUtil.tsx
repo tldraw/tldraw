@@ -18,7 +18,7 @@ import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-s
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
-const NOTE_SIZE = 200
+export const INITIAL_NOTE_SIZE = 200
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -32,6 +32,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
+			w: INITIAL_NOTE_SIZE,
+			h: INITIAL_NOTE_SIZE,
 			color: 'black',
 			size: 'm',
 			text: '',
@@ -43,13 +45,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 
-	getHeight(shape: TLNoteShape) {
-		return NOTE_SIZE + shape.props.growY
+	getSize(shape: TLNoteShape) {
+		// TODO: This fallback is only for old notes as I experiment for now.
+		return Math.max(
+			INITIAL_NOTE_SIZE,
+			((shape.props.w as number) || INITIAL_NOTE_SIZE) + shape.props.growY
+		)
 	}
 
-	getGeometry(shape: TLNoteShape) {
-		const height = this.getHeight(shape)
-		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
+	override getGeometry(shape: TLNoteShape) {
+		const w = Math.max(1, this.getSize(shape) as number)
+		return new Rectangle2d({ width: w, height: w, isFilled: true })
 	}
 
 	component(shape: TLNoteShape) {
@@ -68,8 +74,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				<div
 					style={{
 						position: 'absolute',
-						width: NOTE_SIZE,
-						height: this.getHeight(shape),
+						width: this.getSize(shape),
+						height: this.getSize(shape),
 					}}
 				>
 					<div
@@ -103,9 +109,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	indicator(shape: TLNoteShape) {
 		return (
 			<rect
-				rx="6"
-				width={toDomPrecision(NOTE_SIZE)}
-				height={toDomPrecision(this.getHeight(shape))}
+				width={toDomPrecision(this.getSize(shape) as number)}
+				height={toDomPrecision(this.getSize(shape) as number)}
 			/>
 		)
 	}
@@ -120,18 +125,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const adjustedColor = shape.props.color === 'black' ? 'yellow' : shape.props.color
 
 		const rect1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect1.setAttribute('rx', '10')
-		rect1.setAttribute('width', NOTE_SIZE.toString())
-		rect1.setAttribute('height', bounds.height.toString())
+		rect1.setAttribute('width', this.getSize(shape).toString())
+		rect1.setAttribute('height', this.getSize(shape).toString())
 		rect1.setAttribute('fill', theme[adjustedColor].solid)
 		rect1.setAttribute('stroke', theme[adjustedColor].solid)
 		rect1.setAttribute('stroke-width', '1')
 		g.appendChild(rect1)
 
 		const rect2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect2.setAttribute('rx', '10')
-		rect2.setAttribute('width', NOTE_SIZE.toString())
-		rect2.setAttribute('height', bounds.height.toString())
+		rect2.setAttribute('width', this.getSize(shape).toString())
+		rect2.setAttribute('height', this.getSize(shape).toString())
 		rect2.setAttribute('fill', theme.background)
 		rect2.setAttribute('opacity', '.28')
 		g.appendChild(rect2)
@@ -188,21 +191,43 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	const PADDING = 17
+	const PADDING = 16
 
-	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		maxWidth: NOTE_SIZE - PADDING * 2,
-	})
+	let nextTextSize
+	let iterations = 0
 
-	const nextHeight = nextTextSize.h + PADDING * 2
+	// Auto-fit text to the right aspect-ratio.
+	do {
+		const textLen = shape.props.text.length
+		// The formula is a power law of the text as it grows longer.
+		// It then goes backwards a bit to make sure we don't get too big.
+		const lineHeightPx = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight
+		const closeEnoughSizeBasedOnTextLength = 16 * Math.pow(textLen, 0.5) - lineHeightPx
+		const remainder = closeEnoughSizeBasedOnTextLength % lineHeightPx
+		nextTextSize = editor.textMeasure.measureText(shape.props.text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			minWidth: INITIAL_NOTE_SIZE.toString(),
+			// We go in smaller chunks of 1/4 of the line height to make sure we don't miss the right size.
+			maxWidth: Math.max(
+				INITIAL_NOTE_SIZE - PADDING * 2,
+				Math.floor(closeEnoughSizeBasedOnTextLength - remainder + (iterations * lineHeightPx) / 4)
+			),
+			aspectRatio: '1',
+		})
+
+		if (nextTextSize.h === nextTextSize.w) {
+			break
+		}
+	} while (iterations++ < 50)
+
+	const nextSize = nextTextSize.h + PADDING * 2
 
 	let growY: number | null = null
 
-	if (nextHeight > NOTE_SIZE) {
-		growY = nextHeight - NOTE_SIZE
+	if (nextSize > INITIAL_NOTE_SIZE) {
+		growY = nextSize - INITIAL_NOTE_SIZE
 	} else {
 		if (prevGrowY) {
 			growY = 0
