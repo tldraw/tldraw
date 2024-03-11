@@ -140,6 +140,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/bring-to-front.svg', import.meta.url).href,
 				opts
 			),
+			'check-circle': formatAssetUrl(
+				new URL('./icons/icon/check-circle.svg', import.meta.url).href,
+				opts
+			),
 			check: formatAssetUrl(new URL('./icons/icon/check.svg', import.meta.url).href, opts),
 			'checkbox-checked': formatAssetUrl(
 				new URL('./icons/icon/checkbox-checked.svg', import.meta.url).href,
@@ -186,6 +190,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 			color: formatAssetUrl(new URL('./icons/icon/color.svg', import.meta.url).href, opts),
 			comment: formatAssetUrl(new URL('./icons/icon/comment.svg', import.meta.url).href, opts),
 			'cross-2': formatAssetUrl(new URL('./icons/icon/cross-2.svg', import.meta.url).href, opts),
+			'cross-circle': formatAssetUrl(
+				new URL('./icons/icon/cross-circle.svg', import.meta.url).href,
+				opts
+			),
 			cross: formatAssetUrl(new URL('./icons/icon/cross.svg', import.meta.url).href, opts),
 			'dash-dashed': formatAssetUrl(
 				new URL('./icons/icon/dash-dashed.svg', import.meta.url).href,
@@ -451,7 +459,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/stretch-vertical.svg', import.meta.url).href,
 				opts
 			),
-			success: formatAssetUrl(new URL('./icons/icon/success.svg', import.meta.url).href, opts),
 			'text-align-center': formatAssetUrl(
 				new URL('./icons/icon/text-align-center.svg', import.meta.url).href,
 				opts

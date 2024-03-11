@@ -55,6 +55,7 @@ import iconsAvatar from './icons/icon/avatar.svg?url'
 import iconsBlob from './icons/icon/blob.svg?url'
 import iconsBringForward from './icons/icon/bring-forward.svg?url'
 import iconsBringToFront from './icons/icon/bring-to-front.svg?url'
+import iconsCheckCircle from './icons/icon/check-circle.svg?url'
 import iconsCheck from './icons/icon/check.svg?url'
 import iconsCheckboxChecked from './icons/icon/checkbox-checked.svg?url'
 import iconsCheckboxEmpty from './icons/icon/checkbox-empty.svg?url'
@@ -71,6 +72,7 @@ import iconsCollab from './icons/icon/collab.svg?url'
 import iconsColor from './icons/icon/color.svg?url'
 import iconsComment from './icons/icon/comment.svg?url'
 import iconsCross2 from './icons/icon/cross-2.svg?url'
+import iconsCrossCircle from './icons/icon/cross-circle.svg?url'
 import iconsCross from './icons/icon/cross.svg?url'
 import iconsDashDashed from './icons/icon/dash-dashed.svg?url'
 import iconsDashDotted from './icons/icon/dash-dotted.svg?url'
@@ -159,7 +161,6 @@ import iconsStatusOffline from './icons/icon/status-offline.svg?url'
 import iconsStatusOnline from './icons/icon/status-online.svg?url'
 import iconsStretchHorizontal from './icons/icon/stretch-horizontal.svg?url'
 import iconsStretchVertical from './icons/icon/stretch-vertical.svg?url'
-import iconsSuccess from './icons/icon/success.svg?url'
 import iconsTextAlignCenter from './icons/icon/text-align-center.svg?url'
 import iconsTextAlignJustify from './icons/icon/text-align-justify.svg?url'
 import iconsTextAlignLeft from './icons/icon/text-align-left.svg?url'
@@ -273,6 +274,7 @@ export function getAssetUrlsByImport(opts) {
 			blob: formatAssetUrl(iconsBlob, opts),
 			'bring-forward': formatAssetUrl(iconsBringForward, opts),
 			'bring-to-front': formatAssetUrl(iconsBringToFront, opts),
+			'check-circle': formatAssetUrl(iconsCheckCircle, opts),
 			check: formatAssetUrl(iconsCheck, opts),
 			'checkbox-checked': formatAssetUrl(iconsCheckboxChecked, opts),
 			'checkbox-empty': formatAssetUrl(iconsCheckboxEmpty, opts),
@@ -289,6 +291,7 @@ export function getAssetUrlsByImport(opts) {
 			color: formatAssetUrl(iconsColor, opts),
 			comment: formatAssetUrl(iconsComment, opts),
 			'cross-2': formatAssetUrl(iconsCross2, opts),
+			'cross-circle': formatAssetUrl(iconsCrossCircle, opts),
 			cross: formatAssetUrl(iconsCross, opts),
 			'dash-dashed': formatAssetUrl(iconsDashDashed, opts),
 			'dash-dotted': formatAssetUrl(iconsDashDotted, opts),
@@ -377,7 +380,6 @@ export function getAssetUrlsByImport(opts) {
 			'status-online': formatAssetUrl(iconsStatusOnline, opts),
 			'stretch-horizontal': formatAssetUrl(iconsStretchHorizontal, opts),
 			'stretch-vertical': formatAssetUrl(iconsStretchVertical, opts),
-			success: formatAssetUrl(iconsSuccess, opts),
 			'text-align-center': formatAssetUrl(iconsTextAlignCenter, opts),
 			'text-align-justify': formatAssetUrl(iconsTextAlignJustify, opts),
 			'text-align-left': formatAssetUrl(iconsTextAlignLeft, opts),

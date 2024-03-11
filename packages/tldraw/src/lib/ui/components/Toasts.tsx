@@ -8,9 +8,9 @@ import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 
 const SEVERITY_TO_ICON: { [msg in AlertSeverity]: TLUiIconType } = {
-	success: 'success',
+	success: 'check-circle',
 	warning: 'warning-triangle',
-	error: 'error',
+	error: 'cross-circle',
 	info: 'info-circle',
 }
 
@@ -25,9 +25,8 @@ function Toast({ toast }: { toast: TLUiToast }) {
 	}
 
 	const hasActions = toast.actions && toast.actions.length > 0
-	const severity = toast.severity ?? 'success'
 
-	const icon = toast.icon || SEVERITY_TO_ICON[severity]
+	const icon = toast.icon || (toast.severity && SEVERITY_TO_ICON[toast.severity])
 
 	return (
 		<T.Root
@@ -36,9 +35,11 @@ function Toast({ toast }: { toast: TLUiToast }) {
 			duration={toast.keepOpen ? Infinity : 5000}
 			data-severity={toast.severity}
 		>
-			<div className="tlui-toast__icon">
-				<TldrawUiIcon icon={icon} />
-			</div>
+			{icon && (
+				<div className="tlui-toast__icon">
+					<TldrawUiIcon icon={icon} />
+				</div>
+			)}
 			<div className="tlui-toast__main">
 				<div className="tlui-toast__content">
 					{toast.title && <T.Title className="tlui-toast__title">{toast.title}</T.Title>}

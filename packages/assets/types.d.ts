@@ -40,6 +40,7 @@ export type AssetUrls = {
 		blob: string
 		'bring-forward': string
 		'bring-to-front': string
+		'check-circle': string
 		check: string
 		'checkbox-checked': string
 		'checkbox-empty': string
@@ -56,6 +57,7 @@ export type AssetUrls = {
 		color: string
 		comment: string
 		'cross-2': string
+		'cross-circle': string
 		cross: string
 		'dash-dashed': string
 		'dash-dotted': string
@@ -144,7 +146,6 @@ export type AssetUrls = {
 		'status-online': string
 		'stretch-horizontal': string
 		'stretch-vertical': string
-		success: string
 		'text-align-center': string
 		'text-align-justify': string
 		'text-align-left': string

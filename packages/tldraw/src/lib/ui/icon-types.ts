@@ -32,6 +32,7 @@ export type TLUiIconType =
 	| 'blob'
 	| 'bring-forward'
 	| 'bring-to-front'
+	| 'check-circle'
 	| 'check'
 	| 'checkbox-checked'
 	| 'checkbox-empty'
@@ -48,6 +49,7 @@ export type TLUiIconType =
 	| 'color'
 	| 'comment'
 	| 'cross-2'
+	| 'cross-circle'
 	| 'cross'
 	| 'dash-dashed'
 	| 'dash-dotted'
@@ -136,7 +138,6 @@ export type TLUiIconType =
 	| 'status-online'
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
-	| 'success'
 	| 'text-align-center'
 	| 'text-align-justify'
 	| 'text-align-left'
@@ -201,6 +202,7 @@ export const iconTypes = [
 	'blob',
 	'bring-forward',
 	'bring-to-front',
+	'check-circle',
 	'check',
 	'checkbox-checked',
 	'checkbox-empty',
@@ -217,6 +219,7 @@ export const iconTypes = [
 	'color',
 	'comment',
 	'cross-2',
+	'cross-circle',
 	'cross',
 	'dash-dashed',
 	'dash-dotted',
@@ -305,7 +308,6 @@ export const iconTypes = [
 	'status-online',
 	'stretch-horizontal',
 	'stretch-vertical',
-	'success',
 	'text-align-center',
 	'text-align-justify',
 	'text-align-left',
