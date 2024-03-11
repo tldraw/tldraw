@@ -404,7 +404,11 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		if (session.socket.isOpen) {
 			if (message.type !== 'patch' && message.type !== 'push_result') {
 				// this is not a data message
-				this._flushDataMessages(sessionKey)
+				if (message.type !== 'pong') {
+					// non-data messages like "connect" might still need to be ordered correctly with
+					// respect to data messages, so it's better to flush just in case
+					this._flushDataMessages(sessionKey)
+				}
 				session.socket.sendMessage(message)
 			} else {
 				if (session.debounceTimer === null) {
