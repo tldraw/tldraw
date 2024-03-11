@@ -1,5 +1,26 @@
 import { createContext, useContext, useState } from 'react'
-import { Editor, Tldraw } from 'tldraw'
+import {
+	ArrangeMenuSubmenu,
+	ClipboardMenuGroup,
+	ConversionsMenuGroup,
+	DefaultContextMenu,
+	EditLinkMenuItem,
+	Editor,
+	EmbedsGroup,
+	FitFrameToContentMenuItem,
+	GroupMenuItem,
+	RemoveFrameMenuItem,
+	ReorderMenuSubmenu,
+	SetSelectionGroup,
+	TLUiContextMenuProps,
+	Tldraw,
+	TldrawUiMenuGroup,
+	ToggleAutoSizeMenuItem,
+	ToggleLockMenuItem,
+	UngroupMenuItem,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const focusedEditorContext = createContext(
@@ -56,6 +77,7 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 					NavigationPanel: null,
 					MainMenu: null,
 					PageMenu: null,
+					ContextMenu: CustomContextMenu,
 				}}
 				onMount={(editor) => {
 					setEditor(editor)
@@ -72,4 +94,41 @@ function blurEditor(editor: Editor) {
 	editor.selectNone()
 	editor.updateInstanceState({ isFocused: false })
 	editor.setCurrentTool('hand')
+}
+
+function CustomContextMenu(props: TLUiContextMenuProps) {
+	const editor = useEditor()
+
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
+
+	return (
+		<DefaultContextMenu {...props}>
+			{selectToolActive && (
+				<>
+					<TldrawUiMenuGroup id="selection">
+						<ToggleAutoSizeMenuItem />
+						<EditLinkMenuItem />
+						<GroupMenuItem />
+						<UngroupMenuItem />
+						<RemoveFrameMenuItem />
+						<FitFrameToContentMenuItem />
+						<ToggleLockMenuItem />
+					</TldrawUiMenuGroup>
+					<EmbedsGroup />
+					<TldrawUiMenuGroup id="modify">
+						<ArrangeMenuSubmenu />
+						<ReorderMenuSubmenu />
+						{/* <MoveToPageMenu /> */}
+					</TldrawUiMenuGroup>
+					<ClipboardMenuGroup />
+					<ConversionsMenuGroup />
+					<SetSelectionGroup />
+				</>
+			)}
+		</DefaultContextMenu>
+	)
 }
