@@ -404,6 +404,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		if (session.socket.isOpen) {
 			if (message.type !== 'patch' && message.type !== 'push_result') {
 				// this is not a data message
+				this._flushDataMessages(sessionKey)
 				session.socket.sendMessage(message)
 			} else {
 				if (session.debounceTimer === null) {
