@@ -136,14 +136,12 @@ describe('When rotating...', () => {
 
 		editor
 			.pointerMove(box.midY, box.maxY)
-			.forceTick()
 			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI * 1.0 })
 
 		expect(Vec.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(center)
 
 		editor
 			.pointerMove(box.minX, box.midY)
-			.forceTick()
 			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI * 1.5 })
 
 		expect(Vec.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(center)
@@ -186,7 +184,6 @@ describe('When rotating...', () => {
 
 		editor
 			.pointerMove(box.midY, box.maxY)
-			.forceTick()
 			.expectShapeToMatch(
 				{ id: ids.box1, rotation: Math.PI * 1.0 },
 				{ id: ids.box2, rotation: Math.PI * 1.0 }
@@ -201,7 +198,6 @@ describe('When rotating...', () => {
 
 		editor
 			.pointerMove(box.minX, box.midY)
-			.forceTick()
 			.expectShapeToMatch(
 				{ id: ids.box1, rotation: Math.PI * 1.5 },
 				{ id: ids.box2, rotation: Math.PI * 1.5 }
