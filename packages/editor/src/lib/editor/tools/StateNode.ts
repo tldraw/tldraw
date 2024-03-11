@@ -74,6 +74,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	initial?: string
 	children?: Record<string, StateNode>
 	parent: StateNode
+	/** @public
+	 * Flag that indicates whether the `StateNode` contains some changes that have not been flushed to the Editor.
+	 */
 	isDirty: boolean
 
 	/**

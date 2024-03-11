@@ -33659,7 +33659,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#isDirty:member",
-              "docComment": "",
+              "docComment": "/**\n * Flag that indicates whether the `StateNode` contains some changes that have not been flushed to the Editor.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

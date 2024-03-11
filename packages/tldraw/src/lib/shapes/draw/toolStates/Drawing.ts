@@ -319,6 +319,7 @@ export class Drawing extends StateNode {
 
 		const newPoint = { x, y, z: this.isPen ? +(z! * 1.25).toFixed(2) : 0.5 }
 
+		// We also set the dirty flag here, since we might reach this from key events
 		this.isDirty = true
 
 		switch (this.segmentMode) {

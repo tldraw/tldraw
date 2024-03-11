@@ -1751,7 +1751,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static initial?: string;
     // (undocumented)
     initial?: string;
-    // (undocumented)
     isDirty: boolean;
     // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];
