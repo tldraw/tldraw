@@ -177,8 +177,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this.isDirty = false
 		this._isActive.set(false)
 		if (this.onTick) this.editor.off('tick', this.onTick)
-		this.onExit?.(info, from)
 		if (this.onThrottledPointerMove) this.editor.off('tick', this._onThrottledPointerMove)
+		this.onExit?.(info, from)
 		if (!this.getIsActive()) {
 			this.getCurrent()?.exit(info, from)
 		}
