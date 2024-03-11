@@ -11,15 +11,17 @@ function CustomActionsMenu() {
 	return (
 		<div style={{ backgroundColor: 'thistle' }}>
 			<DefaultActionsMenu>
-				<TldrawUiMenuItem
-					id="like"
-					label="Like my posts"
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
-					}}
-				/>
+				<div style={{ backgroundColor: 'thistle' }}>
+					<TldrawUiMenuItem
+						id="like"
+						label="Like my posts"
+						icon="external-link"
+						readonlyOk
+						onSelect={() => {
+							window.open('https://x.com/tldraw', '_blank')
+						}}
+					/>
+				</div>
 				<DefaultActionsMenuContent />
 			</DefaultActionsMenu>
 		</div>

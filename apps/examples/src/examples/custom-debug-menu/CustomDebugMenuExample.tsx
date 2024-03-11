@@ -10,22 +10,24 @@ import 'tldraw/tldraw.css'
 
 function CustomDebugMenu() {
 	return (
-		<DefaultDebugMenu>
-			<DefaultDebugMenuContent />
-			<div style={{ backgroundColor: 'thistle' }}>
-				<TldrawUiMenuGroup id="example">
-					<TldrawUiMenuItem
-						id="like"
-						label="Like my posts"
-						icon="external-link"
-						readonlyOk
-						onSelect={() => {
-							window.open('https://x.com/tldraw', '_blank')
-						}}
-					/>
-				</TldrawUiMenuGroup>
-			</div>
-		</DefaultDebugMenu>
+		<div style={{ backgroundColor: 'thistle' }}>
+			<DefaultDebugMenu>
+				<DefaultDebugMenuContent />
+				<div style={{ backgroundColor: 'thistle' }}>
+					<TldrawUiMenuGroup id="example">
+						<TldrawUiMenuItem
+							id="like"
+							label="Like my posts"
+							icon="external-link"
+							readonlyOk
+							onSelect={() => {
+								window.open('https://x.com/tldraw', '_blank')
+							}}
+						/>
+					</TldrawUiMenuGroup>
+				</div>
+			</DefaultDebugMenu>
+		</div>
 	)
 }
 
