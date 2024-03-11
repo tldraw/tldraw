@@ -5,7 +5,7 @@ import {
 	TLShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
-import { Fragment, ReactElement, createElement } from 'react'
+import { Fragment, ReactElement } from 'react'
 import { SVG_PADDING } from '../constants'
 import { Editor } from './Editor'
 import { SvgExportContext, SvgExportContextProvider, SvgExportDef } from './types/SvgExportContext'
@@ -81,7 +81,7 @@ export async function getSvgJsx(
 				const element = await def.getElement()
 				if (!element) return
 
-				defChildren.push(createElement(Fragment, { key: defChildren.length, children: element }))
+				defChildren.push(<Fragment key={defChildren.length}>{element}</Fragment>)
 			})()
 			exportDefPromisesById.set(def.key, promise)
 		},
