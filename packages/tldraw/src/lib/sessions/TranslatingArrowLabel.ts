@@ -40,7 +40,8 @@ export class TranslatingArrowLabelSession extends Session<{
 		const { originPagePoint } = editor.inputs
 		const pointInShapeSpace = editor.getPointInShapeSpace(shape, originPagePoint)
 		this.labelDragOffset = Vec.Sub(labelGeometry.center, pointInShapeSpace)
-		return
+
+		editor.setSelectedShapes([shape])
 	}
 
 	onUpdate() {
@@ -71,7 +72,6 @@ export class TranslatingArrowLabelSession extends Session<{
 		if (!this.didTranslate) {
 			editor.mark(this.markId)
 			editor.setCursor({ type: 'grabbing', rotation: 0 })
-			editor.setSelectedShapes([shape])
 			this.didTranslate = true
 		}
 
