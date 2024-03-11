@@ -39,10 +39,32 @@ export const enforcePrLabels: Flow = {
 			return await succeed('Closed PR, skipping label check')
 		}
 
-		if (pull.labels.length === 0) {
-			return await fail(`PR has no label. Please select at least one label! Any will do!`)
+		const availableLabels = (
+			await ctx.octokit.rest.issues.listLabelsForRepo({
+				owner: event.repository.owner.login,
+				repo: event.repository.name,
+			})
+		).data.map((x) => x.name)
+
+		const prBody = pull.body
+
+		const selectedReleaseLabels = availableLabels.filter((label) =>
+			prBody?.match(new RegExp(`^\\s*?-\\s*\\[\\s*x\\s*\\]\\s+\`${label}\``, 'm'))
+		) as string[]
+
+		if (selectedReleaseLabels.length === 0 && pull.labels.length === 0) {
+			return fail('Please add a label to the PR.')
 		}
 
-		return await succeed('Got at lease one label!')
+		// add any labels that are checked
+		console.log('adding labels')
+		await ctx.octokit.rest.issues.addLabels({
+			issue_number: pull.number,
+			owner: event.repository.organization ?? event.repository.owner.login,
+			repo: event.repository.name,
+			labels: selectedReleaseLabels,
+		} as any)
+
+		return await succeed(`PR is labelled!`)
 	},
 }
