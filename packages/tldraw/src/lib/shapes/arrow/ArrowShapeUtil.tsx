@@ -27,11 +27,11 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
 	mapObjectMapValues,
 	objectMapEntries,
+	structuredClone,
 	toDomPrecision,
 	useIsEditing,
 } from '@tldraw/editor'
@@ -172,11 +172,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		].filter(Boolean) as TLHandle[]
 	}
 
-	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
+	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (
+		shape,
+		{ handle, timeInBoundShape }
+	) => {
 		const handleId = handle.id as ARROW_HANDLES
 
 		if (handleId === ARROW_HANDLES.MIDDLE) {
-			// Bending the arrow...
+			// We're dragging the arrow's bend terminal
 			const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 			const delta = Vec.Sub(end, start)
@@ -192,114 +195,137 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return { id: shape.id, type: shape.type, props: { bend } }
 		}
 
-		// Start or end, pointing the arrow...
+		// We're dragging the arrow's start or end terminal
+		const { altKey: isExact, ctrlKey: forceNoBinding } = this.editor.inputs
 
-		const next = deepCopy(shape) as TLArrowShape
+		// We'll be modifying this clone
+		const next = structuredClone(shape) as TLArrowShape
 
-		if (this.editor.inputs.ctrlKey) {
-			// todo: maybe double check that this isn't equal to the other handle too?
-			// Skip binding
-			next.props[handleId] = {
-				type: 'point',
-				x: handle.x,
-				y: handle.y,
-			}
-			return next
-		}
+		// Try to find a bindable shape under the dragging handle...
 
-		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
-
-		const target = this.editor.getShapeAtPoint(point, {
-			hitInside: true,
-			hitFrameInside: true,
-			margin: 0,
-			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
-			},
-		})
-
-		if (!target) {
-			// todo: maybe double check that this isn't equal to the other handle too?
-			next.props[handleId] = {
-				type: 'point',
-				x: handle.x,
-				y: handle.y,
-			}
-			return next
-		}
-
-		// we've got a target! the handle is being dragged over a shape, bind to it
-
-		const targetGeometry = this.editor.getShapeGeometry(target)
-		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
-		const pageTransform = this.editor.getShapePageTransform(next.id)!
+		const pageTransform = this.editor.getShapePageTransform(shape.id)!
 		const pointInPageSpace = pageTransform.applyToPoint(handle)
-		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
-		let precise = isPrecise
+		const boundShape = forceNoBinding
+			? undefined
+			: this.editor.getShapeAtPoint(pointInPageSpace, {
+					hitInside: true,
+					hitFrameInside: true,
+					filter: (s) => !s.isLocked && this.editor.getShapeUtil(s).canBind(s),
+				})
 
-		if (!precise) {
-			// If we're switching to a new bound shape, then precise only if moving slowly
-			const prevHandle = next.props[handleId]
-			if (
-				prevHandle.type === 'point' ||
-				(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
-			) {
-				precise = this.editor.inputs.pointerVelocity.len() < 0.5
+		if (!boundShape) {
+			// todo: maybe double check that this isn't equal to the other handle too?
+			next.props[handleId] = {
+				type: 'point',
+				x: handle.x,
+				y: handle.y,
+			}
+			return next
+		}
+
+		// we've got a bound shape! the handle is being dragged over a shape, bind to it
+
+		const boundShapeGeometry = this.editor.getShapeGeometry(boundShape)
+		const boundShapeBounds = Box.ZeroFix(boundShapeGeometry.bounds)
+		const pointInBoundShapeSpace = this.editor.getPointInShapeSpace(boundShape, pointInPageSpace)
+
+		// The normalized position of the dragging point within the bounds of the shape
+		const normalizedAnchor = {
+			x: (pointInBoundShapeSpace.x - boundShapeBounds.minX) / boundShapeBounds.width,
+			y: (pointInBoundShapeSpace.y - boundShapeBounds.minY) / boundShapeBounds.height,
+		}
+
+		// Next, let's decide whether it's a "precise" or "imprecise" binding.
+		// A precise binding is bound to a specific point in the shape; whereas
+		// an imprecise binding will be rendered pointing to the center of the shape.
+
+		const oppositeHandleId =
+			handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START
+		const oppositeHandle = next.props[oppositeHandleId]
+		const oppositeHandleInBoundShapeSpace = this.editor.getPointInShapeSpace(
+			boundShape,
+			pageTransform.applyToPoint(this.editor.getArrowInfo(next)![oppositeHandleId].point)
+		)
+
+		const distanceBetweenHandles = Vec.Dist(pointInBoundShapeSpace, oppositeHandleInBoundShapeSpace)
+
+		let isCloseEnoughToAngleSnap = false
+
+		if (!isExact) {
+			if (distanceBetweenHandles < 30) {
+				if (timeInBoundShape <= MAX_TIME_TO_START_ANGLE_BIND) {
+					isCloseEnoughToAngleSnap =
+						Vec.Dist(pointInBoundShapeSpace, boundShapeBounds.center) < MIN_DISTANCE_TO_ANGLE_BIND
+				}
+			} else {
+				if (timeInBoundShape <= MAX_TIME_TO_ANGLE_BIND) {
+					const distFromLineToCenter =
+						Vec.DistanceToLineSegment(
+							oppositeHandleInBoundShapeSpace,
+							// ray from the opposite handle through to the point
+							Vec.Tan(pointInBoundShapeSpace, oppositeHandleInBoundShapeSpace)
+								.mul(1000000)
+								.add(oppositeHandleInBoundShapeSpace),
+							boundShapeBounds.center
+						) / this.editor.getZoomLevel()
+
+					isCloseEnoughToAngleSnap = distFromLineToCenter < MIN_DISTANCE_TO_ANGLE_BIND
+				}
 			}
 		}
 
-		if (!isPrecise) {
-			if (!targetGeometry.isClosed) {
-				precise = true
-			}
+		// We're coming from either the dragging handle state's precise mode,
+		// which is due to timing or because the user is holding alt
+		let precise = !isCloseEnoughToAngleSnap
 
+		if (precise) {
 			// Double check that we're not going to be doing an imprecise snap on
 			// the same shape twice, as this would result in a zero length line
-			const otherHandle =
-				next.props[handleId === ARROW_HANDLES.START ? ARROW_HANDLES.END : ARROW_HANDLES.START]
 			if (
-				otherHandle.type === 'binding' &&
-				target.id === otherHandle.boundShapeId &&
-				otherHandle.isPrecise
+				oppositeHandle.type === 'binding' &&
+				boundShape.id === oppositeHandle.boundShapeId &&
+				oppositeHandle.isPrecise
 			) {
 				precise = true
 			}
 		}
 
-		const normalizedAnchor = {
-			x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-			y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+		// If for whatever reason the target shape is open, we should be precise
+		if (!precise && !boundShapeGeometry.isClosed) {
+			precise = true
 		}
 
 		if (precise) {
-			// Turn off precision if we're within a certain distance to the center of the shape.
-			// Funky math but we want the snap distance to be 4 at the minimum and either
-			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
+			// Even if we're precise, force the point to snap to the center of the shape if we're
+			// within a certain distance from the center.
 			if (
-				Vec.Dist(pointInTargetSpace, targetBounds.center) <
-				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.getZoomLevel()
+				Vec.Dist(pointInBoundShapeSpace, boundShapeBounds.center) <
+				MIN_DISTANCE_TO_CENTER_BIND * this.editor.getZoomLevel()
 			) {
 				normalizedAnchor.x = 0.5
 				normalizedAnchor.y = 0.5
 			}
 		}
 
-		next.props[handleId] = {
-			type: 'binding',
-			boundShapeId: target.id,
-			normalizedAnchor: normalizedAnchor,
-			isPrecise: precise,
-			isExact: this.editor.inputs.altKey,
-		}
-
-		if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
-			if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
-				if (Vec.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
-					next.props.end.normalizedAnchor.x += 0.05
+		// If (for whatever reason) the arrow is bound to the same shape at both ends, and the anchors
+		// are the same, then we need to adjust the end anchor so that the arrow doesn't collapse
+		// to zero length.
+		if (oppositeHandle.type === 'binding') {
+			if (oppositeHandle.boundShapeId === boundShape.id) {
+				if (Vec.Equals(oppositeHandle.normalizedAnchor, normalizedAnchor)) {
+					normalizedAnchor.x += 0.05
 				}
 			}
+		}
+
+		// We're done!
+		next.props[handleId] = {
+			type: 'binding',
+			boundShapeId: boundShape.id,
+			normalizedAnchor,
+			isPrecise: precise,
+			isExact,
 		}
 
 		return next
@@ -420,7 +446,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape)
 
-		const { start, end } = deepCopy<TLArrowShape['props']>(shape.props)
+		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
 		let { bend } = shape.props
 
 		// Rescale start handle if it's not bound to a shape
@@ -1082,3 +1108,8 @@ const shapeAtTranslationStart = new WeakMap<
 		>
 	}
 >()
+
+const MIN_DISTANCE_TO_CENTER_BIND = 20
+const MIN_DISTANCE_TO_ANGLE_BIND = 150
+const MAX_TIME_TO_ANGLE_BIND = 750
+const MAX_TIME_TO_START_ANGLE_BIND = 300

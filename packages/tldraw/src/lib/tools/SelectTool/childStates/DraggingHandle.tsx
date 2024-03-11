@@ -40,6 +40,10 @@ export class DraggingHandle extends StateNode {
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
 
+	boundShapeId = null as TLShapeId | null
+	didEnterBoundShapeSlowly = false
+	startTimeInBoundShape = 0
+
 	override onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
 			shape: TLArrowShape | TLLineShape
@@ -120,13 +124,8 @@ export class DraggingHandle extends StateNode {
 
 			if (initialTerminal?.type === 'binding') {
 				this.editor.setHintingShapes([initialTerminal.boundShapeId])
-
-				this.isPrecise = initialTerminal.isPrecise
-				if (this.isPrecise) {
-					this.isPreciseId = initialTerminal.boundShapeId
-				} else {
-					this.resetExactTimeout()
-				}
+				this.boundShapeId = initialTerminal.boundShapeId
+				this.startTimeInBoundShape = Date.now()
 			} else {
 				this.editor.setHintingShapes([])
 			}
@@ -136,33 +135,6 @@ export class DraggingHandle extends StateNode {
 		this.update()
 
 		this.editor.select(this.shapeId)
-	}
-
-	// Only relevant to arrows
-	private exactTimeout = -1 as any
-
-	// Only relevant to arrows
-	private resetExactTimeout() {
-		if (this.exactTimeout !== -1) {
-			this.clearExactTimeout()
-		}
-
-		this.exactTimeout = setTimeout(() => {
-			if (this.getIsActive() && !this.isPrecise) {
-				this.isPrecise = true
-				this.isPreciseId = this.pointingId
-				this.update()
-			}
-			this.exactTimeout = -1
-		}, 750)
-	}
-
-	// Only relevant to arrows
-	private clearExactTimeout() {
-		if (this.exactTimeout !== -1) {
-			clearTimeout(this.exactTimeout)
-			this.exactTimeout = -1
-		}
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
@@ -236,10 +208,8 @@ export class DraggingHandle extends StateNode {
 		const isSnapMode = this.editor.user.getIsSnapMode()
 		const {
 			snaps,
-			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
+			inputs: { currentPagePoint, shiftKey, ctrlKey },
 		} = editor
-
-		const initial = this.info.shape
 
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
@@ -279,8 +249,9 @@ export class DraggingHandle extends StateNode {
 
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
-			isPrecise: this.isPrecise || altKey,
-			initial: initial,
+			timeInBoundShape: this.didEnterBoundShapeSlowly
+				? 10000 // a high enough number to make sure we're precise
+				: Date.now() - this.startTimeInBoundShape,
 		})
 
 		const next: TLShapePartial<any> = { ...shape, ...changes }
@@ -291,19 +262,23 @@ export class DraggingHandle extends StateNode {
 
 			if (bindingAfter?.type === 'binding') {
 				if (hintingShapeIds[0] !== bindingAfter.boundShapeId) {
+					this.startTimeInBoundShape = Date.now()
 					editor.setHintingShapes([bindingAfter.boundShapeId])
 					this.pointingId = bindingAfter.boundShapeId
-					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
-					this.isPreciseId = this.isPrecise ? bindingAfter.boundShapeId : null
-					this.resetExactTimeout()
+					this.didEnterBoundShapeSlowly = this.editor.inputs.pointerVelocity.len() < 0.5
+
+					clearTimeout(this._newBindingTimeout)
+					this._newBindingTimeout = setTimeout(() => {
+						if (this.getIsActive()) {
+							this.update()
+						}
+					}, 750)
 				}
 			} else {
 				if (hintingShapeIds.length > 0) {
+					this.startTimeInBoundShape = Date.now()
 					editor.setHintingShapes([])
 					this.pointingId = null
-					this.isPrecise = false
-					this.isPreciseId = null
-					this.resetExactTimeout()
 				}
 			}
 		}
@@ -312,4 +287,6 @@ export class DraggingHandle extends StateNode {
 			editor.updateShapes([next], { squashing: true })
 		}
 	}
+
+	private _newBindingTimeout = -1 as any
 }

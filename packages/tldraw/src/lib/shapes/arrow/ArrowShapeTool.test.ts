@@ -38,11 +38,11 @@ it('enters the arrow state', () => {
 })
 
 describe('When in the idle state', () => {
-	it('enters the pointing state and creates a shape on pointer down', () => {
+	it('enters the pointing state on pointer down', () => {
 		const shapesBefore = editor.getCurrentPageShapes().length
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 		const shapesAfter = editor.getCurrentPageShapes().length
-		expect(shapesAfter).toBe(shapesBefore + 1)
+		expect(shapesAfter).toBe(shapesBefore)
 		editor.expectToBeIn('arrow.pointing')
 	})
 
@@ -172,7 +172,7 @@ describe('When pointing an end shape', () => {
 		expect(editor.getHintingShapeIds().length).toBe(0)
 
 		// Fake some velocity
-		editor.inputs.pointerVelocity = new Vec(1, 1)
+		editor.inputs.pointerVelocity.setTo(new Vec(1, 1))
 
 		// Move onto shape
 		editor.pointerMove(375, 375)
@@ -346,25 +346,12 @@ describe('When pointing an end shape', () => {
 	it('begins precise when moving slowly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 
-		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
-
-		editor.expectShapeToMatch(arrow, {
-			id: arrow.id,
-			type: 'arrow',
-			x: 0,
-			y: 0,
-			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: { type: 'point', x: 2, y: 0 },
-			},
-		})
-
 		expect(editor.getHintingShapeIds().length).toBe(0)
 
 		editor.inputs.pointerVelocity = new Vec(0.001, 0.001)
 		editor.pointerMove(375, 375)
 
-		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
 		expect(editor.getHintingShapeIds().length).toBe(1)
 
