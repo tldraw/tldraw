@@ -10,7 +10,10 @@ import React from 'react'
 import { MeasureMethod } from '../../editor/managers/TextManager'
 import { Box } from '../../primitives/Box'
 
-/** @alpha */
+/**
+ * @public
+ * This is an _experimental_ component that we are still exploring.
+ */
 export type TLTextTriggerHook = (
 	inputEl: HTMLTextAreaElement | null,
 	onComplete: (text: string) => void
