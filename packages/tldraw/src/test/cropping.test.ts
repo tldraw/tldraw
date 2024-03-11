@@ -530,10 +530,11 @@ describe('When in the select.pointing_crop_handle state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.keyDown('Control')
+			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left' })
 			.expectToBeIn('select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 	})
 
 	it('when entered from select.idle, pressing escape / cancel should return to idle and clear cropping idle', () => {
@@ -542,7 +543,8 @@ describe('When in the select.pointing_crop_handle state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.keyDown('Control')
+			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left' })
 			.expectToBeIn('select.pointing_crop_handle')
 			.cancel()
 			.expectToBeIn('select.idle')
@@ -574,10 +576,11 @@ describe('When in the select.cropping state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.keyDown('Control')
+			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left' })
 			.expectToBeIn('select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 	})
@@ -589,10 +592,11 @@ describe('When in the select.cropping state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.keyDown('Control')
+			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left' })
 			.expectToBeIn('select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.cancel()
 			.expectToBeIn('select.idle')
 
@@ -610,7 +614,7 @@ describe('When in the select.cropping state', () => {
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
 			.expectToBeIn('select.cropping.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectToBeIn('select.cropping.cropping')
+			.expectToBeIn('select.cropping.resizing_crop')
 			.cancel()
 			.expectToBeIn('select.cropping.idle')
 
@@ -628,7 +632,7 @@ describe('When in the select.cropping state', () => {
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
 			.expectToBeIn('select.cropping.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectToBeIn('select.cropping.cropping')
+			.expectToBeIn('select.cropping.resizing_crop')
 			.pointerUp()
 			.expectToBeIn('select.cropping.idle')
 
@@ -646,10 +650,11 @@ describe('When in the select.cropping state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.keyDown('Control')
+			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left' })
 			.expectToBeIn('select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.pointerUp()
 			.expectToBeIn('select.idle')
 
@@ -673,19 +678,15 @@ describe('When cropping...', () => {
 		const stoppingCropY = (imageHeight - MIN_CROP_SIZE) / imageHeight
 		editor
 			.select(ids.imageA)
-			.pointerDown(
-				imageX,
-				imageY,
-				{
-					target: 'selection',
-					handle: 'top_left',
-				},
-				{ ctrlKey: true }
-			)
+			.keyDown('Control')
+			.pointerDown(imageX, imageY, {
+				target: 'selection',
+				handle: 'top_left',
+			})
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(imageX + moveX, imageY + moveY)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.expectShapeToMatch({
 				id: ids.imageA,
 				x: imageX + (imageWidth - MIN_CROP_SIZE),
@@ -745,19 +746,15 @@ describe('When cropping...', () => {
 		const moveY = imageHeight * cropY
 		editor
 			.select(ids.imageA)
-			.pointerDown(
-				imageX,
-				imageY,
-				{
-					target: 'selection',
-					handle: 'top_left',
-				},
-				{ ctrlKey: true }
-			)
+			.keyDown('Control')
+			.pointerDown(imageX, imageY, {
+				target: 'selection',
+				handle: 'top_left',
+			})
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(imageX + moveX, imageY + moveY)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.expectShapeToMatch({
 				id: ids.imageA,
 				x: imageX + moveX,
@@ -783,19 +780,15 @@ describe('When cropping...', () => {
 		const moveY = imageHeight * cropY
 		editor
 			.select(ids.imageA)
-			.pointerDown(
-				imageX + imageWidth,
-				imageY,
-				{
-					target: 'selection',
-					handle: 'top_right',
-				},
-				{ ctrlKey: true }
-			)
+			.keyDown('Control')
+			.pointerDown(imageX + imageWidth, imageY, {
+				target: 'selection',
+				handle: 'top_right',
+			})
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(imageX + imageWidth - moveX, imageY + moveY)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.expectShapeToMatch({
 				id: ids.imageA,
 				x: imageX,
@@ -821,19 +814,15 @@ describe('When cropping...', () => {
 		const moveY = imageHeight * cropY
 		editor
 			.select(ids.imageA)
-			.pointerDown(
-				imageX,
-				imageY + imageHeight,
-				{
-					target: 'selection',
-					handle: 'bottom_left',
-				},
-				{ ctrlKey: true }
-			)
+			.keyDown('Control')
+			.pointerDown(imageX, imageY + imageHeight, {
+				target: 'selection',
+				handle: 'bottom_left',
+			})
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(imageX + moveX, imageY + imageHeight - moveY)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.expectShapeToMatch({
 				id: ids.imageA,
 				x: imageX + moveX,
@@ -859,19 +848,15 @@ describe('When cropping...', () => {
 		const moveY = imageHeight * cropY
 		editor
 			.select(ids.imageA)
-			.pointerDown(
-				imageX + imageWidth,
-				imageY + imageHeight,
-				{
-					target: 'selection',
-					handle: 'bottom_right',
-				},
-				{ ctrlKey: true }
-			)
+			.keyDown('Control')
+			.pointerDown(imageX + imageWidth, imageY + imageHeight, {
+				target: 'selection',
+				handle: 'bottom_right',
+			})
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(imageX + imageWidth - moveX, imageY + imageHeight - moveY)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.expectShapeToMatch({
 				id: ids.imageA,
 				x: imageX,
@@ -895,19 +880,15 @@ describe('When cropping...', () => {
 		const moveX = imageWidth * cropX
 		editor
 			.select(ids.imageA)
-			.pointerDown(
-				imageX,
-				imageY + imageHeight / 2,
-				{
-					target: 'selection',
-					handle: 'left',
-				},
-				{ ctrlKey: true }
-			)
+			.keyDown('Control')
+			.pointerDown(imageX, imageY + imageHeight / 2, {
+				target: 'selection',
+				handle: 'left',
+			})
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(imageX + moveX, imageY + imageHeight / 2)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.expectShapeToMatch({
 				id: ids.imageA,
 				x: imageX + moveX,
@@ -943,7 +924,7 @@ describe('When cropping...', () => {
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(imageX + imageWidth / 2, imageY + moveY)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.expectShapeToMatch({
 				id: ids.imageA,
 				x: imageX,
@@ -979,7 +960,7 @@ describe('When cropping...', () => {
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(150, 150)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.pointerMove(imageX + imageWidth - moveX, imageY + imageHeight / 2)
 			.expectShapeToMatch({
 				id: ids.imageA,
@@ -1016,7 +997,7 @@ describe('When cropping...', () => {
 			.expectToBeIn('select.pointing_crop_handle')
 			.expectShapeToMatch({ id: ids.imageA, x: imageX, y: imageY, props: imageProps })
 			.pointerMove(imageX + imageWidth / 2, imageY + imageHeight - moveY)
-			.expectToBeIn('select.cropping')
+			.expectToBeIn('select.resizing_crop')
 			.expectShapeToMatch({
 				id: ids.imageA,
 				x: imageX,

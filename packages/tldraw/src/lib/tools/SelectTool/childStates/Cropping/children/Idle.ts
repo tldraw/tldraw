@@ -80,7 +80,7 @@ export class Idle extends StateNode {
 						// todo: make own state with session
 						this.editor.setCurrentTool('select.pointing_rotate_handle', {
 							...info,
-							onInteractionEnd: 'select.crop',
+							onInteractionEnd: 'select.cropping',
 						})
 						break
 					}
