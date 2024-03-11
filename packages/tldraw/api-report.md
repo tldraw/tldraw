@@ -294,6 +294,12 @@ export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: Box
 // @public (undocumented)
 export function ConversionsMenuGroup(): JSX_2.Element | null;
 
+// @public (undocumented)
+export function ConvertToBookmarkMenuItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function ConvertToEmbedMenuItem(): JSX_2.Element | null;
+
 // @public
 export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
 
@@ -473,9 +479,6 @@ export function EditLinkMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
-
-// @public (undocumented)
-export function EmbedsGroup(): JSX_2.Element | null;
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -999,9 +1002,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     static type: "line";
 }
-
-// @public (undocumented)
-export function LockGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export function MiscMenuGroup(): JSX_2.Element;

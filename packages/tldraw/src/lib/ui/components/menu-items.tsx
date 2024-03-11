@@ -189,7 +189,6 @@ export function ClipboardMenuGroup() {
 			<PasteMenuItem />
 			<DuplicateMenuItem />
 			<DeleteMenuItem />
-			<SelectAllMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -441,8 +440,9 @@ export function MoveToPageMenu() {
 		</TldrawUiMenuSubmenu>
 	)
 }
+
 /** @public */
-export function EmbedsGroup() {
+export function ConvertToBookmarkMenuItem() {
 	const editor = useEditor()
 	const actions = useActions()
 
@@ -460,6 +460,15 @@ export function EmbedsGroup() {
 		[editor]
 	)
 
+	if (!oneEmbedSelected) return null
+	return <TldrawUiMenuItem {...actions['convert-to-bookmark']} />
+}
+
+/** @public */
+export function ConvertToEmbedMenuItem() {
+	const editor = useEditor()
+	const actions = useActions()
+
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
 		() => {
@@ -475,21 +484,9 @@ export function EmbedsGroup() {
 		[editor]
 	)
 
-	if (!oneEmbedSelected && !oneEmbeddableBookmarkSelected) return null
+	if (!oneEmbeddableBookmarkSelected) return null
 
-	return (
-		<TldrawUiMenuGroup id="embeds">
-			{/* XXX this doesn't exist?? */}
-			{/* <TldrawUiMenuItem {...actions['edit-embed']} disabled={!oneEmbedSelected} /> */}
-			{oneEmbedSelected && <TldrawUiMenuItem {...actions['convert-to-bookmark']} />}
-			{oneEmbeddableBookmarkSelected && (
-				<TldrawUiMenuItem
-					{...actions['convert-to-embed']}
-					disabled={!oneEmbeddableBookmarkSelected}
-				/>
-			)}
-		</TldrawUiMenuGroup>
-	)
+	return <TldrawUiMenuItem {...actions['convert-to-embed']} />
 }
 
 /* ------------------- Preferences ------------------ */

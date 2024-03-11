@@ -5,11 +5,13 @@ import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
+	ConvertToBookmarkMenuItem,
+	ConvertToEmbedMenuItem,
 	EditLinkMenuItem,
-	EmbedsGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	RemoveFrameMenuItem,
+	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDarkModeItem,
 	ToggleDebugModeItem,
@@ -77,10 +79,12 @@ export function EditSubmenu() {
 		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
-			<MiscMenuGroup />
-			<EmbedsGroup />
 			<ConversionsMenuGroup />
+			<MiscMenuGroup />
 			<LockGroup />
+			<TldrawUiMenuGroup id="select-all">
+				<SelectAllMenuItem />
+			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
 }
@@ -91,10 +95,12 @@ export function MiscMenuGroup() {
 		<TldrawUiMenuGroup id="misc">
 			<GroupMenuItem />
 			<UngroupMenuItem />
+			<EditLinkMenuItem />
+			<ToggleAutoSizeMenuItem />
 			<RemoveFrameMenuItem />
 			<FitFrameToContentMenuItem />
-			<ToggleAutoSizeMenuItem />
-			<EditLinkMenuItem />
+			<ConvertToEmbedMenuItem />
+			<ConvertToBookmarkMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
