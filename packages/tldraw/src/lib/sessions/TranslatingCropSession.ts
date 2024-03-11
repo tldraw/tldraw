@@ -27,7 +27,7 @@ export class TranslatingCropSession extends Session {
 
 		if (!this.didTranslate) {
 			// mark when we start dragging
-			editor.mark('translating crop')
+			editor.mark(this.id)
 			this.didTranslate = true
 		}
 
@@ -51,7 +51,7 @@ export class TranslatingCropSession extends Session {
 	}
 
 	onCancel() {
-		this.editor.bailToMark('translating crop')
+		this.editor.bailToMark(this.id)
 		return
 	}
 

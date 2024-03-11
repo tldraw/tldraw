@@ -85,8 +85,9 @@ export abstract class Session<T extends object = object> {
 	 */
 	complete() {
 		this.onComplete()
-		this.info.onEnd?.()
+		this.onEnd()
 		this.dispose()
+		this.info.onEnd?.()
 		return this
 	}
 
@@ -96,8 +97,9 @@ export abstract class Session<T extends object = object> {
 	 */
 	cancel() {
 		this.onCancel()
-		this.info.onEnd?.()
+		this.onEnd()
 		this.dispose()
+		this.info.onEnd?.()
 		return this
 	}
 
