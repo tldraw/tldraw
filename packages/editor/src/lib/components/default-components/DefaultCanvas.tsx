@@ -491,19 +491,11 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			console.time(`getSvgString ${renderId}`)
 			const svgString = await editor.getSvgString([id], {
 				padding: 0,
 				background: editor.getInstanceState().exportBackground,
 			})
 
-			for (let i = 0; i < 100; i++) {
-				const svgString = await editor.getSvgString([id], {
-					padding: 0,
-					background: editor.getInstanceState().exportBackground,
-				})
-			}
-			console.timeEnd(`getSvgString ${renderId}`)
 			if (latest !== renderId || !svgString) return
 
 			const svgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgString)}`
