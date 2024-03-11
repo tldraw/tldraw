@@ -1,4 +1,5 @@
 import {
+	ANIMATION_MEDIUM_MS,
 	DefaultFontFamilies,
 	Editor,
 	Rectangle2d,
@@ -6,6 +7,8 @@ import {
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShapeId,
+	Vec,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -17,6 +20,7 @@ import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
+import { createSticky } from './toolStates/Pointing'
 
 export const INITIAL_NOTE_SIZE = 200
 
@@ -90,6 +94,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							text={text}
 							labelColor="black"
 							wrap
+							onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => this.handleKeyDown(e, id)}
 						/>
 					</div>
 				</div>
@@ -98,6 +103,35 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				)}
 			</>
 		)
+	}
+
+	private handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, id: TLShapeId) => {
+		const shape = this.editor.getShape<TLNoteShape>(id)!
+		const isCmdOrCtrlEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+		if (isCmdOrCtrlEnter || e.key === 'Tab') {
+			this.editor.complete()
+
+			// Create a new sticky
+			const size = INITIAL_NOTE_SIZE
+			const offset = new Vec(shape.x + size * 1.5 + 10, shape.y + size / 2)
+			const newSticky = createSticky(this.editor, undefined, offset)
+
+			// Go into edit mode on the new sticky
+			this.editor.setEditingShape(newSticky.id)
+			this.editor.setCurrentTool('select.editing_shape', {
+				target: 'shape',
+				shape: newSticky,
+			})
+
+			// Animate to the new sticky, if necessary.
+			const selectionPageBounds = this.editor.getSelectionPageBounds()
+			const viewportPageBounds = this.editor.getViewportPageBounds()
+			if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+				this.editor.centerOnPoint(selectionPageBounds.center, {
+					duration: ANIMATION_MEDIUM_MS,
+				})
+			}
+		}
 	}
 
 	indicator(shape: TLNoteShape) {
