@@ -2582,7 +2582,7 @@ export type TLSvgOptions = {
 // @public
 export type TLTextLabel = ITextLabel<TextLabelProps>;
 
-// @alpha (undocumented)
+// @public
 export type TLTextTriggerHook = (inputEl: HTMLTextAreaElement | null, onComplete: (text: string) => void) => {
     onKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>, coords: {
         top: number;

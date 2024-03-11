@@ -41658,7 +41658,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLTextTriggerHook:type",
-          "docComment": "/**\n * @alpha\n */\n",
+          "docComment": "/**\n * This is an _experimental_ component that we are still exploring.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -41710,7 +41710,7 @@
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultTextLabel.tsx",
-          "releaseTag": "Alpha",
+          "releaseTag": "Public",
           "name": "TLTextTriggerHook",
           "typeTokenRange": {
             "startIndex": 1,
