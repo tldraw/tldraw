@@ -5,33 +5,11 @@ import {
 	TLSvgOptions,
 	debugFlags,
 	exhaustiveSwitchError,
-	getSvgAsString,
 } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 
 /** @public */
 export async function getSvgAsImage(
-	svg: SVGElement,
-	isSafari: boolean,
-	options: {
-		type: 'png' | 'jpeg' | 'webp'
-		quality: number
-		scale: number
-	}
-) {
-	const width = +svg.getAttribute('width')!
-	const height = +svg.getAttribute('height')!
-	const svgString = await getSvgAsString(svg)
-
-	return getSvgStringAsImage(svgString, isSafari, {
-		...options,
-		width,
-		height,
-	})
-}
-
-/** @public */
-export async function getSvgStringAsImage(
 	svgString: string,
 	isSafari: boolean,
 	options: {
@@ -112,8 +90,8 @@ export async function getSvgStringAsImage(
 	})
 }
 
-async function getSvg(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
-	const svg = await editor.getSvg(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
+async function getSvgString(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
+	const svg = await editor.getSvgString(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
 		scale: 1,
 		background: editor.getInstanceState().exportBackground,
 		...opts,
@@ -132,7 +110,7 @@ export async function exportToString(
 ) {
 	switch (format) {
 		case 'svg': {
-			return getSvgAsString(await getSvg(editor, ids, opts))
+			return (await getSvgString(editor, ids, opts))?.svg
 		}
 		case 'json': {
 			const data = editor.getContentFromCurrentPage(ids)
@@ -172,40 +150,15 @@ export async function exportToBlob({
 		case 'jpeg':
 		case 'png':
 		case 'webp': {
-			const getSvgTimes = []
-			const svgToImageTimes = []
-			const totalTimes = []
-			for (let i = 0; i < 400; i++) {
-				const a = performance.now()
-				const svg = await getSvg(editor, ids, opts)
-				const b = performance.now()
-				await getSvgAsImage(svg, editor.environment.isSafari, {
-					type: format,
-					quality: 1,
-					scale: 2,
-				})
-				const c = performance.now()
-				getSvgTimes.push(b - a)
-				svgToImageTimes.push(c - b)
-				totalTimes.push(c - a)
-			}
-
-			const avgGetSvgTime = (getSvgTimes.reduce((a, b) => a + b, 0) / getSvgTimes.length).toFixed(2)
-			const avgSvgToImageTime = (
-				svgToImageTimes.reduce((a, b) => a + b, 0) / svgToImageTimes.length
-			).toFixed(2)
-			const avgTotalTime = (totalTimes.reduce((a, b) => a + b, 0) / totalTimes.length).toFixed(2)
-			console.log({ avgGetSvgTime, avgSvgToImageTime, avgTotalTime })
-
-			const image = await getSvgAsImage(
-				await getSvg(editor, ids, opts),
-				editor.environment.isSafari,
-				{
-					type: format,
-					quality: 1,
-					scale: 2,
-				}
-			)
+			const svgResult = await getSvgString(editor, ids, opts)
+			if (!svgResult) throw new Error('Could not construct image.')
+			const image = await getSvgAsImage(svgResult.svg, editor.environment.isSafari, {
+				type: format,
+				quality: 1,
+				scale: 2,
+				width: svgResult.width,
+				height: svgResult.height,
+			})
 			if (!image) {
 				throw new Error('Could not construct image.')
 			}

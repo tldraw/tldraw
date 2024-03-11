@@ -8,7 +8,6 @@ import {
 	TLPageId,
 	TLRecord,
 	TLSvgOptions,
-	getSvgAsString,
 	useShallowArrayIdentity,
 	useTLStore,
 } from '@tldraw/editor'
@@ -109,7 +108,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		const shapeIds = editor.getCurrentPageShapeIds()
 
 		async function setSvg() {
-			const svg = await editor.getSvg([...shapeIds], {
+			const svgResult = await editor.getSvgString([...shapeIds], {
 				bounds,
 				scale,
 				background,
@@ -118,19 +117,20 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 				preserveAspectRatio,
 			})
 
-			if (svg && !isCancelled) {
+			if (svgResult && !isCancelled) {
 				if (format === 'svg') {
-					const string = await getSvgAsString(svg)
 					if (!isCancelled) {
-						const blob = new Blob([string], { type: 'image/svg+xml' })
+						const blob = new Blob([svgResult.svg], { type: 'image/svg+xml' })
 						const url = URL.createObjectURL(blob)
 						setUrl(url)
 					}
 				} else if (format === 'png') {
-					const blob = await getSvgAsImage(svg, editor.environment.isSafari, {
+					const blob = await getSvgAsImage(svgResult.svg, editor.environment.isSafari, {
 						type: format,
 						quality: 1,
 						scale: 2,
+						width: svgResult.width,
+						height: svgResult.height,
 					})
 					if (blob && !isCancelled) {
 						const url = URL.createObjectURL(blob)

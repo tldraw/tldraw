@@ -779,10 +779,12 @@ export function GeoStylePickerSet({ styles }: {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
-export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
+export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
     quality: number;
     scale: number;
+    width: number;
+    height: number;
 }): Promise<Blob | null>;
 
 // @public (undocumented)

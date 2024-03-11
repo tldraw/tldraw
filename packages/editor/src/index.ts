@@ -349,7 +349,6 @@ export {
 export { moveCameraWhenCloseToEdge } from './lib/utils/edgeScrolling'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
-export { getSvgAsString } from './lib/utils/getSvgAsString'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'

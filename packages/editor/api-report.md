@@ -769,7 +769,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // (undocumented)
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
-    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<string | undefined>;
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+        svg: string;
+        width: number;
+        height: number;
+    } | undefined>;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): {
         id: TLShapeId;
@@ -1097,9 +1101,6 @@ export function getPolygonVertices(width: number, height: number, sides: number)
 export function getRotationSnapshot({ editor }: {
     editor: Editor;
 }): null | TLRotationSnapshot;
-
-// @public (undocumented)
-export function getSvgAsString(svg: SVGElement): Promise<string>;
 
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;

@@ -8065,7 +8065,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	async getSvgString(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
 		const svg = await getSvgJsx(this, shapes, opts)
 		if (!svg) return undefined
-		return renderToStaticMarkup(svg)
+		return { svg: renderToStaticMarkup(svg.jsx), width: svg.width, height: svg.height }
 	}
 
 	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
@@ -8073,7 +8073,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!svg) return undefined
 		const fragment = new DocumentFragment()
 		const root = createRoot(fragment)
-		flushSync(() => root.render(svg))
+		flushSync(() => root.render(svg.jsx))
 		const rendered = fragment.firstElementChild
 		root.unmount()
 		return rendered as SVGSVGElement

@@ -14047,7 +14047,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string | undefined>"
+                  "text": "<{\n        svg: string;\n        width: number;\n        height: number;\n    } | undefined>"
                 },
                 {
                   "kind": "Content",
@@ -22326,57 +22326,6 @@
             }
           ],
           "name": "getPolygonVertices"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/editor!getSvgAsString:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getSvgAsString(svg: "
-            },
-            {
-              "kind": "Reference",
-              "text": "SVGElement",
-              "canonicalReference": "!SVGElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Reference",
-              "text": "Promise",
-              "canonicalReference": "!Promise:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<string>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/utils/getSvgAsString.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "svg",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getSvgAsString"
         },
         {
           "kind": "Function",

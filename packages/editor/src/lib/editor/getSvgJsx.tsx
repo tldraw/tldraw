@@ -180,7 +180,7 @@ export async function getSvgJsx(
 
 	await Promise.all(exportDefPromisesById.values())
 
-	return (
+	const svg = (
 		<SvgExportContextProvider editor={editor} context={exportContext}>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -200,4 +200,6 @@ export async function getSvgJsx(
 			</svg>
 		</SvgExportContextProvider>
 	)
+
+	return { jsx: svg, width: w, height: h }
 }
