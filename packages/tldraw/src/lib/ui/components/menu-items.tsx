@@ -331,7 +331,7 @@ export function ArrangeMenuSubmenu() {
 					<TldrawUiMenuItem {...actions['stretch-vertical']} />
 				</TldrawUiMenuGroup>
 			)}
-			{onlyFlippableShapeSelected && (
+			{(twoSelected || onlyFlippableShapeSelected) && (
 				<TldrawUiMenuGroup id="flip">
 					<TldrawUiMenuItem {...actions['flip-horizontal']} />
 					<TldrawUiMenuItem {...actions['flip-vertical']} />
