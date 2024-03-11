@@ -8,7 +8,7 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.setCursor({ type: 'cross', rotation: 0 })
+		this.editor.setCursor({ type: 'copy', rotation: 0 })
 	}
 
 	override onCancel = () => {

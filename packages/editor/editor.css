@@ -64,6 +64,7 @@
 	/* These cursor values get programmatically overridden */
 	/* They're just here to help your editor autocomplete */
 	--tl-cursor: var(--tl-cursor-default);
+	--tl-cursor-copy: copy;
 	--tl-cursor-resize-edge: ew-resize;
 	--tl-cursor-resize-corner: nesw-resize;
 	--tl-cursor-ew-resize: ew-resize;
