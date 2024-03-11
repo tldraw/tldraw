@@ -38,8 +38,8 @@ export function DefaultMainMenuContent() {
 	return (
 		<>
 			<EditSubmenu />
-			<ShapeSubmenu />
 			<ViewSubmenu />
+			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 		</>
@@ -78,27 +78,11 @@ export function EditSubmenu() {
 		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
-			<SetSelectionGroup />
-		</TldrawUiMenuSubmenu>
-	)
-}
-
-/** @public */
-export function ShapeSubmenu() {
-	const editor = useEditor()
-
-	const selectToolActive = useValue(
-		'isSelectToolActive',
-		() => editor.getCurrentToolId() === 'select',
-		[editor]
-	)
-
-	return (
-		<TldrawUiMenuSubmenu id="shape" label="menu.shape" disabled={!selectToolActive}>
 			<ConversionsMenuGroup />
 			<MultiShapeMenuGroup />
 			<MiscMenuGroup />
 			<EmbedsGroup />
+			<SetSelectionGroup />
 			<LockGroup />
 		</TldrawUiMenuSubmenu>
 	)

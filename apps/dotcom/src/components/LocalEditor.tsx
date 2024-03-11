@@ -11,7 +11,6 @@ import {
 	Editor,
 	ExtrasGroup,
 	PreferencesGroup,
-	ShapeSubmenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -49,7 +48,6 @@ const components: TLComponents = {
 		<DefaultMainMenu>
 			<LocalFileMenu />
 			<EditSubmenu />
-			<ShapeSubmenu />
 			<ViewSubmenu />
 			<ExtrasGroup />
 			<PreferencesGroup />

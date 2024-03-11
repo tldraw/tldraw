@@ -201,6 +201,7 @@ export {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
+	CopyAsMenuGroup,
 	CopyMenuItem,
 	CutMenuItem,
 	DeleteMenuItem,
@@ -247,7 +248,6 @@ export {
 	MiscMenuGroup,
 	MultiShapeMenuGroup,
 	PreferencesGroup,
-	ShapeSubmenu,
 	UndoRedoGroup,
 	ViewSubmenu,
 } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
