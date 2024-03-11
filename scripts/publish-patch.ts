@@ -28,8 +28,9 @@ async function main() {
 	}
 
 	// we could probably do this a lot earlier in the yml file but 🤷‍♂️
+	await exec('git', ['fetch', 'origin', 'main'])
 	const numberOfCommitsSinceBranch = Number(
-		(await exec('git', ['rev-list', '--count', `HEAD`, '^main'])).toString().trim()
+		(await exec('git', ['rev-list', '--count', `HEAD`, '^origin/main'])).toString().trim()
 	)
 
 	if (numberOfCommitsSinceBranch === 0) {
