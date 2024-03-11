@@ -67,7 +67,7 @@ export class Cropping extends StateNode {
 		this.editor.updateInstanceState({
 			cursor: {
 				type: cursorType,
-				rotation: selectedShape.rotation,
+				rotation: this.editor.getSelectionRotation(),
 			},
 		})
 	}

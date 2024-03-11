@@ -1,5 +1,5 @@
-name: Publish new packages from main
-# This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
+name: Publish patch release
+# This bumps the patch version, updates the changelogs in the release branch only, publishes a GitHub release, and publishes the packages to npm.
 
 # Prevent more than one non-canary npm publishing job from running at the same time
 concurrency:
@@ -7,36 +7,20 @@ concurrency:
 
 # Package publishing is manually triggered on github actions dashboard
 on:
-  workflow_dispatch:
-    inputs:
-      bump_type:
-        type: choice
-        description: Version Bump Type
-        required: true
-        default: 'minor'
-        options:
-          - minor
-          - major
-          - override
-      version_override:
-        type: string
-        description: Version Override
-        required: false
+  push:
+    branches:
+      - 'v*.*.x'
 
 jobs:
   deploy:
-    name: 'Publish new version of public packages'
+    name: Publish patch release
     environment: npm deploy
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open
+    outputs:
+      is_latest_version: ${{ steps.publish_step.outputs.is_latest_version }}
 
     steps:
-      - name: Check inputs
-        run: |
-          if [[ "${{ inputs.bump_type }}" != "override" ]] && ! [[ -z "${{ inputs.version_override }}" ]]; then
-            echo "ERROR You must set the Bump Type to 'override' if you supply a custom version number override."
-            exit 1
-          fi
       - name: Generate GH token
         id: generate_token
         uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
@@ -57,14 +41,11 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Publish
+        id: publish_step
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          if [[ "${{ inputs.bump_type }}" == "override" ]]; then
-            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.version_override }}
-          else
-            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.bump_type }}
-          fi
+          yarn tsx ./scripts/publish-patch.ts
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -73,9 +54,8 @@ jobs:
   publish_templates:
     name: Publishes code templates to separate repositories
     uses: tldraw/tldraw/.github/workflows/publish-templates.yml@main
+    if: ${{ needs.deploy.outputs.is_latest_version == 'true' }}
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-    needs: [
-      deploy
-    ]
+    needs: deploy
