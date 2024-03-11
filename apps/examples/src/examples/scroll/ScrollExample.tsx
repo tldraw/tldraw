@@ -14,7 +14,10 @@ export default function ScrollExample() {
 			}}
 		>
 			<div style={{ width: '60vw', height: '80vh' }}>
-				<Tldraw persistenceKey="scroll-example" autoFocus={false} />
+				<Tldraw
+					persistenceKey="scroll-example"
+					// autoFocus={false}
+				/>
 			</div>
 		</div>
 	)
