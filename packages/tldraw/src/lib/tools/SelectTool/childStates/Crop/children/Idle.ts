@@ -127,13 +127,22 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
-		if (
-			info.key === 'ArrowLeft' ||
-			info.key === 'ArrowRight' ||
-			info.key === 'ArrowUp' ||
-			info.key === 'ArrowDown'
-		) {
-			this.parent.transition('nudging_crop')
+		switch (info.key) {
+			case 'ArrowLeft':
+			case 'ArrowRight':
+			case 'ArrowUp':
+			case 'ArrowDown': {
+				this.parent.transition('nudging_crop')
+				break
+			}
+		}
+	}
+
+	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+		switch (info.key) {
+			case 'Enter': {
+				this.cancel()
+			}
 		}
 	}
 

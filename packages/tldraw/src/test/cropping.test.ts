@@ -342,15 +342,19 @@ describe('When in the crop.idle state', () => {
 			bottomRight: { x: 0.5, y: 0.50125 },
 		})
 
-		editor.keyRepeat('ArrowDown')
-		editor.keyRepeat('ArrowDown')
-		editor.keyRepeat('ArrowDown')
-		editor.keyRepeat('ArrowDown')
-		editor.keyUp('ArrowDown')
+		editor.forceTick(2)
+
+		// No change for the first 250ms
+		expect(crop()).toCloselyMatchObject({
+			topLeft: { x: 0, y: 0.00125 },
+			bottomRight: { x: 0.5, y: 0.50125 },
+		})
+
+		editor.forceTick(20)
 
 		expect(crop()).toCloselyMatchObject({
-			topLeft: { x: 0, y: 0.0062 },
-			bottomRight: { x: 0.5, y: 0.5062 },
+			topLeft: { x: 0, y: 0.00125 },
+			bottomRight: { x: 0.5, y: 0.50125 },
 		})
 
 		// Undoing should go back to the keydown state, all those
@@ -363,8 +367,8 @@ describe('When in the crop.idle state', () => {
 
 		editor.redo()
 		expect(crop()).toCloselyMatchObject({
-			topLeft: { x: 0, y: 0.0062 },
-			bottomRight: { x: 0.5, y: 0.5062 },
+			topLeft: { x: 0, y: 0.00125 },
+			bottomRight: { x: 0.5, y: 0.50125 },
 		})
 	})
 })
@@ -595,7 +599,7 @@ describe('When in the select.cropping state', () => {
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
 
-	it.only('escape / cancel should revert the change and transition to crop.idle when that is the history state', () => {
+	it('escape / cancel should revert the change and transition to crop.idle when that is the history state', () => {
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
