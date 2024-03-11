@@ -12880,6 +12880,36 @@
               "name": "component"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#doesAutoEditOnKeyStroke:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "doesAutoEditOnKeyStroke: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "doesAutoEditOnKeyStroke",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#getDefaultProps:member(1)",
               "docComment": "",
