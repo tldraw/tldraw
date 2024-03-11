@@ -207,9 +207,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -221,9 +221,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -985,9 +985,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
         }>;
     };
@@ -1046,10 +1046,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         props: {
             growY: number;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            size: "l" | "m" | "s" | "xl";
+            size: "s";
             font: "draw" | "mono" | "sans" | "serif";
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            verticalAlign: "end" | "middle" | "start";
+            align: "start";
+            verticalAlign: "start";
             url: string;
             text: string;
         };
@@ -1070,10 +1070,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         props: {
             growY: number;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            size: "l" | "m" | "s" | "xl";
+            size: "s";
             font: "draw" | "mono" | "sans" | "serif";
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            verticalAlign: "end" | "middle" | "start";
+            align: "start";
+            verticalAlign: "start";
             url: string;
             text: string;
         };
@@ -1094,10 +1094,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+        size: Validator<"s">;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
+        align: Validator<"start">;
+        verticalAlign: Validator<"start">;
         growY: Validator<number>;
         url: Validator<string>;
         text: Validator<string>;

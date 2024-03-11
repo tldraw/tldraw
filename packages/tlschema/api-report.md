@@ -47,9 +47,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -61,9 +61,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -684,9 +684,9 @@ export const lineShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
     points: T.DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
     } & {}>;
 };
@@ -700,10 +700,10 @@ export const noteShapeMigrations: Migrations;
 // @public (undocumented)
 export const noteShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+    size: T.Validator<"s">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-    align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-    verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
+    align: T.Validator<"start">;
+    verticalAlign: T.Validator<"start">;
     growY: T.Validator<number>;
     url: T.Validator<string>;
     text: T.Validator<string>;

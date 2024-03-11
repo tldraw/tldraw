@@ -364,7 +364,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    end: "
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    end: "
             },
             {
               "kind": "Reference",
@@ -409,7 +409,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    bend: "
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    bend: "
             },
             {
               "kind": "Reference",
@@ -2818,7 +2818,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
+              "text": "<string, {\n        x: number;\n        y: number;\n        id: string;\n        index: "
             },
             {
               "kind": "Reference",
@@ -2891,7 +2891,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    size: import(\"..\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    size: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"s\">;\n    font: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2900,34 +2909,25 @@
             },
             {
               "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"..\")."
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: "
             },
             {
               "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
             },
             {
               "kind": "Content",
-              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: import(\"..\")."
+              "text": "<\"start\">;\n    verticalAlign: "
             },
             {
               "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
             },
             {
               "kind": "Content",
-              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    verticalAlign: import(\"..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"end\" | \"middle\" | \"start\">;\n    growY: "
+              "text": "<\"start\">;\n    growY: "
             },
             {
               "kind": "Reference",

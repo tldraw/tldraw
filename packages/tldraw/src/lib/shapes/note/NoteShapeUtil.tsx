@@ -33,11 +33,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
 			color: 'black',
-			size: 'm',
+			size: 's',
 			text: '',
 			font: 'draw',
-			align: 'middle',
-			verticalAlign: 'middle',
+			align: 'start',
+			verticalAlign: 'start',
 			growY: 0,
 			url: '',
 		}
@@ -56,7 +56,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { color, font, size, align, text, verticalAlign },
+			props: { color, font, text },
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -84,9 +84,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							id={id}
 							type={type}
 							font={font}
-							size={size}
-							align={align}
-							verticalAlign={verticalAlign}
+							size="s"
+							align="start"
+							verticalAlign="start"
 							text={text}
 							labelColor="black"
 							wrap
@@ -187,7 +187,7 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size],
+		fontSize: LABEL_FONT_SIZES[shape.props.size || 's'],
 		maxWidth: NOTE_SIZE - PADDING * 2,
 	})
 

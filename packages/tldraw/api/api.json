@@ -1520,7 +1520,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1565,7 +1565,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -11659,7 +11659,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, {\n            id: string;\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            x: number;\n            y: number;\n            id: string;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12523,7 +12523,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"s\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"start\";\n            verticalAlign: \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12607,7 +12607,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"s\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"start\";\n            verticalAlign: \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12730,12 +12730,12 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        font: import(\"@tldraw/editor\")."
+                  "text": "<\"s\">;\n        font: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12748,21 +12748,21 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n        verticalAlign: import(\"@tldraw/editor\")."
+                  "text": "<\"start\">;\n        verticalAlign: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"end\" | \"middle\" | \"start\">;\n        growY: import(\"@tldraw/editor\")."
+                  "text": "<\"start\">;\n        growY: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",

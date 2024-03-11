@@ -190,9 +190,9 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 									props: {
 										text: v1Shape.text ?? '',
 										color: getV2Color(v1Shape.style.color),
-										size: getV2Size(v1Shape.style.size),
+										size: 's',
 										font: getV2Font(v1Shape.style.font),
-										align: getV2Align(v1Shape.style.textAlign),
+										align: 'start',
 									},
 								},
 							])

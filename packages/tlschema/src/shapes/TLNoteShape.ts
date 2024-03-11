@@ -2,21 +2,16 @@ import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
-import {
-	DefaultHorizontalAlignStyle,
-	TLDefaultHorizontalAlignStyle,
-} from '../styles/TLHorizontalAlignStyle'
-import { DefaultSizeStyle } from '../styles/TLSizeStyle'
-import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
+import { TLDefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export const noteShapeProps = {
 	color: DefaultColorStyle,
-	size: DefaultSizeStyle,
+	size: T.literal('s'),
 	font: DefaultFontStyle,
-	align: DefaultHorizontalAlignStyle,
-	verticalAlign: DefaultVerticalAlignStyle,
+	align: T.literal('start'),
+	verticalAlign: T.literal('start'),
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
