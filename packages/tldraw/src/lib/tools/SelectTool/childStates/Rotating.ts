@@ -65,7 +65,7 @@ export class Rotating extends StateNode {
 		this.snapshot = {} as TLRotationSnapshot
 	}
 
-	override onThrottledPointerMove = () => {
+	override onThrottledPointerMove: TLEventHandlers['onThrottledPointerMove'] = () => {
 		this.update()
 	}
 

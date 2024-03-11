@@ -101,7 +101,7 @@ export class Translating extends StateNode {
 		moveCameraWhenCloseToEdge(this.editor)
 	}
 
-	override onThrottledPointerMove = () => {
+	override onThrottledPointerMove: TLEventHandlers['onThrottledPointerMove'] = () => {
 		this.updateShapes()
 	}
 

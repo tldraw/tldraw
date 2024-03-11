@@ -78,7 +78,7 @@ export class Resizing extends StateNode {
 		moveCameraWhenCloseToEdge(this.editor)
 	}
 
-	override onThrottledPointerMove = () => {
+	override onThrottledPointerMove: TLEventHandlers['onThrottledPointerMove'] = () => {
 		this.updateShapes()
 	}
 

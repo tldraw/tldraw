@@ -165,7 +165,7 @@ export class DraggingHandle extends StateNode {
 		}
 	}
 
-	override onThrottledPointerMove = () => {
+	override onThrottledPointerMove: TLEventHandlers['onThrottledPointerMove'] = () => {
 		this.update()
 	}
 

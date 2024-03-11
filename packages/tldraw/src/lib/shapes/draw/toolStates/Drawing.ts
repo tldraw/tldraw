@@ -107,7 +107,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	override onThrottledPointerMove = () => {
+	override onThrottledPointerMove: TLEventHandlers['onThrottledPointerMove'] = () => {
 		if (!this.shapePartial) return
 
 		this.editor.updateShapes([this.shapePartial], { squashing: true })

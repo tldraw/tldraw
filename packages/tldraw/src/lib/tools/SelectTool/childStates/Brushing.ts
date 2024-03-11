@@ -69,7 +69,7 @@ export class Brushing extends StateNode {
 		moveCameraWhenCloseToEdge(this.editor)
 	}
 
-	override onThrottledPointerMove = () => {
+	override onThrottledPointerMove: TLEventHandlers['onThrottledPointerMove'] = () => {
 		this.hitTestShapes()
 	}
 

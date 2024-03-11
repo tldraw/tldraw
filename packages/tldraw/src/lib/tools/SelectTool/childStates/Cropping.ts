@@ -43,7 +43,7 @@ export class Cropping extends StateNode {
 		this.updateShapes()
 	}
 
-	override onThrottledPointerMove = () => {
+	override onThrottledPointerMove: TLEventHandlers['onThrottledPointerMove'] = () => {
 		this.updateShapes()
 	}
 

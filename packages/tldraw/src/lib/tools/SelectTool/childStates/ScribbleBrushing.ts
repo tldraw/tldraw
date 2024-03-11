@@ -51,7 +51,7 @@ export class ScribbleBrushing extends StateNode {
 		this.editor.scribbles.stop(this.scribbleId)
 	}
 
-	override onThrottledPointerMove = () => {
+	override onThrottledPointerMove: TLEventHandlers['onThrottledPointerMove'] = () => {
 		this.updateScribbleSelection(true)
 	}
 
