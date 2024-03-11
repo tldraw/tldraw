@@ -26,6 +26,7 @@ export class Cropping extends StateNode {
 	}
 
 	markId = ''
+	isDirty = false
 
 	private snapshot = {} as any as Snapshot
 
@@ -40,6 +41,7 @@ export class Cropping extends StateNode {
 		this.markId = 'cropping'
 		this.editor.mark(this.markId)
 		this.snapshot = this.createSnapshot()
+		this.isDirty = false
 		this.updateShapes()
 	}
 
@@ -67,7 +69,7 @@ export class Cropping extends StateNode {
 		this.editor.updateInstanceState({
 			cursor: {
 				type: cursorType,
-				rotation: selectedShape.rotation,
+				rotation: this.editor.getSelectionRotation(),
 			},
 		})
 	}
