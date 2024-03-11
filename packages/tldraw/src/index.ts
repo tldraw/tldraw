@@ -242,7 +242,7 @@ export {
 export {
 	DefaultMainMenuContent,
 	EditSubmenu,
-	ExportAllSubmenu as ExportFileContentSubMenu,
+	ExportFileContentSubMenu,
 	ExtrasGroup,
 	LockGroup,
 	MiscMenuGroup,

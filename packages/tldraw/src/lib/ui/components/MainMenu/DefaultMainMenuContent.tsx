@@ -38,7 +38,7 @@ export function DefaultMainMenuContent() {
 		<>
 			<EditSubmenu />
 			<ViewSubmenu />
-			<ExportAllSubmenu />
+			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 		</>
@@ -46,7 +46,7 @@ export function DefaultMainMenuContent() {
 }
 
 /** @public */
-export function ExportAllSubmenu() {
+export function ExportFileContentSubMenu() {
 	const actions = useActions()
 
 	return (
