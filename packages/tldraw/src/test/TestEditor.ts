@@ -335,7 +335,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_up',
-		})
+		}).forceTick()
 		return this
 	}
 

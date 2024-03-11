@@ -146,6 +146,14 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	}
 
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
+		// Trying this here, it's a little hacky
+		const path = this.getPath()
+		if (this.id === 'root') {
+			this.editor.emit('event', info)
+			// If the event caused a transition, bail
+			if (this.getPath() !== path) return
+		}
+
 		const cbName = EVENT_NAME_MAP[info.name]
 		const x = this.getCurrent()
 		this[cbName]?.(info as any)

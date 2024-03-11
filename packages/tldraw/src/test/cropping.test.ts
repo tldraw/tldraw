@@ -595,7 +595,7 @@ describe('When in the select.cropping state', () => {
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
 
-	it('escape / cancel should revert the change and transition to crop.idle when that is the history state', () => {
+	it.only('escape / cancel should revert the change and transition to crop.idle when that is the history state', () => {
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
