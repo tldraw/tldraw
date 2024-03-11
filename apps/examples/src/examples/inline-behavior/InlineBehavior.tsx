@@ -23,6 +23,9 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+// There's a guide at the bottom of this page!
+
+// [1]
 const focusedEditorContext = createContext(
 	{} as {
 		focusedEditor: Editor | null
@@ -36,7 +39,13 @@ export default function InlineBehaviorExample() {
 	return (
 		<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
 			<div
-				style={{ margin: 20 }}
+				style={{
+					margin: 20,
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 20,
+				}}
+				// [2]
 				onPointerDown={() => {
 					if (!focusedEditor) return
 					blurEditor(focusedEditor)
@@ -53,12 +62,12 @@ export default function InlineBehaviorExample() {
 
 function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
-
 	const [editor, setEditor] = useState<Editor>()
 
 	return (
 		<div
-			style={{ width: 600, maxWidth: '100%', height: 400, marginTop: 15 }}
+			style={{ width: 600, height: 400, maxWidth: '100%' }}
+			// [3]
 			onFocus={() => {
 				if (!editor) return
 				if (focusedEditor && focusedEditor !== editor) {
@@ -70,8 +79,10 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 		>
 			<Tldraw
 				persistenceKey={persistenceKey}
-				hideUi={focusedEditor !== editor}
 				autoFocus={false}
+				// [4]
+				hideUi={focusedEditor !== editor}
+				// [5]
 				components={{
 					HelpMenu: null,
 					NavigationPanel: null,
@@ -79,6 +90,7 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 					PageMenu: null,
 					ContextMenu: CustomContextMenu,
 				}}
+				// [6]
 				onMount={(editor) => {
 					setEditor(editor)
 					editor.updateInstanceState({ isDebugMode: false })
@@ -90,12 +102,14 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 	)
 }
 
+// [7]
 function blurEditor(editor: Editor) {
 	editor.selectNone()
 	editor.updateInstanceState({ isFocused: false })
 	editor.setCurrentTool('hand')
 }
 
+// [8]
 function CustomContextMenu(props: TLUiContextMenuProps) {
 	const editor = useEditor()
 
@@ -132,3 +146,31 @@ function CustomContextMenu(props: TLUiContextMenuProps) {
 		</DefaultContextMenu>
 	)
 }
+
+/*
+
+[1]
+TODO
+
+[2]
+TODO
+
+[3]
+TODO
+
+[4]
+TODO
+
+[5]
+TODO
+
+[6]
+TODO
+
+[7]
+TODO
+
+[8]
+TODO
+
+*/

@@ -4,7 +4,7 @@ import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
 
-//[1]
+// [1]
 const focusedEditorContext = createContext(
 	{} as {
 		focusedEditor: string | null
