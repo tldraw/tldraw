@@ -436,7 +436,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 		if (session.outstandingDataMessages.length > 0) {
 			session.socket.sendMessage({ type: 'data', data: session.outstandingDataMessages })
-			session.outstandingDataMessages = []
+			session.outstandingDataMessages.length = 0
 		}
 	}
 
