@@ -1,3 +1,21 @@
+# v2.0.1 (Mon Mar 11 2024)
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`
+  - [patch 2.0.1] Cherry-pick 'Avoid randomness at init time...' [#3076](https://github.com/tldraw/tldraw/pull/3076) ([@ds300](https://github.com/ds300))
+
+#### ⚠️ Pushed to `v2.0.x`
+
+- fetch main during patch publish ([@ds300](https://github.com/ds300))
+- cherry-pick tooling changes too i guess ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.0.0 (Thu Feb 29 2024)
 
 #### ⚠️ Pushed to `main`
