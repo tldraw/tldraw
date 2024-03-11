@@ -12,8 +12,8 @@ export class TranslatingCrop extends StateNode {
 		}).start()
 	}
 
-	override onPointerUp = () => {
-		this.session?.complete()
+	override onExit = () => {
+		this.session?.dispose()
 		delete this.session
 	}
 }

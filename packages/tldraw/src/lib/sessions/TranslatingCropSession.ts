@@ -21,8 +21,11 @@ export class TranslatingCropSession extends Session<{
 	onUpdate() {
 		const { editor, initialShape } = this
 
-		// If we're not dragging yet, don't do anything
-		if (!editor.inputs.isDragging) return
+		// If the user has stopped dragging, we're done
+		if (!editor.inputs.isDragging) {
+			this.complete()
+			return
+		}
 
 		if (!this.didTranslate) {
 			// mark when we start dragging

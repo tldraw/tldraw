@@ -18,13 +18,14 @@ export abstract class Session<T extends object = object> {
 		this.editor.off('event', this.handleEditorEvent)
 	}
 
-	private handleTick = () => {
+	protected handleTick = () => {
 		this.update()
 	}
 
-	private handleEditorEvent = (event: TLEventInfo) => {
+	protected handleEditorEvent = (event: TLEventInfo) => {
 		switch (event.type) {
 			case 'keyboard': {
+				if (event.name === 'key_repeat') return
 				this.update()
 				break
 			}

@@ -1587,6 +1587,10 @@ export abstract class Session<T extends object = object> {
     // (undocumented)
     editor: Editor;
     // (undocumented)
+    protected handleEditorEvent: (event: TLEventInfo) => void;
+    // (undocumented)
+    protected handleTick: () => void;
+    // (undocumented)
     abstract readonly id: string;
     // (undocumented)
     info: T;

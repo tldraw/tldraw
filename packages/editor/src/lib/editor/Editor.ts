@@ -8546,8 +8546,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
-				this.root.handleEvent(info)
 				this.emit('event', info)
+				this.root.handleEvent(info)
 				return
 			}
 
@@ -8925,10 +8925,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						case 'pointer_down': {
 							const otherEvent = this._clickManager.transformPointerDownEvent(info)
 							if (info.name !== otherEvent.name) {
-								this.root.handleEvent(info)
 								this.emit('event', info)
-								this.root.handleEvent(otherEvent)
+								this.root.handleEvent(info)
 								this.emit('event', otherEvent)
+								this.root.handleEvent(otherEvent)
 								return
 							}
 
@@ -8937,10 +8937,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						case 'pointer_up': {
 							const otherEvent = this._clickManager.transformPointerUpEvent(info)
 							if (info.name !== otherEvent.name) {
-								this.root.handleEvent(info)
 								this.emit('event', info)
-								this.root.handleEvent(otherEvent)
+								this.root.handleEvent(info)
 								this.emit('event', otherEvent)
+								this.root.handleEvent(otherEvent)
 								return
 							}
 
@@ -8956,8 +8956,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Send the event to the statechart. It will be handled by all
 			// active states, starting at the root.
-			this.root.handleEvent(info)
 			this.emit('event', info)
+			this.root.handleEvent(info)
 		})
 
 		return this

@@ -1,54 +1,47 @@
-import { StateNode, TLEventHandlers, TLGroupShape, TLImageShape, Vec } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLGroupShape } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onEnter = () => {
-		this.editor.setCursor({ type: 'default', rotation: 0 })
+		const { editor } = this
+		editor.setCursor({ type: 'default', rotation: 0 })
 
-		const onlySelectedShape = this.editor.getOnlySelectedShape()
+		const onlySelectedShape = editor.getOnlySelectedShape()
 
 		// well this fucking sucks. what the fuck.
 		// it's possible for a user to enter cropping, then undo
 		// (which clears the cropping id) but still remain in this state.
-		this.editor.on('change-history', this.cleanupCroppingState)
+		editor.on('change-history', this.cleanupCroppingState)
 
 		if (onlySelectedShape) {
-			this.editor.mark('crop')
-			this.editor.setCroppingShape(onlySelectedShape.id)
+			editor.mark('crop')
+			editor.setCroppingShape(onlySelectedShape.id)
 		}
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
-
-		this.editor.off('change-history', this.cleanupCroppingState)
-	}
-
-	override onCancel = () => {
-		this.editor.setCroppingShape(null)
-		this.editor.setCurrentTool('select.idle', {})
+		const { editor } = this
+		editor.setCursor({ type: 'default', rotation: 0 })
+		editor.off('change-history', this.cleanupCroppingState)
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		if (this.editor.getIsMenuOpen()) return
+		const { editor } = this
+		if (editor.getIsMenuOpen()) return
 
 		if (info.ctrlKey) {
 			this.cancel()
 			// feed the event back into the statechart
-			this.editor.root.handleEvent(info)
+			editor.root.handleEvent(info)
 			return
 		}
 
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-				if (hitShape && !this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
+				const hitShape = getHitShapeOnCanvasPointerDown(editor)
+				if (hitShape && !editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,
@@ -58,23 +51,21 @@ export class Idle extends StateNode {
 				}
 
 				this.cancel()
-				// feed the event back into the statechart
-				this.editor.root.handleEvent(info)
+				editor.root.handleEvent(info)
 				break
 			}
 			case 'shape': {
-				if (info.shape.id === this.editor.getCroppingShapeId()) {
+				if (info.shape.id === editor.getCroppingShapeId()) {
 					this.parent.transition('pointing_crop', info)
 					return
 				} else {
-					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
-						this.editor.setCroppingShape(info.shape.id)
-						this.editor.setSelectedShapes([info.shape.id])
+					if (editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
+						editor.setCroppingShape(info.shape.id)
+						editor.setSelectedShapes([info.shape.id])
 						this.parent.transition('pointing_crop', info)
 					} else {
 						this.cancel()
-						// feed the event back into the statechart
-						this.editor.root.handleEvent(info)
+						editor.root.handleEvent(info)
 					}
 				}
 				break
@@ -86,6 +77,7 @@ export class Idle extends StateNode {
 					case 'top_right_rotate':
 					case 'bottom_left_rotate':
 					case 'bottom_right_rotate': {
+						// todo: make own state with session
 						this.editor.setCurrentTool('select.pointing_rotate_handle', {
 							...info,
 							onInteractionEnd: 'select.crop',
@@ -113,87 +105,56 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+		const { editor } = this
 		// Without this, the double click's "settle" would trigger the reset
 		// after the user double clicked the edge to begin cropping
-		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
+		if (editor.inputs.shiftKey || info.phase !== 'up') return
 
-		const croppingShapeId = this.editor.getCroppingShapeId()
+		const croppingShapeId = editor.getCroppingShapeId()
 		if (!croppingShapeId) return
-		const shape = this.editor.getShape(croppingShapeId)
+		const shape = editor.getShape(croppingShapeId)
 		if (!shape) return
-
-		const util = this.editor.getShapeUtil(shape)
+		const util = editor.getShapeUtil(shape)
 		if (!util) return
 
 		if (info.target === 'selection') {
-			util.onDoubleClickEdge?.(shape)
-		}
-	}
-
-	override onKeyDown = () => {
-		this.nudgeCroppingImage(false)
-	}
-
-	override onKeyRepeat = () => {
-		this.nudgeCroppingImage(true)
-	}
-
-	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
-		switch (info.code) {
-			case 'Enter': {
-				this.editor.setCroppingShape(null)
-				this.editor.setCurrentTool('select.idle', {})
-				break
+			const change = util.onDoubleClickEdge?.(shape)
+			if (change) {
+				editor.mark('double clicked edge in crop')
+				editor.updateShape(change)
 			}
 		}
+	}
+
+	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+		if (
+			info.key === 'ArrowLeft' ||
+			info.key === 'ArrowRight' ||
+			info.key === 'ArrowUp' ||
+			info.key === 'ArrowDown'
+		) {
+			this.parent.transition('nudging_crop')
+		}
+	}
+
+	override onCancel = () => {
+		this.cancel()
+	}
+
+	override onComplete = () => {
+		this.cancel()
 	}
 
 	private cancel() {
-		this.editor.setCroppingShape(null)
-		this.editor.setCurrentTool('select.idle', {})
+		const { editor } = this
+		editor.setCroppingShape(null)
+		editor.setCurrentTool('select.idle', {})
 	}
 
 	private cleanupCroppingState = () => {
-		if (!this.editor.getCroppingShapeId()) {
-			this.editor.setCurrentTool('select.idle', {})
-		}
-	}
-
-	private nudgeCroppingImage(ephemeral = false) {
-		const {
-			editor: {
-				inputs: { keys },
-			},
-		} = this
-
-		// We want to use the "actual" shift key state,
-		// not the one that's in the editor.inputs.shiftKey,
-		// because that one uses a short timeout on release
-		const shiftKey = keys.has('ShiftLeft')
-
-		const delta = new Vec(0, 0)
-
-		if (keys.has('ArrowLeft')) delta.x += 1
-		if (keys.has('ArrowRight')) delta.x -= 1
-		if (keys.has('ArrowUp')) delta.y += 1
-		if (keys.has('ArrowDown')) delta.y -= 1
-
-		if (delta.equals(new Vec(0, 0))) return
-
-		if (shiftKey) delta.mul(10)
-
-		const shape = this.editor.getShape(this.editor.getCroppingShapeId()!) as TLImageShape
-		if (!shape) return
-		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
-
-		if (partial) {
-			if (!ephemeral) {
-				// We don't want to create new marks if the user
-				// is just holding down the arrow keys
-				this.editor.mark('translate crop')
-			}
-
-			this.editor.updateShape<TLImageShape>(partial)
+		const { editor } = this
+		if (!editor.getCroppingShapeId()) {
+			editor.setCurrentTool('select.idle', {})
 		}
 	}
 }

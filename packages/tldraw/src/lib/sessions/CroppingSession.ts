@@ -43,8 +43,15 @@ export class CroppingSession extends Session<{
 		const { shape: initialShape, handle } = this.info
 		const { editor, cursorHandleOffset } = this
 
-		// If we're not dragging yet, don't do anything
-		if (!editor.inputs.isDragging) return
+		// If the user has stopped dragging, we're done
+		if (!editor.inputs.isDragging) {
+			this.complete()
+			return
+		}
+
+		// If the shape has gone, we're done
+		const shape = this.editor.getShape(this.editor.getCroppingShapeId()!) as TLImageShape
+		if (!shape) this.complete()
 
 		if (!this.didCrop) {
 			// mark when we start dragging
@@ -187,19 +194,13 @@ export class CroppingSession extends Session<{
 	}
 
 	onComplete() {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.info.onExit()
 		return
 	}
 
 	onCancel() {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.bailToMark('cropping')
 		this.info.onExit()
 		return

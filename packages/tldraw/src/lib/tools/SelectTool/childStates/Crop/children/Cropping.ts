@@ -1,10 +1,4 @@
-import {
-	SelectionHandle,
-	StateNode,
-	TLEnterEventHandler,
-	TLEventHandlers,
-	TLImageShape,
-} from '@tldraw/editor'
+import { SelectionHandle, StateNode, TLEnterEventHandler, TLImageShape } from '@tldraw/editor'
 import { CroppingSession } from '../../../../../sessions/CroppingSession'
 
 export class Cropping extends StateNode {
@@ -25,8 +19,8 @@ export class Cropping extends StateNode {
 		}).start()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		this.session?.complete()
+	override onExit = () => {
+		this.session?.dispose()
 		delete this.session
 	}
 }
