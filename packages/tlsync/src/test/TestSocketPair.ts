@@ -1,4 +1,5 @@
 import { UnknownRecord } from '@tldraw/store'
+import { structuredClone } from '@tldraw/utils'
 import { TLPersistentClientSocket, TLPersistentClientSocketStatus } from '../lib/TLSyncClient'
 import { TLRoomSocket } from '../lib/TLSyncRoom'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../lib/protocol'
@@ -42,7 +43,8 @@ export class TestSocketPair<R extends UnknownRecord> {
 				// client was closed, drop the packet
 				return
 			}
-			this.serverSentEventQueue.push(msg)
+			// cloning because callers might reuse the same message object
+			this.serverSentEventQueue.push(structuredClone(msg))
 		},
 	}
 	didReceiveFromClient?: (msg: TLSocketClientSentEvent<R>) => void = undefined
@@ -65,7 +67,8 @@ export class TestSocketPair<R extends UnknownRecord> {
 			if (this.clientSocket.connectionStatus !== 'online') {
 				throw new Error('trying to send before open')
 			}
-			this.clientSentEventQueue.push(msg)
+			// cloning because callers might reuse the same message object
+			this.clientSentEventQueue.push(structuredClone(msg))
 		},
 		restart: () => {
 			this.disconnect()

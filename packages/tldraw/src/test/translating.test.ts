@@ -119,12 +119,15 @@ describe('When translating...', () => {
 
 	it('translates a single shape', () => {
 		editor
-			.pointerDown(50, 50, ids.box1)
+			.pointerDown(50, 50, ids.box1) // point = [10, 10]
 			.pointerMove(50, 40) // [0, -10]
+			.expectToBeIn('select.translating')
 			.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 })
 			.pointerMove(100, 100) // [50, 50]
+			.expectToBeIn('select.translating')
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 			.pointerUp()
+			.expectToBeIn('select.idle')
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 	})
 
@@ -134,14 +137,14 @@ describe('When translating...', () => {
 
 		const before = editor.getShape<TLGeoShape>(ids.box1)!
 
-		jest.advanceTimersByTime(100)
+		editor.forceTick(5)
 		editor
 			// The change is bigger than expected because the camera moves
 			.expectShapeToMatch({ id: ids.box1, x: -160, y: 10 })
 			// We'll continue moving in the x postion, but now we'll also move in the y position.
 			// The speed in the y position is smaller since we are further away from the edge.
 			.pointerMove(0, 25)
-		jest.advanceTimersByTime(100)
+		editor.forceTick(2)
 		editor.pointerUp()
 
 		const after = editor.getShape<TLGeoShape>(ids.box1)!
@@ -156,12 +159,12 @@ describe('When translating...', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
 
-		jest.advanceTimersByTime(100)
 		editor
+			.forceTick(4)
 			// The change is bigger than expected because the camera moves
 			.expectShapeToMatch({ id: ids.box1, x: 1140, y: 10 })
 			.pointerMove(1080, 800)
-		jest.advanceTimersByTime(100)
+			.forceTick(6)
 		editor
 			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
 			.pointerUp()
