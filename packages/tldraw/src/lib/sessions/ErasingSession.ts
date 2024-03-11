@@ -123,7 +123,6 @@ export class ErasingSession extends Session {
 	onEnd() {
 		const { editor } = this
 		editor.setErasingShapes([])
-		editor.setCursor({ type: 'default', rotation: 0 })
 		editor.scribbles.stop(this.scribbleId)
 	}
 }

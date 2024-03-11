@@ -324,7 +324,7 @@ describe('When clicking and dragging', () => {
 		// expect(editor.getShape(ids.box1)).not.toBeDefined()
 	})
 
-	it.only('Clears erasing ids and does not erase shapes on cancel', () => {
+	it('Clears erasing ids and does not erase shapes on cancel', () => {
 		editor.setCurrentTool('eraser')
 		editor.expectToBeIn('eraser.idle')
 		editor.pointerDown(-100, -100) // outside of any shapes
@@ -334,6 +334,7 @@ describe('When clicking and dragging', () => {
 		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
 		editor.cancel()
 		editor.expectToBeIn('eraser.idle')
+		expect(editor.getInstanceState().cursor.type).toBe('cross')
 		expect(editor.getErasingShapeIds()).toEqual([])
 		expect(editor.getShape(ids.box1)).toBeDefined()
 	})
