@@ -11,7 +11,9 @@ function CustomQuickActions() {
 	return (
 		<DefaultQuickActions>
 			<DefaultQuickActionsContent />
-			<TldrawUiMenuItem id="code" icon="code" onSelect={() => window.alert('code')} />
+			<div style={{ backgroundColor: 'thistle' }}>
+				<TldrawUiMenuItem id="code" icon="code" onSelect={() => window.alert('code')} />
+			</div>
 		</DefaultQuickActions>
 	)
 }

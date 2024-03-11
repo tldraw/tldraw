@@ -8,4 +8,4 @@ You can customize tldraw's context menu.
 
 ---
 
-The context menu can be customized by providing a `ContextMenu` component to the `Tldraw` component's `components` prop. If you provide `null`, then that component will be hidden instead.
+The context menu is what appears when you right click on a shape selection. It can be customized by providing a `ContextMenu` component to the `Tldraw` component's `components` prop. If you provide `null`, then that component will be hidden instead.
