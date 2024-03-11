@@ -15,29 +15,22 @@ export default function InlineBehaviorExample() {
 	return (
 		<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
 			<div
-				style={{
-					margin: 20,
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'center',
-				}}
+				style={{ margin: 20 }}
 				onPointerDown={() => {
 					if (!focusedEditor) return
-					focusedEditor.selectNone()
-					focusedEditor.updateInstanceState({ isFocused: false })
-					focusedEditor.setCurrentTool('hand')
+					blurEditor(focusedEditor)
 					setFocusedEditor(null)
 				}}
 			>
-				<WhiteboardBlock persistenceKey="block-a" />
-				<WhiteboardBlock persistenceKey="block-b" />
-				<WhiteboardBlock persistenceKey="block-c" />
+				<InlineBlock persistenceKey="block-a" />
+				<InlineBlock persistenceKey="block-b" />
+				<InlineBlock persistenceKey="block-c" />
 			</div>
 		</focusedEditorContext.Provider>
 	)
 }
 
-function WhiteboardBlock({ persistenceKey }: { persistenceKey: string }) {
+function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
 
 	const [editor, setEditor] = useState<Editor>()
@@ -48,9 +41,7 @@ function WhiteboardBlock({ persistenceKey }: { persistenceKey: string }) {
 			onFocus={() => {
 				if (!editor) return
 				if (focusedEditor && focusedEditor !== editor) {
-					focusedEditor.selectNone()
-					focusedEditor.updateInstanceState({ isFocused: false })
-					focusedEditor.setCurrentTool('hand')
+					blurEditor(focusedEditor)
 				}
 				editor.updateInstanceState({ isFocused: true })
 				setFocusedEditor(editor)
@@ -70,8 +61,15 @@ function WhiteboardBlock({ persistenceKey }: { persistenceKey: string }) {
 					setEditor(editor)
 					editor.updateInstanceState({ isDebugMode: false })
 					editor.setCurrentTool('hand')
+					editor.user.updateUserPreferences({ edgeScrollSpeed: 0 })
 				}}
 			/>
 		</div>
 	)
+}
+
+function blurEditor(editor: Editor) {
+	editor.selectNone()
+	editor.updateInstanceState({ isFocused: false })
+	editor.setCurrentTool('hand')
 }
