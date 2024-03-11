@@ -7,7 +7,7 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 - [ ] `sdk` — Changes the tldraw SDK
 - [ ] `dotcom` — Changes the tldraw.com web app
 - [ ] `docs` — Changes to the documentation, examples, or templates.
-- [ ] `vscode` — Changes to the vscode plugin
+- [ ] `vs code` — Changes to the vscode plugin
 - [ ] `internal` — Does not affect user-facing stuff
 
 <!-- ❗ Please select at least one ❗️ -->
@@ -18,7 +18,7 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 - [ ] `chore` — Updating dependencies, other boring stuff
 - [ ] `refactor` — Refactoring code for whatever reason
 - [ ] `performance` — Making it go faster
-- [ ] `galaxy_brain` — Architectural changes
+- [ ] `galaxy brain` — Architectural changes
 - [ ] `tests` — Changes to any test code
 - [ ] `tools` — Changes to infrastructure, CI, internal scripts, debugging tools, etc.
 - [ ] `dunno` — I don't know
