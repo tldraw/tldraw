@@ -1,5 +1,5 @@
-import { Signal, TLStoreSnapshot, TLUserPreferences } from '@tldraw/tldraw'
 import { TLIncompatibilityReason } from '@tldraw/tlsync'
+import { Signal, TLStoreSnapshot, TLUserPreferences } from 'tldraw'
 
 /** @public */
 export class RemoteSyncError extends Error {

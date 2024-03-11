@@ -227,6 +227,7 @@ export {
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
+	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
 	ZoomTo100MenuItem,

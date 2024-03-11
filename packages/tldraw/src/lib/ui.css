@@ -1528,6 +1528,9 @@
 	column-gap: var(--space-9);
 	pointer-events: all;
 	touch-action: auto;
+
+	/* Terrible fix to allow firefox users to scroll the dialog */
+	overflow-x: auto;
 }
 
 .tlui-shortcuts-dialog__body__tablet {

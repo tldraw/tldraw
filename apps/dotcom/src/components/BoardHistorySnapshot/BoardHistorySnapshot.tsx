@@ -1,6 +1,6 @@
-import { Tldraw, createTLStore, defaultShapeUtils } from '@tldraw/tldraw'
 import { RoomSnapshot } from '@tldraw/tlsync'
 import { useCallback, useState } from 'react'
+import { Tldraw, createTLStore, defaultShapeUtils } from 'tldraw'
 import '../../../styles/core.css'
 import { assetUrls } from '../../utils/assetUrls'
 import { useFileSystem } from '../../utils/useFileSystem'

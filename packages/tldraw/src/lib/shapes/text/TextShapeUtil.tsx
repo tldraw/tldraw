@@ -114,15 +114,15 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 							className="tl-text tl-text-input"
 							name="text"
 							tabIndex={-1}
-							autoComplete="false"
-							autoCapitalize="false"
-							autoCorrect="false"
-							autoSave="false"
-							autoFocus={isEditing}
+							autoComplete="off"
+							autoCapitalize="off"
+							autoCorrect="off"
+							autoSave="off"
+							autoFocus
 							placeholder=""
 							spellCheck="true"
 							wrap="off"
-							dir="ltr"
+							dir="auto"
 							datatype="wysiwyg"
 							defaultValue={text}
 							onFocus={handleFocus}

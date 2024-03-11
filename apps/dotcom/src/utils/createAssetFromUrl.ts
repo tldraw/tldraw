@@ -1,9 +1,4 @@
-import {
-	AssetRecordType,
-	TLAsset,
-	getHashForString,
-	truncateStringWithEllipsis,
-} from '@tldraw/tldraw'
+import { AssetRecordType, TLAsset, getHashForString, truncateStringWithEllipsis } from 'tldraw'
 import { BOOKMARK_ENDPOINT } from './config'
 
 interface ResponseBody {

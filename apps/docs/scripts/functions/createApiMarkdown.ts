@@ -13,6 +13,7 @@ export async function createApiMarkdown() {
 		description: "Reference for the tldraw package's APIs (generated).",
 		categories: [],
 		sidebar_behavior: 'reference',
+		hero: null,
 	}
 
 	const addedCategories = new Set<string>()
@@ -55,6 +56,7 @@ export async function createApiMarkdown() {
 						id: title,
 						path: null,
 					})),
+					hero: null,
 				})
 				addedCategories.add(categoryName)
 			}
@@ -81,5 +83,5 @@ export async function createApiMarkdown() {
 		1
 	)
 	sectionsJson.push(apiInputSection)
-	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t'))
+	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t') + '\n')
 }

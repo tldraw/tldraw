@@ -20,7 +20,7 @@ import {
 	resizeBox,
 	structuredClone,
 	vecModelValidator,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
 
 // Copied from tldraw/tldraw
@@ -195,8 +195,7 @@ handler [5]. Since this shape has a handle, we need to do some special stuff to 
 the way we want it to.
 
 [1]
-Here is where we define the shape's type. For the tail we can use the `VecModel` type from
-@tldraw/tldraw.
+Here is where we define the shape's type. For the tail we can use the `VecModel` type from `tldraw`.
 
 [2]
 This is where we define the shape's props and a type validator for each key. tldraw exports a

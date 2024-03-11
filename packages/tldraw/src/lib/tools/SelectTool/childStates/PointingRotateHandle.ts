@@ -11,11 +11,10 @@ export class PointingRotateHandle extends StateNode {
 	private info = {} as PointingRotateHandleInfo
 
 	private updateCursor() {
-		const selectionRotation = this.editor.getSelectionRotation()
 		this.editor.updateInstanceState({
 			cursor: {
 				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: selectionRotation,
+				rotation: this.editor.getSelectionRotation(),
 			},
 		})
 	}

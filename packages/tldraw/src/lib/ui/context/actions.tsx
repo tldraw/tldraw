@@ -63,7 +63,7 @@ export type ActionsProviderProps = {
 		actions: TLUiActionsContextType,
 		helpers: undefined
 	) => TLUiActionsContextType
-	children: any
+	children: React.ReactNode
 }
 
 function makeActions(actions: TLUiActionItem[]) {
@@ -1054,6 +1054,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
 					editor.user.updateUserPreferences({ isDarkMode: !editor.user.getIsDarkMode() })
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-wrap-mode',
+				label: {
+					default: 'action.toggle-wrap-mode',
+					menu: 'action.toggle-wrap-mode.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-wrap-mode', { source })
+					editor.user.updateUserPreferences({
+						isWrapMode: !editor.user.getIsWrapMode(),
+					})
 				},
 				checkbox: true,
 			},

@@ -1,6 +1,6 @@
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { createContext, useCallback, useContext, useState } from 'react'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
 
