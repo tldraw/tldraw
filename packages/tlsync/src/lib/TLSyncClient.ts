@@ -7,7 +7,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffs,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, objectMapEntries, rafThrottle } from '@tldraw/utils'
+import { exhaustiveSwitchError, fpsThrottle, objectMapEntries } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { nanoid } from 'nanoid'
 import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord, getNetworkDiff } from './diff'
@@ -461,7 +461,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/** Send any unsent push requests to the server */
-	private flushPendingPushRequests = rafThrottle(() => {
+	private flushPendingPushRequests = fpsThrottle(() => {
 		this.debug('flushing pending push requests', {
 			isConnectedToRoom: this.isConnectedToRoom,
 			pendingPushRequests: this.pendingPushRequests,
@@ -587,5 +587,5 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = rafThrottle(this.rebase)
+	private scheduleRebase = fpsThrottle(this.rebase)
 }

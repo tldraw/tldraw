@@ -29,8 +29,8 @@
 		"dev": "vite --host",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
-		"e2e": "playwright test -c ./e2e/playwright.config.ts",
-		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
+		"e2e": "NODE_ENV=test && playwright test -c ./e2e/playwright.config.ts",
+		"e2e-ui": "NODE_ENV=test && playwright test --ui -c ./e2e/playwright.config.ts"
 	},
 	"dependencies": {
 		"@playwright/test": "^1.38.1",
