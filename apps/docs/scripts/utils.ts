@@ -97,7 +97,7 @@ export async function formatWithPrettier(
 			useTabs: false,
 		})
 	} catch (e) {
-		console.warn(`could not format code: ${code}`)
+		console.warn(`☢️ Could not format code: ${code}`)
 	}
 
 	return formattedCode.trimEnd()
@@ -171,7 +171,7 @@ export class MarkdownWriter {
 				)
 
 				if (refResult.errorMessage) {
-					console.warn(refResult.errorMessage)
+					console.warn(`☢️ Error processing API: ${refResult.errorMessage}`)
 					return
 				}
 				const linkedItem = refResult.resolvedApiItem!
