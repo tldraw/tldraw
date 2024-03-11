@@ -76,9 +76,6 @@ export class Resizing extends StateNode {
 
 	override onTick: TLTickEventHandler = () => {
 		moveCameraWhenCloseToEdge(this.editor)
-		if (!this.isDirty) return
-		this.isDirty = false
-		this.updateShapes()
 	}
 
 	override onThrottledPointerMove = () => {

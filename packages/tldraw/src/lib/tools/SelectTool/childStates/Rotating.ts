@@ -22,7 +22,6 @@ export class Rotating extends StateNode {
 	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & { onInteractionEnd?: string }
 
 	markId = ''
-	isDirty = false
 
 	override onEnter = (
 		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }

@@ -39,7 +39,6 @@ export class DraggingHandle extends StateNode {
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
-	isDirty = false
 
 	override onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
@@ -51,7 +50,6 @@ export class DraggingHandle extends StateNode {
 	) => {
 		const { shape, isCreating, handle } = info
 		this.info = info
-		this.isDirty = false
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
 		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
