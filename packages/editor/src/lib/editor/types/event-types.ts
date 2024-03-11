@@ -140,6 +140,8 @@ export type UiEvent =
 /** @public */
 export type TLTickEventHandler = () => void
 /** @public */
+export type TLThrottledPointerMoveHandler = () => void
+/** @public */
 export type TLEnterEventHandler = (info: any, from: string) => void
 /** @public */
 export type TLExitEventHandler = (info: any, to: string) => void
@@ -148,6 +150,7 @@ export type TLExitEventHandler = (info: any, to: string) => void
 export interface TLEventHandlers {
 	onPointerDown: TLPointerEvent
 	onPointerMove: TLPointerEvent
+	onThrottledPointerMove: TLThrottledPointerMoveHandler
 	onRightClick: TLPointerEvent
 	onDoubleClick: TLClickEvent
 	onTripleClick: TLClickEvent

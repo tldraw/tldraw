@@ -33063,6 +33063,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!StateNode#_onThrottledPointerMove:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_onThrottledPointerMove: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_onThrottledPointerMove",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#_path:member",
               "docComment": "",
               "excerptTokens": [
@@ -33628,6 +33658,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!StateNode#isDirty:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isDirty: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isDirty",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#onCancel:member",
               "docComment": "",
               "excerptTokens": [
@@ -34135,6 +34195,41 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "onRightClick",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!StateNode#onThrottledPointerMove:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onThrottledPointerMove?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLEventHandlers",
+                  "canonicalReference": "@tldraw/editor!TLEventHandlers:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "['onThrottledPointerMove']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onThrottledPointerMove",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
@@ -37529,6 +37624,34 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "onRightClick",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLEventHandlers#onThrottledPointerMove:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onThrottledPointerMove: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLThrottledPointerMoveHandler",
+                  "canonicalReference": "@tldraw/editor!~TLThrottledPointerMoveHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onThrottledPointerMove",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

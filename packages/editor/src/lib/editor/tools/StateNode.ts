@@ -31,6 +31,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this.id = id
 		this._isActive = atom<boolean>('toolIsActive' + this.id, false)
 		this._current = atom<StateNode | undefined>('toolState' + this.id, undefined)
+		this.isDirty = false
 
 		this._path = computed('toolPath' + this.id, () => {
 			const current = this.getCurrent()
@@ -73,6 +74,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	initial?: string
 	children?: Record<string, StateNode>
 	parent: StateNode
+	isDirty: boolean
 
 	/**
 	 * This node's path of active state nodes
@@ -148,6 +150,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
 		const x = this.getCurrent()
+		if (cbName === 'onPointerMove') this.isDirty = true
 		this[cbName]?.(info as any)
 		if (this.getCurrent() === x && this.getIsActive()) {
 			x?.handleEvent(info)
@@ -156,9 +159,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	// todo: move this logic into transition
 	enter = (info: any, from: string) => {
+		this.isDirty = false
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
 		if (this.onTick) this.editor.on('tick', this.onTick)
+		if (this.onThrottledPointerMove) this.editor.on('tick', this._onThrottledPointerMove)
 		if (this.children && this.initial && this.getIsActive()) {
 			const initial = this.children[this.initial]
 			this._current.set(initial)
@@ -168,12 +173,20 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
+		this.isDirty = false
 		this._isActive.set(false)
 		if (this.onTick) this.editor.off('tick', this.onTick)
 		this.onExit?.(info, from)
+		if (this.onThrottledPointerMove) this.editor.off('tick', this._onThrottledPointerMove)
 		if (!this.getIsActive()) {
 			this.getCurrent()?.exit(info, from)
 		}
+	}
+
+	_onThrottledPointerMove = () => {
+		if (!this.isDirty) return
+		this.onThrottledPointerMove?.()
+		this.isDirty = false
 	}
 
 	/**
@@ -199,6 +212,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onWheel?: TLEventHandlers['onWheel']
 	onPointerDown?: TLEventHandlers['onPointerDown']
 	onPointerMove?: TLEventHandlers['onPointerMove']
+	onThrottledPointerMove?: TLEventHandlers['onThrottledPointerMove']
 	onPointerUp?: TLEventHandlers['onPointerUp']
 	onDoubleClick?: TLEventHandlers['onDoubleClick']
 	onTripleClick?: TLEventHandlers['onTripleClick']

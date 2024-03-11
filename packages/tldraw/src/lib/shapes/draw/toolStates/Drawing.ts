@@ -51,8 +51,6 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
-	// Used to track whether we have changes that have not yet been pushed to the Editor.
-	isDirty = false
 	// The changes that have not yet been pushed to the Editor.
 	shapePartial: TLShapePartial<DrawableShape> | null = null
 
@@ -62,7 +60,6 @@ export class Drawing extends StateNode {
 		this.canDraw = !this.editor.getIsMenuOpen()
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 		this.shapePartial = null
-		this.isDirty = false
 		if (this.canDraw) {
 			this.startShape()
 		}
@@ -110,9 +107,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	override onTick = () => {
-		if (!this.isDirty) return
-		this.isDirty = false
+	override onThrottledPointerMove = () => {
 		if (!this.shapePartial) return
 
 		this.editor.updateShapes([this.shapePartial], { squashing: true })

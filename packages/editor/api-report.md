@@ -1752,6 +1752,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     initial?: string;
     // (undocumented)
+    isDirty: boolean;
+    // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];
     // (undocumented)
     onComplete?: TLEventHandlers['onComplete'];
@@ -1781,6 +1783,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     onQuadrupleClick?: TLEventHandlers['onQuadrupleClick'];
     // (undocumented)
     onRightClick?: TLEventHandlers['onRightClick'];
+    // (undocumented)
+    onThrottledPointerMove?: TLEventHandlers['onThrottledPointerMove'];
+    // (undocumented)
+    _onThrottledPointerMove: () => void;
     // (undocumented)
     onTick?: TLTickEventHandler;
     // (undocumented)
@@ -2102,6 +2108,8 @@ export interface TLEventHandlers {
     onQuadrupleClick: TLClickEvent;
     // (undocumented)
     onRightClick: TLPointerEvent;
+    // (undocumented)
+    onThrottledPointerMove: TLThrottledPointerMoveHandler;
     // (undocumented)
     onTripleClick: TLClickEvent;
     // (undocumented)
