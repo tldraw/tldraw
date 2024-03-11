@@ -1,6 +1,11 @@
 import { Editor } from '../Editor'
 import { TLEventInfo } from '../types/event-types'
 
+/** @public */
+export interface SessionInfo {
+	onEnd?: () => void
+}
+
 /**
  * A session is an interaction or other event that occurs over time,
  * such as resizing, drawing, or transforming shapes.
@@ -10,7 +15,7 @@ import { TLEventInfo } from '../types/event-types'
 export abstract class Session<T extends object = object> {
 	constructor(
 		public editor: Editor,
-		public info = {} as T
+		public info = {} as SessionInfo & T
 	) {}
 
 	dispose = () => {
@@ -80,6 +85,7 @@ export abstract class Session<T extends object = object> {
 	 */
 	complete() {
 		this.onComplete()
+		this.info.onEnd?.()
 		this.dispose()
 		return this
 	}
@@ -90,6 +96,7 @@ export abstract class Session<T extends object = object> {
 	 */
 	cancel() {
 		this.onCancel()
+		this.info.onEnd?.()
 		this.dispose()
 		return this
 	}
@@ -112,4 +119,6 @@ export abstract class Session<T extends object = object> {
 	protected abstract onCancel(): void
 
 	protected abstract onInterrupt(): void
+
+	protected abstract onEnd(): void
 }

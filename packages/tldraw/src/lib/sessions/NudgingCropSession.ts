@@ -3,15 +3,11 @@ import { getTranslateCroppedImageChange } from '../tools/SelectTool/childStates/
 
 export class NudgingCropSession extends Session<{
 	shape: TLImageShape
-	onExit: () => void
 }> {
 	readonly id = 'nudging crop'
 
 	didNudge = false
 	startTime = Date.now()
-
-	// Don't update on tick, just on key repeat
-	// override handleTick = () => void null
 
 	onStart() {
 		this.editor.mark('nudging crop')
@@ -75,13 +71,15 @@ export class NudgingCropSession extends Session<{
 	}
 
 	onComplete() {
-		this.info.onExit()
 		return
 	}
 
 	onCancel() {
 		this.editor.bailToMark('nudging crop')
-		this.info.onExit()
+		return
+	}
+
+	onEnd() {
 		return
 	}
 }

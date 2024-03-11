@@ -5,7 +5,6 @@ import { CursorTypeMap } from '../tools/SelectTool/childStates/PointingResizeHan
 export class ResizingCropSession extends Session<{
 	shape: TLImageShape
 	handle: SelectionHandle
-	onExit: () => void
 }> {
 	readonly id = 'resizing crop'
 	readonly markId = 'resizing crop'
@@ -196,14 +195,13 @@ export class ResizingCropSession extends Session<{
 
 	onComplete() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
-		this.info.onExit()
-		return
 	}
 
 	onCancel() {
-		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.bailToMark(this.markId)
-		this.info.onExit()
-		return
+	}
+
+	onEnd() {
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 }

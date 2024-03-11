@@ -9,7 +9,9 @@ export class NudgingCrop extends StateNode {
 	override onEnter = () => {
 		this.session = new NudgingCropSession(this.editor, {
 			shape: this.editor.getOnlySelectedShape()! as TLImageShape,
-			onExit: () => this.parent.transition('idle'),
+			onEnd: () => {
+				this.parent.transition('idle')
+			},
 		}).start()
 	}
 

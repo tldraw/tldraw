@@ -67,23 +67,21 @@ export class BrushingSession extends Session {
 
 		switch (strategy) {
 			case 'box': {
-				this.boxBrush()
+				this.updateBoxBrush()
 				break
 			}
 			case 'scribble': {
-				this.scribbleBrush()
+				this.updateScribbleBrush()
 				break
 			}
 		}
 	}
 
 	onComplete() {
-		this.clearStuff()
 		this.editor.setCurrentTool('select.idle')
 	}
 
 	onCancel() {
-		this.clearStuff()
 		this.editor.setSelectedShapes(this.initialSelectedShapeIds, { squashing: true })
 		this.editor.setCurrentTool('select.idle')
 	}
@@ -103,7 +101,7 @@ export class BrushingSession extends Session {
 		this.scribbleId = null
 	}
 
-	private scribbleBrush() {
+	private updateScribbleBrush() {
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapes = this.editor.getCurrentPageShapes()
 
@@ -185,7 +183,7 @@ export class BrushingSession extends Session {
 		)
 	}
 
-	private boxBrush() {
+	private updateBoxBrush() {
 		const {
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
 		} = this.editor
@@ -293,5 +291,10 @@ export class BrushingSession extends Session {
 		}
 
 		results.add(selectedShape.id)
+	}
+
+	onEnd() {
+		this.clearStuff()
+		return
 	}
 }

@@ -30012,8 +30012,13 @@
                   "text": ", info?: "
                 },
                 {
+                  "kind": "Reference",
+                  "text": "SessionInfo",
+                  "canonicalReference": "@tldraw/editor!SessionInfo:interface"
+                },
+                {
                   "kind": "Content",
-                  "text": "T"
+                  "text": " & T"
                 },
                 {
                   "kind": "Content",
@@ -30036,7 +30041,7 @@
                   "parameterName": "info",
                   "parameterTypeTokenRange": {
                     "startIndex": 3,
-                    "endIndex": 4
+                    "endIndex": 5
                   },
                   "isOptional": true
                 }
@@ -30274,8 +30279,13 @@
                   "text": "info: "
                 },
                 {
+                  "kind": "Reference",
+                  "text": "SessionInfo",
+                  "canonicalReference": "@tldraw/editor!SessionInfo:interface"
+                },
+                {
                   "kind": "Content",
-                  "text": "T"
+                  "text": " & T"
                 },
                 {
                   "kind": "Content",
@@ -30288,7 +30298,7 @@
               "name": "info",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 3
               },
               "isStatic": false,
               "isProtected": false,
@@ -30386,6 +30396,37 @@
               "isOptional": false,
               "isAbstract": true,
               "name": "onComplete"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Session#onEnd:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected abstract onEnd(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": true,
+              "name": "onEnd"
             },
             {
               "kind": "Method",
@@ -30544,6 +30585,51 @@
             }
           ],
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/editor!SessionInfo:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface SessionInfo "
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/sessions/Session.ts",
+          "releaseTag": "Public",
+          "name": "SessionInfo",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!SessionInfo#onEnd:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onEnd?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onEnd",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
         },
         {
           "kind": "Function",

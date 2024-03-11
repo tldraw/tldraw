@@ -8,7 +8,9 @@ export class TranslatingCrop extends StateNode {
 
 	override onEnter = () => {
 		this.session = new TranslatingCropSession(this.editor, {
-			onExit: () => this.parent.transition('idle'),
+			onEnd: () => {
+				this.parent.transition('idle')
+			},
 		}).start()
 	}
 

@@ -13,7 +13,7 @@ export class ResizingCrop extends StateNode {
 		this.session = new ResizingCropSession(this.editor, {
 			shape: info.shape,
 			handle: info.handle,
-			onExit: () => {
+			onEnd: () => {
 				this.parent.transition('idle')
 			},
 		}).start()

@@ -1,9 +1,7 @@
 import { Session, TLImageShape } from '@tldraw/editor'
 import { getTranslateCroppedImageChange } from '../tools/SelectTool/childStates/Cropping/children/crop_helpers'
 
-export class TranslatingCropSession extends Session<{
-	onExit: () => void
-}> {
+export class TranslatingCropSession extends Session {
 	readonly id = 'translating_crop'
 
 	initialShape = {} as TLImageShape
@@ -45,20 +43,19 @@ export class TranslatingCropSession extends Session<{
 	}
 
 	onInterrupt() {
-		this.editor.setCursor({ type: 'default', rotation: 0 })
 		return
 	}
 
 	onComplete() {
-		this.editor.setCursor({ type: 'default', rotation: 0 })
-		this.info.onExit()
 		return
 	}
 
 	onCancel() {
-		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.bailToMark('translating crop')
-		this.info.onExit()
 		return
+	}
+
+	onEnd() {
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 }

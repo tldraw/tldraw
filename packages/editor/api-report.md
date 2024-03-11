@@ -1579,7 +1579,7 @@ export type SelectionHandle = SelectionCorner | SelectionEdge;
 
 // @public
 export abstract class Session<T extends object = object> {
-    constructor(editor: Editor, info?: T);
+    constructor(editor: Editor, info?: SessionInfo & T);
     cancel(): this;
     complete(): this;
     // (undocumented)
@@ -1593,12 +1593,14 @@ export abstract class Session<T extends object = object> {
     // (undocumented)
     abstract readonly id: string;
     // (undocumented)
-    info: T;
+    info: SessionInfo & T;
     interrupt(): this;
     // (undocumented)
     protected abstract onCancel(): void;
     // (undocumented)
     protected abstract onComplete(): void;
+    // (undocumented)
+    protected abstract onEnd(): void;
     // (undocumented)
     protected abstract onInterrupt(): void;
     // (undocumented)
@@ -1607,6 +1609,12 @@ export abstract class Session<T extends object = object> {
     protected abstract onUpdate(): void;
     start(): this;
     update(): this;
+}
+
+// @public (undocumented)
+export interface SessionInfo {
+    // (undocumented)
+    onEnd?: () => void;
 }
 
 // @public (undocumented)

@@ -154,7 +154,7 @@ export {
 	type PointsSnapIndicator,
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
-export { Session } from './lib/editor/sessions/Session'
+export { Session, type SessionInfo } from './lib/editor/sessions/Session'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
