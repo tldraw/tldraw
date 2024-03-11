@@ -41,6 +41,7 @@ export class Cropping extends StateNode {
 		this.markId = 'cropping'
 		this.editor.mark(this.markId)
 		this.snapshot = this.createSnapshot()
+		this.isDirty = false
 		this.updateShapes()
 	}
 
@@ -213,6 +214,8 @@ export class Cropping extends StateNode {
 	}
 
 	private complete() {
+		this.updateShapes()
+		this.isDirty = false
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {

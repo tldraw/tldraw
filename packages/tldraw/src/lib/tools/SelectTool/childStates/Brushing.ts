@@ -56,6 +56,7 @@ export class Brushing extends StateNode {
 		)
 
 		this.info = info
+		this.isDirty = false
 		this.initialSelectedShapeIds = this.editor.getSelectedShapeIds().slice()
 		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
 		this.hitTestShapes()
@@ -104,6 +105,8 @@ export class Brushing extends StateNode {
 	}
 
 	private complete() {
+		this.hitTestShapes()
+		this.isDirty = false
 		this.parent.transition('idle')
 	}
 

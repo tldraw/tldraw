@@ -52,6 +52,7 @@ export class Translating extends StateNode {
 		const { isCreating = false, onCreate = () => void null } = info
 
 		this.info = info
+		this.isDirty = false
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
 		this.onCreate = onCreate
@@ -172,6 +173,7 @@ export class Translating extends StateNode {
 
 	protected complete() {
 		this.updateShapes()
+		this.isDirty = false
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
 		this.handleEnd()
 
