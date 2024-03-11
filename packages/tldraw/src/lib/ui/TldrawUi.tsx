@@ -54,7 +54,7 @@ export interface TldrawUiBaseProps {
 }
 
 /**
- * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
+ * Props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
  *
  * @public
  */
