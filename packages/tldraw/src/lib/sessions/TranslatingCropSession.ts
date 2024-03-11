@@ -1,5 +1,5 @@
 import { Session, TLImageShape } from '@tldraw/editor'
-import { getTranslateCroppedImageChange } from '../tools/SelectTool/childStates/Crop/children/crop_helpers'
+import { getTranslateCroppedImageChange } from '../tools/SelectTool/childStates/Cropping/children/crop_helpers'
 
 export class TranslatingCropSession extends Session<{
 	onExit: () => void

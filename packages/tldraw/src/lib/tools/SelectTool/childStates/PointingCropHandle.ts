@@ -50,10 +50,9 @@ export class PointingCropHandle extends StateNode {
 		const isDragging = this.editor.inputs.isDragging
 
 		if (isDragging) {
-			this.parent.transition('cropping', {
+			this.parent.transition('resizing_crop', {
 				shape: this.editor.getOnlySelectedShape() as TLImageShape,
 				handle: this.info.handle,
-				onInteractionEnd: this.info.onInteractionEnd,
 			})
 		}
 	}

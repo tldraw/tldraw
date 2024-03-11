@@ -21,7 +21,7 @@ export function registerDefaultSideEffects(editor: Editor) {
 				)
 				if (!prev.croppingShapeId && next.croppingShapeId) {
 					if (!isInCroppingState) {
-						editor.setCurrentTool('select.crop.idle')
+						editor.setCurrentTool('select.cropping.idle')
 					}
 				} else if (prev.croppingShapeId && !next.croppingShapeId) {
 					if (isInCroppingState) {

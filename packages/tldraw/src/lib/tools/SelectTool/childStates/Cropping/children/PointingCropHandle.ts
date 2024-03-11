@@ -27,22 +27,22 @@ export class PointingCropHandle extends StateNode {
 		const isDragging = this.editor.inputs.isDragging
 
 		if (isDragging) {
-			this.parent.transition('cropping', {
+			this.parent.transition('resizing_crop', {
 				shape: this.editor.getOnlySelectedShape() as TLImageShape,
 				handle: this.info.handle,
 			})
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp = () => {
 		this.parent.transition('idle')
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel = () => {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete = () => {
 		this.cancel()
 	}
 

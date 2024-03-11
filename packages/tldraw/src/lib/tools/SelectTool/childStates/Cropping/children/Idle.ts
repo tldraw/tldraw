@@ -16,7 +16,7 @@ export class Idle extends StateNode {
 		editor.on('change-history', this.cleanupCroppingState)
 
 		if (onlySelectedShape) {
-			editor.mark('crop')
+			editor.mark('cropping')
 			editor.setCroppingShape(onlySelectedShape.id)
 		}
 	}

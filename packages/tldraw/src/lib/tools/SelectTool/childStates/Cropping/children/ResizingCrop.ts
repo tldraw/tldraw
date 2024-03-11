@@ -1,16 +1,16 @@
 import { SelectionHandle, StateNode, TLEnterEventHandler, TLImageShape } from '@tldraw/editor'
-import { CroppingSession } from '../../../../../sessions/CroppingSession'
+import { ResizingCropSession } from '../../../../../sessions/ResizingCropSession'
 
-export class Cropping extends StateNode {
-	static override id = 'cropping'
+export class ResizingCrop extends StateNode {
+	static override id = 'resizing_crop'
 
-	session?: CroppingSession
+	session?: ResizingCropSession
 
 	override onEnter: TLEnterEventHandler = (info: {
 		handle: SelectionHandle
 		shape: TLImageShape
 	}) => {
-		this.session = new CroppingSession(this.editor, {
+		this.session = new ResizingCropSession(this.editor, {
 			shape: info.shape,
 			handle: info.handle,
 			onExit: () => {

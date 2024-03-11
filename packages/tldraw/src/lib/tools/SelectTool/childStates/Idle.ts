@@ -266,7 +266,7 @@ export class Idle extends StateNode {
 						util.canCrop(onlySelectedShape) &&
 						!this.editor.isShapeOrAncestorLocked(onlySelectedShape)
 					) {
-						this.parent.transition('crop', info)
+						this.parent.transition('cropping', info)
 						return
 					}
 
@@ -298,7 +298,7 @@ export class Idle extends StateNode {
 						// crop on double click
 						this.editor.mark('select and crop')
 						this.editor.select(info.shape?.id)
-						this.parent.transition('crop', info)
+						this.parent.transition('cropping', info)
 						return
 					}
 				}
@@ -463,7 +463,7 @@ export class Idle extends StateNode {
 
 				// If the only selected shape is croppable, then begin cropping it
 				if (getShouldEnterCropMode(this.editor)) {
-					this.parent.transition('crop', info)
+					this.parent.transition('cropping', info)
 				}
 				break
 			}

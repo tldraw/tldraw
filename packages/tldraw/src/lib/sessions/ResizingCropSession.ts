@@ -1,13 +1,14 @@
 import { SelectionHandle, Session, TLImageShape, Vec, structuredClone } from '@tldraw/editor'
-import { MIN_CROP_SIZE } from '../tools/SelectTool/childStates/Crop/crop-constants'
+import { MIN_CROP_SIZE } from '../tools/SelectTool/childStates/Cropping/crop-constants'
 import { CursorTypeMap } from '../tools/SelectTool/childStates/PointingResizeHandle'
 
-export class CroppingSession extends Session<{
+export class ResizingCropSession extends Session<{
 	shape: TLImageShape
 	handle: SelectionHandle
 	onExit: () => void
 }> {
-	readonly id = 'cropping'
+	readonly id = 'resizing crop'
+	readonly markId = 'resizing crop'
 
 	didCrop = false
 	prevPoint = new Vec(-Infinity, -Infinity)
@@ -55,7 +56,7 @@ export class CroppingSession extends Session<{
 
 		if (!this.didCrop) {
 			// mark when we start dragging
-			editor.mark('cropping')
+			editor.mark(this.markId)
 			this.didCrop = true
 		}
 
@@ -201,7 +202,7 @@ export class CroppingSession extends Session<{
 
 	onCancel() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
-		this.editor.bailToMark('cropping')
+		this.editor.bailToMark(this.markId)
 		this.info.onExit()
 		return
 	}

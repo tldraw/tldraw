@@ -1,11 +1,11 @@
 import { Session, TLImageShape, Vec } from '@tldraw/editor'
-import { getTranslateCroppedImageChange } from '../tools/SelectTool/childStates/Crop/children/crop_helpers'
+import { getTranslateCroppedImageChange } from '../tools/SelectTool/childStates/Cropping/children/crop_helpers'
 
 export class NudgingCropSession extends Session<{
 	shape: TLImageShape
 	onExit: () => void
 }> {
-	readonly id = 'cropping'
+	readonly id = 'nudging crop'
 
 	didNudge = false
 	startTime = Date.now()

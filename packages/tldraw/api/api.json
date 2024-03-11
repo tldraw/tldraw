@@ -13591,15 +13591,6 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Crop",
-                  "canonicalReference": "tldraw!~Crop:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | typeof "
-                },
-                {
-                  "kind": "Reference",
                   "text": "Cropping",
                   "canonicalReference": "tldraw!~Cropping:class"
                 },
@@ -13655,7 +13646,7 @@
                 {
                   "kind": "Reference",
                   "text": "PointingCropHandle",
-                  "canonicalReference": "tldraw!~PointingCropHandle:class"
+                  "canonicalReference": "tldraw!~PointingCropHandle_2:class"
                 },
                 {
                   "kind": "Content",
@@ -13710,6 +13701,15 @@
                   "kind": "Reference",
                   "text": "Resizing",
                   "canonicalReference": "tldraw!~Resizing:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ResizingCrop",
+                  "canonicalReference": "tldraw!~ResizingCrop_2:class"
                 },
                 {
                   "kind": "Content",

@@ -87,8 +87,8 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 				'select.pointing_canvas',
 				'select.pointing_selection',
 				'select.pointing_shape',
-				'select.crop.idle',
-				'select.crop.pointing_crop',
+				'select.cropping.idle',
+				'select.cropping.pointing_crop',
 				'select.pointing_resize_handle',
 				'select.pointing_crop_handle'
 			)) ||
@@ -106,8 +106,8 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	const showCropHandles =
 		editor.isInAny(
 			'select.pointing_crop_handle',
-			'select.crop.idle',
-			'select.crop.pointing_crop'
+			'select.cropping.idle',
+			'select.cropping.pointing_crop'
 		) &&
 		!isChangingStyle &&
 		!isReadonlyMode
@@ -117,7 +117,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			'select.idle',
 			'select.pointing_selection',
 			'select.pointing_shape',
-			'select.crop.idle'
+			'select.cropping.idle'
 		) &&
 		!isChangingStyle &&
 		!isReadonlyMode

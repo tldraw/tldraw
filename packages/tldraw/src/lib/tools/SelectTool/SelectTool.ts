@@ -1,7 +1,6 @@
 import { StateNode, react } from '@tldraw/editor'
 import { Brushing } from './childStates/Brushing'
-import { Crop } from './childStates/Crop/Crop'
-import { Cropping } from './childStates/Cropping'
+import { Cropping } from './childStates/Cropping/Cropping'
 import { DraggingHandle } from './childStates/DraggingHandle'
 import { EditingShape } from './childStates/EditingShape'
 import { Idle } from './childStates/Idle'
@@ -14,6 +13,7 @@ import { PointingRotateHandle } from './childStates/PointingRotateHandle'
 import { PointingSelection } from './childStates/PointingSelection'
 import { PointingShape } from './childStates/PointingShape'
 import { Resizing } from './childStates/Resizing'
+import { ResizingCrop } from './childStates/ResizingCrop'
 import { Rotating } from './childStates/Rotating'
 import { Translating } from './childStates/Translating'
 
@@ -24,8 +24,8 @@ export class SelectTool extends StateNode {
 	reactor: undefined | (() => void) = undefined
 
 	static override children = () => [
-		Crop,
 		Cropping,
+		ResizingCrop,
 		Idle,
 		PointingCanvas,
 		PointingShape,

@@ -10,11 +10,12 @@ export class Brushing extends StateNode {
 		this.session = new BrushingSession(this.editor).start()
 	}
 
-	override onExit = () => {
-		delete this.session
-	}
-
 	override onPointerUp = () => {
 		this.session?.complete()
+	}
+
+	override onExit = () => {
+		this.session?.dispose()
+		delete this.session
 	}
 }
