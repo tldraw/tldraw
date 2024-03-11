@@ -1786,8 +1786,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onThrottledPointerMove?: TLEventHandlers['onThrottledPointerMove'];
     // (undocumented)
-    _onThrottledPointerMove: () => void;
-    // (undocumented)
     onTick?: TLTickEventHandler;
     // (undocumented)
     onTripleClick?: TLEventHandlers['onTripleClick'];

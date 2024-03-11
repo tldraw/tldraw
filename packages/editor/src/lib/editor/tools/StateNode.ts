@@ -184,7 +184,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		}
 	}
 
-	_onThrottledPointerMove = () => {
+	private _onThrottledPointerMove = () => {
 		if (!this.isDirty) return
 		this.onThrottledPointerMove?.()
 		this.isDirty = false
