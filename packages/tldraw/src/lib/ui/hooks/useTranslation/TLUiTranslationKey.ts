@@ -229,7 +229,6 @@ export type TLUiTranslationKey =
 	| 'menu.title'
 	| 'menu.copy-as'
 	| 'menu.edit'
-	| 'menu.shape'
 	| 'menu.export-as'
 	| 'menu.file'
 	| 'menu.language'

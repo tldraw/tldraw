@@ -3,14 +3,15 @@ import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
+	ConvertToBookmarkMenuItem,
+	ConvertToEmbedMenuItem,
 	EditLinkMenuItem,
-	EmbedsGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	MoveToPageMenu,
 	RemoveFrameMenuItem,
 	ReorderMenuSubmenu,
-	SetSelectionGroup,
+	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleLockMenuItem,
 	UngroupMenuItem,
@@ -31,16 +32,17 @@ export function DefaultContextMenuContent() {
 
 	return (
 		<>
-			<TldrawUiMenuGroup id="selection">
-				<ToggleAutoSizeMenuItem />
-				<EditLinkMenuItem />
+			<TldrawUiMenuGroup id="misc">
 				<GroupMenuItem />
 				<UngroupMenuItem />
+				<EditLinkMenuItem />
+				<ToggleAutoSizeMenuItem />
 				<RemoveFrameMenuItem />
 				<FitFrameToContentMenuItem />
+				<ConvertToEmbedMenuItem />
+				<ConvertToBookmarkMenuItem />
 				<ToggleLockMenuItem />
 			</TldrawUiMenuGroup>
-			<EmbedsGroup />
 			<TldrawUiMenuGroup id="modify">
 				<ArrangeMenuSubmenu />
 				<ReorderMenuSubmenu />
@@ -48,7 +50,9 @@ export function DefaultContextMenuContent() {
 			</TldrawUiMenuGroup>
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
-			<SetSelectionGroup />
+			<TldrawUiMenuGroup id="select-all">
+				<SelectAllMenuItem />
+			</TldrawUiMenuGroup>
 		</>
 	)
 }

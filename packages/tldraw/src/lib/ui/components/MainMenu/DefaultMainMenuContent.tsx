@@ -5,12 +5,13 @@ import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
+	ConvertToBookmarkMenuItem,
+	ConvertToEmbedMenuItem,
 	EditLinkMenuItem,
-	EmbedsGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	RemoveFrameMenuItem,
-	SetSelectionGroup,
+	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDarkModeItem,
 	ToggleDebugModeItem,
@@ -38,8 +39,8 @@ export function DefaultMainMenuContent() {
 	return (
 		<>
 			<EditSubmenu />
-			<ShapeSubmenu />
 			<ViewSubmenu />
+			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 		</>
@@ -78,28 +79,12 @@ export function EditSubmenu() {
 		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
-			<SetSelectionGroup />
-		</TldrawUiMenuSubmenu>
-	)
-}
-
-/** @public */
-export function ShapeSubmenu() {
-	const editor = useEditor()
-
-	const selectToolActive = useValue(
-		'isSelectToolActive',
-		() => editor.getCurrentToolId() === 'select',
-		[editor]
-	)
-
-	return (
-		<TldrawUiMenuSubmenu id="shape" label="menu.shape" disabled={!selectToolActive}>
 			<ConversionsMenuGroup />
-			<MultiShapeMenuGroup />
 			<MiscMenuGroup />
-			<EmbedsGroup />
 			<LockGroup />
+			<TldrawUiMenuGroup id="select-all">
+				<SelectAllMenuItem />
+			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
 }
@@ -108,8 +93,14 @@ export function ShapeSubmenu() {
 export function MiscMenuGroup() {
 	return (
 		<TldrawUiMenuGroup id="misc">
-			<ToggleAutoSizeMenuItem />
+			<GroupMenuItem />
+			<UngroupMenuItem />
 			<EditLinkMenuItem />
+			<ToggleAutoSizeMenuItem />
+			<RemoveFrameMenuItem />
+			<FitFrameToContentMenuItem />
+			<ConvertToEmbedMenuItem />
+			<ConvertToBookmarkMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -120,18 +111,6 @@ export function LockGroup() {
 		<TldrawUiMenuGroup id="lock">
 			<ToggleLockMenuItem />
 			<UnlockAllMenuItem />
-		</TldrawUiMenuGroup>
-	)
-}
-
-/** @public */
-export function MultiShapeMenuGroup() {
-	return (
-		<TldrawUiMenuGroup id="multi-shape">
-			<GroupMenuItem />
-			<UngroupMenuItem />
-			<RemoveFrameMenuItem />
-			<FitFrameToContentMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
