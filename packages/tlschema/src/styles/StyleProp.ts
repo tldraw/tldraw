@@ -72,7 +72,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 	 * })
 	 * ```
 	 */
-	static defineEnum<const Values extends readonly unknown[]>(
+	static defineEnum<Values extends readonly unknown[]>(
 		uniqueId: string,
 		options: { defaultValue: Values[number]; values: Values }
 	) {
