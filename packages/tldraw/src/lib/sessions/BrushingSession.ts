@@ -57,12 +57,13 @@ export class BrushingSession extends Session {
 
 	onUpdate() {
 		const { editor } = this
-		moveCameraWhenCloseToEdge(editor)
 
 		if (!editor.inputs.isPointing) {
 			this.complete()
 			return
 		}
+
+		moveCameraWhenCloseToEdge(editor)
 
 		const strategy = editor.inputs.altKey ? 'scribble' : 'box'
 

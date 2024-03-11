@@ -528,7 +528,9 @@ export class TestEditor extends Editor {
 		for (let i = 1; i < numSteps; i++) {
 			this.pointerMove(center.x + (i * dx) / numSteps, center.y + (i * dy) / numSteps, options)
 		}
-		this.pointerUp(center.x + dx, center.y + dy, options)
+
+		this.pointerMove(center.x + dx, center.y + dy, options)
+		this.pointerUp()
 		return this
 	}
 
