@@ -46,6 +46,7 @@ import {
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 } from './protocol'
+import { squishDataEvents } from './squish'
 
 /** @public */
 export type TLRoomSocket<R extends UnknownRecord> = {
@@ -440,7 +441,10 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		session.debounceTimer = null
 
 		if (session.outstandingDataMessages.length > 0) {
-			session.socket.sendMessage({ type: 'data', data: session.outstandingDataMessages })
+			session.socket.sendMessage({
+				type: 'data',
+				data: squishDataEvents(session.outstandingDataMessages),
+			})
 			session.outstandingDataMessages.length = 0
 		}
 	}
