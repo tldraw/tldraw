@@ -1,3 +1,4 @@
+import { FileHelpers } from './file'
 import { PngHelpers } from './png'
 
 /**
@@ -44,16 +45,8 @@ export class MediaHelpers {
 	 * Read a blob into a data url
 	 * @public
 	 */
-	static blobToDataUrl(blob: Blob): Promise<string> {
-		return new Promise((resolve, reject) => {
-			const reader = new FileReader()
-			reader.onload = () => resolve(reader.result as string)
-			reader.onerror = (e) => {
-				console.error(e)
-				reject(new Error('Could not read blob'))
-			}
-			reader.readAsDataURL(blob)
-		})
+	static blobToDataUrl(blob: Blob) {
+		return FileHelpers.fileToBase64(blob)
 	}
 
 	/**

@@ -212,6 +212,13 @@ test.describe('Actions on shapes', () => {
 	test('Operations on shapes', async () => {
 		await setupPageWithShapes(page)
 
+		// needs shapes on the canvas
+		await page.keyboard.press('Control+Shift+c')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'copy-as',
+			data: { format: 'svg', source: 'kbd' },
+		})
+
 		// select-all — Cmd+A
 		await page.keyboard.press('Control+a')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
@@ -353,14 +360,6 @@ test.describe('Actions on shapes', () => {
 		// 	name: 'open-menu',
 		// 	data: { source: 'dialog' },
 		// })
-
-		/* --------------------- Export --------------------- */
-
-		await page.keyboard.press('Control+Shift+c')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'copy-as',
-			data: { format: 'svg', source: 'kbd' },
-		})
 	})
 })
 

@@ -32,10 +32,10 @@ export class FileHelpers {
 		return await new Promise((resolve, reject) => {
 			if (file) {
 				const reader = new FileReader()
-				reader.readAsDataURL(file)
 				reader.onload = () => resolve(reader.result as string)
 				reader.onerror = (error) => reject(error)
 				reader.onabort = (error) => reject(error)
+				reader.readAsDataURL(file)
 			}
 		})
 	}

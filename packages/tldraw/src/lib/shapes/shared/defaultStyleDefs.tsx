@@ -2,6 +2,7 @@ import {
 	DefaultColorThemePalette,
 	DefaultFontFamilies,
 	DefaultFontStyle,
+	FileHelpers,
 	HASH_PATTERN_ZOOM_NAMES,
 	MAX_ZOOM,
 	SvgExportDef,
@@ -27,12 +28,7 @@ export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef
 			if (!url || !fontFaceRule) return null
 
 			const fontFile = await (await fetch(url)).blob()
-			const base64FontFile = await new Promise<string>((resolve, reject) => {
-				const reader = new FileReader()
-				reader.onload = () => resolve(reader.result as string)
-				reader.onerror = reject
-				reader.readAsDataURL(fontFile)
-			})
+			const base64FontFile = FileHelpers.fileToBase64(fontFile)
 
 			const newFontFaceRule = fontFaceRule.replace(url, base64FontFile)
 			const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')

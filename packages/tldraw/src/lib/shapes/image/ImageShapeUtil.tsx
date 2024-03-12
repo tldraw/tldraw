@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	FileHelpers,
 	HTMLContainer,
 	TLImageShape,
 	TLOnDoubleClickHandler,
@@ -19,12 +20,7 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 async function getDataURIFromURL(url: string): Promise<string> {
 	const response = await fetch(url)
 	const blob = await response.blob()
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onloadend = () => resolve(reader.result as string)
-		reader.onerror = reject
-		reader.readAsDataURL(blob)
-	})
+	return FileHelpers.fileToBase64(blob)
 }
 
 /** @public */

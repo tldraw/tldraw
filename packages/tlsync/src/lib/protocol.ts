@@ -2,7 +2,7 @@ import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
 /** @public */
-export const TLSYNC_PROTOCOL_VERSION = 4
+export const TLSYNC_PROTOCOL_VERSION = 5
 
 /** @public */
 export enum TLIncompatibilityReason {
@@ -28,22 +28,26 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			reason: TLIncompatibilityReason
 	  }
 	| {
+			type: 'error'
+			error?: any
+	  }
+	| {
+			type: 'pong'
+	  }
+	| { type: 'data'; data: TLSocketServerSentDataEvent<R>[] }
+
+/** @public */
+export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
+	| {
 			type: 'patch'
 			diff: NetworkDiff<R>
 			serverClock: number
-	  }
-	| {
-			type: 'error'
-			error?: any
 	  }
 	| {
 			type: 'push_result'
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
-	  }
-	| {
-			type: 'pong'
 	  }
 
 /** @public */
