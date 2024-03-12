@@ -2708,6 +2708,9 @@ export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", 
 
 export { useReactor }
 
+// @internal
+export function useSafeId(): string;
+
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {
     onPointerDown: PointerEventHandler<Element>;

@@ -1,7 +1,7 @@
-import { preventDefault, useEditor, useEvent } from '@tldraw/editor'
+import { preventDefault, useEditor, useEvent, useSafeId } from '@tldraw/editor'
 import classNames from 'classnames'
 import hotkeys from 'hotkeys-js'
-import { createContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
@@ -20,7 +20,7 @@ export const IsInOverflowContext = createContext(false)
 
 export function OverflowingToolbar({ children }: { children: React.ReactNode }) {
 	const editor = useEditor()
-	const id = useId().replace(/:/g, '_')
+	const id = useSafeId()
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 
