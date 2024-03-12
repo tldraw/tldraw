@@ -1,12 +1,11 @@
 /**
  * Helpers for files
  *
- * @public
+ * @internal
  */
 export class FileHelpers {
 	/**
 	 * @param dataURL - The file as a string.
-	 * @internal
 	 *
 	 * from https://stackoverflow.com/a/53817185
 	 */
@@ -26,7 +25,6 @@ export class FileHelpers {
 	 * ```
 	 *
 	 * @param value - The file as a blob.
-	 * @public
 	 */
 	static async blobToDataUrl(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {
@@ -50,7 +48,6 @@ export class FileHelpers {
 	 * ```
 	 *
 	 * @param value - The file as a blob.
-	 * @public
 	 */
 	static async blobToText(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {
