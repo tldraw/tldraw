@@ -1,7 +1,6 @@
 import { RecursivePartial } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
-import { ToolbarSchemaProvider } from '../hooks/useToolbarSchema'
 import { ToolsProvider } from '../hooks/useTools'
 import { TranslationProvider } from '../hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from '../overrides'
@@ -85,11 +84,7 @@ function InternalProviders({
 	const mergedOverrides = useMergedOverrides(overrides)
 	return (
 		<ActionsProvider overrides={mergedOverrides.actions}>
-			<ToolsProvider overrides={mergedOverrides.tools}>
-				<ToolbarSchemaProvider overrides={mergedOverrides.toolbar}>
-					{children}
-				</ToolbarSchemaProvider>
-			</ToolsProvider>
+			<ToolsProvider overrides={mergedOverrides.tools}>{children}</ToolsProvider>
 		</ActionsProvider>
 	)
 }
