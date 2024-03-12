@@ -20,9 +20,13 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
+	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
 
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
+	const shape = editor.getShape(id) as T
+	const doesShapeAutoEditOnKeystroke =
+		shape && editor.getShapeUtil(type).doesAutoEditOnKeyStroke(shape)
 
 	// If the shape is editing but the input element not focused, focus the element
 	useEffect(() => {
@@ -32,15 +36,36 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		}
 
 		// Place the cursor at the end of the text.
-		if (elm && isEditing) {
+		if (elm && isEditing && doesShapeAutoEditOnKeystroke) {
 			elm.setSelectionRange(elm.value.length, elm.value.length)
 		}
-	}, [isEditing])
+	}, [isEditing, doesShapeAutoEditOnKeystroke])
 
 	// When the label receives focus, set the value to the most  recent text value and select all of the text
 	const handleFocus = useCallback(() => {
-		/* do nothing */
-	}, [])
+		if (doesShapeAutoEditOnKeystroke) {
+			return
+		}
+
+		// Store and turn off the skipSelectOnFocus flag
+		const skipSelect = rSkipSelectOnFocus.current
+		rSkipSelectOnFocus.current = false
+
+		// On the next frame, if we're not skipping select AND we have text in the element, then focus the text
+		requestAnimationFrame(() => {
+			const elm = rInput.current
+			if (!elm) return
+
+			const shape = editor.getShape<TLShape & { props: { text: string } }>(id)
+
+			if (shape) {
+				elm.value = shape.props.text
+				if (elm.value.length && !skipSelect) {
+					elm.select()
+				}
+			}
+		})
+	}, [editor, id, doesShapeAutoEditOnKeystroke])
 
 	// When the label blurs, deselect all of the text and complete.
 	// This makes it so that the canvas does not have to be focused
@@ -62,7 +87,9 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 							// and select all of the text
 							elm.focus()
 						} else {
-							// Restore the selection
+							// Otherwise, skip the select-all-on-focus behavior
+							// and restore the selection
+							rSkipSelectOnFocus.current = true
 							elm.focus()
 							const selection = window.getSelection()
 							if (selection) {
