@@ -197,7 +197,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
-		const { initialBounds, initialShape, scaleX, scaleY, handle } = info
+		const { initialBounds, initialShape, scaleX, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
 			return {
