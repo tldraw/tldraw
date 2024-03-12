@@ -1602,6 +1602,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canSnap: TLShapeUtilFlag<Shape>;
     canUnmount: TLShapeUtilFlag<Shape>;
     abstract component(shape: Shape): any;
+    // @internal
+    doesAutoSnap: TLShapeUtilFlag<Shape>;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)

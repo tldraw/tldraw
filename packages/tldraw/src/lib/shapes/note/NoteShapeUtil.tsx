@@ -27,6 +27,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override migrations = noteShapeMigrations
 
 	override canEdit = () => true
+	override doesAutoSnap = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
 

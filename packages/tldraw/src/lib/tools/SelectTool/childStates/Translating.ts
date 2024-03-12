@@ -398,10 +398,13 @@ export function moveShapesToPoint({
 
 	// Provisional snapping
 	editor.snaps.clearIndicators()
+	const onlySelectedShape = editor.getOnlySelectedShape()
 
 	const shouldSnap =
-		(editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey) &&
-		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
+		(editor.user.getIsSnapMode() ||
+		(onlySelectedShape && editor.getShapeUtil(onlySelectedShape))?.doesAutoSnap(onlySelectedShape)
+			? !inputs.ctrlKey
+			: inputs.ctrlKey) && editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
 
 	if (shouldSnap) {
 		const { nudge } = editor.snaps.shapeBounds.snapTranslateShapes({

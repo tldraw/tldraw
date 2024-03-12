@@ -234,7 +234,14 @@ export class Resizing extends StateNode {
 
 		this.editor.snaps.clearIndicators()
 
-		const shouldSnap = this.editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
+		const onlySelectedShape = this.editor.getOnlySelectedShape()
+		const shouldSnap =
+			this.editor.user.getIsSnapMode() ||
+			(onlySelectedShape && this.editor.getShapeUtil(onlySelectedShape))?.doesAutoSnap(
+				onlySelectedShape
+			)
+				? !ctrlKey
+				: ctrlKey
 
 		if (shouldSnap && selectionRotation % HALF_PI === 0) {
 			const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({

@@ -12240,6 +12240,36 @@
               "name": "component"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#doesAutoSnap:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "doesAutoSnap: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "doesAutoSnap",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#getDefaultProps:member(1)",
               "docComment": "",
