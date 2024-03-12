@@ -250,27 +250,30 @@ const handlePasteFromClipboardApi = async (
 		if (item.types.includes('text/html')) {
 			things.push({
 				type: 'html',
-				source: new Promise<string>((r) =>
-					item.getType('text/html').then((blob) => FileHelpers.fileToBase64(blob).then(r))
-				),
+				source: (async () => {
+					const blob = await item.getType('text/html')
+					return await FileHelpers.toString(blob)
+				})(),
 			})
 		}
 
 		if (item.types.includes('text/uri-list')) {
 			things.push({
 				type: 'url',
-				source: new Promise<string>((r) =>
-					item.getType('text/uri-list').then((blob) => FileHelpers.fileToBase64(blob).then(r))
-				),
+				source: (async () => {
+					const blob = await item.getType('text/uri-list')
+					return await FileHelpers.toString(blob)
+				})(),
 			})
 		}
 
 		if (item.types.includes('text/plain')) {
 			things.push({
 				type: 'text',
-				source: new Promise<string>((r) =>
-					item.getType('text/plain').then((blob) => FileHelpers.fileToBase64(blob).then(r))
-				),
+				source: (async () => {
+					const blob = await item.getType('text/plain')
+					return await FileHelpers.toString(blob)
+				})(),
 			})
 		}
 	}

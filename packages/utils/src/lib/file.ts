@@ -17,18 +17,18 @@ export class FileHelpers {
 	}
 
 	/**
-	 * Convert a file to base64.
+	 * Convert a file to a base64 encoded data url.
 	 *
 	 * @example
 	 *
 	 * ```ts
-	 * const A = fileToBase64('./test.png')
+	 * const A = FileHelpers.toDataUrl(myImageFile)
 	 * ```
 	 *
 	 * @param value - The file as a blob.
 	 * @public
 	 */
-	static async fileToBase64(file: Blob): Promise<string> {
+	static async toDataUrl(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {
 			if (file) {
 				const reader = new FileReader()
@@ -36,6 +36,30 @@ export class FileHelpers {
 				reader.onerror = (error) => reject(error)
 				reader.onabort = (error) => reject(error)
 				reader.readAsDataURL(file)
+			}
+		})
+	}
+
+	/**
+	 * Convert a file to a unicode text string.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * const A = FileHelpers.fileToDataUrl(myTextFile)
+	 * ```
+	 *
+	 * @param value - The file as a blob.
+	 * @public
+	 */
+	static async toString(file: Blob): Promise<string> {
+		return await new Promise((resolve, reject) => {
+			if (file) {
+				const reader = new FileReader()
+				reader.onload = () => resolve(reader.result as string)
+				reader.onerror = (error) => reject(error)
+				reader.onabort = (error) => reject(error)
+				reader.readAsText(file)
 			}
 		})
 	}

@@ -519,12 +519,12 @@
           "members": [
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/utils!FileHelpers.fileToBase64:member(1)",
-              "docComment": "/**\n * Convert a file to base64.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = fileToBase64('./test.png')\n * ```\n *\n * @public\n */\n",
+              "canonicalReference": "@tldraw/utils!FileHelpers.toDataUrl:member(1)",
+              "docComment": "/**\n * Convert a file to a base64 encoded data url.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = FileHelpers.toDataUrl(myImageFile)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "static fileToBase64(file: "
+                  "text": "static toDataUrl(file: "
                 },
                 {
                   "kind": "Reference",
@@ -569,7 +569,61 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "fileToBase64"
+              "name": "toDataUrl"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!FileHelpers.toString:member(1)",
+              "docComment": "/**\n * Convert a file to a unicode text string.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = FileHelpers.fileToDataUrl(myTextFile)\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static toString(file: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Blob",
+                  "canonicalReference": "!Blob:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "file",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "toString"
             }
           ],
           "implementsTokenRanges": []
@@ -1844,60 +1898,6 @@
           "name": "MediaHelpers",
           "preserveMemberOrder": false,
           "members": [
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/utils!MediaHelpers.blobToDataUrl:member(1)",
-              "docComment": "/**\n * Read a blob into a data url\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static blobToDataUrl(blob: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Blob",
-                  "canonicalReference": "!Blob:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Promise",
-                  "canonicalReference": "!Promise:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": true,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "blob",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "blobToDataUrl"
-            },
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/utils!MediaHelpers.getImageSize:member(1)",
