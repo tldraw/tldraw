@@ -2,7 +2,7 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 
 ### Change Type
 
-<!-- ❗ Please select at least one ❗️ -->
+<!-- ❗ Please select a 'Scope' label ❗️ -->
 
 - [ ] `sdk` — Changes the tldraw SDK
 - [ ] `dotcom` — Changes the tldraw.com web app
@@ -10,7 +10,7 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 - [ ] `vs code` — Changes to the vscode plugin
 - [ ] `internal` — Does not affect user-facing stuff
 
-<!-- ❗ Please select at least one ❗️ -->
+<!-- ❗ Please select a 'Type' label ❗️ -->
 
 - [ ] `bugfix` — Bug fix
 - [ ] `feature` — New feature

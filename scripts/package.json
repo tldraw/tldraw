@@ -54,6 +54,7 @@
 		"lint": "yarn run -T tsx lint.ts"
 	},
 	"dependencies": {
+		"@octokit/rest": "^20.0.2",
 		"@types/minimist": "^1.2.5",
 		"ignore": "^5.2.4",
 		"minimist": "^1.2.8",

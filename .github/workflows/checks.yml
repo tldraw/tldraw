@@ -47,6 +47,9 @@ jobs:
       - name: Check tsconfigs
         run: yarn check-tsconfigs
 
+      - name: Check PR template
+        run: yarn update-pr-template --check
+
       - name: Lint
         run: yarn lint
 

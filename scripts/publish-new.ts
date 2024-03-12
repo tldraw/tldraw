@@ -5,6 +5,7 @@ import minimist from 'minimist'
 import { assert } from 'node:console'
 import { SemVer, parse } from 'semver'
 import { exec } from './lib/exec'
+import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
@@ -105,6 +106,7 @@ async function main() {
 		disableTsNode: true,
 	})
 
+	await generateAutoRcFile()
 	await auto.loadConfig()
 
 	// this creates a new commit

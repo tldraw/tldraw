@@ -54,6 +54,7 @@
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"check-tsconfigs": "tsx scripts/check-tsconfigs.ts",
+		"update-pr-template": "tsx scripts/update-pr-template.ts",
 		"api-check": "lazy api-check",
 		"test-ci": "lazy test-ci",
 		"test": "lazy test",
