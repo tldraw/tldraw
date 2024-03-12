@@ -16,8 +16,6 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 - [ ] `feature` — New feature
 - [ ] `improvement` — Improving existing features
 - [ ] `chore` — Updating dependencies, other boring stuff
-- [ ] `refactor` — Refactoring code for whatever reason
-- [ ] `performance` — Making it go faster
 - [ ] `galaxy brain` — Architectural changes
 - [ ] `tests` — Changes to any test code
 - [ ] `tools` — Changes to infrastructure, CI, internal scripts, debugging tools, etc.

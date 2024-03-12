@@ -52,16 +52,6 @@ const TYPE_LABELS = [
 		changelogTitle: '🧹 Chores',
 	},
 	{
-		name: `refactor`,
-		description: `Refactoring code for whatever reason`,
-		changelogTitle: '🪄 Refactors',
-	},
-	{
-		name: `performance`,
-		description: `Making it go faster`,
-		changelogTitle: '🏎️ Performance Improvements',
-	},
-	{
 		name: `galaxy brain`,
 		description: `Architectural changes`,
 		changelogTitle: '🤯 Galaxy Brain Changes',
