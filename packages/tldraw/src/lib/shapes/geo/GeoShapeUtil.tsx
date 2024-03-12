@@ -341,6 +341,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		})
 	}
 
+	override getLabel(shape: TLGeoShape) {
+		return this.getGeometry(shape).children[1] as Rectangle2d
+	}
+
 	override getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry {
 		const geometry = this.getGeometry(shape)
 		// we only want to snap handles to the outline of the shape - not to its label etc.

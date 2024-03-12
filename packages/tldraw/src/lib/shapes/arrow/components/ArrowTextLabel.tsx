@@ -54,34 +54,31 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				<p style={{ width: width ? width : '9px' }}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>
-				{isEditing && (
-					// Consider replacing with content-editable
-					<textarea
-						ref={rInput}
-						className="tl-text tl-text-input"
-						name="text"
-						tabIndex={-1}
-						autoComplete="off"
-						autoCapitalize="off"
-						autoCorrect="off"
-						autoSave="off"
-						autoFocus
-						placeholder=""
-						spellCheck="true"
-						wrap="off"
-						dir="auto"
-						datatype="wysiwyg"
-						defaultValue={text}
-						onFocus={handleFocus}
-						onChange={handleChange}
-						onKeyDown={handleKeyDown}
-						onBlur={handleBlur}
-						onTouchEnd={stopEventPropagation}
-						onContextMenu={stopEventPropagation}
-						onPointerDown={handleInputPointerDown}
-						onDoubleClick={handleDoubleClick}
-					/>
-				)}
+				<textarea
+					ref={rInput}
+					className="tl-text tl-text-input"
+					name="text"
+					tabIndex={-1}
+					autoComplete="off"
+					autoCapitalize="off"
+					autoCorrect="off"
+					autoSave="off"
+					autoFocus
+					placeholder=""
+					spellCheck="true"
+					wrap="off"
+					dir="auto"
+					datatype="wysiwyg"
+					defaultValue={text}
+					onFocus={handleFocus}
+					onChange={handleChange}
+					onKeyDown={handleKeyDown}
+					onBlur={handleBlur}
+					onTouchEnd={stopEventPropagation}
+					onContextMenu={stopEventPropagation}
+					onPointerDown={handleInputPointerDown}
+					onDoubleClick={handleDoubleClick}
+				/>
 			</div>
 		</div>
 	)

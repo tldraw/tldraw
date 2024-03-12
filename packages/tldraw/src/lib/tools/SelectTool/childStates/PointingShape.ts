@@ -1,10 +1,7 @@
 import {
-	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
-	TLArrowShape,
 	TLEventHandlers,
-	TLGeoShape,
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
@@ -127,24 +124,18 @@ export class PointingShape extends StateNode {
 						// then we would want to begin editing the shape. At the moment we're relying on the shape label's onPointerUp
 						// handler to do this logic, and prevent the regular pointer up event, so we won't be here in that case.
 
-						// ! tldraw hack
-						// if the shape is a geo shape, and we're inside of the label, then we want to begin editing the label
-						if (
-							selectedShapeIds.length === 1 &&
-							(this.editor.isShapeOfType<TLGeoShape>(selectingShape, 'geo') ||
-								this.editor.isShapeOfType<TLArrowShape>(selectingShape, 'arrow'))
-						) {
-							const geometry = this.editor.getShapeGeometry(selectingShape)
-							const labelGeometry = (geometry as Group2d).children[1]
-							if (labelGeometry) {
+						// if the shape has a text label, and we're inside of the label, then we want to begin editing the label.
+						if (selectedShapeIds.length === 1) {
+							const textLabel = this.editor.getShapeUtil(selectingShape).getLabel(selectingShape)
+							if (textLabel) {
 								const pointInShapeSpace = this.editor.getPointInShapeSpace(
 									selectingShape,
 									currentPagePoint
 								)
 
 								if (
-									labelGeometry.bounds.containsPoint(pointInShapeSpace, 0) &&
-									labelGeometry.hitTestPoint(pointInShapeSpace)
+									textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
+									textLabel.hitTestPoint(pointInShapeSpace)
 								) {
 									this.editor.batch(() => {
 										this.editor.mark('editing on pointer up')

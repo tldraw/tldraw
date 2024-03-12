@@ -99,33 +99,31 @@ export const TextLabel = React.memo(function TextLabel<
 				<div className="tl-text tl-text-content" dir="ltr">
 					{finalText}
 				</div>
-				{isEditing && (
-					<textarea
-						ref={rInput}
-						className="tl-text tl-text-input"
-						name="text"
-						tabIndex={-1}
-						autoComplete="off"
-						autoCapitalize="off"
-						autoCorrect="off"
-						autoSave="off"
-						autoFocus
-						placeholder=""
-						spellCheck="true"
-						wrap="off"
-						dir="auto"
-						datatype="wysiwyg"
-						defaultValue={text}
-						onFocus={handleFocus}
-						onChange={handleChange}
-						onKeyDown={handleKeyDown}
-						onBlur={handleBlur}
-						onTouchEnd={stopEventPropagation}
-						onContextMenu={stopEventPropagation}
-						onPointerDown={handleInputPointerDown}
-						onDoubleClick={handleDoubleClick}
-					/>
-				)}
+				<textarea
+					ref={rInput}
+					className="tl-text tl-text-input"
+					name="text"
+					tabIndex={-1}
+					autoComplete="off"
+					autoCapitalize="off"
+					autoCorrect="off"
+					autoSave="off"
+					autoFocus
+					placeholder=""
+					spellCheck="true"
+					wrap="off"
+					dir="auto"
+					datatype="wysiwyg"
+					defaultValue={text}
+					onFocus={handleFocus}
+					onChange={handleChange}
+					onKeyDown={handleKeyDown}
+					onBlur={handleBlur}
+					onTouchEnd={stopEventPropagation}
+					onContextMenu={stopEventPropagation}
+					onPointerDown={handleInputPointerDown}
+					onDoubleClick={handleDoubleClick}
+				/>
 			</div>
 		</div>
 	)

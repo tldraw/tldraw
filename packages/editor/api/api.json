@@ -30978,6 +30978,59 @@
               "name": "getHandleSnapGeometry"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#getLabel:member(1)",
+              "docComment": "/**\n * Retrieves the shape's label, if it has one.\n *\n * @param shape - The shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getLabel(shape: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Shape"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Rectangle2d",
+                  "canonicalReference": "@tldraw/editor!Rectangle2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getLabel"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#hideResizeHandles:member",
               "docComment": "/**\n * Whether the shape should hide its resize handles when selected.\n *\n * @public\n */\n",

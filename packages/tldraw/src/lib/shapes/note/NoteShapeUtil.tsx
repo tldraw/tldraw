@@ -53,6 +53,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
 	}
 
+	override getLabel(shape: TLNoteShape) {
+		return this.getGeometry(shape)
+	}
+
 	component(shape: TLNoteShape) {
 		const {
 			id,

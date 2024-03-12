@@ -937,6 +937,56 @@
               "name": "getHandles"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "tldraw!ArrowShapeUtil#getLabel:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getLabel(arrow: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLArrowShape",
+                  "canonicalReference": "@tldraw/tlschema!TLArrowShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Rectangle2d",
+                  "canonicalReference": "@tldraw/editor!Rectangle2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "arrow",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getLabel"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "tldraw!ArrowShapeUtil#hideResizeHandles:member",
               "docComment": "",
@@ -8338,6 +8388,56 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "tldraw!GeoShapeUtil#getLabel:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getLabel(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLGeoShape",
+                  "canonicalReference": "@tldraw/tlschema!TLGeoShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Rectangle2d",
+                  "canonicalReference": "@tldraw/editor!Rectangle2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getLabel"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "tldraw!GeoShapeUtil#indicator:member(1)",
               "docComment": "",
               "excerptTokens": [
@@ -13045,6 +13145,56 @@
               "name": "getHeight"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#getLabel:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getLabel(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Rectangle2d",
+                  "canonicalReference": "@tldraw/editor!Rectangle2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getLabel"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "tldraw!NoteShapeUtil#hideResizeHandles:member",
               "docComment": "",
@@ -15471,6 +15621,56 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getGeometry"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "tldraw!TextShapeUtil#getLabel:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getLabel(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLTextShape",
+                  "canonicalReference": "@tldraw/tlschema!TLTextShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Rectangle2d",
+                  "canonicalReference": "@tldraw/editor!Rectangle2d:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getLabel"
             },
             {
               "kind": "Method",

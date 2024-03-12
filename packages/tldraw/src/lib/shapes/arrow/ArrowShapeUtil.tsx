@@ -1016,6 +1016,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [getFillDefForCanvas()]
 	}
+
+	override getLabel(arrow: TLArrowShape) {
+		return this.getGeometry(arrow).children[1] as Rectangle2d
+	}
 }
 
 function getArrowheadSvgMask(d: string, arrowhead: TLArrowShapeArrowheadStyle) {

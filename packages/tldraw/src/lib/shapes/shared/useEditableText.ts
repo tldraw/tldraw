@@ -30,11 +30,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		if (elm && isEditing && document.activeElement !== elm) {
 			elm.focus()
 		}
-
-		// Place the cursor at the end of the text.
-		if (elm && isEditing) {
-			elm.setSelectionRange(elm.value.length, elm.value.length)
-		}
 	}, [isEditing])
 
 	// When the label receives focus, set the value to the most  recent text value and select all of the text
