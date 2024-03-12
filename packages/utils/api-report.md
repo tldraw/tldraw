@@ -62,10 +62,10 @@ export type Expand<T> = T extends infer O ? {
 
 // @public
 export class FileHelpers {
+    static blobToDataUrl(file: Blob): Promise<string>;
+    static blobToText(file: Blob): Promise<string>;
     // @internal (undocumented)
-    static base64ToFile(dataURL: string): Promise<ArrayBuffer>;
-    static toDataUrl(file: Blob): Promise<string>;
-    static toString(file: Blob): Promise<string>;
+    static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
 }
 
 // @internal

@@ -28,7 +28,7 @@ export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef
 			if (!url || !fontFaceRule) return null
 
 			const fontFile = await (await fetch(url)).blob()
-			const base64FontFile = await FileHelpers.toDataUrl(fontFile)
+			const base64FontFile = await FileHelpers.blobToDataUrl(fontFile)
 
 			const newFontFaceRule = fontFaceRule.replace(url, base64FontFile)
 			const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')

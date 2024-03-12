@@ -97,7 +97,7 @@ export function registerDefaultExternalContentHandlers(
 			typeName: 'asset',
 			props: {
 				name,
-				src: await FileHelpers.toDataUrl(file),
+				src: await FileHelpers.blobToDataUrl(file),
 				w: size.w,
 				h: size.h,
 				mimeType: file.type,

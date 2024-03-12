@@ -252,7 +252,7 @@ const handlePasteFromClipboardApi = async (
 				type: 'html',
 				source: (async () => {
 					const blob = await item.getType('text/html')
-					return await FileHelpers.toString(blob)
+					return await FileHelpers.blobToText(blob)
 				})(),
 			})
 		}
@@ -262,7 +262,7 @@ const handlePasteFromClipboardApi = async (
 				type: 'url',
 				source: (async () => {
 					const blob = await item.getType('text/uri-list')
-					return await FileHelpers.toString(blob)
+					return await FileHelpers.blobToText(blob)
 				})(),
 			})
 		}
@@ -272,7 +272,7 @@ const handlePasteFromClipboardApi = async (
 				type: 'text',
 				source: (async () => {
 					const blob = await item.getType('text/plain')
-					return await FileHelpers.toString(blob)
+					return await FileHelpers.blobToText(blob)
 				})(),
 			})
 		}

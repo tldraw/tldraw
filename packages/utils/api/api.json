@@ -519,12 +519,12 @@
           "members": [
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/utils!FileHelpers.toDataUrl:member(1)",
+              "canonicalReference": "@tldraw/utils!FileHelpers.blobToDataUrl:member(1)",
               "docComment": "/**\n * Convert a file to a base64 encoded data url.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = FileHelpers.toDataUrl(myImageFile)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "static toDataUrl(file: "
+                  "text": "static blobToDataUrl(file: "
                 },
                 {
                   "kind": "Reference",
@@ -569,16 +569,16 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "toDataUrl"
+              "name": "blobToDataUrl"
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/utils!FileHelpers.toString:member(1)",
+              "canonicalReference": "@tldraw/utils!FileHelpers.blobToText:member(1)",
               "docComment": "/**\n * Convert a file to a unicode text string.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = FileHelpers.fileToDataUrl(myTextFile)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "static toString(file: "
+                  "text": "static blobToText(file: "
                 },
                 {
                   "kind": "Reference",
@@ -623,7 +623,7 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "toString"
+              "name": "blobToText"
             }
           ],
           "implementsTokenRanges": []

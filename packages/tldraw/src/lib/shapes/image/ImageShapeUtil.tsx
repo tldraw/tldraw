@@ -20,7 +20,7 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 async function getDataURIFromURL(url: string): Promise<string> {
 	const response = await fetch(url)
 	const blob = await response.blob()
-	return FileHelpers.toDataUrl(blob)
+	return FileHelpers.blobToDataUrl(blob)
 }
 
 /** @public */

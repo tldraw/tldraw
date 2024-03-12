@@ -10,7 +10,7 @@ export class FileHelpers {
 	 *
 	 * from https://stackoverflow.com/a/53817185
 	 */
-	static async base64ToFile(dataURL: string) {
+	static async dataUrlToArrayBuffer(dataURL: string) {
 		return fetch(dataURL).then(function (result) {
 			return result.arrayBuffer()
 		})
@@ -28,7 +28,7 @@ export class FileHelpers {
 	 * @param value - The file as a blob.
 	 * @public
 	 */
-	static async toDataUrl(file: Blob): Promise<string> {
+	static async blobToDataUrl(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {
 			if (file) {
 				const reader = new FileReader()
@@ -52,7 +52,7 @@ export class FileHelpers {
 	 * @param value - The file as a blob.
 	 * @public
 	 */
-	static async toString(file: Blob): Promise<string> {
+	static async blobToText(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {
 			if (file) {
 				const reader = new FileReader()

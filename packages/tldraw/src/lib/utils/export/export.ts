@@ -106,7 +106,7 @@ export async function getSvgAsString(svg: SVGElement) {
 		if (src) {
 			if (!src.startsWith('data:')) {
 				const blob = await (await fetch(src)).blob()
-				const base64 = await FileHelpers.toDataUrl(blob)
+				const base64 = await FileHelpers.blobToDataUrl(blob)
 				img.setAttribute('xlink:href', base64)
 			}
 		}
