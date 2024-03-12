@@ -51,7 +51,7 @@ export type TldrawImageProps = Expand<
  *
  * @example
  * ```tsx
- * <TldrawImage snapshot={snapshot} />
+ * <TldrawImage
  * 	snapshot={snapshot}
  * 	pageId={pageId}
  * 	background={false}

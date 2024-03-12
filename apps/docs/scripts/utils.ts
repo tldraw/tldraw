@@ -87,13 +87,18 @@ export async function formatWithPrettier(
 		throw new Error(`Unknown language: ${languageTag}`)
 	}
 	const prettierConfig = await prettierConfigPromise
-	const formattedCode = await prettier.format(code, {
-		...prettierConfig,
-		parser: language,
-		printWidth,
-		tabWidth: 2,
-		useTabs: false,
-	})
+	let formattedCode = code
+	try {
+		formattedCode = await prettier.format(code, {
+			...prettierConfig,
+			parser: language,
+			printWidth,
+			tabWidth: 2,
+			useTabs: false,
+		})
+	} catch (e) {
+		console.warn(`☢️ Could not format code: ${code}`)
+	}
 
 	return formattedCode.trimEnd()
 }
@@ -166,7 +171,8 @@ export class MarkdownWriter {
 				)
 
 				if (refResult.errorMessage) {
-					throw new Error(refResult.errorMessage)
+					console.warn(`☢️ Error processing API: ${refResult.errorMessage}`)
+					return
 				}
 				const linkedItem = refResult.resolvedApiItem!
 				const path = getPath(linkedItem)
