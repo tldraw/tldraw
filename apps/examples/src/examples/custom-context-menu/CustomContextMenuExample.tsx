@@ -13,15 +13,17 @@ function CustomContextMenu(props: TLUiContextMenuProps) {
 	return (
 		<DefaultContextMenu {...props}>
 			<TldrawUiMenuGroup id="example">
-				<TldrawUiMenuItem
-					id="like"
-					label="Like my posts"
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
-					}}
-				/>
+				<div style={{ backgroundColor: 'thistle' }}>
+					<TldrawUiMenuItem
+						id="like"
+						label="Like my posts"
+						icon="external-link"
+						readonlyOk
+						onSelect={() => {
+							window.open('https://x.com/tldraw', '_blank')
+						}}
+					/>
+				</div>
 			</TldrawUiMenuGroup>
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
