@@ -1,4 +1,4 @@
-import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
+import { track, useReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
@@ -49,7 +49,7 @@ export const Shape = track(function Shape({
 		backgroundContainerRef.current?.style.setProperty(property, value)
 	}, [])
 
-	useQuickReactor(
+	useReactor(
 		'set shape container transform position',
 		() => {
 			const shape = editor.getShape(id)
@@ -62,7 +62,7 @@ export const Shape = track(function Shape({
 		[editor, setProperty]
 	)
 
-	useQuickReactor(
+	useReactor(
 		'set shape container clip path',
 		() => {
 			const shape = editor.getShape(id)
@@ -74,7 +74,7 @@ export const Shape = track(function Shape({
 		[editor, setProperty]
 	)
 
-	useQuickReactor(
+	useReactor(
 		'set shape height and width',
 		() => {
 			const shape = editor.getShape(id)

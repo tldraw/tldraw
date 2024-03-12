@@ -12,7 +12,7 @@ import {
 	useComputed,
 	useEditor,
 	useIsDarkMode,
-	useQuickReactor,
+	useReactor,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { MinimapManager } from './MinimapManager'
@@ -151,7 +151,7 @@ export function DefaultMinimap() {
 	)
 
 	// Update the minimap's dpr when the dpr changes
-	useQuickReactor(
+	useReactor(
 		'update when dpr changes',
 		() => {
 			const dpr = devicePixelRatio.get()
@@ -172,7 +172,7 @@ export function DefaultMinimap() {
 		[devicePixelRatio, minimap]
 	)
 
-	useQuickReactor(
+	useReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
 			const shapeIdsOnCurrentPage = editor.getCurrentPageShapeIds()
