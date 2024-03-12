@@ -9,6 +9,7 @@ import {
 	DefaultMainMenu,
 	EditSubmenu,
 	Editor,
+	ExportFileContentSubMenu,
 	ExtrasGroup,
 	OfflineIndicator,
 	PreferencesGroup,
@@ -69,6 +70,7 @@ const components: TLComponents = {
 			<MultiplayerFileMenu />
 			<EditSubmenu />
 			<ViewSubmenu />
+			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 			<Links />
