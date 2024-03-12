@@ -87,5 +87,12 @@ export function formatLabelOptionsForPRTemplate() {
 
 export async function generateAutoRcFile() {
 	const autoRcPath = join(REPO_ROOT, '.autorc')
-	await writeJsonFile(autoRcPath, { plugins: ['npm'], labels: [...SCOPE_LABELS, ...TYPE_LABELS] })
+	await writeJsonFile(autoRcPath, {
+		plugins: ['npm'],
+		labels: [...SCOPE_LABELS, ...TYPE_LABELS].map(({ name, changelogTitle }) => ({
+			name,
+			changelogTitle,
+			releaseType: 'none',
+		})),
+	})
 }
