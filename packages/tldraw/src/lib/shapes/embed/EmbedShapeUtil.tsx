@@ -10,13 +10,13 @@ import {
 	embedShapeMigrations,
 	embedShapePermissionDefaults,
 	embedShapeProps,
+	resizeBox,
 	toDomPrecision,
 	useIsEditing,
 	useValue,
 } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
-import { resizeBox } from '../shared/resizeBox'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {

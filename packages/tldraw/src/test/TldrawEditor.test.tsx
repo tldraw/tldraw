@@ -1,6 +1,5 @@
 import { act, render, screen } from '@testing-library/react'
 import {
-	BaseBoxShapeTool,
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
@@ -11,6 +10,7 @@ import {
 	noop,
 } from '@tldraw/editor'
 import { defaultTools } from '../lib/defaultTools'
+import { BaseBoxShapeTool } from '../lib/shapes/box/BaseBoxShapeTool'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { renderTldrawComponent } from './testutils/renderTldrawComponent'
 

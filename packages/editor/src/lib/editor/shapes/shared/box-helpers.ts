@@ -1,4 +1,11 @@
-import { Box, TLBaseBoxShape, TLResizeHandle, TLResizeMode, Vec, VecModel } from '@tldraw/editor'
+import { TLBaseShape, VecModel } from '@tldraw/tlschema'
+import { Box } from '../../../primitives/Box'
+import { Vec } from '../../../primitives/Vec'
+import { TLResizeHandle } from '../../types/selection-types'
+import { TLResizeMode } from '../ShapeUtil'
+
+/** @public */
+export type TLBaseBoxShape = TLBaseShape<string, { w: number; h: number }>
 
 /** @public */
 export type ResizeBoxOptions = Partial<{

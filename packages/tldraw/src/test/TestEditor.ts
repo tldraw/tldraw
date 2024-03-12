@@ -192,6 +192,13 @@ export class TestEditor extends Editor {
 		return PageRecordType.createId(id)
 	}
 
+	expectCursorToBe = (type: string, rotation = 0) => {
+		const { cursor } = this.getInstanceState()
+		expect(cursor.type).toBe(type)
+		expect(cursor.rotation).toBe(rotation)
+		return this
+	}
+
 	expectToBeIn = (path: string) => {
 		expect(this.getPath()).toBe(path)
 		return this

@@ -7,13 +7,15 @@ import {
 	PageRecordType,
 	Session,
 	TLShape,
+	TLShapeId,
 	TLShapePartial,
 	Vec,
 	compact,
 	isPageId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
-import { DragAndDropManager } from '../tools/SelectTool/DragAndDropManager'
+
+const LAG_DURATION = 100
 
 export class TranslatingSession extends Session<{
 	isCreating: boolean
@@ -29,8 +31,6 @@ export class TranslatingSession extends Session<{
 	selectionSnapshot: TranslatingSnapshot = {} as any
 
 	snapshot: TranslatingSnapshot = {} as any
-
-	dragAndDropManager = new DragAndDropManager(this.editor)
 
 	onStart() {
 		if (this.info.isCreating) {
@@ -92,7 +92,8 @@ export class TranslatingSession extends Session<{
 
 		const { snapshot } = this
 
-		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
+		this.updateDroppingTimer(snapshot.movingShapes)
+		this.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
 
 		moveShapesToPoint({
 			editor: this.editor,
@@ -129,7 +130,7 @@ export class TranslatingSession extends Session<{
 	onComplete() {
 		const { movingShapes } = this.snapshot
 
-		this.dragAndDropManager.dropShapes(movingShapes)
+		this.dropShapes(movingShapes)
 
 		if (this.isCloning && movingShapes.length > 0) {
 			const currentAveragePagePoint = Vec.Average(
@@ -160,12 +161,10 @@ export class TranslatingSession extends Session<{
 		if (changes.length > 0) {
 			this.editor.updateShapes(changes)
 		}
-
-		return
 	}
 
 	onCancel() {
-		return
+		this.editor.bailToMark(this.markId)
 	}
 
 	onEnd() {
@@ -210,6 +209,99 @@ export class TranslatingSession extends Session<{
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
+	}
+
+	// Drag and drop
+
+	prevDroppingShapeId: TLShapeId | null = null
+
+	first = true
+
+	dragTimerEnd: null | number = null
+	dragTimerCallback: null | (() => void) = null
+
+	private updateDroppingTimer(movingShapes: TLShape[]) {
+		const { dragTimerCallback, dragTimerEnd } = this
+		if (dragTimerEnd !== null && Date.now() > dragTimerEnd) {
+			if (dragTimerCallback) {
+				this.handleDrag(movingShapes, dragTimerCallback)
+			}
+			this.dragTimerEnd = null
+			this.dragTimerCallback = null
+		}
+	}
+
+	private updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
+		if (this.first) {
+			this.prevDroppingShapeId =
+				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
+				null
+			this.first = false
+		}
+
+		if (this.dragTimerEnd === null) {
+			this.dragTimerEnd = Date.now() + LAG_DURATION * 10
+			this.dragTimerCallback = cb
+		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
+			this.dragTimerEnd = Date.now() + LAG_DURATION
+			this.dragTimerCallback = cb
+		}
+	}
+
+	private handleDrag(movingShapes: TLShape[], cb?: () => void) {
+		const point = this.editor.inputs.currentPagePoint
+		movingShapes = compact(movingShapes.map((shape) => this.editor.getShape(shape.id)))
+
+		const nextDroppingShapeId = this.editor.getDroppingOverShape(point, movingShapes)?.id ?? null
+
+		// is the next dropping shape id different than the last one?
+		if (nextDroppingShapeId === this.prevDroppingShapeId) {
+			return
+		}
+
+		// the old previous one
+		const { prevDroppingShapeId } = this
+
+		const prevDroppingShape = prevDroppingShapeId && this.editor.getShape(prevDroppingShapeId)
+		const nextDroppingShape = nextDroppingShapeId && this.editor.getShape(nextDroppingShapeId)
+
+		// Even if we don't have a next dropping shape id (i.e. if we're dropping
+		// onto the page) set the prev to the current, to avoid repeat calls to
+		// the previous parent's onDragShapesOut
+
+		if (prevDroppingShape) {
+			this.editor.getShapeUtil(prevDroppingShape).onDragShapesOut?.(prevDroppingShape, movingShapes)
+		}
+
+		if (nextDroppingShape) {
+			const res = this.editor
+				.getShapeUtil(nextDroppingShape)
+				.onDragShapesOver?.(nextDroppingShape, movingShapes)
+
+			if (res && res.shouldHint) {
+				this.editor.setHintingShapes([nextDroppingShape.id])
+			}
+		} else {
+			// If we're dropping onto the page, then clear hinting ids
+			this.editor.setHintingShapes([])
+		}
+
+		cb?.()
+
+		// next -> curr
+		this.prevDroppingShapeId = nextDroppingShapeId
+	}
+
+	private dropShapes(shapes: TLShape[]) {
+		const { prevDroppingShapeId } = this
+
+		this.handleDrag(shapes)
+
+		if (prevDroppingShapeId) {
+			const shape = this.editor.getShape(prevDroppingShapeId)
+			if (!shape) return
+			this.editor.getShapeUtil(shape).onDropShapesOver?.(shape, shapes)
+		}
 	}
 }
 

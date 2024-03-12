@@ -99,11 +99,11 @@ describe('When in the pointing state', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
-	it('transitions to select.resizing when dragging and edits on pointer up', () => {
+	it('transitions to text.creating_text when dragging and edits on pointer up', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(10, 10)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('text.creating_text')
 		editor.pointerUp()
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.expectToBeIn('select.editing_shape')
@@ -128,7 +128,7 @@ describe('When resizing', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('text.creating_text')
 		editor.cancel()
 		editor.expectToBeIn('text.idle')
 		expect(editor.getCurrentPageShapes().length).toBe(0)
@@ -138,7 +138,7 @@ describe('When resizing', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('text.creating_text')
 		editor.interrupt()
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})

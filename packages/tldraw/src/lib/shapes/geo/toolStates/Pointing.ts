@@ -16,7 +16,7 @@ export class Pointing extends StateNode {
 		this.complete()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
@@ -41,14 +41,12 @@ export class Pointing extends StateNode {
 					},
 				])
 				.select(id)
-				.setCurrentTool('select.resizing', {
-					...info,
-					target: 'selection',
-					handle: 'bottom_right',
-					isCreating: true,
-					creationCursorOffset: { x: 1, y: 1 },
-					onInteractionEnd: 'geo',
-				})
+
+			this.parent.transition('creating_geo', {
+				shape: this.editor.getShape<TLGeoShape>(id),
+				handle: 'bottom_right',
+				isCreating: true,
+			})
 		}
 	}
 

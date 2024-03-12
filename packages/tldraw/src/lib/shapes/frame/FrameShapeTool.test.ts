@@ -89,16 +89,16 @@ describe('When in the pointing state', () => {
 		editor.expectToBeIn('frame.idle')
 	})
 
-	it('Enters the select.resizing state on drag start', () => {
+	it('Enters the frame.creating state on drag start', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(51, 51) // not far enough!
 		editor.expectToBeIn('frame.pointing')
 		editor.pointerMove(55, 55)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('frame.creating')
 	})
 
-	it('Enters the select.resizing state on pointer move', () => {
+	it('Enters the frame.creating state on pointer move', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
 		editor.cancel()
@@ -138,7 +138,7 @@ describe('When in the resizing state', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(55, 55)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('frame.creating')
 		editor.cancel()
 		editor.expectToBeIn('frame.idle')
 	})

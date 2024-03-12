@@ -92,24 +92,25 @@ describe('When in the pointing state', () => {
 		editor.expectToBeIn('note.idle')
 	})
 
-	it('Enters the select.translating state on drag start', () => {
+	it('Enters the creating_note state on drag start', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(51, 51) // not far enough!
 		editor.expectToBeIn('note.pointing')
 		editor.pointerMove(55, 55)
-		editor.expectToBeIn('select.translating')
+		editor.expectToBeIn('note.creating_note')
 	})
 
-	it('Returns to the note tool on cancel from translating', () => {
+	it('Returns to the note tool on cancel from creating_note', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(55, 55)
 		editor.cancel()
 		editor.expectToBeIn('note.idle')
+		editor.expectCursorToBe('cross', 0)
 	})
 
-	it('Returns to the note tool on complete from translating when tool lock is enabled', () => {
+	it('Returns to the note tool on complete from creating_note when tool lock is enabled', () => {
 		editor.updateInstanceState({ isToolLocked: true })
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)

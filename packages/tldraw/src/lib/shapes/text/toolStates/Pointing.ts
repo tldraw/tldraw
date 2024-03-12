@@ -11,7 +11,7 @@ export class Pointing extends StateNode {
 		this.editor.setHintingShapes([])
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
 			const {
 				inputs: { originPagePoint },
@@ -43,17 +43,9 @@ export class Pointing extends StateNode {
 
 			const { shape } = this
 
-			this.editor.setCurrentTool('select.resizing', {
-				...info,
-				target: 'selection',
+			this.parent.transition('creating_text', {
+				shape,
 				handle: 'right',
-				isCreating: true,
-				creationCursorOffset: { x: 1, y: 1 },
-				onInteractionEnd: 'text',
-				onCreate: () => {
-					this.editor.setEditingShape(shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
-				},
 			})
 		}
 	}

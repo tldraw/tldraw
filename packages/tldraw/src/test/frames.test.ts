@@ -56,9 +56,9 @@ describe('creating frames', () => {
 	it('can be canceled while dragging', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('frame.creating')
 		editor.cancel()
-		editor.pointerUp()
+		editor.expectToBeIn('frame.idle')
 		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
 		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 	})

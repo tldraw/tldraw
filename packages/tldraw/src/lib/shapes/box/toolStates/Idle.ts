@@ -1,5 +1,4 @@
-import { TLEventHandlers } from '../../../types/event-types'
-import { StateNode } from '../../StateNode'
+import { StateNode, TLEventHandlers } from '@tldraw/editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -14,5 +13,9 @@ export class Idle extends StateNode {
 
 	override onCancel = () => {
 		this.editor.setCurrentTool('select')
+	}
+
+	override onExit = () => {
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 }

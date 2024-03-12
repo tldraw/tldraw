@@ -1,12 +1,8 @@
-import { TLBaseShape } from '@tldraw/tlschema'
-import { Geometry2d } from '../../primitives/geometry/Geometry2d'
-import { Rectangle2d } from '../../primitives/geometry/Rectangle2d'
-import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
-import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
-import { resizeBox } from './shared/resizeBox'
-
-/** @public */
-export type TLBaseBoxShape = TLBaseShape<string, { w: number; h: number }>
+import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
+import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
+import { HandleSnapGeometry } from '../../managers/SnapManager/HandleSnaps'
+import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
+import { TLBaseBoxShape, resizeBox } from './box-helpers'
 
 /** @public */
 export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends ShapeUtil<Shape> {

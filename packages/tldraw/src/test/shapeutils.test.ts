@@ -123,17 +123,19 @@ describe('When interacting with a shape...', () => {
 		})
 
 		editor.expectToBeIn('select.pointing_resize_handle')
-		editor.pointerMove(200, 200)
-		editor.expectToBeIn('select.resizing')
+		editor.pointerMove(301, 301)
+		editor.expectToBeIn('select.pointing_resize_handle')
 		editor.pointerMove(200, 210)
-		editor.pointerUp(200, 210)
-		editor.expectToBeIn('select.idle')
+		editor.expectToBeIn('select.resizing')
 
 		// Once on start (for frame only)
 		expect(fnStart).toHaveBeenCalledTimes(1)
 
 		// Once on start, once during the resize
-		expect(fnChange).toHaveBeenCalledTimes(2)
+		expect(fnChange).toHaveBeenCalledTimes(2) // once on update, once on tick
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
 
 		// Once on end
 		expect(fnEnd).toHaveBeenCalledTimes(1)

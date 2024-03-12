@@ -141,20 +141,6 @@ export { atom }
 export function average(A: VecLike, B: VecLike): string;
 
 // @public (undocumented)
-export abstract class BaseBoxShapeTool extends StateNode {
-    // (undocumented)
-    static children: () => (typeof Idle | typeof Pointing)[];
-    // (undocumented)
-    static id: string;
-    // (undocumented)
-    static initial: string;
-    // (undocumented)
-    onCreate?: (_shape: null | TLShape) => null | void;
-    // (undocumented)
-    abstract shapeType: string;
-}
-
-// @public (undocumented)
 export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends ShapeUtil<Shape> {
     // (undocumented)
     getGeometry(shape: Shape): Geometry2d;
@@ -1579,21 +1565,24 @@ export type SelectionHandle = SelectionCorner | SelectionEdge;
 
 // @public
 export abstract class Session<T extends object = object> {
-    constructor(editor: Editor, info?: SessionInfo & T);
+    constructor(editor: Editor, info?: SessionInfo<T>);
     cancel(): this;
     complete(): this;
-    // (undocumented)
     dispose: () => void;
+    // (undocumented)
+    protected duration: number;
     // (undocumented)
     editor: Editor;
     // (undocumented)
+    protected elapsed: number;
+    // (undocumented)
     protected handleEditorEvent: (event: TLEventInfo) => void;
     // (undocumented)
-    protected handleTick: () => void;
+    protected handleTick: (elapsed: number) => void;
     // (undocumented)
     abstract readonly id: string;
     // (undocumented)
-    info: SessionInfo & T;
+    info: SessionInfo<T>;
     interrupt(): this;
     // (undocumented)
     protected abstract onCancel(): void;
@@ -1611,11 +1600,51 @@ export abstract class Session<T extends object = object> {
     update(): this;
 }
 
-// @public (undocumented)
-export interface SessionInfo {
+// @public
+export class SessionEvent<T extends object = object> {
+    constructor(info: T, duration: number, elapsed: number);
     // (undocumented)
-    onEnd?: () => void;
+    duration: number;
+    // (undocumented)
+    elapsed: number;
+    // (undocumented)
+    info: T;
+    // (undocumented)
+    isDefaultPrevented: boolean;
+    // (undocumented)
+    preventDefault(): void;
 }
+
+// @public
+export interface SessionEventHandlers<T extends object = object> {
+    // (undocumented)
+    onBeforeCancel?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onBeforeComplete?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onBeforeEnd?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onBeforeInterrupt?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onBeforeStart?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onBeforeUpdate?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onCancel?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onComplete?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onEnd?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onInterrupt?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onStart?: (event: SessionEvent<T>) => void;
+    // (undocumented)
+    onUpdate?: (event: SessionEvent<T>) => void;
+}
+
+// @public
+export type SessionInfo<T extends object = object> = SessionEventHandlers & T;
 
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;

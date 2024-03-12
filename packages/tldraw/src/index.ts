@@ -1,5 +1,7 @@
 /// <reference types="react" />
 
+export { BaseBoxShapeTool } from './lib/shapes/box/BaseBoxShapeTool'
+
 export { preloadFont } from './lib/utils/assets/preload-font'
 
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'

@@ -1,4 +1,5 @@
-import { BaseBoxShapeTool, TLShape, TLShapeId } from '@tldraw/editor'
+import { TLShape, TLShapeId } from '@tldraw/editor'
+import { BaseBoxShapeTool } from '../box/BaseBoxShapeTool'
 
 /** @public */
 export class FrameShapeTool extends BaseBoxShapeTool {

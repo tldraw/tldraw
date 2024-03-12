@@ -1,8 +1,4 @@
-import { createShapeId } from '@tldraw/tlschema'
-import { Vec } from '../../../../primitives/Vec'
-import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
-import { TLEventHandlers } from '../../../types/event-types'
-import { StateNode } from '../../StateNode'
+import { StateNode, TLBaseBoxShape, TLEventHandlers, Vec, createShapeId } from '@tldraw/editor'
 import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 
 export class Pointing extends StateNode {
@@ -16,7 +12,7 @@ export class Pointing extends StateNode {
 		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
@@ -42,14 +38,9 @@ export class Pointing extends StateNode {
 					},
 				])
 				.select(id)
-			this.editor.setCurrentTool('select.resizing', {
-				...info,
-				target: 'selection',
+			this.parent.transition('creating', {
+				shape: this.editor.getShape<TLBaseBoxShape>(id)!,
 				handle: 'bottom_right',
-				isCreating: true,
-				creationCursorOffset: { x: 1, y: 1 },
-				onInteractionEnd: this.parent.id,
-				onCreate: (this.parent as BaseBoxShapeTool).onCreate,
 			})
 		}
 	}
