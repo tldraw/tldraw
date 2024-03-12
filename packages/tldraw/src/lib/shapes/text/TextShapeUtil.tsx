@@ -197,7 +197,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
-		const { initialBounds, initialShape, scaleX, handle } = info
+		const { initialBounds, initialShape, scaleX, scaleY, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
 			return {
@@ -214,9 +214,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			nextWidth = Math.max(1, Math.abs(nextWidth))
 
 			if (handle === 'left') {
-				offset.x = prevWidth - nextWidth
+				// offset.x = prevWidth - nextWidth
 				if (scaleX < 0) {
-					offset.x += nextWidth
+					offset.x -= nextWidth
 				}
 			} else {
 				if (scaleX < 0) {
@@ -224,7 +224,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				}
 			}
 
-			const { x, y } = offset.rot(shape.rotation).add(initialShape)
+			const { x, y } = offset.rot(shape.rotation).add({ x: info.newPoint.x, y: initialBounds.y })
 
 			return {
 				id: shape.id,
