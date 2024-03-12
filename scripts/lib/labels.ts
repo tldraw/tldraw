@@ -54,7 +54,7 @@ const TYPE_LABELS = [
 	{
 		name: `galaxy brain`,
 		description: `Architectural changes`,
-		changelogTitle: '🤯 Galaxy Brain Changes',
+		changelogTitle: '🤯 Architectural changes',
 	},
 	{ name: `tests`, description: `Changes to any test code`, changelogTitle: '🧪 Tests' },
 	{
