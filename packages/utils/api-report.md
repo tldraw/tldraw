@@ -60,7 +60,7 @@ export type Expand<T> = T extends infer O ? {
     [K in keyof O]: O[K];
 } : never;
 
-// @internal
+// @public
 export class FileHelpers {
     static blobToDataUrl(file: Blob): Promise<string>;
     static blobToText(file: Blob): Promise<string>;

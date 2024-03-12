@@ -502,6 +502,195 @@
           }
         },
         {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/utils!FileHelpers:class",
+          "docComment": "/**\n * Helpers for files\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class FileHelpers "
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/file.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "FileHelpers",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!FileHelpers.blobToDataUrl:member(1)",
+              "docComment": "/**\n * Convert a file to a base64 encoded data url.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = FileHelpers.toDataUrl(myImageFile)\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static blobToDataUrl(file: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Blob",
+                  "canonicalReference": "!Blob:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "file",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "blobToDataUrl"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!FileHelpers.blobToText:member(1)",
+              "docComment": "/**\n * Convert a file to a unicode text string.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = FileHelpers.fileToDataUrl(myTextFile)\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static blobToText(file: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Blob",
+                  "canonicalReference": "!Blob:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "file",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "blobToText"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!FileHelpers.dataUrlToArrayBuffer:member(1)",
+              "docComment": "/**\n * @param dataURL - The file as a string.\n *\n * from https://stackoverflow.com/a/53817185\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static dataUrlToArrayBuffer(dataURL: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ArrayBuffer",
+                  "canonicalReference": "!ArrayBuffer:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "dataURL",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "dataUrlToArrayBuffer"
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/utils!getFirstFromIterable:function(1)",
           "docComment": "/**\n * Get the first item from an iterable Set or Map.\n *\n * @param value - The iterable Set or Map.\n *\n * @example\n * ```ts\n * const A = getFirstItem(new Set([1, 2, 3])) // 1\n * const B = getFirstItem(\n * \tnew Map([\n * \t\t['a', 1],\n * \t\t['b', 2],\n * \t])\n * ) // 1\n * ```\n *\n * @public\n */\n",

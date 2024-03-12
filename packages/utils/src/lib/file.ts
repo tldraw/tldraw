@@ -1,7 +1,7 @@
 /**
  * Helpers for files
  *
- * @internal
+ * @public
  */
 export class FileHelpers {
 	/**
