@@ -58,12 +58,14 @@ export const enforcePrLabels: Flow = {
 
 		// add any labels that are checked
 		console.log('adding labels')
-		await ctx.octokit.rest.issues.addLabels({
-			issue_number: pull.number,
-			owner: event.repository.organization ?? event.repository.owner.login,
-			repo: event.repository.name,
-			labels: selectedReleaseLabels,
-		} as any)
+		if (selectedReleaseLabels.length > 0) {
+			await ctx.octokit.rest.issues.addLabels({
+				issue_number: pull.number,
+				owner: event.repository.organization ?? event.repository.owner.login,
+				repo: event.repository.name,
+				labels: selectedReleaseLabels,
+			} as any)
+		}
 
 		return await succeed(`PR is labelled!`)
 	},
