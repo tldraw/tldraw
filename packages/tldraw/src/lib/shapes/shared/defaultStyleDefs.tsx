@@ -23,12 +23,12 @@ export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef
 			const font = findFont(fontStyle)
 			if (!font) return null
 
-			const url = (font as any).$$_url
-			const fontFaceRule = (font as any).$$_fontface
+			const url: string = (font as any).$$_url
+			const fontFaceRule: string = (font as any).$$_fontface
 			if (!url || !fontFaceRule) return null
 
 			const fontFile = await (await fetch(url)).blob()
-			const base64FontFile = FileHelpers.fileToBase64(fontFile)
+			const base64FontFile = await FileHelpers.blobToDataUrl(fontFile)
 
 			const newFontFaceRule = fontFaceRule.replace(url, base64FontFile)
 			const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
