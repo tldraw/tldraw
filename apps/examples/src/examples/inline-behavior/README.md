@@ -5,6 +5,6 @@ category: ui
 priority: 3
 ---
 
-This example demonstrates some common practices for using tldraw as an inline block. For example, in Notion-like applications.
+This example demonstrates some common best practices for using tldraw as an inline block within a larger document editor.
 
 ---

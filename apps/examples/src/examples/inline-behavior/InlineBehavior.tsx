@@ -3,15 +3,16 @@ import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
+	ConvertToBookmarkMenuItem,
+	ConvertToEmbedMenuItem,
 	DefaultContextMenu,
 	EditLinkMenuItem,
 	Editor,
-	EmbedsGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	RemoveFrameMenuItem,
 	ReorderMenuSubmenu,
-	SetSelectionGroup,
+	SelectAllMenuItem,
 	TLUiContextMenuProps,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -33,6 +34,13 @@ const focusedEditorContext = createContext(
 	}
 )
 
+// [2]
+function blurEditor(editor: Editor) {
+	editor.selectNone()
+	editor.setCurrentTool('hand')
+	editor.updateInstanceState({ isFocused: false })
+}
+
 export default function InlineBehaviorExample() {
 	const [focusedEditor, setFocusedEditor] = useState<Editor | null>(null)
 
@@ -45,7 +53,7 @@ export default function InlineBehaviorExample() {
 					flexDirection: 'column',
 					gap: 20,
 				}}
-				// [2]
+				// [3]
 				onPointerDown={() => {
 					if (!focusedEditor) return
 					blurEditor(focusedEditor)
@@ -67,7 +75,7 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 	return (
 		<div
 			style={{ width: 600, height: 400, maxWidth: '100%' }}
-			// [3]
+			// [4]
 			onFocus={() => {
 				if (!editor) return
 				if (focusedEditor && focusedEditor !== editor) {
@@ -80,9 +88,9 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 			<Tldraw
 				persistenceKey={persistenceKey}
 				autoFocus={false}
-				// [4]
-				hideUi={focusedEditor !== editor}
 				// [5]
+				hideUi={focusedEditor !== editor}
+				// [6]
 				components={{
 					HelpMenu: null,
 					NavigationPanel: null,
@@ -90,23 +98,16 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 					PageMenu: null,
 					ContextMenu: CustomContextMenu,
 				}}
-				// [6]
+				// [7]
 				onMount={(editor) => {
 					setEditor(editor)
-					editor.updateInstanceState({ isDebugMode: false })
 					editor.setCurrentTool('hand')
 					editor.user.updateUserPreferences({ edgeScrollSpeed: 0 })
+					editor.updateInstanceState({ isDebugMode: false })
 				}}
 			/>
 		</div>
 	)
-}
-
-// [7]
-function blurEditor(editor: Editor) {
-	editor.selectNone()
-	editor.updateInstanceState({ isFocused: false })
-	editor.setCurrentTool('hand')
 }
 
 // [8]
@@ -123,16 +124,17 @@ function CustomContextMenu(props: TLUiContextMenuProps) {
 		<DefaultContextMenu {...props}>
 			{selectToolActive && (
 				<>
-					<TldrawUiMenuGroup id="selection">
-						<ToggleAutoSizeMenuItem />
-						<EditLinkMenuItem />
+					<TldrawUiMenuGroup id="misc">
 						<GroupMenuItem />
 						<UngroupMenuItem />
+						<EditLinkMenuItem />
+						<ToggleAutoSizeMenuItem />
 						<RemoveFrameMenuItem />
 						<FitFrameToContentMenuItem />
+						<ConvertToEmbedMenuItem />
+						<ConvertToBookmarkMenuItem />
 						<ToggleLockMenuItem />
 					</TldrawUiMenuGroup>
-					<EmbedsGroup />
 					<TldrawUiMenuGroup id="modify">
 						<ArrangeMenuSubmenu />
 						<ReorderMenuSubmenu />
@@ -140,7 +142,9 @@ function CustomContextMenu(props: TLUiContextMenuProps) {
 					</TldrawUiMenuGroup>
 					<ClipboardMenuGroup />
 					<ConversionsMenuGroup />
-					<SetSelectionGroup />
+					<TldrawUiMenuGroup id="select-all">
+						<SelectAllMenuItem />
+					</TldrawUiMenuGroup>
 				</>
 			)}
 		</DefaultContextMenu>
@@ -148,29 +152,54 @@ function CustomContextMenu(props: TLUiContextMenuProps) {
 }
 
 /*
+This example demonstrates some common best practices for using tldraw as an
+inline block within a larger document editor.
+
+It includes:
+
+- Making sure that only one editor has focus at a time.
+- Always defaulting to the hand tool when you click into an editor.
+- Deselecting everything when an editor loses focus.
+- Hiding the UI when an editor is not focused.
+- Disabling edge scrolling by default.
+- Using a stripped down UI to make the most of the available space.
+- Removing actions from the context menu to match the stripped down UI.
 
 [1]
-TODO
+We use a context to manage which editor is currently focused. This allows us to
+have multiple editors on the same page, without them interfering with each
+other, or hijacking any keyboard shortcuts. For more information about handling
+focus, check out the 'Multiple editors' and 'Editor focus' examples.
 
 [2]
-TODO
+We have a helper function that we call on any editor that loses focus. We
+deselect everything, and switch back to the hand tool, essentially 'resetting'
+the user's tool state.
 
 [3]
-TODO
+When the user clicks anywhere on the page outside of an editor, we blur the
+currently focused editor.
 
 [4]
-TODO
+When the user clicks into an editor, we focus it, and blur any other editor.
 
 [5]
-TODO
+We hide the UI of any unfocused editor.
 
 [6]
-TODO
+We disable many of tldraw's default UI components to make the most of the
+available space. We also pass through a custom context menu component. Check out
+point [8] for more information about that.
 
 [7]
-TODO
+When an editor mounts, we default to the hand tool, and disable edge scrolling.
+We also store a reference to the editor so that we can access it later. For the
+purposes of this example, we also disable debug mode, so that you can see the
+full effect of the stripped down UI.
 
 [8]
-TODO
+For our custom context menu, we've copied the default context menu contents, and
+we've commented out the 'Move to page' action. This is because the we've removed
+the Pages menu, so we don't want any drawings getting lost on a different page!
 
 */
