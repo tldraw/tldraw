@@ -49,7 +49,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 					<TldrawUiDialogBody className="tlui-embed-dialog__enter">
 						<TldrawUiInput
 							className="tlui-embed-dialog__input"
-							label="embed-url"
+							label="embed-dialog.url"
 							placeholder="http://example.com"
 							autofocus
 							onValueChange={(value) => {
