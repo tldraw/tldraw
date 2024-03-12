@@ -1585,17 +1585,17 @@ export abstract class Session<T extends object = object> {
     info: SessionInfo<T>;
     interrupt(): this;
     // (undocumented)
-    protected abstract onCancel(): void;
+    protected onCancel?(): void;
     // (undocumented)
-    protected abstract onComplete(): void;
+    protected onComplete?(): void;
     // (undocumented)
-    protected abstract onEnd(): void;
+    protected onEnd?(): void;
     // (undocumented)
-    protected abstract onInterrupt(): void;
+    protected onInterrupt?(): void;
     // (undocumented)
-    protected abstract onStart(): void;
+    protected onStart?(): void;
     // (undocumented)
-    protected abstract onUpdate(): void;
+    protected onUpdate?(): void;
     start(): this;
     update(): this;
 }

@@ -38,7 +38,7 @@ export class ResizingSession extends Session<{ isCreating?: boolean; handle: Sel
 
 	private didResize = false
 
-	onStart() {
+	override onStart() {
 		const { editor } = this
 		const { isCreating, handle } = this.info
 
@@ -75,7 +75,7 @@ export class ResizingSession extends Session<{ isCreating?: boolean; handle: Sel
 		}
 	}
 
-	onUpdate() {
+	override onUpdate() {
 		const { editor } = this
 
 		if (!editor.inputs.isPointing) {
@@ -298,7 +298,7 @@ export class ResizingSession extends Session<{ isCreating?: boolean; handle: Sel
 		}
 	}
 
-	onComplete() {
+	override onComplete() {
 		const { editor } = this
 		const { shapeSnapshots } = this.snapshot
 
@@ -320,16 +320,8 @@ export class ResizingSession extends Session<{ isCreating?: boolean; handle: Sel
 		return
 	}
 
-	onCancel() {
+	override onCancel() {
 		this.editor.bailToMark(this.markId)
-		return
-	}
-
-	onInterrupt() {
-		return
-	}
-
-	onEnd() {
 		return
 	}
 }

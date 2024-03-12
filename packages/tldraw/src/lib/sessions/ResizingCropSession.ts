@@ -13,7 +13,7 @@ export class ResizingCropSession extends Session<{
 	prevPoint = new Vec(-Infinity, -Infinity)
 	cursorHandleOffset = new Vec(0, 0)
 
-	onStart() {
+	override onStart() {
 		const { editor, cursorHandleOffset } = this
 		const { shape, handle } = this.info
 
@@ -35,11 +35,9 @@ export class ResizingCropSession extends Session<{
 				},
 			})
 			.setCroppingShape(shape)
-
-		return
 	}
 
-	onUpdate() {
+	override onUpdate() {
 		const { shape: initialShape, handle } = this.info
 		const { editor, cursorHandleOffset } = this
 
@@ -189,19 +187,15 @@ export class ResizingCropSession extends Session<{
 		return
 	}
 
-	onInterrupt() {
-		return
-	}
-
-	onComplete() {
+	override onComplete() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	onCancel() {
+	override onCancel() {
 		this.editor.bailToMark(this.markId)
 	}
 
-	onEnd() {
+	override onEnd() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 }

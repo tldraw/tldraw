@@ -21,7 +21,7 @@ export class TranslatingArrowLabelSession extends Session<{
 
 	labelDragOffset = new Vec(0, 0)
 
-	onStart() {
+	override onStart() {
 		const { editor } = this
 		const { shape } = this.info
 
@@ -44,7 +44,7 @@ export class TranslatingArrowLabelSession extends Session<{
 		editor.setSelectedShapes([shape])
 	}
 
-	onUpdate() {
+	override onUpdate() {
 		const { editor } = this
 		const { shape } = this.info
 
@@ -105,15 +105,7 @@ export class TranslatingArrowLabelSession extends Session<{
 		)
 	}
 
-	onInterrupt() {
-		return
-	}
-
-	onComplete() {
-		return
-	}
-
-	onCancel() {
+	override onCancel() {
 		const { editor } = this
 		if (this.didTranslate) {
 			editor.bailToMark(this.markId)
@@ -121,7 +113,7 @@ export class TranslatingArrowLabelSession extends Session<{
 		return
 	}
 
-	onEnd() {
+	override onEnd() {
 		const { editor } = this
 		editor.setCursor({ type: 'default', rotation: 0 })
 	}

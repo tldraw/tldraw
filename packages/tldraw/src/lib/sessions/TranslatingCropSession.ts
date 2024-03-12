@@ -8,15 +8,14 @@ export class TranslatingCropSession extends Session {
 
 	didTranslate = false
 
-	onStart() {
+	override onStart() {
 		const { editor } = this
 
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 		this.initialShape = editor.getOnlySelectedShape() as TLImageShape
-		return
 	}
 
-	onUpdate() {
+	override onUpdate() {
 		const { editor, initialShape } = this
 
 		// If the user has stopped dragging, we're done
@@ -38,24 +37,14 @@ export class TranslatingCropSession extends Session {
 		if (partial) {
 			this.editor.updateShapes([partial], { squashing: true })
 		}
-
-		return
 	}
 
-	onInterrupt() {
-		return
-	}
-
-	onComplete() {
-		return
-	}
-
-	onCancel() {
+	override onCancel() {
 		this.editor.bailToMark(this.id)
 		return
 	}
 
-	onEnd() {
+	override onEnd() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 }

@@ -32,7 +32,7 @@ export class TranslatingSession extends Session<{
 
 	snapshot: TranslatingSnapshot = {} as any
 
-	onStart() {
+	override onStart() {
 		if (this.info.isCreating) {
 			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
 		} else {
@@ -49,7 +49,7 @@ export class TranslatingSession extends Session<{
 		this.handleStart()
 	}
 
-	onUpdate() {
+	override onUpdate() {
 		const { editor } = this
 
 		// If the user has stopped pointing, we're done
@@ -119,15 +119,9 @@ export class TranslatingSession extends Session<{
 		if (changes.length > 0) {
 			this.editor.updateShapes(changes)
 		}
-
-		return
 	}
 
-	onInterrupt() {
-		return
-	}
-
-	onComplete() {
+	override onComplete() {
 		const { movingShapes } = this.snapshot
 
 		this.dropShapes(movingShapes)
@@ -163,12 +157,8 @@ export class TranslatingSession extends Session<{
 		}
 	}
 
-	onCancel() {
+	override onCancel() {
 		this.editor.bailToMark(this.markId)
-	}
-
-	onEnd() {
-		return
 	}
 
 	private handleStart() {

@@ -9,12 +9,12 @@ export class NudgingCropSession extends Session<{
 	didNudge = false
 	startTime = Date.now()
 
-	onStart() {
+	override onStart() {
 		this.editor.mark('nudging crop')
 		return
 	}
 
-	onUpdate() {
+	override onUpdate() {
 		const {
 			editor: {
 				inputs: { keys },
@@ -66,20 +66,8 @@ export class NudgingCropSession extends Session<{
 		this.editor.updateShape<TLImageShape>(partial)
 	}
 
-	onInterrupt() {
-		return
-	}
-
-	onComplete() {
-		return
-	}
-
-	onCancel() {
+	override onCancel() {
 		this.editor.bailToMark('nudging crop')
-		return
-	}
-
-	onEnd() {
 		return
 	}
 }

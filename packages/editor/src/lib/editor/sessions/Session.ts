@@ -119,10 +119,10 @@ export abstract class Session<T extends object = object> {
 		const event = this.getSessionEvent()
 		this.info.onBeforeStart?.(event)
 		if (!event.isDefaultPrevented) {
-			this.onStart()
+			this.onStart?.()
 			this.info.onStart?.(event)
 		}
-		this.onUpdate()
+		this.onUpdate?.()
 		this.editor.on('tick', this.handleTick)
 		this.editor.on('event', this.handleEditorEvent)
 		return this
@@ -136,7 +136,7 @@ export abstract class Session<T extends object = object> {
 		const event = this.getSessionEvent()
 		this.info.onBeforeUpdate?.(event)
 		if (!event.isDefaultPrevented) {
-			this.onUpdate()
+			this.onUpdate?.()
 			this.info.onUpdate?.(event)
 		}
 		return this
@@ -150,7 +150,7 @@ export abstract class Session<T extends object = object> {
 		const event = this.getSessionEvent()
 		this.info.onBeforeComplete?.(event)
 		if (!event.isDefaultPrevented) {
-			this.onComplete()
+			this.onComplete?.()
 			this.info.onComplete?.(event)
 		}
 		this.end()
@@ -165,7 +165,7 @@ export abstract class Session<T extends object = object> {
 		const event = this.getSessionEvent()
 		this.info.onBeforeCancel?.(event)
 		if (!event.isDefaultPrevented) {
-			this.onCancel()
+			this.onCancel?.()
 			this.info.onCancel?.(event)
 		}
 		this.end()
@@ -179,7 +179,7 @@ export abstract class Session<T extends object = object> {
 		const event = this.getSessionEvent()
 		this.info.onBeforeEnd?.(event)
 		if (!event.isDefaultPrevented) {
-			this.onEnd()
+			this.onEnd?.()
 			this.info.onEnd?.(event)
 			this.dispose()
 		}
@@ -194,7 +194,7 @@ export abstract class Session<T extends object = object> {
 		const event = this.getSessionEvent()
 		this.info.onBeforeInterrupt?.(event)
 		if (!event.isDefaultPrevented) {
-			this.onInterrupt()
+			this.onInterrupt?.()
 			this.info.onInterrupt?.(event)
 		}
 		return this
@@ -210,15 +210,15 @@ export abstract class Session<T extends object = object> {
 		this.editor.off('event', this.handleEditorEvent)
 	}
 
-	protected abstract onStart(): void
+	protected onStart?(): void
 
-	protected abstract onUpdate(): void
+	protected onUpdate?(): void
 
-	protected abstract onComplete(): void
+	protected onComplete?(): void
 
-	protected abstract onCancel(): void
+	protected onCancel?(): void
 
-	protected abstract onInterrupt(): void
+	protected onInterrupt?(): void
 
-	protected abstract onEnd(): void
+	protected onEnd?(): void
 }

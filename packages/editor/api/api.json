@@ -30193,7 +30193,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "protected abstract onCancel(): "
+                  "text": "protected onCancel?(): "
                 },
                 {
                   "kind": "Content",
@@ -30213,8 +30213,8 @@
               "isProtected": true,
               "overloadIndex": 1,
               "parameters": [],
-              "isOptional": false,
-              "isAbstract": true,
+              "isOptional": true,
+              "isAbstract": false,
               "name": "onCancel"
             },
             {
@@ -30224,7 +30224,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "protected abstract onComplete(): "
+                  "text": "protected onComplete?(): "
                 },
                 {
                   "kind": "Content",
@@ -30244,8 +30244,8 @@
               "isProtected": true,
               "overloadIndex": 1,
               "parameters": [],
-              "isOptional": false,
-              "isAbstract": true,
+              "isOptional": true,
+              "isAbstract": false,
               "name": "onComplete"
             },
             {
@@ -30255,7 +30255,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "protected abstract onEnd(): "
+                  "text": "protected onEnd?(): "
                 },
                 {
                   "kind": "Content",
@@ -30275,8 +30275,8 @@
               "isProtected": true,
               "overloadIndex": 1,
               "parameters": [],
-              "isOptional": false,
-              "isAbstract": true,
+              "isOptional": true,
+              "isAbstract": false,
               "name": "onEnd"
             },
             {
@@ -30286,7 +30286,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "protected abstract onInterrupt(): "
+                  "text": "protected onInterrupt?(): "
                 },
                 {
                   "kind": "Content",
@@ -30306,8 +30306,8 @@
               "isProtected": true,
               "overloadIndex": 1,
               "parameters": [],
-              "isOptional": false,
-              "isAbstract": true,
+              "isOptional": true,
+              "isAbstract": false,
               "name": "onInterrupt"
             },
             {
@@ -30317,7 +30317,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "protected abstract onStart(): "
+                  "text": "protected onStart?(): "
                 },
                 {
                   "kind": "Content",
@@ -30337,8 +30337,8 @@
               "isProtected": true,
               "overloadIndex": 1,
               "parameters": [],
-              "isOptional": false,
-              "isAbstract": true,
+              "isOptional": true,
+              "isAbstract": false,
               "name": "onStart"
             },
             {
@@ -30348,7 +30348,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "protected abstract onUpdate(): "
+                  "text": "protected onUpdate?(): "
                 },
                 {
                   "kind": "Content",
@@ -30368,8 +30368,8 @@
               "isProtected": true,
               "overloadIndex": 1,
               "parameters": [],
-              "isOptional": false,
-              "isAbstract": true,
+              "isOptional": true,
+              "isAbstract": false,
               "name": "onUpdate"
             },
             {

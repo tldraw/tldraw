@@ -16,7 +16,7 @@ export class ErasingSession extends Session {
 
 	scribbleId = ''
 
-	onStart() {
+	override onStart() {
 		const { editor, excludedShapeIds } = this
 		const { originPagePoint } = editor.inputs
 
@@ -46,7 +46,7 @@ export class ErasingSession extends Session {
 		this.scribbleId = scribble.id
 	}
 
-	onUpdate() {
+	override onUpdate() {
 		const { editor } = this
 
 		// If the user has stopped pointing, we're done
@@ -106,21 +106,17 @@ export class ErasingSession extends Session {
 		editor.setErasingShapes([...erasing].filter((id) => !excludedShapeIds.has(id)))
 	}
 
-	onInterrupt() {
-		return
-	}
-
-	onComplete() {
+	override onComplete() {
 		const { editor } = this
 		editor.deleteShapes(editor.getCurrentPageState().erasingShapeIds)
 	}
 
-	onCancel() {
+	override onCancel() {
 		const { editor } = this
 		editor.bailToMark(this.id)
 	}
 
-	onEnd() {
+	override onEnd() {
 		const { editor } = this
 		editor.setErasingShapes([])
 		editor.scribbles.stop(this.scribbleId)

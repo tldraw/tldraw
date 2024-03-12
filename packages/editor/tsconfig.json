@@ -1,6 +1,6 @@
 {
 	"extends": "../../config/tsconfig.base.json",
-	"include": ["src", "src/lib/editor/sessions/Session.ts"],
+	"include": ["src"],
 	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",

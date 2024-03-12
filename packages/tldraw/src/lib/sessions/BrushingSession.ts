@@ -33,7 +33,7 @@ export class BrushingSession extends Session {
 
 	scribbledShapeIds = new Set<TLShapeId>()
 
-	onStart() {
+	override onStart() {
 		const { editor } = this
 		const { altKey, currentPagePoint } = editor.inputs
 
@@ -55,7 +55,7 @@ export class BrushingSession extends Session {
 		this.initialStartShape = editor.getShapesAtPoint(currentPagePoint)[0]
 	}
 
-	onUpdate() {
+	override onUpdate() {
 		const { editor } = this
 
 		if (!editor.inputs.isPointing) {
@@ -85,17 +85,13 @@ export class BrushingSession extends Session {
 		}
 	}
 
-	onComplete() {
-		return
-	}
-
-	onCancel() {
+	override onCancel() {
 		const { editor } = this
 		editor.setSelectedShapes(this.initialSelectedShapeIds, { squashing: true })
 		return
 	}
 
-	onInterrupt() {
+	override onInterrupt() {
 		const { editor } = this
 		editor.updateInstanceState({ brush: null })
 	}
@@ -308,7 +304,7 @@ export class BrushingSession extends Session {
 		results.add(selectedShape.id)
 	}
 
-	onEnd() {
+	override onEnd() {
 		this.clearStuff()
 		return
 	}
