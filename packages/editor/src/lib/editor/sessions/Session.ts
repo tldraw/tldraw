@@ -124,9 +124,12 @@ export abstract class Session<T extends object = object> {
 			this.onStart?.()
 			this.info.onStart?.(event)
 		}
-		this.onUpdate?.()
-		this.editor.on('tick', this.handleTick)
-		this.editor.on('event', this.handleEditorEvent)
+		// Start may have completed or cancelled
+		if (!this.isDisposed) {
+			this.onUpdate?.()
+			this.editor.on('tick', this.handleTick)
+			this.editor.on('event', this.handleEditorEvent)
+		}
 		return this
 	}
 

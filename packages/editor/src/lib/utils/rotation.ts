@@ -19,7 +19,7 @@ export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationS
 	// will produce the wrong results
 
 	// Return null if there are no selected shapes
-	if (!selectionBounds) {
+	if (!selectionBounds || !selectedShapes.length) {
 		return null
 	}
 

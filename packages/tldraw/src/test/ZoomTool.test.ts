@@ -193,7 +193,7 @@ describe('TLSelectTool.Zooming', () => {
 			h: newBoundsHeight,
 		})
 		editor.pointerUp()
-		jest.advanceTimersByTime(500)
+		editor.forceTick(10)
 		expect(editor.getZoomLevel()).toBeCloseTo(originalZoomLevel / 2)
 		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -440,

@@ -1585,6 +1585,8 @@ export abstract class Session<T extends object = object> {
     info: SessionInfo<T>;
     interrupt(): this;
     // (undocumented)
+    isDisposed: boolean;
+    // (undocumented)
     protected onCancel?(): void;
     // (undocumented)
     protected onComplete?(): void;

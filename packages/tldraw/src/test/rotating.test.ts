@@ -226,6 +226,10 @@ describe('When rotating...', () => {
 		const centerA = editor.getPageCenter(shapeA)!
 
 		editor
+			.expectShapeToMatch(
+				{ id: ids.box1, x: 10, y: 10, rotation: 0 },
+				{ id: ids.box2, x: 200, y: 200, rotation: 0 }
+			)
 			.pointerDown(box.midX, box.minY, {
 				target: 'selection',
 				handle: 'top_left_rotate',
@@ -274,11 +278,9 @@ describe('When rotating...', () => {
 	})
 
 	it("doesn't crash when rotating a deleted shape", () => {
-		editor.select(ids.box1)
-
-		editor.deleteShapes([ids.box1])
-
 		editor
+			.select(ids.box1)
+			.deleteShapes([ids.box1])
 			.pointerDown(0, 0, {
 				target: 'selection',
 				handle: 'top_left_rotate',
