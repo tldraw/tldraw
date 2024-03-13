@@ -1,4 +1,5 @@
 import { RotateCorner, StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { RotatingSession } from '../../../sessions/RotatingSession'
 import { CursorTypeMap } from '../select-helpers'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
@@ -8,46 +9,25 @@ type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection
 export class PointingRotateHandle extends StateNode {
 	static override id = 'pointing_rotate_handle'
 
-	private info = {} as PointingRotateHandleInfo
+	session?: RotatingSession
 
 	override onEnter = (info: PointingRotateHandleInfo) => {
-		this.info = info
 		const selectionRotation = this.editor.getSelectionRotation()
 		this.editor.setCursor({
-			type: CursorTypeMap[this.info.handle],
+			type: CursorTypeMap[info.handle],
 			rotation: selectionRotation,
 		})
+
+		this.session = new RotatingSession(this.editor, {
+			handle: info.handle,
+			onEnd: () => {
+				this.parent.transition('idle')
+			},
+		}).start()
 	}
 
 	override onExit = () => {
-		this.editor.setCursor({ type: 'default', rotation: 0 })
-	}
-
-	override onPointerMove = () => {
-		const { isDragging } = this.editor.inputs
-
-		if (isDragging) {
-			this.parent.transition('rotating', this.info)
-		}
-	}
-
-	override onPointerUp = () => {
-		this.complete()
-	}
-
-	override onCancel = () => {
-		this.complete()
-	}
-
-	override onComplete = () => {
-		this.complete()
-	}
-
-	override onInterrupt = () => {
-		this.complete()
-	}
-
-	private complete() {
-		this.parent.transition('idle')
+		this.session?.dispose()
+		delete this.session
 	}
 }

@@ -13953,15 +13953,6 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Rotating",
-                  "canonicalReference": "tldraw!~Rotating:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | typeof "
-                },
-                {
-                  "kind": "Reference",
                   "text": "Translating",
                   "canonicalReference": "tldraw!~Translating:class"
                 },
@@ -13980,7 +13971,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 36
+                "endIndex": 34
               },
               "isStatic": true,
               "isProtected": false,

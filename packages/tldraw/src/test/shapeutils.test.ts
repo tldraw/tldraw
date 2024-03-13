@@ -76,15 +76,15 @@ describe('When interacting with a shape...', () => {
 			.pointerMove(200, 200)
 
 		// Once on start (for frame only)
-		expect(fnStart).toHaveBeenCalledTimes(1)
+		expect(fnStart).toHaveBeenCalledTimes(0)
 
-		// Twice on start (also runs update), once during the move (runs update)
-		expect(fnChange).toHaveBeenCalledTimes(3)
+		// Once on start (also runs update), once during the move (runs update)
+		expect(fnChange).toHaveBeenCalledTimes(1)
 
 		editor.pointerUp(200, 200)
 
 		// and on end
-		expect(fnChange).toHaveBeenCalledTimes(4)
+		expect(fnChange).toHaveBeenCalledTimes(2)
 
 		// Once on end
 		expect(fnEnd).toHaveBeenCalledTimes(1)

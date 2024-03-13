@@ -775,8 +775,48 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// rotate B a tiny bit
 		editor.select(ids.boxB)
 		editor.pointerDown(30, 20, { target: 'selection', handle: 'top_left_rotate' })
+		editor.pointerMove(30, 30)
 		editor.pointerMove(30, 21)
-		editor.pointerUp(30, 21)
+		editor.pointerUp()
+		// strech horizontally
+
+		//  0                       20               40                     60
+		//  ┌──────────────────────────────────────────────────────────────────┐
+		//  │ ┌───────────────────────┐                                        │
+		//  │ │                       │                                        │
+		//  │ │           A           │                                        │
+		//  │ │                       │                                        │
+		//  │ └───────────────────────┘                                        │
+		//  │                                                                  │
+		//  │                                                                  │
+		//  │                                                   ┌────────────┐ │
+		//  │                                                   │            │ │
+		//  │                                                   │     B      │ │
+		//  │                                                   │            │ │
+		//  │                                                   └────────────┘ │
+		//  └──────────────────────────────────────────────────────────────────O
+
+		editor.select(ids.boxA, ids.boxB)
+
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 30.5, h: 30.5 })
+
+		editor.pointerDown(30, 30, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(60, 30)
+		// A should stretch
+		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 19.84, h: 19.84 })
+		// B should not
+		expect(roundedPageBounds(ids.boxB)).toMatchObject({ w: 21.8, h: 21.8 })
+		// ...
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60.5, h: 60.5 })
+	})
+
+	it('will change the apsect ratio on shapes that have been rotated by some number that is a multiple of 90 degrees', () => {
+		// rotate B by 90 degrees
+		editor.select(ids.boxB)
+		editor.pointerDown(20, 20, { target: 'selection', handle: 'top_left_rotate' })
+		editor.pointerMove(40, 40)
+		editor.pointerUp()
+
 		// strech horizontally
 
 		//  0                       20               40                     60
@@ -798,11 +838,12 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.select(ids.boxA, ids.boxB)
 		editor.pointerDown(30, 30, { target: 'selection', handle: 'bottom_right' })
 		editor.pointerMove(60, 30)
-		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60, h: 30 })
 		// A should stretch
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 20, h: 10 })
 		// B should not
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ w: 20, h: 10 })
+		// ...
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60, h: 30 })
 	})
 })
 

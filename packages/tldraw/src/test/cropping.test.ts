@@ -317,7 +317,6 @@ describe('When in the crop.idle state', () => {
 			.pointerDown(500, 600, { target: 'selection', handle: 'top_left_rotate' })
 			.expectToBeIn('select.cropping.pointing_rotate_handle')
 			.pointerMove(510, 590)
-			.expectToBeIn('select.cropping.rotating')
 			.pointerUp()
 			.expectToBeIn('select.cropping.idle')
 	})

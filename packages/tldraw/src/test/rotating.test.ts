@@ -98,7 +98,6 @@ describe('When rotating...', () => {
 			})
 			.expectToBeIn('select.pointing_rotate_handle')
 			.pointerMove(50, -10)
-			.expectToBeIn('select.rotating')
 			.pointerUp()
 			.expectToBeIn('select.idle')
 	})

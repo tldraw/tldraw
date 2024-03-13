@@ -20,6 +20,8 @@ export class RotatingSession extends Session<{ handle: RotateCorner }> {
 	override onStart() {
 		const { editor } = this
 
+		editor.mark(this.markId)
+
 		const snapshot = getRotationSnapshot({ editor })
 
 		if (snapshot === null) {
@@ -29,25 +31,9 @@ export class RotatingSession extends Session<{ handle: RotateCorner }> {
 
 		this.snapshot = snapshot
 
-		editor.mark(this.markId)
-
-		const newSelectionRotation = getRotationFromPointerPosition({
-			editor,
-			snapshot,
-			snapToNearestDegree: false,
-		})
-
-		applyRotationToSnapshotShapes({
-			editor: editor,
-			delta: newSelectionRotation,
-			snapshot: this.snapshot,
-			stage: 'start',
-		})
-
-		// Update cursor
 		editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			rotation: this.snapshot.initialSelectionRotation,
 		})
 	}
 
@@ -59,13 +45,13 @@ export class RotatingSession extends Session<{ handle: RotateCorner }> {
 			return
 		}
 
-		if (!this.didRotate) {
-			if (editor.inputs.isDragging) {
+		if (editor.inputs.isDragging) {
+			if (!this.didRotate) {
 				this.didRotate = true
-			} else {
-				// noop until dragging
-				return
 			}
+		} else {
+			// noop until dragging
+			return
 		}
 
 		const newSelectionRotation = getRotationFromPointerPosition({
