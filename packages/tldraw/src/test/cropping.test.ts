@@ -1,5 +1,5 @@
 import { createShapeId, TLImageShape } from '@tldraw/editor'
-import { MIN_CROP_SIZE } from '../lib/tools/SelectTool/childStates/Cropping/crop-constants'
+import { MIN_CROP_SIZE } from '../lib/sessions/ResizingCropSession'
 import { TestEditor } from './TestEditor'
 
 jest.useFakeTimers()
@@ -315,9 +315,9 @@ describe('When in the crop.idle state', () => {
 			.doubleClick(550, 550, ids.imageB)
 			.expectToBeIn('select.cropping.idle')
 			.pointerDown(500, 600, { target: 'selection', handle: 'top_left_rotate' })
-			.expectToBeIn('select.pointing_rotate_handle')
+			.expectToBeIn('select.cropping.pointing_rotate_handle')
 			.pointerMove(510, 590)
-			.expectToBeIn('select.rotating')
+			.expectToBeIn('select.cropping.rotating')
 			.pointerUp()
 			.expectToBeIn('select.cropping.idle')
 	})

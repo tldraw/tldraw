@@ -5,7 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
-import { CursorTypeMap } from './PointingResizeHandle'
+import { CursorTypeMap } from '../select-helpers'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
 	target: 'selection'

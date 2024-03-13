@@ -2,7 +2,7 @@ import { StateNode } from '@tldraw/editor'
 import { HandPanningSession } from '../../../sessions/HandPanningSession'
 
 export class Dragging extends StateNode {
-	static override id = 'brushing'
+	static override id = 'dragging'
 
 	session?: HandPanningSession
 

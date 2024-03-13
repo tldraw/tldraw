@@ -193,7 +193,7 @@ describe('TLSelectTool.Zooming', () => {
 			h: newBoundsHeight,
 		})
 		editor.pointerUp()
-		editor.forceTick(10)
+		editor.forceTick(100)
 		expect(editor.getZoomLevel()).toBeCloseTo(originalZoomLevel / 2)
 		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -440,

@@ -9,7 +9,7 @@ import {
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
-import { CursorTypeMap } from '../tools/SelectTool/childStates/PointingResizeHandle'
+import { CursorTypeMap } from '../tools/SelectTool/select-helpers'
 
 export class RotatingSession extends Session<{ handle: RotateCorner }> {
 	id = 'rotating'

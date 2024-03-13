@@ -77,11 +77,7 @@ export class Idle extends StateNode {
 					case 'top_right_rotate':
 					case 'bottom_left_rotate':
 					case 'bottom_right_rotate': {
-						// todo: make own state with session
-						this.editor.setCurrentTool('select.pointing_rotate_handle', {
-							...info,
-							onInteractionEnd: 'select.cropping',
-						})
+						this.parent.transition('pointing_rotate_handle', info)
 						break
 					}
 					case 'top':

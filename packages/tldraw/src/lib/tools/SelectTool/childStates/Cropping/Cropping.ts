@@ -5,6 +5,9 @@ import { PointingCrop } from './children/PointingCrop'
 import { PointingCropHandle } from './children/PointingCropHandle'
 import { ResizingCrop } from './children/ResizingCrop'
 import { TranslatingCrop } from './children/TranslatingCrop'
+// Borrow these from select tool
+import { PointingRotateHandle } from '../PointingRotateHandle'
+import { Rotating } from '../Rotating'
 
 export class Cropping extends StateNode {
 	static override id = 'cropping'
@@ -16,5 +19,7 @@ export class Cropping extends StateNode {
 		ResizingCrop,
 		PointingCropHandle,
 		NudgingCrop,
+		Rotating,
+		PointingRotateHandle,
 	]
 }

@@ -74,13 +74,17 @@ describe('When interacting with a shape...', () => {
 				handle: 'bottom_right_rotate',
 			})
 			.pointerMove(200, 200)
-			.pointerUp(200, 200)
 
 		// Once on start (for frame only)
 		expect(fnStart).toHaveBeenCalledTimes(1)
 
-		// Once on start, once during the move
-		expect(fnChange).toHaveBeenCalledTimes(2)
+		// Twice on start (also runs update), once during the move (runs update)
+		expect(fnChange).toHaveBeenCalledTimes(3)
+
+		editor.pointerUp(200, 200)
+
+		// and on end
+		expect(fnChange).toHaveBeenCalledTimes(4)
 
 		// Once on end
 		expect(fnEnd).toHaveBeenCalledTimes(1)

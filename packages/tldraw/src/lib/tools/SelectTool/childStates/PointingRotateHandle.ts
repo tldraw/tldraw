@@ -1,8 +1,8 @@
-import { RotateCorner, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
-import { CursorTypeMap } from './PointingResizeHandle'
+import { RotateCorner, StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { CursorTypeMap } from '../select-helpers'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
-	onInteractionEnd?: string
+	handle: RotateCorner
 }
 
 export class PointingRotateHandle extends StateNode {
@@ -10,28 +10,17 @@ export class PointingRotateHandle extends StateNode {
 
 	private info = {} as PointingRotateHandleInfo
 
-	private updateCursor() {
+	override onEnter = (info: PointingRotateHandleInfo) => {
+		this.info = info
 		const selectionRotation = this.editor.getSelectionRotation()
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: selectionRotation,
-			},
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle],
+			rotation: selectionRotation,
 		})
 	}
 
-	override onEnter = (info: PointingRotateHandleInfo) => {
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
-		this.info = info
-		this.updateCursor()
-	}
-
 	override onExit = () => {
-		this.parent.setCurrentToolIdMask(undefined)
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerMove = () => {
@@ -46,31 +35,19 @@ export class PointingRotateHandle extends StateNode {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
-		this.cancel()
+	override onCancel = () => {
+		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
-		this.cancel()
+	override onComplete = () => {
+		this.complete()
 	}
 
 	override onInterrupt = () => {
-		this.cancel()
+		this.complete()
 	}
 
 	private complete() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
-		}
-	}
-
-	private cancel() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
-		}
+		this.parent.transition('idle')
 	}
 }

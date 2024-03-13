@@ -15,12 +15,13 @@ export class Creating extends StateNode {
 				this.parent.transition('idle')
 			},
 			onComplete: () => {
+				const shape = this.editor.getShape(info.shape)
+				if (shape) {
+					;(this.parent as BaseBoxShapeTool).onCreate?.(shape)
+				}
+
 				if (this.editor.getInstanceState().isToolLocked) {
 					this.parent.transition('idle')
-					const shape = this.editor.getShape(info.shape)
-					if (shape) {
-						;(this.parent as BaseBoxShapeTool).onCreate?.(shape)
-					}
 				} else {
 					this.editor.setCurrentTool('select.idle')
 				}

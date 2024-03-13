@@ -1,6 +1,8 @@
 import { SelectionHandle, Session, TLImageShape, Vec, structuredClone } from '@tldraw/editor'
-import { MIN_CROP_SIZE } from '../tools/SelectTool/childStates/Cropping/crop-constants'
-import { CursorTypeMap } from '../tools/SelectTool/childStates/PointingResizeHandle'
+import { CursorTypeMap } from '../tools/SelectTool/select-helpers'
+
+/** @internal */
+export const MIN_CROP_SIZE = 8
 
 export class ResizingCropSession extends Session<{
 	shape: TLImageShape

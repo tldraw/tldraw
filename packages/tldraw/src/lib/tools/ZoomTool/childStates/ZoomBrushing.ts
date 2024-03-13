@@ -1,5 +1,5 @@
 import { StateNode } from '@tldraw/editor'
-import { ZoomBrushingSession } from '../../../sessions/ZoomBrushing'
+import { ZoomBrushingSession } from '../../../sessions/ZoomBrushingSession'
 
 export class ZoomBrushing extends StateNode {
 	static override id = 'zoom_brushing'

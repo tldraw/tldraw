@@ -11,6 +11,11 @@ export class ZoomBrushingSession extends Session {
 			inputs: { originPagePoint, currentPagePoint },
 		} = editor
 
+		if (!editor.inputs.isPointing) {
+			this.complete()
+			return
+		}
+
 		zoomBrush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
 		editor.updateInstanceState({ zoomBrush: zoomBrush.toJson() })
 	}

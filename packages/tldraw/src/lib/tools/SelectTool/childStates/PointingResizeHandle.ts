@@ -1,30 +1,7 @@
-import {
-	StateNode,
-	TLCursorType,
-	TLEventHandlers,
-	TLPointerEventInfo,
-	TLSelectionHandle,
-} from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { CursorTypeMap } from '../select-helpers'
 
-export const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
-	bottom: 'ns-resize',
-	top: 'ns-resize',
-	left: 'ew-resize',
-	right: 'ew-resize',
-	bottom_left: 'nesw-resize',
-	bottom_right: 'nwse-resize',
-	top_left: 'nwse-resize',
-	top_right: 'nesw-resize',
-	bottom_left_rotate: 'swne-rotate',
-	bottom_right_rotate: 'senw-rotate',
-	top_left_rotate: 'nwse-rotate',
-	top_right_rotate: 'nesw-rotate',
-	mobile_rotate: 'grabbing',
-}
-
-type PointingResizeHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
-	onInteractionEnd?: string
-}
+type PointingResizeHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }>
 
 export class PointingResizeHandle extends StateNode {
 	static override id = 'pointing_resize_handle'
@@ -33,9 +10,9 @@ export class PointingResizeHandle extends StateNode {
 
 	private updateCursor() {
 		const selected = this.editor.getSelectedShapes()
-		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
-			cursor: { type: cursorType, rotation: selected.length === 1 ? selected[0].rotation : 0 },
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle!],
+			rotation: selected.length === 1 ? selected[0].rotation : 0,
 		})
 	}
 
@@ -73,18 +50,10 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	private complete() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
-		}
+		this.parent.transition('idle')
 	}
 
 	private cancel() {
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
-		}
+		this.parent.transition('idle')
 	}
 }
