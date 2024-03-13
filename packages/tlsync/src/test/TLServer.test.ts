@@ -1,4 +1,4 @@
-import { TLRecord, createTLStore, defaultShapeUtils } from 'tldraw'
+import { createTLStore, defaultShapeUtils } from 'tldraw'
 import { type WebSocket } from 'ws'
 import { RoomSessionState } from '../lib/RoomSession'
 import { DBLoadResult, TLServer } from '../lib/TLServer'
@@ -116,7 +116,7 @@ describe('TLServer', () => {
 	it('allows requests to be chunked', async () => {
 		await openConnection()
 
-		const connectMsg: TLSocketClientSentEvent<TLRecord> = {
+		const connectMsg: TLSocketClientSentEvent = {
 			type: 'connect',
 			lastServerClock: 0,
 			connectRequestId: 'test-connect-request-id',

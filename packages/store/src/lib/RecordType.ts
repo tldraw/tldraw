@@ -1,4 +1,4 @@
-import { structuredClone } from '@tldraw/utils'
+import { Expand, structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
@@ -25,9 +25,9 @@ export type RecordScope = 'session' | 'document' | 'presence'
  */
 export class RecordType<
 	R extends UnknownRecord,
-	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>,
+	RequiredProperties extends object = Omit<R, 'id' | 'typeName'>,
 > {
-	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, keyof RequiredProperties>
 	readonly migrations: Migrations
 	readonly validator: StoreValidator<R>
 
@@ -42,7 +42,7 @@ export class RecordType<
 		 */
 		public readonly typeName: R['typeName'],
 		config: {
-			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, keyof RequiredProperties>
 			readonly migrations: Migrations
 			readonly validator?: StoreValidator<R>
 			readonly scope?: RecordScope
@@ -60,7 +60,7 @@ export class RecordType<
 	 * @param properties - The properties of the record.
 	 * @returns The new record.
 	 */
-	create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R {
+	create(properties: Expand<RequiredProperties & Omit<Partial<R>, keyof RequiredProperties>>): R {
 		const result = { ...this.createDefaultProperties(), id: this.createId() } as any
 
 		for (const [k, v] of Object.entries(properties)) {
@@ -185,8 +185,8 @@ export class RecordType<
 	 */
 	withDefaultProperties<DefaultProps extends Omit<Partial<R>, 'typeName' | 'id'>>(
 		createDefaultProperties: () => DefaultProps
-	): RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>> {
-		return new RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>(this.typeName, {
+	): RecordType<R, Omit<RequiredProperties, keyof DefaultProps>> {
+		return new RecordType<R, Omit<RequiredProperties, keyof DefaultProps>>(this.typeName, {
 			createDefaultProperties: createDefaultProperties as any,
 			migrations: this.migrations,
 			validator: this.validator,
@@ -225,8 +225,8 @@ export function createRecordType<R extends UnknownRecord>(
 		validator?: StoreValidator<R>
 		scope: RecordScope
 	}
-): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
-	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
+): RecordType<R, Omit<R, 'id' | 'typeName'>> {
+	return new RecordType<R, Omit<R, 'id' | 'typeName'>>(typeName, {
 		createDefaultProperties: () => ({}) as any,
 		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
 		validator: config.validator,

@@ -2,6 +2,7 @@ import { Atom, atom, transaction } from '@tldraw/state'
 import {
 	IdOf,
 	MigrationFailureReason,
+	RecordId,
 	RecordType,
 	SerializedSchema,
 	StoreSchema,
@@ -48,9 +49,9 @@ import {
 } from './protocol'
 
 /** @public */
-export type TLRoomSocket<R extends UnknownRecord> = {
+export type TLRoomSocket = {
 	isOpen: boolean
-	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
+	sendMessage: (msg: TLSocketServerSentEvent) => void
 	close: () => void
 }
 
@@ -63,22 +64,23 @@ export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
-class DocumentState<R extends UnknownRecord> {
-	_atom: Atom<{ state: R; lastChangedClock: number }>
+// todo: rename to recordstate
+class DocumentState {
+	_atom: Atom<{ state: UnknownRecord; lastChangedClock: number }>
 
-	static createWithoutValidating<R extends UnknownRecord>(
-		state: R,
+	static createWithoutValidating(
+		state: UnknownRecord,
 		lastChangedClock: number,
-		recordType: RecordType<R, any>
-	): DocumentState<R> {
+		recordType: RecordType<UnknownRecord, any>
+	): DocumentState {
 		return new DocumentState(state, lastChangedClock, recordType)
 	}
 
-	static createAndValidate<R extends UnknownRecord>(
-		state: R,
+	static createAndValidate(
+		state: UnknownRecord,
 		lastChangedClock: number,
-		recordType: RecordType<R, any>
-	): Result<DocumentState<R>, Error> {
+		recordType: RecordType<UnknownRecord, any>
+	): Result<DocumentState, Error> {
 		try {
 			recordType.validate(state)
 		} catch (error: any) {
@@ -88,9 +90,9 @@ class DocumentState<R extends UnknownRecord> {
 	}
 
 	private constructor(
-		state: R,
+		state: UnknownRecord,
 		lastChangedClock: number,
-		private readonly recordType: RecordType<R, any>
+		private readonly recordType: RecordType<UnknownRecord, any>
 	) {
 		this._atom = atom('document:' + state.id, { state, lastChangedClock })
 	}
@@ -102,7 +104,7 @@ class DocumentState<R extends UnknownRecord> {
 	get lastChangedClock() {
 		return this._atom.get().lastChangedClock
 	}
-	replaceState(state: R, clock: number): Result<ObjectDiff | null, Error> {
+	replaceState(state: UnknownRecord, clock: number): Result<ObjectDiff | null, Error> {
 		const diff = diffRecord(this.state, state)
 		if (!diff) return Result.ok(null)
 		try {
@@ -133,9 +135,9 @@ export type RoomSnapshot = {
  *
  * @public
  */
-export class TLSyncRoom<R extends UnknownRecord> {
+export class TLSyncRoom {
 	// A table of connected clients
-	readonly sessions = new Map<string, RoomSession<R>>()
+	readonly sessions = new Map<string, RoomSession>()
 
 	pruneSessions = () => {
 		for (const client of this.sessions.values()) {
@@ -185,7 +187,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 	// Values associated with each uid (must be serializable).
 	state = atom<{
-		documents: Record<string, DocumentState<R>>
+		documents: Record<string, DocumentState>
 		tombstones: Record<string, number>
 	}>('room state', {
 		documents: {},
@@ -202,23 +204,25 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	readonly serializedSchema: SerializedSchema
 
 	readonly documentTypes: Set<string>
-	readonly presenceType: RecordType<R, any>
+	readonly presenceType: RecordType<UnknownRecord, never>
 
 	constructor(
-		public readonly schema: StoreSchema<R, any>,
+		public readonly schema: StoreSchema<UnknownRecord, any>,
 		snapshot?: RoomSnapshot
 	) {
 		// do a json serialization cycle to make sure the schema has no 'undefined' values
 		this.serializedSchema = JSON.parse(JSON.stringify(schema.serialize()))
 
 		this.documentTypes = new Set(
-			Object.values<RecordType<R, any>>(schema.types)
+			Object.values<RecordType<UnknownRecord, any>>(schema.types)
 				.filter((t) => t.scope === 'document')
 				.map((t) => t.typeName)
 		)
 
 		const presenceTypes = new Set(
-			Object.values<RecordType<R, any>>(schema.types).filter((t) => t.scope === 'presence')
+			Object.values<RecordType<UnknownRecord, any>>(schema.types).filter(
+				(t) => t.scope === 'presence'
+			)
 		)
 
 		if (presenceTypes.size != 1) {
@@ -265,11 +269,11 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			}
 		}
 
-		const documents: Record<string, DocumentState<R>> = Object.fromEntries(
+		const documents: Record<string, DocumentState> = Object.fromEntries(
 			filteredDocuments.map((r) => [
 				r.state.id,
-				DocumentState.createWithoutValidating<R>(
-					r.state as R,
+				DocumentState.createWithoutValidating(
+					r.state as UnknownRecord,
 					r.lastChangedClock,
 					assertExists(getOwnProperty(schema.types, r.state.typeName))
 				),
@@ -278,8 +282,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 		const migrationResult = schema.migrateStoreSnapshot({
 			store: Object.fromEntries(
-				objectMapEntries(documents).map(([id, { state }]) => [id, state as R])
-			) as Record<IdOf<R>, R>,
+				objectMapEntries(documents).map(([id, { state }]) => [id, state as UnknownRecord])
+			) as Record<IdOf<UnknownRecord>, UnknownRecord>,
 			schema: snapshot.schema ?? schema.serializeEarliestVersion(),
 		})
 
@@ -341,7 +345,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		return this.state.get().documents[id]
 	}
 
-	private addDocument(id: string, state: R, clock: number): Result<void, Error> {
+	private addDocument(id: string, state: UnknownRecord, clock: number): Result<void, Error> {
 		let { documents, tombstones } = this.state.get()
 		if (hasOwnProperty(tombstones, id)) {
 			tombstones = { ...tombstones }
@@ -390,7 +394,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 */
 	private sendMessage(
 		sessionKey: string,
-		message: TLSocketServerSentEvent<R> | TLSocketServerSentDataEvent<R>
+		message: TLSocketServerSentEvent | TLSocketServerSentDataEvent
 	) {
 		const session = this.sessions.get(sessionKey)
 		if (!session) {
@@ -513,7 +517,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		diff,
 		sourceSessionKey: sourceSessionKey,
 	}: {
-		diff: NetworkDiff<R>
+		diff: NetworkDiff
 		sourceSessionKey: string
 	}) {
 		this.sessions.forEach((session) => {
@@ -553,7 +557,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 * @param sessionKey - The session of the client that connected to the room.
 	 * @param socket - Their socket.
 	 */
-	handleNewSession = (sessionKey: string, socket: TLRoomSocket<R>) => {
+	handleNewSession = (sessionKey: string, socket: TLRoomSocket) => {
 		const existing = this.sessions.get(sessionKey)
 		this.sessions.set(sessionKey, {
 			state: RoomSessionState.AwaitingConnectMessage,
@@ -574,8 +578,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 */
 	private migrateDiffForSession(
 		serializedSchema: SerializedSchema,
-		diff: NetworkDiff<R>
-	): Result<NetworkDiff<R>, MigrationFailureReason> {
+		diff: NetworkDiff
+	): Result<NetworkDiff, MigrationFailureReason> {
 		// TODO: optimize this by recalculating patches using the previous versions of records
 
 		// when the client connects we check whether the schema is identical and make sure
@@ -584,7 +588,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return Result.ok(diff)
 		}
 
-		const result: NetworkDiff<R> = {}
+		const result: NetworkDiff = {}
 		for (const [id, op] of Object.entries(diff)) {
 			if (op[0] === RecordOpType.Remove) {
 				result[id] = op
@@ -614,7 +618,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 * @param sessionKey - The session that sent the message
 	 * @param message - The message that was sent
 	 */
-	handleMessage = async (sessionKey: string, message: TLSocketClientSentEvent<R>) => {
+	handleMessage = async (sessionKey: string, message: TLSocketClientSentEvent) => {
 		const session = this.sessions.get(sessionKey)
 		if (!session) {
 			console.warn('Received message from unknown session')
@@ -640,7 +644,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/** If the client is out of date, or we are out of date, we need to let them know */
-	private rejectSession(session: RoomSession<R>, reason: TLIncompatibilityReason) {
+	private rejectSession(session: RoomSession, reason: TLIncompatibilityReason) {
 		try {
 			if (session.socket.isOpen) {
 				session.socket.sendMessage({
@@ -656,8 +660,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	private handleConnectRequest(
-		session: RoomSession<R>,
-		message: Extract<TLSocketClientSentEvent<R>, { type: 'connect' }>
+		session: RoomSession,
+		message: Extract<TLSocketClientSentEvent, { type: 'connect' }>
 	) {
 		// if the protocol versions don't match, disconnect the client
 		// we will eventually want to try to make our protocol backwards compatible to some degree
@@ -683,7 +687,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			? this.serializedSchema
 			: message.schema
 
-		const connect = (msg: TLSocketServerSentEvent<R>) => {
+		const connect = (msg: TLSocketServerSentEvent) => {
 			this.sessions.set(session.sessionKey, {
 				state: RoomSessionState.Connected,
 				sessionKey: session.sessionKey,
@@ -706,7 +710,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				// or if the server exits/crashes with unpersisted changes
 				message.lastServerClock > this.clock
 			) {
-				const diff: NetworkDiff<R> = {}
+				const diff: NetworkDiff = {}
 				for (const [id, doc] of Object.entries(this.state.get().documents)) {
 					if (id !== session.presenceId) {
 						diff[id] = [RecordOpType.Put, doc.state]
@@ -734,7 +738,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				})
 			} else {
 				// calculate the changes since the time the client last saw
-				const diff: NetworkDiff<R> = {}
+				const diff: NetworkDiff = {}
 				const updatedDocs = Object.values(this.state.get().documents).filter(
 					(doc) => doc.lastChangedClock > message.lastServerClock
 				)
@@ -782,8 +786,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	private handlePushRequest(
-		session: RoomSession<R>,
-		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>
+		session: RoomSession,
+		message: Extract<TLSocketClientSentEvent, { type: 'push' }>
 	) {
 		// We must be connected to handle push requests
 		if (session.state !== RoomSessionState.Connected) {
@@ -799,9 +803,9 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		transaction((rollback) => {
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
-			let mergedChanges: NetworkDiff<R> | null = null
+			let mergedChanges: NetworkDiff | null = null
 
-			const propagateOp = (id: string, op: RecordOp<R>) => {
+			const propagateOp = (id: string, op: RecordOp) => {
 				if (!mergedChanges) mergedChanges = {}
 				mergedChanges[id] = op
 			}
@@ -815,7 +819,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				return Result.err(undefined)
 			}
 
-			const addDocument = (id: string, _state: R): Result<void, void> => {
+			const addDocument = (id: string, _state: UnknownRecord): Result<void, void> => {
 				const res = this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
 				if (res.type === 'error') {
 					return fail(
@@ -921,7 +925,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 			if ('presence' in message) {
 				// The push request was for the presence scope.
-				const id = session.presenceId
+				const id = session.presenceId as RecordId<UnknownRecord>
 				const [type, val] = message.presence
 				const { typeName } = this.presenceType
 				switch (type) {

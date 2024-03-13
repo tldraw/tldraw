@@ -6,8 +6,8 @@ import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../lib/protoco
 import { TestServer } from './TestServer'
 
 export class TestSocketPair<R extends UnknownRecord> {
-	clientSentEventQueue: TLSocketClientSentEvent<R>[] = []
-	serverSentEventQueue: TLSocketServerSentEvent<R>[] = []
+	clientSentEventQueue: TLSocketClientSentEvent[] = []
+	serverSentEventQueue: TLSocketServerSentEvent[] = []
 	flushServerSentEvents() {
 		const queue = this.serverSentEventQueue
 		this.serverSentEventQueue = []
@@ -27,7 +27,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 		return this.serverSentEventQueue.length > 0 || this.clientSentEventQueue.length > 0
 	}
 
-	roomSocket: TLRoomSocket<R> = {
+	roomSocket: TLRoomSocket = {
 		close: () => {
 			this.flushServerSentEvents()
 			this.disconnect()
@@ -35,7 +35,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 		get isOpen() {
 			return true
 		},
-		sendMessage: (msg: TLSocketServerSentEvent<R>) => {
+		sendMessage: (msg: TLSocketServerSentEvent) => {
 			if (!this.callbacks.onReceiveMessage) {
 				throw new Error('Socket is closed')
 			}
@@ -47,9 +47,9 @@ export class TestSocketPair<R extends UnknownRecord> {
 			this.serverSentEventQueue.push(structuredClone(msg))
 		},
 	}
-	didReceiveFromClient?: (msg: TLSocketClientSentEvent<R>) => void = undefined
+	didReceiveFromClient?: (msg: TLSocketClientSentEvent) => void = undefined
 	clientDisconnected?: () => void = undefined
-	clientSocket: TLPersistentClientSocket<R> = {
+	clientSocket: TLPersistentClientSocket = {
 		connectionStatus: 'offline',
 		onStatusChange: (cb) => {
 			this.callbacks.onStatusChange = cb
@@ -63,7 +63,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 				this.callbacks.onReceiveMessage = null
 			}
 		},
-		sendMessage: (msg: TLSocketClientSentEvent<R>) => {
+		sendMessage: (msg: TLSocketClientSentEvent) => {
 			if (this.clientSocket.connectionStatus !== 'online') {
 				throw new Error('trying to send before open')
 			}
@@ -77,7 +77,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 	}
 
 	callbacks = {
-		onReceiveMessage: null as null | ((msg: TLSocketServerSentEvent<R>) => void),
+		onReceiveMessage: null as null | ((msg: TLSocketServerSentEvent) => void),
 		onStatusChange: null as null | ((status: TLPersistentClientSocketStatus) => void),
 	}
 

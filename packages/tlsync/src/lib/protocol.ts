@@ -17,14 +17,14 @@ export type TLIncompatibilityReason =
 	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
 /** @public */
-export type TLSocketServerSentEvent<R extends UnknownRecord> =
+export type TLSocketServerSentEvent =
 	| {
 			type: 'connect'
 			hydrationType: 'wipe_all' | 'wipe_presence'
 			connectRequestId: string
 			protocolVersion: number
 			schema: SerializedSchema
-			diff: NetworkDiff<R>
+			diff: NetworkDiff
 			serverClock: number
 	  }
 	| {
@@ -38,33 +38,33 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	| {
 			type: 'pong'
 	  }
-	| { type: 'data'; data: TLSocketServerSentDataEvent<R>[] }
+	| { type: 'data'; data: TLSocketServerSentDataEvent[] }
 
 /** @public */
-export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
+export type TLSocketServerSentDataEvent =
 	| {
 			type: 'patch'
-			diff: NetworkDiff<R>
+			diff: NetworkDiff
 			serverClock: number
 	  }
 	| {
 			type: 'push_result'
 			clientClock: number
 			serverClock: number
-			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
+			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff }
 	  }
 
 /** @public */
-export type TLPushRequest<R extends UnknownRecord> =
+export type TLPushRequest =
 	| {
 			type: 'push'
 			clientClock: number
-			presence: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
+			presence: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, UnknownRecord]
 	  }
 	| {
 			type: 'push'
 			clientClock: number
-			diff: NetworkDiff<R>
+			diff: NetworkDiff
 	  }
 
 /** @public */
@@ -82,7 +82,4 @@ export type TLPingRequest = {
 }
 
 /** @public */
-export type TLSocketClientSentEvent<R extends UnknownRecord> =
-	| TLPushRequest<R>
-	| TLConnectRequest
-	| TLPingRequest
+export type TLSocketClientSentEvent = TLPushRequest | TLConnectRequest | TLPingRequest

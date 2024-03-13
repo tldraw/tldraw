@@ -6627,7 +6627,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					let shapeRecordToCreate = (
 						this.store.schema.types.shape as RecordType<
 							TLShape,
-							'type' | 'props' | 'index' | 'parentId'
+							Pick<TLShape, 'type' | 'props' | 'index' | 'parentId'>
 						>
 					).create({
 						...partial,

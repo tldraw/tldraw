@@ -63,14 +63,14 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 
 describe('TLSyncRoom', () => {
 	it('can be constructed with a schema alone', () => {
-		const room = new TLSyncRoom<any>(schema)
+		const room = new TLSyncRoom(schema)
 
 		// we populate the store with a default document if none is given
 		expect(room.getSnapshot().documents.length).toBeGreaterThan(0)
 	})
 
 	it('can be constructed with a snapshot', () => {
-		const room = new TLSyncRoom<TLRecord>(schema, makeSnapshot(records))
+		const room = new TLSyncRoom(schema, makeSnapshot(records))
 
 		expect(
 			room

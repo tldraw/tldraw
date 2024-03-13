@@ -15,7 +15,10 @@ export interface BaseRecord<TypeName extends string, Id extends RecordId<Unknown
 }
 
 /** @public */
-export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>
+export type UnknownRecord = {
+	id: unknown
+	typeName: unknown
+} //BaseRecord<string, RecordId<UnknownRecord>>
 
 export type OmitMeta<R extends UnknownRecord> = R extends R ? Omit<R, 'id' | 'typeName'> : R
 

@@ -33,13 +33,13 @@ export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
  *
  * @public
  */
-export type TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> = {
+export type TLPersistentClientSocket = {
 	/** Whether there is currently an open connection to the server. */
 	connectionStatus: 'online' | 'offline' | 'error'
 	/** Send a message to the server */
-	sendMessage: (msg: TLSocketClientSentEvent<R>) => void
+	sendMessage: (msg: TLSocketClientSentEvent) => void
 	/** Attach a listener for messages sent by the server */
-	onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>
+	onReceiveMessage: SubscribingFn<TLSocketServerSentEvent>
 	/** Attach a listener for connection status changes */
 	onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>
 	/** Restart the connection */
@@ -58,20 +58,20 @@ const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING
  *
  * @public
  */
-export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
+export class TLSyncClient {
 	/** The last clock time from the most recent server update */
 	private lastServerClock = 0
 	private lastServerInteractionTimestamp = Date.now()
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
-	private pendingPushRequests: { request: TLPushRequest<R>; sent: boolean }[] = []
+	private pendingPushRequests: { request: TLPushRequest; sent: boolean }[] = []
 
 	/**
 	 * The diff of 'unconfirmed', 'optimistic' changes that have been made locally by the user if we
 	 * take this diff, reverse it, and apply that to the store, our store will match exactly the most
 	 * recent state of the server that we know about
 	 */
-	private speculativeChanges: RecordsDiff<R> = {
+	private speculativeChanges: RecordsDiff<UnknownRecord> = {
 		added: {} as any,
 		updated: {} as any,
 		removed: {} as any,
@@ -79,10 +79,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private disposables: Array<() => void> = []
 
-	readonly store: S
-	readonly socket: TLPersistentClientSocket<R>
+	readonly store: Store
+	readonly socket: TLPersistentClientSocket
 
-	readonly presenceState: Signal<R | null> | undefined
+	readonly presenceState: Signal<UnknownRecord | null> | undefined
 
 	// isOnline is true when we have an open socket connection and we have
 	// established a connection with the server room (i.e. we have received a 'connect' message)
@@ -106,7 +106,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * Called immediately after a connect acceptance has been received and processed Use this to make
 	 * any changes to the store that are required to keep it operational
 	 */
-	public readonly onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void
+	public readonly onAfterConnect?: (self: TLSyncClient, isNew: boolean) => void
 	public readonly onSyncError: (reason: TLIncompatibilityReason) => void
 
 	private isDebugging = false
@@ -117,18 +117,18 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private readonly presenceType: R['typeName']
+	private readonly presenceType: UnknownRecord['typeName']
 
 	didCancel?: () => boolean
 
 	constructor(config: {
-		store: S
-		socket: TLPersistentClientSocket<R>
-		presence: Signal<R | null>
-		onLoad: (self: TLSyncClient<R, S>) => void
+		store: Store
+		socket: TLPersistentClientSocket
+		presence: Signal<UnknownRecord | null>
+		onLoad: (self: TLSyncClient) => void
 		onLoadError: (error: Error) => void
 		onSyncError: (reason: TLIncompatibilityReason) => void
-		onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void
+		onAfterConnect?: (self: TLSyncClient, isNew: boolean) => void
 		didCancel?: () => boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -287,7 +287,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * a reconnect. The goal is to rebase on the server's state and fire off a new push request for
 	 * any local changes that were made while offline.
 	 */
-	private didReconnect(event: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) {
+	private didReconnect(event: Extract<TLSocketServerSentEvent, { type: 'connect' }>) {
 		this.debug('did reconnect', event)
 		if (event.connectRequestId !== this.latestConnectRequestId) {
 			// ignore connect events for old connect requests
@@ -317,7 +317,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 			this.store.mergeRemoteChanges(() => {
 				// gather records to delete in a NetworkDiff
-				const wipeDiff: NetworkDiff<R> = {}
+				const wipeDiff: NetworkDiff = {}
 				const wipeAll = event.hydrationType === 'wipe_all'
 				if (!wipeAll) {
 					// if we're only wiping presence data, undo the speculative changes first
@@ -351,10 +351,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.lastServerClock = event.serverClock
 	}
 
-	incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
+	incomingDiffBuffer: TLSocketServerSentDataEvent[] = []
 
 	/** Handle events received from the server */
-	private handleServerEvent = (event: TLSocketServerSentEvent<R>) => {
+	private handleServerEvent = (event: TLSocketServerSentEvent) => {
 		this.debug('received server event', event)
 		this.lastServerInteractionTimestamp = Date.now()
 		// always update the lastServerClock when it is present
@@ -389,14 +389,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.disposables.forEach((dispose) => dispose())
 	}
 
-	lastPushedPresenceState: R | null = null
+	lastPushedPresenceState: UnknownRecord | null = null
 
-	private pushPresence(nextPresence: R | null) {
+	private pushPresence(nextPresence: UnknownRecord | null) {
 		if (!this.isConnectedToRoom) {
 			// if we're offline, don't do anything
 			return
 		}
-		let req: TLPushRequest<R> | null = null
+		let req: TLPushRequest | null = null
 		if (!this.lastPushedPresenceState && nextPresence) {
 			// we don't have a last presence state, so we need to push the full state
 			req = {
@@ -445,7 +445,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			return
 		}
 
-		const pushRequest: TLPushRequest<R> = {
+		const pushRequest: TLPushRequest = {
 			type: 'push',
 			diff,
 			clientClock: this.clientClock++,
@@ -486,9 +486,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * data is the same (as opposed to merely identical with ===), then no change is made and no
 	 * changes will be propagated back to store listeners
 	 */
-	private applyNetworkDiff(diff: NetworkDiff<R>, runCallbacks: boolean) {
+	private applyNetworkDiff(diff: NetworkDiff, runCallbacks: boolean) {
 		this.debug('applyNetworkDiff', diff)
-		const changes: RecordsDiff<R> = { added: {} as any, updated: {} as any, removed: {} as any }
+		const changes: RecordsDiff<UnknownRecord> = {
+			added: {} as any,
+			updated: {} as any,
+			removed: {} as any,
+		}
 		type k = keyof typeof changes.updated
 		let hasChanges = false
 		for (const [id, op] of objectMapEntries(diff)) {

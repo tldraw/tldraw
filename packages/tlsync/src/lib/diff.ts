@@ -13,8 +13,8 @@ export const RecordOpType = {
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType]
 
 /** @public */
-export type RecordOp<R extends UnknownRecord> =
-	| [typeof RecordOpType.Put, R]
+export type RecordOp =
+	| [typeof RecordOpType.Put, UnknownRecord]
 	| [typeof RecordOpType.Patch, ObjectDiff]
 	| [typeof RecordOpType.Remove]
 
@@ -27,8 +27,8 @@ export type RecordOp<R extends UnknownRecord> =
  *
  * @public
  */
-export type NetworkDiff<R extends UnknownRecord> = {
-	[id: string]: RecordOp<R>
+export type NetworkDiff = {
+	[id: string]: RecordOp
 }
 
 /**
@@ -36,10 +36,8 @@ export type NetworkDiff<R extends UnknownRecord> = {
  *
  * @public
  */
-export const getNetworkDiff = <R extends UnknownRecord>(
-	diff: RecordsDiff<R>
-): NetworkDiff<R> | null => {
-	let res: NetworkDiff<R> | null = null
+export const getNetworkDiff = (diff: RecordsDiff<UnknownRecord>): NetworkDiff | null => {
+	let res: NetworkDiff | null = null
 
 	for (const [k, v] of objectMapEntries(diff.added)) {
 		if (!res) res = {}
