@@ -40,11 +40,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			expanded: false,
 		}
 	}
 
 	getHeight(shape: TLNoteShape) {
-		return NOTE_SIZE + shape.props.growY
+		const height = NOTE_SIZE
+		if (shape.props.expanded) {
+			return height + shape.props.growY
+		}
+		return height
 	}
 
 	getGeometry(shape: TLNoteShape) {
@@ -70,10 +75,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						position: 'absolute',
 						width: NOTE_SIZE,
 						height: this.getHeight(shape),
+						pointerEvents: 'all',
 					}}
 				>
 					<div
 						className="tl-note__container"
+						data-isexpanded={shape.props.expanded}
 						style={{
 							color: theme[adjustedColor].solid,
 							backgroundColor: theme[adjustedColor].solid,
@@ -92,6 +99,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							wrap
 						/>
 					</div>
+					{shape.props.growY > 0 && (
+						<button
+							className="tl-note__expand-button"
+							onClick={() => {
+								this.editor.updateShape({
+									id: shape.id,
+									type: 'note',
+									props: { expanded: !shape.props.expanded },
+								})
+							}}
+							onPointerDown={(e) => e.stopPropagation()}
+						>
+							{shape.props.expanded ? 'see less' : 'see more'}
+						</button>
+					)}
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />

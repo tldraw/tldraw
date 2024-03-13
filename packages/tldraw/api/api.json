@@ -13183,7 +13183,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n            expanded: boolean;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13267,7 +13267,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n            expanded: boolean;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13449,7 +13449,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n    }"
+                  "text": "<string>;\n        expanded: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<boolean>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -13462,7 +13471,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 18
+                "endIndex": 20
               },
               "isStatic": true,
               "isProtected": false,

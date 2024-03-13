@@ -1111,6 +1111,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
+            expanded: boolean;
         };
         type: "note";
         x: number;
@@ -1135,6 +1136,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
+            expanded: boolean;
         };
         type: "note";
         x: number;
@@ -1160,6 +1162,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         growY: Validator<number>;
         url: Validator<string>;
         text: Validator<string>;
+        expanded: Validator<boolean>;
     };
     // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;

@@ -20,6 +20,7 @@ export const noteShapeProps = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
+	expanded: T.boolean,
 }
 
 /** @public */

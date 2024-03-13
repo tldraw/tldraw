@@ -1205,6 +1205,15 @@ input,
 	text-shadow: none;
 }
 
+.tl-note__container[data-isexpanded='false'] .tl-text-label .tl-text-label__inner {
+	max-height: 200px;
+}
+
+.tl-note__container[data-isexpanded='false'] .tl-text-label .tl-text-label__inner .tl-text-content {
+	height: 100%;
+	max-height: 200px;
+}
+
 .tl-note__scrim {
 	position: absolute;
 	z-index: 1;
@@ -1213,6 +1222,22 @@ input,
 	width: 100%;
 	background-color: var(--color-background);
 	opacity: 0.28;
+}
+
+.tl-note__expand-button {
+	color: var(--color-text-1);
+	border-radius: 8px;
+	background-color: var(--color-background);
+	padding: 4px;
+	opacity: 0;
+	border: none;
+	position: absolute;
+	bottom: -25px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+.tl-shape:hover .tl-note__expand-button {
+	opacity: 1;
 }
 
 .tl-loading {
