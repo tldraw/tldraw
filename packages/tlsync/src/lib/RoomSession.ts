@@ -1,5 +1,6 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { TLRoomSocket } from './TLSyncRoom'
+import { TLSocketServerSentDataEvent } from './protocol'
 
 export enum RoomSessionState {
 	AWAITING_CONNECT_MESSAGE = 'awaiting-connect-message',
@@ -33,4 +34,6 @@ export type RoomSession<R extends UnknownRecord> =
 			socket: TLRoomSocket<R>
 			serializedSchema: SerializedSchema
 			lastInteractionTime: number
+			debounceTimer: ReturnType<typeof setTimeout> | null
+			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
 	  }

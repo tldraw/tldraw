@@ -4,6 +4,7 @@ import glob from 'glob'
 import { assert } from 'node:console'
 import { appendFileSync } from 'node:fs'
 import { exec } from './lib/exec'
+import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
@@ -28,8 +29,9 @@ async function main() {
 	}
 
 	// we could probably do this a lot earlier in the yml file but 🤷‍♂️
+	await exec('git', ['fetch', 'origin', 'main'])
 	const numberOfCommitsSinceBranch = Number(
-		(await exec('git', ['rev-list', '--count', `HEAD`, '^main'])).toString().trim()
+		(await exec('git', ['rev-list', '--count', `HEAD`, '^origin/main'])).toString().trim()
 	)
 
 	if (numberOfCommitsSinceBranch === 0) {
@@ -72,6 +74,7 @@ async function main() {
 		disableTsNode: true,
 	})
 
+	await generateAutoRcFile()
 	await auto.loadConfig()
 
 	// this creates a new commit
