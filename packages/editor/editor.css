@@ -1199,6 +1199,7 @@ input,
 	border-color: currentColor;
 	border-style: solid;
 	border-width: 1px;
+	opacity: 0.97;
 }
 
 .tl-note__container .tl-text-label {
