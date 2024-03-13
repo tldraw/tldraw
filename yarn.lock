@@ -7445,6 +7445,7 @@ __metadata:
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    fast-check: "npm:^3.16.0"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
     nanoid: "npm:4.0.2"
@@ -13468,6 +13469,15 @@ __metadata:
   dependencies:
     realistic-structured-clone: "npm:^3.0.0"
   checksum: b28e02023b78275014f4cd8bf8bd4e09fc797ad51e9cc9f4c545100cad316e3d79977977373fe83a2ee290085f04b403b1c0ab3b9f3abae5817aedf25ad30116
+  languageName: node
+  linkType: hard
+
+"fast-check@npm:^3.16.0":
+  version: 3.16.0
+  resolution: "fast-check@npm:3.16.0"
+  dependencies:
+    pure-rand: "npm:^6.0.0"
+  checksum: 4a14945b885ef2d75c3252a067a4cfa2440a2c0da18341d514be3803fafb616b0ec68806071f29e1267a85c7a9e4a5e192ae5e592727d8d2e66389f946be472c
   languageName: node
   linkType: hard
 
