@@ -423,7 +423,11 @@ export class Idle extends StateNode {
 		}
 
 		// For shapes that specify `doesAutoEditOnKeyStroke`, we start editing when a key is pressed.
-		if (!['Delete', 'Backspace'].includes(info.code) && !info.altKey && !info.ctrlKey) {
+		if (
+			!['Delete', 'Backspace', '[', ']', 'Enter'].includes(info.key) &&
+			!info.altKey &&
+			!info.ctrlKey
+		) {
 			// If the only selected shape is editable, then begin editing it
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
 			if (
