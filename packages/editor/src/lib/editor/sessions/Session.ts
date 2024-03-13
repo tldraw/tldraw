@@ -70,6 +70,8 @@ export abstract class Session<T extends object = object> {
 		this.infoWithoutEventHandlers = infoWithoutDefaults
 	}
 
+	isDisposed = false
+
 	protected handleTick = (elapsed: number) => {
 		this.elapsed = elapsed
 		this.duration += elapsed
@@ -208,6 +210,7 @@ export abstract class Session<T extends object = object> {
 	dispose = () => {
 		this.editor.off('tick', this.handleTick)
 		this.editor.off('event', this.handleEditorEvent)
+		this.isDisposed = true
 	}
 
 	protected onStart?(): void

@@ -1,62 +1,21 @@
-import { Box, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode } from '@tldraw/editor'
+import { ZoomBrushingSession } from '../../../sessions/ZoomBrushing'
 
 export class ZoomBrushing extends StateNode {
 	static override id = 'zoom_brushing'
 
-	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
+	session?: ZoomBrushingSession
 
-	zoomBrush = new Box()
-
-	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
-		this.info = info
-		this.update()
+	override onEnter = () => {
+		this.session = new ZoomBrushingSession(this.editor, {
+			onEnd: () => {
+				this.parent.transition('idle')
+			},
+		}).start()
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState({ zoomBrush: null })
-	}
-
-	override onPointerMove = () => {
-		this.update()
-	}
-
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		this.complete()
-	}
-
-	override onCancel: TLEventHandlers['onCancel'] = () => {
-		this.cancel()
-	}
-
-	private update() {
-		const {
-			inputs: { originPagePoint, currentPagePoint },
-		} = this.editor
-
-		this.zoomBrush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
-		this.editor.updateInstanceState({ zoomBrush: this.zoomBrush.toJson() })
-	}
-
-	private cancel() {
-		this.parent.transition('idle', this.info)
-	}
-
-	private complete() {
-		const { zoomBrush } = this
-		const threshold = 8 / this.editor.getZoomLevel()
-		// If the selected area is small then treat it as a click
-		if (zoomBrush.width < threshold && zoomBrush.height < threshold) {
-			const point = this.editor.inputs.currentScreenPoint
-			if (this.editor.inputs.altKey) {
-				this.editor.zoomOut(point, { duration: 220 })
-			} else {
-				this.editor.zoomIn(point, { duration: 220 })
-			}
-		} else {
-			const targetZoom = this.editor.inputs.altKey ? this.editor.getZoomLevel() / 2 : undefined
-			this.editor.zoomToBounds(zoomBrush, { targetZoom, duration: 220 })
-		}
-
-		this.parent.transition('idle', this.info)
+		this.session?.dispose()
+		delete this.session
 	}
 }

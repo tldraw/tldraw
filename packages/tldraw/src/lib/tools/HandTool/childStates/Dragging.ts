@@ -1,45 +1,21 @@
-import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec } from '@tldraw/editor'
+import { StateNode } from '@tldraw/editor'
+import { HandPanningSession } from '../../../sessions/HandPanningSession'
 
 export class Dragging extends StateNode {
-	static override id = 'dragging'
+	static override id = 'brushing'
+
+	session?: HandPanningSession
 
 	override onEnter = () => {
-		this.update()
+		this.session = new HandPanningSession(this.editor, {
+			onEnd: () => {
+				this.parent.transition('idle')
+			},
+		}).start()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.update()
-	}
-
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		this.complete()
-	}
-
-	override onCancel: TLEventHandlers['onCancel'] = () => {
-		this.complete()
-	}
-
-	override onComplete = () => {
-		this.complete()
-	}
-
-	private update() {
-		const { currentScreenPoint, previousScreenPoint } = this.editor.inputs
-
-		const delta = Vec.Sub(currentScreenPoint, previousScreenPoint)
-
-		if (Math.abs(delta.x) > 0 || Math.abs(delta.y) > 0) {
-			this.editor.pan(delta)
-		}
-	}
-
-	private complete() {
-		this.editor.slideCamera({
-			speed: Math.min(2, this.editor.inputs.pointerVelocity.len()),
-			direction: this.editor.inputs.pointerVelocity,
-			friction: CAMERA_SLIDE_FRICTION,
-		})
-
-		this.parent.transition('idle')
+	override onExit = () => {
+		this.session?.dispose()
+		delete this.session
 	}
 }

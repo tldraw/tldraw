@@ -10,31 +10,28 @@ export class HandTool extends StateNode {
 	static override children = () => [Idle, Pointing, Dragging]
 
 	override onDoubleClick: TLClickEvent = (info) => {
-		if (info.phase === 'settle') {
-			const { currentScreenPoint } = this.editor.inputs
-			this.editor.zoomIn(currentScreenPoint, { duration: 220, easing: EASINGS.easeOutQuint })
-		}
+		if (info.phase !== 'settle') return
+		const { currentScreenPoint } = this.editor.inputs
+		this.editor.zoomIn(currentScreenPoint, { duration: 220, easing: EASINGS.easeOutQuint })
 	}
 
 	override onTripleClick: TLClickEvent = (info) => {
-		if (info.phase === 'settle') {
-			const { currentScreenPoint } = this.editor.inputs
-			this.editor.zoomOut(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
-		}
+		if (info.phase !== 'settle') return
+		const { currentScreenPoint } = this.editor.inputs
+		this.editor.zoomOut(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
 	}
 
 	override onQuadrupleClick: TLClickEvent = (info) => {
-		if (info.phase === 'settle') {
-			const zoomLevel = this.editor.getZoomLevel()
-			const {
-				inputs: { currentScreenPoint },
-			} = this.editor
+		if (info.phase !== 'settle') return
+		const zoomLevel = this.editor.getZoomLevel()
+		const {
+			inputs: { currentScreenPoint },
+		} = this.editor
 
-			if (zoomLevel === 1) {
-				this.editor.zoomToFit({ duration: 400, easing: EASINGS.easeOutQuint })
-			} else {
-				this.editor.resetZoom(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
-			}
+		if (zoomLevel === 1) {
+			this.editor.zoomToFit({ duration: 400, easing: EASINGS.easeOutQuint })
+		} else {
+			this.editor.resetZoom(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
 		}
 	}
 }

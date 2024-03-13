@@ -1,35 +1,32 @@
-import { StateNode, TLEventHandlers } from '@tldraw/editor'
+import { StateNode } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onEnter = () => {
 		this.editor.stopCameraAnimation()
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'grabbing', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging', info)
+			this.parent.transition('dragging')
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp = () => {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel = () => {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete = () => {
 		this.complete()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt = () => {
 		this.complete()
 	}
 
