@@ -5,10 +5,5 @@
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
 		"rootDir": "src"
-	},
-	"references": [
-		{
-			"path": "../utils"
-		}
-	]
+	}
 }

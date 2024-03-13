@@ -39,81 +39,34 @@ export const enforcePrLabels: Flow = {
 			return await succeed('Closed PR, skipping label check')
 		}
 
-		const currentReleaseLabels = pull.labels
-			.map((label) => label.name)
-			.filter((label) => VALID_LABELS.includes(label))
-
-		if (currentReleaseLabels.length > 1 && !allHaveSameBumpType(currentReleaseLabels)) {
-			return fail(`PR has multiple release labels: ${currentReleaseLabels.join(', ')}`)
-		}
+		const availableLabels = (
+			await ctx.octokit.rest.issues.listLabelsForRepo({
+				owner: event.repository.owner.login,
+				repo: event.repository.name,
+			})
+		).data.map((x) => x.name)
 
 		const prBody = pull.body
 
-		const selectedReleaseLabels = VALID_LABELS.filter((label) =>
+		const selectedReleaseLabels = availableLabels.filter((label) =>
 			prBody?.match(new RegExp(`^\\s*?-\\s*\\[\\s*x\\s*\\]\\s+\`${label}\``, 'm'))
-		) as (keyof typeof LABEL_TYPES)[]
+		) as string[]
 
-		if (selectedReleaseLabels.length > 1 && !allHaveSameBumpType(selectedReleaseLabels)) {
-			return await fail(
-				`PR has multiple checked labels: ${selectedReleaseLabels.join(
-					', '
-				)}. Please select only one`
-			)
+		if (selectedReleaseLabels.length === 0 && pull.labels.length === 0) {
+			return fail('Please add a label to the PR.')
 		}
 
-		const [current] = currentReleaseLabels
-		const [selected] = selectedReleaseLabels
-
-		if (!current && !selected) {
-			return await fail(
-				`Please assign one of the following release labels to this PR: ${VALID_LABELS.join(', ')}`
-			)
-		}
-
-		if (current === selected || (current && !selected)) {
-			return succeed(`PR has label: ${current}`)
-		}
-
-		// otherwise the label has changed or is being set for the first time
-		// from the pr body
-		if (current) {
-			await ctx.octokit.rest.issues.removeLabel({
-				issue_number: event.number,
-				name: current,
-				owner: 'ds300',
-				repo: 'lazyrepo',
-			})
-		}
-
+		// add any labels that are checked
 		console.log('adding labels')
-		await ctx.octokit.rest.issues.addLabels({
-			issue_number: pull.number,
-			owner: event.repository.organization ?? event.repository.owner.login,
-			repo: event.repository.name,
-			labels: [selected],
-		} as any)
+		if (selectedReleaseLabels.length > 0) {
+			await ctx.octokit.rest.issues.addLabels({
+				issue_number: pull.number,
+				owner: event.repository.organization ?? event.repository.owner.login,
+				repo: event.repository.name,
+				labels: selectedReleaseLabels,
+			} as any)
+		}
 
-		return await succeed(`PR label set to: ${selected}`)
+		return await succeed(`PR is labelled!`)
 	},
-}
-
-const LABEL_TYPES = {
-	tests: 'none',
-	internal: 'none',
-	documentation: 'none',
-	dependencies: 'patch',
-	major: 'major',
-	minor: 'minor',
-	patch: 'patch',
-}
-
-const VALID_LABELS = Object.keys(LABEL_TYPES)
-
-function allHaveSameBumpType(labels: string[]) {
-	const [first] = labels
-	return labels.every(
-		(label) =>
-			LABEL_TYPES[label as keyof typeof LABEL_TYPES] ===
-			LABEL_TYPES[first as keyof typeof LABEL_TYPES]
-	)
 }

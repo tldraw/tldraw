@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FileHelpers,
 	PngHelpers,
 	TLShapeId,
 	TLSvgOptions,
@@ -98,7 +99,6 @@ export async function getSvgAsString(svg: SVGElement) {
 	svg.setAttribute('width', +svg.getAttribute('width')! + '')
 	svg.setAttribute('height', +svg.getAttribute('height')! + '')
 
-	const fileReader = new FileReader()
 	const imgs = Array.from(clone.querySelectorAll('image')) as SVGImageElement[]
 
 	for (const img of imgs) {
@@ -106,11 +106,7 @@ export async function getSvgAsString(svg: SVGElement) {
 		if (src) {
 			if (!src.startsWith('data:')) {
 				const blob = await (await fetch(src)).blob()
-				const base64 = await new Promise<string>((resolve, reject) => {
-					fileReader.onload = () => resolve(fileReader.result as string)
-					fileReader.onerror = () => reject(fileReader.error)
-					fileReader.readAsDataURL(blob)
-				})
+				const base64 = await FileHelpers.blobToDataUrl(blob)
 				img.setAttribute('xlink:href', base64)
 			}
 		}
