@@ -41,6 +41,7 @@ import { ReadonlySharedStyleMap } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
 import { Result } from '@tldraw/editor';
+import { RotateCorner } from '@tldraw/editor';
 import { SelectionHandle } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { Session } from '@tldraw/editor';
