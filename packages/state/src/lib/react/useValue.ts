@@ -1,5 +1,4 @@
 /* eslint-disable prefer-rest-params */
-import { throttleToNextFrame } from '@tldraw/utils'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
 import { Signal, computed, react } from '../core'
 
@@ -82,16 +81,10 @@ export function useValue() {
 		const { subscribe, getSnapshot } = useMemo(() => {
 			return {
 				subscribe: (listen: () => void) => {
-					return react(
-						`useValue(${name})`,
-						() => {
-							$val.get()
-							listen()
-						},
-						{
-							scheduleEffect: throttleToNextFrame,
-						}
-					)
+					return react(`useValue(${name})`, () => {
+						$val.get()
+						listen()
+					})
 				},
 				getSnapshot: () => $val.get(),
 			}

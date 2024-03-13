@@ -4,7 +4,7 @@ import path from 'path'
 import { TLDRAW_PACKAGES_TO_INCLUDE_IN_DOCS } from './package-list'
 
 const octokit = new Octokit({
-	auth: process.env.GITHUB_ACCESS_TOKEN,
+	auth: process.env.ACCESS_TOKEN,
 })
 
 const { log: nicelog } = console
