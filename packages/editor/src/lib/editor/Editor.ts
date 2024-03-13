@@ -2858,7 +2858,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.pageToScreen({ x: 100, y: 100 })
 	 * ```
 	 *
-	 * @param point - The point in screen space.
+	 * @param point - The point in page space.
 	 *
 	 * @public
 	 */
@@ -2869,6 +2869,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return {
 			x: (point.x + cx) * cz + screenBounds.x,
 			y: (point.y + cy) * cz + screenBounds.y,
+			z: point.z ?? 0.5,
+		}
+	}
+
+	/**
+	 * Convert a point in the current page space to a point in current viewport space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.pageToViewport({ x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param point - The point in page space.
+	 *
+	 * @public
+	 */
+	pageToViewport(point: VecLike) {
+		const screenBounds = this.getViewportScreenBounds()
+		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
+
+		return {
+			x: (point.x + cx) * cz,
+			y: (point.y + cy) * cz,
 			z: point.z ?? 0.5,
 		}
 	}

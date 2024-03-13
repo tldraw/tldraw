@@ -15423,7 +15423,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#pageToScreen:member(1)",
-              "docComment": "/**\n * Convert a point in the current page space to a point in current screen space.\n *\n * @param point - The point in screen space.\n *\n * @example\n * ```ts\n * editor.pageToScreen({ x: 100, y: 100 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Convert a point in the current page space to a point in current screen space.\n *\n * @param point - The point in page space.\n *\n * @example\n * ```ts\n * editor.pageToScreen({ x: 100, y: 100 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15468,6 +15468,55 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "pageToScreen"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#pageToViewport:member(1)",
+              "docComment": "/**\n * Convert a point in the current page space to a point in current viewport space.\n *\n * @param point - The point in page space.\n *\n * @example\n * ```ts\n * editor.pageToViewport({ x: 100, y: 100 })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "pageToViewport(point: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        x: number;\n        y: number;\n        z: number;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "point",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "pageToViewport"
             },
             {
               "kind": "Method",

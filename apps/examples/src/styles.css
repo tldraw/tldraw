@@ -17,6 +17,8 @@ body {
 	/* mobile viewport bug fix */
 	min-height: -webkit-fill-available;
 	height: 100%;
+	/* prevent two-finger swipe to go back */
+	overscroll-behavior-x: none;
 }
 @media screen and (max-width: 600px) {
 	html,
