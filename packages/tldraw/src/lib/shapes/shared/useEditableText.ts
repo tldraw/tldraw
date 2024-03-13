@@ -37,7 +37,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 		// Place the cursor at the end of the text.
 		if (elm && isEditing && doesShapeAutoEditOnKeystroke) {
-			elm.setSelectionRange(elm.value.length, elm.value.length)
+			elm.setSelectionRange(0, elm.value.length)
 		}
 	}, [isEditing, doesShapeAutoEditOnKeystroke])
 
