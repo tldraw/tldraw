@@ -1,5 +1,5 @@
 import { StateNode, TLArrowShape, TLPointerEventInfo } from '@tldraw/editor'
-import { TranslatingArrowLabelSession } from '../../../sessions/TranslatingArrowLabel'
+import { TranslatingArrowLabelSession } from '../../../sessions/TranslatingArrowLabelSession'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'

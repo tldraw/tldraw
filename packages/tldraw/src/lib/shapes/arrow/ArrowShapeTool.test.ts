@@ -416,10 +416,9 @@ describe('reparenting issue', () => {
 			handle: { id: 'end', type: 'vertex', index: 'a0' as IndexKey, x: 100, y: 100 },
 			shape: editor.getShape(arrowId)!,
 		})
-		editor.expectToBeIn('select.pointing_handle')
-
+		editor.expectToBeIn('select.pointing_arrow_handle')
 		editor.pointerMove(320, 320) // over box 2
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('select.pointing_arrow_handle')
 		editor.expectShapeToMatch({
 			id: arrowId,
 			index: 'a3V' as IndexKey,

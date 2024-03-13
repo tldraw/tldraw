@@ -1,6 +1,6 @@
 import { Session, TLArrowShape, TLHandle, TLShapeId, TLShapePartial, Vec } from '@tldraw/editor'
 
-export class TranslatingArrowTerminalBend extends Session<{
+export class TranslatingArrowBendSession extends Session<{
 	shape: TLArrowShape
 	handle: TLHandle
 }> {

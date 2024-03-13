@@ -8,6 +8,7 @@ import {
 	Vec,
 	snapAngle,
 	sortByIndex,
+	structuredClone,
 } from '@tldraw/editor'
 
 export class TranslatingArrowTerminalSession extends Session<{
@@ -26,6 +27,8 @@ export class TranslatingArrowTerminalSession extends Session<{
 	isPrecise = false
 	isPreciseId: TLShapeId | null = null
 	pointingId: TLShapeId | null = null
+
+	didTranslate = false
 
 	override onStart() {
 		const { shape, handle } = this.info
@@ -59,6 +62,21 @@ export class TranslatingArrowTerminalSession extends Session<{
 			info: { shape: initialShape },
 			initialPagePoint,
 		} = this
+
+		if (!editor.inputs.isPointing) {
+			this.complete()
+			return
+		}
+
+		if (editor.inputs.isDragging) {
+			if (this.didTranslate) {
+				this.didTranslate = true
+			}
+		} else {
+			// noop
+			return
+		}
+
 		const { initialHandle, initialPageRotation, initialOppositeHandle } = this
 		const hintingShapeIds = this.editor.getHintingShapeIds()
 		const isSnapMode = this.editor.user.getIsSnapMode()

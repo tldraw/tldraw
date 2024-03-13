@@ -8,6 +8,7 @@ import {
 	TLEventHandlers,
 	TLGroupShape,
 	TLKeyboardEventInfo,
+	TLLineShape,
 	TLShape,
 	TLTextShape,
 	Vec,
@@ -26,10 +27,7 @@ export class Idle extends StateNode {
 	override onEnter = () => {
 		this.parent.setCurrentToolIdMask(undefined)
 		updateHoveredId(this.editor)
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
@@ -111,7 +109,13 @@ export class Idle extends StateNode {
 				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
-					this.parent.transition('pointing_handle', info)
+					if (this.editor.isShapeOfType<TLArrowShape>(info.shape, 'arrow')) {
+						this.parent.transition('pointing_arrow_handle', info)
+					} else if (this.editor.isShapeOfType<TLLineShape>(info.shape, 'line')) {
+						this.parent.transition('pointing_line_handle', info)
+					} else {
+						this.parent.transition('pointing_handle', info)
+					}
 				}
 				break
 			}

@@ -1173,7 +1173,7 @@ export function RotateCWMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class SelectTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Brushing | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_12 | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle_2 | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof ResizingCrop | typeof Translating)[];
+    static children: () => (typeof Brushing | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_12 | typeof PointingArrowHandle | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle_2 | typeof PointingHandle | typeof PointingLineHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof ResizingCrop | typeof Translating)[];
     // (undocumented)
     static id: string;
     // (undocumented)

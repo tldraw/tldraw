@@ -145,7 +145,7 @@ describe('DraggingHandle', () => {
 			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('select.pointing_line_handle')
 
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
@@ -161,7 +161,7 @@ describe('DraggingHandle', () => {
 			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('select.pointing_line_handle')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})

@@ -35,6 +35,7 @@ export class ZoomTool extends StateNode {
 
 		if (info.code === 'KeyZ') {
 			this.complete()
+			return
 		}
 	}
 

@@ -1,4 +1,4 @@
-import { StateNode, TLArrowShape, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -8,27 +8,11 @@ export class PointingHandle extends StateNode {
 	override onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
 		this.info = info
 
-		const { shape } = info
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			const initialTerminal = shape.props[info.handle.id as 'start' | 'end']
-
-			if (initialTerminal?.type === 'binding') {
-				this.editor.setHintingShapes([initialTerminal.boundShapeId])
-			}
-		}
-
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'grabbing', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
 	override onExit = () => {
-		this.editor.setHintingShapes([])
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

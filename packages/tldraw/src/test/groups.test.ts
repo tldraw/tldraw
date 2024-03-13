@@ -1753,9 +1753,10 @@ describe('moving handles within a group', () => {
 			handle: editor.getShapeHandles<TLArrowShape>(arrow)!.find((h) => h.id === 'end'),
 		})
 
-		editor.expectToBeIn('select.pointing_handle')
+		editor.expectToBeIn('select.pointing_arrow_handle')
 		editor.pointerMove(60, -10)
-		editor.expectToBeIn('select.dragging_handle')
+
+		editor.expectToBeIn('select.pointing_arrow_handle')
 		editor.pointerMove(60, -10)
 
 		arrow = editor.getShape(arrow.id)!

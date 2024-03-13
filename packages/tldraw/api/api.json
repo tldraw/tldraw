@@ -13863,6 +13863,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "PointingArrowHandle",
+                  "canonicalReference": "tldraw!~PointingArrowHandle:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
                   "text": "PointingArrowLabel",
                   "canonicalReference": "tldraw!~PointingArrowLabel:class"
                 },
@@ -13892,6 +13901,15 @@
                   "kind": "Reference",
                   "text": "PointingHandle",
                   "canonicalReference": "tldraw!~PointingHandle:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PointingLineHandle",
+                  "canonicalReference": "tldraw!~PointingLineHandle:class"
                 },
                 {
                   "kind": "Content",
@@ -13971,7 +13989,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 34
+                "endIndex": 38
               },
               "isStatic": true,
               "isProtected": false,

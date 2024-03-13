@@ -4,10 +4,12 @@ import { Cropping } from './childStates/Cropping/Cropping'
 import { DraggingHandle } from './childStates/DraggingHandle'
 import { EditingShape } from './childStates/EditingShape'
 import { Idle } from './childStates/Idle'
+import { PointingArrowHandle } from './childStates/PointingArrowHandle'
 import { PointingArrowLabel } from './childStates/PointingArrowLabel'
 import { PointingCanvas } from './childStates/PointingCanvas'
 import { PointingCropHandle } from './childStates/PointingCropHandle'
 import { PointingHandle } from './childStates/PointingHandle'
+import { PointingLineHandle } from './childStates/PointingLineHandle'
 import { PointingResizeHandle } from './childStates/PointingResizeHandle'
 import { PointingRotateHandle } from './childStates/PointingRotateHandle'
 import { PointingSelection } from './childStates/PointingSelection'
@@ -41,6 +43,8 @@ export class SelectTool extends StateNode {
 		PointingArrowLabel,
 		PointingHandle,
 		DraggingHandle,
+		PointingArrowHandle,
+		PointingLineHandle,
 	]
 
 	// We want to clean up the duplicate props when the selection changes
