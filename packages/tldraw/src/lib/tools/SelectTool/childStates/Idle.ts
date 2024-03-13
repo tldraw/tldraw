@@ -423,8 +423,10 @@ export class Idle extends StateNode {
 		}
 
 		// For shapes that specify `doesAutoEditOnKeyStroke`, we start editing when a key is pressed.
+		// We exclude Delete/Backspace obviously, [ and ] are keyboard shortcuts we want to keep,
+		// and space is used for panning.
 		if (
-			!['Delete', 'Backspace', '[', ']', 'Enter'].includes(info.key) &&
+			!['Delete', 'Backspace', '[', ']', 'Enter', ' '].includes(info.key) &&
 			!info.altKey &&
 			!info.ctrlKey
 		) {
