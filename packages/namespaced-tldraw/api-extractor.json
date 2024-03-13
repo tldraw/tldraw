@@ -1,0 +1,20 @@
+{
+	"$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+	"extends": "../../config/api-extractor.json",
+	// the file paths in the shared api-extractor.json don't work for us here, so we specify them manually:
+	"mainEntryPointFilePath": "<projectFolder>/packages/namespaced-tldraw/.tsbuild-api/index.d.ts",
+	"compiler": {
+		"tsconfigFilePath": "<projectFolder>/packages/namespaced-tldraw/tsconfig.json"
+	},
+	"apiReport": {
+		"reportFolder": "<projectFolder>/packages/namespaced-tldraw/",
+		"reportTempFolder": "<projectFolder>/packages/namespaced-tldraw/api/temp"
+	},
+	"docModel": {
+		"apiJsonFilePath": "<projectFolder>/packages/namespaced-tldraw/api/api.json"
+	},
+	"dtsRollup": {
+		"untrimmedFilePath": "<projectFolder>/packages/namespaced-tldraw/api/internal.d.ts",
+		"publicTrimmedFilePath": "<projectFolder>/packages/namespaced-tldraw/api/public.d.ts"
+	}
+}

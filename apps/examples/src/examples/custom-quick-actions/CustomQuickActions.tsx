@@ -4,14 +4,16 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomQuickActions() {
 	return (
 		<DefaultQuickActions>
 			<DefaultQuickActionsContent />
-			<TldrawUiMenuItem id="code" icon="code" onSelect={() => window.alert('code')} />
+			<div style={{ backgroundColor: 'thistle' }}>
+				<TldrawUiMenuItem id="code" icon="code" onSelect={() => window.alert('code')} />
+			</div>
 		</DefaultQuickActions>
 	)
 }

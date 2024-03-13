@@ -5,23 +5,25 @@ import {
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomZoomMenu() {
 	return (
 		<DefaultZoomMenu>
-			<TldrawUiMenuGroup id="example">
-				<TldrawUiMenuItem
-					id="like"
-					label="Like my posts"
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
-					}}
-				/>
-			</TldrawUiMenuGroup>
+			<div style={{ backgroundColor: 'thistle' }}>
+				<TldrawUiMenuGroup id="example">
+					<TldrawUiMenuItem
+						id="like"
+						label="Like my posts"
+						icon="external-link"
+						readonlyOk
+						onSelect={() => {
+							window.open('https://x.com/tldraw', '_blank')
+						}}
+					/>
+				</TldrawUiMenuGroup>
+			</div>
 			<DefaultZoomMenuContent />
 		</DefaultZoomMenu>
 	)

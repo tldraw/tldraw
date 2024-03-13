@@ -1,6 +1,6 @@
-import { TLEventInfo, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { useCallback, useState } from 'react'
+import { TLEventInfo, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
@@ -48,6 +48,7 @@ export default function CanvasEventsExample() {
 					overflow: 'auto',
 					whiteSpace: 'pre-wrap',
 				}}
+				onCopy={(event) => event.stopPropagation()}
 			>
 				<div>{JSON.stringify(events, undefined, 2)}</div>
 			</div>

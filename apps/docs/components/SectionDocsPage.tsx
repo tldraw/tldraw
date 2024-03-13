@@ -11,7 +11,7 @@ export async function SectionDocsPage({ section }: { section: Section }) {
 		<>
 			<Header sectionId={section.id} />
 			<Sidebar {...sidebar} />
-			<main className="article">
+			<main className="main-content article">
 				<div className="page-header">
 					<h1>{section.title}</h1>
 				</div>

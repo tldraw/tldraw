@@ -36,6 +36,7 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
+	isDirty = false
 	onCreate: (shape: TLShape | null) => void = () => void null
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
@@ -51,6 +52,7 @@ export class Translating extends StateNode {
 		const { isCreating = false, onCreate = () => void null } = info
 
 		this.info = info
+		this.isDirty = false
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
 		this.onCreate = onCreate
@@ -99,10 +101,14 @@ export class Translating extends StateNode {
 			this.updateParentTransforms
 		)
 		moveCameraWhenCloseToEdge(this.editor)
+		if (this.isDirty) {
+			this.isDirty = false
+			this.updateShapes()
+		}
 	}
 
 	override onPointerMove = () => {
-		this.updateShapes()
+		this.isDirty = true
 	}
 
 	override onKeyDown = () => {
@@ -167,6 +173,7 @@ export class Translating extends StateNode {
 
 	protected complete() {
 		this.updateShapes()
+		this.isDirty = false
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
 		this.handleEnd()
 
@@ -213,17 +220,19 @@ export class Translating extends StateNode {
 	protected handleEnd() {
 		const { movingShapes } = this.snapshot
 
-		if (this.isCloning) {
+		if (this.isCloning && movingShapes.length > 0) {
 			const currentAveragePagePoint = Vec.Average(
 				movingShapes.map((s) => this.editor.getShapePageTransform(s.id)!.point())
 			)
 			const offset = Vec.Sub(currentAveragePagePoint, this.selectionSnapshot.averagePagePoint)
-			this.editor.updateInstanceState({
-				duplicateProps: {
-					shapeIds: movingShapes.map((s) => s.id),
-					offset: { x: offset.x, y: offset.y },
-				},
-			})
+			if (!Vec.IsNaN(offset)) {
+				this.editor.updateInstanceState({
+					duplicateProps: {
+						shapeIds: movingShapes.map((s) => s.id),
+						offset: { x: offset.x, y: offset.y },
+					},
+				})
+			}
 		}
 
 		const changes: TLShapePartial[] = []

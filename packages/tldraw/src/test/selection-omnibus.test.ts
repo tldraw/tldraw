@@ -119,6 +119,77 @@ describe('Hovering shapes', () => {
 	})
 })
 
+describe('brushing', () => {
+	beforeEach(() => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', props: { fill: 'solid', w: 50, h: 50 } }])
+		editor.user.updateUserPreferences({ isWrapMode: false })
+	})
+
+	afterAll(() => {
+		editor.user.updateUserPreferences({ isWrapMode: false })
+	})
+
+	it('brushes on wrap', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+
+	it('brushes on intersection', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(10, 10)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+
+	it('brushes only on wrap when ctrl key is down', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(10, 10)
+		editor.keyDown('Control')
+		expect(editor.getSelectedShapeIds().length).toBe(0)
+		editor.pointerMove(100, 100)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+})
+
+describe('brushing with wrap mode on', () => {
+	beforeEach(() => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', props: { fill: 'solid', w: 50, h: 50 } }])
+		editor.user.updateUserPreferences({ isWrapMode: true })
+	})
+
+	afterAll(() => {
+		editor.user.updateUserPreferences({ isWrapMode: false })
+	})
+
+	it('brushes on wrap', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+
+	it('does not brush on intersection', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(10, 10)
+		expect(editor.getSelectedShapeIds().length).toBe(0)
+	})
+
+	it('brushes on intersection when ctrl key is down', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(10, 10)
+		expect(editor.getSelectedShapeIds().length).toBe(0)
+		editor.keyDown('Control')
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+		editor.pointerMove(100, 100)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+})
+
 describe('when shape is filled', () => {
 	let box1: TLGeoShape
 	beforeEach(() => {
@@ -684,8 +755,8 @@ describe('when a frame has multiple children', () => {
 		editor.pointerDown()
 		editor.pointerMove(30, 30)
 		editor.expectToBeIn('select.brushing')
-		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerUp()
 	})
 
 	it('brush selects shapes when containing them in a drag from outside of the frame', () => {
@@ -1473,6 +1544,7 @@ describe('When double clicking an editable shape', () => {
 
 describe('shift brushes to add to the selection', () => {
 	beforeEach(() => {
+		editor.user.updateUserPreferences({ isWrapMode: false })
 		editor
 			.createShapes([
 				{ id: ids.box1, type: 'geo', x: 0, y: 0 },

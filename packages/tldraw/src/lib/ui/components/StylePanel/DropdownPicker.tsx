@@ -1,4 +1,4 @@
-import { SharedStyle, StyleProp } from '@tldraw/editor'
+import { SharedStyle, StyleProp, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -36,6 +36,7 @@ function _DropdownPicker<T extends string>({
 	onValueChange,
 }: DropdownPickerProps<T>) {
 	const msg = useTranslation()
+	const editor = useEditor()
 
 	const icon = React.useMemo(
 		() => items.find((item) => value.type === 'shared' && item.value === value.value)?.icon,
@@ -65,7 +66,10 @@ function _DropdownPicker<T extends string>({
 									type="icon"
 									data-testid={`style.${uiType}.${item.value}`}
 									title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
-									onClick={() => onValueChange(style, item.value, false)}
+									onClick={() => {
+										editor.mark('select style dropdown item')
+										onValueChange(style, item.value, false)
+									}}
 								>
 									<TldrawUiButtonIcon icon={item.icon} />
 								</TldrawUiButton>

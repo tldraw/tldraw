@@ -9,8 +9,8 @@ import {
 	TldrawUiButtonLabel,
 	useEditor,
 	useRelevantStyles,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomStylePanel(props: TLUiStylePanelProps) {
 	const editor = useEditor()
@@ -21,22 +21,26 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 
 	return (
 		<DefaultStylePanel {...props}>
-			<TldrawUiButton
-				type="menu"
-				onClick={() => {
-					editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { squashing: true })
-				}}
-			>
-				<TldrawUiButtonLabel>Red</TldrawUiButtonLabel>
-			</TldrawUiButton>
-			<TldrawUiButton
-				type="menu"
-				onClick={() => {
-					editor.setStyleForSelectedShapes(DefaultColorStyle, 'green', { squashing: true })
-				}}
-			>
-				<TldrawUiButtonLabel>Green</TldrawUiButtonLabel>
-			</TldrawUiButton>
+			<div style={{ backgroundColor: 'thistle' }}>
+				<TldrawUiButton
+					type="menu"
+					onClick={() => {
+						editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { squashing: true })
+					}}
+				>
+					<TldrawUiButtonLabel>Red</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</div>
+			<div style={{ backgroundColor: 'thistle' }}>
+				<TldrawUiButton
+					type="menu"
+					onClick={() => {
+						editor.setStyleForSelectedShapes(DefaultColorStyle, 'green', { squashing: true })
+					}}
+				>
+					<TldrawUiButtonLabel>Green</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</div>
 			<DefaultStylePanelContent styles={styles} />
 		</DefaultStylePanel>
 	)

@@ -401,6 +401,31 @@ async function writeAssetDeclarationDTSFile() {
 	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
+async function copyVersionToDotCom() {
+	const packageJson = await readJsonIfExists(join(REPO_ROOT, 'packages', 'tldraw', 'package.json'))
+	const packageVersion = packageJson.version
+
+	const file = `export const version = '${packageVersion}'`
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		join(REPO_ROOT, 'apps', 'dotcom', 'version.ts'),
+		file
+	)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		join(REPO_ROOT, 'packages', 'editor', 'src', 'version.ts'),
+		file
+	)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		join(REPO_ROOT, 'packages', 'tldraw', 'src', 'lib', 'ui', 'version.ts'),
+		file
+	)
+}
+
 // --- RUN
 async function main() {
 	nicelog('Copying icons...')
@@ -417,6 +442,7 @@ async function main() {
 	await writeImportBasedAssetDeclarationFile('', 'imports.js')
 	await writeImportBasedAssetDeclarationFile('?url', 'imports.vite.js')
 	await writeSelfHostedAssetDeclarationFile()
+	await copyVersionToDotCom()
 	nicelog('Done!')
 }
 

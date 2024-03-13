@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
-import { ComputedCache, RecordType } from '@tldraw/store'
+import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
 	InstancePageStateRecordType,
@@ -26,6 +26,7 @@ import {
 	TLPage,
 	TLPageId,
 	TLParentId,
+	TLRecord,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -1214,7 +1215,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (partial.isChangingStyle === true) {
 				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
 				this._isChangingStyleTimeout = setTimeout(() => {
-					this.updateInstanceState({ isChangingStyle: false })
+					this.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
 				}, 2000)
 			}
 		}
@@ -1660,6 +1661,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		return 0
 	}
+
 	/**
 	 * The bounds of the selection bounding box in the current page space.
 	 *
@@ -1698,6 +1700,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
 		return boxFromRotatedVertices
+	}
+
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed getSelectionRotatedScreenBounds(): Box | undefined {
+		const bounds = this.getSelectionRotatedPageBounds()
+		if (!bounds) return undefined
+		const { x, y } = this.pageToScreen(bounds.point)
+		const zoom = this.getZoomLevel()
+		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
 	// Focus Group
@@ -2847,7 +2863,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	pageToScreen(point: VecLike) {
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+		const screenBounds = this.getViewportScreenBounds()
 		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 
 		return {
@@ -7180,7 +7196,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return sharedStyles
 	}
 
-	/** @internal */
+	/**
+	 * Get the style for the next shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const color = editor.getStyleForNextShape(DefaultColorStyle)
+	 * ```
+	 *
+	 * @param style - The style to get.
+	 *
+	 * @public */
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
 		const value = this.getInstanceState().stylesForNextShape[style.id]
 		return value === undefined ? style.defaultValue : (value as T)
@@ -7721,8 +7747,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
 		const currentPageId = this.getCurrentPageId()
-		const { assets, shapes, rootShapeIds } = content
+		const { rootShapeIds } = content
 
+		// We need to collect the migrated shapes and assets
+		const assets: TLAsset[] = []
+		const shapes: TLShape[] = []
+
+		// Let's treat the content as a store, and then migrate that store.
+		const store: StoreSnapshot<TLRecord> = {
+			store: {
+				...Object.fromEntries(content.assets.map((asset) => [asset.id, asset] as const)),
+				...Object.fromEntries(content.shapes.map((asset) => [asset.id, asset] as const)),
+			},
+			schema: content.schema,
+		}
+		const result = this.store.schema.migrateStoreSnapshot(store)
+		if (result.type === 'error') {
+			throw Error('Could not put content: could not migrate content')
+		}
+		for (const record of Object.values(result.value)) {
+			switch (record.typeName) {
+				case 'asset': {
+					assets.push(record)
+					break
+				}
+				case 'shape': {
+					shapes.push(record)
+					break
+				}
+			}
+		}
+
+		// Ok, we've got our migrated shapes and assets, now we can continue!
 		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
 
 		// By default, the paste parent will be the current page.
@@ -7860,80 +7916,57 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		// Migrate the new shapes
+		// These are all the assets we need to create
+		const assetsToCreate: TLAsset[] = []
 
-		let assetsToCreate: TLAsset[] = []
+		// These assets have base64 data that may need to be hosted
+		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
 
-		if (assets) {
-			for (let i = 0; i < assets.length; i++) {
-				const asset = assets[i]
-				const result = this.store.schema.migratePersistedRecord(asset, content.schema)
-				if (result.type === 'success') {
-					assets[i] = result.value as TLAsset
-				} else {
-					throw Error(
-						`Could not put content:\ncould not migrate content for asset:\n${asset.type}\nreason:${result.reason}`
-					)
+		for (const asset of assets) {
+			if (this.store.has(asset.id)) {
+				// We already have this asset
+				continue
+			}
+
+			if (
+				(asset.type === 'image' || asset.type === 'video') &&
+				asset.props.src?.startsWith('data:image')
+			) {
+				// it's src is a base64 image or video; we need to create a new asset without the src,
+				// then create a new asset from the original src. So we save a copy of the original asset,
+				// then delete the src from the original asset.
+				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
+				asset.props.src = null
+			}
+
+			// Add the asset to the list of assets to create
+			assetsToCreate.push(asset)
+		}
+
+		// Start loading the new assets, order does not matter
+		Promise.allSettled(
+			(assetsToUpdate as (TLImageAsset | TLVideoAsset)[]).map(async (asset) => {
+				// Turn the data url into a file
+				const file = await dataUrlToFile(
+					asset.props.src!,
+					asset.props.name,
+					asset.props.mimeType ?? 'image/png'
+				)
+
+				// Get a new asset for the file
+				const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
+
+				if (!newAsset) {
+					// If we don't have a new asset, delete the old asset.
+					// The shapes that reference this asset should break.
+					this.deleteAssets([asset.id])
+					return
 				}
-			}
 
-			const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
-
-			assetsToCreate = assets
-				.filter((asset) => !this.store.has(asset.id))
-				.map((asset) => {
-					if (asset.type === 'image' || asset.type === 'video') {
-						if (asset.props.src && asset.props.src?.startsWith('data:image')) {
-							assetsToUpdate.push(structuredClone(asset))
-							asset.props.src = null
-						} else {
-							assetsToUpdate.push(structuredClone(asset))
-						}
-					}
-
-					return asset
-				})
-
-			Promise.allSettled(
-				assetsToUpdate.map(async (asset) => {
-					const file = await dataUrlToFile(
-						asset.props.src!,
-						asset.props.name,
-						asset.props.mimeType ?? 'image/png'
-					)
-
-					const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
-
-					if (!newAsset) {
-						return null
-					}
-
-					return [asset, newAsset] as const
-				})
-			).then((assets) => {
-				this.updateAssets(
-					compact(
-						assets.map((result) =>
-							result.status === 'fulfilled' && result.value
-								? { ...result.value[1], id: result.value[0].id }
-								: undefined
-						)
-					)
-				)
+				// Save the new asset under the old asset's id
+				this.updateAssets([{ ...newAsset, id: asset.id }])
 			})
-		}
-
-		for (let i = 0; i < newShapes.length; i++) {
-			const shape = newShapes[i]
-			const result = this.store.schema.migratePersistedRecord(shape, content.schema)
-			if (result.type === 'success') {
-				newShapes[i] = result.value as TLShape
-			} else {
-				throw Error(
-					`Could not put content:\ncould not migrate content for shape:\n${shape.type}\nreason:${result.reason}`
-				)
-			}
-		}
+		)
 
 		this.batch(() => {
 			// Create any assets that need to be created

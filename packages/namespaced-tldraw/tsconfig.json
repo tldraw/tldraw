@@ -1,0 +1,15 @@
+{
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
+	"compilerOptions": {
+		"outDir": "./.tsbuild",
+		"noImplicitReturns": false,
+		"rootDir": "src"
+	},
+	"references": [
+		{
+			"path": "../tldraw"
+		}
+	]
+}

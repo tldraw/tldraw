@@ -1,13 +1,13 @@
 import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, useCallback } from 'react'
+import { ReactNode, memo, useCallback } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 
 /** @public */
 export interface TLUiStylePanelProps {
 	isMobile?: boolean
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
@@ -21,7 +21,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
-			editor.updateInstanceState({ isChangingStyle: false })
+			editor.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
 		}
 	}, [editor, isMobile])
 

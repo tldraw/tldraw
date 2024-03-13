@@ -1,7 +1,6 @@
 import {
 	TLUiDialogsContextType,
 	TldrawUiButton,
-	TldrawUiButtonCheck,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -9,35 +8,31 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	useTranslation,
-} from '@tldraw/tldraw'
-import { useState } from 'react'
-import { userPreferences } from './userPreferences'
+} from 'tldraw'
 
+/** @public */
 export async function shouldOverrideDocument(addDialog: TLUiDialogsContextType['addDialog']) {
-	if (userPreferences.showFileOpenWarning.get()) {
-		const shouldContinue = await new Promise<boolean>((resolve) => {
-			addDialog({
-				component: ({ onClose }) => (
-					<ConfirmOpenDialog
-						onCancel={() => {
-							resolve(false)
-							onClose()
-						}}
-						onContinue={() => {
-							resolve(true)
-							onClose()
-						}}
-					/>
-				),
-				onClose: () => {
-					resolve(false)
-				},
-			})
+	const shouldContinue = await new Promise<boolean>((resolve) => {
+		addDialog({
+			component: ({ onClose }) => (
+				<ConfirmOpenDialog
+					onCancel={() => {
+						resolve(false)
+						onClose()
+					}}
+					onContinue={() => {
+						resolve(true)
+						onClose()
+					}}
+				/>
+			),
+			onClose: () => {
+				resolve(false)
+			},
 		})
+	})
 
-		return shouldContinue
-	}
-	return true
+	return shouldContinue
 }
 
 function ConfirmOpenDialog({
@@ -48,7 +43,6 @@ function ConfirmOpenDialog({
 	onContinue: () => void
 }) {
 	const msg = useTranslation()
-	const [dontShowAgain, setDontShowAgain] = useState(false)
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -59,28 +53,10 @@ function ConfirmOpenDialog({
 				{msg('file-system.confirm-open.description')}
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton
-					type="normal"
-					onClick={() => setDontShowAgain(!dontShowAgain)}
-					style={{ marginRight: 'auto' }}
-				>
-					<TldrawUiButtonCheck checked={dontShowAgain} />
-					<TldrawUiButtonLabel>
-						{msg('file-system.confirm-open.dont-show-again')}
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
 				<TldrawUiButton type="normal" onClick={onCancel}>
 					<TldrawUiButtonLabel>{msg('file-system.confirm-open.cancel')}</TldrawUiButtonLabel>
 				</TldrawUiButton>
-				<TldrawUiButton
-					type="primary"
-					onClick={async () => {
-						if (dontShowAgain) {
-							userPreferences.showFileOpenWarning.set(false)
-						}
-						onContinue()
-					}}
-				>
+				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
 					<TldrawUiButtonLabel>{msg('file-system.confirm-open.open')}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>

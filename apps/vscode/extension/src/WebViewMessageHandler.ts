@@ -4,7 +4,7 @@ import * as vscode from 'vscode'
 import { TLDrawDocument } from './TldrawDocument'
 import { loadFile } from './file'
 
-import { UnknownRecord } from '@tldraw/tldraw'
+import { UnknownRecord } from 'tldraw'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
 import { nicelog } from './utils'

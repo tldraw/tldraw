@@ -1,4 +1,5 @@
 import { ContextMenuGroup } from '@radix-ui/react-context-menu'
+import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -12,7 +13,7 @@ export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
 	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.
 	 */
 	label?: TranslationKey | { [key: string]: TranslationKey }
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */

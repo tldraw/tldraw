@@ -10,43 +10,42 @@ export function Header({ sectionId }: { sectionId?: string }) {
 		<div className="layout__header">
 			<div className="layout__header__left">
 				<Link href="/quick-start">
-					<div
-						className="lockup"
-						style={{
-							mask: `url(/lockup.svg) center 100% / 100% no-repeat`,
-							WebkitMask: `url(/lockup.svg) center 100% / 100% no-repeat`,
-						}}
-					/>
+					<img className="logo-dark" src="/tldraw_dev_dark.png" />
+					<img className="logo-light" src="/tldraw_dev_light.png" />
 				</Link>
 			</div>
 			<Search />
-			<div className="layout__header__sections_and_socials">
-				<SectionLinks sectionId={sectionId} />
-				<a
-					href="https://x.com/tldraw/"
-					className="sidebar__button icon-button"
-					title="twitter"
-					target="_blank"
-				>
-					<Icon icon="twitter" />
-				</a>
-				<a
-					href="https://discord.com/invite/SBBEVCA4PG"
-					className="sidebar__button icon-button"
-					title="discord"
-					target="_blank"
-				>
-					<Icon icon="discord" />
-				</a>
-				<a
-					href="https://github.com/tldraw/tldraw"
-					className="sidebar__button icon-button"
-					title="github"
-					target="_blank"
-				>
-					<Icon icon="github" />
-				</a>
-				<ThemeSwitcher />
+			<div className="layout__header__links">
+				<div className="layout__header__sections">
+					<SectionLinks sectionId={sectionId} />
+				</div>
+				<div className="layout__header__socials">
+					<a
+						href="https://x.com/tldraw/"
+						className="sidebar__button icon-button"
+						title="twitter"
+						target="_blank"
+					>
+						<Icon icon="twitter" />
+					</a>
+					<a
+						href="https://discord.com/invite/SBBEVCA4PG"
+						className="sidebar__button icon-button"
+						title="discord"
+						target="_blank"
+					>
+						<Icon icon="discord" />
+					</a>
+					<a
+						href="https://github.com/tldraw/tldraw"
+						className="sidebar__button icon-button"
+						title="github"
+						target="_blank"
+					>
+						<Icon icon="github" />
+					</a>
+					<ThemeSwitcher />
+				</div>
 			</div>
 		</div>
 	)

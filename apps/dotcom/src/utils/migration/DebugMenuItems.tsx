@@ -1,4 +1,4 @@
-import { TldrawUiMenuGroup, TldrawUiMenuItem } from '@tldraw/tldraw'
+import { TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
 import { env } from '../env'
 
 const RELEASE_INFO = `${env} ${process.env.NEXT_PUBLIC_TLDRAW_RELEASE_INFO ?? 'unreleased'}`

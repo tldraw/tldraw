@@ -24,9 +24,10 @@ export class UserPreferencesManager {
 			name: this.getName(),
 			locale: this.getLocale(),
 			color: this.getColor(),
-			isDarkMode: this.getIsDarkMode(),
 			animationSpeed: this.getAnimationSpeed(),
 			isSnapMode: this.getIsSnapMode(),
+			isDarkMode: this.getIsDarkMode(),
+			isWrapMode: this.getIsWrapMode(),
 		}
 	}
 	@computed getIsDarkMode() {
@@ -65,5 +66,9 @@ export class UserPreferencesManager {
 
 	@computed getIsSnapMode() {
 		return this.user.userPreferences.get().isSnapMode ?? defaultUserPreferences.isSnapMode
+	}
+
+	@computed getIsWrapMode() {
+		return this.user.userPreferences.get().isWrapMode ?? defaultUserPreferences.isWrapMode
 	}
 }

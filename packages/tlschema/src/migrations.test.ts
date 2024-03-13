@@ -1,4 +1,5 @@
 import { Migrations, Store, createRecordType } from '@tldraw/store'
+import { structuredClone } from '@tldraw/utils'
 import fs from 'fs'
 import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'

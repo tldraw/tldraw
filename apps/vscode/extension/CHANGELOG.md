@@ -1,3 +1,8 @@
+## 2.0.25
+
+- Translation improvements.
+- Bug fixes and performance improvements.
+
 ## 2.0.24
 
 - New: You can now use tldraw in Croatian language.

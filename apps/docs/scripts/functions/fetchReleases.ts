@@ -3,7 +3,7 @@ import { Octokit } from 'octokit'
 import path from 'path'
 
 const octokit = new Octokit({
-	auth: process.env.GITHUB_ACCESS_TOKEN,
+	auth: process.env.ACCESS_TOKEN,
 })
 
 const { log: nicelog } = console
@@ -63,7 +63,7 @@ export async function fetchReleases() {
 					fs.writeFileSync(filePath, m)
 				})
 		} else {
-			throw Error(`x Could not get releases for @tldraw/tldraw.`)
+			throw Error(`x Could not get releases for tldraw.`)
 		}
 	} catch (error) {
 		nicelog(`x Could not generate release content.`)

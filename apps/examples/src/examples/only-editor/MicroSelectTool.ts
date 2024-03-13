@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, createShapeId } from '@tldraw/tldraw'
+import { StateNode, TLEventHandlers, createShapeId } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 

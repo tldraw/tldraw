@@ -78,6 +78,8 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 
 		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
+			if (value.type === 'shared' && value.value === id) return
+
 			onValueChange(style, id as T, false)
 		}
 

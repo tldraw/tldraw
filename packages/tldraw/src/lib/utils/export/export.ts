@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FileHelpers,
 	PngHelpers,
 	TLShapeId,
 	TLSvgOptions,
@@ -98,7 +99,6 @@ export async function getSvgAsString(svg: SVGElement) {
 	svg.setAttribute('width', +svg.getAttribute('width')! + '')
 	svg.setAttribute('height', +svg.getAttribute('height')! + '')
 
-	const fileReader = new FileReader()
 	const imgs = Array.from(clone.querySelectorAll('image')) as SVGImageElement[]
 
 	for (const img of imgs) {
@@ -106,11 +106,7 @@ export async function getSvgAsString(svg: SVGElement) {
 		if (src) {
 			if (!src.startsWith('data:')) {
 				const blob = await (await fetch(src)).blob()
-				const base64 = await new Promise<string>((resolve, reject) => {
-					fileReader.onload = () => resolve(fileReader.result as string)
-					fileReader.onerror = () => reject(fileReader.error)
-					fileReader.readAsDataURL(blob)
-				})
+				const base64 = await FileHelpers.blobToDataUrl(blob)
 				img.setAttribute('xlink:href', base64)
 			}
 		}
@@ -156,12 +152,26 @@ export async function exportToString(
 	}
 }
 
-export async function exportToBlob(
-	editor: Editor,
-	ids: TLShapeId[],
-	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json',
-	opts = {} as Partial<TLSvgOptions>
-): Promise<Blob> {
+/**
+ * Export the given shapes as a blob.
+ * @param editor - The editor instance.
+ * @param ids - The ids of the shapes to export.
+ * @param format - The format to export as.
+ * @param opts - Rendering options.
+ * @returns A promise that resolves to a blob.
+ * @public
+ */
+export async function exportToBlob({
+	editor,
+	ids,
+	format,
+	opts = {} as Partial<TLSvgOptions>,
+}: {
+	editor: Editor
+	ids: TLShapeId[]
+	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
+	opts?: Partial<TLSvgOptions>
+}): Promise<Blob> {
 	switch (format) {
 		case 'svg':
 			return new Blob([await exportToString(editor, ids, 'svg', opts)], { type: 'text/plain' })
@@ -205,7 +215,7 @@ export function exportToBlobPromise(
 	opts = {} as Partial<TLSvgOptions>
 ): { blobPromise: Promise<Blob>; mimeType: string } {
 	return {
-		blobPromise: exportToBlob(editor, ids, format, opts),
+		blobPromise: exportToBlob({ editor, ids, format, opts }),
 		mimeType: mimeTypeByFormat[format],
 	}
 }

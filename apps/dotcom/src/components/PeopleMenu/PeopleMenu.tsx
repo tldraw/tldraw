@@ -10,7 +10,7 @@ import {
 	usePeerIds,
 	useTranslation,
 	useValue,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
 import { PeopleMenuItem } from './PeopleMenuItem'
 import { PeopleMenuMore } from './PeopleMenuMore'

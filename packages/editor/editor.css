@@ -546,6 +546,7 @@ input,
 	height: 100%;
 }
 
+.tl-video-container,
 .tl-image-container,
 .tl-embed-container {
 	width: 100%;

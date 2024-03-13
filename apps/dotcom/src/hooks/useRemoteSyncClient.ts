@@ -1,3 +1,5 @@
+import { TLSyncClient, schema } from '@tldraw/tlsync'
+import { useEffect, useState } from 'react'
 import {
 	TAB_ID,
 	TLRecord,
@@ -9,9 +11,7 @@ import {
 	getUserPreferences,
 	useTLStore,
 	useValue,
-} from '@tldraw/tldraw'
-import { TLSyncClient, schema } from '@tldraw/tlsync'
-import { useEffect, useState } from 'react'
+} from 'tldraw'
 import { ClientWebSocketAdapter } from '../utils/remote-sync/ClientWebSocketAdapter'
 import { RemoteSyncError, UseSyncClientConfig } from '../utils/remote-sync/remote-sync'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'

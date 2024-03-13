@@ -25,7 +25,7 @@ async function checkTsConfigs({ packages, fix }: { fix?: boolean; packages: Pack
 		const tldrawDeps = Object.keys({
 			...workspace.packageJson.dependencies,
 			...workspace.packageJson.devDependencies,
-		}).filter((dep) => dep.startsWith('@tldraw/'))
+		}).filter((dep) => packages.some((p) => p.name === dep))
 
 		const fixedDeps = []
 		const missingRefs = []

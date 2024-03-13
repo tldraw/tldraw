@@ -13,18 +13,20 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 		const shapesToAddToFrame: TLShapeId[] = []
 		const ancestorIds = this.editor.getShapeAncestors(shape).map((shape) => shape.id)
 
-		this.editor.getCurrentPageShapes().map((pageShape) => {
+		this.editor.getSortedChildIdsForParent(shape.parentId).map((siblingShapeId) => {
+			const siblingShape = this.editor.getShape(siblingShapeId)
+			if (!siblingShape) return
 			// We don't want to frame the frame itself
-			if (pageShape.id === shape.id) return
-			if (pageShape.isLocked) return
+			if (siblingShape.id === shape.id) return
+			if (siblingShape.isLocked) return
 
-			const pageShapeBounds = this.editor.getShapePageBounds(pageShape)
+			const pageShapeBounds = this.editor.getShapePageBounds(siblingShape)
 			if (!pageShapeBounds) return
 
 			// Frame shape encloses page shape
 			if (bounds.contains(pageShapeBounds)) {
-				if (canEnclose(pageShape, ancestorIds, shape)) {
-					shapesToAddToFrame.push(pageShape.id)
+				if (canEnclose(siblingShape, ancestorIds, shape)) {
+					shapesToAddToFrame.push(siblingShape.id)
 				}
 			}
 		})

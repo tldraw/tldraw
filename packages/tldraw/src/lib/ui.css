@@ -220,20 +220,20 @@
 		border-radius: 8px;
 	}
 
-	.tlui-button__tool[data-state='selected']:not(:disabled, :focus-visible):hover {
+	.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):hover {
 		color: var(--color-selected-contrast);
 	}
 }
 
-.tlui-button__tool[data-state='selected'] {
+.tlui-button__tool[aria-checked='true'] {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[data-state='selected']:not(:disabled, :focus-visible):active {
+.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):active {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[data-state='selected']:not(:disabled)::after {
+.tlui-button__tool[aria-checked='true']:not(:disabled)::after {
 	background: var(--color-selected);
 	opacity: 1;
 }
@@ -748,8 +748,8 @@
 	font-size: 12px;
 	overflow: hidden;
 	min-width: 300px;
-	max-width: 80vw;
-	max-height: 80vh;
+	max-width: 80%;
+	max-height: 80%;
 }
 
 .tlui-dialog__header {
@@ -858,14 +858,19 @@
 .tlui-toolbar__tools {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	background-color: var(--color-low);
 	border-radius: var(--radius-4);
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: relative;
-	align-items: center;
 	background: var(--color-panel);
 	box-shadow: var(--shadow-2);
+}
+.tlui-toolbar__tools__list {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
 }
 
 .tlui-toolbar__overflow {
@@ -1488,26 +1493,21 @@
 
 .tlui-shortcuts-dialog__body {
 	position: relative;
-	columns: 1;
+	columns: 3;
 	column-gap: var(--space-9);
 	pointer-events: all;
 	touch-action: auto;
+
+	/* Terrible fix to allow firefox users to scroll the dialog */
+	overflow-x: auto;
 }
 
-/* TODO: refactor shortcuts dialog to make it work in small inline components */
-@media (min-width: 475px) {
-	.tlui-shortcuts-dialog__body {
-		columns: 2;
-		column-gap: var(--space-9);
-	}
+.tlui-shortcuts-dialog__body__tablet {
+	columns: 2;
 }
 
-/* TODO: refactor shortcuts dialog to make it work in small inline components */
-@media (min-width: 960px) {
-	.tlui-shortcuts-dialog__body {
-		columns: 3;
-		column-gap: var(--space-9);
-	}
+.tlui-shortcuts-dialog__body__mobile {
+	columns: 1;
 }
 
 .tlui-shortcuts-dialog__group {

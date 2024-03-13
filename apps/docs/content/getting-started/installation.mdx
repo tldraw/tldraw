@@ -6,27 +6,21 @@ date: 3/22/2023
 order: 1
 ---
 
-At the moment the `@tldraw/tldraw` package is in beta. We also ship a canary version which is always up to date with the main branch of tldraw [repository](https://github.com/tldraw/tldraw).
+## Installation
 
-## Beta
+First, install the `tldraw` package:
 
-First, install the `@tldraw/tldraw` package using `@beta` for the latest beta release.
-
-<CodeBlock code={{'yarn': 'yarn add @tldraw/tldraw@beta', 'npm': 'npm install @tldraw/tldraw@beta', 'pnpm': 'pnpm add @tldraw/tldraw@beta'}} />
-
-## Canary
-
-To get the very latest version, use the [latest canary release](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions). Docs for the very latest version are also available at [canary.tldraw.dev](https://canary.tldraw.dev).
-
-<CodeBlock code={{'yarn': 'yarn add @tldraw/tldraw@canary', 'npm': 'npm install @tldraw/tldraw@canary', 'pnpm': 'pnpm add @tldraw/tldraw@canary'}} />
+```bash
+npm i tldraw
+```
 
 ## Usage
 
 You can use the [Tldraw](?) component inside of any React component.
 
 ```tsx
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 export default function () {
 	return (
@@ -43,16 +37,16 @@ It's important that the [Tldraw](?) component is wrapped in a parent container t
 
 ### CSS
 
-In addition to the [Tldraw](?) component itself, you should also import the `tldraw.css` file from the `@tldraw/tldraw` package.
+In addition to the [Tldraw](?) component itself, you should also import the `tldraw.css` file from the `tldraw` package.
 
 ```tsx
-import '@tldraw/tldraw/tldraw.css'
+import 'tldraw/tldraw.css'
 ```
 
 You can alternatively import this file inside of another CSS file using the `@import` syntax.
 
 ```css
-@import url('@tldraw/tldraw/tldraw.css');
+@import url('tldraw/tldraw.css');
 ```
 
 If you'd like to deeply change the way that tldraw looks, you can copy the `tldraw.css` file into a new CSS file, make your changes, and import that instead.
@@ -80,15 +74,15 @@ This may not be critical to [Tldraw](?) performing correctly, however some featu
 The [Tldraw](?) component can't be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you need to import it dynamically.
 
 ```tsx
-const Tldraw = dynamic(async () => (await import('@tldraw/tldraw')).Tldraw, { ssr: false })
+const Tldraw = dynamic(async () => (await import('tldraw')).Tldraw, { ssr: false })
 ```
 
 ### Using a bundler
 
-If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
+If you're using a bundler like webpack or rollup, you can import the assets directly from the `assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
 
 ```tsx
-import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
+import { getAssetUrlsByMetaUrl } from 'assets/urls'
 
 const assetUrls = getAssetUrlsByMetaUrl()
 
@@ -105,7 +99,7 @@ In order to use the [Tldraw](?) component, the app must be able to find certain 
 
 ### Using a public CDN
 
-By default we serve these assets from a [public CDN called unpkg](https://unpkg.com/browse/@tldraw/assets@2.0.0-alpha.12/), so everything should work out of the box and is a good way to get started.
+By default we serve these assets from a public CDN. Everything should work out of the box and is a good way to get started.
 
 If you would like to customize some of the assets you can pass the customizations to our [Tldraw](?) component. For example, to use a custom icon for the `hand` tool you can do the following:
 
@@ -151,7 +145,7 @@ const assetUrls = getAssetUrls({
 
 ## Subcomponents
 
-The [Tldraw](?) component combines two lower-level components: [TldrawEditor](?) and [TldrawUi](?). If you want to have more granular control, you can use those lower-level components directly. See [this example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/examples/ExplodedExample.tsx) for reference.
+The [Tldraw](?) component combines two lower-level components: [TldrawEditor](?) and TldrawUi. If you want to have more granular control, you can use those lower-level components directly. See [this example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/examples/exploded/ExplodedExample.tsx) for reference.
 
 ### Customize the default components
 

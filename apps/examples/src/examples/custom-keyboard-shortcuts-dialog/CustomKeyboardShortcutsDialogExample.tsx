@@ -5,22 +5,24 @@ import {
 	TLUiKeyboardShortcutsDialogProps,
 	Tldraw,
 	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomKeyboardShortcutsDialog(props: TLUiKeyboardShortcutsDialogProps) {
 	return (
 		<DefaultKeyboardShortcutsDialog {...props}>
-			<TldrawUiMenuItem
-				id="like-my-posts"
-				label="Like my posts"
-				icon="external-link"
-				readonlyOk
-				kbd=":)"
-				onSelect={() => {
-					window.open('https://x.com/tldraw', '_blank')
-				}}
-			/>
+			<div style={{ backgroundColor: 'thistle' }}>
+				<TldrawUiMenuItem
+					id="like-my-posts"
+					label="Like my posts"
+					icon="external-link"
+					readonlyOk
+					kbd=":)"
+					onSelect={() => {
+						window.open('https://x.com/tldraw', '_blank')
+					}}
+				/>
+			</div>
 			<DefaultKeyboardShortcutsDialogContent />
 		</DefaultKeyboardShortcutsDialog>
 	)

@@ -148,8 +148,8 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<{ [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>;
 
 // @public
-export function createTLSchema({ shapes }: {
-    shapes: Record<string, SchemaShapeInfo>;
+export function createTLSchema({ shapes, }?: {
+    shapes?: Record<string, SchemaShapeInfo>;
 }): TLSchema;
 
 // @public (undocumented)
@@ -212,13 +212,16 @@ export const drawShapeProps: {
 export const EMBED_DEFINITIONS: readonly [{
     readonly type: "tldraw";
     readonly title: "tldraw";
-    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com"];
+    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "localhost:3000"];
     readonly minWidth: 300;
     readonly minHeight: 300;
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
     readonly canUnmount: true;
+    readonly overridePermissions: {
+        readonly 'allow-top-navigation': true;
+    };
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {

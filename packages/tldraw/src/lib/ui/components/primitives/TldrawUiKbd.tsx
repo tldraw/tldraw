@@ -5,12 +5,13 @@ import { kbd } from '../../kbd-utils'
 /** @public */
 export interface TLUiKbdProps {
 	children: string
+	visibleOnMobileLayout?: boolean
 }
 
 /** @public */
-export function TldrawUiKbd({ children }: TLUiKbdProps) {
+export function TldrawUiKbd({ children, visibleOnMobileLayout = false }: TLUiKbdProps) {
 	const breakpoint = useBreakpoint()
-	if (breakpoint < PORTRAIT_BREAKPOINT.MOBILE) return null
+	if (!visibleOnMobileLayout && breakpoint < PORTRAIT_BREAKPOINT.MOBILE) return null
 	return (
 		<kbd className="tlui-kbd">
 			{kbd(children).map((k, i) => (

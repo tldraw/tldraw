@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	FileHelpers,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
@@ -19,6 +20,8 @@ import {
 	getHashForString,
 } from '@tldraw/editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
+import { TLUiToastsContextType } from './ui/context/toasts'
+import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize, downsizeImage, isGifAnimated } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
@@ -42,7 +45,8 @@ export function registerDefaultExternalContentHandlers(
 		maxAssetSize,
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
-	}: TLExternalContentProps
+	}: TLExternalContentProps,
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
@@ -93,7 +97,7 @@ export function registerDefaultExternalContentHandlers(
 			typeName: 'asset',
 			props: {
 				name,
-				src: await MediaHelpers.blobToDataUrl(file),
+				src: await FileHelpers.blobToDataUrl(file),
 				w: size.w,
 				h: size.h,
 				mimeType: file.type,
@@ -122,6 +126,9 @@ export function registerDefaultExternalContentHandlers(
 			}
 		} catch (error) {
 			console.error(error)
+			toasts.addToast({
+				title: msg('assets.url.failed'),
+			})
 			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
 
@@ -241,6 +248,9 @@ export function registerDefaultExternalContentHandlers(
 
 					assets[i] = asset
 				} catch (error) {
+					toasts.addToast({
+						title: msg('assets.files.upload-failed'),
+					})
 					console.error(error)
 					return null
 				}
@@ -352,9 +362,16 @@ export function registerDefaultExternalContentHandlers(
 		let shouldAlsoCreateAsset = false
 		if (!asset) {
 			shouldAlsoCreateAsset = true
-			const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
-			if (!bookmarkAsset) throw Error('Could not create an asset')
-			asset = bookmarkAsset
+			try {
+				const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
+				if (!bookmarkAsset) throw Error('Could not create an asset')
+				asset = bookmarkAsset
+			} catch (e) {
+				toasts.addToast({
+					title: msg('assets.url.failed'),
+				})
+				return
+			}
 		}
 
 		editor.batch(() => {

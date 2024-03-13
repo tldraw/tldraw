@@ -1,5 +1,5 @@
-import { ErrorScreen, exhaustiveSwitchError } from '@tldraw/tldraw'
 import { TLIncompatibilityReason } from '@tldraw/tlsync'
+import { ErrorScreen, exhaustiveSwitchError } from 'tldraw'
 import { RemoteSyncError } from '../utils/remote-sync/remote-sync'
 
 export function StoreErrorScreen({ error }: { error: Error }) {

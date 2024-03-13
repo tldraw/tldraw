@@ -9,7 +9,7 @@
 	{
 		"id": "docs",
 		"title": "Learn tldraw",
-		"description": "Developer documentation for tldraw.",
+		"description": "Learn to use the tldraw SDK.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
 	},
@@ -58,7 +58,8 @@
 						"id": "Namespace",
 						"path": null
 					}
-				]
+				],
+				"hero": null
 			},
 			{
 				"id": "store",
@@ -93,11 +94,12 @@
 						"id": "Namespace",
 						"path": null
 					}
-				]
+				],
+				"hero": null
 			},
 			{
 				"id": "tldraw",
-				"title": "@tldraw/tldraw",
+				"title": "tldraw",
 				"description": "",
 				"groups": [
 					{
@@ -128,7 +130,8 @@
 						"id": "Namespace",
 						"path": null
 					}
-				]
+				],
+				"hero": null
 			},
 			{
 				"id": "tlschema",
@@ -163,7 +166,8 @@
 						"id": "Namespace",
 						"path": null
 					}
-				]
+				],
+				"hero": null
 			},
 			{
 				"id": "validate",
@@ -198,9 +202,11 @@
 						"id": "Namespace",
 						"path": null
 					}
-				]
+				],
+				"hero": null
 			}
 		],
-		"sidebar_behavior": "reference"
+		"sidebar_behavior": "reference",
+		"hero": null
 	}
 ]

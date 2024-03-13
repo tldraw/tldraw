@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
 	AssetRecordType,
 	Editor,
@@ -13,9 +15,7 @@ import {
 	TLUiToastsContextType,
 	TLUiTranslationKey,
 	isShape,
-} from '@tldraw/tldraw'
-import { useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+} from 'tldraw'
 import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'

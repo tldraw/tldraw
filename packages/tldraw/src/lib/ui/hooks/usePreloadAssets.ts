@@ -1,23 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { TLTypeFace, preloadFont } from '../../utils/assets/preload-font'
 import { TLEditorAssetUrls } from '../../utils/static-assets/assetUrls'
-
-export type TLTypeFace = {
-	url: string
-	display?: any // FontDisplay
-	featureSettings?: string
-	stretch?: string
-	style?: string
-	unicodeRange?: string
-	variant?: string
-	weight?: string
-}
-
-export type TLTypeFaces = {
-	draw: TLTypeFace
-	monospace: TLTypeFace
-	serif: TLTypeFace
-	sansSerif: TLTypeFace
-}
 
 enum PreloadStatus {
 	SUCCESS,
@@ -29,60 +12,22 @@ const usePreloadFont = (id: string, font: TLTypeFace): PreloadStatus => {
 	const [state, setState] = useState<PreloadStatus>(PreloadStatus.WAITING)
 
 	useEffect(() => {
-		const {
-			url,
-			style = 'normal',
-			weight = '500',
-			display,
-			featureSettings,
-			stretch,
-			unicodeRange,
-			variant,
-		} = font
-
 		let cancelled = false
+
 		setState(PreloadStatus.WAITING)
 
-		const descriptors: FontFaceDescriptors = {
-			style,
-			weight,
-			display,
-			featureSettings,
-			stretch,
-			unicodeRange,
-			variant,
-		}
-
-		const fontInstance = new FontFace(id, `url(${url})`, descriptors)
-
-		fontInstance
-			.load()
+		preloadFont(id, font)
 			.then(() => {
 				if (cancelled) return
-				document.fonts.add(fontInstance)
 				setState(PreloadStatus.SUCCESS)
 			})
-			.catch((err) => {
+			.catch((err: any) => {
 				if (cancelled) return
 				console.error(err)
 				setState(PreloadStatus.FAILED)
 			})
 
-		// @ts-expect-error
-		fontInstance.$$_url = url
-
-		// @ts-expect-error
-		fontInstance.$$_fontface = `
-@font-face {
-	font-family: ${fontInstance.family};
-	font-stretch: ${fontInstance.stretch};
-	font-weight: ${fontInstance.weight};
-	font-style: ${fontInstance.style};
-	src: url("${url}") format("woff2")
-}`
-
 		return () => {
-			document.fonts.delete(fontInstance)
 			cancelled = true
 		}
 	}, [id, font])
@@ -92,14 +37,24 @@ const usePreloadFont = (id: string, font: TLTypeFace): PreloadStatus => {
 
 function getTypefaces(assetUrls: TLEditorAssetUrls) {
 	return {
-		draw: { url: assetUrls.fonts.draw },
-		serif: { url: assetUrls.fonts.serif },
-		sansSerif: { url: assetUrls.fonts.sansSerif },
-		monospace: { url: assetUrls.fonts.monospace },
+		draw: {
+			url: assetUrls.fonts.draw,
+			format: assetUrls.fonts.draw.split('.').pop(),
+		},
+		serif: {
+			url: assetUrls.fonts.serif,
+			format: assetUrls.fonts.serif.split('.').pop(),
+		},
+		sansSerif: {
+			url: assetUrls.fonts.sansSerif,
+			format: assetUrls.fonts.sansSerif.split('.').pop(),
+		},
+		monospace: {
+			url: assetUrls.fonts.monospace,
+			format: assetUrls.fonts.monospace.split('.').pop(),
+		},
 	}
 }
-
-// todo: Expose this via a public API (prop on <Tldraw>).
 
 export function usePreloadAssets(assetUrls: TLEditorAssetUrls) {
 	const typefaces = useMemo(() => getTypefaces(assetUrls), [assetUrls])

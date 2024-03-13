@@ -1,7 +1,6 @@
 import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
-import { useToolbarItems } from '../components/Toolbar/DefaultToolbar'
 import { useActions } from '../context/actions'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
@@ -23,7 +22,6 @@ export function useKeyboardShortcuts() {
 	const actions = useActions()
 	const tools = useTools()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
-	const { itemsInPanel: toolbarItemsInPanel } = useToolbarItems()
 
 	useEffect(() => {
 		if (!isFocused) return
@@ -33,13 +31,13 @@ export function useKeyboardShortcuts() {
 		hotkeys.setScope(editor.store.id)
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: container, scope: editor.store.id }, callback)
+			hotkeys(keys, { element: document.body, scope: editor.store.id }, callback)
 		}
 
 		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
 			hotkeys(
 				keys,
-				{ element: container, keyup: true, keydown: false, scope: editor.store.id },
+				{ element: document.body, keyup: true, keydown: false, scope: editor.store.id },
 				callback
 			)
 		}
@@ -127,7 +125,7 @@ export function useKeyboardShortcuts() {
 		return () => {
 			hotkeys.deleteScope(editor.store.id)
 		}
-	}, [actions, tools, isReadonlyMode, editor, isFocused, toolbarItemsInPanel])
+	}, [actions, tools, isReadonlyMode, editor, isFocused])
 }
 
 function getHotkeysStringFromKbd(kbd: string) {

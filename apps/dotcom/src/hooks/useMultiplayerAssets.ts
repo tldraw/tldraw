@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import {
 	AssetRecordType,
 	DEFAULT_ACCEPTED_IMG_TYPE,
@@ -6,8 +7,7 @@ import {
 	TLAssetId,
 	getHashForString,
 	uniqueId,
-} from '@tldraw/tldraw'
-import { useCallback } from 'react'
+} from 'tldraw'
 
 export function useMultiplayerAssets(assetUploaderUrl: string) {
 	return useCallback(

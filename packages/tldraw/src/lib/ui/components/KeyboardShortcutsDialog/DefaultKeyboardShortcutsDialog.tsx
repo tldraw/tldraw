@@ -1,4 +1,7 @@
-import { memo } from 'react'
+import classNames from 'classnames'
+import { ReactNode, memo } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiDialogProps } from '../../context/dialogs'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import {
@@ -12,7 +15,7 @@ import { DefaultKeyboardShortcutsDialogContent } from './DefaultKeyboardShortcut
 
 /** @public */
 export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
@@ -20,6 +23,7 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 	children,
 }: TLUiKeyboardShortcutsDialogProps) {
 	const msg = useTranslation()
+	const breakpoint = useBreakpoint()
 
 	const content = children ?? <DefaultKeyboardShortcutsDialogContent />
 
@@ -29,7 +33,12 @@ export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShort
 				<TldrawUiDialogTitle>{msg('shortcuts-dialog.title')}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className="tlui-shortcuts-dialog__body">
+			<TldrawUiDialogBody
+				className={classNames('tlui-shortcuts-dialog__body', {
+					'tlui-shortcuts-dialog__body__mobile': breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS,
+					'tlui-shortcuts-dialog__body__tablet': breakpoint <= PORTRAIT_BREAKPOINT.TABLET,
+				})}
+			>
 				<TldrawUiMenuContextProvider type="keyboard-shortcuts" sourceId="kbd">
 					{content}
 				</TldrawUiMenuContextProvider>

@@ -1,6 +1,6 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { ANIMATION_MEDIUM_MS, useContainer, useEditor, useValue } from '@tldraw/editor'
-import { forwardRef, memo, useCallback } from 'react'
+import { ReactNode, forwardRef, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
@@ -11,7 +11,7 @@ import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
 /** @public */
 export type TLUiZoomMenuProps = {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
@@ -64,7 +64,7 @@ const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
 				{...props}
 				type="icon"
 				title={`${msg('navigation-zone.zoom')}`}
-				data-testid="minimap.zoom-menu"
+				data-testid="minimap.zoom-menu-button"
 				className={
 					breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 						? 'tlui-zoom-menu__button'

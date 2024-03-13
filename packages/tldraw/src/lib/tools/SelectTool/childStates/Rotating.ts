@@ -22,6 +22,7 @@ export class Rotating extends StateNode {
 	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & { onInteractionEnd?: string }
 
 	markId = ''
+	isDirty = false
 
 	override onEnter = (
 		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }
@@ -38,7 +39,24 @@ export class Rotating extends StateNode {
 		this.snapshot = snapshot
 
 		// Trigger a pointer move
-		this.handleStart()
+		const newSelectionRotation = this._getRotationFromPointerPosition({
+			snapToNearestDegree: false,
+		})
+
+		applyRotationToSnapshotShapes({
+			editor: this.editor,
+			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
+			snapshot: this.snapshot,
+			stage: 'start',
+		})
+
+		// Update cursor
+		this.editor.updateInstanceState({
+			cursor: {
+				type: CursorTypeMap[this.info.handle as RotateCorner],
+				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			},
+		})
 	}
 
 	override onExit = () => {
@@ -48,8 +66,15 @@ export class Rotating extends StateNode {
 		this.snapshot = {} as TLRotationSnapshot
 	}
 
+	override onTick = () => {
+		if (this.isDirty) {
+			this.isDirty = false
+			this.update()
+		}
+	}
+
 	override onPointerMove = () => {
-		this.update()
+		this.isDirty = true
 	}
 
 	override onKeyDown = () => {
@@ -116,27 +141,6 @@ export class Rotating extends StateNode {
 		} else {
 			this.parent.transition('idle', this.info)
 		}
-	}
-
-	protected handleStart() {
-		const newSelectionRotation = this._getRotationFromPointerPosition({
-			snapToNearestDegree: false,
-		})
-
-		applyRotationToSnapshotShapes({
-			editor: this.editor,
-			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
-			snapshot: this.snapshot,
-			stage: 'start',
-		})
-
-		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
-		})
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {

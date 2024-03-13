@@ -1,8 +1,8 @@
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
 import { components } from './mdx-components'
-// import rehypeHighlight from 'rehype-highlight'
 
 interface MdxProps {
 	content: string
@@ -17,7 +17,7 @@ export function Mdx({ content }: MdxProps) {
 				mdxOptions: {
 					// remarkPlugins: [remarkGfm, {}],
 					rehypePlugins: [
-						// [rehypeHighlight as any, {}],
+						[rehypeHighlight as any, {}],
 						[rehypeAutolinkHeadings, {}],
 						[rehypeSlug, { enableCustomId: true, maintainCase: true, removeAccents: true }],
 					],

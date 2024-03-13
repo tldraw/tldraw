@@ -1,7 +1,7 @@
-import { Editor, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import _ from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
+import { Editor, TLEventMapHandler, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
@@ -42,14 +42,16 @@ export default function StoreEventsExample() {
 					let diff = _.reduce(
 						from,
 						(result: any[], value, key: string) =>
-							_.isEqual(value, (to as any)[key]) ? result : result.concat([key, value]),
+							_.isEqual(value, (to as any)[key]) ? result : result.concat([key, (to as any)[key]]),
 						[]
 					)
 					if (diff?.[0] === 'props') {
 						diff = _.reduce(
 							(from as any).props,
 							(result: any[], value, key) =>
-								_.isEqual(value, (to as any).props[key]) ? result : result.concat([key, value]),
+								_.isEqual(value, (to as any).props[key])
+									? result
+									: result.concat([key, (to as any).props[key]]),
 							[]
 						)
 					}
@@ -92,6 +94,7 @@ export default function StoreEventsExample() {
 					flexDirection: 'column-reverse',
 					overflow: 'auto',
 				}}
+				onCopy={(event) => event.stopPropagation()}
 			>
 				<pre>{storeEvents}</pre>
 			</div>

@@ -1,3 +1,5 @@
+import { fileOpen, fileSave } from 'browser-fs-access'
+import { useMemo } from 'react'
 import {
 	Editor,
 	TLDRAW_FILE_EXTENSION,
@@ -8,9 +10,7 @@ import {
 	parseAndLoadDocument,
 	serializeTldrawJsonBlob,
 	transact,
-} from '@tldraw/tldraw'
-import { fileOpen, fileSave } from 'browser-fs-access'
-import { useMemo } from 'react'
+} from 'tldraw'
 import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'

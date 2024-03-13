@@ -13,6 +13,7 @@ export async function createApiMarkdown() {
 		description: "Reference for the tldraw package's APIs (generated).",
 		categories: [],
 		sidebar_behavior: 'reference',
+		hero: null,
 	}
 
 	const addedCategories = new Set<string>()
@@ -42,35 +43,34 @@ export async function createApiMarkdown() {
 		packageModels.push(apiModel)
 	}
 
-	await Promise.allSettled(
-		packageModels.map(async (packageModel) => {
-			const categoryName = packageModel.name.replace(`@tldraw/`, '')
+	for (const packageModel of packageModels) {
+		const categoryName = packageModel.name.replace(`@tldraw/`, '')
 
-			if (!addedCategories.has(categoryName)) {
-				apiInputSection.categories!.push({
-					id: categoryName,
-					title: packageModel.name,
-					description: '',
-					groups: Object.values(APIGroup).map((title) => ({
-						id: title,
-						path: null,
-					})),
-				})
-				addedCategories.add(categoryName)
-			}
+		if (!addedCategories.has(categoryName)) {
+			apiInputSection.categories!.push({
+				id: categoryName,
+				title: packageModel.name,
+				description: '',
+				groups: Object.values(APIGroup).map((title) => ({
+					id: title,
+					path: null,
+				})),
+				hero: null,
+			})
+			addedCategories.add(categoryName)
+		}
 
-			const entrypoint = packageModel.entryPoints[0]
+		const entrypoint = packageModel.entryPoints[0]
 
-			for (let j = 0; j < entrypoint.members.length; j++) {
-				const item = entrypoint.members[j]
+		for (let j = 0; j < entrypoint.members.length; j++) {
+			const item = entrypoint.members[j]
 
-				const result = await getApiMarkdown(categoryName, item, j)
-				const outputFileName = `${getSlug(item)}.mdx`
-				nicelog(`✎ ${outputFileName}`)
-				fs.writeFileSync(path.join(OUTPUT_DIR, outputFileName), result.markdown)
-			}
-		})
-	)
+			const result = await getApiMarkdown(categoryName, item, j)
+			const outputFileName = `${getSlug(item)}.mdx`
+			nicelog(`✎ ${outputFileName}`)
+			fs.writeFileSync(path.join(OUTPUT_DIR, outputFileName), result.markdown)
+		}
+	}
 
 	// Add the API section to the sections.json file
 
@@ -81,5 +81,5 @@ export async function createApiMarkdown() {
 		1
 	)
 	sectionsJson.push(apiInputSection)
-	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t'))
+	fs.writeFileSync(sectionsJsonPath, JSON.stringify(sectionsJson, null, '\t') + '\n')
 }

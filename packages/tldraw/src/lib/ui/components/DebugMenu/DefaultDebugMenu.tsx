@@ -1,3 +1,4 @@
+import { ReactNode } from 'react'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
@@ -10,7 +11,7 @@ import { DefaultDebugMenuContent } from './DefaultDebugMenuContent'
 
 /** @public */
 export type TLUiDebugMenuProps = {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */

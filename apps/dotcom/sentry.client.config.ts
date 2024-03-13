@@ -4,7 +4,7 @@
 
 import { ExtraErrorData } from '@sentry/integrations'
 import * as Sentry from '@sentry/react'
-import { Editor, getErrorAnnotations } from '@tldraw/tldraw'
+import { Editor, getErrorAnnotations } from 'tldraw'
 import { sentryReleaseName } from './sentry-release-name'
 import { env } from './src/utils/env'
 import { setGlobalErrorReporter } from './src/utils/errorReporting'

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.35.4",
+    "toolVersion": "7.41.0",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -519,12 +519,12 @@
           "members": [
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/utils!FileHelpers.fileToBase64:member(1)",
-              "docComment": "/**\n * Convert a file to base64.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = fileToBase64('./test.png')\n * ```\n *\n * @public\n */\n",
+              "canonicalReference": "@tldraw/utils!FileHelpers.blobToDataUrl:member(1)",
+              "docComment": "/**\n * Convert a file to a base64 encoded data url.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = FileHelpers.toDataUrl(myImageFile)\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "static fileToBase64(file: "
+                  "text": "static blobToDataUrl(file: "
                 },
                 {
                   "kind": "Reference",
@@ -569,7 +569,123 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "fileToBase64"
+              "name": "blobToDataUrl"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!FileHelpers.blobToText:member(1)",
+              "docComment": "/**\n * Convert a file to a unicode text string.\n *\n * @param value - The file as a blob.\n *\n * @example\n * ```ts\n * const A = FileHelpers.fileToDataUrl(myTextFile)\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static blobToText(file: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Blob",
+                  "canonicalReference": "!Blob:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "file",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "blobToText"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/utils!FileHelpers.dataUrlToArrayBuffer:member(1)",
+              "docComment": "/**\n * @param dataURL - The file as a string.\n *\n * from https://stackoverflow.com/a/53817185\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static dataUrlToArrayBuffer(dataURL: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ArrayBuffer",
+                  "canonicalReference": "!ArrayBuffer:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "dataURL",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "dataUrlToArrayBuffer"
             }
           ],
           "implementsTokenRanges": []
@@ -1844,60 +1960,6 @@
           "name": "MediaHelpers",
           "preserveMemberOrder": false,
           "members": [
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/utils!MediaHelpers.blobToDataUrl:member(1)",
-              "docComment": "/**\n * Read a blob into a data url\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "static blobToDataUrl(blob: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Blob",
-                  "canonicalReference": "!Blob:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Promise",
-                  "canonicalReference": "!Promise:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": true,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "blob",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "blobToDataUrl"
-            },
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/utils!MediaHelpers.getImageSize:member(1)",
@@ -3235,27 +3297,58 @@
           "name": "sortByIndex"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/utils!structuredClone_2:var",
-          "docComment": "/**\n * @public\n */\n",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/utils!structuredClone_2:function(1)",
+          "docComment": "/**\n * Create a deep copy of a value. Uses the structuredClone API if available, otherwise uses JSON.parse(JSON.stringify()).\n *\n * @param i - The value to clone.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "structuredClone: "
+              "text": "structuredClone: <T>(i: "
             },
             {
               "kind": "Content",
-              "text": "<T>(i: T) => T"
+              "text": "T"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Content",
+              "text": "T"
             }
           ],
           "fileUrlPath": "packages/utils/src/lib/value.ts",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
           "releaseTag": "Public",
-          "name": "structuredClone_2",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "i",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "structuredClone_2"
         },
         {
           "kind": "Function",

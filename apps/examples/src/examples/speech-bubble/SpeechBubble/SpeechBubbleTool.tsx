@@ -1,4 +1,4 @@
-import { BaseBoxShapeTool } from '@tldraw/tldraw'
+import { BaseBoxShapeTool } from 'tldraw'
 
 export class SpeechBubbleTool extends BaseBoxShapeTool {
 	static override id = 'speech-bubble'

@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	FileHelpers,
 	HTMLContainer,
 	TLImageShape,
 	TLOnDoubleClickHandler,
@@ -10,46 +11,16 @@ import {
 	imageShapeMigrations,
 	imageShapeProps,
 	toDomPrecision,
-	useIsCropping,
-	useValue,
 } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
+import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
-
-const loadImage = async (url: string): Promise<HTMLImageElement> => {
-	return new Promise((resolve, reject) => {
-		const image = new Image()
-		image.onload = () => resolve(image)
-		image.onerror = () => reject(new Error('Failed to load image'))
-		image.crossOrigin = 'anonymous'
-		image.src = url
-	})
-}
-
-const getStateFrame = async (url: string) => {
-	const image = await loadImage(url)
-
-	const canvas = document.createElement('canvas')
-	canvas.width = image.width
-	canvas.height = image.height
-
-	const ctx = canvas.getContext('2d')
-	if (!ctx) return
-
-	ctx.drawImage(image, 0, 0)
-	return canvas.toDataURL()
-}
 
 async function getDataURIFromURL(url: string): Promise<string> {
 	const response = await fetch(url)
 	const blob = await response.blob()
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onloadend = () => resolve(reader.result as string)
-		reader.onerror = reject
-		reader.readAsDataURL(blob)
-	})
+	return FileHelpers.blobToDataUrl(blob)
 }
 
 /** @public */
@@ -73,22 +44,46 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	component(shape: TLImageShape) {
-		const containerStyle = getContainerStyle(shape)
-		const isCropping = useIsCropping(shape.id)
+		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
+		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
+
+		useEffect(() => {
+			if (asset?.props.src && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {
+				let cancelled = false
+				const url = asset.props.src
+				if (!url) return
+
+				const image = new Image()
+				image.onload = () => {
+					if (cancelled) return
+
+					const canvas = document.createElement('canvas')
+					canvas.width = image.width
+					canvas.height = image.height
+
+					const ctx = canvas.getContext('2d')
+					if (!ctx) return
+
+					ctx.drawImage(image, 0, 0)
+					setStaticFrameSrc(canvas.toDataURL())
+				}
+				image.crossOrigin = 'anonymous'
+				image.src = url
+
+				return () => {
+					cancelled = true
+				}
+			}
+		}, [prefersReducedMotion, asset?.props])
+
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
 		}
-
-		const isSelected = useValue(
-			'onlySelectedShape',
-			() => shape.id === this.editor.getOnlySelectedShape()?.id,
-			[this.editor]
-		)
 
 		const showCropPreview =
 			isSelected &&
@@ -100,27 +95,35 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			prefersReducedMotion &&
 			(asset?.props.mimeType?.includes('video') || asset?.props.mimeType?.includes('gif'))
 
-		useEffect(() => {
-			if (asset?.props.src && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {
-				let cancelled = false
-				const run = async () => {
-					const newStaticFrame = await getStateFrame(asset.props.src!)
-					if (cancelled) return
-					if (newStaticFrame) {
-						setStaticFrameSrc(newStaticFrame)
-					}
-				}
-				run()
+		const containerStyle = getCroppedContainerStyle(shape)
 
-				return () => {
-					cancelled = true
-				}
-			}
-		}, [prefersReducedMotion, asset?.props])
+		if (!asset?.props.src) {
+			return (
+				<HTMLContainer
+					id={shape.id}
+					style={{
+						overflow: 'hidden',
+						width: shape.props.w,
+						height: shape.props.h,
+						color: 'var(--color-text-3)',
+						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
+						border: asset ? 'none' : '1px solid var(--color-low-border)',
+					}}
+				>
+					<div className="tl-image-container" style={containerStyle}>
+						{asset ? null : <BrokenAssetIcon />}
+					</div>
+					)
+					{'url' in shape.props && shape.props.url && (
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+					)}
+				</HTMLContainer>
+			)
+		}
 
 		return (
 			<>
-				{asset?.props.src && showCropPreview && (
+				{showCropPreview && (
 					<div style={containerStyle}>
 						<div
 							className="tl-image"
@@ -139,22 +142,21 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
 				>
 					<div className="tl-image-container" style={containerStyle}>
-						{asset?.props.src ? (
-							<div
-								className="tl-image"
-								style={{
-									backgroundImage: `url(${
-										!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
-									})`,
-								}}
-								draggable={false}
-							/>
-						) : null}
-						{asset?.props.isAnimated && !shape.props.playing && (
+						<div
+							className="tl-image"
+							style={{
+								backgroundImage: `url(${
+									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+								})`,
+							}}
+							draggable={false}
+						/>
+						{asset.props.isAnimated && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
-					{'url' in shape.props && shape.props.url && (
+					)
+					{shape.props.url && (
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
 				</HTMLContainer>
@@ -163,30 +165,26 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	indicator(shape: TLImageShape) {
-		const isCropping = useIsCropping(shape.id)
-		if (isCropping) {
-			return null
-		}
+		const isCropping = this.editor.getCroppingShapeId() === shape.id
+		if (isCropping) return null
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
-	}
-
-	shouldGetDataURI(src: string) {
-		return src && (src.startsWith('http') || src.startsWith('/') || src.startsWith('./'))
 	}
 
 	override async toSvg(shape: TLImageShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 
+		if (!asset) return g
+
 		let src = asset?.props.src || ''
-		if (this.shouldGetDataURI(src)) {
+		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''
 		}
 
 		const image = document.createElementNS('http://www.w3.org/2000/svg', 'image')
 		image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', src)
-		const containerStyle = getContainerStyle(shape)
+		const containerStyle = getCroppedContainerStyle(shape)
 		const crop = shape.props.crop
 		if (containerStyle.transform && crop) {
 			const { transform, width, height } = containerStyle
@@ -294,7 +292,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
  * @param shape - Shape The image shape for which to get the container style
  * @returns - Styles to apply to the image container
  */
-function getContainerStyle(shape: TLImageShape) {
+function getCroppedContainerStyle(shape: TLImageShape) {
 	const crop = shape.props.crop
 	const topLeft = crop?.topLeft
 	if (!topLeft) {
