@@ -1030,26 +1030,27 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
-    getGeometry(shape: TLNoteShape): Rectangle2d;
+    getGeometry(): Rectangle2d;
     // (undocumented)
-    getHeight(shape: TLNoteShape): number;
+    getHeight(): number;
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
-    indicator(shape: TLNoteShape): JSX_2.Element;
+    indicator(): JSX_2.Element;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (next: TLNoteShape) => {
         props: {
-            growY: number;
+            fontSize: number;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             verticalAlign: "end" | "middle" | "start";
+            growY: number;
             url: string;
             text: string;
         };
@@ -1064,16 +1065,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
-    } | undefined;
+    };
     // (undocumented)
     onBeforeUpdate: (prev: TLNoteShape, next: TLNoteShape) => {
         props: {
-            growY: number;
+            fontSize: number;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             verticalAlign: "end" | "middle" | "start";
+            growY: number;
             url: string;
             text: string;
         };
@@ -1095,6 +1097,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+        fontSize: Validator<number | undefined>;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
         verticalAlign: EnumStyleProp<"end" | "middle" | "start">;

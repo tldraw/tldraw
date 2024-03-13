@@ -23,6 +23,7 @@ export const TextLabel = React.memo(function TextLabel<
 	type,
 	text,
 	size,
+	fontSize,
 	labelColor,
 	font,
 	align,
@@ -33,6 +34,7 @@ export const TextLabel = React.memo(function TextLabel<
 	id: T['id']
 	type: T['type']
 	size: TLDefaultSizeStyle
+	fontSize?: number
 	font: TLDefaultFontStyle
 	fill?: TLDefaultFillStyle
 	align: TLDefaultHorizontalAlignStyle
@@ -89,8 +91,8 @@ export const TextLabel = React.memo(function TextLabel<
 			<div
 				className="tl-text-label__inner"
 				style={{
-					fontSize: LABEL_FONT_SIZES[size],
-					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
+					fontSize: fontSize ?? LABEL_FONT_SIZES[size],
+					lineHeight: (fontSize ?? LABEL_FONT_SIZES[size]) * TEXT_PROPS.lineHeight + 'px',
 					minHeight: TEXT_PROPS.lineHeight + 32,
 					minWidth: 0,
 					color: theme[labelColor].solid,

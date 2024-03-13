@@ -12282,16 +12282,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getGeometry(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLNoteShape",
-                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
+                  "text": "getGeometry(): "
                 },
                 {
                   "kind": "Reference",
@@ -12305,22 +12296,13 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
+                "startIndex": 1,
+                "endIndex": 2
               },
               "releaseTag": "Public",
               "isProtected": false,
               "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
+              "parameters": [],
               "isOptional": false,
               "isAbstract": false,
               "name": "getGeometry"
@@ -12332,16 +12314,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getHeight(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLNoteShape",
-                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
+                  "text": "getHeight(): "
                 },
                 {
                   "kind": "Content",
@@ -12354,22 +12327,13 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
+                "startIndex": 1,
+                "endIndex": 2
               },
               "releaseTag": "Public",
               "isProtected": false,
               "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
+              "parameters": [],
               "isOptional": false,
               "isAbstract": false,
               "name": "getHeight"
@@ -12441,16 +12405,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "indicator(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLNoteShape",
-                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
+                  "text": "indicator(): "
                 },
                 {
                   "kind": "Content",
@@ -12468,22 +12423,13 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
+                "startIndex": 1,
+                "endIndex": 3
               },
               "releaseTag": "Public",
               "isProtected": false,
               "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
+              "parameters": [],
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
@@ -12543,7 +12489,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            fontSize: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            growY: number;\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12579,7 +12525,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | undefined"
+                  "text": ";\n        typeName: \"shape\";\n    }"
                 },
                 {
                   "kind": "Content",
@@ -12627,7 +12573,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            fontSize: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            growY: number;\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12755,7 +12701,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        font: import(\"@tldraw/editor\")."
+                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        fontSize: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number | undefined>;\n        font: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12822,7 +12777,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 18
+                "endIndex": 20
               },
               "isStatic": true,
               "isProtected": false,

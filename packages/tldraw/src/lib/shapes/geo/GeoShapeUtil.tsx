@@ -1094,7 +1094,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		minWidth: minSize.w + 'px',
+		minWidth: minSize.w,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0
 			0,

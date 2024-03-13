@@ -63,8 +63,9 @@ export class TextManager {
 			 * space are preserved.
 			 */
 			maxWidth: null | number
-			minWidth?: string
+			minWidth?: null | number
 			padding: string
+			aspectRatio?: string
 		}
 	): BoxModel => {
 		// Duplicate our base element; we don't need to clone deep
@@ -78,8 +79,9 @@ export class TextManager {
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
 		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
 		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
-		elm.style.setProperty('min-width', opts.minWidth ?? null)
+		elm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
 		elm.style.setProperty('padding', opts.padding)
+		elm.style.setProperty('aspect-ratio', opts.aspectRatio ?? null)
 
 		elm.textContent = normalizeTextForDom(textToMeasure)
 		const rect = elm.getBoundingClientRect()
