@@ -1,3 +1,8 @@
+import { RecordId, UnknownRecord } from '@tldraw/store'
+import { assert } from '@tldraw/utils'
+import fc, { Arbitrary } from 'fast-check'
+import { NetworkDiff, RecordOpType, ValueOpType } from '../lib/diff'
+import { TLSocketServerSentDataEvent } from '../lib/protocol'
 import { squishDataEvents } from '../lib/squish'
 
 test('basic squishing', () => {
@@ -268,7 +273,7 @@ test('basic squishing', () => {
 			},
 			serverClock: 9249,
 		},
-	]
+	] as const satisfies TLSocketServerSentDataEvent<UnknownRecord>[]
 
 	expect(squishDataEvents(capture as any)).toStrictEqual([
 		{
@@ -303,3 +308,158 @@ test('basic squishing', () => {
 		},
 	])
 })
+
+interface TestRecord extends UnknownRecord {
+	fieldA?: string | number[]
+	fieldB?: string | number[]
+	fieldC?: string | number[]
+}
+
+type Model = { records: TestRecord[]; diffs: NetworkDiff<TestRecord>[] }
+
+type System = 'whatever'
+
+class RecordPut implements fc.Command<Model, System> {
+	constructor(readonly record: TestRecord) {}
+	check(_m: Readonly<Model>) {
+		return true
+	}
+	run(m: Model): void {
+		m.diffs.push({ [this.record.id]: [RecordOpType.Put, this.record] })
+		m.records.push(this.record)
+	}
+	toString = () => `Put(${this.record.id})`
+}
+
+class RecordRemove implements fc.Command<Model, System> {
+	constructor(readonly idx: number) {}
+	check(m: Readonly<Model>) {
+		return m.records.length > 0
+	}
+	run(m: Model) {
+		const trueIdx = this.idx % m.records.length
+		m.diffs.push({ [m.records[trueIdx].id]: [RecordOpType.Remove] })
+		m.records.splice(trueIdx, 1)
+	}
+	toString = () => `Remove(#${this.idx})`
+}
+
+class RecordPatchPut implements fc.Command<Model, System> {
+	constructor(
+		readonly idx: number,
+		readonly key: Exclude<keyof TestRecord, keyof UnknownRecord>,
+		readonly value: string | number[]
+	) {}
+	check(m: Readonly<Model>) {
+		return m.records.length > 0
+	}
+	run(m: Model) {
+		const trueIdx = this.idx % m.records.length
+		m.diffs.push({
+			[m.records[trueIdx].id]: [RecordOpType.Patch, { [this.key]: [ValueOpType.Put, this.value] }],
+		})
+		m.records[trueIdx][this.key] = this.value
+	}
+	toString = () => `PatchPut(#${this.idx}.${this.key}=${this.value})`
+}
+
+class RecordPatchAppend implements fc.Command<Model, System> {
+	constructor(
+		readonly idx: number,
+		readonly key: Exclude<keyof TestRecord, keyof UnknownRecord>,
+		readonly values: number[]
+	) {}
+	check(m: Readonly<Model>) {
+		const trueIdx = this.idx % m.records.length
+		return m.records.length > 0 && m.records[trueIdx][this.key] instanceof Array
+	}
+	run(m: Model) {
+		const trueIdx = this.idx % m.records.length
+		const arr = m.records[trueIdx][this.key]
+		assert(arr instanceof Array)
+		assert(arr.length < 2, `arr is ${arr}`)
+		arr.push(...this.values)
+		m.diffs.push({
+			[m.records[trueIdx].id]: [
+				RecordOpType.Patch,
+				{ [this.key]: [ValueOpType.Append, this.values, arr.length] },
+			],
+		})
+		arr.push(...this.values)
+	}
+	toString = () => `PatchAppend(#${this.idx}.${this.key}|=[${this.values}])`
+}
+
+class RecordPatchDelete implements fc.Command<Model, System> {
+	constructor(
+		readonly idx: number,
+		readonly key: Exclude<keyof TestRecord, keyof UnknownRecord>
+	) {}
+	check(m: Readonly<Model>) {
+		const trueIdx = this.idx % m.records.length
+		return m.records.length > 0 && m.records[trueIdx][this.key] !== undefined
+	}
+	run(m: Model) {
+		const trueIdx = this.idx % m.records.length
+		delete m.records[trueIdx][this.key]
+	}
+	toString = () => `PatchDelete(#${this.idx}.${this.key})`
+}
+
+const TestRecordArb = fc.record(
+	{
+		id: fc.oneof(fc.constant('idA'), fc.constant('idB'), fc.constant('idC')) as Arbitrary<
+			RecordId<TestRecord>
+		>,
+		typeName: fc.oneof(fc.constant('typeA'), fc.constant('typeB'), fc.constant('typeC')),
+		alice: fc.oneof(fc.string(), fc.array(fc.nat(100))),
+		bob: fc.oneof(fc.string(), fc.array(fc.nat(100))),
+		charlie: fc.oneof(fc.string(), fc.array(fc.nat(100))),
+	},
+	{ requiredKeys: ['id', 'typeName'] }
+)
+
+const allCommands = [
+	TestRecordArb.map((r) => new RecordPut(r)),
+	fc.nat(10).map((idx) => new RecordRemove(idx)),
+	fc
+		.tuple(
+			fc.nat(10),
+			fc.oneof(
+				fc.constant('fieldA' as const),
+				fc.constant('fieldB' as const),
+				fc.constant('fieldC' as const)
+			),
+			fc.oneof(fc.string(), fc.array(fc.integer()))
+		)
+		.map(([idx, key, value]) => new RecordPatchPut(idx, key, value)),
+	fc
+		.tuple(
+			fc.nat(10),
+			fc.oneof(
+				fc.constant('fieldA' as const),
+				fc.constant('fieldB' as const),
+				fc.constant('fieldC' as const)
+			),
+			fc.array(fc.integer())
+		)
+		.map(([idx, key, values]) => new RecordPatchAppend(idx, key, values)),
+	fc
+		.tuple(
+			fc.nat(10),
+			fc.oneof(
+				fc.constant('fieldA' as const),
+				fc.constant('fieldB' as const),
+				fc.constant('fieldC' as const)
+			)
+		)
+		.map(([idx, key]) => new RecordPatchDelete(idx, key)),
+]
+
+test('fast-checking squish', () =>
+	fc.assert(
+		fc.property(fc.commands(allCommands, { replayPath: 'ACACBF:q' }), (cmds) => {
+			fc.modelRun(() => ({ model: { records: [], diffs: [] }, real: 'whatever' }), cmds)
+		}),
+		{ verbose: 1 }
+	))
