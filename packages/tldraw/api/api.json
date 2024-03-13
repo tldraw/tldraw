@@ -13945,7 +13945,7 @@
                 {
                   "kind": "Reference",
                   "text": "ResizingCrop",
-                  "canonicalReference": "tldraw!~ResizingCrop_2:class"
+                  "canonicalReference": "tldraw!~ResizingCrop:class"
                 },
                 {
                   "kind": "Content",
