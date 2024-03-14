@@ -58,4 +58,6 @@ export const LABEL_TO_ARROW_PADDING = 20
 /** @internal */
 export const ARROW_LABEL_PADDING = 4.25
 /** @internal */
+export const LABEL_PADDING = 16
+/** @internal */
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10

@@ -1,8 +1,11 @@
 /* eslint-disable no-inner-declarations */
 import {
+	Editor,
 	TLShape,
 	TLShapeId,
+	TLTextTriggerHook,
 	TLUnknownShape,
+	Vec,
 	getPointerInfo,
 	stopEventPropagation,
 	useEditor,
@@ -11,11 +14,25 @@ import {
 import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
-/** @public */
-export function useEditableText(id: TLShapeId, type: string, text: string) {
-	const editor = useEditor()
+const DefaultTextTriggerHook = () => ({ onKeyDown: () => false })
 
+/** @public */
+export function useEditableText(
+	id: TLShapeId,
+	type: string,
+	text: string,
+	options: {
+		useTextTriggerCharacter?: TLTextTriggerHook
+	}
+) {
+	const editor = useEditor()
 	const rInput = useRef<HTMLTextAreaElement>(null)
+	const useTextTriggerCharacter = options.useTextTriggerCharacter || DefaultTextTriggerHook
+	const { onKeyDown: onCustomKeyDown } = useTextTriggerCharacter(rInput.current, (text: string) => {
+		editor.updateShapes<TLUnknownShape & { props: { text: string } }>([
+			{ id, type, props: { text } },
+		])
+	})
 	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
 
@@ -97,6 +114,16 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
 
+			const inputEl = e.target as HTMLTextAreaElement
+			// Here we possibly pass control to a custom text handling component passed in by the user, if present.
+			if (inputEl && inputEl.previousSibling) {
+				const coords = getCaretPosition(editor, inputEl, inputEl.previousSibling)
+				const isHandledByCustomLogic = onCustomKeyDown(e, coords)
+				if (isHandledByCustomLogic) {
+					return
+				}
+			}
+
 			switch (e.key) {
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {
@@ -106,7 +133,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				}
 			}
 		},
-		[editor, isEditing]
+		[editor, isEditing, onCustomKeyDown]
 	)
 
 	// When the text changes, update the text value.
@@ -193,4 +220,19 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		handleDoubleClick,
 		isEmpty,
 	}
+}
+
+function getCaretPosition(editor: Editor, inputEl: HTMLTextAreaElement, measureEl: ChildNode) {
+	// There should only be one child - the text node.
+	const measureNode = measureEl.childNodes[0]
+
+	const range = document.createRange()
+	range.setStart(measureNode, inputEl.selectionStart)
+	range.setEnd(measureNode, inputEl.selectionEnd)
+	const rangeBounds = range.getBoundingClientRect()
+
+	const cursorScreenPos = new Vec(rangeBounds.left + rangeBounds.width / 2, rangeBounds.bottom)
+	const cursorViewportPos = Vec.Sub(cursorScreenPos, editor.getViewportScreenBounds())
+
+	return { top: cursorViewportPos.y, left: cursorViewportPos.x }
 }

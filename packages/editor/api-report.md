@@ -1112,6 +1112,8 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     distanceToPoint(point: Vec, hitInside?: boolean): number;
     // (undocumented)
+    findLabels(): Geometry2d[];
+    // (undocumented)
     getArea(): number;
     // (undocumented)
     getVertices(): Vec[];
@@ -2579,6 +2581,14 @@ export type TLSvgOptions = {
 
 // @public
 export type TLTextLabel = ITextLabel<TextLabelProps>;
+
+// @public
+export type TLTextTriggerHook = (inputEl: HTMLTextAreaElement | null, onComplete: (text: string) => void) => {
+    onKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>, coords: {
+        top: number;
+        left: number;
+    }) => Promise<boolean>;
+};
 
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;

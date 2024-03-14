@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
 	DefaultContextMenuContent,
@@ -15,6 +15,7 @@ import {
 	ShapeSubmenu,
 	TLComponents,
 	Tldraw,
+	TldrawTextLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
@@ -35,6 +36,7 @@ import { useSharing } from '../utils/sharing'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { useTextTriggerCharacter } from '../utils/useTextTriggerCharacter'
 import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
@@ -112,6 +114,9 @@ const components: TLComponents = {
 			</div>
 		)
 	},
+	TextLabel: React.memo((props) => {
+		return <TldrawTextLabel {...props} useTextTriggerCharacter={useTextTriggerCharacter} />
+	}),
 }
 
 export function MultiplayerEditor({
