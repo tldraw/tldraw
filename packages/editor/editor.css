@@ -1216,8 +1216,16 @@ input,
 }
 
 .tl-note__duplicate-button{
+	border: none;
+	font-weight: 600;
+	background-color: var(--color-muted-2);
 	position: absolute;
 	pointer-events: all;
+	border-radius: 8px;
+}
+
+.tl-note__duplicate-button:hover{
+	background-color: var(--color-muted-1);
 }
 
 

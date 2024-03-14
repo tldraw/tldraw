@@ -63,8 +63,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
-
-		const isSelected = this.editor.getSelectedShapeIds().includes(id)
+		const selectedShapes = this.editor.getSelectedShapeIds()
+		const isOnlyShapeSelected = selectedShapes.length === 1 && selectedShapes[0] === shape.id
 		return (
 			<>
 				<div
@@ -94,7 +94,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							wrap
 						/>
 					</div>
-					{isSelected && (
+					{isOnlyShapeSelected && (
 						<>
 							<button
 								className="tl-note__duplicate-button"
@@ -274,7 +274,7 @@ function duplicateShape(
 	const shape = editor.getShape(shapeId) as TLNoteShape
 
 	const rotationRadians = shape.rotation
-	const distance = NOTE_SIZE + 20
+	const distance = NOTE_SIZE + 30
 
 	// Calculate offsetX and offsetY based on the direction and rotation
 	let offsetX = 0
