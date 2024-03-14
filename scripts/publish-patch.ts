@@ -84,8 +84,12 @@ async function main() {
 	})
 
 	// create and push a new tag
-	await exec('git', ['tag', '-f', `v${nextVersion}`])
+	const gitTag = `v${nextVersion}`
+	await exec('git', ['tag', '-f', gitTag])
 	await exec('git', ['push', '--follow-tags'])
+	if (isLatestVersion) {
+		await exec('git', ['push', 'origin', `${gitTag}:docs-production`])
+	}
 
 	// create a release on github
 	await auto.runRelease({ useVersion: nextVersion })
