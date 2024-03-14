@@ -125,7 +125,7 @@ async function main() {
 	if (!isPrerelease) {
 		const { major, minor } = parse(nextVersion)!
 		await exec('git', ['push', 'origin', `${gitTag}:refs/heads/v${major}.${minor}.x`])
-		await exec('git', ['push', 'origin', `${gitTag}:docs-production`])
+		await exec('git', ['push', 'origin', `${gitTag}:docs-production`, `--force`])
 	}
 
 	// create a release on github

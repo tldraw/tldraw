@@ -43,7 +43,7 @@ async function main() {
 	}
 
 	if (isLatestVersion) {
-		await exec('git', ['push', 'origin', `HEAD:docs-production`])
+		await exec('git', ['push', 'origin', `HEAD:docs-production`, '--force'])
 	}
 
 	// Skip releasing a new version if the package contents are identical.
