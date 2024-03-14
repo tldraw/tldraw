@@ -7351,7 +7351,8 @@ __metadata:
     "@types/is-ci": "npm:^3.0.0"
     "@types/minimist": "npm:^1.2.5"
     "@types/node": "npm:~20.11"
-    "@types/tar": "npm:^6.1.7"
+    "@types/tar": "npm:^6.1.11"
+    "@types/tmp": "npm:^0.2.6"
     "@typescript-eslint/utils": "npm:^5.59.0"
     ast-types: "npm:^0.14.2"
     cross-fetch: "npm:^3.1.5"
@@ -7370,6 +7371,7 @@ __metadata:
     semver: "npm:^7.3.8"
     svgo: "npm:^3.0.2"
     tar: "npm:^6.2.0"
+    tmp: "npm:^0.2.3"
     typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
@@ -8212,13 +8214,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/tar@npm:^6.1.7":
-  version: 6.1.10
-  resolution: "@types/tar@npm:6.1.10"
+"@types/tar@npm:^6.1.11":
+  version: 6.1.11
+  resolution: "@types/tar@npm:6.1.11"
   dependencies:
     "@types/node": "npm:*"
     minipass: "npm:^4.0.0"
-  checksum: da525415a9bac9e81a1498d0b684dd7fa34f69a8568b54ab19660e99d5e7dcdeb2527a40059e1cfc697fe4bbcc18cd03a50c96356d84ab865345c2c48a9d88f6
+  checksum: 0d54b8acbd7d2fc43bd1097eef5058604a6b0e3a394cf485038303ca3ef39ecb42451c7dc5a2b9b18420e137ef5b2c76ec504e94c2f45010b2c8e8c3a49d9de7
   languageName: node
   linkType: hard
 
@@ -8228,6 +8230,13 @@ __metadata:
   dependencies:
     "@types/jest": "npm:*"
   checksum: e257de95a4a9385cc09ae4ca3396d23ad4b5cfb8e021a1ca3454c424c34636075f6fe151b2f881f79bf9d497aa04fbfae62449b135f293e8d2d614fa899898a8
+  languageName: node
+  linkType: hard
+
+"@types/tmp@npm:^0.2.6":
+  version: 0.2.6
+  resolution: "@types/tmp@npm:0.2.6"
+  checksum: e14a094c10569d3b56805552b21417860ef21060d969000d5d5b53604a78c2bdac216f064b03797d4b07a081e0141dd3ab22bc36923e75300eb1c023f7252cc7
   languageName: node
   linkType: hard
 
@@ -23021,6 +23030,13 @@ __metadata:
   dependencies:
     rimraf: "npm:^3.0.0"
   checksum: 445148d72df3ce99356bc89a7857a0c5c3b32958697a14e50952c6f7cf0a8016e746ababe9a74c1aa52f04c526661992f14659eba34d3c6701d49ba2f3cf781b
+  languageName: node
+  linkType: hard
+
+"tmp@npm:^0.2.3":
+  version: 0.2.3
+  resolution: "tmp@npm:0.2.3"
+  checksum: 7b13696787f159c9754793a83aa79a24f1522d47b87462ddb57c18ee93ff26c74cbb2b8d9138f571d2e0e765c728fb2739863a672b280528512c6d83d511c6fa
   languageName: node
   linkType: hard
 

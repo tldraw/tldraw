@@ -3,6 +3,7 @@ import fetch from 'cross-fetch'
 import glob from 'glob'
 import { assert } from 'node:console'
 import { appendFileSync } from 'node:fs'
+import { didAnyPackageChange } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
 import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
@@ -38,6 +39,17 @@ async function main() {
 		// Skip release if there are no commits since this branch was created during the initial release
 		// for this <major>.<minor> version.
 		nicelog('Initial push, skipping release')
+		return
+	}
+
+	if (isLatestVersion) {
+		await exec('git', ['push', 'origin', `HEAD:docs-production`])
+	}
+
+	// Skip releasing a new version if the package contents are identical.
+	// This may happen when cherry-picking docs-only changes.
+	if (!(await didAnyPackageChange())) {
+		nicelog('No packages have changed, skipping release')
 		return
 	}
 
@@ -84,12 +96,8 @@ async function main() {
 	})
 
 	// create and push a new tag
-	const gitTag = `v${nextVersion}`
-	await exec('git', ['tag', '-f', gitTag])
+	await exec('git', ['tag', '-f', `v${nextVersion}`])
 	await exec('git', ['push', '--follow-tags'])
-	if (isLatestVersion) {
-		await exec('git', ['push', 'origin', `${gitTag}:docs-production`])
-	}
 
 	// create a release on github
 	await auto.runRelease({ useVersion: nextVersion })
