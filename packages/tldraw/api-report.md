@@ -1093,6 +1093,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getHeight(shape: TLNoteShape): number;
     // (undocumented)
+    getTruncatedText(text: string, shape: TLNoteShape): string;
+    // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;

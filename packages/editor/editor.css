@@ -1229,16 +1229,18 @@ input,
 .tl-note__expand-button {
 	color: var(--color-text-1);
 	border-radius: 8px;
-	background-color: var(--color-background);
-	padding: 4px;
+	background-color: var(--color-hint);
+	color: var(--color-text-1);
+	font-size: 12px;
+	padding: 3px;
 	opacity: 0;
 	border: none;
 	position: absolute;
-	bottom: -25px;
-	left: 50%;
-	transform: translateX(-50%);
+	bottom: 6px;
+	right: 6px;
+	z-index: 10000;
 }
-.tl-shape:hover .tl-note__expand-button {
+.tl-shape:hover > div .tl-note__container .tl-note__expand-button {
 	opacity: 1;
 }
 

@@ -69,49 +69,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
-		const opts = {
-			overflow: 'wrap' as const,
-			width: 200,
-			height: this.getHeight(shape),
-			padding: 16,
-			fontSize: LABEL_FONT_SIZES[shape.props.size],
-			fontWeight: 'normal',
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontStyle: 'normal',
-			lineHeight: TEXT_PROPS.lineHeight,
-			textAlign: shape.props.align,
-		}
 		let textToRender = text
+
 		if (!shape.props.expanded) {
-			const spans = this.editor.textMeasure.measureTextSpans(shape.props.text, opts)
-			const lines = []
-			let currentLine = []
-			let currentLineWidth = 0
-
-			for (const span of spans) {
-				if (currentLineWidth + span.box.w > opts.width - opts.padding * 2) {
-					lines.push(currentLine)
-					currentLine = []
-					currentLineWidth = 0
-				}
-				currentLine.push(span)
-				currentLineWidth += span.box.w
-			}
-			const maxLines = {
-				s: 6,
-				m: 5,
-				l: 4,
-				xl: 3,
-			}
-			console.log({ lines }, { currentLine })
-
-			if (lines.length > maxLines[shape.props.size]) {
-				textToRender = lines
-					.slice(0, maxLines[shape.props.size])
-					.map((line) => line.map((span) => span.text).join(''))
-					.join('\n')
-				textToRender += '...'
-			}
+			textToRender = this.getTruncatedText(text, shape)
 		}
 
 		return (
@@ -144,22 +105,22 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							labelColor="black"
 							wrap
 						/>
+						{shape.props.growY > 0 && (
+							<button
+								className="tl-note__expand-button"
+								onClick={() => {
+									this.editor.updateShape({
+										id: shape.id,
+										type: 'note',
+										props: { expanded: !shape.props.expanded },
+									})
+								}}
+								onPointerDown={(e) => e.stopPropagation()}
+							>
+								{shape.props.expanded ? 'see less' : 'see more'}
+							</button>
+						)}
 					</div>
-					{shape.props.growY > 0 && (
-						<button
-							className="tl-note__expand-button"
-							onClick={() => {
-								this.editor.updateShape({
-									id: shape.id,
-									type: 'note',
-									props: { expanded: !shape.props.expanded },
-								})
-							}}
-							onPointerDown={(e) => e.stopPropagation()}
-						>
-							{shape.props.expanded ? 'see less' : 'see more'}
-						</button>
-					)}
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
@@ -252,6 +213,52 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				},
 			])
 		}
+	}
+
+	getTruncatedText(text: string, shape: TLNoteShape) {
+		const opts = {
+			overflow: 'wrap' as const,
+			width: 200,
+			height: this.getHeight(shape),
+			padding: 16,
+			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			fontWeight: 'normal',
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontStyle: 'normal',
+			lineHeight: TEXT_PROPS.lineHeight,
+			textAlign: shape.props.align,
+		}
+		const spans = this.editor.textMeasure.measureTextSpans(shape.props.text, opts)
+		const lines = []
+		let currentLine = []
+		let currentLineWidth = 0
+
+		for (const span of spans) {
+			if (currentLineWidth + span.box.w > opts.width - opts.padding * 2) {
+				lines.push(currentLine)
+				currentLine = []
+				currentLineWidth = 0
+			}
+			currentLine.push(span)
+			currentLineWidth += span.box.w
+		}
+		const maxLines = {
+			s: 6,
+			m: 5,
+			l: 4,
+			xl: 3,
+		}
+
+		if (lines.length + 1 > maxLines[shape.props.size]) {
+			let textToTruncate = lines
+				.slice(0, maxLines[shape.props.size])
+				.map((line) => line.map((span) => span.text).join(''))
+				.join('\n')
+			// remove whitespace at the end of the string
+			textToTruncate = textToTruncate.trimEnd()
+			return (textToTruncate += '...')
+		}
+		return text
 	}
 }
 
