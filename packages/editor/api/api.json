@@ -31167,6 +31167,41 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#isAlwaysOnTop:member",
+              "docComment": "/**\n * Whether the shape is always on top of other shape types.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isAlwaysOnTop: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeUtilFlag",
+                  "canonicalReference": "@tldraw/editor!TLShapeUtilFlag:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isAlwaysOnTop",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#isAspectRatioLocked:member",
               "docComment": "/**\n * Whether the shape's aspect ratio is locked.\n *\n * @public\n */\n",
               "excerptTokens": [

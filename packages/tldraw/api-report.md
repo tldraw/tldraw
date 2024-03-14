@@ -1040,6 +1040,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
+    isAlwaysOnTop: () => boolean;
+    // (undocumented)
     static migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (next: TLNoteShape) => {

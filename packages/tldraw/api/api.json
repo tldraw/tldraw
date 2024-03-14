@@ -12490,6 +12490,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#isAlwaysOnTop:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isAlwaysOnTop: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isAlwaysOnTop",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "tldraw!NoteShapeUtil.migrations:member",
               "docComment": "",
               "excerptTokens": [

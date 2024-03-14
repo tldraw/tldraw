@@ -132,6 +132,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canCrop: TLShapeUtilFlag<Shape> = () => false
 
 	/**
+	 * Whether the shape is always on top of other shape types.
+	 *
+	 * @public
+	 */
+	isAlwaysOnTop: TLShapeUtilFlag<Shape> = () => false
+
+	/**
 	 * Does this shape provide a background for its children? If this is true,
 	 * then any children with a `renderBackground` method will have their
 	 * backgrounds rendered _above_ this shape. Otherwise, the children's

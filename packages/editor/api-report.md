@@ -1617,6 +1617,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsFg: TLShapeUtilFlag<Shape>;
     abstract indicator(shape: Shape): any;
+    isAlwaysOnTop: TLShapeUtilFlag<Shape>;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
     // (undocumented)
     static migrations?: Migrations;
