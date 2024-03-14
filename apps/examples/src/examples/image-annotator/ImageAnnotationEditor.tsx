@@ -11,11 +11,10 @@ import {
 	createShapeId,
 	exportToBlob,
 	getIndexBelow,
+	react,
 	track,
 	useBreakpoint,
-	useComputed,
 	useEditor,
-	useValue,
 } from 'tldraw'
 import { PORTRAIT_BREAKPOINT } from 'tldraw/src/lib/ui/constants'
 import { AnnotatorImage } from './types'
@@ -32,9 +31,6 @@ export function ImageAnnotationEditor({
 }) {
 	const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null)
 	function onMount(editor: Editor) {
-		editor.store.clear()
-		editor.store.ensureStoreIsUsable()
-
 		editor.updateInstanceState({ isDebugMode: false })
 
 		const assetId = AssetRecordType.createId()
@@ -72,7 +68,8 @@ export function ImageAnnotationEditor({
 		editor.history.clear()
 		setImageShapeId(imageId)
 
-		// zoom aaaaallll the way out. our camera constraints will make sure we end up nicely centered on the image
+		// zoom aaaaallll the way out. our camera constraints will make sure we end up nicely
+		// centered on the image
 		editor.setCamera({ x: 0, y: 0, z: 0.0001 })
 	}
 
@@ -80,13 +77,15 @@ export function ImageAnnotationEditor({
 		<Tldraw
 			onMount={onMount}
 			components={{
-				// show
+				// we don't need pages for this use-case
+				PageMenu: null,
+				// grey-out the area outside of the image
 				InFrontOfTheCanvas: useCallback(() => {
 					if (!imageShapeId) return null
 					return <ImageBoundsOverlay imageShapeId={imageShapeId} />
 				}, [imageShapeId]),
-				PageMenu: null,
-				HelpMenu: useCallback(() => {
+				// add a "done" button in the top right for when the user is ready to export
+				SharePanel: useCallback(() => {
 					if (!imageShapeId) return null
 					return <DoneButton imageShapeId={imageShapeId} onClick={onDone} />
 				}, [imageShapeId, onDone]),
@@ -252,29 +251,14 @@ function KeepShapeLocked({ shapeId }: { shapeId: TLShapeId }) {
 }
 
 /**
- * We don't w
+ * We don't want the user to be able to scroll away from the image, or zoom it all the way out. This
+ * component hooks into camera updates to keep the camera constrained - try uploading a very long,
+ * thin image and seeing how the camera behaves.
  */
 function ConstrainCamera({ shapeId }: { shapeId: TLShapeId }) {
+	const editor = useEditor()
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
-
-	const editor = useEditor()
-	const viewportBounds = useValue(
-		useComputed(
-			'viewport bounds',
-			() => editor.getViewportScreenBounds(),
-			{ isEqual: Box.Equals },
-			[editor]
-		)
-	)
-	const targetBounds = useValue(
-		useComputed(
-			'target bounds',
-			() => editor.getShapePageBounds(shapeId)!,
-			{ isEqual: Box.Equals },
-			[editor, shapeId]
-		)
-	)
 
 	useEffect(() => {
 		const marginTop = 44
@@ -286,6 +270,9 @@ function ConstrainCamera({ shapeId }: { shapeId: TLShapeId }) {
 			y: number
 			z: number
 		} {
+			const viewportBounds = editor.getViewportScreenBounds()
+			const targetBounds = editor.getShapePageBounds(shapeId)!
+
 			const usableViewport = new Box(
 				marginSide,
 				marginTop,
@@ -313,8 +300,6 @@ function ConstrainCamera({ shapeId }: { shapeId: TLShapeId }) {
 			}
 		}
 
-		editor.setCamera(constrainCamera(editor.getCamera()))
-
 		const removeOnChange = editor.sideEffects.registerBeforeChangeHandler(
 			'camera',
 			(_prev, next) => {
@@ -325,10 +310,26 @@ function ConstrainCamera({ shapeId }: { shapeId: TLShapeId }) {
 			}
 		)
 
+		const removeReaction = react('update camera when viewport/shape changes', () => {
+			const original = editor.getCamera()
+			const constrained = constrainCamera(original)
+			if (
+				original.x === constrained.x &&
+				original.y === constrained.y &&
+				original.z === constrained.z
+			) {
+				return
+			}
+
+			// this needs to be in a microtask for some reason, but idk why
+			queueMicrotask(() => editor.setCamera(constrained))
+		})
+
 		return () => {
 			removeOnChange()
+			removeReaction()
 		}
-	}, [editor, targetBounds, viewportBounds, isMobile])
+	}, [editor, isMobile, shapeId])
 
 	return null
 }
