@@ -24,9 +24,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	const rSelectionRanges = useRef<Range[] | null>()
 
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
-	const shape = editor.getShape(id) as T
-	const doesShapeAutoEditOnKeystroke =
-		shape && editor.getShapeUtil(type).doesAutoEditOnKeyStroke(shape)
 
 	// If the shape is editing but the input element not focused, focus the element
 	useEffect(() => {
@@ -38,10 +35,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 	// When the label receives focus, set the value to the most  recent text value and select all of the text
 	const handleFocus = useCallback(() => {
-		if (doesShapeAutoEditOnKeystroke) {
-			return
-		}
-
 		// Store and turn off the skipSelectOnFocus flag
 		const skipSelect = rSkipSelectOnFocus.current
 		rSkipSelectOnFocus.current = false
@@ -60,7 +53,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				}
 			}
 		})
-	}, [editor, id, doesShapeAutoEditOnKeystroke])
+	}, [editor, id])
 
 	// When the label blurs, deselect all of the text and complete.
 	// This makes it so that the canvas does not have to be focused

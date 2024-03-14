@@ -1091,8 +1091,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
-    doesAutoEditOnKeyStroke: () => boolean;
-    // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
     getGeometry(shape: TLNoteShape): Rectangle2d;
