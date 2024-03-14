@@ -28,6 +28,13 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 		handleDoubleClick,
 	} = useEditableText(id, 'arrow', text)
 
+	const [initialText, setInitialText] = React.useState(text)
+	React.useEffect(() => {
+		if (!isEditing) {
+			setInitialText(text)
+		}
+	}, [isEditing, text])
+
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
 
@@ -56,6 +63,9 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				</p>
 				<textarea
 					ref={rInput}
+					// We need to add the initial value as the key here because we need this component to
+					// 'reset' when this state changes and grab the latest defaultValue.
+					key={initialText}
 					className="tl-text tl-text-input"
 					name="text"
 					tabIndex={-1}

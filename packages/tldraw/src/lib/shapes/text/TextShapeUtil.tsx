@@ -114,6 +114,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					</div>
 					<textarea
 						ref={rInput}
+						// We add a key here because we need this component to 'reset' when this state changes
+						// and grab the latest defaultValue.
+						// XXX I need to land https://github.com/tldraw/tldraw/pull/3050 so I can do this right.
+						// key={isEditing ? undefined : 'not-editing'}
 						className="tl-text tl-text-input"
 						name="text"
 						tabIndex={-1}

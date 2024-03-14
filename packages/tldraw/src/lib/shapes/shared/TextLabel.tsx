@@ -9,7 +9,7 @@ import {
 	TLShape,
 	stopEventPropagation,
 } from '@tldraw/editor'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDefaultColorTheme } from './ShapeFill'
 import { TextHelpers } from './TextHelpers'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
@@ -53,6 +53,13 @@ export const TextLabel = React.memo(function TextLabel<
 		handleInputPointerDown,
 		handleDoubleClick,
 	} = useEditableText(id, type, text)
+
+	const [initialText, setInitialText] = useState(text)
+	useEffect(() => {
+		if (!isEditing) {
+			setInitialText(text)
+		}
+	}, [isEditing, text])
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.length > 0
@@ -101,6 +108,9 @@ export const TextLabel = React.memo(function TextLabel<
 				</div>
 				<textarea
 					ref={rInput}
+					// We need to add the initial value as the key here because we need this component to
+					// 'reset' when this state changes and grab the latest defaultValue.
+					key={initialText}
 					className="tl-text tl-text-input"
 					name="text"
 					tabIndex={-1}
