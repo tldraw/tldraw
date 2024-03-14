@@ -1206,13 +1206,15 @@ input,
 }
 
 .tl-note__container[data-isexpanded='false'] .tl-text-label .tl-text-label__inner {
-	max-height: 200px;
+	height: fit-content;
+	max-height: 164.5px;
 }
 
 .tl-note__container[data-isexpanded='false'] .tl-text-label .tl-text-label__inner .tl-text-content {
 	height: 100%;
-	max-height: 200px;
+	max-height: 180.5px;
 }
+
 
 .tl-note__scrim {
 	position: absolute;

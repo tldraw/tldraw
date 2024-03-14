@@ -19,6 +19,7 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
+const MAX_TEXT_HEIGHT_COLLAPSED = 148.5
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -68,6 +69,51 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
+		const opts = {
+			overflow: 'wrap' as const,
+			width: 200,
+			height: this.getHeight(shape),
+			padding: 16,
+			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			fontWeight: 'normal',
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontStyle: 'normal',
+			lineHeight: TEXT_PROPS.lineHeight,
+			textAlign: shape.props.align,
+		}
+		let textToRender = text
+		if (!shape.props.expanded) {
+			const spans = this.editor.textMeasure.measureTextSpans(shape.props.text, opts)
+			const lines = []
+			let currentLine = []
+			let currentLineWidth = 0
+
+			for (const span of spans) {
+				if (currentLineWidth + span.box.w > opts.width - opts.padding * 2) {
+					lines.push(currentLine)
+					currentLine = []
+					currentLineWidth = 0
+				}
+				currentLine.push(span)
+				currentLineWidth += span.box.w
+			}
+			const maxLines = {
+				s: 6,
+				m: 5,
+				l: 4,
+				xl: 3,
+			}
+			console.log({ lines }, { currentLine })
+
+			if (lines.length > maxLines[shape.props.size]) {
+				textToRender = lines
+					.slice(0, maxLines[shape.props.size])
+					.map((line) => line.map((span) => span.text).join(''))
+					.join('\n')
+				textToRender += '...'
+			}
+		}
+
 		return (
 			<>
 				<div
@@ -94,7 +140,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							size={size}
 							align={align}
 							verticalAlign={verticalAlign}
-							text={text}
+							text={textToRender}
 							labelColor="black"
 							wrap
 						/>
