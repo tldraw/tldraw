@@ -1054,7 +1054,8 @@
 .tlui-toast__title {
 	font-weight: bold;
 	color: var(--color-text-1);
-	line-height: 1.2rem;
+	/* this makes the default toast look better */
+	line-height: 16px;
 }
 
 .tlui-toast__description {
@@ -1078,9 +1079,6 @@
 .tlui-toast__close {
 	align-self: flex-end;
 	flex-shrink: 0;
-
-	/* this makes the default toast look better */
-	height: 43px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
