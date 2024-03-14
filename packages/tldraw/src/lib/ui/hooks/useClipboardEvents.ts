@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FileHelpers,
 	TLArrowShape,
 	TLBookmarkShape,
 	TLEmbedShape,
@@ -79,26 +80,6 @@ function disallowClipboardEvents(editor: Editor) {
 			(activeElement.getAttribute('contenteditable') ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
 	)
-}
-
-/**
- * Get a blob as a string.
- *
- * @param blob - The blob to get as a string.
- * @internal
- */
-async function blobAsString(blob: Blob) {
-	return new Promise<string>((resolve, reject) => {
-		const reader = new FileReader()
-		reader.addEventListener('loadend', () => {
-			const text = reader.result
-			resolve(text as string)
-		})
-		reader.addEventListener('error', () => {
-			reject(reader.error)
-		})
-		reader.readAsText(blob)
-	})
 }
 
 /**
@@ -269,27 +250,30 @@ const handlePasteFromClipboardApi = async (
 		if (item.types.includes('text/html')) {
 			things.push({
 				type: 'html',
-				source: new Promise<string>((r) =>
-					item.getType('text/html').then((blob) => blobAsString(blob).then(r))
-				),
+				source: (async () => {
+					const blob = await item.getType('text/html')
+					return await FileHelpers.blobToText(blob)
+				})(),
 			})
 		}
 
 		if (item.types.includes('text/uri-list')) {
 			things.push({
 				type: 'url',
-				source: new Promise<string>((r) =>
-					item.getType('text/uri-list').then((blob) => blobAsString(blob).then(r))
-				),
+				source: (async () => {
+					const blob = await item.getType('text/uri-list')
+					return await FileHelpers.blobToText(blob)
+				})(),
 			})
 		}
 
 		if (item.types.includes('text/plain')) {
 			things.push({
 				type: 'text',
-				source: new Promise<string>((r) =>
-					item.getType('text/plain').then((blob) => blobAsString(blob).then(r))
-				),
+				source: (async () => {
+					const blob = await item.getType('text/plain')
+					return await FileHelpers.blobToText(blob)
+				})(),
 			})
 		}
 	}

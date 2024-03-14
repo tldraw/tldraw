@@ -3,7 +3,9 @@ import fetch from 'cross-fetch'
 import glob from 'glob'
 import { assert } from 'node:console'
 import { appendFileSync } from 'node:fs'
+import { didAnyPackageChange } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
+import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
@@ -16,9 +18,6 @@ async function main() {
 	const latestVersionOnNpm = (await exec('npm', ['show', 'tldraw', 'version'])).trim()
 
 	const isLatestVersion = latestVersionInBranch.format() === latestVersionOnNpm
-	if (process.env.GITHUB_OUTPUT) {
-		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
-	}
 
 	const nextVersion = latestVersionInBranch.inc('patch').format()
 	// check we're on the main branch on HEAD
@@ -28,8 +27,9 @@ async function main() {
 	}
 
 	// we could probably do this a lot earlier in the yml file but 🤷‍♂️
+	await exec('git', ['fetch', 'origin', 'main'])
 	const numberOfCommitsSinceBranch = Number(
-		(await exec('git', ['rev-list', '--count', `HEAD`, '^main'])).toString().trim()
+		(await exec('git', ['rev-list', '--count', `HEAD`, '^origin/main'])).toString().trim()
 	)
 
 	if (numberOfCommitsSinceBranch === 0) {
@@ -37,6 +37,21 @@ async function main() {
 		// for this <major>.<minor> version.
 		nicelog('Initial push, skipping release')
 		return
+	}
+
+	if (isLatestVersion) {
+		await exec('git', ['push', 'origin', `HEAD:docs-production`, '--force'])
+	}
+
+	// Skip releasing a new version if the package contents are identical.
+	// This may happen when cherry-picking docs-only changes.
+	if (!(await didAnyPackageChange())) {
+		nicelog('No packages have changed, skipping release')
+		return
+	}
+
+	if (process.env.GITHUB_OUTPUT) {
+		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
 	}
 
 	nicelog('Releasing version', nextVersion)
@@ -72,6 +87,7 @@ async function main() {
 		disableTsNode: true,
 	})
 
+	await generateAutoRcFile()
 	await auto.loadConfig()
 
 	// this creates a new commit

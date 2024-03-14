@@ -10,7 +10,7 @@ order: 0
 
 You can use the tldraw SDK to craft infinite canvas experiences for the web. It's perfect for collaborative whiteboards but you can use it for lots of other things, too.
 
-By the end of this guide you will have made something that looks like this: 
+By the end of this guide you will have made something that looks like this:
 
 <Embed className="article__embed--quickstart" src="https://examples.tldraw.com/develop" />
 
@@ -50,26 +50,26 @@ To render the Tldraw component
 This will render a full screen canvas:
 
 ```javascript
-import { Tldraw } from "tldraw";
-import "./index.css";
+import { Tldraw } from 'tldraw'
+import './index.css'
 
 export default function App() {
-  return (
-    <div style={{ position: 'fixed', inset: 0 }}>
-      <Tldraw />
-    </div>
-  );
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw />
+		</div>
+	)
 }
 ```
 
 ## Next Steps
 
-Now that you have your canvas working, you may be wondering: what next? 
+Now that you have your canvas working, you may be wondering: what next?
 
-You can try: 
+You can try:
 
 - Giving the editor a makeover by [customizing the UI](/docs/user-interface)
 - Adding your own [shapes](/docs/shapes) and [tools](/docs/tools)
-- Providing collaboration using [multiplayer](https://github.com/tldraw/tldraw-yjs-example) 
+- Providing collaboration using [multiplayer](https://github.com/tldraw/tldraw-yjs-example)
 
 We provide the above examples and more in our [examples section](/examples). Go build something creative and please do share it with us in our [#show-and-tell](https://discord.com/invite/SBBEVCA4PG) channel on Discord!
