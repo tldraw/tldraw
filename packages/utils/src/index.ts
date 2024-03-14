@@ -38,7 +38,6 @@ export {
 	objectMapValues,
 } from './lib/object'
 export { PngHelpers } from './lib/png'
-export { rafThrottle, throttledRaf } from './lib/raf'
 export { type IndexKey } from './lib/reordering/IndexKey'
 export {
 	ZERO_INDEX_KEY,
@@ -63,6 +62,7 @@ export {
 	setInLocalStorage,
 	setInSessionStorage,
 } from './lib/storage'
+export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export type { Expand, RecursivePartial, Required } from './lib/types'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'
 export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'

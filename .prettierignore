@@ -8,7 +8,6 @@
 !**/pages/api/*
 **/.tsbuild*
 **/.next/*
-*.mdx
 **/_archive/*
 apps/docs/api-content.json
 apps/docs/content.json
@@ -17,6 +16,11 @@ apps/examples/www
 content.json
 apps/docs/utils/vector-db/index.json
 **/gen/**/*.md
+
+**/api-report.md
+**/CHANGELOG.md
+apps/docs/content/releases/**/*
+apps/docs/content/reference/**/*
 
 **/.vercel/*
 **/.wrangler/*

@@ -174,8 +174,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
-					exportAs(editor.getSelectedShapeIds(), 'svg', getExportName(editor, defaultDocumentName))
+					exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -187,8 +190,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(editor.getSelectedShapeIds(), 'png', getExportName(editor, defaultDocumentName))
+					exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -200,8 +206,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(editor.getSelectedShapeIds(), 'json', getExportName(editor, defaultDocumentName))
+					exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -213,6 +222,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'svg', source })
 					exportAs(
 						Array.from(editor.getCurrentPageShapeIds()),
@@ -230,12 +242,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					const ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'png', source })
-					exportAs(
-						Array.from(editor.getCurrentPageShapeIds()),
-						'png',
-						getExportName(editor, defaultDocumentName)
-					)
+					exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -247,12 +257,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					const ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'json', source })
-					exportAs(
-						Array.from(editor.getCurrentPageShapeIds()),
-						'json',
-						getExportName(editor, defaultDocumentName)
-					)
+					exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -265,8 +273,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$!c',
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'svg', source })
-					copyAs(editor.getSelectedShapeIds(), 'svg')
+					copyAs(ids, 'svg')
 				},
 			},
 			{
@@ -278,8 +289,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'png', source })
-					copyAs(editor.getSelectedShapeIds(), 'png')
+					copyAs(ids, 'png')
 				},
 			},
 			{
@@ -291,8 +305,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'json', source })
-					copyAs(editor.getSelectedShapeIds(), 'json')
+					copyAs(ids, 'json')
 				},
 			},
 			{

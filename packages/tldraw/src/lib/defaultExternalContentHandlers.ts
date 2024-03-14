@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	FileHelpers,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
@@ -96,7 +97,7 @@ export function registerDefaultExternalContentHandlers(
 			typeName: 'asset',
 			props: {
 				name,
-				src: await MediaHelpers.blobToDataUrl(file),
+				src: await FileHelpers.blobToDataUrl(file),
 				w: size.w,
 				h: size.h,
 				mimeType: file.type,
