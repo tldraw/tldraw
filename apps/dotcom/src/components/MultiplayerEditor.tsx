@@ -11,7 +11,6 @@ import {
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	OfflineIndicator,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
@@ -19,7 +18,6 @@ import {
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	atom,
-	debugFlags,
 	lns,
 	useActions,
 	useValue,
@@ -93,15 +91,6 @@ const components: TLComponents = {
 	},
 	TopPanel: () => {
 		const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
-		const showDocumentName = useValue('documentName ', () => debugFlags.documentName.get(), [
-			debugFlags,
-		])
-		if (!showDocumentName) {
-			if (isOffline) {
-				return <OfflineIndicator />
-			}
-			return null
-		}
 		return <DocumentTopZone isOffline={isOffline} />
 	},
 	SharePanel: () => {
