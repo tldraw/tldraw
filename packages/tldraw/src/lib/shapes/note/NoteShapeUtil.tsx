@@ -6,6 +6,7 @@ import {
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShapeId,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -63,6 +64,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
+		const isSelected = this.editor.getSelectedShapeIds().includes(id)
 		return (
 			<>
 				<div
@@ -92,6 +94,50 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							wrap
 						/>
 					</div>
+					{isSelected && (
+						<>
+							<button
+								className="tl-note__duplicate-button"
+								style={{ top: '-30px', left: '50%', transform: 'translateX(-50%)' }}
+								onClick={() => duplicateShape(shape.id, 'up', this.editor)}
+								onPointerDown={(e) => {
+									e.stopPropagation()
+								}}
+							>
+								+
+							</button>
+							<button
+								className="tl-note__duplicate-button"
+								style={{ bottom: '-30px', right: '50%', transform: 'translateX(50%)' }}
+								onClick={() => duplicateShape(shape.id, 'down', this.editor)}
+								onPointerDown={(e) => {
+									e.stopPropagation()
+								}}
+							>
+								+
+							</button>
+							<button
+								className="tl-note__duplicate-button"
+								style={{ bottom: '50%', right: '-30px', transform: 'translateY(50%)' }}
+								onClick={() => duplicateShape(shape.id, 'right', this.editor)}
+								onPointerDown={(e) => {
+									e.stopPropagation()
+								}}
+							>
+								+
+							</button>
+							<button
+								className="tl-note__duplicate-button"
+								style={{ bottom: '50%', left: '-30px', transform: 'translateY(50%)' }}
+								onClick={() => duplicateShape(shape.id, 'left', this.editor)}
+								onPointerDown={(e) => {
+									e.stopPropagation()
+								}}
+							>
+								+
+							</button>
+						</>
+					)}
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
@@ -218,4 +264,43 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 			},
 		}
 	}
+}
+
+function duplicateShape(
+	shapeId: TLShapeId,
+	direction: 'up' | 'down' | 'left' | 'right',
+	editor: Editor
+) {
+	const shape = editor.getShape(shapeId) as TLNoteShape
+
+	const rotationRadians = shape.rotation
+	const distance = NOTE_SIZE + 20
+
+	// Calculate offsetX and offsetY based on the direction and rotation
+	let offsetX = 0
+	let offsetY = 0
+
+	switch (direction) {
+		case 'up':
+			offsetX = distance * Math.sin(rotationRadians)
+			offsetY = distance * -Math.cos(rotationRadians)
+			break
+		case 'down':
+			offsetX = distance * -Math.sin(rotationRadians)
+			offsetY = distance * Math.cos(rotationRadians)
+			break
+		case 'left':
+			offsetX = distance * -Math.cos(rotationRadians)
+			offsetY = distance * -Math.sin(rotationRadians)
+			break
+		case 'right':
+			offsetX = distance * Math.cos(rotationRadians)
+			offsetY = distance * Math.sin(rotationRadians)
+			break
+	}
+
+	console.log(shape.rotation)
+	console.log(`OffsetX: ${offsetX}, OffsetY: ${offsetY}`)
+
+	editor.duplicateShapes([shapeId], { x: offsetX, y: offsetY })
 }

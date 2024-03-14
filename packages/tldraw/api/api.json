@@ -13210,7 +13210,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -13294,7 +13294,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        id: "
                 },
                 {
                   "kind": "Reference",

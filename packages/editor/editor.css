@@ -1215,6 +1215,13 @@ input,
 	opacity: 0.28;
 }
 
+.tl-note__duplicate-button{
+	position: absolute;
+	pointer-events: all;
+}
+
+
+
 .tl-loading {
 	background-color: var(--color-background);
 	color: var(--color-text-1);
