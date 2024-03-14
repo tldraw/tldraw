@@ -18,9 +18,6 @@ async function main() {
 	const latestVersionOnNpm = (await exec('npm', ['show', 'tldraw', 'version'])).trim()
 
 	const isLatestVersion = latestVersionInBranch.format() === latestVersionOnNpm
-	if (process.env.GITHUB_OUTPUT) {
-		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
-	}
 
 	const nextVersion = latestVersionInBranch.inc('patch').format()
 	// check we're on the main branch on HEAD
@@ -51,6 +48,10 @@ async function main() {
 	if (!(await didAnyPackageChange())) {
 		nicelog('No packages have changed, skipping release')
 		return
+	}
+
+	if (process.env.GITHUB_OUTPUT) {
+		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
 	}
 
 	nicelog('Releasing version', nextVersion)

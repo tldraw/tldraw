@@ -58,7 +58,12 @@ function getTarballManifest(tarballPath: string): Promise<Record<string, Buffer>
 				onentry: (entry) => {
 					entry.on('data', (data) => {
 						// we could hash these to reduce memory but it's probably fine
-						manifest[entry.path] = data
+						const existing = manifest[entry.path]
+						if (existing) {
+							manifest[entry.path] = Buffer.concat([existing, data])
+						} else {
+							manifest[entry.path] = data
+						}
 					})
 				},
 			},
@@ -74,9 +79,10 @@ function getTarballManifest(tarballPath: string): Promise<Record<string, Buffer>
 }
 
 export async function didAnyPackageChange() {
-	const details = getAllPackageDetails()
+	const details = await getAllPackageDetails()
 	for (const pkg of Object.values(details)) {
 		if (await hasPackageChanged(pkg)) {
+			console.log('Package changed:', pkg.name)
 			return true
 		}
 	}
