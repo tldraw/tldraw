@@ -1,4 +1,5 @@
 import {
+	ANIMATION_MEDIUM_MS,
 	DefaultFontFamilies,
 	Editor,
 	Rectangle2d,
@@ -276,7 +277,9 @@ function duplicateShape(
 	}
 
 	const newShapeId = createShapeId()
-	editor.createShape({ type: 'note', id: newShapeId, x: shape.x + offsetX, y: shape.y + offsetY })
+	const newShapeX = shape.x + offsetX
+	const newShapeY = shape.y + offsetY
+	editor.createShape({ type: 'note', id: newShapeId, x: newShapeX, y: newShapeY })
 	editor.createShape({
 		type: 'arrow',
 		props: {
@@ -297,4 +300,8 @@ function duplicateShape(
 		},
 	})
 	editor.setEditingShape(newShapeId)
+	editor.centerOnPoint(
+		{ x: newShapeX + NOTE_SIZE / 2, y: newShapeY + NOTE_SIZE / 2 },
+		{ duration: ANIMATION_MEDIUM_MS }
+	)
 }
