@@ -17,6 +17,7 @@ import { STROKE_SIZES } from '../shapes/shared/default-shape-constants'
 // todo:
 // - move strokesize to info
 // - move interrupt logic to drawing tool
+// - move can close to the info / config
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 
@@ -214,6 +215,7 @@ export class DrawingInteraction extends Interaction<{
 		this.initialShape = this.editor.getShape<DrawableShape>(id)!
 	}
 
+	// todo: move this to the info / config
 	private canClose() {
 		return this.info.shapeType !== 'highlight'
 	}
