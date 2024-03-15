@@ -9,6 +9,7 @@ import {
 	TLOnEditEndHandler,
 	TLShapeId,
 	ZERO_INDEX_KEY,
+	createShapeId,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -274,7 +275,7 @@ function duplicateShape(
 			break
 	}
 
-	editor.duplicateShapes([shapeId], { x: offsetX, y: offsetY })
-	const newShape = editor.getSelectedShapeIds()[0]
-	editor.setEditingShape(newShape)
+	const id = createShapeId()
+	editor.createShape({ type: 'note', id, x: shape.x + offsetX, y: shape.y + offsetY })
+	editor.setEditingShape(id)
 }
