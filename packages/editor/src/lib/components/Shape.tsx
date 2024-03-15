@@ -49,7 +49,7 @@ export const Shape = track(function Shape({
 		backgroundContainerRef.current?.style.setProperty(property, value)
 	}, [])
 
-	useLayoutReaction('set shape container transform position', () => {
+	useLayoutReaction('set shape stuff', () => {
 		const shape = editor.getShape(id)
 		if (!shape) return // probably the shape was just deleted
 

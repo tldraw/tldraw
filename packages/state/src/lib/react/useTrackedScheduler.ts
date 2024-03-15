@@ -3,13 +3,15 @@ import React from 'react'
 import { EffectScheduler } from '../core'
 
 /** @internal */
-export function useTrackedScheduler<T>(name: string, render: () => T): EffectScheduler<T> {
-	// user render is only called at the bottom of this function, indirectly via scheduler.execute()
-	// we need it to always be up-to-date when calling scheduler.execute() but it'd be wasteful to
+export function useTrackedScheduler<T>(name: string, exec: () => T): EffectScheduler<T> {
+	// This hook creates an effect scheduler that will trigger re-renders when its reactive dependencies change, but it
+	// defers the actual execution of the effect to the consumer of this hook.
+
+	// We need the exec fn to always be up-to-date when calling scheduler.execute() but it'd be wasteful to
 	// instantiate a new EffectScheduler on every render, so we use an immediately-updated ref
 	// to wrap it
-	const renderRef = React.useRef(render)
-	renderRef.current = render
+	const execRef = React.useRef(exec)
+	execRef.current = exec
 
 	const [scheduler, subscribe, getSnapshot] = React.useMemo(() => {
 		let scheduleUpdate = null as null | (() => void)
@@ -24,7 +26,7 @@ export function useTrackedScheduler<T>(name: string, render: () => T): EffectSch
 		const scheduler = new EffectScheduler(
 			`useStateTracking(${name})`,
 			// this is what `scheduler.execute()` will call
-			() => renderRef.current?.(),
+			() => execRef.current?.(),
 			// this is what will be invoked when @tldraw/state detects a change in an upstream reactive value
 			{
 				scheduleEffect: fpsThrottle(() => {
