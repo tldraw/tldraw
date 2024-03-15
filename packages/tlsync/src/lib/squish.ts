@@ -58,25 +58,6 @@ function patchThePatch(lastPatch: ObjectDiff, newPatch: ObjectDiff): Bailed {
 							// trying to append to either a deletion or a patch, bail out
 							return true
 					}
-
-					if (lastOp[0] === ValueOpType.Append) {
-						const lastValues = lastOp[1]
-						const lastOffset = lastOp[2]
-						const newValues = newOp[1]
-						const newOffset = newOp[2]
-						if (newOffset === lastOffset + lastValues.length) {
-							lastValues.push(...newValues)
-						} else {
-							// something weird is going on, bail out
-							return true
-						}
-					} else {
-						if (lastOp[0] === ValueOpType.Put && Array.isArray(lastOp[1])) {
-						}
-
-						// bail out, it's too hard
-						return true
-					}
 				}
 				break
 			case ValueOpType.Patch:
