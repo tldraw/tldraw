@@ -1195,6 +1195,12 @@ export abstract class Interaction<T extends object = object> {
     // (undocumented)
     protected onInterrupt?(): void;
     // (undocumented)
+    protected onKeyDown?(): void;
+    // (undocumented)
+    protected onKeyUp?(): void;
+    // (undocumented)
+    protected onPointerMove?(): void;
+    // (undocumented)
     protected onStart?(): void;
     // (undocumented)
     protected onUpdate?(): void;

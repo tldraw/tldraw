@@ -81,8 +81,25 @@ export abstract class Interaction<T extends object = object> {
 	protected handleEditorEvent = (event: TLEventInfo) => {
 		switch (event.type) {
 			case 'keyboard': {
-				if (event.name === 'key_repeat') return
-				this.update()
+				switch (event.name) {
+					case 'key_down': {
+						this.onKeyDown?.()
+						break
+					}
+					case 'key_up': {
+						this.onKeyUp?.()
+						break
+					}
+				}
+				break
+			}
+			case 'pointer': {
+				switch (event.name) {
+					case 'pointer_move': {
+						this.onPointerMove?.()
+						break
+					}
+				}
 				break
 			}
 			case 'misc': {
@@ -227,4 +244,18 @@ export abstract class Interaction<T extends object = object> {
 	protected onInterrupt?(): void
 
 	protected onEnd?(): void
+
+	// Interactions between ticks? These should not
+	// update the editor state, but should be able to
+	// collect events that occur between ticks.
+	// Alternatively, we could have the editor's input
+	// manager collect these ticks automatically and
+	// be accessed on each from like `frame.pointers["id"].points`
+	// or frame.keys.down / frame.keys.up / frame.keys.pressed.
+
+	protected onPointerMove?(): void
+
+	protected onKeyDown?(): void
+
+	protected onKeyUp?(): void
 }

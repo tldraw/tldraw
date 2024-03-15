@@ -329,7 +329,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_down',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -377,16 +377,19 @@ export class TestEditor extends Editor {
 			name: 'double_click',
 			phase: 'up',
 		})
+		this.forceTick()
 		return this
 	}
 
 	keyDown = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) })
+		this.forceTick()
 		return this
 	}
 
 	keyRepeat = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) })
+		this.forceTick()
 		return this
 	}
 
@@ -398,7 +401,7 @@ export class TestEditor extends Editor {
 				altKey: this.inputs.altKey && key !== 'Alt',
 				...options,
 			}),
-		})
+		}).forceTick()
 		return this
 	}
 

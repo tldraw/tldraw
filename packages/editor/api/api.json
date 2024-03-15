@@ -24138,6 +24138,99 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Interaction#onKeyDown:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected onKeyDown?(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onKeyDown"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Interaction#onKeyUp:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected onKeyUp?(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onKeyUp"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Interaction#onPointerMove:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "protected onPointerMove?(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": true,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": true,
+              "isAbstract": false,
+              "name": "onPointerMove"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Interaction#onStart:member(1)",
               "docComment": "",
               "excerptTokens": [
