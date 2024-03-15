@@ -174,8 +174,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
     // (undocumented)
-    getLabel(arrow: TLArrowShape): Rectangle2d;
-    // (undocumented)
     hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
     hideRotateHandle: TLShapeUtilFlag<TLArrowShape>;
@@ -700,8 +698,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
     // (undocumented)
-    getLabel(shape: TLGeoShape): Rectangle2d;
-    // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
     static migrations: Migrations;
@@ -1097,8 +1093,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getHeight(shape: TLNoteShape): number;
     // (undocumented)
-    getLabel(shape: TLNoteShape): Rectangle2d;
-    // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
@@ -1307,8 +1301,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)
     getGeometry(shape: TLTextShape): Rectangle2d;
-    // (undocumented)
-    getLabel(shape: TLTextShape): Rectangle2d;
     // (undocumented)
     getMinDimensions(shape: TLTextShape): {
         height: number;

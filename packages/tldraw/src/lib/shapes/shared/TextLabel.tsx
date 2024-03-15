@@ -107,6 +107,7 @@ export const TextLabel = React.memo(function TextLabel<
 					{finalText}
 				</div>
 				<textarea
+					id={`text-input-${id}`}
 					ref={rInput}
 					// We need to add the initial value as the key here because we need this component to
 					// 'reset' when this state changes and grab the latest defaultValue.
@@ -114,6 +115,8 @@ export const TextLabel = React.memo(function TextLabel<
 					className="tl-text tl-text-input"
 					name="text"
 					tabIndex={-1}
+					readOnly={!isEditing}
+					disabled={!isEditing}
 					autoComplete="off"
 					autoCapitalize="off"
 					autoCorrect="off"

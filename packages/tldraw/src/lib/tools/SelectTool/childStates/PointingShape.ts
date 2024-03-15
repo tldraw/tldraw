@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
+import { getTextLabels } from '../../../utils/shapes/shapes'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -126,7 +127,11 @@ export class PointingShape extends StateNode {
 
 						// if the shape has a text label, and we're inside of the label, then we want to begin editing the label.
 						if (selectedShapeIds.length === 1) {
-							const textLabel = this.editor.getShapeUtil(selectingShape).getLabel(selectingShape)
+							const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
+							const textLabels = getTextLabels(geometry)
+							const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
+							// N.B. we're only interested if there is exactly one text label. We don't handle the
+							// case if there's potentially more than one text label at the moment.
 							if (textLabel) {
 								const pointInShapeSpace = this.editor.getPointInShapeSpace(
 									selectingShape,
