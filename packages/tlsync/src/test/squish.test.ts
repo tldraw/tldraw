@@ -1,9 +1,10 @@
-import { RecordId, UnknownRecord } from '@tldraw/store'
-import { assert } from '@tldraw/utils'
+import { createRecordType, IdOf, RecordId, Store, StoreSchema, UnknownRecord } from '@tldraw/store'
+import { assert, structuredClone } from '@tldraw/utils'
 import fc, { Arbitrary } from 'fast-check'
-import { NetworkDiff, RecordOpType, ValueOpType } from '../lib/diff'
+import { NetworkDiff, ObjectDiff, RecordOpType, ValueOpType } from '../lib/diff'
 import { TLSocketServerSentDataEvent } from '../lib/protocol'
 import { squishDataEvents } from '../lib/squish'
+import { _applyNetworkDiffToStore } from '../lib/TLSyncClient'
 
 test('basic squishing', () => {
 	const capture = [
@@ -11,7 +12,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						brush: [
 							'put',
@@ -31,7 +32,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						lastActivityTimestamp: ['put', 1710188679590],
 						cursor: [
@@ -52,7 +53,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						brush: [
 							'put',
@@ -72,7 +73,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						lastActivityTimestamp: ['put', 1710188679599],
 						cursor: [
@@ -93,7 +94,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						brush: [
 							'put',
@@ -113,7 +114,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						lastActivityTimestamp: ['put', 1710188679608],
 						cursor: [
@@ -134,7 +135,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						brush: [
 							'put',
@@ -154,7 +155,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						lastActivityTimestamp: ['put', 1710188679617],
 						cursor: [
@@ -175,7 +176,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						brush: [
 							'put',
@@ -195,7 +196,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						lastActivityTimestamp: ['put', 1710188679625],
 						cursor: [
@@ -216,7 +217,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						brush: [
 							'put',
@@ -236,7 +237,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						lastActivityTimestamp: ['put', 1710188679633],
 						cursor: [
@@ -257,7 +258,7 @@ test('basic squishing', () => {
 			type: 'patch',
 			diff: {
 				'instance_presence:nlyxdltolNVL0VONRr9Bz': [
-					'patch',
+					RecordOpType.Patch,
 					{
 						brush: [
 							'put',
@@ -309,157 +310,239 @@ test('basic squishing', () => {
 	])
 })
 
+const TEST_RECORD_TYPENAME = 'testRecord' as const
+
 interface TestRecord extends UnknownRecord {
-	fieldA?: string | number[]
-	fieldB?: string | number[]
-	fieldC?: string | number[]
+	fieldA?: TestRecordValue
+	fieldB?: TestRecordValue
+	fieldC?: TestRecordValue
 }
 
-type Model = { records: TestRecord[]; diffs: NetworkDiff<TestRecord>[] }
+type TestRecordValue =
+	| string
+	| number[]
+	| { fieldA?: TestRecordValue; fieldB?: TestRecordValue; fieldC?: TestRecordValue }
 
-type System = 'whatever'
+const TestRecord = createRecordType<TestRecord>(TEST_RECORD_TYPENAME, {
+	validator: {
+		validate(value) {
+			return value as TestRecord
+		},
+	},
+	scope: 'document',
+})
 
-class RecordPut implements fc.Command<Model, System> {
+class Model {
+	diffs: NetworkDiff<TestRecord>[] = []
+	idMap: IdOf<TestRecord>[]
+	private readonly initialStoreData: Record<IdOf<TestRecord>, TestRecord>
+
+	constructor(public initialStoreContent: TestRecord[]) {
+		this.idMap = initialStoreContent.map((r) => r.id)
+		this.initialStoreData = Object.fromEntries(initialStoreContent.map((r) => [r.id, r]))
+	}
+
+	trueIdx(idx: number) {
+		return idx % this.idMap.length
+	}
+
+	getId(idx: number) {
+		return this.idMap[this.trueIdx(idx)]
+	}
+
+	private getFreshStore(): Store<TestRecord> {
+		return new Store({
+			initialData: this.initialStoreData,
+			schema: StoreSchema.create<TestRecord>({ testRecord: TestRecord }),
+			props: {},
+		})
+	}
+
+	private getStoreWithDiffs(diffs: NetworkDiff<TestRecord>[]) {
+		const store = this.getFreshStore()
+		//console.log('fresh store', JSON.stringify(store.serialize(), null, 2))
+		//console.log('diffs to apply', JSON.stringify(diffs, null, 2))
+		for (const diff of diffs) {
+			const changes = _applyNetworkDiffToStore(diff, store)
+			if (changes !== null) {
+				store.applyDiff(changes, false)
+			}
+		}
+		return store
+	}
+
+	runTest() {
+		const dataEvents = this.diffs.map((diff, idx) => ({
+			type: 'patch' as const,
+			diff,
+			serverClock: idx,
+		}))
+		const squishedDiffs = squishDataEvents(dataEvents).map((e) => {
+			assert(e.type === 'patch')
+			return e.diff
+		})
+
+		const baseStore = this.getStoreWithDiffs(this.diffs)
+		const squishedStore = this.getStoreWithDiffs(squishedDiffs)
+
+		expect(squishedStore.serialize()).toStrictEqual(baseStore.serialize())
+	}
+
+	// offsets are a MAJOR pain because they depend on the entire history of diffs so far, and
+	// the store silently discards append patches if their offsets don't match, so they need
+	// to be correct to exercise the squisher
+	// NOTE: modifies the diff
+	fixOffsets(recordId: IdOf<TestRecord>, fullDiff: ObjectDiff) {
+		const fixed = structuredClone(fullDiff)
+
+		const store = this.getStoreWithDiffs(this.diffs)
+		const record = store.get(recordId)
+		if (record === undefined) {
+			return fixed
+		}
+
+		const fixer = (obj: any, diff: ObjectDiff) => {
+			for (const [k, v] of Object.entries(diff)) {
+				if (v[0] === ValueOpType.Append && Array.isArray(obj[k])) {
+					v[2] = obj[k].length
+				} else if (v[0] === ValueOpType.Patch && typeof obj[k] === 'object') {
+					fixer(obj[k], v[1])
+				}
+			}
+		}
+		fixer(record, fixed)
+
+		return fixed
+	}
+}
+
+type Real = 'whatever'
+
+class RecordPut implements fc.Command<Model, Real> {
 	constructor(readonly record: TestRecord) {}
 	check(_m: Readonly<Model>) {
 		return true
 	}
 	run(m: Model): void {
 		m.diffs.push({ [this.record.id]: [RecordOpType.Put, this.record] })
-		m.records.push(this.record)
+		m.idMap.push(this.record.id)
+
+		m.runTest()
 	}
-	toString = () => `Put(${this.record.id})`
+	toString = () => `Put(${JSON.stringify(this.record)})`
 }
 
-class RecordRemove implements fc.Command<Model, System> {
+class RecordRemove implements fc.Command<Model, Real> {
 	constructor(readonly idx: number) {}
 	check(m: Readonly<Model>) {
-		return m.records.length > 0
+		return m.idMap.length > 0
 	}
 	run(m: Model) {
-		const trueIdx = this.idx % m.records.length
-		m.diffs.push({ [m.records[trueIdx].id]: [RecordOpType.Remove] })
-		m.records.splice(trueIdx, 1)
+		m.diffs.push({ [m.getId(this.idx)]: [RecordOpType.Remove] })
+		m.idMap.splice(m.trueIdx(this.idx), 1)
+
+		m.runTest()
 	}
 	toString = () => `Remove(#${this.idx})`
 }
 
-class RecordPatchPut implements fc.Command<Model, System> {
+class RecordPatch implements fc.Command<Model, Real> {
 	constructor(
 		readonly idx: number,
-		readonly key: Exclude<keyof TestRecord, keyof UnknownRecord>,
-		readonly value: string | number[]
+		readonly patch: ObjectDiff
 	) {}
 	check(m: Readonly<Model>) {
-		return m.records.length > 0
+		return m.idMap.length > 0
 	}
 	run(m: Model) {
-		const trueIdx = this.idx % m.records.length
-		m.diffs.push({
-			[m.records[trueIdx].id]: [RecordOpType.Patch, { [this.key]: [ValueOpType.Put, this.value] }],
-		})
-		m.records[trueIdx][this.key] = this.value
+		const fixedPatch = m.fixOffsets(m.getId(this.idx), this.patch)
+		m.diffs.push({ [m.getId(this.idx)]: [RecordOpType.Patch, fixedPatch] })
+
+		m.runTest()
 	}
-	toString = () => `PatchPut(#${this.idx}.${this.key}=${this.value})`
+	toString = () => `Patch(#${this.idx}, ${JSON.stringify(this.patch)})`
 }
 
-class RecordPatchAppend implements fc.Command<Model, System> {
-	constructor(
-		readonly idx: number,
-		readonly key: Exclude<keyof TestRecord, keyof UnknownRecord>,
-		readonly values: number[]
-	) {}
-	check(m: Readonly<Model>) {
-		const trueIdx = this.idx % m.records.length
-		return m.records.length > 0 && m.records[trueIdx][this.key] instanceof Array
-	}
-	run(m: Model) {
-		const trueIdx = this.idx % m.records.length
-		const arr = m.records[trueIdx][this.key]
-		assert(arr instanceof Array)
-		assert(arr.length < 2, `arr is ${arr}`)
-		arr.push(...this.values)
-		m.diffs.push({
-			[m.records[trueIdx].id]: [
-				RecordOpType.Patch,
-				{ [this.key]: [ValueOpType.Append, this.values, arr.length] },
-			],
-		})
-		arr.push(...this.values)
-	}
-	toString = () => `PatchAppend(#${this.idx}.${this.key}|=[${this.values}])`
-}
+const { TestRecordValueArb }: { TestRecordValueArb: Arbitrary<TestRecordValue> } = fc.letrec(
+	(tie) => ({
+		TestRecordValueArb: fc.oneof(
+			fc.string(),
+			fc.array(fc.integer()),
+			fc.record(
+				{
+					fieldA: tie('TestRecordValueArb'),
+					fieldB: tie('TestRecordValueArb'),
+					fieldC: tie('TestRecordValueArb'),
+				},
+				{ requiredKeys: ['fieldA'] }
+			)
+		),
+	})
+)
 
-class RecordPatchDelete implements fc.Command<Model, System> {
-	constructor(
-		readonly idx: number,
-		readonly key: Exclude<keyof TestRecord, keyof UnknownRecord>
-	) {}
-	check(m: Readonly<Model>) {
-		const trueIdx = this.idx % m.records.length
-		return m.records.length > 0 && m.records[trueIdx][this.key] !== undefined
-	}
-	run(m: Model) {
-		const trueIdx = this.idx % m.records.length
-		delete m.records[trueIdx][this.key]
-	}
-	toString = () => `PatchDelete(#${this.idx}.${this.key})`
-}
+const TestRecordKeyArb = fc.oneof(
+	fc.constant('fieldA' as const),
+	fc.constant('fieldB' as const),
+	fc.constant('fieldC' as const)
+)
 
 const TestRecordArb = fc.record(
 	{
 		id: fc.oneof(fc.constant('idA'), fc.constant('idB'), fc.constant('idC')) as Arbitrary<
 			RecordId<TestRecord>
 		>,
-		typeName: fc.oneof(fc.constant('typeA'), fc.constant('typeB'), fc.constant('typeC')),
-		alice: fc.oneof(fc.string(), fc.array(fc.nat(100))),
-		bob: fc.oneof(fc.string(), fc.array(fc.nat(100))),
-		charlie: fc.oneof(fc.string(), fc.array(fc.nat(100))),
+		typeName: fc.constant(TEST_RECORD_TYPENAME),
+		fieldA: TestRecordValueArb,
+		fieldB: TestRecordValueArb,
+		fieldC: TestRecordValueArb,
 	},
 	{ requiredKeys: ['id', 'typeName'] }
 )
 
+const { ObjectDiffArb }: { ObjectDiffArb: Arbitrary<ObjectDiff> } = fc.letrec((tie) => ({
+	ObjectDiffArb: fc.dictionary(
+		TestRecordKeyArb,
+		fc.oneof(
+			fc.tuple(fc.constant(ValueOpType.Put), TestRecordValueArb),
+			// The offset is -1 because it depends on the length of the array *in the current state*,
+			// so it can't be generated here. Instead, it's patched up in the command
+			fc.tuple(fc.constant(ValueOpType.Append), fc.array(fc.integer()), fc.constant(-1)),
+			fc.tuple(fc.constant(ValueOpType.Patch), tie('ObjectDiffArb')),
+			fc.tuple(fc.constant(ValueOpType.Delete))
+		),
+		{ minKeys: 1, maxKeys: 3 }
+	),
+}))
+
 const allCommands = [
 	TestRecordArb.map((r) => new RecordPut(r)),
 	fc.nat(10).map((idx) => new RecordRemove(idx)),
-	fc
-		.tuple(
-			fc.nat(10),
-			fc.oneof(
-				fc.constant('fieldA' as const),
-				fc.constant('fieldB' as const),
-				fc.constant('fieldC' as const)
-			),
-			fc.oneof(fc.string(), fc.array(fc.integer()))
-		)
-		.map(([idx, key, value]) => new RecordPatchPut(idx, key, value)),
-	fc
-		.tuple(
-			fc.nat(10),
-			fc.oneof(
-				fc.constant('fieldA' as const),
-				fc.constant('fieldB' as const),
-				fc.constant('fieldC' as const)
-			),
-			fc.array(fc.integer())
-		)
-		.map(([idx, key, values]) => new RecordPatchAppend(idx, key, values)),
-	fc
-		.tuple(
-			fc.nat(10),
-			fc.oneof(
-				fc.constant('fieldA' as const),
-				fc.constant('fieldB' as const),
-				fc.constant('fieldC' as const)
-			)
-		)
-		.map(([idx, key]) => new RecordPatchDelete(idx, key)),
+	fc.tuple(fc.nat(), ObjectDiffArb).map(([idx, diff]) => new RecordPatch(idx, diff)),
 ]
 
-test('fast-checking squish', () =>
+const initialStoreContentArb: Arbitrary<TestRecord[]> = fc.uniqueArray(TestRecordArb, {
+	selector: (r) => r.id,
+	maxLength: 3,
+})
+
+test('fast-checking squish', () => {
 	fc.assert(
-		fc.property(fc.commands(allCommands, { replayPath: 'ACACBF:q' }), (cmds) => {
-			fc.modelRun(() => ({ model: { records: [], diffs: [] }, real: 'whatever' }), cmds)
-		}),
-		{ verbose: 1 }
-	))
+		fc.property(
+			initialStoreContentArb,
+			fc.commands(allCommands, {}),
+			(initialStoreContent, cmds) => {
+				fc.modelRun(
+					() => ({
+						model: new Model(initialStoreContent),
+						real: 'whatever',
+					}),
+					cmds
+				)
+			}
+		),
+		{
+			verbose: 1,
+			numRuns: 10_000,
+		}
+	)
+})
