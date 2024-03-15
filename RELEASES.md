@@ -10,9 +10,25 @@ At the time of writing, our release cadence is monthly. This may have changed by
 
 ## How to publish a new major or minor release
 
-New cadence releases are published from `main`. You trigger a release manually by running the github action called `Publish new packages from main`.
+New cadence releases are published from `main`. You trigger a release manually by running the workflow defined in `publish-new.yml`.
 
-By default this will create a new 'minor' release, but you can choose to publish a 'major' by selecting that option in the github action's inputs form.
+1. Go [here](https://github.com/tldraw/tldraw/actions/workflows/publish-new.yml) and click the 'Run workflow' button.
+2. Fill out the form that appears. You can leave the defaults as they are if you want to publish a new 'minor' release. If you want to publish a new 'major' release, select that option from the dropdown.
+3. If you need to put the repo in 'prerelease' mode you can select the override option and provide a version number with a prerelease tag, like `3.4.0-rc.1`.
+
+   This is useful for providing a period of time for both us and our users to test a new release before it receives the `latest` tag on npm.
+
+   After switching into prerelease mode, any further 'minor' or 'major' releases will only increment the prerelease tag, like `3.4.0-rc.2`, `3.4.0-rc.3`, etc.
+
+   When you are ready to publish the final release, you can switch back to the `latest` tag by selecting the override option and providing a version number without a prerelease tag, like `3.4.0`.
+
+When you click the 'run' button after selecting how to bump the version number, the github action will do the following things:
+
+- Update the version numbers in package.json files.
+- Update the changelog.
+- Create a new release on github with the release notes from the changelog entry.
+- Publish the new packages to npm.
+- Create a new release branch for the new version. e.g. for version `3.4.0` it will create a branch called `v3.4.x`. (this is not done for prerelease versions)
 
 ## How to publish a new patch release
 
@@ -48,7 +64,7 @@ By default this will create a new 'minor' release, but you can choose to publish
 
 6. Merge the PR.
 
-That's it! The patch release will be published automatically after merging.
+That's it! The patch release will be published automatically after merging. Changelog and version number updates will be committed back to the release branch, and deliberately not to `main`.
 
 ## What about documentation?
 
