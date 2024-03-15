@@ -13854,15 +13854,6 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "DraggingHandle",
-                  "canonicalReference": "tldraw!~DraggingHandle:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | typeof "
-                },
-                {
-                  "kind": "Reference",
                   "text": "EditingShape",
                   "canonicalReference": "tldraw!~EditingShape:class"
                 },
@@ -13919,15 +13910,6 @@
                   "kind": "Reference",
                   "text": "PointingHandle",
                   "canonicalReference": "tldraw!~PointingHandle:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | typeof "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "PointingLineHandle",
-                  "canonicalReference": "tldraw!~PointingLineHandle:class"
                 },
                 {
                   "kind": "Content",
@@ -14007,7 +13989,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 38
+                "endIndex": 34
               },
               "isStatic": true,
               "isProtected": false,

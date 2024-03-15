@@ -114,18 +114,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
-		// we should only ever be dragging vertex handles
-		if (handle.type !== 'vertex') return
-
-		return {
-			...shape,
-			props: {
-				...shape.props,
-				points: {
-					...shape.props.points,
-					[handle.id]: { id: handle.id, index: handle.index, x: handle.x, y: handle.y },
+		// drag vertex handles or create new vertex handles from create handles
+		if (handle.type === 'vertex' || handle.type === 'create') {
+			return {
+				...shape,
+				props: {
+					...shape.props,
+					points: {
+						...shape.props.points,
+						[handle.id]: { id: handle.id, index: handle.index, x: handle.x, y: handle.y },
+					},
 				},
-			},
+			}
 		}
 	}
 

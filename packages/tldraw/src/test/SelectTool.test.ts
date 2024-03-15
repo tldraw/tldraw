@@ -109,8 +109,27 @@ describe('TLSelectTool.Translating', () => {
 })
 
 describe('PointingHandle', () => {
+	beforeEach(() => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).selectNone()
+		editor.createShapes([
+			{
+				id: ids.line1,
+				type: 'line',
+				x: 100,
+				y: 100,
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+						a3: { id: 'a3', index: 'a3', x: 300, y: 300 },
+					},
+				},
+			},
+		])
+	})
+
 	it('Enters from idle and exits to idle', () => {
-		const shape = editor.getShape(ids.box1)
+		const shape = editor.getShape(ids.line1)
+
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
@@ -123,7 +142,8 @@ describe('PointingHandle', () => {
 	})
 
 	it('Bails on escape', () => {
-		const shape = editor.getShape(ids.box1)
+		const shape = editor.getShape(ids.line1)
+
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
@@ -139,13 +159,14 @@ describe('DraggingHandle', () => {
 	it('Enters from pointing_handle and exits to idle', () => {
 		editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 		const shape = editor.getShape(ids.line1)
+
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
 			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.pointing_line_handle')
+		editor.expectToBeIn('select.pointing_handle')
 
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
@@ -161,7 +182,7 @@ describe('DraggingHandle', () => {
 			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.pointing_line_handle')
+		editor.expectToBeIn('select.pointing_handle')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})

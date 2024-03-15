@@ -1,17 +1,18 @@
 import { StateNode, TLHandle, TLLineShape } from '@tldraw/editor'
-import { TranslatingLineHandleInteraction } from '../../../interactions/TranslatingLineHandleInteraction'
+import { DraggingHandleInteraction } from '../../../interactions/DraggingHandleInteraction'
 
 export class Creating extends StateNode {
 	static override id = 'creating'
 
-	session?: TranslatingLineHandleInteraction
+	session?: DraggingHandleInteraction
 
 	override onEnter = (info: { shape: TLLineShape; handle: TLHandle }) => {
-		this.session = new TranslatingLineHandleInteraction(this.editor, {
+		this.session = new DraggingHandleInteraction(this.editor, {
 			isCreating: true,
 			handle: info.handle,
 			shape: info.shape,
 			onCancel: () => {
+				this.editor.bailToMark(`creating:${info.shape.id}`)
 				this.parent.transition('idle')
 			},
 			onComplete: () => {
