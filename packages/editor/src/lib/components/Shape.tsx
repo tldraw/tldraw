@@ -1,4 +1,4 @@
-import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
+import { track, useLayoutReaction, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
@@ -49,53 +49,31 @@ export const Shape = track(function Shape({
 		backgroundContainerRef.current?.style.setProperty(property, value)
 	}, [])
 
-	useQuickReactor(
-		'set shape container transform position',
-		() => {
-			const shape = editor.getShape(id)
-			if (!shape) return // probably the shape was just deleted
+	useLayoutReaction('set shape container transform position', () => {
+		const shape = editor.getShape(id)
+		if (!shape) return // probably the shape was just deleted
 
-			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Mat.toCssString(pageTransform)
-			setProperty('transform', transform)
-		},
-		[editor, setProperty]
-	)
+		const pageTransform = editor.getShapePageTransform(id)
+		const transform = Mat.toCssString(pageTransform)
+		setProperty('transform', transform)
 
-	useQuickReactor(
-		'set shape container clip path',
-		() => {
-			const shape = editor.getShape(id)
-			if (!shape) return null
+		const clipPath = editor.getShapeClipPath(id)
+		setProperty('clip-path', clipPath ?? 'none')
 
-			const clipPath = editor.getShapeClipPath(id)
-			setProperty('clip-path', clipPath ?? 'none')
-		},
-		[editor, setProperty]
-	)
-
-	useQuickReactor(
-		'set shape height and width',
-		() => {
-			const shape = editor.getShape(id)
-			if (!shape) return null
-
-			const bounds = editor.getShapeGeometry(shape).bounds
-			const dpr = Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			const dprMultiple = nearestMultiple(dpr)
-			// We round the shape width and height up to the nearest multiple of dprMultiple to avoid the browser
-			// making miscalculations when applying the transform.
-			const widthRemainder = bounds.w % dprMultiple
-			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
-			const heightRemainder = bounds.h % dprMultiple
-			const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
-			setProperty('width', Math.max(width, dprMultiple) + 'px')
-			setProperty('height', Math.max(height, dprMultiple) + 'px')
-		},
-		[editor]
-	)
+		const bounds = editor.getShapeGeometry(shape).bounds
+		const dpr = Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100
+		// dprMultiple is the smallest number we can multiply dpr by to get an integer
+		// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+		const dprMultiple = nearestMultiple(dpr)
+		// We round the shape width and height up to the nearest multiple of dprMultiple to avoid the browser
+		// making miscalculations when applying the transform.
+		const widthRemainder = bounds.w % dprMultiple
+		const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
+		const heightRemainder = bounds.h % dprMultiple
+		const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
+		setProperty('width', Math.max(width, dprMultiple) + 'px')
+		setProperty('height', Math.max(height, dprMultiple) + 'px')
+	})
 
 	// Set the opacity of the container when the opacity changes
 	React.useLayoutEffect(() => {
