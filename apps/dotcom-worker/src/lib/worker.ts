@@ -6,6 +6,7 @@ import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
+import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
@@ -28,6 +29,7 @@ const router = Router()
 	.get('/v/:roomId', joinExistingRoom)
 	.get('/r/:roomId/history', getRoomHistory)
 	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
+	.get('readonly-slug/:roomId', getReadonlySlug)
 	.post('/r/:roomId/restore', forwardRoomRequest)
 	.all('*', fourOhFour)
 
