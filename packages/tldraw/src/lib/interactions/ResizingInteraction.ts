@@ -55,7 +55,8 @@ export class ResizingInteraction extends Interaction<{
 
 		if (isCreating) {
 			this.markId = `creating:${editor.getOnlySelectedShape()!.id}`
-			editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, { ephemeral: true })
+			// todo: move to tool that creates
+			editor.setCursor({ type: 'cross', rotation: 0 })
 		} else {
 			this.markId = 'starting resizing'
 			editor.mark(this.markId)
