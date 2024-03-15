@@ -28,6 +28,37 @@ function patchThePatch(lastPatch: ObjectDiff, newPatch: ObjectDiff): Bailed {
 					lastPatch[newKey] = newOp
 				} else {
 					const lastOp = lastPatch[newKey]
+					switch (lastOp[0]) {
+						case ValueOpType.Put: {
+							const lastValues = lastOp[1]
+							if (Array.isArray(lastValues)) {
+								const newValues = newOp[1]
+								lastValues.push(...newValues)
+							} else {
+								// we're trying to append to something that was put previously, but
+								// is not an array; bail out
+								return true
+							}
+							break
+						}
+						case ValueOpType.Append: {
+							const lastValues = lastOp[1]
+							const lastOffset = lastOp[2]
+							const newValues = newOp[1]
+							const newOffset = newOp[2]
+							if (newOffset === lastOffset + lastValues.length) {
+								lastValues.push(...newValues)
+							} else {
+								// something weird is going on, bail out
+								return true
+							}
+							break
+						}
+						default:
+							// trying to append to either a deletion or a patch, bail out
+							return true
+					}
+
 					if (lastOp[0] === ValueOpType.Append) {
 						const lastValues = lastOp[1]
 						const lastOffset = lastOp[2]
@@ -40,6 +71,9 @@ function patchThePatch(lastPatch: ObjectDiff, newPatch: ObjectDiff): Bailed {
 							return true
 						}
 					} else {
+						if (lastOp[0] === ValueOpType.Put && Array.isArray(lastOp[1])) {
+						}
+
 						// bail out, it's too hard
 						return true
 					}
