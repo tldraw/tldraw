@@ -275,8 +275,8 @@ function duplicateShape(
 			break
 	}
 
-	const id = createShapeId()
-	editor.createShape({ type: 'note', id, x: shape.x + offsetX, y: shape.y + offsetY })
+	const newShapeId = createShapeId()
+	editor.createShape({ type: 'note', id: newShapeId, x: shape.x + offsetX, y: shape.y + offsetY })
 	editor.createShape({
 		type: 'arrow',
 		props: {
@@ -289,12 +289,12 @@ function duplicateShape(
 			},
 			end: {
 				type: 'binding',
-				boundShapeId: id,
+				boundShapeId: newShapeId,
 				normalizedAnchor: { x: 0.5, y: 0.5 },
 				isExact: false,
 				isPrecise: true,
 			},
 		},
 	})
-	editor.setEditingShape(id)
+	editor.setEditingShape(newShapeId)
 }

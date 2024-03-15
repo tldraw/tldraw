@@ -62,11 +62,11 @@ export class DraggingHandle extends StateNode {
 		this.initialHandle = structuredClone(handle)
 
 		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
-			const shapeId = createShapeId()
+			const newShapeId = createShapeId()
 			const pagePoint = this.editor.inputs.originPagePoint
 			this.editor.createShape({
 				type: 'note',
-				id: shapeId,
+				id: newShapeId,
 				x: pagePoint.x - 100,
 				y: pagePoint.y - 50,
 			})
@@ -82,15 +82,15 @@ export class DraggingHandle extends StateNode {
 					},
 					end: {
 						type: 'binding',
-						boundShapeId: shapeId,
+						boundShapeId: newShapeId,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
 						isExact: false,
 						isPrecise: true,
 					},
 				},
 			})
-			this.editor.select(shapeId)
-			this.parent.transition('translating', { shapeId })
+			this.editor.select(newShapeId)
+			this.parent.transition('translating', { id: newShapeId })
 		}
 
 		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
