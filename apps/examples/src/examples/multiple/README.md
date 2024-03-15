@@ -2,7 +2,7 @@
 title: Multiple editors
 component: ./MultipleExample.tsx
 category: basic
-priority: 7
+priority: 8
 ---
 
 Use multiple `<Tldraw/>` components on the same page.

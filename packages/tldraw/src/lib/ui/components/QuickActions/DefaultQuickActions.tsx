@@ -1,10 +1,10 @@
-import { memo } from 'react'
+import { ReactNode, memo } from 'react'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultQuickActionsContent } from './DefaultQuickActionsContent'
 
 /** @public */
 export type TLUiQuickActionsProps = {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */

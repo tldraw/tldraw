@@ -1,4 +1,4 @@
-import { TldrawUiMenuItem, useActions, useEditor, useValue } from '@tldraw/tldraw'
+import { TldrawUiMenuItem, useActions, useEditor, useValue } from 'tldraw'
 import { CURSOR_CHAT_ACTION } from '../useCursorChat'
 
 export function CursorChatMenuItem() {

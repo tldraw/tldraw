@@ -38,7 +38,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 						{Minimap && (
 							<TldrawUiButton
 								type="icon"
-								data-testid="minimap.toggle"
+								data-testid="minimap.toggle-button"
 								title={msg('navigation-zone.toggle-minimap')}
 								className="tlui-navigation-panel__toggle"
 								onClick={toggleMinimap}
@@ -69,7 +69,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 						{Minimap && (
 							<TldrawUiButton
 								type="icon"
-								data-testid="minimap.toggle"
+								data-testid="minimap.toggle-button"
 								title={msg('navigation-zone.toggle-minimap')}
 								className="tlui-navigation-panel__toggle"
 								onClick={toggleMinimap}

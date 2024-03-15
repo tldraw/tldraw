@@ -30,7 +30,11 @@ export function isNonNullish<T>(
 	return value !== null && value !== undefined
 }
 
-/** @public */
+/**
+ * Create a deep copy of a value. Uses the structuredClone API if available, otherwise uses JSON.parse(JSON.stringify()).
+ *
+ * @param i - The value to clone.
+ * @public */
 export const structuredClone =
 	typeof window !== 'undefined' && (window as any).structuredClone
 		? (window.structuredClone as <T>(i: T) => T)

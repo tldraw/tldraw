@@ -1,4 +1,5 @@
 import { Migrations, Store, createRecordType } from '@tldraw/store'
+import { structuredClone } from '@tldraw/utils'
 import fs from 'fs'
 import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
@@ -1932,6 +1933,98 @@ describe('Remove extra handle props', () => {
 						y: 60,
 					},
 				},
+			},
+		})
+	})
+})
+
+describe('Restore some handle props', () => {
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.HandlesToPoints]
+	it('up works as expected', () => {
+		expect(
+			up({
+				props: {
+					handles: {
+						a1: { x: 0, y: 0 },
+						a1V: { x: 76, y: 60 },
+						a2: { x: 190, y: -62 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 76, y: 60 },
+					{ x: 190, y: -62 },
+				],
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					points: [
+						{ x: 0, y: 0 },
+						{ x: 76, y: 60 },
+						{ x: 190, y: -62 },
+					],
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					a1: { x: 0, y: 0 },
+					a2: { x: 76, y: 60 },
+					a3: { x: 190, y: -62 },
+				},
+			},
+		})
+	})
+})
+
+describe('Fractional indexing for line points', () => {
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.PointIndexIds]
+	it('up works as expected', () => {
+		expect(
+			up({
+				props: {
+					points: [
+						{ x: 0, y: 0 },
+						{ x: 76, y: 60 },
+						{ x: 190, y: -62 },
+					],
+				},
+			})
+		).toEqual({
+			props: {
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2', x: 76, y: 60 },
+					a3: { id: 'a3', index: 'a3', x: 190, y: -62 },
+				},
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+						a3: { id: 'a3', index: 'a3', x: 190, y: -62 },
+						a2: { id: 'a2', index: 'a2', x: 76, y: 60 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 76, y: 60 },
+					{ x: 190, y: -62 },
+				],
 			},
 		})
 	})

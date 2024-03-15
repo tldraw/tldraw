@@ -1,4 +1,4 @@
-import { TLRecord, createTLStore, defaultShapeUtils } from '@tldraw/tldraw'
+import { TLRecord, createTLStore, defaultShapeUtils } from 'tldraw'
 import { type WebSocket } from 'ws'
 import { RoomSessionState } from '../lib/RoomSession'
 import { DBLoadResult, TLServer } from '../lib/TLServer'
@@ -109,7 +109,7 @@ describe('TLServer', () => {
 		expect(server.roomState?.persistenceKey).toBe('test-persistence-key')
 		expect(server.roomState?.room.sessions.size).toBe(1)
 		expect(server.roomState?.room.sessions.get('test-session-key')?.state).toBe(
-			RoomSessionState.AWAITING_CONNECT_MESSAGE
+			RoomSessionState.AwaitingConnectMessage
 		)
 	})
 
@@ -135,7 +135,7 @@ describe('TLServer', () => {
 		sockets.client.on('message', onClientMessage)
 
 		expect(server.roomState?.room.sessions.get('test-session-key')?.state).toBe(
-			RoomSessionState.AWAITING_CONNECT_MESSAGE
+			RoomSessionState.AwaitingConnectMessage
 		)
 
 		for (const chunk of chunks) {
@@ -145,7 +145,7 @@ describe('TLServer', () => {
 		await receivedPromise
 
 		expect(server.roomState?.room.sessions.get('test-session-key')?.state).toBe(
-			RoomSessionState.CONNECTED
+			RoomSessionState.Connected
 		)
 
 		expect(onClientMessage).toHaveBeenCalledTimes(1)

@@ -102,7 +102,7 @@ export function Search() {
 				// 		{searchType === SEARCH_TYPE.NORMAL ? '✨ Search using AI' : '⭐ Search without AI'}
 				// 	</button>
 				// }
-				groups={['examples', 'docs', 'reference']}
+				groups={['docs', 'examples', 'reference']}
 				groupsToLabel={{ examples: 'Examples', docs: 'Articles', reference: 'Reference' }}
 				options={searchResults}
 				isLoading={isLoading}

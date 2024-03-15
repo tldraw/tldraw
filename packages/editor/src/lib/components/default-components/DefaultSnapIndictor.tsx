@@ -154,14 +154,14 @@ function GapsSnapIndicator({ gaps, direction, zoom }: { zoom: number } & GapsSna
 }
 
 /** @public */
-export type TLSnapIndicatorComponent = React.ComponentType<{
+export type TLSnapIndicatorProps = {
 	className?: string
 	line: SnapIndicator
 	zoom: number
-}>
+}
 
 /** @public */
-export const DefaultSnapIndicator: TLSnapIndicatorComponent = ({ className, line, zoom }) => {
+export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps) {
 	return (
 		<svg className={classNames('tl-overlays__item', className)}>
 			{line.type === 'points' ? (

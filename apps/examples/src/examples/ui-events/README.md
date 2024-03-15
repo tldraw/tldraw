@@ -1,5 +1,5 @@
 ---
-title: Code X-Ray for UI events
+title: Code x-ray for UI events
 component: ./UiEventsExample.tsx
 category: editor-api
 priority: 0

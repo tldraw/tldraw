@@ -1,7 +1,7 @@
 {
 	"metadata": {
 		"toolPackage": "@microsoft/api-extractor",
-		"toolVersion": "7.35.4",
+		"toolVersion": "7.41.0",
 		"schemaVersion": 1011,
 		"oldestForwardsCompatibleVersion": 1001,
 		"tsdocConfig": {
@@ -355,7 +355,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
+							"text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        } & {}>;\n        point: "
 						},
 						{
 							"kind": "Reference",
@@ -364,7 +364,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }>;\n    }, never>;\n    end: "
+							"text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    end: "
 						},
 						{
 							"kind": "Reference",
@@ -400,7 +400,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        }>;\n        point: "
+							"text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        } & {}>;\n        point: "
 						},
 						{
 							"kind": "Reference",
@@ -409,7 +409,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        }>;\n    }, never>;\n    bend: "
+							"text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    bend: "
 						},
 						{
 							"kind": "Reference",
@@ -880,7 +880,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<{\n    id: "
+							"text": "<{ [P in \"id\" | \"meta\" | \"typeName\" | (undefined extends Props ? never : \"props\") | (undefined extends Type ? never : \"type\")]: {\n    id: "
 						},
 						{
 							"kind": "Reference",
@@ -898,7 +898,25 @@
 						},
 						{
 							"kind": "Content",
-							"text": ";\n}>"
+							"text": ";\n}[P]; } & { [P_1 in (undefined extends Props ? \"props\" : never) | (undefined extends Type ? \"type\" : never)]?: {\n    id: "
+						},
+						{
+							"kind": "Reference",
+							"text": "TLAssetId",
+							"canonicalReference": "@tldraw/tlschema!TLAssetId:type"
+						},
+						{
+							"kind": "Content",
+							"text": ";\n    typeName: 'asset';\n    type: Type;\n    props: Props;\n    meta: "
+						},
+						{
+							"kind": "Reference",
+							"text": "JsonObject",
+							"canonicalReference": "@tldraw/utils!JsonObject:type"
+						},
+						{
+							"kind": "Content",
+							"text": ";\n}[P_1] | undefined; }>"
 						},
 						{
 							"kind": "Content",
@@ -908,7 +926,7 @@
 					"fileUrlPath": "packages/tlschema/src/assets/TLBaseAsset.ts",
 					"returnTypeTokenRange": {
 						"startIndex": 10,
-						"endIndex": 16
+						"endIndex": 20
 					},
 					"releaseTag": "Public",
 					"overloadIndex": 1,
@@ -957,17 +975,13 @@
 					"name": "createAssetValidator"
 				},
 				{
-					"kind": "Variable",
-					"canonicalReference": "@tldraw/tlschema!createPresenceStateDerivation:var",
+					"kind": "Function",
+					"canonicalReference": "@tldraw/tlschema!createPresenceStateDerivation:function(1)",
 					"docComment": "/**\n * @public\n */\n",
 					"excerptTokens": [
 						{
 							"kind": "Content",
-							"text": "createPresenceStateDerivation: "
-						},
-						{
-							"kind": "Content",
-							"text": "($user: "
+							"text": "createPresenceStateDerivation: ($user: "
 						},
 						{
 							"kind": "Reference",
@@ -976,7 +990,11 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<{\n    id: string;\n    color: string;\n    name: string;\n}>, instanceId?: "
+							"text": "<{\n    id: string;\n    color: string;\n    name: string;\n}>"
+						},
+						{
+							"kind": "Content",
+							"text": ", instanceId?: "
 						},
 						{
 							"kind": "Reference",
@@ -985,7 +1003,15 @@
 						},
 						{
 							"kind": "Content",
-							"text": "['id']) => (store: "
+							"text": "['id']"
+						},
+						{
+							"kind": "Content",
+							"text": ") => "
+						},
+						{
+							"kind": "Content",
+							"text": "(store: "
 						},
 						{
 							"kind": "Reference",
@@ -1016,13 +1042,31 @@
 						}
 					],
 					"fileUrlPath": "packages/tlschema/src/createPresenceStateDerivation.ts",
-					"isReadonly": true,
+					"returnTypeTokenRange": {
+						"startIndex": 7,
+						"endIndex": 14
+					},
 					"releaseTag": "Public",
-					"name": "createPresenceStateDerivation",
-					"variableTypeTokenRange": {
-						"startIndex": 1,
-						"endIndex": 12
-					}
+					"overloadIndex": 1,
+					"parameters": [
+						{
+							"parameterName": "$user",
+							"parameterTypeTokenRange": {
+								"startIndex": 1,
+								"endIndex": 3
+							},
+							"isOptional": false
+						},
+						{
+							"parameterName": "instanceId",
+							"parameterTypeTokenRange": {
+								"startIndex": 4,
+								"endIndex": 6
+							},
+							"isOptional": true
+						}
+					],
+					"name": "createPresenceStateDerivation"
 				},
 				{
 					"kind": "Function",
@@ -1154,7 +1198,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<"
+							"text": "<{ [P in \"id\" | \"index\" | \"isLocked\" | \"meta\" | \"opacity\" | \"parentId\" | \"rotation\" | \"typeName\" | \"x\" | \"y\" | (undefined extends Props ? never : \"props\") | (undefined extends Type ? never : \"type\")]: "
 						},
 						{
 							"kind": "Reference",
@@ -1163,7 +1207,16 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<Type, Props>>"
+							"text": "<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? \"props\" : never) | (undefined extends Type ? \"type\" : never)]?: "
+						},
+						{
+							"kind": "Reference",
+							"text": "TLBaseShape",
+							"canonicalReference": "@tldraw/tlschema!TLBaseShape:interface"
+						},
+						{
+							"kind": "Content",
+							"text": "<Type, Props>[P_1] | undefined; }>"
 						},
 						{
 							"kind": "Content",
@@ -1173,7 +1226,7 @@
 					"fileUrlPath": "packages/tlschema/src/shapes/TLBaseShape.ts",
 					"returnTypeTokenRange": {
 						"startIndex": 17,
-						"endIndex": 21
+						"endIndex": 23
 					},
 					"releaseTag": "Public",
 					"overloadIndex": 1,
@@ -1247,11 +1300,11 @@
 					"excerptTokens": [
 						{
 							"kind": "Content",
-							"text": "export declare function createTLSchema({ shapes }: "
+							"text": "export declare function createTLSchema({ shapes, }?: "
 						},
 						{
 							"kind": "Content",
-							"text": "{\n    shapes: "
+							"text": "{\n    shapes?: "
 						},
 						{
 							"kind": "Reference",
@@ -1294,12 +1347,12 @@
 					"overloadIndex": 1,
 					"parameters": [
 						{
-							"parameterName": "{ shapes }",
+							"parameterName": "{ shapes, }",
 							"parameterTypeTokenRange": {
 								"startIndex": 1,
 								"endIndex": 6
 							},
-							"isOptional": false
+							"isOptional": true
 						}
 					],
 					"name": "createTLSchema"
@@ -1698,7 +1751,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "[];\n    }>;\n    isComplete: "
+							"text": "[];\n    } & {}>;\n    isComplete: "
 						},
 						{
 							"kind": "Reference",
@@ -1748,7 +1801,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "readonly [{\n    readonly type: \"tldraw\";\n    readonly title: \"tldraw\";\n    readonly hostnames: readonly [\"beta.tldraw.com\", \"tldraw.com\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"figma\";\n    readonly title: \"Figma\";\n    readonly hostnames: readonly [\"figma.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_maps\";\n    readonly title: \"Google Maps\";\n    readonly hostnames: readonly [\"google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"val_town\";\n    readonly title: \"Val Town\";\n    readonly hostnames: readonly [\"val.town\"];\n    readonly minWidth: 260;\n    readonly minHeight: 100;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codesandbox\";\n    readonly title: \"CodeSandbox\";\n    readonly hostnames: readonly [\"codesandbox.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codepen\";\n    readonly title: \"Codepen\";\n    readonly hostnames: readonly [\"codepen.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"scratch\";\n    readonly title: \"Scratch\";\n    readonly hostnames: readonly [\"scratch.mit.edu\"];\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: false;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"youtube\";\n    readonly title: \"YouTube\";\n    readonly hostnames: readonly [\"*.youtube.com\", \"youtube.com\", \"youtu.be\"];\n    readonly width: 800;\n    readonly height: 450;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly overridePermissions: {\n        readonly 'allow-presentation': true;\n    };\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_calendar\";\n    readonly title: \"Google Calendar\";\n    readonly hostnames: readonly [\"calendar.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly instructionLink: \"https://support.google.com/calendar/answer/41207?hl=en\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_slides\";\n    readonly title: \"Google Slides\";\n    readonly hostnames: readonly [\"docs.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"github_gist\";\n    readonly title: \"GitHub Gist\";\n    readonly hostnames: readonly [\"gist.github.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"replit\";\n    readonly title: \"Replit\";\n    readonly hostnames: readonly [\"replit.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"felt\";\n    readonly title: \"Felt\";\n    readonly hostnames: readonly [\"felt.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"spotify\";\n    readonly title: \"Spotify\";\n    readonly hostnames: readonly [\"open.spotify.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minHeight: 500;\n    readonly overrideOutlineRadius: 12;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"vimeo\";\n    readonly title: \"Vimeo\";\n    readonly hostnames: readonly [\"vimeo.com\", \"player.vimeo.com\"];\n    readonly width: 640;\n    readonly height: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"excalidraw\";\n    readonly title: \"Excalidraw\";\n    readonly hostnames: readonly [\"excalidraw.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"observable\";\n    readonly title: \"Observable\";\n    readonly hostnames: readonly [\"observablehq.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: false;\n    readonly backgroundColor: \"#fff\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}]"
+							"text": "readonly [{\n    readonly type: \"tldraw\";\n    readonly title: \"tldraw\";\n    readonly hostnames: readonly [\"beta.tldraw.com\", \"tldraw.com\", \"localhost:3000\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly overridePermissions: {\n        readonly 'allow-top-navigation': true;\n    };\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"figma\";\n    readonly title: \"Figma\";\n    readonly hostnames: readonly [\"figma.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_maps\";\n    readonly title: \"Google Maps\";\n    readonly hostnames: readonly [\"google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"val_town\";\n    readonly title: \"Val Town\";\n    readonly hostnames: readonly [\"val.town\"];\n    readonly minWidth: 260;\n    readonly minHeight: 100;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codesandbox\";\n    readonly title: \"CodeSandbox\";\n    readonly hostnames: readonly [\"codesandbox.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codepen\";\n    readonly title: \"Codepen\";\n    readonly hostnames: readonly [\"codepen.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"scratch\";\n    readonly title: \"Scratch\";\n    readonly hostnames: readonly [\"scratch.mit.edu\"];\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: false;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"youtube\";\n    readonly title: \"YouTube\";\n    readonly hostnames: readonly [\"*.youtube.com\", \"youtube.com\", \"youtu.be\"];\n    readonly width: 800;\n    readonly height: 450;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly overridePermissions: {\n        readonly 'allow-presentation': true;\n    };\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_calendar\";\n    readonly title: \"Google Calendar\";\n    readonly hostnames: readonly [\"calendar.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly instructionLink: \"https://support.google.com/calendar/answer/41207?hl=en\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_slides\";\n    readonly title: \"Google Slides\";\n    readonly hostnames: readonly [\"docs.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"github_gist\";\n    readonly title: \"GitHub Gist\";\n    readonly hostnames: readonly [\"gist.github.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"replit\";\n    readonly title: \"Replit\";\n    readonly hostnames: readonly [\"replit.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"felt\";\n    readonly title: \"Felt\";\n    readonly hostnames: readonly [\"felt.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"spotify\";\n    readonly title: \"Spotify\";\n    readonly hostnames: readonly [\"open.spotify.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minHeight: 500;\n    readonly overrideOutlineRadius: 12;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"vimeo\";\n    readonly title: \"Vimeo\";\n    readonly hostnames: readonly [\"vimeo.com\", \"player.vimeo.com\"];\n    readonly width: 640;\n    readonly height: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"excalidraw\";\n    readonly title: \"Excalidraw\";\n    readonly hostnames: readonly [\"excalidraw.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"observable\";\n    readonly title: \"Observable\";\n    readonly hostnames: readonly [\"observablehq.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: false;\n    readonly backgroundColor: \"#fff\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}]"
 						}
 					],
 					"fileUrlPath": "packages/tlschema/src/shapes/TLEmbedShape.ts",
@@ -2304,7 +2357,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "[];\n    }>;\n    isComplete: "
+							"text": "[];\n    } & {}>;\n    isComplete: "
 						},
 						{
 							"kind": "Reference",
@@ -2408,7 +2461,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<{\n        topLeft: import(\"../misc/geometry-types\")."
+							"text": "<({\n        topLeft: import(\"../misc/geometry-types\")."
 						},
 						{
 							"kind": "Reference",
@@ -2426,7 +2479,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": ";\n    } | null>;\n}"
+							"text": ";\n    } & {}) | null>;\n}"
 						}
 					],
 					"fileUrlPath": "packages/tlschema/src/shapes/TLImageShape.ts",
@@ -2697,7 +2750,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "readonly [{\n    readonly locale: \"ca\";\n    readonly label: \"Català\";\n}, {\n    readonly locale: \"cs\";\n    readonly label: \"Čeština\";\n}, {\n    readonly locale: \"da\";\n    readonly label: \"Danish\";\n}, {\n    readonly locale: \"de\";\n    readonly label: \"Deutsch\";\n}, {\n    readonly locale: \"en\";\n    readonly label: \"English\";\n}, {\n    readonly locale: \"es\";\n    readonly label: \"Español\";\n}, {\n    readonly locale: \"fr\";\n    readonly label: \"Français\";\n}, {\n    readonly locale: \"gl\";\n    readonly label: \"Galego\";\n}, {\n    readonly locale: \"it\";\n    readonly label: \"Italiano\";\n}, {\n    readonly locale: \"hu\";\n    readonly label: \"Magyar\";\n}, {\n    readonly locale: \"no\";\n    readonly label: \"Norwegian\";\n}, {\n    readonly locale: \"pl\";\n    readonly label: \"Polski\";\n}, {\n    readonly locale: \"pt-br\";\n    readonly label: \"Português - Brasil\";\n}, {\n    readonly locale: \"pt-pt\";\n    readonly label: \"Português - Europeu\";\n}, {\n    readonly locale: \"ro\";\n    readonly label: \"Română\";\n}, {\n    readonly locale: \"ru\";\n    readonly label: \"Russian\";\n}, {\n    readonly locale: \"fi\";\n    readonly label: \"Suomi\";\n}, {\n    readonly locale: \"sv\";\n    readonly label: \"Svenska\";\n}, {\n    readonly locale: \"vi\";\n    readonly label: \"Tiếng Việt\";\n}, {\n    readonly locale: \"tr\";\n    readonly label: \"Türkçe\";\n}, {\n    readonly locale: \"uk\";\n    readonly label: \"Ukrainian\";\n}, {\n    readonly locale: \"he\";\n    readonly label: \"עברית\";\n}, {\n    readonly locale: \"ar\";\n    readonly label: \"عربي\";\n}, {\n    readonly locale: \"fa\";\n    readonly label: \"فارسی\";\n}, {\n    readonly locale: \"ku\";\n    readonly label: \"کوردی\";\n}, {\n    readonly locale: \"ne\";\n    readonly label: \"नेपाली\";\n}, {\n    readonly locale: \"hi-in\";\n    readonly label: \"हिन्दी\";\n}, {\n    readonly locale: \"te\";\n    readonly label: \"తెలుగు\";\n}, {\n    readonly locale: \"th\";\n    readonly label: \"ภาษาไทย\";\n}, {\n    readonly locale: \"my\";\n    readonly label: \"မြန်မာစာ\";\n}, {\n    readonly locale: \"ko-kr\";\n    readonly label: \"한국어\";\n}, {\n    readonly locale: \"ja\";\n    readonly label: \"日本語\";\n}, {\n    readonly locale: \"zh-cn\";\n    readonly label: \"简体中文\";\n}, {\n    readonly locale: \"zh-tw\";\n    readonly label: \"繁體中文 (台灣)\";\n}]"
+							"text": "readonly [{\n    readonly locale: \"ca\";\n    readonly label: \"Català\";\n}, {\n    readonly locale: \"cs\";\n    readonly label: \"Čeština\";\n}, {\n    readonly locale: \"da\";\n    readonly label: \"Danish\";\n}, {\n    readonly locale: \"de\";\n    readonly label: \"Deutsch\";\n}, {\n    readonly locale: \"en\";\n    readonly label: \"English\";\n}, {\n    readonly locale: \"es\";\n    readonly label: \"Español\";\n}, {\n    readonly locale: \"fr\";\n    readonly label: \"Français\";\n}, {\n    readonly locale: \"gl\";\n    readonly label: \"Galego\";\n}, {\n    readonly locale: \"hr\";\n    readonly label: \"Hrvatski\";\n}, {\n    readonly locale: \"it\";\n    readonly label: \"Italiano\";\n}, {\n    readonly locale: \"hu\";\n    readonly label: \"Magyar\";\n}, {\n    readonly locale: \"no\";\n    readonly label: \"Norwegian\";\n}, {\n    readonly locale: \"pl\";\n    readonly label: \"Polski\";\n}, {\n    readonly locale: \"pt-br\";\n    readonly label: \"Português - Brasil\";\n}, {\n    readonly locale: \"pt-pt\";\n    readonly label: \"Português - Europeu\";\n}, {\n    readonly locale: \"ro\";\n    readonly label: \"Română\";\n}, {\n    readonly locale: \"ru\";\n    readonly label: \"Russian\";\n}, {\n    readonly locale: \"sl\";\n    readonly label: \"Slovenščina\";\n}, {\n    readonly locale: \"fi\";\n    readonly label: \"Suomi\";\n}, {\n    readonly locale: \"sv\";\n    readonly label: \"Svenska\";\n}, {\n    readonly locale: \"vi\";\n    readonly label: \"Tiếng Việt\";\n}, {\n    readonly locale: \"tr\";\n    readonly label: \"Türkçe\";\n}, {\n    readonly locale: \"uk\";\n    readonly label: \"Ukrainian\";\n}, {\n    readonly locale: \"he\";\n    readonly label: \"עברית\";\n}, {\n    readonly locale: \"ar\";\n    readonly label: \"عربي\";\n}, {\n    readonly locale: \"fa\";\n    readonly label: \"فارسی\";\n}, {\n    readonly locale: \"ku\";\n    readonly label: \"کوردی\";\n}, {\n    readonly locale: \"ne\";\n    readonly label: \"नेपाली\";\n}, {\n    readonly locale: \"hi-in\";\n    readonly label: \"हिन्दी\";\n}, {\n    readonly locale: \"te\";\n    readonly label: \"తెలుగు\";\n}, {\n    readonly locale: \"th\";\n    readonly label: \"ภาษาไทย\";\n}, {\n    readonly locale: \"my\";\n    readonly label: \"မြန်မာစာ\";\n}, {\n    readonly locale: \"ko-kr\";\n    readonly label: \"한국어\";\n}, {\n    readonly locale: \"ja\";\n    readonly label: \"日本語\";\n}, {\n    readonly locale: \"zh-cn\";\n    readonly label: \"简体中文\";\n}, {\n    readonly locale: \"zh-tw\";\n    readonly label: \"繁體中文 (台灣)\";\n}]"
 						}
 					],
 					"fileUrlPath": "packages/tlschema/src/translations/languages.ts",
@@ -2756,7 +2809,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"cubic\" | \"line\">;\n    handles: "
+							"text": "<\"cubic\" | \"line\">;\n    points: "
 						},
 						{
 							"kind": "Reference",
@@ -2765,16 +2818,16 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<string, import(\"../misc/TLHandle\")."
+							"text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
 						},
 						{
 							"kind": "Reference",
-							"text": "TLHandle",
-							"canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+							"text": "IndexKey",
+							"canonicalReference": "@tldraw/utils!IndexKey:type"
 						},
 						{
 							"kind": "Content",
-							"text": ">;\n}"
+							"text": ";\n    } & {}>;\n}"
 						}
 					],
 					"fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
@@ -3061,7 +3114,16 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<string, {\n        validate: (prop: any) => any;\n    }>;\n    meta?: "
+							"text": "<string, "
+						},
+						{
+							"kind": "Reference",
+							"text": "AnyValidator",
+							"canonicalReference": "@tldraw/tlschema!~AnyValidator:type"
+						},
+						{
+							"kind": "Content",
+							"text": ">;\n    meta?: "
 						},
 						{
 							"kind": "Reference",
@@ -3070,7 +3132,16 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<string, {\n        validate: (prop: any) => any;\n    }>;\n}"
+							"text": "<string, "
+						},
+						{
+							"kind": "Reference",
+							"text": "AnyValidator",
+							"canonicalReference": "@tldraw/tlschema!~AnyValidator:type"
+						},
+						{
+							"kind": "Content",
+							"text": ">;\n}"
 						},
 						{
 							"kind": "Content",
@@ -3082,7 +3153,7 @@
 					"name": "SchemaShapeInfo",
 					"typeTokenRange": {
 						"startIndex": 1,
-						"endIndex": 8
+						"endIndex": 12
 					}
 				},
 				{
@@ -3548,6 +3619,70 @@
 							"isOptional": false,
 							"isAbstract": false,
 							"name": "validate"
+						},
+						{
+							"kind": "Method",
+							"canonicalReference": "@tldraw/tlschema!StyleProp#validateUsingKnownGoodVersion:member(1)",
+							"docComment": "",
+							"excerptTokens": [
+								{
+									"kind": "Content",
+									"text": "validateUsingKnownGoodVersion(prevValue: "
+								},
+								{
+									"kind": "Content",
+									"text": "Type"
+								},
+								{
+									"kind": "Content",
+									"text": ", newValue: "
+								},
+								{
+									"kind": "Content",
+									"text": "unknown"
+								},
+								{
+									"kind": "Content",
+									"text": "): "
+								},
+								{
+									"kind": "Content",
+									"text": "Type"
+								},
+								{
+									"kind": "Content",
+									"text": ";"
+								}
+							],
+							"isStatic": false,
+							"returnTypeTokenRange": {
+								"startIndex": 5,
+								"endIndex": 6
+							},
+							"releaseTag": "Public",
+							"isProtected": false,
+							"overloadIndex": 1,
+							"parameters": [
+								{
+									"parameterName": "prevValue",
+									"parameterTypeTokenRange": {
+										"startIndex": 1,
+										"endIndex": 2
+									},
+									"isOptional": false
+								},
+								{
+									"parameterName": "newValue",
+									"parameterTypeTokenRange": {
+										"startIndex": 3,
+										"endIndex": 4
+									},
+									"isOptional": false
+								}
+							],
+							"isOptional": false,
+							"isAbstract": false,
+							"name": "validateUsingKnownGoodVersion"
 						}
 					],
 					"implementsTokenRanges": [
@@ -3556,6 +3691,67 @@
 							"endIndex": 3
 						}
 					]
+				},
+				{
+					"kind": "TypeAlias",
+					"canonicalReference": "@tldraw/tlschema!StylePropValue:type",
+					"docComment": "/**\n * @public\n */\n",
+					"excerptTokens": [
+						{
+							"kind": "Content",
+							"text": "export type StylePropValue<T extends "
+						},
+						{
+							"kind": "Reference",
+							"text": "StyleProp",
+							"canonicalReference": "@tldraw/tlschema!StyleProp:class"
+						},
+						{
+							"kind": "Content",
+							"text": "<any>"
+						},
+						{
+							"kind": "Content",
+							"text": "> = "
+						},
+						{
+							"kind": "Content",
+							"text": "T extends "
+						},
+						{
+							"kind": "Reference",
+							"text": "StyleProp",
+							"canonicalReference": "@tldraw/tlschema!StyleProp:class"
+						},
+						{
+							"kind": "Content",
+							"text": "<infer U> ? U : never"
+						},
+						{
+							"kind": "Content",
+							"text": ";"
+						}
+					],
+					"fileUrlPath": "packages/tlschema/src/styles/StyleProp.ts",
+					"releaseTag": "Public",
+					"name": "StylePropValue",
+					"typeParameters": [
+						{
+							"typeParameterName": "T",
+							"constraintTokenRange": {
+								"startIndex": 1,
+								"endIndex": 3
+							},
+							"defaultTypeTokenRange": {
+								"startIndex": 0,
+								"endIndex": 0
+							}
+						}
+					],
+					"typeTokenRange": {
+						"startIndex": 4,
+						"endIndex": 7
+					}
 				},
 				{
 					"kind": "Variable",
@@ -4322,8 +4518,9 @@
 									"text": "index: "
 								},
 								{
-									"kind": "Content",
-									"text": "string"
+									"kind": "Reference",
+									"text": "IndexKey",
+									"canonicalReference": "@tldraw/utils!IndexKey:type"
 								},
 								{
 									"kind": "Content",
@@ -6064,8 +6261,9 @@
 									"text": "index: "
 								},
 								{
-									"kind": "Content",
-									"text": "string"
+									"kind": "Reference",
+									"text": "IndexKey",
+									"canonicalReference": "@tldraw/utils!IndexKey:type"
 								},
 								{
 									"kind": "Content",
@@ -8299,8 +8497,9 @@
 									"text": "index: "
 								},
 								{
-									"kind": "Content",
-									"text": "string"
+									"kind": "Reference",
+									"text": "IndexKey",
+									"canonicalReference": "@tldraw/utils!IndexKey:type"
 								},
 								{
 									"kind": "Content",

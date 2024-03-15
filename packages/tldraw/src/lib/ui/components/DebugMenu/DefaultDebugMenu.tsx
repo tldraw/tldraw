@@ -1,4 +1,4 @@
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { ReactNode } from 'react'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import {
@@ -11,18 +11,17 @@ import { DefaultDebugMenuContent } from './DefaultDebugMenuContent'
 
 /** @public */
 export type TLUiDebugMenuProps = {
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
 export function DefaultDebugMenu({ children }: TLUiDebugMenuProps) {
-	const msg = useTranslation()
 	const content = children ?? <DefaultDebugMenuContent />
 
 	return (
 		<TldrawUiDropdownMenuRoot id="debug">
 			<TldrawUiDropdownMenuTrigger>
-				<TldrawUiButton type="icon" title={msg('debug-menu.title')}>
+				<TldrawUiButton type="icon" title="Debug menu">
 					<TldrawUiButtonIcon icon="dots-horizontal" />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>

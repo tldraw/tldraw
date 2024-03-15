@@ -6,7 +6,7 @@ import {
 	TLAssetId,
 	getHashForString,
 	uniqueId,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import { ASSET_UPLOADER_URL } from './config'
 
 export async function createAssetFromFile({ file }: { type: 'file'; file: File }) {

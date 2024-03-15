@@ -18,7 +18,7 @@ import { getSvgAsImage, getSvgAsString } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /**
- * Props for the {@link @tldraw/tldraw#TldrawImage} component.
+ * Props for the {@link tldraw#TldrawImage} component.
  *
  * @public
  **/
@@ -51,7 +51,7 @@ export type TldrawImageProps = Expand<
  *
  * @example
  * ```tsx
- * <TldrawImage snapshot={snapshot} />
+ * <TldrawImage
  * 	snapshot={snapshot}
  * 	pageId={pageId}
  * 	background={false}

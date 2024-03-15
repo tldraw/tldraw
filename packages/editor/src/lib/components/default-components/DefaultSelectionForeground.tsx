@@ -1,22 +1,19 @@
 import { useValue } from '@tldraw/state'
 import classNames from 'classnames'
-import { ComponentType, useRef } from 'react'
+import { useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
 import { useTransform } from '../../hooks/useTransform'
 import { Box } from '../../primitives/Box'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
-export type TLSelectionForegroundComponent = ComponentType<{
+export type TLSelectionForegroundProps = {
 	bounds: Box
 	rotation: number
-}>
+}
 
 /** @public */
-export const DefaultSelectionForeground: TLSelectionForegroundComponent = ({
-	bounds,
-	rotation,
-}) => {
+export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps) {
 	const editor = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)
 

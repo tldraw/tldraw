@@ -1,4 +1,4 @@
-import { SharedStyle, StyleProp } from '@tldraw/editor'
+import { SharedStyle, StyleProp, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -25,7 +25,7 @@ interface DropdownPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-export const DropdownPicker = React.memo(function DropdownPicker<T extends string>({
+function _DropdownPicker<T extends string>({
 	id,
 	label,
 	uiType,
@@ -36,6 +36,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 	onValueChange,
 }: DropdownPickerProps<T>) {
 	const msg = useTranslation()
+	const editor = useEditor()
 
 	const icon = React.useMemo(
 		() => items.find((item) => value.type === 'shared' && item.value === value.value)?.icon,
@@ -65,7 +66,10 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 									type="icon"
 									data-testid={`style.${uiType}.${item.value}`}
 									title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
-									onClick={() => onValueChange(style, item.value, false)}
+									onClick={() => {
+										editor.mark('select style dropdown item')
+										onValueChange(style, item.value, false)
+									}}
 								>
 									<TldrawUiButtonIcon icon={item.icon} />
 								</TldrawUiButton>
@@ -76,4 +80,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)
-})
+}
+
+// need to export like this to get generics
+export const DropdownPicker = React.memo(_DropdownPicker) as typeof _DropdownPicker

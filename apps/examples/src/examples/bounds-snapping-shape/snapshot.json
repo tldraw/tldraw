@@ -1,0 +1,110 @@
+{
+	"store": {
+		"document:document": {
+			"gridSize": 10,
+			"name": "",
+			"meta": {},
+			"id": "document:document",
+			"typeName": "document"
+		},
+		"page:page": {
+			"meta": {},
+			"id": "page:page",
+			"name": "Page 1",
+			"index": "a1",
+			"typeName": "page"
+		},
+		"shape:lO3gDT8toaxNdM8RZyKqm": {
+			"x": 436.99609375,
+			"y": 317.43359375,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:lO3gDT8toaxNdM8RZyKqm",
+			"type": "PlayingCard",
+			"parentId": "page:page",
+			"index": "a1",
+			"props": {
+				"w": 270,
+				"h": 370,
+				"suit": "♠️"
+			},
+			"typeName": "shape"
+		},
+		"shape:db5wxGPcC0KNtdDMrSimx": {
+			"x": 519.2183159722222,
+			"y": 317.43359375,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:db5wxGPcC0KNtdDMrSimx",
+			"type": "PlayingCard",
+			"parentId": "page:page",
+			"index": "a2",
+			"props": {
+				"w": 270,
+				"h": 370,
+				"suit": "♣️"
+			},
+			"typeName": "shape"
+		}
+	},
+	"schema": {
+		"schemaVersion": 1,
+		"storeVersion": 4,
+		"recordVersions": {
+			"asset": {
+				"version": 1,
+				"subTypeKey": "type",
+				"subTypeVersions": {
+					"image": 3,
+					"video": 3,
+					"bookmark": 1
+				}
+			},
+			"camera": {
+				"version": 1
+			},
+			"document": {
+				"version": 2
+			},
+			"instance": {
+				"version": 24
+			},
+			"instance_page_state": {
+				"version": 5
+			},
+			"page": {
+				"version": 1
+			},
+			"shape": {
+				"version": 3,
+				"subTypeKey": "type",
+				"subTypeVersions": {
+					"group": 0,
+					"text": 1,
+					"bookmark": 2,
+					"draw": 1,
+					"geo": 8,
+					"note": 5,
+					"line": 3,
+					"frame": 0,
+					"arrow": 3,
+					"highlight": 0,
+					"embed": 4,
+					"image": 3,
+					"video": 2,
+					"PlayingCard": 0
+				}
+			},
+			"instance_presence": {
+				"version": 5
+			},
+			"pointer": {
+				"version": 1
+			}
+		}
+	}
+}

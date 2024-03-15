@@ -1,5 +1,5 @@
-import { createShapeId, Tldraw, TLShapePartial } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { createShapeId, Tldraw, TLShapePartial } from 'tldraw'
+import 'tldraw/tldraw.css'
 import { ErrorShape, ErrorShapeUtil } from './ErrorShape'
 
 // There's a guide at the bottom of this file!

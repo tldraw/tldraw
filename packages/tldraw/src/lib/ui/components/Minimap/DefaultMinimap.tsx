@@ -221,6 +221,8 @@ export function DefaultMinimap() {
 	return (
 		<div className="tlui-minimap">
 			<canvas
+				role="img"
+				aria-label="minimap"
 				ref={rCanvas}
 				className="tlui-minimap__canvas"
 				onDoubleClick={onDoubleClick}

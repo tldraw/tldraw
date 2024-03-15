@@ -11,6 +11,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 		<>
 			<TldrawUiMenuGroup label="shortcuts-dialog.tools" id="tools">
 				<TldrawUiMenuItem {...actions['toggle-tool-lock']} />
+				<TldrawUiMenuItem {...actions['insert-media']} />
 				<TldrawUiMenuItem {...tools['select']} />
 				<TldrawUiMenuItem {...tools['draw']} />
 				<TldrawUiMenuItem {...tools['eraser']} />
@@ -23,10 +24,6 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...tools['frame']} />
 				<TldrawUiMenuItem {...tools['note']} />
 				<TldrawUiMenuItem {...tools['laser']} />
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-				<TldrawUiMenuItem {...actions['insert-media']} />
-				<TldrawUiMenuItem {...actions['print']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.preferences" id="preferences">
 				<TldrawUiMenuItem {...actions['toggle-dark-mode']} />
@@ -42,8 +39,6 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...actions['select-all']} />
 				<TldrawUiMenuItem {...actions['delete']} />
 				<TldrawUiMenuItem {...actions['duplicate']} />
-				<TldrawUiMenuItem {...actions['export-as-svg']} />
-				<TldrawUiMenuItem {...actions['export-as-png']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
 				<TldrawUiMenuItem {...actions['zoom-in']} />

@@ -1,13 +1,6 @@
-import {
-	stopEventPropagation,
-	Tldraw,
-	TLEditorComponents,
-	track,
-	useEditor,
-	Vec,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { useState } from 'react'
+import { stopEventPropagation, Tldraw, TLEditorComponents, track, useEditor, Vec } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 

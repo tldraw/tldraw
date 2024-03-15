@@ -4,6 +4,7 @@ import {
 	A,
 	ApiHeading,
 	Blockquote,
+	Callout,
 	Divider,
 	Embed,
 	Heading1,
@@ -56,6 +57,7 @@ export const components = {
 	Image,
 	Small: Small,
 	Video,
+	Callout,
 	...customComponents,
 	...apiComponents,
 }

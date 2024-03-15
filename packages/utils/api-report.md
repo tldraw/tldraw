@@ -19,6 +19,12 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
+// @internal
+export function clearLocalStorage(): void;
+
+// @internal
+export function clearSessionStorage(): void;
+
 // @internal (undocumented)
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
@@ -33,6 +39,12 @@ export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[]
 
 // @public
 export function deepCopy<T = unknown>(obj: T): T;
+
+// @internal
+export function deleteFromLocalStorage(key: string): void;
+
+// @internal
+export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
 export type ErrorResult<E> = {
@@ -50,9 +62,10 @@ export type Expand<T> = T extends infer O ? {
 
 // @public
 export class FileHelpers {
-    // @internal (undocumented)
-    static base64ToFile(dataURL: string): Promise<ArrayBuffer>;
-    static fileToBase64(file: Blob): Promise<string>;
+    static blobToDataUrl(file: Blob): Promise<string>;
+    static blobToText(file: Blob): Promise<string>;
+    // (undocumented)
+    static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
 }
 
 // @internal
@@ -62,11 +75,20 @@ export function filterEntries<Key extends string, Value>(object: {
     [K in Key]: Value;
 };
 
+// @internal
+export function fpsThrottle(fn: () => void): () => void;
+
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
+
+// @internal
+export function getFromLocalStorage(key: string): null | string;
+
+// @internal
+export function getFromSessionStorage(key: string): null | string;
 
 // @public
 export function getHashForBuffer(buffer: ArrayBuffer): string;
@@ -156,7 +178,6 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 
 // @public
 export class MediaHelpers {
-    static blobToDataUrl(blob: Blob): Promise<string>;
     static getImageSize(blob: Blob): Promise<{
         w: number;
         h: number;
@@ -246,9 +267,6 @@ export function promiseWithResolve<T>(): Promise<T> & {
     reject: (reason?: any) => void;
 };
 
-// @internal
-export function rafThrottle(fn: () => void): () => void;
-
 // @public (undocumented)
 export type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
@@ -273,6 +291,12 @@ export function rng(seed?: string): () => number;
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
+// @internal
+export function setInLocalStorage(key: string, value: string): void;
+
+// @internal
+export function setInSessionStorage(key: string, value: string): void;
+
 // @public (undocumented)
 export function sortById<T extends {
     id: any;
@@ -283,7 +307,7 @@ export function sortByIndex<T extends {
     index: IndexKey;
 }>(a: T, b: T): -1 | 0 | 1;
 
-// @public (undocumented)
+// @public
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
@@ -291,7 +315,7 @@ export { structuredClone_2 as structuredClone }
 export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
 
 // @internal
-export function throttledRaf(fn: () => void): void;
+export function throttleToNextFrame(fn: () => void): void;
 
 // @internal (undocumented)
 export function validateIndexKey(key: string): asserts key is IndexKey;

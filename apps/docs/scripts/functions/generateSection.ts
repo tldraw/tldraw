@@ -166,6 +166,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 			groups: [],
 			path: `/${section.id}/ucg`,
 			content: null,
+			hero: null,
 		},
 	]
 
@@ -188,6 +189,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 				index: i + 1,
 				path: `/${section.id}/${inputCategory.id}`,
 				content: null,
+				hero: null,
 				groups: inputCategory.groups.map(({ id }, i) => ({
 					id,
 					title: id,
@@ -210,6 +212,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 		index,
 		categories,
 		content: '',
+		hero: section.hero ?? null,
 		path: `/${section.id}`,
 	}
 }

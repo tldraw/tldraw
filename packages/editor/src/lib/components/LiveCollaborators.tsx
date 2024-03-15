@@ -144,7 +144,7 @@ const Collaborator = track(function Collaborator({
 					<CollaboratorShapeIndicator
 						className="tl-collaborator__shape-indicator"
 						key={userId + '_' + shapeId}
-						id={shapeId}
+						shapeId={shapeId}
 						color={color}
 						opacity={0.5}
 					/>

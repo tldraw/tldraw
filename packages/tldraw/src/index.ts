@@ -1,10 +1,13 @@
 /// <reference types="react" />
 
+export { preloadFont } from './lib/utils/assets/preload-font'
+
+export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
+
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
-export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
@@ -82,12 +85,7 @@ export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
-export {
-	toolbarItem,
-	useToolbarSchema,
-	type TLUiToolbarItem,
-	type TLUiToolbarSchemaContextType,
-} from './lib/ui/hooks/useToolbarSchema'
+export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
 	useTools,
 	type TLUiToolItem,
@@ -111,7 +109,7 @@ export {
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
-export { getSvgAsImage, getSvgAsString } from './lib/utils/export/export'
+export { exportToBlob, getSvgAsImage, getSvgAsString } from './lib/utils/export/export'
 export { exportAs } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
@@ -143,13 +141,21 @@ export {
 } from './lib/ui/context/components'
 
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
+export { PageItemInput } from './lib/ui/components/PageMenu/PageItemInput'
+export { PageItemSubmenu } from './lib/ui/components/PageMenu/PageItemSubmenu'
 
 export {
 	DefaultStylePanel,
 	type TLUiStylePanelProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanel'
 export {
+	ArrowheadStylePickerSet,
+	CommonStylePickerSet,
 	DefaultStylePanelContent,
+	GeoStylePickerSet,
+	OpacitySlider,
+	SplineStylePickerSet,
+	TextStylePickerSet,
 	type TLUiStylePanelContentProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 
@@ -157,7 +163,16 @@ export {
 	DefaultActionsMenu,
 	type TLUiActionsMenuProps,
 } from './lib/ui/components/ActionsMenu/DefaultActionsMenu'
-export { DefaultActionsMenuContent } from './lib/ui/components/ActionsMenu/DefaultActionsMenuContent'
+export {
+	AlignMenuItems,
+	DefaultActionsMenuContent,
+	DistributeMenuItems,
+	GroupOrUngroupMenuItem,
+	ReorderMenuItems,
+	RotateCWMenuItem,
+	StackMenuItems,
+	ZoomOrRotateMenuItem,
+} from './lib/ui/components/ActionsMenu/DefaultActionsMenuContent'
 
 export {
 	DefaultContextMenu as ContextMenu,
@@ -170,13 +185,65 @@ export {
 	DefaultHelpMenu,
 	type TLUiHelpMenuProps,
 } from './lib/ui/components/HelpMenu/DefaultHelpMenu'
-export { DefaultHelpMenuContent } from './lib/ui/components/HelpMenu/DefaultHelpMenuContent'
+export {
+	DefaultHelpMenuContent,
+	KeyboardShortcutsMenuItem,
+} from './lib/ui/components/HelpMenu/DefaultHelpMenuContent'
+export { LanguageMenu } from './lib/ui/components/LanguageMenu'
+
+export {
+	ArrangeMenuSubmenu,
+	ClipboardMenuGroup,
+	ConversionsMenuGroup,
+	ConvertToBookmarkMenuItem,
+	ConvertToEmbedMenuItem,
+	CopyAsMenuGroup,
+	CopyMenuItem,
+	CutMenuItem,
+	DeleteMenuItem,
+	DuplicateMenuItem,
+	EditLinkMenuItem,
+	FitFrameToContentMenuItem,
+	GroupMenuItem,
+	MoveToPageMenu,
+	PasteMenuItem,
+	PrintItem,
+	RemoveFrameMenuItem,
+	ReorderMenuSubmenu,
+	SelectAllMenuItem,
+	ToggleAutoSizeMenuItem,
+	ToggleDarkModeItem,
+	ToggleDebugModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
+	ToggleLockMenuItem,
+	ToggleReduceMotionItem,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
+	ToggleTransparentBgMenuItem,
+	ToggleWrapModeItem,
+	UngroupMenuItem,
+	UnlockAllMenuItem,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
+} from './lib/ui/components/menu-items'
 
 export {
 	DefaultMainMenu,
 	type TLUiMainMenuProps,
 } from './lib/ui/components/MainMenu/DefaultMainMenu'
-export { DefaultMainMenuContent } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
+export {
+	DefaultMainMenuContent,
+	EditSubmenu,
+	ExportFileContentSubMenu,
+	ExtrasGroup,
+	MiscMenuGroup,
+	PreferencesGroup,
+	UndoRedoGroup,
+	ViewSubmenu,
+} from './lib/ui/components/MainMenu/DefaultMainMenuContent'
 
 export {
 	DefaultQuickActions,
@@ -206,9 +273,12 @@ export {
 	DefaultDebugMenu,
 	type TLUiDebugMenuProps,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenu'
-export { DefaultDebugMenuContent } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
-
-export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+export {
+	DebugFlags,
+	DefaultDebugMenuContent,
+	ExampleDialog,
+	FeatureFlags,
+} from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
 
 export { type TLComponents } from './lib/Tldraw'
 
@@ -293,6 +363,41 @@ export {
 
 // Slider
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
+
+// Toolbar
+export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+export {
+	ArrowDownToolbarItem,
+	ArrowLeftToolbarItem,
+	ArrowRightToolbarItem,
+	ArrowToolbarItem,
+	ArrowUpToolbarItem,
+	AssetToolbarItem,
+	CheckBoxToolbarItem,
+	CloudToolbarItem,
+	DefaultToolbarContent,
+	DiamondToolbarItem,
+	DrawToolbarItem,
+	EllipseToolbarItem,
+	EraserToolbarItem,
+	FrameToolbarItem,
+	HandToolbarItem,
+	HexagonToolbarItem,
+	HighlightToolbarItem,
+	LaserToolbarItem,
+	LineToolbarItem,
+	NoteToolbarItem,
+	OvalToolbarItem,
+	RectangleToolbarItem,
+	RhombusToolbarItem,
+	SelectToolbarItem,
+	StarToolbarItem,
+	TextToolbarItem,
+	TrapezoidToolbarItem,
+	TriangleToolbarItem,
+	XBoxToolbarItem,
+	useIsToolSelected,
+} from './lib/ui/components/Toolbar/DefaultToolbarContent'
 
 /* ----------------- Menu Primitives ---------------- */
 

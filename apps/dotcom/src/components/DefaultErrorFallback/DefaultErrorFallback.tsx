@@ -1,8 +1,7 @@
 import { captureException } from '@sentry/react'
-import { DefaultErrorFallback as ErrorFallback } from '@tldraw/tldraw'
 import { useEffect } from 'react'
 import { useRouteError } from 'react-router-dom'
-import '../../../styles/globals.css'
+import { DefaultErrorFallback as ErrorFallback } from 'tldraw'
 
 export function DefaultErrorFallback() {
 	const error = useRouteError()

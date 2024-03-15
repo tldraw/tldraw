@@ -1,3 +1,4 @@
+import { useCallback, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
@@ -6,8 +7,7 @@ import {
 	useTranslation,
 	useUiEvents,
 	useValue,
-} from '@tldraw/tldraw'
-import { useCallback, useRef, useState } from 'react'
+} from 'tldraw'
 import { UI_OVERRIDE_TODO_EVENT } from '../../utils/useHandleUiEvent'
 import { UserPresenceColorPicker } from './UserPresenceColorPicker'
 

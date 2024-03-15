@@ -1,13 +1,14 @@
 import { TLShapeId } from '@tldraw/tlschema'
-import { ComponentType } from 'react'
-import { ShapeIndicator } from '../ShapeIndicator'
+import { useEditorComponents } from '../../hooks/useEditorComponents'
 
 /** @public */
-export type TLHoveredShapeIndicatorComponent = ComponentType<{
+export type TLHoveredShapeIndicatorProps = {
 	shapeId: TLShapeId
-}>
+}
 
 /** @public */
-export const DefaultHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ shapeId }) => {
-	return <ShapeIndicator className="tl-user-indicator__hovered" id={shapeId} />
+export function DefaultHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps) {
+	const { ShapeIndicator } = useEditorComponents()
+	if (!ShapeIndicator) return null
+	return <ShapeIndicator className="tl-user-indicator__hovered" shapeId={shapeId} />
 }

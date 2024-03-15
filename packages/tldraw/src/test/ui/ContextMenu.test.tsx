@@ -10,7 +10,8 @@ it('opens on right-click', async () => {
 			onMount={(editor) => {
 				editor.createShape({ id: createShapeId(), type: 'geo' })
 			}}
-		/>
+		/>,
+		{ waitForPatterns: false }
 	)
 	const canvas = await screen.findByTestId('canvas')
 
@@ -38,7 +39,8 @@ it('tunnels context menu', async () => {
 				editor.createShape({ id: createShapeId(), type: 'geo' })
 			}}
 			components={components}
-		/>
+		/>,
+		{ waitForPatterns: false }
 	)
 
 	const canvas = await screen.findByTestId('canvas')

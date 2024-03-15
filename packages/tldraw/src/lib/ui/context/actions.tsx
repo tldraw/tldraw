@@ -63,11 +63,20 @@ export type ActionsProviderProps = {
 		actions: TLUiActionsContextType,
 		helpers: undefined
 	) => TLUiActionsContextType
-	children: any
+	children: React.ReactNode
 }
 
 function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
+}
+
+function getExportName(editor: Editor, defaultName: string) {
+	const selectedShapes = editor.getSelectedShapes()
+	// When we don't have any shapes selected, we want to use the document name
+	if (selectedShapes.length === 0) {
+		return editor.getDocumentSettings().name || defaultName
+	}
+	return undefined
 }
 
 /** @internal */
@@ -83,6 +92,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
+	const defaultDocumentName = msg('document.default-name')
 
 	const trackEvent = useUiEvents()
 
@@ -164,8 +174,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
-					exportAs(editor.getSelectedShapeIds(), 'svg')
+					exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -177,8 +190,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(editor.getSelectedShapeIds(), 'png')
+					exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -190,8 +206,61 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(editor.getSelectedShapeIds(), 'json')
+					exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
+				},
+			},
+			{
+				id: 'export-all-as-svg',
+				label: {
+					default: 'action.export-all-as-svg',
+					menu: 'action.export-all-as-svg.short',
+					['context-menu']: 'action.export-all-as-svg.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
+					trackEvent('export-all-as', { format: 'svg', source })
+					exportAs(
+						Array.from(editor.getCurrentPageShapeIds()),
+						'svg',
+						getExportName(editor, defaultDocumentName)
+					)
+				},
+			},
+			{
+				id: 'export-all-as-png',
+				label: {
+					default: 'action.export-all-as-png',
+					menu: 'action.export-all-as-png.short',
+					['context-menu']: 'action.export-all-as-png.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					const ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
+					trackEvent('export-all-as', { format: 'png', source })
+					exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+				},
+			},
+			{
+				id: 'export-all-as-json',
+				label: {
+					default: 'action.export-all-as-json',
+					menu: 'action.export-all-as-json.short',
+					['context-menu']: 'action.export-all-as-json.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					const ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
+					trackEvent('export-all-as', { format: 'json', source })
+					exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -204,8 +273,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$!c',
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'svg', source })
-					copyAs(editor.getSelectedShapeIds(), 'svg')
+					copyAs(ids, 'svg')
 				},
 			},
 			{
@@ -217,8 +289,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'png', source })
-					copyAs(editor.getSelectedShapeIds(), 'png')
+					copyAs(ids, 'png')
 				},
 			},
 			{
@@ -230,8 +305,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'json', source })
-					copyAs(editor.getSelectedShapeIds(), 'json')
+					copyAs(ids, 'json')
 				},
 			},
 			{
@@ -997,6 +1075,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-wrap-mode',
+				label: {
+					default: 'action.toggle-wrap-mode',
+					menu: 'action.toggle-wrap-mode.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-wrap-mode', { source })
+					editor.user.updateUserPreferences({
+						isWrapMode: !editor.user.getIsWrapMode(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-reduce-motion',
 				label: {
 					default: 'action.toggle-reduce-motion',
@@ -1213,6 +1306,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		clearToasts,
 		printSelectionOrPages,
 		msg,
+		defaultDocumentName,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

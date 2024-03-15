@@ -10,11 +10,13 @@ export type TldrawUiMenuContextType =
 	| 'icons'
 	| 'keyboard-shortcuts'
 	| 'helper-buttons'
+	| 'toolbar'
+	| 'toolbar-overflow'
 
 const menuContext = createContext<{
 	type: TldrawUiMenuContextType
 	sourceId: TLUiEventSource
-}>({ type: 'menu', sourceId: 'menu' })
+}>({ type: 'menu', sourceId: 'main-menu' })
 
 /** @public */
 export function useTldrawUiMenuContext() {

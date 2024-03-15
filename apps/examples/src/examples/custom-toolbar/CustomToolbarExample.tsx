@@ -1,11 +1,34 @@
-import { TLComponents, Tldraw } from '@tldraw/tldraw'
-import { DefaultToolbar } from '@tldraw/tldraw/src/lib/ui/components/Toolbar/DefaultToolbar'
-import '@tldraw/tldraw/tldraw.css'
+import {
+	DefaultToolbar,
+	DefaultToolbarContent,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuItem,
+	useEditor,
+	useIsToolSelected,
+	useTools,
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomToolbar() {
+	const editor = useEditor()
+	const tools = useTools()
+	const isScreenshotSelected = useIsToolSelected(tools['rhombus-2'])
 	return (
-		<div style={{ transform: 'rotate(180deg)' }}>
-			<DefaultToolbar />
+		<div>
+			<DefaultToolbar>
+				<TldrawUiMenuItem {...tools['rhombus-2']} isSelected={isScreenshotSelected} />
+
+				<DefaultToolbarContent />
+				<button
+					onClick={() => {
+						editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+					}}
+					title="delete all"
+				>
+					🧨
+				</button>
+			</DefaultToolbar>
 		</div>
 	)
 }

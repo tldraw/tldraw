@@ -1,3 +1,5 @@
+import { schema } from '@tldraw/tlsync'
+import { useEffect, useState } from 'react'
 import {
 	MigrationFailureReason,
 	Result,
@@ -5,9 +7,7 @@ import {
 	TLRecord,
 	TLStore,
 	createTLStore,
-} from '@tldraw/tldraw'
-import { schema } from '@tldraw/tlsync'
-import { useEffect, useState } from 'react'
+} from 'tldraw'
 
 export function useLocalStore(records: TLRecord[], serializedSchema: SerializedSchema) {
 	const [storeResult, setStoreResult] = useState<

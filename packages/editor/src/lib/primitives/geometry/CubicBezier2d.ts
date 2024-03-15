@@ -19,6 +19,7 @@ export class CubicBezier2d extends Polyline2d {
 	) {
 		const { start: a, cp1: b, cp2: c, end: d } = config
 		super({ ...config, points: [a, d] })
+
 		this.a = a
 		this.b = b
 		this.c = c

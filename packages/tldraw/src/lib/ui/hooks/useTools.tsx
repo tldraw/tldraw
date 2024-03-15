@@ -37,7 +37,7 @@ export type TLUiToolsProviderProps = {
 		tools: TLUiToolsContextType,
 		helpers: { insertMedia: () => void }
 	) => TLUiToolsContextType
-	children: any
+	children: React.ReactNode
 }
 
 /** @internal */
@@ -196,19 +196,20 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'embed' })
 				},
 			},
+			{
+				id: 'highlight',
+				label: 'tool.highlight',
+				icon: 'tool-highlight',
+				// TODO: pick a better shortcut
+				kbd: '!d',
+				onSelect(source) {
+					editor.setCurrentTool('highlight')
+					trackEvent('select-tool', { source, id: 'highlight' })
+				},
+			},
 		]
 
-		toolsArray.push({
-			id: 'highlight',
-			label: 'tool.highlight',
-			icon: 'tool-highlight',
-			// TODO: pick a better shortcut
-			kbd: '!d',
-			onSelect(source) {
-				editor.setCurrentTool('highlight')
-				trackEvent('select-tool', { source, id: 'highlight' })
-			},
-		})
+		toolsArray.push()
 
 		const tools = Object.fromEntries(toolsArray.map((t) => [t.id, t]))
 

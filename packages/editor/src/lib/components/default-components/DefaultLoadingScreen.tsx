@@ -1,10 +1,8 @@
-import { ComponentType } from 'react'
 import { LoadingScreen } from '../../TldrawEditor'
+import { useEditorComponents } from '../../hooks/useEditorComponents'
 
 /** @public */
-export type TLLoadingScreenComponent = ComponentType<object>
-
-/** @public */
-export const DefaultLoadingScreen: TLLoadingScreenComponent = () => {
-	return <LoadingScreen>Connecting...</LoadingScreen>
+export const DefaultLoadingScreen = () => {
+	const { Spinner } = useEditorComponents()
+	return <LoadingScreen>{Spinner ? <Spinner /> : null}</LoadingScreen>
 }

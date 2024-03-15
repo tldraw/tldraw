@@ -85,7 +85,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			if (!recordType) {
 				throw new Error(`Missing definition for record type ${record.typeName}`)
 			}
-			return recordType.validate(record)
+			return recordType.validate(record, recordBefore ?? undefined)
 		} catch (error: unknown) {
 			if (this.options.onValidationFailure) {
 				return this.options.onValidationFailure({

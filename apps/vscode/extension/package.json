@@ -1,7 +1,7 @@
 {
 	"name": "tldraw-vscode",
 	"description": "The tldraw extension for VS Code.",
-	"version": "2.0.24",
+	"version": "2.0.26",
 	"private": true,
 	"author": {
 		"name": "tldraw Inc.",
@@ -130,7 +130,6 @@
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
-		"@tldraw/tldraw": "workspace:*",
 		"@types/fs-extra": "^11.0.1",
 		"@types/node-fetch": "^2.6.2",
 		"@types/vscode": "^1.75.1",
@@ -144,10 +143,11 @@
 		"lodash": "^4.17.21",
 		"mocha": "^9.1.1",
 		"process": "^0.11.10",
+		"tldraw": "workspace:*",
 		"ts-loader": "^9.2.5",
 		"tslib": "^2.6.2",
 		"tsx": "^4.0.0",
-		"typescript": "^5.2.2",
+		"typescript": "^5.3.3",
 		"vsce": "^2.15.0",
 		"webpack": "^5.0.0"
 	},

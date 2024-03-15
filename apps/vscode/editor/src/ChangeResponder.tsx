@@ -1,11 +1,11 @@
+import React from 'react'
 import {
 	debounce,
 	parseAndLoadDocument,
 	serializeTldrawJson,
 	useDefaultHelpers,
 	useEditor,
-} from '@tldraw/tldraw'
-import React from 'react'
+} from 'tldraw'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
 import '../public/index.css'

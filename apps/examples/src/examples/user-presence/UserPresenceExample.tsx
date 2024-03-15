@@ -1,7 +1,7 @@
 /* eslint-disable no-inner-declarations */
-import { InstancePresenceRecordType, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { useRef } from 'react'
+import { InstancePresenceRecordType, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 

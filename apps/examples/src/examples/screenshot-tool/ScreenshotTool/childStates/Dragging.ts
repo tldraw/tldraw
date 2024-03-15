@@ -1,4 +1,4 @@
-import { Box, StateNode, atom, copyAs, exportAs } from '@tldraw/tldraw'
+import { Box, StateNode, atom, copyAs, exportAs } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -85,6 +85,7 @@ export class ScreenshotDragging extends StateNode {
 					editor,
 					shapes.map((s) => s.id),
 					'png',
+					'Screenshot',
 					{ bounds: box, background: editor.getInstanceState().exportBackground }
 				)
 			}

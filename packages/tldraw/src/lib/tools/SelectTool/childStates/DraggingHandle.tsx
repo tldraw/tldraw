@@ -1,5 +1,4 @@
 import {
-	Mat,
 	StateNode,
 	TLArrowShape,
 	TLArrowShapeTerminal,
@@ -8,13 +7,14 @@ import {
 	TLEventHandlers,
 	TLHandle,
 	TLKeyboardEvent,
+	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	TLShapePartial,
 	Vec,
-	deepCopy,
 	snapAngle,
 	sortByIndex,
+	structuredClone,
 } from '@tldraw/editor'
 
 export class DraggingHandle extends StateNode {
@@ -30,7 +30,7 @@ export class DraggingHandle extends StateNode {
 	initialPageRotation: any
 
 	info = {} as TLPointerEventInfo & {
-		shape: TLArrowShape
+		shape: TLArrowShape | TLLineShape
 		target: 'handle'
 		onInteractionEnd?: string
 		isCreating: boolean
@@ -39,10 +39,11 @@ export class DraggingHandle extends StateNode {
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
+	isDirty = false
 
 	override onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
-			shape: TLArrowShape
+			shape: TLArrowShape | TLLineShape
 			target: 'handle'
 			onInteractionEnd?: string
 			isCreating: boolean
@@ -50,11 +51,34 @@ export class DraggingHandle extends StateNode {
 	) => {
 		const { shape, isCreating, handle } = info
 		this.info = info
+		this.isDirty = false
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
 		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
 		if (!isCreating) this.editor.mark(this.markId)
-		this.initialHandle = deepCopy(handle)
+
+		this.initialHandle = structuredClone(handle)
+
+		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
+			// For line shapes, if we're dragging a "create" handle, then
+			// create a new vertex handle at that point; and make this handle
+			// the handle that we're dragging.
+			if (this.initialHandle.type === 'create') {
+				this.editor.updateShape({
+					...shape,
+					props: {
+						points: {
+							...shape.props.points,
+							[handle.index]: { id: handle.index, index: handle.index, x: handle.x, y: handle.y },
+						},
+					},
+				})
+				const handlesAfter = this.editor.getShapeHandles(shape)!
+				const handleAfter = handlesAfter.find((h) => h.index === handle.index)!
+				this.initialHandle = structuredClone(handleAfter)
+			}
+		}
+
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
@@ -64,7 +88,6 @@ export class DraggingHandle extends StateNode {
 			{ ephemeral: true }
 		)
 
-		// <!-- Only relevant to arrows
 		const handles = this.editor.getShapeHandles(shape)!.sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
@@ -91,21 +114,24 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		const initialTerminal = shape.props[info.handle.id as 'start' | 'end']
+		// <!-- Only relevant to arrows
+		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const initialTerminal = shape.props[info.handle.id as 'start' | 'end']
 
-		this.isPrecise = false
+			this.isPrecise = false
 
-		if (initialTerminal?.type === 'binding') {
-			this.editor.setHintingShapes([initialTerminal.boundShapeId])
+			if (initialTerminal?.type === 'binding') {
+				this.editor.setHintingShapes([initialTerminal.boundShapeId])
 
-			this.isPrecise = initialTerminal.isPrecise
-			if (this.isPrecise) {
-				this.isPreciseId = initialTerminal.boundShapeId
+				this.isPrecise = initialTerminal.isPrecise
+				if (this.isPrecise) {
+					this.isPreciseId = initialTerminal.boundShapeId
+				} else {
+					this.resetExactTimeout()
+				}
 			} else {
-				this.resetExactTimeout()
+				this.editor.setHintingShapes([])
 			}
-		} else {
-			this.editor.setHintingShapes([])
 		}
 		// -->
 
@@ -141,8 +167,15 @@ export class DraggingHandle extends StateNode {
 		}
 	}
 
+	override onTick = () => {
+		if (this.isDirty) {
+			this.isDirty = false
+			this.update()
+		}
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.update()
+		this.isDirty = true
 	}
 
 	override onKeyDown: TLKeyboardEvent | undefined = () => {
@@ -158,6 +191,8 @@ export class DraggingHandle extends StateNode {
 	}
 
 	override onComplete: TLEventHandlers['onComplete'] = () => {
+		this.update()
+		this.isDirty = false
 		this.complete()
 	}
 
@@ -216,6 +251,7 @@ export class DraggingHandle extends StateNode {
 		} = editor
 
 		const initial = this.info.shape
+
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
@@ -236,43 +272,24 @@ export class DraggingHandle extends StateNode {
 		// Clear any existing snaps
 		editor.snaps.clearIndicators()
 
+		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
+
 		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
-			// We want to skip the segments that include the handle, so
-			// find the index of the handle that shares the same index property
-			// as the initial dragging handle; this catches a quirk of create handles
-			const handleIndex = editor
-				.getShapeHandles(shape)!
-				.filter(({ type }) => type === 'vertex')
-				.sort(sortByIndex)
-				.findIndex(({ index }) => initialHandle.index === index)
-
-			// Get all the outline segments from the shape
-			const additionalSegments = util
-				.getOutlineSegments(shape)
-				.map((segment) => Mat.applyToPoints(pageTransform, segment))
-				.filter((_segment, i) => i !== handleIndex - 1 && i !== handleIndex)
-
-			const snap = snaps.handles.snapHandle({
-				additionalSegments,
-				handlePoint: Mat.applyToPoint(pageTransform, point),
-			})
+			const snap = snaps.handles.snapHandle({ currentShapeId: shapeId, handle: nextHandle })
 
 			if (snap) {
 				snap.nudge.rot(-editor.getShapeParentTransform(shape)!.rotation())
 				point.add(snap.nudge)
+				nextHandle = { ...initialHandle, x: point.x, y: point.y }
 			}
 		}
 
 		const changes = util.onHandleDrag?.(shape, {
-			handle: {
-				...initialHandle,
-				x: point.x,
-				y: point.y,
-			},
+			handle: nextHandle,
 			isPrecise: this.isPrecise || altKey,
 			initial: initial,
 		})

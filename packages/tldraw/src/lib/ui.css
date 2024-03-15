@@ -79,6 +79,16 @@
 	margin-left: var(--space-2);
 }
 
+.tlui-button[data-state='hinted']::after {
+	background-color: var(--color-hint);
+	opacity: 1;
+}
+
+.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
+	background: var(--color-hint);
+	opacity: 1;
+}
+
 @media (hover: hover) {
 	.tlui-button::after {
 		background-color: var(--color-muted-2);
@@ -136,7 +146,6 @@
 .tlui-button__menu {
 	height: 40px;
 	min-height: 40px;
-	min-width: 128px;
 	width: 100%;
 	gap: 8px;
 	margin: -4px 0px;
@@ -211,20 +220,20 @@
 		border-radius: 8px;
 	}
 
-	.tlui-button__tool[data-state='selected']:not(:disabled, :focus-visible):hover {
+	.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):hover {
 		color: var(--color-selected-contrast);
 	}
 }
 
-.tlui-button__tool[data-state='selected'] {
+.tlui-button__tool[aria-checked='true'] {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[data-state='selected']:not(:disabled, :focus-visible):active {
+.tlui-button__tool[aria-checked='true']:not(:disabled, :focus-visible):active {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button__tool[data-state='selected']:not(:disabled)::after {
+.tlui-button__tool[aria-checked='true']:not(:disabled)::after {
 	background: var(--color-selected);
 	opacity: 1;
 }
@@ -739,8 +748,8 @@
 	font-size: 12px;
 	overflow: hidden;
 	min-width: 300px;
-	max-width: 80vw;
-	max-height: 80vh;
+	max-width: 80%;
+	max-height: 80%;
 }
 
 .tlui-dialog__header {
@@ -849,14 +858,19 @@
 .tlui-toolbar__tools {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	background-color: var(--color-low);
 	border-radius: var(--radius-4);
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: relative;
-	align-items: center;
 	background: var(--color-panel);
 	box-shadow: var(--shadow-2);
+}
+.tlui-toolbar__tools__list {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
 }
 
 .tlui-toolbar__overflow {
@@ -929,6 +943,10 @@
 	stroke-width: 1px;
 }
 
+.tlui-menu__group {
+	width: 100%;
+}
+
 .tlui-menu__group:empty {
 	display: none;
 }
@@ -952,25 +970,22 @@
 
 /* Menu Sizes */
 
-.tlui-menu[data-size='large'] > .tlui-menu__group,
-.tlui-menu__submenu__content[data-size='large'] > .tlui-menu__group {
+.tlui-menu[data-size='large'] > .tlui-menu__group {
 	min-width: initial;
 }
 
-.tlui-menu[data-size='medium'] > .tlui-menu__group,
-.tlui-menu__submenu__content[data-size='medium'] > .tlui-menu__group {
+.tlui-menu[data-size='medium'] > .tlui-menu__group {
 	min-width: 144px;
 }
 
-.tlui-menu[data-size='small'] > .tlui-menu__group,
-.tlui-menu__submenu__content[data-size='small'] > .tlui-menu__group {
+.tlui-menu[data-size='small'] > .tlui-menu__group {
 	min-width: 96px;
 }
 
-.tlui-menu[data-size='tiny'] > .tlui-menu__group,
-.tlui-menu__submenu__content[data-size='tiny'] > .tlui-menu__group {
+.tlui-menu[data-size='tiny'] > .tlui-menu__group {
 	min-width: 0px;
 }
+
 /* ------------------ Actions Menu ------------------ */
 
 .tlui-actions-menu {
@@ -1339,6 +1354,12 @@
 	opacity: 0;
 }
 
+@media (any-pointer: coarse) {
+	.tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+}
+
 .tlui-page-menu__item__button .tlui-button__icon {
 	margin-right: 4px;
 }
@@ -1472,26 +1493,21 @@
 
 .tlui-shortcuts-dialog__body {
 	position: relative;
-	columns: 1;
+	columns: 3;
 	column-gap: var(--space-9);
 	pointer-events: all;
 	touch-action: auto;
+
+	/* Terrible fix to allow firefox users to scroll the dialog */
+	overflow-x: auto;
 }
 
-/* TODO: refactor shortcuts dialog to make it work in small inline components */
-@media (min-width: 475px) {
-	.tlui-shortcuts-dialog__body {
-		columns: 2;
-		column-gap: var(--space-9);
-	}
+.tlui-shortcuts-dialog__body__tablet {
+	columns: 2;
 }
 
-/* TODO: refactor shortcuts dialog to make it work in small inline components */
-@media (min-width: 960px) {
-	.tlui-shortcuts-dialog__body {
-		columns: 3;
-		column-gap: var(--space-9);
-	}
+.tlui-shortcuts-dialog__body__mobile {
+	columns: 1;
 }
 
 .tlui-shortcuts-dialog__group {

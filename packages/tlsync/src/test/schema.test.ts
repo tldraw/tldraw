@@ -1,4 +1,4 @@
-import { coreShapes, defaultShapeUtils } from '@tldraw/tldraw'
+import { coreShapes, defaultShapeUtils } from 'tldraw'
 import { schema } from '../lib/schema'
 
 describe('schema', () => {

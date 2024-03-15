@@ -5,7 +5,7 @@ import {
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
-	throttledRaf,
+	throttleToNextFrame,
 } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
@@ -84,6 +84,7 @@ export type StoreSnapshot<R extends UnknownRecord> = {
 /** @public */
 export type StoreValidator<R extends UnknownRecord> = {
 	validate: (record: unknown) => R
+	validateUsingKnownGoodVersion?: (knownGoodVersion: R, record: unknown) => R
 }
 
 /** @public */
@@ -204,7 +205,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				// If we have accumulated history, flush it and update listeners
 				this._flushHistory()
 			},
-			{ scheduleEffect: (cb) => throttledRaf(cb) }
+			{ scheduleEffect: (cb) => throttleToNextFrame(cb) }
 		)
 		this.scopedTypes = {
 			document: new Set(
@@ -389,24 +390,19 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					if (beforeUpdate) record = beforeUpdate(initialValue, record, source)
 
 					// Validate the record
-					record = this.schema.validateRecord(
+					const validated = this.schema.validateRecord(
 						this,
 						record,
 						phaseOverride ?? 'updateRecord',
 						initialValue
 					)
 
+					if (validated === initialValue) continue
+
 					recordAtom.set(devFreeze(record))
 
-					// need to deref atom in case nextValue is not identical but is .equals?
-					const finalValue = recordAtom.__unsafe__getWithoutCapture()
-
-					// If the value has changed, assign it to updates.
-					// todo: is this always going to be true?
-					if (initialValue !== finalValue) {
-						didChange = true
-						updates[record.id] = [initialValue, finalValue]
-					}
+					didChange = true
+					updates[record.id] = [initialValue, recordAtom.__unsafe__getWithoutCapture()]
 				} else {
 					if (beforeCreate) record = beforeCreate(record, source)
 

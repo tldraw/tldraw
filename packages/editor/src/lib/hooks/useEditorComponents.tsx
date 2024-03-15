@@ -1,80 +1,80 @@
-import { createContext, useContext, useMemo } from 'react'
-import { ShapeIndicator, TLShapeIndicatorComponent } from '../components/ShapeIndicator'
+import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
+import { DefaultBackground } from '../components/default-components/DefaultBackground'
+import { DefaultBrush, TLBrushProps } from '../components/default-components/DefaultBrush'
 import {
-	DefaultBackground,
-	TLBackgroundComponent,
-} from '../components/default-components/DefaultBackground'
-import { DefaultBrush, TLBrushComponent } from '../components/default-components/DefaultBrush'
+	DefaultCanvas,
+	TLCanvasComponentProps,
+} from '../components/default-components/DefaultCanvas'
 import {
 	DefaultCollaboratorHint,
-	TLCollaboratorHintComponent,
+	TLCollaboratorHintProps,
 } from '../components/default-components/DefaultCollaboratorHint'
-import { DefaultCursor, TLCursorComponent } from '../components/default-components/DefaultCursor'
+import { DefaultCursor, TLCursorProps } from '../components/default-components/DefaultCursor'
 import {
 	DefaultErrorFallback,
 	TLErrorFallbackComponent,
 } from '../components/default-components/DefaultErrorFallback'
-import { DefaultGrid, TLGridComponent } from '../components/default-components/DefaultGrid'
-import { DefaultHandle, TLHandleComponent } from '../components/default-components/DefaultHandle'
-import { DefaultHandles, TLHandlesComponent } from '../components/default-components/DefaultHandles'
+import { DefaultGrid, TLGridProps } from '../components/default-components/DefaultGrid'
+import { DefaultHandle, TLHandleProps } from '../components/default-components/DefaultHandle'
+import { DefaultHandles, TLHandlesProps } from '../components/default-components/DefaultHandles'
 import {
 	DefaultHoveredShapeIndicator,
-	TLHoveredShapeIndicatorComponent,
+	TLHoveredShapeIndicatorProps,
 } from '../components/default-components/DefaultHoveredShapeIndicator'
-import { TLInFrontOfTheCanvas } from '../components/default-components/DefaultInFrontOfTheCanvas'
-import { TLLoadingScreenComponent } from '../components/default-components/DefaultLoadingScreen'
-import { TLOnTheCanvas } from '../components/default-components/DefaultOnTheCanvas'
-import {
-	DefaultScribble,
-	TLScribbleComponent,
-} from '../components/default-components/DefaultScribble'
+import { DefaultScribble, TLScribbleProps } from '../components/default-components/DefaultScribble'
 import {
 	DefaultSelectionBackground,
-	TLSelectionBackgroundComponent,
+	TLSelectionBackgroundProps,
 } from '../components/default-components/DefaultSelectionBackground'
 import {
 	DefaultSelectionForeground,
-	TLSelectionForegroundComponent,
+	TLSelectionForegroundProps,
 } from '../components/default-components/DefaultSelectionForeground'
 import {
 	DefaultShapeErrorFallback,
 	TLShapeErrorFallbackComponent,
 } from '../components/default-components/DefaultShapeErrorFallback'
 import {
+	DefaultShapeIndicator,
+	TLShapeIndicatorProps,
+} from '../components/default-components/DefaultShapeIndicator'
+import {
 	DefaultShapeIndicatorErrorFallback,
 	TLShapeIndicatorErrorFallbackComponent,
 } from '../components/default-components/DefaultShapeIndicatorErrorFallback'
 import {
 	DefaultSnapIndicator,
-	TLSnapIndicatorComponent,
+	TLSnapIndicatorProps,
 } from '../components/default-components/DefaultSnapIndictor'
-import { DefaultSpinner, TLSpinnerComponent } from '../components/default-components/DefaultSpinner'
-import { DefaultSvgDefs, TLSvgDefsComponent } from '../components/default-components/DefaultSvgDefs'
+import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
+import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
 import { useShallowObjectIdentity } from './useIdentity'
 
 export interface BaseEditorComponents {
-	Background: TLBackgroundComponent
-	SvgDefs: TLSvgDefsComponent
-	Brush: TLBrushComponent
-	ZoomBrush: TLBrushComponent
-	Cursor: TLCursorComponent
-	CollaboratorBrush: TLBrushComponent
-	CollaboratorCursor: TLCursorComponent
-	CollaboratorHint: TLCollaboratorHintComponent
-	CollaboratorShapeIndicator: TLShapeIndicatorComponent
-	Grid: TLGridComponent
-	Scribble: TLScribbleComponent
-	CollaboratorScribble: TLScribbleComponent
-	SnapIndicator: TLSnapIndicatorComponent
-	Handles: TLHandlesComponent
-	Handle: TLHandleComponent
-	Spinner: TLSpinnerComponent
-	SelectionForeground: TLSelectionForegroundComponent
-	SelectionBackground: TLSelectionBackgroundComponent
-	HoveredShapeIndicator: TLHoveredShapeIndicatorComponent
-	OnTheCanvas: TLOnTheCanvas
-	InFrontOfTheCanvas: TLInFrontOfTheCanvas
-	LoadingScreen: TLLoadingScreenComponent
+	Background: ComponentType
+	SvgDefs: ComponentType
+	Brush: ComponentType<TLBrushProps>
+	ZoomBrush: ComponentType<TLBrushProps>
+	ShapeIndicator: ComponentType<TLShapeIndicatorProps>
+	Cursor: ComponentType<TLCursorProps>
+	Canvas: ComponentType<TLCanvasComponentProps>
+	CollaboratorBrush: ComponentType<TLBrushProps>
+	CollaboratorCursor: ComponentType<TLCursorProps>
+	CollaboratorHint: ComponentType<TLCollaboratorHintProps>
+	CollaboratorShapeIndicator: ComponentType<TLShapeIndicatorProps>
+	Grid: ComponentType<TLGridProps>
+	Scribble: ComponentType<TLScribbleProps>
+	CollaboratorScribble: ComponentType<TLScribbleProps>
+	SnapIndicator: ComponentType<TLSnapIndicatorProps>
+	Handles: ComponentType<TLHandlesProps>
+	Handle: ComponentType<TLHandleProps>
+	Spinner: ComponentType
+	SelectionForeground: ComponentType<TLSelectionForegroundProps>
+	SelectionBackground: ComponentType<TLSelectionBackgroundProps>
+	HoveredShapeIndicator: ComponentType<TLHoveredShapeIndicatorProps>
+	OnTheCanvas: ComponentType
+	InFrontOfTheCanvas: ComponentType
+	LoadingScreen: ComponentType
 }
 
 // These will always have defaults
@@ -95,7 +95,7 @@ const EditorComponentsContext = createContext({} as TLEditorComponents & ErrorCo
 
 type ComponentsContextProviderProps = {
 	overrides?: TLEditorComponents
-	children: any
+	children: ReactNode
 }
 
 export function EditorComponentsProvider({
@@ -116,7 +116,7 @@ export function EditorComponentsProvider({
 					Cursor: DefaultCursor,
 					CollaboratorCursor: DefaultCursor,
 					CollaboratorHint: DefaultCollaboratorHint,
-					CollaboratorShapeIndicator: ShapeIndicator,
+					CollaboratorShapeIndicator: DefaultShapeIndicator,
 					Grid: DefaultGrid,
 					Scribble: DefaultScribble,
 					SnapIndicator: DefaultSnapIndicator,
@@ -130,8 +130,10 @@ export function EditorComponentsProvider({
 					SelectionBackground: DefaultSelectionBackground,
 					SelectionForeground: DefaultSelectionForeground,
 					HoveredShapeIndicator: DefaultHoveredShapeIndicator,
+					ShapeIndicator: DefaultShapeIndicator,
 					OnTheCanvas: null,
 					InFrontOfTheCanvas: null,
+					Canvas: DefaultCanvas,
 					..._overrides,
 				}),
 				[_overrides]

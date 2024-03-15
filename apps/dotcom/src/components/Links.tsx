@@ -1,4 +1,4 @@
-import { TldrawUiMenuGroup, TldrawUiMenuItem } from '@tldraw/tldraw'
+import { TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
 import { openUrl } from '../utils/url'
 
 export function Links() {

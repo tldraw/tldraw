@@ -1,7 +1,7 @@
 import {
-	Canvas,
 	Editor,
 	ErrorScreen,
+	Expand,
 	LoadingScreen,
 	StoreSnapshot,
 	TLEditorComponents,
@@ -13,6 +13,7 @@ import {
 	TldrawEditorBaseProps,
 	assert,
 	useEditor,
+	useEditorComponents,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
@@ -32,14 +33,16 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
+import { useToasts } from './ui/context/toasts'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
+import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /**@public */
-export type TLComponents = TLEditorComponents & TLUiComponents
+export type TLComponents = Expand<TLEditorComponents & TLUiComponents>
 
 /** @public */
-export type TldrawProps =
+export type TldrawProps = Expand<
 	// combine components from base editor and ui
 	(Omit<TldrawUiProps, 'components'> &
 		Omit<TldrawEditorBaseProps, 'components'> & {
@@ -62,6 +65,7 @@ export type TldrawProps =
 					snapshot?: StoreSnapshot<TLRecord>
 			  }
 		)
+>
 
 /** @public */
 export function Tldraw(props: TldrawProps) {
@@ -125,7 +129,7 @@ export function Tldraw(props: TldrawProps) {
 			tools={toolsWithDefaults}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>
-				<InsideOfEditorContext
+				<InsideOfEditorAndUiContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
@@ -147,8 +151,8 @@ const defaultAcceptedImageMimeTypes = Object.freeze([
 
 const defaultAcceptedVideoMimeTypes = Object.freeze(['video/mp4', 'video/quicktime'])
 
-// We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor.
-function InsideOfEditorContext({
+// We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
+function InsideOfEditorAndUiContext({
 	maxImageDimension = 1000,
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
 	acceptedImageMimeTypes = defaultAcceptedImageMimeTypes,
@@ -156,6 +160,8 @@ function InsideOfEditorContext({
 	onMount,
 }: Partial<TLExternalContentProps & { onMount: TLOnMountHandler }>) {
 	const editor = useEditor()
+	const toasts = useToasts()
+	const msg = useTranslation()
 
 	const onMountEvent = useEvent((editor: Editor) => {
 		const unsubs: (void | (() => void) | undefined)[] = []
@@ -163,12 +169,19 @@ function InsideOfEditorContext({
 		unsubs.push(...registerDefaultSideEffects(editor))
 
 		// for content handling, first we register the default handlers...
-		registerDefaultExternalContentHandlers(editor, {
-			maxImageDimension,
-			maxAssetSize,
-			acceptedImageMimeTypes,
-			acceptedVideoMimeTypes,
-		})
+		registerDefaultExternalContentHandlers(
+			editor,
+			{
+				maxImageDimension,
+				maxAssetSize,
+				acceptedImageMimeTypes,
+				acceptedVideoMimeTypes,
+			},
+			{
+				toasts,
+				msg,
+			}
+		)
 
 		// ...then we run the onMount prop, which may override the above
 		unsubs.push(onMount?.(editor))
@@ -182,10 +195,19 @@ function InsideOfEditorContext({
 		if (editor) return onMountEvent?.(editor)
 	}, [editor, onMountEvent])
 
+	const { Canvas } = useEditorComponents()
 	const { ContextMenu } = useTldrawUiComponents()
-	if (!ContextMenu) return <Canvas />
 
-	return <ContextMenu canvas={<Canvas />} />
+	if (ContextMenu) {
+		// should wrap canvas
+		return <ContextMenu />
+	}
+
+	if (Canvas) {
+		return <Canvas />
+	}
+
+	return null
 }
 
 // duped from tldraw editor

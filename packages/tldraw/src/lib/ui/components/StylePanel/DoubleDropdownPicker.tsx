@@ -27,7 +27,7 @@ interface DoubleDropdownPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T extends string>({
+function _DoubleDropdownPicker<T extends string>({
 	label,
 	uiTypeA,
 	uiTypeB,
@@ -82,9 +82,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
-							{itemsA.map((item) => {
+							{itemsA.map((item, i) => {
 								return (
-									<TldrawUiDropdownMenuItem data-testid={`style.${uiTypeA}.${item.value}`}>
+									<TldrawUiDropdownMenuItem key={i} data-testid={`style.${uiTypeA}.${item.value}`}>
 										<TldrawUiButton
 											type="icon"
 											key={item.value}
@@ -137,4 +137,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 			</div>
 		</div>
 	)
-})
+}
+
+// need to memo like this to get generics
+export const DoubleDropdownPicker = React.memo(
+	_DoubleDropdownPicker
+) as typeof _DoubleDropdownPicker

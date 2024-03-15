@@ -1,22 +1,22 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { preventDefault, useContainer, useEditor } from '@tldraw/editor'
-import { memo, useCallback } from 'react'
+import { preventDefault, useContainer, useEditor, useEditorComponents } from '@tldraw/editor'
+import { ReactNode, memo, useCallback } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 
 /** @public */
 export interface TLUiContextMenuProps {
-	canvas: any
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
 export const DefaultContextMenu = memo(function DefaultContextMenu({
-	canvas,
 	children,
 }: TLUiContextMenuProps) {
 	const editor = useEditor()
+
+	const { Canvas } = useEditorComponents()
 
 	const cb = useCallback(
 		(isOpen: boolean) => {
@@ -68,7 +68,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	return (
 		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr">
-				{canvas}
+				{Canvas ? <Canvas /> : null}
 			</_ContextMenu.Trigger>
 			{isOpen && (
 				<_ContextMenu.Portal container={container}>

@@ -5,14 +5,13 @@ import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
-	DeleteGroup,
-	DuplicateMenuItem,
+	ConvertToBookmarkMenuItem,
+	ConvertToEmbedMenuItem,
 	EditLinkMenuItem,
-	EmbedsGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	RemoveFrameMenuItem,
-	SetSelectionGroup,
+	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDarkModeItem,
 	ToggleDebugModeItem,
@@ -23,6 +22,8 @@ import {
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
+	ToggleTransparentBgMenuItem,
+	ToggleWrapModeItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
 	ZoomTo100MenuItem,
@@ -39,13 +40,33 @@ export function DefaultMainMenuContent() {
 		<>
 			<EditSubmenu />
 			<ViewSubmenu />
+			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 		</>
 	)
 }
 
-function EditSubmenu() {
+/** @public */
+export function ExportFileContentSubMenu() {
+	const actions = useActions()
+
+	return (
+		<TldrawUiMenuSubmenu id="export-all-as" label="context-menu.export-all-as" size="small">
+			<TldrawUiMenuGroup id="export-all-as-group">
+				<TldrawUiMenuItem {...actions['export-all-as-svg']} />
+				<TldrawUiMenuItem {...actions['export-all-as-png']} />
+				<TldrawUiMenuItem {...actions['export-all-as-json']} />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="export-all-as-bg">
+				<ToggleTransparentBgMenuItem />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/** @public */
+export function EditSubmenu() {
 	const editor = useEditor()
 
 	const selectToolActive = useValue(
@@ -54,38 +75,48 @@ function EditSubmenu() {
 		[editor]
 	)
 
-	if (!selectToolActive) return null
-
 	return (
-		<TldrawUiMenuSubmenu id="edit" label="menu.edit">
+		<TldrawUiMenuSubmenu id="edit" label="menu.edit" disabled={!selectToolActive}>
 			<UndoRedoGroup />
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
-			<SetSelectionGroup />
-			<SelectionMenuGroup />
-			<EmbedsGroup />
-			<DeleteGroup />
+			<MiscMenuGroup />
+			<LockGroup />
+			<TldrawUiMenuGroup id="select-all">
+				<SelectAllMenuItem />
+			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
 }
 
-function SelectionMenuGroup() {
+/** @public */
+export function MiscMenuGroup() {
 	return (
-		<TldrawUiMenuGroup id="selection">
-			<ToggleAutoSizeMenuItem />
-			<EditLinkMenuItem />
-			<DuplicateMenuItem />
+		<TldrawUiMenuGroup id="misc">
 			<GroupMenuItem />
 			<UngroupMenuItem />
+			<EditLinkMenuItem />
+			<ToggleAutoSizeMenuItem />
 			<RemoveFrameMenuItem />
 			<FitFrameToContentMenuItem />
+			<ConvertToEmbedMenuItem />
+			<ConvertToBookmarkMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public */
+export function LockGroup() {
+	return (
+		<TldrawUiMenuGroup id="lock">
 			<ToggleLockMenuItem />
 			<UnlockAllMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
 
-function UndoRedoGroup() {
+/** @public */
+export function UndoRedoGroup() {
 	const actions = useActions()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
@@ -97,7 +128,8 @@ function UndoRedoGroup() {
 	)
 }
 
-function ViewSubmenu() {
+/** @public */
+export function ViewSubmenu() {
 	const actions = useActions()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
@@ -112,7 +144,8 @@ function ViewSubmenu() {
 	)
 }
 
-function ExtrasGroup() {
+/** @public */
+export function ExtrasGroup() {
 	const actions = useActions()
 	return (
 		<TldrawUiMenuGroup id="extras">
@@ -124,7 +157,8 @@ function ExtrasGroup() {
 
 /* ------------------- Preferences ------------------ */
 
-function PreferencesGroup() {
+/** @public */
+export function PreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
@@ -132,6 +166,7 @@ function PreferencesGroup() {
 					<ToggleSnapModeItem />
 					<ToggleToolLockItem />
 					<ToggleGridItem />
+					<ToggleWrapModeItem />
 					<ToggleDarkModeItem />
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />

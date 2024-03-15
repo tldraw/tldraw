@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`the_routes 1`] = `
+[
+  {
+    "reactRouterPattern": "/",
+    "vercelRouterPattern": "^//?$",
+  },
+  {
+    "reactRouterPattern": "/new",
+    "vercelRouterPattern": "^/new/?$",
+  },
+  {
+    "reactRouterPattern": "/r",
+    "vercelRouterPattern": "^/r/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:boardId/history",
+    "vercelRouterPattern": "^/r/[^/]*/history/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:boardId/history/:timestamp",
+    "vercelRouterPattern": "^/r/[^/]*/history/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:roomId",
+    "vercelRouterPattern": "^/r/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/s/:roomId",
+    "vercelRouterPattern": "^/s/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/v/:roomId",
+    "vercelRouterPattern": "^/v/[^/]*/?$",
+  },
+]
+`;

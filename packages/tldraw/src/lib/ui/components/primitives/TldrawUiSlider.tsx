@@ -10,7 +10,7 @@ export interface TLUiSliderProps {
 	value: number | null
 	label: string
 	title: string
-	onValueChange: (value: number, emphemeral: boolean) => void
+	onValueChange: (value: number, squashing: boolean) => void
 	'data-testid'?: string
 }
 

@@ -1,10 +1,11 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
-import { ComputedCache, RecordType } from '@tldraw/store'
+import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
+	StylePropValue,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
@@ -25,6 +26,7 @@ import {
 	TLPage,
 	TLPageId,
 	TLParentId,
+	TLRecord,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -53,6 +55,7 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
+	objectMapValues,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -736,7 +739,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
 
-	styleProps: { [key: string]: Map<StyleProp<unknown>, string> }
+	styleProps: { [key: string]: Map<StyleProp<any>, string> }
 
 	/**
 	 * Get a shape util from a shape itself.
@@ -1212,7 +1215,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (partial.isChangingStyle === true) {
 				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
 				this._isChangingStyleTimeout = setTimeout(() => {
-					this.updateInstanceState({ isChangingStyle: false })
+					this.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
 				}, 2000)
 			}
 		}
@@ -1658,6 +1661,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		return 0
 	}
+
 	/**
 	 * The bounds of the selection bounding box in the current page space.
 	 *
@@ -1696,6 +1700,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
 		return boxFromRotatedVertices
+	}
+
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed getSelectionRotatedScreenBounds(): Box | undefined {
+		const bounds = this.getSelectionRotatedPageBounds()
+		if (!bounds) return undefined
+		const { x, y } = this.pageToScreen(bounds.point)
+		const zoom = this.getZoomLevel()
+		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
 	// Focus Group
@@ -2845,7 +2863,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	pageToScreen(point: VecLike) {
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+		const screenBounds = this.getViewportScreenBounds()
 		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 
 		return {
@@ -3812,33 +3830,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T {
 		return this._getShapeGeometryCache().get(typeof shape === 'string' ? shape : shape.id)! as T
-	}
-
-	/** @internal */
-	@computed private _getShapeOutlineSegmentsCache(): ComputedCache<Vec[][], TLShape> {
-		return this.store.createComputedCache('outline-segments', (shape) => {
-			return this.getShapeUtil(shape).getOutlineSegments(shape)
-		})
-	}
-
-	/**
-	 * Get the local outline segments of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getShapeOutlineSegments(myShape)
-	 * editor.getShapeOutlineSegments(myShapeId)
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) to get the outline segments for.
-	 *
-	 * @public
-	 */
-	getShapeOutlineSegments<T extends TLShape>(shape: T | T['id']): Vec[][] {
-		return (
-			this._getShapeOutlineSegmentsCache().get(typeof shape === 'string' ? shape : shape.id) ??
-			EMPTY_ARRAY
-		)
 	}
 
 	/** @internal */
@@ -6723,23 +6714,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let remaining = duration
 		let t: number
 
-		type FromTo = { prop: string; from: number; to: number }
-		type ShapeAnimation = { partial: TLShapePartial; values: FromTo[] }
+		type ShapeAnimation = {
+			partial: TLShapePartial
+			values: { prop: string; from: number; to: number }[]
+		}
 
 		const animations: ShapeAnimation[] = []
 
-		partials.forEach((partial) => {
-			if (!partial) return
+		let partial: TLShapePartial | null | undefined, result: ShapeAnimation
+		for (let i = 0, n = partials.length; i < n; i++) {
+			partial = partials[i]
+			if (!partial) continue
 
-			const result: ShapeAnimation = {
+			result = {
 				partial,
 				values: [],
 			}
 
 			const shape = this.getShape(partial.id)!
+			if (!shape) continue
 
-			if (!shape) return
-
+			// We only support animations for certain props
 			for (const key of ['x', 'y', 'rotation'] as const) {
 				if (partial[key] !== undefined && shape[key] !== partial[key]) {
 					result.values.push({ prop: key, from: shape[key], to: partial[key] as number })
@@ -6748,7 +6743,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			animations.push(result)
 			this.animatingShapes.set(shape.id, animationId)
-		})
+		}
 
 		let value: ShapeAnimation
 
@@ -6773,28 +6768,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const { animatingShapes } = this
 
-			try {
-				const tPartials: TLShapePartial[] = []
+			const updates: TLShapePartial[] = []
 
-				for (let i = 0; i < animations.length; i++) {
-					value = animations[i]
+			let animationIdForShape: string | undefined
+			for (let i = 0, n = animations.length; i < n; i++) {
+				value = animations[i]
+				// Is the animation for this shape still active?
+				animationIdForShape = animatingShapes.get(value.partial.id)
+				if (animationIdForShape !== animationId) continue
 
-					if (animatingShapes.get(value.partial.id) === animationId) {
-						tPartials.push({
-							id: value.partial.id,
-							type: value.partial.type,
-							...value.values.reduce((acc, { prop, from, to }) => {
-								acc[prop] = from + (to - from) * t
-								return acc
-							}, {} as any),
-						})
-					}
-				}
-
-				this._updateShapes(tPartials, { squashing: true })
-			} catch (e) {
-				// noop
+				// Create the update
+				updates.push({
+					id: value.partial.id,
+					type: value.partial.type,
+					...value.values.reduce((acc, { prop, from, to }) => {
+						acc[prop] = from + (to - from) * t
+						return acc
+					}, {} as any),
+				})
 			}
+
+			this._updateShapes(updates, { squashing: true })
 		}
 
 		this.addListener('tick', handleTick)
@@ -6968,19 +6962,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partials: (TLShapePartial<T> | null | undefined)[],
 		historyOptions?: TLCommandHistoryOptions
 	) {
-		let compactedPartials = compact(partials)
-		if (this.animatingShapes.size > 0) {
-			compactedPartials.forEach((p) => this.animatingShapes.delete(p.id))
+		const compactedPartials: TLShapePartial<T>[] = Array(partials.length)
+
+		for (let i = 0, n = partials.length; i < n; i++) {
+			const partial = partials[i]
+			if (!partial) continue
+			// Get the current shape referenced by the partial
+			const shape = this.getShape(partial.id)
+			if (!shape) continue
+
+			// If the shape is locked and we're not setting isLocked to true, continue
+			if (this.isShapeOrAncestorLocked(shape) && !Object.hasOwn(partial, 'isLocked')) continue
+
+			// Remove any animating shapes from the list of partials
+			this.animatingShapes.delete(partial.id)
+
+			compactedPartials.push(partial)
 		}
-
-		compactedPartials = compactedPartials.filter((p) => {
-			const shape = this.getShape(p.id)
-			if (!shape) return false
-
-			// Only allow changes to unlocked shapes or changes to the isLocked property (otherwise we cannot unlock a shape)
-			if (this.isShapeOrAncestorLocked(shape) && !Object.hasOwn(p, 'isLocked')) return false
-			return true
-		})
 
 		this._updateShapes(compactedPartials, historyOptions)
 		return this
@@ -6995,45 +6993,49 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) => {
 			if (this.getInstanceState().isReadonly) return null
 
-			const partials = compact(_partials)
+			const snapshots: Record<string, TLShape> = {}
+			const updates: Record<string, TLShape> = {}
 
-			const snapshots = Object.fromEntries(
-				compact(partials.map(({ id }) => this.getShape(id))).map((shape) => {
-					return [shape.id, shape]
-				})
-			)
+			let shape: TLShape | undefined
+			let updated: TLShape
 
-			if (partials.length <= 0) return null
+			for (let i = 0, n = _partials.length; i < n; i++) {
+				const partial = _partials[i]
+				// Skip nullish partials (sometimes created by map fns returning undefined)
+				if (!partial) continue
 
-			const updated = compact(
-				partials.map((partial) => {
-					const prev = snapshots[partial.id]
-					if (!prev) return null
-					return applyPartialToShape(prev, partial)
-				})
-			)
+				// Get the current shape referenced by the partial
+				// If there is no current shape, we'll skip this update
+				shape = this.getShape(partial.id)
+				if (!shape) continue
 
-			const updates = Object.fromEntries(updated.map((shape) => [shape.id, shape]))
+				// Get the updated version of the shape
+				// If the update had no effect, we'll skip this update
+				updated = applyPartialToShape(shape, partial)
+				if (updated === shape) continue
+
+				snapshots[shape.id] = shape
+				updates[shape.id] = updated
+			}
 
 			return { data: { snapshots, updates }, ...historyOptions }
 		},
 		{
 			do: ({ updates }) => {
-				// Iterate through array; if any shape has an onUpdate handler, call it
+				// Iterate through array; if any shape has an onBeforeUpdate handler, call it
 				// and, if the handler returns a new shape, replace the old shape with
 				// the new one. This is used for example when repositioning a text shape
 				// based on its new text content.
-				const result = Object.values(updates)
-				for (let i = 0; i < result.length; i++) {
-					const shape = result[i]
-					const current = this.store.get(shape.id)
-					if (!current) continue
-					const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
-					if (next) {
-						result[i] = next
-					}
-				}
-				this.store.put(result)
+				this.store.put(
+					objectMapValues(updates).map((shape) => {
+						const current = this.store.get(shape.id)
+						if (current) {
+							const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
+							if (next) return next
+						}
+						return shape
+					})
+				)
 			},
 			undo: ({ snapshots }) => {
 				this.store.put(Object.values(snapshots))
@@ -7182,21 +7184,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	private _selectionSharedStyles = computed<ReadonlySharedStyleMap>(
-		'_selectionSharedStyles',
-		() => {
-			const selectedShapes = this.getSelectedShapes()
+	@computed
+	private _getSelectionSharedStyles(): ReadonlySharedStyleMap {
+		const selectedShapes = this.getSelectedShapes()
 
-			const sharedStyles = new SharedStyleMap()
-			for (const selectedShape of selectedShapes) {
-				this._extractSharedStyles(selectedShape, sharedStyles)
-			}
-
-			return sharedStyles
+		const sharedStyles = new SharedStyleMap()
+		for (const selectedShape of selectedShapes) {
+			this._extractSharedStyles(selectedShape, sharedStyles)
 		}
-	)
 
-	/** @internal */
+		return sharedStyles
+	}
+
+	/**
+	 * Get the style for the next shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const color = editor.getStyleForNextShape(DefaultColorStyle)
+	 * ```
+	 *
+	 * @param style - The style to get.
+	 *
+	 * @public */
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
 		const value = this.getInstanceState().stylesForNextShape[style.id]
 		return value === undefined ? style.defaultValue : (value as T)
@@ -7227,7 +7237,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If we're in selecting and if we have a selection, return the shared styles from the
 		// current selection
 		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
-			return this._selectionSharedStyles.get()
+			return this._getSelectionSharedStyles()
 		}
 
 		// If the current tool is associated with a shape, return the styles for that shape.
@@ -7400,9 +7410,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setStyleForSelectedShapes<T>(
-		style: StyleProp<T>,
-		value: T,
+	setStyleForSelectedShapes<S extends StyleProp<any>>(
+		style: S,
+		value: StylePropValue<S>,
 		historyOptions?: TLCommandHistoryOptions
 	): this {
 		const selectedShapes = this.getSelectedShapes()
@@ -7737,8 +7747,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
 
 		const currentPageId = this.getCurrentPageId()
-		const { assets, shapes, rootShapeIds } = content
+		const { rootShapeIds } = content
 
+		// We need to collect the migrated shapes and assets
+		const assets: TLAsset[] = []
+		const shapes: TLShape[] = []
+
+		// Let's treat the content as a store, and then migrate that store.
+		const store: StoreSnapshot<TLRecord> = {
+			store: {
+				...Object.fromEntries(content.assets.map((asset) => [asset.id, asset] as const)),
+				...Object.fromEntries(content.shapes.map((asset) => [asset.id, asset] as const)),
+			},
+			schema: content.schema,
+		}
+		const result = this.store.schema.migrateStoreSnapshot(store)
+		if (result.type === 'error') {
+			throw Error('Could not put content: could not migrate content')
+		}
+		for (const record of Object.values(result.value)) {
+			switch (record.typeName) {
+				case 'asset': {
+					assets.push(record)
+					break
+				}
+				case 'shape': {
+					shapes.push(record)
+					break
+				}
+			}
+		}
+
+		// Ok, we've got our migrated shapes and assets, now we can continue!
 		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
 
 		// By default, the paste parent will be the current page.
@@ -7876,80 +7916,57 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		// Migrate the new shapes
+		// These are all the assets we need to create
+		const assetsToCreate: TLAsset[] = []
 
-		let assetsToCreate: TLAsset[] = []
+		// These assets have base64 data that may need to be hosted
+		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
 
-		if (assets) {
-			for (let i = 0; i < assets.length; i++) {
-				const asset = assets[i]
-				const result = this.store.schema.migratePersistedRecord(asset, content.schema)
-				if (result.type === 'success') {
-					assets[i] = result.value as TLAsset
-				} else {
-					throw Error(
-						`Could not put content:\ncould not migrate content for asset:\n${asset.type}\nreason:${result.reason}`
-					)
+		for (const asset of assets) {
+			if (this.store.has(asset.id)) {
+				// We already have this asset
+				continue
+			}
+
+			if (
+				(asset.type === 'image' || asset.type === 'video') &&
+				asset.props.src?.startsWith('data:image')
+			) {
+				// it's src is a base64 image or video; we need to create a new asset without the src,
+				// then create a new asset from the original src. So we save a copy of the original asset,
+				// then delete the src from the original asset.
+				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
+				asset.props.src = null
+			}
+
+			// Add the asset to the list of assets to create
+			assetsToCreate.push(asset)
+		}
+
+		// Start loading the new assets, order does not matter
+		Promise.allSettled(
+			(assetsToUpdate as (TLImageAsset | TLVideoAsset)[]).map(async (asset) => {
+				// Turn the data url into a file
+				const file = await dataUrlToFile(
+					asset.props.src!,
+					asset.props.name,
+					asset.props.mimeType ?? 'image/png'
+				)
+
+				// Get a new asset for the file
+				const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
+
+				if (!newAsset) {
+					// If we don't have a new asset, delete the old asset.
+					// The shapes that reference this asset should break.
+					this.deleteAssets([asset.id])
+					return
 				}
-			}
 
-			const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
-
-			assetsToCreate = assets
-				.filter((asset) => !this.store.has(asset.id))
-				.map((asset) => {
-					if (asset.type === 'image' || asset.type === 'video') {
-						if (asset.props.src && asset.props.src?.startsWith('data:image')) {
-							assetsToUpdate.push(structuredClone(asset))
-							asset.props.src = null
-						} else {
-							assetsToUpdate.push(structuredClone(asset))
-						}
-					}
-
-					return asset
-				})
-
-			Promise.allSettled(
-				assetsToUpdate.map(async (asset) => {
-					const file = await dataUrlToFile(
-						asset.props.src!,
-						asset.props.name,
-						asset.props.mimeType ?? 'image/png'
-					)
-
-					const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
-
-					if (!newAsset) {
-						return null
-					}
-
-					return [asset, newAsset] as const
-				})
-			).then((assets) => {
-				this.updateAssets(
-					compact(
-						assets.map((result) =>
-							result.status === 'fulfilled' && result.value
-								? { ...result.value[1], id: result.value[0].id }
-								: undefined
-						)
-					)
-				)
+				// Save the new asset under the old asset's id
+				this.updateAssets([{ ...newAsset, id: asset.id }])
 			})
-		}
-
-		for (let i = 0; i < newShapes.length; i++) {
-			const shape = newShapes[i]
-			const result = this.store.schema.migratePersistedRecord(shape, content.schema)
-			if (result.type === 'success') {
-				newShapes[i] = result.value as TLShape
-			} else {
-				throw Error(
-					`Could not put content:\ncould not migrate content for shape:\n${shape.type}\nreason:${result.reason}`
-				)
-			}
-		}
+		)
 
 		this.batch(() => {
 			// Create any assets that need to be created
@@ -8954,44 +8971,34 @@ function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
 	if (!partial) return prev
 	let next = null as null | T
-	for (const [k, v] of Object.entries(partial)) {
+	const entries = Object.entries(partial)
+	for (let i = 0, n = entries.length; i < n; i++) {
+		const [k, v] = entries[i]
 		if (v === undefined) continue
-		switch (k) {
-			case 'id':
-			case 'type':
-				continue
-			default: {
-				if (v !== (prev as any)[k]) {
-					if (!next) {
-						next = { ...prev }
-					}
 
-					if (k === 'props') {
-						// props property
-						const nextProps = { ...prev.props } as JsonObject
-						for (const [propKey, propValue] of Object.entries(v as object)) {
-							if (propValue !== undefined) {
-								nextProps[propKey] = propValue
-							}
-						}
-						next!.props = nextProps
-					} else if (k === 'meta') {
-						// meta property
-						const nextMeta = { ...prev.meta } as JsonObject
-						for (const [metaKey, metaValue] of Object.entries(v as object)) {
-							if (metaValue !== undefined) {
-								nextMeta[metaKey] = metaValue
-							}
-						}
-						next!.meta = nextMeta
-					} else {
-						// base property
-						;(next as any)[k] = v
-					}
+		// Is the key a special key? We don't update those
+		if (k === 'id' || k === 'type' || k === 'typeName') continue
+
+		// Is the value the same as it was before?
+		if (v === (prev as any)[k]) continue
+
+		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
+		if (!next) next = { ...prev }
+
+		// for props / meta properties, we support updates with partials of this object
+		if (k === 'props' || k === 'meta') {
+			next[k] = { ...prev[k] } as JsonObject
+			for (const [nextKey, nextValue] of Object.entries(v as object)) {
+				if (nextValue !== undefined) {
+					;(next[k] as JsonObject)[nextKey] = nextValue
 				}
 			}
+			continue
 		}
-	}
 
-	return next ?? prev
+		// base property
+		;(next as any)[k] = v
+	}
+	if (!next) return prev
+	return next
 }

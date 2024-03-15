@@ -90,6 +90,8 @@
 	/* own properties */
 	position: relative;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	overflow: clip;
 }
 
@@ -215,6 +217,8 @@ input,
 .tl-canvas {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	color: var(--color-text);
 	z-index: var(--layer-canvas);
 	cursor: var(--tl-cursor);
@@ -230,7 +234,12 @@ input,
 }
 
 .tl-overlays {
-	position: relative;
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	contain: strict;
+	pointer-events: none;
 	z-index: var(--layer-overlays);
 }
 
@@ -250,26 +259,14 @@ input,
 	pointer-events: none;
 }
 
-.tl-positioned {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	transform-origin: top left;
-}
-
-.tl-fixed-layer {
-	position: absolute;
-	inset: 0px;
-	contain: strict;
-	pointer-events: none;
-}
-
 /* ------------------- Background ------------------- */
 
 .tl-background {
 	position: absolute;
 	background-color: var(--color-background);
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: var(--layer-background);
 }
 
@@ -278,6 +275,8 @@ input,
 .tl-grid {
 	position: absolute;
 	inset: 0px;
+	width: 100%;
+	height: 100%;
 	touch-action: none;
 	pointer-events: none;
 	z-index: var(--layer-grid);
@@ -340,6 +339,8 @@ input,
 .tl-svg-container {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	pointer-events: none;
 	stroke-linecap: round;
 	stroke-linejoin: round;
@@ -350,6 +351,8 @@ input,
 .tl-html-container {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	pointer-events: none;
 	stroke-linecap: round;
 	stroke-linejoin: round;
@@ -543,6 +546,7 @@ input,
 	height: 100%;
 }
 
+.tl-video-container,
 .tl-image-container,
 .tl-embed-container {
 	width: 100%;
@@ -781,6 +785,8 @@ input,
 .tl-text-content {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	min-width: 1px;
 	min-height: 1px;
 	overflow: visible;
@@ -982,6 +988,8 @@ input,
 	line-height: inherit;
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: 10;
 }
 
@@ -1024,6 +1032,8 @@ input,
 .tl-text-label__inner > .tl-text-input {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	padding: 16px;
 	z-index: 4;
 }
@@ -1199,6 +1209,8 @@ input,
 	position: absolute;
 	z-index: 1;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	background-color: var(--color-background);
 	opacity: 0.28;
 }
@@ -1289,13 +1301,13 @@ input,
 
 .tl-frame-name-input {
 	position: absolute;
-	top: 0px;
-	left: 0px;
 	border: none;
 	background: none;
 	outline: none;
 	padding: var(--space-3) var(--space-3);
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	font-size: inherit;
 	font-family: inherit;
 	font-weight: inherit;
@@ -1371,6 +1383,8 @@ input,
 .tl-error-boundary__overlay {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: 500;
 	background-color: var(--color-overlay);
 }
@@ -1385,6 +1399,8 @@ input,
 	pointer-events: none;
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: -1;
 }
 /* some browsers seem to have some weird interactions between stacking contexts
@@ -1395,6 +1411,8 @@ it from receiving any pointer events or affecting the cursor. */
 	display: block;
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	z-index: 600;
 	pointer-events: all;
 }

@@ -25,10 +25,7 @@ export interface TLUiButtonPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-/** @public */
-export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends string>(
-	props: TLUiButtonPickerProps<T>
-) {
+function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>) {
 	const {
 		uiType,
 		items,
@@ -81,6 +78,8 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 
 		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
+			if (value.type === 'shared' && value.value === id) return
+
 			onValueChange(style, id as T, false)
 		}
 
@@ -125,4 +124,6 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			))}
 		</div>
 	)
-})
+}
+/** @public */
+export const TldrawUiButtonPicker = memo(_TldrawUiButtonPicker) as typeof _TldrawUiButtonPicker

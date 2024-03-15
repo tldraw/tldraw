@@ -1,19 +1,27 @@
 import { VecModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { ComponentType, memo, useRef } from 'react'
+import { memo, useRef } from 'react'
 import { useTransform } from '../../hooks/useTransform'
 
 /** @public */
-export type TLCursorComponent = ComponentType<{
+export type TLCursorProps = {
 	className?: string
 	point: VecModel | null
 	zoom: number
 	color?: string
 	name: string | null
 	chatMessage: string
-}>
+}
 
-const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatMessage }) => {
+/** @public */
+export const DefaultCursor = memo(function DefaultCursor({
+	className,
+	zoom,
+	point,
+	color,
+	name,
+	chatMessage,
+}: TLCursorProps) {
 	const rCursor = useRef<HTMLDivElement>(null)
 	useTransform(rCursor, point?.x, point?.y, 1 / zoom)
 
@@ -44,7 +52,4 @@ const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatM
 			)}
 		</div>
 	)
-}
-
-/** @public */
-export const DefaultCursor = memo(_Cursor)
+})

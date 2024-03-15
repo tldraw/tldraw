@@ -10,7 +10,7 @@ import {
 	createShapeId,
 	defaultShapeUtils,
 	defaultTools,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 import { RandomSource } from './RandomSource'
 
 export type Op =

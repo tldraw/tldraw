@@ -1,12 +1,12 @@
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
+import { createRoot } from 'react-dom/client'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import {
 	DefaultErrorFallback,
 	ErrorBoundary,
 	setDefaultEditorAssetUrls,
 	setDefaultUiAssetUrls,
-} from '@tldraw/tldraw'
-import { createRoot } from 'react-dom/client'
-import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+} from 'tldraw'
 import { ExamplePage } from './ExamplePage'
 import { examples } from './examples'
 import Develop from './misc/develop'
@@ -21,13 +21,13 @@ setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting Started')
 if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
-const basicExample = gettingStartedExamples.value.find((e) => e.priority === 1)
+const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Persistence key')
 if (!basicExample) throw new Error('Could not find initial example')
 
 const router = createBrowserRouter([
 	{
 		path: '*',
-		element: <div>404</div>,
+		lazy: async () => ({ element: <div>404</div> }),
 	},
 	{
 		path: '/',
@@ -44,11 +44,11 @@ const router = createBrowserRouter([
 	},
 	{
 		path: 'develop',
-		element: <Develop />,
+		lazy: async () => ({ element: <Develop /> }),
 	},
 	{
 		path: 'end-to-end',
-		element: <EndToEnd />,
+		lazy: async () => ({ element: <EndToEnd /> }),
 	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [
@@ -77,6 +77,7 @@ const router = createBrowserRouter([
 		])
 	),
 ])
+
 document.addEventListener('DOMContentLoaded', () => {
 	const rootElement = document.getElementById('root')!
 	const root = createRoot(rootElement!)

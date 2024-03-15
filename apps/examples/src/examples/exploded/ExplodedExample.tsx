@@ -1,5 +1,4 @@
 import {
-	Canvas,
 	ContextMenu,
 	DefaultContextMenuContent,
 	TldrawEditor,
@@ -12,8 +11,8 @@ import {
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
@@ -39,7 +38,7 @@ export default function ExplodedExample() {
 				persistenceKey="exploded-example"
 			>
 				<TldrawUi>
-					<ContextMenu canvas={<Canvas />}>
+					<ContextMenu>
 						<DefaultContextMenuContent />
 					</ContextMenu>
 				</TldrawUi>

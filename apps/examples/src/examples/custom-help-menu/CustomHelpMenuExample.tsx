@@ -5,23 +5,25 @@ import {
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomHelpMenu() {
 	return (
 		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="example">
-				<TldrawUiMenuItem
-					id="like"
-					label="Like my posts"
-					icon="external-link"
-					readonlyOk
-					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
-					}}
-				/>
-			</TldrawUiMenuGroup>
+			<div style={{ backgroundColor: 'thistle' }}>
+				<TldrawUiMenuGroup id="example">
+					<TldrawUiMenuItem
+						id="like"
+						label="Like my posts"
+						icon="external-link"
+						readonlyOk
+						onSelect={() => {
+							window.open('https://x.com/tldraw', '_blank')
+						}}
+					/>
+				</TldrawUiMenuGroup>
+			</div>
 			<DefaultHelpMenuContent />
 		</DefaultHelpMenu>
 	)

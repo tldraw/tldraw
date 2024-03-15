@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers } from '@tldraw/tldraw'
+import { StateNode, TLEventHandlers } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 

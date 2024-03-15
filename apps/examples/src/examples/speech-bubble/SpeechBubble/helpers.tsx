@@ -1,17 +1,17 @@
-import { Vec, VecLike, lerp, pointInPolygon } from '@tldraw/tldraw'
+import { Vec, VecLike, lerp, pointInPolygon } from 'tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
-	const { w, h, handles } = shape.props
+	const { w, h, tail } = shape.props
 
-	const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
+	const tailInShapeSpace = new Vec(tail.x * w, tail.y * h)
 
 	const [tl, tr, br, bl] = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
 
 	const offsetH = w / 10
 	const offsetV = h / 10
 
-	const { adjustedIntersection, intersectionSegmentIndex } = getHandleIntersectionPoint(shape)
+	const { adjustedIntersection, intersectionSegmentIndex } = getTailIntersectionPoint(shape)
 
 	let vertices: Vec[]
 
@@ -22,7 +22,7 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
 			vertices = [
 				tl,
 				new Vec(adjustedIntersection.x - offsetH, adjustedIntersection.y),
-				new Vec(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec(tailInShapeSpace.x, tailInShapeSpace.y),
 				new Vec(adjustedIntersection.x + offsetH, adjustedIntersection.y),
 				tr,
 				br,
@@ -35,7 +35,7 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
 				tl,
 				tr,
 				new Vec(adjustedIntersection.x, adjustedIntersection.y - offsetV),
-				new Vec(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec(tailInShapeSpace.x, tailInShapeSpace.y),
 				new Vec(adjustedIntersection.x, adjustedIntersection.y + offsetV),
 				br,
 				bl,
@@ -48,7 +48,7 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
 				tr,
 				br,
 				new Vec(adjustedIntersection.x + offsetH, adjustedIntersection.y),
-				new Vec(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec(tailInShapeSpace.x, tailInShapeSpace.y),
 				new Vec(adjustedIntersection.x - offsetH, adjustedIntersection.y),
 				bl,
 			]
@@ -61,7 +61,7 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
 				br,
 				bl,
 				new Vec(adjustedIntersection.x, adjustedIntersection.y + offsetV),
-				new Vec(handleInShapeSpace.x, handleInShapeSpace.y),
+				new Vec(tailInShapeSpace.x, tailInShapeSpace.y),
 				new Vec(adjustedIntersection.x, adjustedIntersection.y - offsetV),
 			]
 			break
@@ -72,9 +72,9 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
 	return vertices
 }
 
-export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
-	const { w, h, handles } = shape.props
-	const handleInShapeSpace = new Vec(handles.handle.x * w, handles.handle.y * h)
+export function getTailIntersectionPoint(shape: SpeechBubbleShape) {
+	const { w, h, tail } = shape.props
+	const tailInShapeSpace = new Vec(tail.x * w, tail.y * h)
 
 	const center = new Vec(w / 2, h / 2)
 	const corners = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
@@ -89,13 +89,13 @@ export function getHandleIntersectionPoint(shape: SpeechBubbleShape) {
 	let intersectionSegment: Vec[] | null = null
 
 	// If the point inside of the box's corners?
-	const insideShape = pointInPolygon(handleInShapeSpace, corners)
+	const insideShape = pointInPolygon(tailInShapeSpace, corners)
 
 	// We want to be sure we get an intersection, so if the point is
 	// inside the shape, push it away from the center by a big distance
 	const pointToCheck = insideShape
-		? Vec.Add(handleInShapeSpace, Vec.Sub(handleInShapeSpace, center).uni().mul(1000000))
-		: handleInShapeSpace
+		? Vec.Add(tailInShapeSpace, Vec.Sub(tailInShapeSpace, center).uni().mul(1000000))
+		: tailInShapeSpace
 
 	// Test each segment for an intersection
 	for (const segment of segments) {

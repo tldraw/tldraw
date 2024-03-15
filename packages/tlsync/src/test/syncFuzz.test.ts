@@ -1,3 +1,5 @@
+import isEqual from 'lodash.isequal'
+import { nanoid } from 'nanoid'
 import {
 	Editor,
 	TLArrowShape,
@@ -6,9 +8,7 @@ import {
 	computed,
 	createPresenceStateDerivation,
 	createTLStore,
-} from '@tldraw/tldraw'
-import isEqual from 'lodash.isequal'
-import { nanoid } from 'nanoid'
+} from 'tldraw'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { schema } from '../lib/schema'
 import { FuzzEditor, Op } from './FuzzEditor'
@@ -175,6 +175,8 @@ function runTest(seed: number) {
 				peer.editor.applyOp(op)
 				allOk('after applyOp')
 
+				server.flushDebouncingMessages()
+
 				if (peer.socketPair.isConnected && peer.randomInt(6) === 0) {
 					// randomly disconnect a peer
 					peer.socketPair.disconnect()
@@ -213,6 +215,8 @@ function runTest(seed: number) {
 		}
 
 		while (peers.some((p) => p.socketPair.getNeedsFlushing())) {
+			server.flushDebouncingMessages()
+
 			for (const peer of peers) {
 				if (peer.socketPair.getNeedsFlushing()) {
 					peer.socketPair.flushServerSentEvents()

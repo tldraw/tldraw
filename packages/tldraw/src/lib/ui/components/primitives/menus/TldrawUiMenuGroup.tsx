@@ -1,4 +1,5 @@
 import { ContextMenuGroup } from '@radix-ui/react-context-menu'
+import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -12,12 +13,11 @@ export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
 	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.
 	 */
 	label?: TranslationKey | { [key: string]: TranslationKey }
-	small?: boolean
-	children?: any
+	children?: ReactNode
 }
 
 /** @public */
-export function TldrawUiMenuGroup({ id, label, small = false, children }: TLUiMenuGroupProps) {
+export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()
 	const labelToUse = unwrapLabel(label, menuType)
@@ -33,10 +33,7 @@ export function TldrawUiMenuGroup({ id, label, small = false, children }: TLUiMe
 		}
 		case 'menu': {
 			return (
-				<TldrawUiDropdownMenuGroup
-					data-testid={`${sourceId}-group.${id}`}
-					size={small ? 'tiny' : 'medium'}
-				>
+				<TldrawUiDropdownMenuGroup data-testid={`${sourceId}-group.${id}`}>
 					{children}
 				</TldrawUiDropdownMenuGroup>
 			)
@@ -46,7 +43,6 @@ export function TldrawUiMenuGroup({ id, label, small = false, children }: TLUiMe
 				<ContextMenuGroup
 					dir="ltr"
 					className="tlui-menu__group"
-					data-size={small ? 'tiny' : 'medium'}
 					data-testid={`${sourceId}-group.${id}`}
 				>
 					{children}

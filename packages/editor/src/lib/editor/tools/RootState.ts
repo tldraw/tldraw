@@ -7,7 +7,7 @@ export class RootState extends StateNode {
 	static override children = () => []
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
-		// todo: move this logic up to the @tldraw/tldraw library, as the "zoom" tool only exists there
+		// todo: move this logic up to the tldraw library, as the "zoom" tool only exists there
 		switch (info.code) {
 			case 'KeyZ': {
 				if (!(info.shiftKey || info.ctrlKey)) {

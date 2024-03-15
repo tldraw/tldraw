@@ -1,5 +1,5 @@
 ---
-title: User Presence
+title: User presence
 component: ./UserPresenceExample.tsx
 category: collaboration
 priority: 2

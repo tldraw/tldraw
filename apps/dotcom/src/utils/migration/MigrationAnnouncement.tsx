@@ -4,7 +4,7 @@ import {
 	TldrawUiButtonLabel,
 	useEditor,
 	useValue,
-} from '@tldraw/tldraw'
+} from 'tldraw'
 
 export function MigrationAnnouncement({
 	onClose,

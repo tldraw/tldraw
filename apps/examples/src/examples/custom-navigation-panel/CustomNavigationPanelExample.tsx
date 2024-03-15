@@ -1,8 +1,8 @@
-import { TLComponents, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { TLComponents, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 function CustomNavigationPanel() {
-	return <div className="tlui-navigation-panel">here you are</div>
+	return <div style={{ backgroundColor: 'thistle', padding: '14px' }}>here you are</div>
 }
 
 const components: TLComponents = {

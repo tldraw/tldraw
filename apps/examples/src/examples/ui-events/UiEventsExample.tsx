@@ -1,6 +1,6 @@
-import { TLUiEventHandler, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
 import { Fragment, useCallback, useState } from 'react'
+import { TLUiEventHandler, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import { getCodeSnippet } from './codeSnippets'
 
 // There's a guide at the bottom of this file!
@@ -11,8 +11,8 @@ export default function UiEventsExample() {
 	const handleUiEvent = useCallback<TLUiEventHandler>((name, data: any) => {
 		const codeSnippet = getCodeSnippet(name, data)
 		setUiEvents((events) => [
-			`event: ${name} ${JSON.stringify(data)}${codeSnippet && `\ncode:  ${codeSnippet}`}`,
 			...events,
+			`event: ${name} ${JSON.stringify(data)}${codeSnippet && `\ncode:  ${codeSnippet}`}`,
 		])
 	}, [])
 
@@ -31,10 +31,9 @@ export default function UiEventsExample() {
 					fontFamily: 'monospace',
 					fontSize: 12,
 					borderLeft: 'solid 2px #333',
-					display: 'flex',
-					flexDirection: 'column-reverse',
 					overflow: 'auto',
 				}}
+				onCopy={(event) => event.stopPropagation()}
 			>
 				{uiEvents.map((t, i) => (
 					<Fragment key={i}>

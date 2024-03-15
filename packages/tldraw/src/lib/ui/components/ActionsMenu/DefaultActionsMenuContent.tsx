@@ -27,7 +27,8 @@ export function DefaultActionsMenuContent() {
 	)
 }
 
-function AlignMenuItems() {
+/** @public */
+export function AlignMenuItems() {
 	const actions = useActions()
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 
@@ -45,7 +46,8 @@ function AlignMenuItems() {
 	)
 }
 
-function DistributeMenuItems() {
+/** @public */
+export function DistributeMenuItems() {
 	const actions = useActions()
 	const threeSelected = useUnlockedSelectedShapesCount(3)
 
@@ -57,7 +59,8 @@ function DistributeMenuItems() {
 	)
 }
 
-function StackMenuItems() {
+/** @public */
+export function StackMenuItems() {
 	const actions = useActions()
 	const threeStackableItems = useThreeStackableItems()
 
@@ -69,7 +72,8 @@ function StackMenuItems() {
 	)
 }
 
-function ReorderMenuItems() {
+/** @public */
+export function ReorderMenuItems() {
 	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 
@@ -83,54 +87,63 @@ function ReorderMenuItems() {
 	)
 }
 
-function ZoomOrRotateMenuItem() {
+/** @public */
+
+export function ZoomOrRotateMenuItem() {
 	const breakpoint = useBreakpoint()
 	return breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM ? <ZoomTo100MenuItem /> : <RotateCCWMenuItem />
 }
+/** @public */
 
-function ZoomTo100MenuItem() {
+export function ZoomTo100MenuItem() {
 	const actions = useActions()
 	const editor = useEditor()
 	const isZoomedTo100 = useValue('zoom is 1', () => editor.getZoomLevel() === 1, [editor])
 
 	return <TldrawUiMenuItem {...actions['zoom-to-100']} disabled={isZoomedTo100} />
 }
+/** @public */
 
-function RotateCCWMenuItem() {
+export function RotateCCWMenuItem() {
 	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 
 	return <TldrawUiMenuItem {...actions['rotate-ccw']} disabled={!oneSelected} />
 }
+/** @public */
 
-function RotateCWMenuItem() {
+export function RotateCWMenuItem() {
 	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 
 	return <TldrawUiMenuItem {...actions['rotate-cw']} disabled={!oneSelected} />
 }
+/** @public */
 
-function EditLinkMenuItem() {
+export function EditLinkMenuItem() {
 	const actions = useActions()
 	const showEditLink = useHasLinkShapeSelected()
 
 	return <TldrawUiMenuItem {...actions['edit-link']} disabled={!showEditLink} />
 }
+/** @public */
 
-function GroupOrUngroupMenuItem() {
+export function GroupOrUngroupMenuItem() {
 	const allowGroup = useAllowGroup()
 	const allowUngroup = useAllowUngroup()
 	return allowGroup ? <GroupMenuItem /> : allowUngroup ? <UngroupMenuItem /> : <GroupMenuItem />
 }
+/** @public */
 
-function GroupMenuItem() {
+export function GroupMenuItem() {
 	const actions = useActions()
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 
 	return <TldrawUiMenuItem {...actions['group']} disabled={!twoSelected} />
 }
+/** @public */
 
-function UngroupMenuItem() {
+export function UngroupMenuItem() {
 	const actions = useActions()
 	return <TldrawUiMenuItem {...actions['ungroup']} />
 }

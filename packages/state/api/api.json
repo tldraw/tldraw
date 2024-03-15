@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.35.4",
+    "toolVersion": "7.41.0",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -1448,17 +1448,21 @@
           "name": "isSignal"
         },
         {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/state!isUninitialized:var",
+          "kind": "Function",
+          "canonicalReference": "@tldraw/state!isUninitialized:function(1)",
           "docComment": "/**\n * Call this inside a computed signal function to determine whether it is the first time the function is being called.\n *\n * Mainly useful for incremental signal computation.\n *\n * @param value - The value to check.\n *\n * @example\n * ```ts\n * const count = atom('count', 0)\n * const double = computed('double', (prevValue) => {\n *   if (isUninitialized(prevValue)) {\n *     print('First time!')\n *   }\n *   return count.get() * 2\n * })\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "isUninitialized: "
+              "text": "isUninitialized: (value: "
             },
             {
               "kind": "Content",
-              "text": "(value: any) => "
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
             },
             {
               "kind": "Reference",
@@ -1476,13 +1480,23 @@
             }
           ],
           "fileUrlPath": "packages/state/src/lib/core/Computed.ts",
-          "isReadonly": true,
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 6
+          },
           "releaseTag": "Public",
-          "name": "isUninitialized",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 5
-          }
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "value",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "isUninitialized"
         },
         {
           "kind": "Function",

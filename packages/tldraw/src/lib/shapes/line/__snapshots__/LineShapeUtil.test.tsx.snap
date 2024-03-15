@@ -11,12 +11,16 @@ exports[`Misc resizes: line shape after resize 1`] = `
   "props": {
     "color": "black",
     "dash": "draw",
-    "handles": {
+    "points": {
       "a1": {
+        "id": "a1",
+        "index": "a1",
         "x": 0,
         "y": 0,
       },
       "a2": {
+        "id": "a2",
+        "index": "a2",
         "x": 100,
         "y": 700,
       },

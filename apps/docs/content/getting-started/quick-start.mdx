@@ -8,77 +8,68 @@ order: 0
 
 <h2>Add a tldraw canvas to your React app in just 5 minutes.</h2>
 
-The tldraw SDK provides a really simple way to craft infinite canvas experiences for the web. It's perfect for collaborative applications, productivity tools, interfacing with multi-modal AI, and more.
+You can use the tldraw SDK to craft infinite canvas experiences for the web. It's perfect for collaborative whiteboards but you can use it for lots of other things, too.
 
-By the end of this guide you will have made something that looks like this: 
+By the end of this guide you will have made something that looks like this:
 
-<Embed className="article__embed--quickstart" src="https://vite-template-five.vercel.app/" />
+<Embed className="article__embed--quickstart" src="https://examples.tldraw.com/develop" />
 
+### 1. Installation
 
-Follow the steps below to make your own version of it, or [clone the repo](https://github.com/tldraw/vite-template) to skip to the end. 
+- Set up a React project however you normally do. [We recommend Vite](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
+- Install the tldraw library using this command:
 
-<hr />
-<ol className="ordered-list__quickstart">
-  <li>
-    ### Installation
+```bash
+npm install tldraw
+```
 
-    - Set up a React project however you normally do. [We recommend Vite](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
-    - Install the tldraw library using this command:
-    
-    ```bash
-    npm install @tldraw/tldraw@beta
-    ```
-  </li>
-  <li>
-    ### Import Styles
-    <br />
-    To import fonts and CSS for tldraw:
+### 2. Import Styles
 
-    - Create or edit a css file called `index.css`
-    - Copy and paste this into the file:
-    ```CSS
-    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap");
-    @import url("@tldraw/tldraw/tldraw.css");
+To import fonts and CSS for tldraw:
 
-    body {
-      font-family: "Inter";
-    }
-    ```
-  </li>
-  <li>
-    ### Render Tldraw Component
-    <br />
-    To render the Tldraw component
+- Create or edit a css file called `index.css`
+- Copy and paste this into the file:
 
-    - Import the `<Tldraw />` component from `@tldraw/tldraw`
-    - Import the `index.css` CSS file from earlier
-    - Wrap the Tldraw component in a `<div>` element with the style attribute set to: `{ position: 'fixed', inset: 0 }`
-    
-    <p className="">This will render a full screen canvas:</p>
+```CSS
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;700;&display=swap");
+@import url("tldraw/tldraw.css");
 
-    ```javascript
-    import { Tldraw } from "@tldraw/tldraw";
-    import "./index.css";
+body {
+  font-family: "Inter";
+}
+```
 
-    export default function App() {
-      return (
-        <div style={{ position: 'fixed', inset: 0 }}>
-          <Tldraw />
-        </div>
-      );
-    }
-    ```
-  </li>
-</ol>
+### 3. Render Tldraw Component
 
-<hr />
+To render the Tldraw component
 
-### Next Steps
+- Import the `<Tldraw />` component from the tldraw` package
+- Import the `index.css` CSS file from earlier
+- Wrap the Tldraw component in a `<div>` element with the style attribute set to: `{ position: 'fixed', inset: 0 }`
 
-You did it! Now that you have your canvas working, you may be wondering: what next? You can try: 
+This will render a full screen canvas:
+
+```javascript
+import { Tldraw } from 'tldraw'
+import './index.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw />
+		</div>
+	)
+}
+```
+
+## Next Steps
+
+Now that you have your canvas working, you may be wondering: what next?
+
+You can try:
 
 - Giving the editor a makeover by [customizing the UI](/docs/user-interface)
 - Adding your own [shapes](/docs/shapes) and [tools](/docs/tools)
-- Providing collaboration using [multiplayer](https://github.com/tldraw/tldraw-yjs-example) 
+- Providing collaboration using [multiplayer](https://github.com/tldraw/tldraw-yjs-example)
 
-We provide the above examples and more in our [examples section](/examples/basic/develop). Go build something creative and please do share it with us in our [#show-and-tell](https://discord.com/invite/SBBEVCA4PG) channel on Discord!
+We provide the above examples and more in our [examples section](/examples). Go build something creative and please do share it with us in our [#show-and-tell](https://discord.com/invite/SBBEVCA4PG) channel on Discord!

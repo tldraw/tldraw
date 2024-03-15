@@ -1,8 +1,8 @@
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import { CardShapeTool } from './CardShape/CardShapeTool'
 import { CardShapeUtil } from './CardShape/CardShapeUtil'
-import { uiOverrides } from './ui-overrides'
+import { components, uiOverrides } from './ui-overrides'
 
 // There's a guide at the bottom of this file!
 
@@ -21,6 +21,8 @@ export default function CustomConfigExample() {
 				tools={customTools}
 				// Pass in any overrides to the user interface
 				overrides={uiOverrides}
+				// Pass in the new Keybaord Shortcuts component
+				components={components}
 			/>
 		</div>
 	)

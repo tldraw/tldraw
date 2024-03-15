@@ -1,13 +1,14 @@
 import {
-	ShapeIndicator,
-	TLHoveredShapeIndicatorComponent,
+	TLHoveredShapeIndicatorProps,
 	useEditor,
+	useEditorComponents,
 	useValue,
 } from '@tldraw/editor'
 
 /** @public */
-export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ shapeId }) => {
+export function TldrawHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps) {
 	const editor = useEditor()
+	const { ShapeIndicator } = useEditorComponents()
 	const showHoveredShapeIndicator = useValue(
 		'show hovered',
 		() => {
@@ -23,8 +24,9 @@ export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ 
 		},
 		[editor]
 	)
+	if (!ShapeIndicator) return null
 	if (!showHoveredShapeIndicator) return null
-	return <ShapeIndicator className="tl-user-indicator__hovered" id={shapeId} />
+	return <ShapeIndicator className="tl-user-indicator__hovered" shapeId={shapeId} />
 }
 
 //

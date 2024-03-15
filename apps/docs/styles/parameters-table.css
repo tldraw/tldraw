@@ -1,11 +1,3 @@
-.article__api-heading {
-	text-transform: uppercase;
-	color: var(--color-tint-5);
-	letter-spacing: 0.07em;
-	font-size: 12px;
-	font-weight: 400;
-}
-
 .article__parameters-table {
 	table-layout: fixed;
 }

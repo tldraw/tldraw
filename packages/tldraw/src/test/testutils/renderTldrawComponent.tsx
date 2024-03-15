@@ -15,7 +15,7 @@ import { ReactElement } from 'react'
  */
 export async function renderTldrawComponent(
 	element: ReactElement,
-	{ waitForPatterns = true } = {}
+	{ waitForPatterns }: { waitForPatterns: boolean }
 ) {
 	const result = render(element)
 	if (waitForPatterns) await result.findByTestId('ready-pattern-fill-defs')
@@ -24,7 +24,7 @@ export async function renderTldrawComponent(
 
 export async function renderTldrawComponentWithEditor(
 	cb: (onMount: (editor: Editor) => void) => ReactElement,
-	opts?: { waitForPatterns?: boolean }
+	opts: { waitForPatterns: boolean }
 ) {
 	const editorPromise = promiseWithResolve<Editor>()
 	const element = cb((editor) => {

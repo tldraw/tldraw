@@ -3,8 +3,10 @@ import * as React from 'react'
 /** @public */
 export type TLUiEventSource =
 	| 'menu'
+	| 'main-menu'
 	| 'context-menu'
 	| 'zoom-menu'
+	| 'document-name'
 	| 'navigation-zone'
 	| 'quick-actions'
 	| 'actions-menu'
@@ -39,6 +41,7 @@ export interface TLUiEventMap {
 	'toggle-auto-size': null
 	'copy-as': { format: 'svg' | 'png' | 'json' }
 	'export-as': { format: 'svg' | 'png' | 'json' }
+	'export-all-as': { format: 'svg' | 'png' | 'json' }
 	'edit-link': null
 	'insert-embed': null
 	'insert-media': null
@@ -82,6 +85,7 @@ export interface TLUiEventMap {
 	'toggle-tool-lock': null
 	'toggle-grid-mode': null
 	'toggle-dark-mode': null
+	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
 	'toggle-debug-mode': null
 	'toggle-lock': null
@@ -116,7 +120,7 @@ export const EventsContext = React.createContext<TLUiEventContextType>({} as TLU
 /** @public */
 export type EventsProviderProps = {
 	onEvent?: TLUiEventHandler
-	children: any
+	children: React.ReactNode
 }
 
 /** @public */

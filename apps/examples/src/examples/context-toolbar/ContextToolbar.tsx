@@ -7,15 +7,15 @@ import {
 	track,
 	useEditor,
 	Vec,
-} from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
+} from 'tldraw'
+import 'tldraw/tldraw.css'
 
 const SIZES = [
 	{ value: 's', icon: 'size-small' },
 	{ value: 'm', icon: 'size-medium' },
 	{ value: 'l', icon: 'size-large' },
 	{ value: 'xl', icon: 'size-extra-large' },
-]
+] as const
 
 // There's a guide at the bottom of this file!
 

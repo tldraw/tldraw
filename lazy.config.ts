@@ -82,7 +82,12 @@ const config = {
 			execution: 'top-level',
 			baseCommand: `tsx <rootDir>/scripts/refresh-assets.ts`,
 			cache: {
-				inputs: ['package.json', `<rootDir>/scripts/refresh-assets.ts`, `<rootDir>/assets/**/*`],
+				inputs: [
+					'package.json',
+					`<rootDir>/scripts/refresh-assets.ts`,
+					`<rootDir>/assets/**/*`,
+					`<rootDir>/packages/*/package.json`,
+				],
 			},
 		},
 		'build-types': {

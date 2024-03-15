@@ -40,8 +40,8 @@
 		"concurrently": "^8.2.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.0.0",
-		"typescript": "^5.2.2",
-		"wrangler": "3.16.0"
+		"typescript": "^5.3.3",
+		"wrangler": "3.19.0"
 	},
 	"jest": {
 		"preset": "config/jest/node",

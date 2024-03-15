@@ -1,35 +1,31 @@
-import { ReadonlySharedStyleMap, SharedStyle, useEditor } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, useCallback } from 'react'
+import { ReactNode, memo, useCallback } from 'react'
+import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 
 /** @public */
 export interface TLUiStylePanelProps {
 	isMobile?: boolean
-	children?: any
-	relevantStyles: {
-		styles: ReadonlySharedStyleMap
-		opacity: SharedStyle<number>
-	} | null
+	children?: ReactNode
 }
 
 /** @public */
 export const DefaultStylePanel = memo(function DefaultStylePanel({
 	isMobile,
 	children,
-	relevantStyles,
 }: TLUiStylePanelProps) {
 	const editor = useEditor()
 
+	const styles = useRelevantStyles()
+
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
-			editor.updateInstanceState({ isChangingStyle: false })
+			editor.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
 		}
 	}, [editor, isMobile])
 
-	if (!relevantStyles) return null
-
-	const content = children ?? <DefaultStylePanelContent relevantStyles={relevantStyles} />
+	const content = children ?? <DefaultStylePanelContent styles={styles} />
 
 	return (
 		<div

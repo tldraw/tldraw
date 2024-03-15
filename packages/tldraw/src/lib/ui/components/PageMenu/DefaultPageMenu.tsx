@@ -263,7 +263,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	return (
 		<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
 			<TldrawUiPopoverTrigger data-testid="main.page-menu">
-				<TldrawUiButton type="menu" title={currentPage.name} className="tlui-page-menu__trigger">
+				<TldrawUiButton
+					type="menu"
+					title={currentPage.name}
+					data-testid="page-menu.button"
+					className="tlui-page-menu__trigger"
+				>
 					<div className="tlui-page-menu__name">{currentPage.name}</div>
 					<TldrawUiButtonIcon icon="chevron-down" small />
 				</TldrawUiButton>

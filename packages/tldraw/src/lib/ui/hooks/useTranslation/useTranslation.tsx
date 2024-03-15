@@ -7,7 +7,7 @@ import { TLUiTranslation, fetchTranslation } from './translations'
 
 /** @public */
 export interface TLUiTranslationProviderProps {
-	children: any
+	children: React.ReactNode
 	/**
 	 * A collection of overrides different locales.
 	 *

@@ -1,9 +1,4 @@
-import {
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-	TldrawUiMenuSubmenu,
-	useActions,
-} from '@tldraw/tldraw'
+import { TldrawUiMenuGroup, TldrawUiMenuItem, TldrawUiMenuSubmenu, useActions } from 'tldraw'
 import {
 	FORK_PROJECT_ACTION,
 	LEAVE_SHARED_PROJECT_ACTION,
@@ -17,9 +12,9 @@ export function LocalFileMenu() {
 	return (
 		<TldrawUiMenuSubmenu id="file" label="menu.file">
 			<TldrawUiMenuGroup id="file-actions">
-				<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-				<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
 				<TldrawUiMenuItem {...actions[NEW_PROJECT_ACTION]} />
+				<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
+				<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="share">
 				<TldrawUiMenuItem {...actions[SHARE_PROJECT_ACTION]} />

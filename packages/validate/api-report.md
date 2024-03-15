@@ -86,7 +86,11 @@ const number: Validator<number>;
 // @public
 function object<Shape extends object>(config: {
     readonly [K in keyof Shape]: Validatable<Shape[K]>;
-}): ObjectValidator<Shape>;
+}): ObjectValidator<{
+    [P in ExtractRequiredKeys<Shape>]: Shape[P];
+} & {
+    [P in ExtractOptionalKeys<Shape>]?: Shape[P];
+}>;
 
 // @public (undocumented)
 export class ObjectValidator<Shape extends object> extends Validator<Shape> {
@@ -136,6 +140,7 @@ declare namespace T {
         nullable,
         literalEnum,
         ValidatorFn,
+        ValidatorUsingKnownGoodVersionFn,
         Validatable,
         ValidationError,
         TypeOf,
@@ -166,7 +171,7 @@ declare namespace T {
 export { T }
 
 // @public (undocumented)
-type TypeOf<V extends Validatable<unknown>> = V extends Validatable<infer T> ? T : never;
+type TypeOf<V extends Validatable<any>> = V extends Validatable<infer T> ? T : never;
 
 // @public
 function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;
@@ -187,6 +192,7 @@ const unknownObject: Validator<Record<string, unknown>>;
 // @public (undocumented)
 type Validatable<T> = {
     validate: (value: unknown) => T;
+    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;
 };
 
 // @public (undocumented)
@@ -202,7 +208,7 @@ class ValidationError extends Error {
 
 // @public (undocumented)
 export class Validator<T> implements Validatable<T> {
-    constructor(validationFn: ValidatorFn<T>);
+    constructor(validationFn: ValidatorFn<T>, validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T, T>);
     check(name: string, checkFn: (value: T) => void): Validator<T>;
     // (undocumented)
     check(checkFn: (value: T) => void): Validator<T>;
@@ -212,11 +218,18 @@ export class Validator<T> implements Validatable<T> {
     refine<U>(otherValidationFn: (value: T) => U): Validator<U>;
     validate(value: unknown): T;
     // (undocumented)
+    validateUsingKnownGoodVersion(knownGoodValue: T, newValue: unknown): T;
+    // (undocumented)
+    readonly validateUsingKnownGoodVersionFn?: undefined | ValidatorUsingKnownGoodVersionFn<T, T>;
+    // (undocumented)
     readonly validationFn: ValidatorFn<T>;
 }
 
 // @public (undocumented)
 type ValidatorFn<T> = (value: unknown) => T;
+
+// @public (undocumented)
+type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (knownGoodValue: In, value: unknown) => Out;
 
 // (No @packageDocumentation comment for this package)
 
