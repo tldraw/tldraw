@@ -5,5 +5,6 @@ import { useTrackedScheduler } from './useTrackedScheduler'
 export function useLayoutReaction(name: string, effect: () => void): void {
 	const scheduler = useTrackedScheduler(name, effect)
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	React.useLayoutEffect(scheduler.maybeExecute)
 }
