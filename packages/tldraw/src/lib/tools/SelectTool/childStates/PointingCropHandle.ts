@@ -1,10 +1,4 @@
-import {
-	StateNode,
-	TLEventHandlers,
-	TLImageShape,
-	TLPointerEventInfo,
-	TLShape,
-} from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLImageShape, TLPointerEventInfo } from '@tldraw/editor'
 import { CursorTypeMap } from '../select-helpers'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
@@ -18,23 +12,19 @@ export class PointingCropHandle extends StateNode {
 
 	private info = {} as TLPointingCropHandleInfo
 
-	private updateCursor(shape: TLShape) {
-		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
-			cursor: {
-				type: cursorType,
-				rotation: shape.rotation,
-			},
-		})
-	}
-
 	override onEnter = (info: TLPointingCropHandleInfo) => {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		const selectedShape = this.editor.getSelectedShapes()[0]
 		if (!selectedShape) return
 
-		this.updateCursor(selectedShape)
+		const cursorType = CursorTypeMap[this.info.handle!]
+		this.editor.updateInstanceState({
+			cursor: {
+				type: cursorType,
+				rotation: this.editor.getSelectionRotation(),
+			},
+		})
 		this.editor.setCroppingShape(selectedShape.id)
 	}
 

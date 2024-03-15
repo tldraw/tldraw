@@ -1,12 +1,16 @@
 import {
 	Box,
-	TLEditorComponents,
+	DefaultToolbar,
+	DefaultToolbarContent,
+	TLComponents,
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	Tldraw,
+	TldrawUiMenuItem,
 	Vec,
-	toolbarItem,
 	useEditor,
+	useIsToolSelected,
+	useTools,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -34,10 +38,17 @@ const customUiOverrides: TLUiOverrides = {
 			},
 		}
 	},
-	toolbar: (_editor, toolbarItems, { tools }) => {
-		toolbarItems.splice(4, 0, toolbarItem(tools.screenshot))
-		return toolbarItems
-	},
+}
+
+function CustomToolbar() {
+	const tools = useTools()
+	const isScreenshotSelected = useIsToolSelected(tools['screenshot'])
+	return (
+		<DefaultToolbar>
+			<TldrawUiMenuItem {...tools['screenshot']} isSelected={isScreenshotSelected} />
+			<DefaultToolbarContent />
+		</DefaultToolbar>
+	)
 }
 
 // [3]
@@ -95,10 +106,9 @@ function ScreenshotBox() {
 	)
 }
 
-const customComponents: TLEditorComponents = {
-	InFrontOfTheCanvas: () => {
-		return <ScreenshotBox />
-	},
+const customComponents: TLComponents = {
+	InFrontOfTheCanvas: ScreenshotBox,
+	Toolbar: CustomToolbar,
 }
 
 // [5]
@@ -131,12 +141,9 @@ files for more about the too. We define an array (outside of any React component
 to hold the custom tools. We'll pass this into the Tldraw component's `tools` prop.
 
 [2]
-Here we add our custom tool to the toolbar. We do this by providing a custom
-toolbar override to the Tldraw component. This override is a function that takes
-the current editor, the default toolbar items, and the default tools. It returns
-the new toolbar items. We use the toolbarItem helper to create a new toolbar item
-for our custom tool. We then splice it into the toolbar items array at the 4th index.
-This puts it after the eraser tool. We'll pass our overrides object into the 
+Here we make sure the UI knows about our new tool. We do this by adding it to the
+`tools` object, which tells other parts of the UI a tool's label, icon, what should
+happen when it's selected, etc. We'll pass our customUiOverrides object into the
 Tldraw component's `overrides` prop.
 
 [3]

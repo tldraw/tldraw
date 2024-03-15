@@ -9,9 +9,6 @@ export class Resizing extends StateNode {
 	override onEnter = (info: { handle: SelectionHandle }) => {
 		this.session = new ResizingInteraction(this.editor, {
 			handle: info.handle,
-			onStart: () => {
-				this.editor.setCursor({ type: 'grabbing', rotation: 0 })
-			},
 			onEnd: () => {
 				this.parent.transition('idle')
 			},

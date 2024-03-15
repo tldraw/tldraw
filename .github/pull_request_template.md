@@ -2,17 +2,25 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 
 ### Change Type
 
-- [ ] `patch` — Bug fix
-- [ ] `minor` — New feature
-- [ ] `major` — Breaking change
-- [ ] `dependencies` — Changes to package dependencies[^1]
-- [ ] `documentation` — Changes to the documentation only[^2]
-- [ ] `tests` — Changes to any test code only[^2]
-- [ ] `internal` — Any other changes that don't affect the published package[^2]
-- [ ] I don't know
+<!-- ❗ Please select a 'Scope' label ❗️ -->
 
-[^1]: publishes a `patch` release, for devDependencies use `internal`
-[^2]: will not publish a new version
+- [ ] `sdk` — Changes the tldraw SDK
+- [ ] `dotcom` — Changes the tldraw.com web app
+- [ ] `docs` — Changes to the documentation, examples, or templates.
+- [ ] `vs code` — Changes to the vscode plugin
+- [ ] `internal` — Does not affect user-facing stuff
+
+<!-- ❗ Please select a 'Type' label ❗️ -->
+
+- [ ] `bugfix` — Bug fix
+- [ ] `feature` — New feature
+- [ ] `improvement` — Improving existing features
+- [ ] `chore` — Updating dependencies, other boring stuff
+- [ ] `galaxy brain` — Architectural changes
+- [ ] `tests` — Changes to any test code
+- [ ] `tools` — Changes to infrastructure, CI, internal scripts, debugging tools, etc.
+- [ ] `dunno` — I don't know
+
 
 ### Test Plan
 

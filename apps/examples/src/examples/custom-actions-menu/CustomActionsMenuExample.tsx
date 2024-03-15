@@ -1,10 +1,29 @@
-import { DefaultActionsMenu, TLComponents, Tldraw } from 'tldraw'
+import {
+	DefaultActionsMenu,
+	DefaultActionsMenuContent,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuItem,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function CustomActionsMenu() {
 	return (
-		<div style={{ transform: 'rotate(90deg)' }}>
-			<DefaultActionsMenu />
+		<div style={{ backgroundColor: 'thistle' }}>
+			<DefaultActionsMenu>
+				<div style={{ backgroundColor: 'thistle' }}>
+					<TldrawUiMenuItem
+						id="like"
+						label="Like my posts"
+						icon="external-link"
+						readonlyOk
+						onSelect={() => {
+							window.open('https://x.com/tldraw', '_blank')
+						}}
+					/>
+				</div>
+				<DefaultActionsMenuContent />
+			</DefaultActionsMenu>
 		</div>
 	)
 }

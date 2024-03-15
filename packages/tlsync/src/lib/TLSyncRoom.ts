@@ -43,6 +43,7 @@ import {
 	TLIncompatibilityReason,
 	TLSYNC_PROTOCOL_VERSION,
 	TLSocketClientSentEvent,
+	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 } from './protocol'
 
@@ -57,6 +58,8 @@ export type TLRoomSocket<R extends UnknownRecord> = {
 export const MAX_TOMBSTONES = 3000
 // the number of tombstones to delete when the max is reached
 export const TOMBSTONE_PRUNE_BUFFER_SIZE = 300
+// the minimum time between data-related messages to the clients
+export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
@@ -137,14 +140,14 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	pruneSessions = () => {
 		for (const client of this.sessions.values()) {
 			switch (client.state) {
-				case RoomSessionState.CONNECTED: {
+				case RoomSessionState.Connected: {
 					const hasTimedOut = timeSince(client.lastInteractionTime) > SESSION_IDLE_TIMEOUT
 					if (hasTimedOut || !client.socket.isOpen) {
 						this.cancelSession(client.sessionKey)
 					}
 					break
 				}
-				case RoomSessionState.AWAITING_CONNECT_MESSAGE: {
+				case RoomSessionState.AwaitingConnectMessage: {
 					const hasTimedOut = timeSince(client.sessionStartTime) > SESSION_START_WAIT_TIME
 					if (hasTimedOut || !client.socket.isOpen) {
 						// remove immediately
@@ -152,7 +155,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					}
 					break
 				}
-				case RoomSessionState.AWAITING_REMOVAL: {
+				case RoomSessionState.AwaitingRemoval: {
 					const hasTimedOut = timeSince(client.cancellationTime) > SESSION_REMOVAL_WAIT_TIME
 					if (hasTimedOut) {
 						this.removeSession(client.sessionKey)
@@ -380,25 +383,65 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Send a message to a particular client.
+	 * Send a message to a particular client. Debounces data events
 	 *
-	 * @param client - The client to send the message to.
+	 * @param sessionKey - The session to send the message to.
 	 * @param message - The message to send.
 	 */
-	private sendMessage(sessionKey: string, message: TLSocketServerSentEvent<R>) {
+	private sendMessage(
+		sessionKey: string,
+		message: TLSocketServerSentEvent<R> | TLSocketServerSentDataEvent<R>
+	) {
 		const session = this.sessions.get(sessionKey)
 		if (!session) {
 			console.warn('Tried to send message to unknown session', message.type)
 			return
 		}
-		if (session.state !== RoomSessionState.CONNECTED) {
+		if (session.state !== RoomSessionState.Connected) {
 			console.warn('Tried to send message to disconnected client', message.type)
 			return
 		}
 		if (session.socket.isOpen) {
-			session.socket.sendMessage(message)
+			if (message.type !== 'patch' && message.type !== 'push_result') {
+				// this is not a data message
+				if (message.type !== 'pong') {
+					// non-data messages like "connect" might still need to be ordered correctly with
+					// respect to data messages, so it's better to flush just in case
+					this._flushDataMessages(sessionKey)
+				}
+				session.socket.sendMessage(message)
+			} else {
+				if (session.debounceTimer === null) {
+					// this is the first message since the last flush, don't delay it
+					session.socket.sendMessage({ type: 'data', data: [message] })
+
+					session.debounceTimer = setTimeout(
+						() => this._flushDataMessages(sessionKey),
+						DATA_MESSAGE_DEBOUNCE_INTERVAL
+					)
+				} else {
+					session.outstandingDataMessages.push(message)
+				}
+			}
 		} else {
 			this.cancelSession(session.sessionKey)
+		}
+	}
+
+	// needs to accept sessionKey and not a session because the session might be dead by the time
+	// the timer fires
+	_flushDataMessages(sessionKey: string) {
+		const session = this.sessions.get(sessionKey)
+
+		if (!session || session.state !== RoomSessionState.Connected) {
+			return
+		}
+
+		session.debounceTimer = null
+
+		if (session.outstandingDataMessages.length > 0) {
+			session.socket.sendMessage({ type: 'data', data: session.outstandingDataMessages })
+			session.outstandingDataMessages.length = 0
 		}
 	}
 
@@ -446,13 +489,13 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 
-		if (session.state === RoomSessionState.AWAITING_REMOVAL) {
+		if (session.state === RoomSessionState.AwaitingRemoval) {
 			console.warn('Tried to cancel session that is already awaiting removal')
 			return
 		}
 
 		this.sessions.set(sessionKey, {
-			state: RoomSessionState.AWAITING_REMOVAL,
+			state: RoomSessionState.AwaitingRemoval,
 			sessionKey,
 			presenceId: session.presenceId,
 			socket: session.socket,
@@ -461,10 +504,10 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Broadcast a message to all connected clients except the clientId provided.
+	 * Broadcast a message to all connected clients except the one with the sessionKey provided.
 	 *
 	 * @param message - The message to broadcast.
-	 * @param clientId - The client to exclude.
+	 * @param sourceSessionKey - The session to exclude.
 	 */
 	broadcastPatch({
 		diff,
@@ -474,7 +517,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		sourceSessionKey: string
 	}) {
 		this.sessions.forEach((session) => {
-			if (session.state !== RoomSessionState.CONNECTED) return
+			if (session.state !== RoomSessionState.Connected) return
 			if (sourceSessionKey === session.sessionKey) return
 			if (!session.socket.isOpen) {
 				this.cancelSession(session.sessionKey)
@@ -507,12 +550,13 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 * When a client connects to the room, add them to the list of clients and then merge the history
 	 * down into the snapshots.
 	 *
-	 * @param client - The client that connected to the room.
+	 * @param sessionKey - The session of the client that connected to the room.
+	 * @param socket - Their socket.
 	 */
 	handleNewSession = (sessionKey: string, socket: TLRoomSocket<R>) => {
 		const existing = this.sessions.get(sessionKey)
 		this.sessions.set(sessionKey, {
-			state: RoomSessionState.AWAITING_CONNECT_MESSAGE,
+			state: RoomSessionState.AwaitingConnectMessage,
 			sessionKey,
 			socket,
 			presenceId: existing?.presenceId ?? this.presenceType.createId(),
@@ -564,10 +608,10 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/**
-	 * When the server receives a message from the clients Currently supports connect and patches.
-	 * Invalid messages types log a warning. Currently doesn't validate data.
+	 * When the server receives a message from the clients Currently, supports connect and patches.
+	 * Invalid messages types throws an error. Currently, doesn't validate data.
 	 *
-	 * @param client - The client that sent the message
+	 * @param sessionKey - The session that sent the message
 	 * @param message - The message that was sent
 	 */
 	handleMessage = async (sessionKey: string, message: TLSocketClientSentEvent<R>) => {
@@ -584,7 +628,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				return this.handlePushRequest(session, message)
 			}
 			case 'ping': {
-				if (session.state === RoomSessionState.CONNECTED) {
+				if (session.state === RoomSessionState.Connected) {
 					session.lastInteractionTime = Date.now()
 				}
 				return this.sendMessage(session.sessionKey, { type: 'pong' })
@@ -595,7 +639,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		}
 	}
 
-	/** If the client is out of date or we are out of date, we need to let them know */
+	/** If the client is out of date, or we are out of date, we need to let them know */
 	private rejectSession(session: RoomSession<R>, reason: TLIncompatibilityReason) {
 		try {
 			if (session.socket.isOpen) {
@@ -641,12 +685,14 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 		const connect = (msg: TLSocketServerSentEvent<R>) => {
 			this.sessions.set(session.sessionKey, {
-				state: RoomSessionState.CONNECTED,
+				state: RoomSessionState.Connected,
 				sessionKey: session.sessionKey,
 				presenceId: session.presenceId,
 				socket: session.socket,
 				serializedSchema: sessionSchema,
 				lastInteractionTime: Date.now(),
+				debounceTimer: null,
+				outstandingDataMessages: [],
 			})
 			this.sendMessage(session.sessionKey, msg)
 		}
@@ -740,7 +786,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>
 	) {
 		// We must be connected to handle push requests
-		if (session.state !== RoomSessionState.CONNECTED) {
+		if (session.state !== RoomSessionState.Connected) {
 			return
 		}
 
@@ -1002,7 +1048,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	/**
 	 * Handle the event when a client disconnects.
 	 *
-	 * @param client - The client that disconnected.
+	 * @param sessionKey - The session that disconnected.
 	 */
 	handleClose = (sessionKey: string) => {
 		this.cancelSession(sessionKey)

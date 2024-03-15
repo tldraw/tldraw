@@ -12,16 +12,14 @@ export class PointingRotateHandle extends StateNode {
 	session?: RotatingInteraction
 
 	override onEnter = (info: PointingRotateHandleInfo) => {
-		const selectionRotation = this.editor.getSelectionRotation()
-		this.editor.setCursor({
-			type: CursorTypeMap[info.handle],
-			rotation: selectionRotation,
-		})
-
 		this.session = new RotatingInteraction(this.editor, {
 			handle: info.handle,
 			onStart: () => {
-				this.editor.setCursor({ type: 'grabbing', rotation: 0 })
+				const selectionRotation = this.editor.getSelectionRotation()
+				this.editor.setCursor({
+					type: CursorTypeMap[info.handle],
+					rotation: selectionRotation,
+				})
 			},
 			onEnd: () => {
 				this.parent.transition('idle')

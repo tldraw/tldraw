@@ -2747,6 +2747,9 @@ export function useEditorComponents(): Partial<{
     LoadingScreen: ComponentType | null;
 } & ErrorComponents> & ErrorComponents;
 
+// @internal
+export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
+
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
 
@@ -2775,6 +2778,9 @@ export { useQuickReactor }
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
 export { useReactor }
+
+// @internal
+export function useSafeId(): string;
 
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {
