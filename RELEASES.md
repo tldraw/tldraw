@@ -1,12 +1,13 @@
-# How tldraw is published to npm
+# Releases
 
-**We do not follow strict SemVer**.
+## How tldraw is versioned
 
-- Major version bumps are rare and we reserve them for Big Important Stuff like architectural changes or major new features.
-- Minor version bumps are 'cadence' releases. They happen on a regular schedule and contain a mix of new features and bugfixes. **They may contain breaking changes**. We aim to keep breaking changes as minimally disruptive as possible, but you should be aware that upgrading tldraw may involve reading through our release notes to resolve breakage. You should update regularly for the best experience, since we will be able to warn you of most upcoming breaking changes several releases in advance and give you a long time window to resolve issues.
+**We do not follow SemVer**.
+
+- Major version bumps are very rare and we reserve them for special changes that signify a paradigm shift of some kind.
+- Minor version bumps are released on a regular cadence. At the time of writing that cadence is monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible by providing warnings several releases in advance, and by providing tooling to help you migrate your code. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
 - Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
 
-At the time of writing, our release cadence is monthly. This may have changed by the time you read this.
 
 ## How to publish a new major or minor release
 
@@ -44,7 +45,7 @@ When you click the 'run' button after selecting how to bump the version number, 
 
    `git checkout v3.4.x`
 
-   You can also patch 'previous' release branches if you need to. For example, if the latest version is `3.4.3` but you need to patch `2.8.2`, you would run
+   You can also patch older release branches if you need to. For example, if the latest version is `3.4.3` but you need to patch `2.8.2`, you would run
 
    `git checkout v2.8.x`
 
