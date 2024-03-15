@@ -1,6 +1,6 @@
 {
 	"extends": "../../config/tsconfig.base.json",
-	"include": ["src"],
+	"include": ["src", "patchedJestJsDom.ts"],
 	"exclude": ["node_modules", "docs", ".tsbuild*"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",

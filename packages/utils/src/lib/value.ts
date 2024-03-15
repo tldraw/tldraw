@@ -36,6 +36,14 @@ export function isNonNullish<T>(
  * @param i - The value to clone.
  * @public */
 export const structuredClone =
-	typeof window !== 'undefined' && (window as any).structuredClone
-		? (window.structuredClone as <T>(i: T) => T)
-		: <T>(i: T): T => (i ? JSON.parse(JSON.stringify(i)) : i)
+	// cloudflare workers
+	typeof globalThis !== 'undefined' && (globalThis as any).structuredClone
+		? (globalThis.structuredClone as <T>(i: T) => T)
+		: // node
+			(global as any).structuredClone
+			? (global.structuredClone as <T>(i: T) => T)
+			: // browser
+				typeof window !== 'undefined' && (window as any).structuredClone
+				? (window.structuredClone as <T>(i: T) => T)
+				: // fallback
+					<T>(i: T): T => (i ? JSON.parse(JSON.stringify(i)) : i)
