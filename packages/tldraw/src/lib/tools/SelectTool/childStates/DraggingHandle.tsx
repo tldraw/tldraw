@@ -70,6 +70,25 @@ export class DraggingHandle extends StateNode {
 				x: pagePoint.x - 100,
 				y: pagePoint.y - 50,
 			})
+			this.editor.createShape({
+				type: 'arrow',
+				props: {
+					start: {
+						type: 'binding',
+						boundShapeId: this.shapeId,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: true,
+					},
+					end: {
+						type: 'binding',
+						boundShapeId: shapeId,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: true,
+					},
+				},
+			})
 			this.editor.select(shapeId)
 			this.parent.transition('translating', { shapeId })
 		}

@@ -250,7 +250,7 @@ function duplicateShape(
 	const shape = editor.getShape(shapeId) as TLNoteShape
 
 	const rotationRadians = editor.getShapePageTransform(shape).rotation()
-	const distance = NOTE_SIZE + 30
+	const distance = NOTE_SIZE + 100
 
 	// Calculate offsetX and offsetY based on the direction and rotation
 	let offsetX = 0
@@ -277,5 +277,24 @@ function duplicateShape(
 
 	const id = createShapeId()
 	editor.createShape({ type: 'note', id, x: shape.x + offsetX, y: shape.y + offsetY })
+	editor.createShape({
+		type: 'arrow',
+		props: {
+			start: {
+				type: 'binding',
+				boundShapeId: shapeId,
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: true,
+			},
+			end: {
+				type: 'binding',
+				boundShapeId: id,
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: true,
+			},
+		},
+	})
 	editor.setEditingShape(id)
 }
