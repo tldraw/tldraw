@@ -707,6 +707,8 @@ export const noteShapeProps: {
     growY: T.Validator<number>;
     url: T.Validator<string>;
     text: T.Validator<string>;
+    userName: T.Validator<string | undefined>;
+    userId: T.Validator<string | undefined>;
 };
 
 // @internal (undocumented)

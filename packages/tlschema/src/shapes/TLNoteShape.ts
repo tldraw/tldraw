@@ -20,6 +20,11 @@ export const noteShapeProps = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
+	userName: T.optional(T.string),
+	// User ids are the more up-to-date way to track user names
+	// but the users are not always present so we save the more
+	// persisent user name as well.
+	userId: T.optional(T.string),
 }
 
 /** @public */

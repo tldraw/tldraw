@@ -81,7 +81,7 @@
 	--tl-font-sans: 'tldraw_sans', sans-serif;
 	--tl-font-serif: 'tldraw_serif', serif;
 	--tl-font-mono: 'tldraw_mono', monospace;
-	/* fext outline */
+	/* text outline */
 	--a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
 	--b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
 	--tl-text-outline: 0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
@@ -121,6 +121,7 @@
 	--color-selection-stroke: hsl(214, 84%, 56%);
 	--color-text-0: hsl(0, 0%, 11%);
 	--color-text-1: hsl(0, 0%, 18%);
+	--color-text-2: hsl(0, 0%, 44%);
 	--color-text-3: hsl(220, 2%, 65%);
 	--color-text-shadow: hsl(0, 0%, 100%);
 	--color-primary: hsl(214, 84%, 56%);
@@ -1213,6 +1214,19 @@ input,
 	width: 100%;
 	background-color: var(--color-background);
 	opacity: 0.28;
+}
+
+.tl-note__attribution {
+	position: relative;
+	margin-top: -20px;
+	margin-left: 10px;
+	margin-right: 10px;
+	height: 21px;
+	font-size: 10px;
+	color: var(--color-text-2);
+	text-shadow: var(--tl-text-outline);
+	z-index: 1;
+	overflow: hidden;
 }
 
 .tl-loading {
