@@ -707,6 +707,7 @@ export const noteShapeProps: {
     growY: T.Validator<number>;
     url: T.Validator<string>;
     text: T.Validator<string>;
+    buttons: T.Validator<VecModel>;
 };
 
 // @internal (undocumented)

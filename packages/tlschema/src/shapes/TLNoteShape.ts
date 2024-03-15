@@ -1,5 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import { vecModelValidator } from '..'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
 import {
@@ -20,6 +21,7 @@ export const noteShapeProps = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
+	buttons: vecModelValidator,
 }
 
 /** @public */

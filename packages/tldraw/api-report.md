@@ -1091,6 +1091,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getGeometry(shape: TLNoteShape): Rectangle2d;
     // (undocumented)
+    getHandles(shape: TLNoteShape): TLHandle[];
+    // (undocumented)
     getHeight(shape: TLNoteShape): number;
     // (undocumented)
     hideResizeHandles: () => boolean;
@@ -1111,6 +1113,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
+            buttons: VecModel;
         };
         type: "note";
         x: number;
@@ -1135,6 +1138,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
+            buttons: VecModel;
         };
         type: "note";
         x: number;
@@ -1160,6 +1164,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         growY: Validator<number>;
         url: Validator<string>;
         text: Validator<string>;
+        buttons: Validator<VecModel>;
     };
     // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;

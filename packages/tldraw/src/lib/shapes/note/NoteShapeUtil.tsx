@@ -4,9 +4,11 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
 	TLShapeId,
+	ZERO_INDEX_KEY,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -41,6 +43,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			buttons: { x: 0.5, y: -0.1 },
 		}
 	}
 
@@ -51,6 +54,20 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	getGeometry(shape: TLNoteShape) {
 		const height = this.getHeight(shape)
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
+	}
+
+	override getHandles(shape: TLNoteShape): TLHandle[] {
+		const { buttons } = shape.props
+		console.log(buttons)
+		return [
+			{
+				id: 'buttons',
+				type: 'vertex',
+				index: ZERO_INDEX_KEY,
+				x: buttons.x * NOTE_SIZE,
+				y: buttons.y * this.getHeight(shape),
+			},
+		]
 	}
 
 	component(shape: TLNoteShape) {
@@ -65,6 +82,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const adjustedColor = color === 'black' ? 'yellow' : color
 		const selectedShapes = this.editor.getSelectedShapeIds()
 		const isOnlyShapeSelected = selectedShapes.length === 1 && selectedShapes[0] === shape.id
+
 		return (
 			<>
 				<div
@@ -94,50 +112,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							wrap
 						/>
 					</div>
-					{isOnlyShapeSelected && (
-						<>
-							<button
-								className="tl-note__duplicate-button"
-								style={{ top: '-30px', left: '50%', transform: 'translateX(-50%)' }}
-								onClick={() => duplicateShape(shape.id, 'up', this.editor)}
-								onPointerDown={(e) => {
-									e.stopPropagation()
-								}}
-							>
-								+
-							</button>
-							<button
-								className="tl-note__duplicate-button"
-								style={{ bottom: '-30px', right: '50%', transform: 'translateX(50%)' }}
-								onClick={() => duplicateShape(shape.id, 'down', this.editor)}
-								onPointerDown={(e) => {
-									e.stopPropagation()
-								}}
-							>
-								+
-							</button>
-							<button
-								className="tl-note__duplicate-button"
-								style={{ bottom: '50%', right: '-30px', transform: 'translateY(50%)' }}
-								onClick={() => duplicateShape(shape.id, 'right', this.editor)}
-								onPointerDown={(e) => {
-									e.stopPropagation()
-								}}
-							>
-								+
-							</button>
-							<button
-								className="tl-note__duplicate-button"
-								style={{ bottom: '50%', left: '-30px', transform: 'translateY(50%)' }}
-								onClick={() => duplicateShape(shape.id, 'left', this.editor)}
-								onPointerDown={(e) => {
-									e.stopPropagation()
-								}}
-							>
-								+
-							</button>
-						</>
-					)}
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
@@ -273,7 +247,7 @@ function duplicateShape(
 ) {
 	const shape = editor.getShape(shapeId) as TLNoteShape
 
-	const rotationRadians = shape.rotation
+	const rotationRadians = editor.getShapePageTransform(shape).rotation()
 	const distance = NOTE_SIZE + 30
 
 	// Calculate offsetX and offsetY based on the direction and rotation
@@ -303,4 +277,5 @@ function duplicateShape(
 	console.log(`OffsetX: ${offsetX}, OffsetY: ${offsetY}`)
 
 	editor.duplicateShapes([shapeId], { x: offsetX, y: offsetY })
+	editor.setEditingShape(editor.getSelectedShapes()[0])
 }

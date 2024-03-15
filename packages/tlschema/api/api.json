@@ -2954,7 +2954,25 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n}"
+              "text": "<string>;\n    buttons: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLNoteShape.ts",
@@ -2963,7 +2981,7 @@
           "name": "noteShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 18
+            "endIndex": 22
           }
         },
         {
