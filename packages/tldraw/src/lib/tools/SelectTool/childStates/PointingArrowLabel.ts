@@ -1,10 +1,10 @@
 import { StateNode, TLArrowShape, TLPointerEventInfo } from '@tldraw/editor'
-import { TranslatingArrowLabelSession } from '../../../sessions/TranslatingArrowLabelSession'
+import { TranslatingArrowLabelInteraction } from '../../../interactions/TranslatingArrowLabelInteraction'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
 
-	session?: TranslatingArrowLabelSession
+	session?: TranslatingArrowLabelInteraction
 
 	override onEnter = (
 		info: TLPointerEventInfo & {
@@ -12,7 +12,7 @@ export class PointingArrowLabel extends StateNode {
 			onInteractionEnd?: string
 		}
 	) => {
-		this.session = new TranslatingArrowLabelSession(this.editor, {
+		this.session = new TranslatingArrowLabelInteraction(this.editor, {
 			shape: info.shape,
 			onEnd: () => {
 				this.parent.transition('idle')

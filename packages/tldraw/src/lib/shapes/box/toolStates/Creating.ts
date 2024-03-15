@@ -1,14 +1,14 @@
 import { SelectionHandle, StateNode, TLShape } from '@tldraw/editor'
-import { ResizingSession } from '../../../sessions/ResizingSession'
+import { ResizingInteraction } from '../../../interactions/ResizingInteraction'
 import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 
 export class Creating extends StateNode {
 	static override id = 'creating'
 
-	session?: ResizingSession
+	session?: ResizingInteraction
 
 	override onEnter = (info: { shape: TLShape; handle: SelectionHandle }) => {
-		this.session = new ResizingSession(this.editor, {
+		this.session = new ResizingInteraction(this.editor, {
 			isCreating: true,
 			handle: info.handle,
 			onCancel: () => {
@@ -21,7 +21,7 @@ export class Creating extends StateNode {
 				}
 
 				if (this.editor.getInstanceState().isToolLocked) {
-					this.parent.transition('idle')
+					this.parent.transition('idle', { shapeId: info.shape.id })
 				} else {
 					this.editor.setCurrentTool('select.idle')
 				}

@@ -322,7 +322,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		editor.expectToBeIn('geo.creating_geo')
+		editor.expectToBeIn('geo.creating')
 	})
 
 	it('reverts back to select if we finish the interaction', () => {
@@ -333,7 +333,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		editor.expectToBeIn('geo.creating_geo')
+		editor.expectToBeIn('geo.creating')
 
 		editor.pointerUp(100, 100)
 
@@ -348,7 +348,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		editor.expectToBeIn('geo.creating_geo')
+		editor.expectToBeIn('geo.creating')
 
 		editor.cancel()
 

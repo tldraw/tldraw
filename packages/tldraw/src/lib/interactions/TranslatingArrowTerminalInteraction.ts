@@ -1,5 +1,5 @@
 import {
-	Session,
+	Interaction,
 	TLArrowShape,
 	TLArrowShapeTerminal,
 	TLHandle,
@@ -11,7 +11,7 @@ import {
 	structuredClone,
 } from '@tldraw/editor'
 
-export class TranslatingArrowTerminalSession extends Session<{
+export class TranslatingArrowTerminalInteraction extends Interaction<{
 	isCreating: boolean
 	shape: TLArrowShape
 	handle: TLHandle
@@ -67,6 +67,8 @@ export class TranslatingArrowTerminalSession extends Session<{
 			this.complete()
 			return
 		}
+
+		this.updateExact()
 
 		if (editor.inputs.isDragging) {
 			if (this.didTranslate) {
@@ -161,32 +163,20 @@ export class TranslatingArrowTerminalSession extends Session<{
 	override onEnd() {
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clearIndicators()
-		this.editor.setCursor({ type: 'default', rotation: 0 })
-		clearTimeout(this.exactTimeout)
 	}
 
-	private exactTimeout = -1 as any
+	private exactTimeoutStart = this.duration
+
+	private updateExact() {
+		if (this.isPrecise) return
+
+		if (this.duration - this.exactTimeoutStart >= 750) {
+			this.isPrecise = true
+			this.isPreciseId = this.pointingId
+		}
+	}
 
 	private resetExactTimeout() {
-		if (this.exactTimeout !== -1) {
-			this.clearExactTimeout()
-		}
-
-		this.exactTimeout = setTimeout(() => {
-			if (!this.isPrecise) {
-				this.isPrecise = true
-				this.isPreciseId = this.pointingId
-				this.update()
-			}
-			this.exactTimeout = -1
-		}, 750)
-	}
-
-	// Only relevant to arrows
-	private clearExactTimeout() {
-		if (this.exactTimeout !== -1) {
-			clearTimeout(this.exactTimeout)
-			this.exactTimeout = -1
-		}
+		this.exactTimeoutStart = this.duration
 	}
 }

@@ -1,13 +1,13 @@
 import {
 	HIT_TEST_MARGIN,
-	Session,
+	Interaction,
 	TLFrameShape,
 	TLGroupShape,
 	TLShapeId,
 	pointInPolygon,
 } from '@tldraw/editor'
 
-export class ErasingSession extends Session {
+export class ErasingInteraction extends Interaction {
 	readonly id = 'erasing'
 
 	didErase = false

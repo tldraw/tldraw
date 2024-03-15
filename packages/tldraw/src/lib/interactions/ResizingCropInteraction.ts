@@ -1,10 +1,10 @@
-import { SelectionHandle, Session, TLImageShape, Vec, structuredClone } from '@tldraw/editor'
+import { Interaction, SelectionHandle, TLImageShape, Vec, structuredClone } from '@tldraw/editor'
 import { CursorTypeMap } from '../tools/SelectTool/select-helpers'
 
 /** @internal */
 export const MIN_CROP_SIZE = 8
 
-export class ResizingCropSession extends Session<{
+export class ResizingCropInteraction extends Interaction<{
 	shape: TLImageShape
 	handle: SelectionHandle
 }> {

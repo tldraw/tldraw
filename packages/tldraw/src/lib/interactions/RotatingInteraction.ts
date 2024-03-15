@@ -1,7 +1,7 @@
 import {
 	Editor,
+	Interaction,
 	RotateCorner,
-	Session,
 	TLRotationSnapshot,
 	applyRotationToSnapshotShapes,
 	degreesToRadians,
@@ -11,7 +11,7 @@ import {
 } from '@tldraw/editor'
 import { CursorTypeMap } from '../tools/SelectTool/select-helpers'
 
-export class RotatingSession extends Session<{ handle: RotateCorner }> {
+export class RotatingInteraction extends Interaction<{ handle: RotateCorner }> {
 	id = 'rotating'
 	markId = 'rotating'
 	snapshot = {} as TLRotationSnapshot

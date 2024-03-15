@@ -23,6 +23,7 @@ import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
 import { IndexKey } from '@tldraw/editor';
+import { Interaction } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
@@ -44,7 +45,6 @@ import { Result } from '@tldraw/editor';
 import { RotateCorner } from '@tldraw/editor';
 import { SelectionHandle } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
-import { Session } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
@@ -133,7 +133,7 @@ export function ArrowheadStylePickerSet({ styles }: {
 // @public (undocumented)
 export class ArrowShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_2 | typeof Pointing_2)[];
+    static children: () => (typeof Creating_2 | typeof Idle_2 | typeof Pointing_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -634,7 +634,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof CreatingGeo | typeof Idle_4 | typeof Pointing_3)[];
+    static children: () => (typeof Creating_3 | typeof Idle_4 | typeof Pointing_3)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -951,7 +951,7 @@ export interface LegacyTldrawDocument {
 // @public (undocumented)
 export class LineShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_5 | typeof Pointing_4)[];
+    static children: () => (typeof Creating_4 | typeof Idle_5 | typeof Pointing_4)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1022,7 +1022,7 @@ export function MultiShapeMenuGroup(): JSX_2.Element;
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof CreatingNote | typeof Idle_6 | typeof Pointing_5)[];
+    static children: () => (typeof Creating_5 | typeof Idle_6 | typeof Pointing_5)[];
     // (undocumented)
     static id: string;
     // (undocumented)

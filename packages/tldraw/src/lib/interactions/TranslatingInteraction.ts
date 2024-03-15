@@ -2,10 +2,10 @@ import {
 	BoundsSnapPoint,
 	Box,
 	Editor,
+	Interaction,
 	Mat,
 	MatModel,
 	PageRecordType,
-	Session,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -17,7 +17,7 @@ import {
 
 const LAG_DURATION = 100
 
-export class TranslatingSession extends Session<{
+export class TranslatingInteraction extends Interaction<{
 	isCreating: boolean
 }> {
 	readonly id = 'translating'

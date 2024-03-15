@@ -1,14 +1,17 @@
 import { SelectionHandle, StateNode } from '@tldraw/editor'
-import { ResizingSession } from '../../../sessions/ResizingSession'
+import { ResizingInteraction } from '../../../interactions/ResizingInteraction'
 
 export class Resizing extends StateNode {
 	static override id = 'resizing'
 
-	session?: ResizingSession
+	session?: ResizingInteraction
 
 	override onEnter = (info: { handle: SelectionHandle }) => {
-		this.session = new ResizingSession(this.editor, {
+		this.session = new ResizingInteraction(this.editor, {
 			handle: info.handle,
+			onStart: () => {
+				this.editor.setCursor({ type: 'grabbing', rotation: 0 })
+			},
 			onEnd: () => {
 				this.parent.transition('idle')
 			},

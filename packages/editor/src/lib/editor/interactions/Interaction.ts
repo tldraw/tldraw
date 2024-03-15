@@ -2,9 +2,9 @@ import { Editor } from '../Editor'
 import { TLEventInfo } from '../types/event-types'
 
 /**
- * A simple event object that can be used to prevent the default behavior of a session event.
+ * A simple event object that can be used to prevent the default behavior of an interaction event.
  * @public */
-export class SessionEvent<T extends object = object> {
+export class InteractionEvent<T extends object = object> {
 	constructor(
 		public info: T,
 		public duration: number,
@@ -17,42 +17,42 @@ export class SessionEvent<T extends object = object> {
 }
 
 /**
- *  A session info object that can be used to define event handlers for a session.
+ *  An interaction info object that can be used to define event handlers for an interaction.
  *  @public */
-export interface SessionEventHandlers<T extends object = object> {
-	onBeforeStart?: (event: SessionEvent<T>) => void
-	onStart?: (event: SessionEvent<T>) => void
-	onBeforeUpdate?: (event: SessionEvent<T>) => void
-	onUpdate?: (event: SessionEvent<T>) => void
-	onBeforeInterrupt?: (event: SessionEvent<T>) => void
-	onInterrupt?: (event: SessionEvent<T>) => void
-	onBeforeComplete?: (event: SessionEvent<T>) => void
-	onComplete?: (event: SessionEvent<T>) => void
-	onBeforeCancel?: (event: SessionEvent<T>) => void
-	onCancel?: (event: SessionEvent<T>) => void
-	onBeforeEnd?: (event: SessionEvent<T>) => void
-	onEnd?: (event: SessionEvent<T>) => void
+export interface InteractionEventHandlers<T extends object = object> {
+	onBeforeStart?: (event: InteractionEvent<T>) => void
+	onStart?: (event: InteractionEvent<T>) => void
+	onBeforeUpdate?: (event: InteractionEvent<T>) => void
+	onUpdate?: (event: InteractionEvent<T>) => void
+	onBeforeInterrupt?: (event: InteractionEvent<T>) => void
+	onInterrupt?: (event: InteractionEvent<T>) => void
+	onBeforeComplete?: (event: InteractionEvent<T>) => void
+	onComplete?: (event: InteractionEvent<T>) => void
+	onBeforeCancel?: (event: InteractionEvent<T>) => void
+	onCancel?: (event: InteractionEvent<T>) => void
+	onBeforeEnd?: (event: InteractionEvent<T>) => void
+	onEnd?: (event: InteractionEvent<T>) => void
 }
 
 /**
- * A session info object that can be used to define event handlers for a session and provide other configuration info to a session.
+ * An interaction info object that can be used to define event handlers for an interaction and provide other configuration info to an interaction.
  * @public */
-export type SessionInfo<T extends object = object> = SessionEventHandlers & T
+export type InteractionInfo<T extends object = object> = InteractionEventHandlers & T
 
 /**
- * A session is an interaction or other event that occurs over time,
+ * An interaction is an interaction or other event that occurs over time,
  * such as resizing, drawing, or transforming shapes.
  *
  * @public
  */
-export abstract class Session<T extends object = object> {
+export abstract class Interaction<T extends object = object> {
 	private infoWithoutEventHandlers: T
 	protected elapsed = 0
 	protected duration = 0
 
 	constructor(
 		public editor: Editor,
-		public info = {} as SessionInfo<T>
+		public info = {} as InteractionInfo<T>
 	) {
 		const infoWithoutDefaults = { ...info }
 		delete infoWithoutDefaults.onBeforeStart
@@ -109,16 +109,16 @@ export abstract class Session<T extends object = object> {
 
 	abstract readonly id: string
 
-	private getSessionEvent() {
-		return new SessionEvent(this.infoWithoutEventHandlers, this.duration, this.elapsed)
+	private getinteractionEvent() {
+		return new InteractionEvent(this.infoWithoutEventHandlers, this.duration, this.elapsed)
 	}
 
 	/**
-	 * Start the session. Sets up event listeners and calls `onStart` and `onUpdate`.
+	 * Start the interaction. Sets up event listeners and calls `onStart` and `onUpdate`.
 	 * @public
 	 */
 	start() {
-		const event = this.getSessionEvent()
+		const event = this.getinteractionEvent()
 		this.info.onBeforeStart?.(event)
 		if (!event.isDefaultPrevented) {
 			this.onStart?.()
@@ -134,11 +134,11 @@ export abstract class Session<T extends object = object> {
 	}
 
 	/**
-	 * Update the session. Calls `onUpdate`. This is called automatically on every tick and on editor `keyboard` events.
+	 * Update the interaction. Calls `onUpdate`. This is called automatically on every tick and on editor `keyboard` events.
 	 * @public
 	 */
 	update() {
-		const event = this.getSessionEvent()
+		const event = this.getinteractionEvent()
 		this.info.onBeforeUpdate?.(event)
 		if (!event.isDefaultPrevented) {
 			this.onUpdate?.()
@@ -148,11 +148,11 @@ export abstract class Session<T extends object = object> {
 	}
 
 	/**
-	 * Complete the session. This is called automatically on editor's `complete` events. Calls `onComplete` and disposes of the session.
+	 * Complete the interaction. This is called automatically on editor's `complete` events. Calls `onComplete` and disposes of the interaction.
 	 * @public
 	 */
 	complete() {
-		const event = this.getSessionEvent()
+		const event = this.getinteractionEvent()
 		this.info.onBeforeComplete?.(event)
 		if (!event.isDefaultPrevented) {
 			this.onComplete?.()
@@ -163,11 +163,11 @@ export abstract class Session<T extends object = object> {
 	}
 
 	/**
-	 * Cancel the session. This is called automatically on editor's `cancel` events. Calls `onCancel` and disposes of the session.
+	 * Cancel the interaction. This is called automatically on editor's `cancel` events. Calls `onCancel` and disposes of the interaction.
 	 * @public
 	 */
 	cancel() {
-		const event = this.getSessionEvent()
+		const event = this.getinteractionEvent()
 		this.info.onBeforeCancel?.(event)
 		if (!event.isDefaultPrevented) {
 			this.onCancel?.()
@@ -178,10 +178,10 @@ export abstract class Session<T extends object = object> {
 	}
 
 	/**
-	 * End the session. Called automatically by complete or cancel.
+	 * End the interaction. Called automatically by complete or cancel.
 	 */
 	private end() {
-		const event = this.getSessionEvent()
+		const event = this.getinteractionEvent()
 		this.info.onBeforeEnd?.(event)
 		if (!event.isDefaultPrevented) {
 			this.onEnd?.()
@@ -192,11 +192,11 @@ export abstract class Session<T extends object = object> {
 	}
 
 	/**
-	 * Interrupt the session. This is called automatically on editor's `interrupt` events. Calls `onInterrupt`. It does not dispose the session.
+	 * Interrupt the interaction. This is called automatically on editor's `interrupt` events. Calls `onInterrupt`. It does not dispose the interaction.
 	 * @public
 	 */
 	interrupt() {
-		const event = this.getSessionEvent()
+		const event = this.getinteractionEvent()
 		this.info.onBeforeInterrupt?.(event)
 		if (!event.isDefaultPrevented) {
 			this.onInterrupt?.()
@@ -206,7 +206,7 @@ export abstract class Session<T extends object = object> {
 	}
 
 	/**
-	 * Dispose of the session. Removes event listeners.
+	 * Dispose of the interaction. Removes event listeners.
 	 *
 	 * @public
 	 */

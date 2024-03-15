@@ -1,7 +1,7 @@
-import { Session, TLImageShape } from '@tldraw/editor'
+import { Interaction, TLImageShape } from '@tldraw/editor'
 import { getTranslateCroppedImageChange } from '../tools/SelectTool/childStates/Cropping/children/crop_helpers'
 
-export class TranslatingCropSession extends Session {
+export class TranslatingCropInteraction extends Interaction {
 	readonly id = 'translating_crop'
 
 	initialShape = {} as TLImageShape

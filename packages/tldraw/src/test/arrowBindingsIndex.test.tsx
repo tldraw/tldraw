@@ -95,7 +95,7 @@ describe('arrowBindingsIndex', () => {
 		editor.pointerDown(250, 50)
 		editor.expectToBeIn('arrow.pointing')
 		editor.pointerMove(250, -50)
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('arrow.creating')
 		const arrow4 = editor.getOnlySelectedShape()!
 
 		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([

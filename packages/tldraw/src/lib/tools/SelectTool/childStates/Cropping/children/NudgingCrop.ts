@@ -1,13 +1,13 @@
 import { StateNode, TLImageShape } from '@tldraw/editor'
-import { NudgingCropSession } from '../../../../../sessions/NudgingCropSession'
+import { NudgingCropInteraction } from '../../../../../interactions/NudgingCropInteraction'
 
 export class NudgingCrop extends StateNode {
 	static override id = 'nudging_crop'
 
-	session?: NudgingCropSession
+	session?: NudgingCropInteraction
 
 	override onEnter = () => {
-		this.session = new NudgingCropSession(this.editor, {
+		this.session = new NudgingCropInteraction(this.editor, {
 			shape: this.editor.getOnlySelectedShape()! as TLImageShape,
 			onEnd: () => {
 				this.parent.transition('idle')

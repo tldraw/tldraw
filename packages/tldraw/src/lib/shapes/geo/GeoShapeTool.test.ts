@@ -119,16 +119,16 @@ describe('When in the pointing state', () => {
 		editor.expectToBeIn('geo.idle')
 	})
 
-	it('Enters the geo.creating_geo state on drag start', () => {
+	it('Enters the geo.creating state on drag start', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(51, 51) // not far enough!
 		editor.expectToBeIn('geo.pointing')
 		editor.pointerMove(55, 55)
-		editor.expectToBeIn('geo.creating_geo')
+		editor.expectToBeIn('geo.creating')
 	})
 
-	it('Enters the geo.creating_geo state on pointer move', () => {
+	it('Enters the geo.creating state on pointer move', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.cancel()
@@ -167,7 +167,7 @@ describe('When in the resizing state while creating a geo shape', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(55, 55)
-		editor.expectToBeIn('geo.creating_geo')
+		editor.expectToBeIn('geo.creating')
 		editor.cancel()
 		editor.expectToBeIn('geo.idle')
 	})

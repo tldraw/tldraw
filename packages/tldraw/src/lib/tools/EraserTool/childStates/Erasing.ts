@@ -1,13 +1,13 @@
 import { StateNode } from '@tldraw/editor'
-import { ErasingSession } from '../../../sessions/ErasingSession'
+import { ErasingInteraction } from '../../../interactions/ErasingInteraction'
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'
 
-	session?: ErasingSession
+	session?: ErasingInteraction
 
 	override onEnter = () => {
-		this.session = new ErasingSession(this.editor, {
+		this.session = new ErasingInteraction(this.editor, {
 			onEnd: () => {
 				this.parent.transition('idle')
 			},

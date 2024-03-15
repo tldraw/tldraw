@@ -134,6 +134,12 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export {
+	Interaction,
+	type InteractionEvent,
+	type InteractionEventHandlers,
+	type InteractionInfo,
+} from './lib/editor/interactions/Interaction'
 export type {
 	TLAfterChangeHandler,
 	TLAfterCreateHandler,
@@ -154,12 +160,6 @@ export {
 	type PointsSnapIndicator,
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
-export {
-	Session,
-	type SessionEvent,
-	type SessionEventHandlers,
-	type SessionInfo,
-} from './lib/editor/sessions/Session'
 export {
 	ShapeUtil,
 	type TLOnBeforeCreateHandler,

@@ -1,6 +1,6 @@
-import { CAMERA_SLIDE_FRICTION, Session, Vec } from '@tldraw/editor'
+import { CAMERA_SLIDE_FRICTION, Interaction, Vec } from '@tldraw/editor'
 
-export class HandPanningSession extends Session {
+export class HandPanningInteraction extends Interaction {
 	id = 'hand-panning'
 
 	didPan = false

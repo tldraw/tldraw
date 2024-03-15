@@ -2,13 +2,13 @@ import {
 	Arc2d,
 	Geometry2d,
 	Group2d,
-	Session,
+	Interaction,
 	TLArrowShape,
 	Vec,
 	getPointInArcT,
 } from '@tldraw/editor'
 
-export class TranslatingArrowLabelSession extends Session<{
+export class TranslatingArrowLabelInteraction extends Interaction<{
 	shape: TLArrowShape
 }> {
 	readonly id = 'translating arrow label'

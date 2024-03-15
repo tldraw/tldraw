@@ -44,11 +44,9 @@ export class Pointing extends StateNode {
 
 			this.updateArrowShapeEndHandle()
 
-			this.editor.setCurrentTool('select.dragging_handle', {
+			this.parent.transition('creating', {
 				shape: this.shape,
 				handle: this.editor.getShapeHandles(this.shape)!.find((h) => h.id === 'end')!,
-				isCreating: true,
-				onInteractionEnd: 'arrow',
 			})
 		}
 	}

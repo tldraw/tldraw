@@ -1,13 +1,13 @@
 import { SelectionHandle, StateNode, TLGeoShape } from '@tldraw/editor'
-import { ResizingSession } from '../../../sessions/ResizingSession'
+import { ResizingInteraction } from '../../../interactions/ResizingInteraction'
 
 export class CreatingText extends StateNode {
 	static override id = 'creating_text'
 
-	session?: ResizingSession
+	session?: ResizingInteraction
 
 	override onEnter = (info: { shape: TLGeoShape; handle: SelectionHandle }) => {
-		this.session = new ResizingSession(this.editor, {
+		this.session = new ResizingInteraction(this.editor, {
 			isCreating: true,
 			handle: info.handle,
 			onCancel: () => {

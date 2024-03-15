@@ -1,5 +1,5 @@
 import { RotateCorner, StateNode, TLPointerEventInfo } from '@tldraw/editor'
-import { RotatingSession } from '../../../sessions/RotatingSession'
+import { RotatingInteraction } from '../../../interactions/RotatingInteraction'
 import { CursorTypeMap } from '../select-helpers'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
@@ -9,7 +9,7 @@ type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection
 export class PointingRotateHandle extends StateNode {
 	static override id = 'pointing_rotate_handle'
 
-	session?: RotatingSession
+	session?: RotatingInteraction
 
 	override onEnter = (info: PointingRotateHandleInfo) => {
 		const selectionRotation = this.editor.getSelectionRotation()
@@ -18,8 +18,11 @@ export class PointingRotateHandle extends StateNode {
 			rotation: selectionRotation,
 		})
 
-		this.session = new RotatingSession(this.editor, {
+		this.session = new RotatingInteraction(this.editor, {
 			handle: info.handle,
+			onStart: () => {
+				this.editor.setCursor({ type: 'grabbing', rotation: 0 })
+			},
 			onEnd: () => {
 				this.parent.transition('idle')
 			},

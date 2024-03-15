@@ -50,7 +50,7 @@ describe('When in the pointing state', () => {
 
 	it('enters the dragging state on pointer move', () => {
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('line.creating')
 	})
 })
 
@@ -71,7 +71,7 @@ describe('When dragging the line', () => {
 				},
 			},
 		})
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('line.creating')
 	})
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {

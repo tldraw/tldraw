@@ -1,6 +1,6 @@
-import { Session } from '@tldraw/editor'
+import { Interaction } from '@tldraw/editor'
 
-export class LaseringSession extends Session {
+export class LaseringInteraction extends Interaction {
 	id = 'lasering'
 	scribbleId = 'laser'
 

@@ -26,6 +26,7 @@ export class TickManager {
 
 		const now = Date.now()
 		const elapsed = now - this.last
+
 		this.last = now
 		this.t += elapsed
 

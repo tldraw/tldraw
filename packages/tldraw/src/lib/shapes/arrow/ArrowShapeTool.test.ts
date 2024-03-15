@@ -73,8 +73,13 @@ describe('When in the pointing state', () => {
 	})
 
 	it('enters the dragging state on pointer move', () => {
-		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
-		editor.expectToBeIn('select.dragging_handle')
+		editor
+			.setCurrentTool('arrow')
+			.expectCursorToBe('cross', 0)
+			.pointerDown(0, 0)
+			.pointerMove(10, 10)
+			.expectToBeIn('arrow.creating')
+			.expectCursorToBe('cross', 0)
 	})
 })
 
@@ -93,7 +98,7 @@ describe('When dragging the arrow', () => {
 				end: { type: 'point', x: 10, y: 10 },
 			},
 		})
-		editor.expectToBeIn('select.dragging_handle')
+		editor.expectToBeIn('arrow.creating')
 	})
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {
@@ -231,7 +236,8 @@ describe('When pointing an end shape', () => {
 			},
 		})
 
-		jest.advanceTimersByTime(1000)
+		editor.inputs.pointerVelocity = new Vec(0, 0)
+		editor.forceTick(100)
 
 		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
@@ -254,7 +260,8 @@ describe('When pointing an end shape', () => {
 
 		editor.pointerMove(375, 0)
 		expect(editor.getHintingShapeIds().length).toBe(0)
-		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+
+		arrow = editor.getShape<TLArrowShape>(arrow.id)!
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -269,10 +276,13 @@ describe('When pointing an end shape', () => {
 
 		// Build up some velocity
 		editor.inputs.pointerVelocity = new Vec(1, 1)
-		editor.pointerMove(325, 325)
-		expect(editor.getHintingShapeIds().length).toBe(1)
 
-		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		// Move onto the other shape
+		editor.pointerMove(325, 325)
+
+		arrow = editor.getShape<TLArrowShape>(arrow.id)!
+
+		expect(editor.getHintingShapeIds().length).toBe(1)
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -292,9 +302,9 @@ describe('When pointing an end shape', () => {
 		})
 
 		// Give time for the velocity to die down
-		jest.advanceTimersByTime(1000)
+		editor.forceTick(100)
 
-		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		arrow = editor.getShape<TLArrowShape>(arrow.id)!
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,

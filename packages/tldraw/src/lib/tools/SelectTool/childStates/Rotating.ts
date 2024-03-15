@@ -1,13 +1,13 @@
 import { RotateCorner, StateNode } from '@tldraw/editor'
-import { RotatingSession } from '../../../sessions/RotatingSession'
+import { RotatingInteraction } from '../../../interactions/RotatingInteraction'
 
 export class Rotating extends StateNode {
 	static override id = 'rotating'
 
-	session?: RotatingSession
+	session?: RotatingInteraction
 
 	override onEnter = (info: { handle: RotateCorner }) => {
-		this.session = new RotatingSession(this.editor, {
+		this.session = new RotatingInteraction(this.editor, {
 			handle: info.handle,
 			onEnd: () => {
 				this.parent.transition('idle')

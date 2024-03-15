@@ -1,6 +1,6 @@
-import { Box, Session } from '@tldraw/editor'
+import { Box, Interaction } from '@tldraw/editor'
 
-export class ZoomBrushingSession extends Session {
+export class ZoomBrushingInteraction extends Interaction {
 	id = 'zoom-brushing'
 
 	zoomBrush = new Box()

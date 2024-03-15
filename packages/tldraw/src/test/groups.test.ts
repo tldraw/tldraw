@@ -1755,7 +1755,6 @@ describe('moving handles within a group', () => {
 
 		editor.expectToBeIn('select.pointing_arrow_handle')
 		editor.pointerMove(60, -10)
-
 		editor.expectToBeIn('select.pointing_arrow_handle')
 		editor.pointerMove(60, -10)
 

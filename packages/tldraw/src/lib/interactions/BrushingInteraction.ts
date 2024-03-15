@@ -2,8 +2,8 @@ import {
 	Box,
 	Geometry2d,
 	HIT_TEST_MARGIN,
+	Interaction,
 	Mat,
-	Session,
 	TLFrameShape,
 	TLGroupShape,
 	TLPageId,
@@ -16,7 +16,7 @@ import {
 	polygonsIntersect,
 } from '@tldraw/editor'
 
-export class BrushingSession extends Session {
+export class BrushingInteraction extends Interaction {
 	readonly id = 'brushing'
 
 	strategy: 'box' | 'scribble' = 'box'

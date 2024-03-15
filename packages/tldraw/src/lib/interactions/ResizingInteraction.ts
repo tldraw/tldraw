@@ -1,11 +1,11 @@
 import {
 	Editor,
 	HALF_PI,
+	Interaction,
 	Mat,
 	SelectionCorner,
 	SelectionEdge,
 	SelectionHandle,
-	Session,
 	TLFrameShape,
 	TLShape,
 	TLShapeId,
@@ -18,7 +18,10 @@ import {
 	rotateSelectionHandle,
 } from '@tldraw/editor'
 
-export class ResizingSession extends Session<{ isCreating?: boolean; handle: SelectionHandle }> {
+export class ResizingInteraction extends Interaction<{
+	isCreating?: boolean
+	handle: SelectionHandle
+}> {
 	readonly id = 'resizing'
 
 	private markId = ''

@@ -3871,7 +3871,7 @@ it('uses the cross cursor when create resizing', () => {
 	editor.setCurrentTool('geo')
 	editor.pointerDown(0, 0)
 	editor.pointerMove(100, 100)
-	editor.expectToBeIn('geo.creating_geo')
+	editor.expectToBeIn('geo.creating')
 	expect(editor.getInstanceState().cursor.type).toBe('cross')
 	expect(editor.getInstanceState().cursor.rotation).toBe(0)
 

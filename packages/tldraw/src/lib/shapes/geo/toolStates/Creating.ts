@@ -1,13 +1,13 @@
 import { SelectionHandle, StateNode, TLGeoShape } from '@tldraw/editor'
-import { ResizingSession } from '../../../sessions/ResizingSession'
+import { ResizingInteraction } from '../../../interactions/ResizingInteraction'
 
-export class CreatingGeo extends StateNode {
-	static override id = 'creating_geo'
+export class Creating extends StateNode {
+	static override id = 'creating'
 
-	session?: ResizingSession
+	session?: ResizingInteraction
 
 	override onEnter = (info: { shape: TLGeoShape; handle: SelectionHandle }) => {
-		this.session = new ResizingSession(this.editor, {
+		this.session = new ResizingInteraction(this.editor, {
 			isCreating: true,
 			handle: info.handle,
 			onCancel: () => {
@@ -15,7 +15,7 @@ export class CreatingGeo extends StateNode {
 			},
 			onComplete: () => {
 				if (this.editor.getInstanceState().isToolLocked) {
-					this.parent.transition('idle')
+					this.parent.transition('idle', { shape: info.shape })
 				} else {
 					this.editor.setCurrentTool('select.idle')
 				}

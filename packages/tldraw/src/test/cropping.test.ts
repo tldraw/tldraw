@@ -1,5 +1,5 @@
 import { createShapeId, TLImageShape } from '@tldraw/editor'
-import { MIN_CROP_SIZE } from '../lib/sessions/ResizingCropSession'
+import { MIN_CROP_SIZE } from '../lib/interactions/ResizingCropInteraction'
 import { TestEditor } from './TestEditor'
 
 jest.useFakeTimers()

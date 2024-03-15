@@ -1,13 +1,13 @@
 import { StateNode } from '@tldraw/editor'
-import { TranslatingSession } from '../../../sessions/TranslatingSession'
+import { TranslatingInteraction } from '../../../interactions/TranslatingInteraction'
 
 export class Translating extends StateNode {
 	static override id = 'translating'
 
-	session?: TranslatingSession
+	session?: TranslatingInteraction
 
 	override onEnter = () => {
-		this.session = new TranslatingSession(this.editor, {
+		this.session = new TranslatingInteraction(this.editor, {
 			isCreating: false,
 			onEnd: () => {
 				this.parent.transition('idle')

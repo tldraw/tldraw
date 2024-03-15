@@ -345,6 +345,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Creating",
+                  "canonicalReference": "tldraw!~Creating_2:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
                   "text": "Idle",
                   "canonicalReference": "tldraw!~Idle_2:class"
                 },
@@ -372,7 +381,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 8
               },
               "isStatic": true,
               "isProtected": false,
@@ -7565,8 +7574,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "CreatingGeo",
-                  "canonicalReference": "tldraw!~CreatingGeo:class"
+                  "text": "Creating",
+                  "canonicalReference": "tldraw!~Creating_3:class"
                 },
                 {
                   "kind": "Content",
@@ -11108,6 +11117,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Creating",
+                  "canonicalReference": "tldraw!~Creating_4:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
                   "text": "Idle",
                   "canonicalReference": "tldraw!~Idle_5:class"
                 },
@@ -11135,7 +11153,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 8
               },
               "isStatic": true,
               "isProtected": false,
@@ -12194,8 +12212,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "CreatingNote",
-                  "canonicalReference": "tldraw!~CreatingNote:class"
+                  "text": "Creating",
+                  "canonicalReference": "tldraw!~Creating_5:class"
                 },
                 {
                   "kind": "Content",

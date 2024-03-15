@@ -1,5 +1,5 @@
 import {
-	Session,
+	Interaction,
 	TLHandle,
 	TLLineShape,
 	TLShapePartial,
@@ -9,7 +9,7 @@ import {
 	structuredClone,
 } from '@tldraw/editor'
 
-export class TranslatingLineHandleSession extends Session<{
+export class TranslatingLineHandleInteraction extends Interaction<{
 	isCreating: boolean
 	shape: TLLineShape
 	handle: TLHandle
@@ -154,6 +154,5 @@ export class TranslatingLineHandleSession extends Session<{
 	override onEnd() {
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clearIndicators()
-		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 }

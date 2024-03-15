@@ -1164,6 +1164,91 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
 // @public
+export abstract class Interaction<T extends object = object> {
+    constructor(editor: Editor, info?: InteractionInfo<T>);
+    cancel(): this;
+    complete(): this;
+    dispose: () => void;
+    // (undocumented)
+    protected duration: number;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    protected elapsed: number;
+    // (undocumented)
+    protected handleEditorEvent: (event: TLEventInfo) => void;
+    // (undocumented)
+    protected handleTick: (elapsed: number) => void;
+    // (undocumented)
+    abstract readonly id: string;
+    // (undocumented)
+    info: InteractionInfo<T>;
+    interrupt(): this;
+    // (undocumented)
+    isDisposed: boolean;
+    // (undocumented)
+    protected onCancel?(): void;
+    // (undocumented)
+    protected onComplete?(): void;
+    // (undocumented)
+    protected onEnd?(): void;
+    // (undocumented)
+    protected onInterrupt?(): void;
+    // (undocumented)
+    protected onStart?(): void;
+    // (undocumented)
+    protected onUpdate?(): void;
+    start(): this;
+    update(): this;
+}
+
+// @public
+export class InteractionEvent<T extends object = object> {
+    constructor(info: T, duration: number, elapsed: number);
+    // (undocumented)
+    duration: number;
+    // (undocumented)
+    elapsed: number;
+    // (undocumented)
+    info: T;
+    // (undocumented)
+    isDefaultPrevented: boolean;
+    // (undocumented)
+    preventDefault(): void;
+}
+
+// @public
+export interface InteractionEventHandlers<T extends object = object> {
+    // (undocumented)
+    onBeforeCancel?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onBeforeComplete?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onBeforeEnd?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onBeforeInterrupt?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onBeforeStart?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onBeforeUpdate?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onCancel?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onComplete?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onEnd?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onInterrupt?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onStart?: (event: InteractionEvent<T>) => void;
+    // (undocumented)
+    onUpdate?: (event: InteractionEvent<T>) => void;
+}
+
+// @public
+export type InteractionInfo<T extends object = object> = InteractionEventHandlers & T;
+
+// @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
 
 // @public
@@ -1562,91 +1647,6 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 
 // @public (undocumented)
 export type SelectionHandle = SelectionCorner | SelectionEdge;
-
-// @public
-export abstract class Session<T extends object = object> {
-    constructor(editor: Editor, info?: SessionInfo<T>);
-    cancel(): this;
-    complete(): this;
-    dispose: () => void;
-    // (undocumented)
-    protected duration: number;
-    // (undocumented)
-    editor: Editor;
-    // (undocumented)
-    protected elapsed: number;
-    // (undocumented)
-    protected handleEditorEvent: (event: TLEventInfo) => void;
-    // (undocumented)
-    protected handleTick: (elapsed: number) => void;
-    // (undocumented)
-    abstract readonly id: string;
-    // (undocumented)
-    info: SessionInfo<T>;
-    interrupt(): this;
-    // (undocumented)
-    isDisposed: boolean;
-    // (undocumented)
-    protected onCancel?(): void;
-    // (undocumented)
-    protected onComplete?(): void;
-    // (undocumented)
-    protected onEnd?(): void;
-    // (undocumented)
-    protected onInterrupt?(): void;
-    // (undocumented)
-    protected onStart?(): void;
-    // (undocumented)
-    protected onUpdate?(): void;
-    start(): this;
-    update(): this;
-}
-
-// @public
-export class SessionEvent<T extends object = object> {
-    constructor(info: T, duration: number, elapsed: number);
-    // (undocumented)
-    duration: number;
-    // (undocumented)
-    elapsed: number;
-    // (undocumented)
-    info: T;
-    // (undocumented)
-    isDefaultPrevented: boolean;
-    // (undocumented)
-    preventDefault(): void;
-}
-
-// @public
-export interface SessionEventHandlers<T extends object = object> {
-    // (undocumented)
-    onBeforeCancel?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onBeforeComplete?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onBeforeEnd?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onBeforeInterrupt?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onBeforeStart?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onBeforeUpdate?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onCancel?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onComplete?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onEnd?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onInterrupt?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onStart?: (event: SessionEvent<T>) => void;
-    // (undocumented)
-    onUpdate?: (event: SessionEvent<T>) => void;
-}
-
-// @public
-export type SessionInfo<T extends object = object> = SessionEventHandlers & T;
 
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;

@@ -1,13 +1,13 @@
 import { StateNode } from '@tldraw/editor'
-import { HandPanningSession } from '../../../sessions/HandPanningSession'
+import { HandPanningInteraction } from '../../../interactions/HandPanningInteraction'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'
 
-	session?: HandPanningSession
+	session?: HandPanningInteraction
 
 	override onEnter = () => {
-		this.session = new HandPanningSession(this.editor, {
+		this.session = new HandPanningInteraction(this.editor, {
 			onEnd: () => {
 				this.parent.transition('idle')
 			},

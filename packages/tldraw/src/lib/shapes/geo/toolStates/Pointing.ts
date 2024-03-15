@@ -42,7 +42,7 @@ export class Pointing extends StateNode {
 				])
 				.select(id)
 
-			this.parent.transition('creating_geo', {
+			this.parent.transition('creating', {
 				shape: this.editor.getShape<TLGeoShape>(id),
 				handle: 'bottom_right',
 				isCreating: true,

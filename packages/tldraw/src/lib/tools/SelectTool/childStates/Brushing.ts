@@ -1,13 +1,13 @@
 import { StateNode } from '@tldraw/editor'
-import { BrushingSession } from '../../../sessions/BrushingSession'
+import { BrushingInteraction } from '../../../interactions/BrushingInteraction'
 
 export class Brushing extends StateNode {
 	static override id = 'brushing'
 
-	session?: BrushingSession
+	session?: BrushingInteraction
 
 	override onEnter = () => {
-		this.session = new BrushingSession(this.editor, {
+		this.session = new BrushingInteraction(this.editor, {
 			onEnd: () => {
 				this.parent.transition('idle')
 			},

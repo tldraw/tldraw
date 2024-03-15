@@ -1,7 +1,7 @@
-import { Session, TLImageShape, Vec } from '@tldraw/editor'
+import { Interaction, TLImageShape, Vec } from '@tldraw/editor'
 import { getTranslateCroppedImageChange } from '../tools/SelectTool/childStates/Cropping/children/crop_helpers'
 
-export class NudgingCropSession extends Session<{
+export class NudgingCropInteraction extends Interaction<{
 	shape: TLImageShape
 }> {
 	readonly id = 'nudging crop'
