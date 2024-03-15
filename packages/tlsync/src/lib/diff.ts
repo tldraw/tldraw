@@ -3,17 +3,20 @@ import { objectMapEntries, objectMapValues } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 
 /** @public */
-export enum RecordOpType {
-	Put = 'put',
-	Patch = 'patch',
-	Remove = 'remove',
-}
+export const RecordOpType = {
+	Put: 'put',
+	Patch: 'patch',
+	Remove: 'remove',
+} as const
+
+/** @public */
+export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType]
 
 /** @public */
 export type RecordOp<R extends UnknownRecord> =
-	| [RecordOpType.Put, R]
-	| [RecordOpType.Patch, ObjectDiff]
-	| [RecordOpType.Remove]
+	| [typeof RecordOpType.Put, R]
+	| [typeof RecordOpType.Patch, ObjectDiff]
+	| [typeof RecordOpType.Remove]
 
 /**
  * A one-way (non-reversible) diff designed for small json footprint. These are mainly intended to
@@ -60,20 +63,22 @@ export const getNetworkDiff = <R extends UnknownRecord>(
 }
 
 /** @public */
-export enum ValueOpType {
-	Put = 'put',
-	Delete = 'delete',
-	Append = 'append',
-	Patch = 'patch',
-}
+export const ValueOpType = {
+	Put: 'put',
+	Delete: 'delete',
+	Append: 'append',
+	Patch: 'patch',
+} as const
+export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType]
+
 /** @public */
-export type PutOp = [type: ValueOpType.Put, value: unknown]
+export type PutOp = [type: typeof ValueOpType.Put, value: unknown]
 /** @public */
-export type AppendOp = [type: ValueOpType.Append, values: unknown[], offset: number]
+export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number]
 /** @public */
-export type PatchOp = [type: ValueOpType.Patch, diff: ObjectDiff]
+export type PatchOp = [type: typeof ValueOpType.Patch, diff: ObjectDiff]
 /** @public */
-export type DeleteOp = [type: ValueOpType.Delete]
+export type DeleteOp = [type: typeof ValueOpType.Delete]
 
 /** @public */
 export type ValueOp = PutOp | AppendOp | PatchOp | DeleteOp
