@@ -12,6 +12,7 @@ import {
 	type RoomState,
 } from '@tldraw/tlsync'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import { assert, assertExists, lns } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
 import Toucan from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
@@ -88,12 +89,17 @@ export class TLDrawDurableObject extends TLServer {
 	readonly router = Router()
 		.get(
 			'/r/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req),
+			(req) => this.extractDocumentInfoFromRequest(req, false),
+			(req) => this.onRequest(req)
+		)
+		.get(
+			'/v/:roomId',
+			(req) => this.extractDocumentInfoFromRequest(req, true),
 			(req) => this.onRequest(req)
 		)
 		.post(
 			'/r/:roomId/restore',
-			(req) => this.extractDocumentInfoFromRequest(req),
+			(req) => this.extractDocumentInfoFromRequest(req, false),
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
@@ -113,8 +119,11 @@ export class TLDrawDurableObject extends TLServer {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	extractDocumentInfoFromRequest = async (req: IRequest) => {
-		const slug = assertExists(req.params.roomId, 'roomId must be present')
+	extractDocumentInfoFromRequest = async (req: IRequest, isReadonly: boolean) => {
+		const slug = assertExists(
+			isReadonly ? lns(req.params.roomId) : req.params.roomId,
+			'roomId must be present'
+		)
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
