@@ -43,7 +43,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
-			buttons: { x: 0.5, y: -0.1 },
+			buttons: [
+				{ x: 0.5, y: -0.1 },
+				{ x: 1.1, y: 0.5 },
+				{ x: 0.5, y: 1.1 },
+				{ x: -0.1, y: 0.5 },
+			],
 		}
 	}
 
@@ -55,21 +60,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const height = this.getHeight(shape)
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
 	}
-
 	override getHandles(shape: TLNoteShape): TLHandle[] {
 		const { buttons } = shape.props
-		console.log(buttons)
-		return [
-			{
-				id: 'buttons',
-				type: 'vertex',
-				index: ZERO_INDEX_KEY,
-				x: buttons.x * NOTE_SIZE,
-				y: buttons.y * this.getHeight(shape),
-			},
-		]
+		const directionArr = ['up', 'right', 'down', 'left']
+		return buttons.map((button, i) => ({
+			id: directionArr[i],
+			type: 'vertex',
+			index: ZERO_INDEX_KEY,
+			x: button.x * NOTE_SIZE,
+			y: button.y * this.getHeight(shape),
+		}))
 	}
-
 	component(shape: TLNoteShape) {
 		const {
 			id,
@@ -205,6 +206,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			])
 		}
 	}
+	onHandlePointerUp(info: { shape: TLNoteShape; handleId: 'up' | 'down' | 'left' | 'right' }) {
+		duplicateShape(info.shape.id, info.handleId, this.editor)
+	}
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
@@ -272,9 +276,6 @@ function duplicateShape(
 			offsetY = distance * Math.sin(rotationRadians)
 			break
 	}
-
-	console.log(shape.rotation)
-	console.log(`OffsetX: ${offsetX}, OffsetY: ${offsetY}`)
 
 	editor.duplicateShapes([shapeId], { x: offsetX, y: offsetY })
 	editor.setEditingShape(editor.getSelectedShapes()[0])

@@ -4,6 +4,7 @@
 
 ```ts
 
+import { ArrayOfValidator } from '@tldraw/validate';
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
@@ -707,7 +708,7 @@ export const noteShapeProps: {
     growY: T.Validator<number>;
     url: T.Validator<string>;
     text: T.Validator<string>;
-    buttons: T.Validator<VecModel>;
+    buttons: ArrayOfValidator<VecModel>;
 };
 
 // @internal (undocumented)

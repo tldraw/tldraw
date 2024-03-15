@@ -2958,8 +2958,8 @@
             },
             {
               "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
+              "text": "ArrayOfValidator",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
             },
             {
               "kind": "Content",
