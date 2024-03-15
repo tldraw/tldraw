@@ -271,8 +271,6 @@ function duplicateShape(
 	direction: 'up' | 'down' | 'left' | 'right',
 	editor: Editor
 ) {
-	const shape = editor.getShape(shapeId) as TLNoteShape
-
 	const rotationRadians = editor.getShapePageTransform(shapeId).rotation()
 	const distance = NOTE_SIZE + 30
 
@@ -298,9 +296,6 @@ function duplicateShape(
 			offsetY = distance * Math.sin(rotationRadians)
 			break
 	}
-
-	console.log(shape.rotation)
-	console.log(`OffsetX: ${offsetX}, OffsetY: ${offsetY}`)
 
 	editor.duplicateShapes([shapeId], { x: offsetX, y: offsetY })
 }
