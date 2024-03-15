@@ -49,6 +49,43 @@ export type TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> = 
 const PING_INTERVAL = 5000
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2
 
+export function _applyNetworkDiffToStore<R extends UnknownRecord, S extends Store<R> = Store<R>>(
+	diff: NetworkDiff<R>,
+	store: S
+): RecordsDiff<R> | null {
+	const changes: RecordsDiff<R> = { added: {} as any, updated: {} as any, removed: {} as any }
+	type k = keyof typeof changes.updated
+	let hasChanges = false
+	for (const [id, op] of objectMapEntries(diff)) {
+		if (op[0] === RecordOpType.Put) {
+			const existing = store.get(id as RecordId<any>)
+			if (existing && !isEqual(existing, op[1])) {
+				hasChanges = true
+				changes.updated[id as k] = [existing, op[1]]
+			} else {
+				hasChanges = true
+				changes.added[id as k] = op[1]
+			}
+		} else if (op[0] === RecordOpType.Patch) {
+			const record = store.get(id as RecordId<any>)
+			if (!record) {
+				// the record was removed upstream
+				continue
+			}
+			const patched = applyObjectDiff(record, op[1])
+			hasChanges = true
+			changes.updated[id as k] = [record, patched]
+		} else if (op[0] === RecordOpType.Remove) {
+			if (store.has(id as RecordId<any>)) {
+				hasChanges = true
+				changes.removed[id as k] = store.get(id as RecordId<any>)
+			}
+		}
+	}
+
+	return hasChanges ? changes : null
+}
+
 // Should connect support chunking the response to allow for large payloads?
 
 /**
@@ -488,36 +525,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	private applyNetworkDiff(diff: NetworkDiff<R>, runCallbacks: boolean) {
 		this.debug('applyNetworkDiff', diff)
-		const changes: RecordsDiff<R> = { added: {} as any, updated: {} as any, removed: {} as any }
-		type k = keyof typeof changes.updated
-		let hasChanges = false
-		for (const [id, op] of objectMapEntries(diff)) {
-			if (op[0] === RecordOpType.Put) {
-				const existing = this.store.get(id as RecordId<any>)
-				if (existing && !isEqual(existing, op[1])) {
-					hasChanges = true
-					changes.updated[id as k] = [existing, op[1]]
-				} else {
-					hasChanges = true
-					changes.added[id as k] = op[1]
-				}
-			} else if (op[0] === RecordOpType.Patch) {
-				const record = this.store.get(id as RecordId<any>)
-				if (!record) {
-					// the record was removed upstream
-					continue
-				}
-				const patched = applyObjectDiff(record, op[1])
-				hasChanges = true
-				changes.updated[id as k] = [record, patched]
-			} else if (op[0] === RecordOpType.Remove) {
-				if (this.store.has(id as RecordId<any>)) {
-					hasChanges = true
-					changes.removed[id as k] = this.store.get(id as RecordId<any>)
-				}
-			}
-		}
-		if (hasChanges) {
+		const changes = _applyNetworkDiffToStore(diff, this.store)
+		if (changes !== null) {
 			this.store.applyDiff(changes, runCallbacks)
 		}
 	}

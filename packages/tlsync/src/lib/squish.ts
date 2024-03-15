@@ -149,7 +149,9 @@ export function squishDataEvents<R extends UnknownRecord>(
 				break
 			case 'patch':
 				if (state.lastPatch !== null) {
-					const bailed = squishInto(state.lastPatch.diff, e.diff)
+					// this structuredClone is necessary to avoid modifying the original list of events
+					// (otherwise objects can get reused on put and then modified on patch)
+					const bailed = squishInto(state.lastPatch.diff, structuredClone(e.diff))
 					if (bailed) {
 						// this is unfortunate, but some patches were too hard to patch, give up
 						// and return the original list
