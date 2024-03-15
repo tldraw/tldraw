@@ -81,9 +81,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
-		const selectedShapes = this.editor.getSelectedShapeIds()
-		const isOnlyShapeSelected = selectedShapes.length === 1 && selectedShapes[0] === shape.id
-
 		return (
 			<>
 				<div
@@ -278,5 +275,6 @@ function duplicateShape(
 	}
 
 	editor.duplicateShapes([shapeId], { x: offsetX, y: offsetY })
-	editor.setEditingShape(editor.getSelectedShapes()[0])
+	const newShape = editor.getSelectedShapeIds()[0]
+	editor.setEditingShape(newShape)
 }

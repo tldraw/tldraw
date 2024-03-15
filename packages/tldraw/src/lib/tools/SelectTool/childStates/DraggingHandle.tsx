@@ -8,10 +8,12 @@ import {
 	TLHandle,
 	TLKeyboardEvent,
 	TLLineShape,
+	TLNoteShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	TLShapePartial,
 	Vec,
+	createShapeId,
 	snapAngle,
 	sortByIndex,
 	structuredClone,
@@ -30,7 +32,7 @@ export class DraggingHandle extends StateNode {
 	initialPageRotation: any
 
 	info = {} as TLPointerEventInfo & {
-		shape: TLArrowShape | TLLineShape
+		shape: TLArrowShape | TLLineShape | TLNoteShape
 		target: 'handle'
 		onInteractionEnd?: string
 		isCreating: boolean
@@ -58,6 +60,19 @@ export class DraggingHandle extends StateNode {
 		if (!isCreating) this.editor.mark(this.markId)
 
 		this.initialHandle = structuredClone(handle)
+
+		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+			const shapeId = createShapeId()
+			const pagePoint = this.editor.inputs.originPagePoint
+			this.editor.createShape({
+				type: 'note',
+				id: shapeId,
+				x: pagePoint.x - 100,
+				y: pagePoint.y - 50,
+			})
+			this.editor.select(shapeId)
+			this.parent.transition('translating', { shapeId })
+		}
 
 		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
 			// For line shapes, if we're dragging a "create" handle, then

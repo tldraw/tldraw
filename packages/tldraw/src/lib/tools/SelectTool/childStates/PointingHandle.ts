@@ -40,9 +40,10 @@ export class PointingHandle extends StateNode {
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		if (this.editor.isShapeOfType<TLNoteShape>(this.shape, 'note')) {
-			console.log(this.info)
 			this.editor
 				.getShapeUtil<TLNoteShape>(this.shape)
+				// todo: fix this
+				// @ts-expect-error
 				.onHandlePointerUp({ shape: this.shape, handleId: this.info.handle.id })
 		}
 		this.parent.transition('idle', this.info)
