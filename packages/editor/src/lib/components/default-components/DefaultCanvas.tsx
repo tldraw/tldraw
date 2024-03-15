@@ -1,4 +1,4 @@
-import { react, track, useQuickReactor, useValue } from '@tldraw/state'
+import { react, track, useLayoutReaction, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
@@ -41,30 +41,26 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useGestureEvents(rCanvas)
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
-	useQuickReactor(
-		'position layers',
-		() => {
-			const htmlElm = rHtmlLayer.current
-			if (!htmlElm) return
-			const htmlElm2 = rHtmlLayer2.current
-			if (!htmlElm2) return
+	useLayoutReaction('position layers', () => {
+		const htmlElm = rHtmlLayer.current
+		if (!htmlElm) return
+		const htmlElm2 = rHtmlLayer2.current
+		if (!htmlElm2) return
 
-			const { x, y, z } = editor.getCamera()
+		const { x, y, z } = editor.getCamera()
 
-			// Because the html container has a width/height of 1px, we
-			// need to create a small offset when zoomed to ensure that
-			// the html container and svg container are lined up exactly.
-			const offset =
-				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
+		// Because the html container has a width/height of 1px, we
+		// need to create a small offset when zoomed to ensure that
+		// the html container and svg container are lined up exactly.
+		const offset =
+			z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-				x + offset
-			)}px,${toDomPrecision(y + offset)}px)`
-			htmlElm.style.setProperty('transform', transform)
-			htmlElm2.style.setProperty('transform', transform)
-		},
-		[editor]
-	)
+		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+			x + offset
+		)}px,${toDomPrecision(y + offset)}px)`
+		htmlElm.style.setProperty('transform', transform)
+		htmlElm2.style.setProperty('transform', transform)
+	})
 
 	const events = useCanvasEvents()
 
