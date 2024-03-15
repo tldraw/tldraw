@@ -29,7 +29,7 @@ const router = Router()
 	.get('/v/:roomId', joinExistingRoom)
 	.get('/r/:roomId/history', getRoomHistory)
 	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
-	.get('readonly-slug/:roomId', getReadonlySlug)
+	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.post('/r/:roomId/restore', forwardRoomRequest)
 	.all('*', fourOhFour)
 

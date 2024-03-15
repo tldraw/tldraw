@@ -66,8 +66,6 @@ export const ShareMenu = React.memo(function ShareMenu() {
 		let cancelled = false
 
 		const shareUrl = getShareUrl(window.location.href, false)
-		const readonlyShareUrl = getShareUrl(window.location.href, true)
-
 		if (!shareState.qrCodeDataUrl && shareState.state === 'shared') {
 			// Fetch the QR code data URL
 			createQRCodeImageDataString(shareUrl).then((dataUrl) => {
@@ -77,14 +75,31 @@ export const ShareMenu = React.memo(function ShareMenu() {
 			})
 		}
 
-		if (!shareState.readonlyQrCodeDataUrl) {
-			// fetch the readonly QR code data URL
-			createQRCodeImageDataString(readonlyShareUrl).then((dataUrl) => {
-				if (!cancelled) {
-					setShareState((s) => ({ ...s, readonlyShareUrl, readonlyQrCodeDataUrl: dataUrl }))
-				}
-			})
+		async function fetchReadonlyRoomId() {
+			const segs = window.location.href.split('/')
+			segs[segs.length - 2] = 'v'
+
+			const [roomId, params] = segs[segs.length - 1].split('?')
+			const result = await fetch(`/api/readonly-slug/${roomId}`)
+			if (!result.ok) return
+			const slug = (await result.json()).slug
+			if (!slug) return
+
+			segs[segs.length - 1] = slug
+			if (params) segs[segs.length - 1] += '?' + params
+
+			const readonlyShareUrl = segs.join('/')
+
+			if (!shareState.readonlyQrCodeDataUrl) {
+				// fetch the readonly QR code data URL
+				createQRCodeImageDataString(readonlyShareUrl).then((dataUrl) => {
+					if (!cancelled) {
+						setShareState((s) => ({ ...s, readonlyShareUrl, readonlyQrCodeDataUrl: dataUrl }))
+					}
+				})
+			}
 		}
+		fetchReadonlyRoomId()
 
 		const interval = setInterval(() => {
 			const url = window.location.href
