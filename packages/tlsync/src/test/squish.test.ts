@@ -360,8 +360,6 @@ class Model {
 
 	private getStoreWithDiffs(diffs: NetworkDiff<TestRecord>[]) {
 		const store = this.getFreshStore()
-		//console.log('fresh store', JSON.stringify(store.serialize(), null, 2))
-		//console.log('diffs to apply', JSON.stringify(diffs, null, 2))
 		for (const diff of diffs) {
 			const changes = _applyNetworkDiffToStore(diff, store)
 			if (changes !== null) {
