@@ -300,8 +300,12 @@ function duplicateShape(
 		},
 	})
 	editor.setEditingShape(newShapeId)
-	editor.centerOnPoint(
-		{ x: newShapeX + NOTE_SIZE / 2, y: newShapeY + NOTE_SIZE / 2 },
-		{ duration: ANIMATION_MEDIUM_MS }
-	)
+	// copied from editor.duplicateShapes
+	const selectionPageBounds = editor.getSelectionPageBounds()
+	const viewportPageBounds = editor.getViewportPageBounds()
+	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+		editor.centerOnPoint(selectionPageBounds.center, {
+			duration: ANIMATION_MEDIUM_MS,
+		})
+	}
 }
