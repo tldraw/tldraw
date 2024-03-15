@@ -273,7 +273,7 @@ function duplicateShape(
 ) {
 	const shape = editor.getShape(shapeId) as TLNoteShape
 
-	const rotationRadians = shape.rotation
+	const rotationRadians = editor.getShapePageTransform(shapeId).rotation()
 	const distance = NOTE_SIZE + 30
 
 	// Calculate offsetX and offsetY based on the direction and rotation
