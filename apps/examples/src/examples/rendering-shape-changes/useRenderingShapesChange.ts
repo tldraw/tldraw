@@ -2,12 +2,7 @@ import { useEffect, useRef } from 'react'
 import { TLShape, react, useEditor } from 'tldraw'
 
 export function useChangedShapesReactor(
-	cb: (info: {
-		created: TLShape[]
-		deleted: TLShape[]
-		culled: TLShape[]
-		restored: TLShape[]
-	}) => void
+	cb: (info: { culled: TLShape[]; restored: TLShape[] }) => void
 ) {
 	const editor = useEditor()
 	const rPrevShapes = useRef(editor.getRenderingShapes())
@@ -17,7 +12,6 @@ export function useChangedShapesReactor(
 			const after = editor.getRenderingShapes()
 			const before = rPrevShapes.current
 
-			const created: TLShape[] = []
 			const culled: TLShape[] = []
 			const restored: TLShape[] = []
 
@@ -26,7 +20,7 @@ export function useChangedShapesReactor(
 			for (const afterInfo of after) {
 				const beforeInfo = before.find((s) => s.id === afterInfo.id)
 				if (!beforeInfo) {
-					created.push(afterInfo.shape)
+					continue
 				} else {
 					if (afterInfo.isCulled && !beforeInfo.isCulled) {
 						culled.push(afterInfo.shape)
@@ -37,13 +31,9 @@ export function useChangedShapesReactor(
 				}
 			}
 
-			const deleted = Array.from(beforeToVisit).map((s) => s.shape)
-
 			rPrevShapes.current = after
 
 			cb({
-				created,
-				deleted,
 				culled,
 				restored,
 			})

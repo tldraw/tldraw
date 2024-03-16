@@ -5,20 +5,12 @@ import { useChangedShapesReactor } from './useRenderingShapesChange'
 
 const components = {
 	InFrontOfTheCanvas: () => {
-		const onShapesChanged = useCallback(
-			(info: {
-				created: TLShape[]
-				deleted: TLShape[]
-				culled: TLShape[]
-				restored: TLShape[]
-			}) => {
-				// eslint-disable-next-line no-console
-				for (const shape of info.culled) console.log('culled: ' + shape.id)
-				// eslint-disable-next-line no-console
-				for (const shape of info.restored) console.log('restored: ' + shape.id)
-			},
-			[]
-		)
+		const onShapesChanged = useCallback((info: { culled: TLShape[]; restored: TLShape[] }) => {
+			// eslint-disable-next-line no-console
+			for (const shape of info.culled) console.log('culled: ' + shape.id)
+			// eslint-disable-next-line no-console
+			for (const shape of info.restored) console.log('restored: ' + shape.id)
+		}, [])
 
 		useChangedShapesReactor(onShapesChanged)
 
