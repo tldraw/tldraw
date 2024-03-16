@@ -243,6 +243,7 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 
 	const transform = useValue('handles transform', () => editor.getShapePageTransform(shapeId), [
 		editor,
+		shapeId,
 	])
 
 	const handles = useValue(
@@ -275,7 +276,7 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 					.sort((a) => (a.type === 'vertex' ? 1 : -1))
 			)
 		},
-		[editor, zoomLevel, isCoarse]
+		[editor, zoomLevel, isCoarse, shapeId]
 	)
 
 	if (!Handles || !handles || !transform) {
