@@ -413,7 +413,9 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			} else {
 				if (session.debounceTimer === null) {
 					// this is the first message since the last flush, don't delay it
-					session.socket.sendMessage(message)
+					session.socket.sendMessage(
+						session.isV4Client ? message : { type: 'data', data: [message] }
+					)
 
 					session.debounceTimer = setTimeout(
 						() => this._flushDataMessages(sessionKey),
