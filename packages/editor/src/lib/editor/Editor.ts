@@ -1647,8 +1647,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getSelectionRotation(): number {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		if (selectedShapeIds.length === 0) return 0
-
 		let foundFirst = false // annoying but we can't use an i===0 check because we need to skip over undefineds
 		let rotation = 0
 		for (let i = 0, n = selectedShapeIds.length; i < n; i++) {
