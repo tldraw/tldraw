@@ -2,7 +2,6 @@
 title: Rendering shapes change
 component: ./RenderingShapesChangeExample.tsx
 category: basic
-priority: 1
 ---
 
 ---
