@@ -1,29 +1,28 @@
-import { useState } from 'react'
+import { useCallback } from 'react'
 import { TLShape, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { useChangedShapesReactor } from './useRenderingShapesChange'
 
 const components = {
 	InFrontOfTheCanvas: () => {
-		const [state, setState] = useState<{
-			created: TLShape[]
-			deleted: TLShape[]
-			culled: TLShape[]
-			restored: TLShape[]
-		}>({
-			created: [],
-			deleted: [],
-			culled: [],
-			restored: [],
-		})
-
-		useChangedShapesReactor(setState)
-
-		return (
-			<div style={{ padding: 50 }}>
-				<pre>{JSON.stringify(state, null, 2)}</pre>
-			</div>
+		const onShapesChanged = useCallback(
+			(info: {
+				created: TLShape[]
+				deleted: TLShape[]
+				culled: TLShape[]
+				restored: TLShape[]
+			}) => {
+				// eslint-disable-next-line no-console
+				for (const shape of info.culled) console.log('culled: ' + shape.id)
+				// eslint-disable-next-line no-console
+				for (const shape of info.restored) console.log('restored: ' + shape.id)
+			},
+			[]
 		)
+
+		useChangedShapesReactor(onShapesChanged)
+
+		return null
 	},
 }
 
