@@ -17,6 +17,7 @@ import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
+import { setProperty } from '../../utils/dom'
 import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
@@ -43,11 +44,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
 	useLayoutReaction('position layers', () => {
-		const htmlElm = rHtmlLayer.current
-		if (!htmlElm) return
-		const htmlElm2 = rHtmlLayer2.current
-		if (!htmlElm2) return
-
 		const { x, y, z } = editor.getCamera()
 
 		// Because the html container has a width/height of 1px, we
@@ -59,8 +55,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
 			x + offset
 		)}px,${toDomPrecision(y + offset)}px)`
-		htmlElm.style.setProperty('transform', transform)
-		htmlElm2.style.setProperty('transform', transform)
+		setProperty(rHtmlLayer, 'transform', transform)
+		setProperty(rHtmlLayer2, 'transform', transform)
 	})
 
 	const events = useCanvasEvents()
@@ -438,11 +434,11 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }
 
-const HintedShapeIndicator = track(function HintedShapeIndicator() {
+function HintedShapeIndicator() {
 	const editor = useEditor()
 	const { ShapeIndicator } = useEditorComponents()
 
-	const ids = dedupe(editor.getHintingShapeIds())
+	const ids = useValue('hinting shape ids', () => dedupe(editor.getHintingShapeIds()), [editor])
 
 	if (!ids.length) return null
 	if (!ShapeIndicator) return null
@@ -454,7 +450,7 @@ const HintedShapeIndicator = track(function HintedShapeIndicator() {
 			))}
 		</>
 	)
-})
+}
 
 function Cursor() {
 	return (
