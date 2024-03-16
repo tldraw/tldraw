@@ -1696,9 +1696,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.flatMap((id) => {
 					const pageTransform = this.getShapePageTransform(id)
 					if (!pageTransform) return []
-					return pageTransform.applyToPoints(this.getShapeGeometry(id).vertices)
+					return pageTransform.applyToPoints(this.getShapeGeometry(id).bounds.corners)
 				})
-				.map((p) => Vec.Rot(p, -selectionRotation))
+				.map((p) => p.rot(-selectionRotation))
 		)
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
