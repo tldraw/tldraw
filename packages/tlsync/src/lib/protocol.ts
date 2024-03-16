@@ -35,6 +35,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			type: 'pong'
 	  }
 	| { type: 'data'; data: TLSocketServerSentDataEvent<R>[] }
+	| TLSocketServerSentDataEvent<R>
 
 /** @public */
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
