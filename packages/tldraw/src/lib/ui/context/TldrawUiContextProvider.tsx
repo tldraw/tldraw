@@ -10,6 +10,7 @@ import { BreakPointProvider } from './breakpoints'
 import { TLUiComponents, TldrawUiComponentsProvider } from './components'
 import { DialogsProvider } from './dialogs'
 import { TLUiEventHandler, UiEventsProvider } from './events'
+import { EditorThemeProvider } from './theme'
 import { ToastsProvider } from './toasts'
 
 /**
@@ -64,11 +65,13 @@ export function TldrawUiContextProvider({
 				<UiEventsProvider onEvent={onUiEvent}>
 					<ToastsProvider>
 						<DialogsProvider>
-							<BreakPointProvider forceMobile={forceMobile}>
-								<TldrawUiComponentsProvider overrides={components}>
-									<InternalProviders overrides={overrides}>{children}</InternalProviders>
-								</TldrawUiComponentsProvider>
-							</BreakPointProvider>
+							<EditorThemeProvider>
+								<BreakPointProvider forceMobile={forceMobile}>
+									<TldrawUiComponentsProvider overrides={components}>
+										<InternalProviders overrides={overrides}>{children}</InternalProviders>
+									</TldrawUiComponentsProvider>
+								</BreakPointProvider>
+							</EditorThemeProvider>
 						</DialogsProvider>
 					</ToastsProvider>
 				</UiEventsProvider>

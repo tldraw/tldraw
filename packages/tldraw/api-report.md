@@ -62,6 +62,7 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLDefaultColorThemeColor } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -511,6 +512,11 @@ export function DuplicateMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function EditLinkMenuItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function EditorThemeProvider({ children }: {
+    children: React.ReactNode;
+}): JSX_2.Element;
 
 // @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
@@ -2473,6 +2479,26 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
+
+// @public (undocumented)
+export function useEditorTheme(): {
+    id: "dark" | "light";
+    text: string;
+    background: string;
+    solid: string;
+    black: TLDefaultColorThemeColor;
+    grey: TLDefaultColorThemeColor;
+    "light-violet": TLDefaultColorThemeColor;
+    violet: TLDefaultColorThemeColor;
+    blue: TLDefaultColorThemeColor;
+    "light-blue": TLDefaultColorThemeColor;
+    yellow: TLDefaultColorThemeColor;
+    orange: TLDefaultColorThemeColor;
+    green: TLDefaultColorThemeColor;
+    "light-green": TLDefaultColorThemeColor;
+    "light-red": TLDefaultColorThemeColor;
+    red: TLDefaultColorThemeColor;
+};
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;

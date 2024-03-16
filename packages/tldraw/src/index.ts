@@ -72,6 +72,7 @@ export {
 	type TLUiEventMap,
 	type TLUiEventSource,
 } from './lib/ui/context/events'
+export { EditorThemeProvider, useEditorTheme } from './lib/ui/context/theme'
 export {
 	useToasts,
 	type TLUiToast,
