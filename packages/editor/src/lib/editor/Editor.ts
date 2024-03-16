@@ -1647,19 +1647,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getSelectionRotation(): number {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		if (selectedShapeIds.length === 0) {
-			return 0
-		}
-		if (selectedShapeIds.length === 1) {
-			return this.getShapePageTransform(this.getSelectedShapeIds()[0])!.rotation()
+		if (selectedShapeIds.length === 0) return 0
+
+		let rotation = -1
+		for (let i = 0, n = selectedShapeIds.length; i < n; i++) {
+			const pageTransform = this.getShapePageTransform(selectedShapeIds[i])
+			if (!pageTransform) continue
+			if (rotation === -1) {
+				rotation = pageTransform.rotation()
+			} else {
+				if (pageTransform.rotation() !== rotation) {
+					return 0
+				}
+			}
 		}
 
-		const allRotations = selectedShapeIds.map((id) => this.getShapePageTransform(id)!.rotation())
-		// if the rotations are all compatible with each other, return the rotation of any one of them
-		if (allRotations.every((rotation) => Math.abs(rotation - allRotations[0]) < Math.PI / 180)) {
-			return this.getShapePageTransform(selectedShapeIds[0])!.rotation()
-		}
-		return 0
+		return rotation
 	}
 
 	/**
