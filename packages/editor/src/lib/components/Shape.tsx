@@ -46,20 +46,34 @@ export const Shape = memo(function Shape({
 	const containerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
 
+	const memoizedStuffRef = useRef({
+		transform: '',
+		clipPath: 'none',
+		width: 0,
+		height: 0,
+	})
+
 	useLayoutReaction('set shape stuff', () => {
 		const shape = editor.getShape(id)
 		if (!shape) return // probably the shape was just deleted
 
+		const prev = memoizedStuffRef.current
+
 		// Clip path
-		const clipPath = editor.getShapeClipPath(id)
-		setProperty(containerRef, 'clip-path', clipPath ?? 'none')
-		setProperty(bgContainerRef, 'clip-path', clipPath ?? 'none')
+		const clipPath = editor.getShapeClipPath(id) ?? 'none'
+		if (clipPath !== prev.clipPath) {
+			setProperty(containerRef, 'clip-path', clipPath)
+			setProperty(bgContainerRef, 'clip-path', clipPath)
+			prev.clipPath = clipPath
+		}
 
 		// Page transform
-		const pageTransform = editor.getShapePageTransform(id)
-		const transform = Mat.toCssString(pageTransform)
-		setProperty(containerRef, 'transform', transform)
-		setProperty(bgContainerRef, 'transform', transform)
+		const transform = Mat.toCssString(editor.getShapePageTransform(id))
+		if (transform !== prev.transform) {
+			setProperty(containerRef, 'transform', transform)
+			setProperty(bgContainerRef, 'transform', transform)
+			prev.transform = transform
+		}
 
 		// Width / Height
 		// We round the shape width and height up to the nearest multiple of dprMultiple to avoid the browser
@@ -69,10 +83,15 @@ export const Shape = memo(function Shape({
 		const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
 		const heightRemainder = bounds.h % dprMultiple
 		const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
-		setProperty(containerRef, 'width', Math.max(width, dprMultiple) + 'px')
-		setProperty(containerRef, 'height', Math.max(height, dprMultiple) + 'px')
-		setProperty(bgContainerRef, 'width', Math.max(width, dprMultiple) + 'px')
-		setProperty(bgContainerRef, 'height', Math.max(height, dprMultiple) + 'px')
+
+		if (width !== prev.width || height !== prev.height) {
+			setProperty(containerRef, 'width', Math.max(width, dprMultiple) + 'px')
+			setProperty(containerRef, 'height', Math.max(height, dprMultiple) + 'px')
+			setProperty(bgContainerRef, 'width', Math.max(width, dprMultiple) + 'px')
+			setProperty(bgContainerRef, 'height', Math.max(height, dprMultiple) + 'px')
+			prev.width = width
+			prev.height = height
+		}
 	})
 
 	// Set the opacity of the container when the opacity changes
