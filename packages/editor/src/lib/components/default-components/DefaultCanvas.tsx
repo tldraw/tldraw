@@ -1,8 +1,8 @@
-import { react, track, useLayoutReaction, useValue } from '@tldraw/state'
+import { react, useLayoutReaction, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
-import React from 'react'
+import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
@@ -32,9 +32,9 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 
 	const { Background, SvgDefs } = useEditorComponents()
 
-	const rCanvas = React.useRef<HTMLDivElement>(null)
-	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
-	const rHtmlLayer2 = React.useRef<HTMLDivElement>(null)
+	const rCanvas = useRef<HTMLDivElement>(null)
+	const rHtmlLayer = useRef<HTMLDivElement>(null)
+	const rHtmlLayer2 = useRef<HTMLDivElement>(null)
 
 	useScreenBounds(rCanvas)
 	useDocumentEvents()
@@ -64,7 +64,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const shapeSvgDefs = useValue(
 		'shapeSvgDefs',
 		() => {
-			const shapeSvgDefsByKey = new Map<string, React.JSX.Element>()
+			const shapeSvgDefsByKey = new Map<string, JSX.Element>()
 			for (const util of objectMapValues(editor.shapeUtils)) {
 				if (!util) return
 				const defs = util.getCanvasSvgDefs()
@@ -337,10 +337,10 @@ function ShapesWithSVGs() {
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<React.Fragment key={result.id + '_fragment'}>
+				<Fragment key={result.id + '_fragment'}>
 					<Shape {...result} dprMultiple={dprMultiple} />
 					<DebugSvgCopy id={result.id} />
-				</React.Fragment>
+				</Fragment>
 			))}
 		</>
 	)
@@ -474,15 +474,21 @@ function CollaboratorHintDef() {
 	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }
 
-const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
+function DebugSvgCopy({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
-	const shape = editor.getShape(id)
 
-	const [html, setHtml] = React.useState('')
+	const [html, setHtml] = useState('')
 
-	const isInRoot = shape?.parentId === editor.getCurrentPageId()
+	const isInRoot = useValue(
+		'is in root',
+		() => {
+			const shape = editor.getShape(id)
+			return shape?.parentId === editor.getCurrentPageId()
+		},
+		[editor, id]
+	)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!isInRoot) return
 
 		let latest = null
@@ -516,7 +522,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			<div style={{ display: 'flex' }} dangerouslySetInnerHTML={{ __html: html }} />
 		</div>
 	)
-})
+}
 
 function SelectionForegroundWrapper() {
 	const editor = useEditor()
