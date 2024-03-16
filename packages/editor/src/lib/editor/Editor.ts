@@ -1649,16 +1649,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectedShapeIds = this.getSelectedShapeIds()
 		if (selectedShapeIds.length === 0) return 0
 
-		let rotation = -1
+		let foundFirst = false // annoying but we can't use an i===0 check because we need to skip over undefineds
+		let rotation = 0
 		for (let i = 0, n = selectedShapeIds.length; i < n; i++) {
 			const pageTransform = this.getShapePageTransform(selectedShapeIds[i])
 			if (!pageTransform) continue
-			if (rotation === -1) {
-				rotation = pageTransform.rotation()
-			} else {
+			if (foundFirst) {
 				if (pageTransform.rotation() !== rotation) {
+					// There are at least 2 different rotations, so the common rotation is zero
 					return 0
 				}
+			} else {
+				// First rotation found
+				foundFirst = true
+				rotation = pageTransform.rotation()
 			}
 		}
 
