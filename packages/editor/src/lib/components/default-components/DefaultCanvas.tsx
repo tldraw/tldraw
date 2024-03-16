@@ -95,10 +95,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			<svg className="tl-svg-context">
 				<defs>
 					{shapeSvgDefs}
-					{Cursor && <Cursor />}
-					<CollaboratorHint />
-					<ArrowheadDot />
-					<ArrowheadCross />
+					<CursorDef />
+					<CollaboratorHintDef />
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
@@ -240,6 +238,7 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 
 	const transform = useValue('handles transform', () => editor.getShapePageTransform(shapeId), [
 		editor,
+		shapeId,
 	])
 
 	const handles = useValue(
@@ -272,7 +271,7 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 					.sort((a) => (a.type === 'vertex' ? 1 : -1))
 			)
 		},
-		[editor, zoomLevel, isCoarse]
+		[editor, zoomLevel, isCoarse, shapeId]
 	)
 
 	if (!Handles || !handles || !transform) {
@@ -452,7 +451,7 @@ function HintedShapeIndicator() {
 	)
 }
 
-function Cursor() {
+function CursorDef() {
 	return (
 		<g id="cursor">
 			<g fill="rgba(0,0,0,.2)" transform="translate(-11,-11)">
@@ -471,25 +470,8 @@ function Cursor() {
 	)
 }
 
-function CollaboratorHint() {
+function CollaboratorHintDef() {
 	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
-}
-
-function ArrowheadDot() {
-	return (
-		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
-			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
-		</marker>
-	)
-}
-
-function ArrowheadCross() {
-	return (
-		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
-			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
-			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
-		</marker>
-	)
 }
 
 const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
