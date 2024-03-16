@@ -94,7 +94,7 @@ export const Shape = memo(function Shape({
 		}
 	})
 
-	// Set the opacity of the container when the opacity changes
+	// This stuff changes pretty infrequently, so we can change them together
 	useLayoutEffect(() => {
 		// Opacity
 		setProperty(containerRef, 'opacity', opacity)
