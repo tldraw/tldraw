@@ -6,7 +6,6 @@ import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
 import { toDomPrecision } from '../primitives/utils'
-import { nearestMultiple } from '../utils/nearestMultiple'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
@@ -28,6 +27,7 @@ export const Shape = track(function Shape({
 	backgroundIndex,
 	opacity,
 	isCulled,
+	dprMultiple,
 }: {
 	id: TLShapeId
 	shape: TLShape
@@ -36,6 +36,7 @@ export const Shape = track(function Shape({
 	backgroundIndex: number
 	opacity: number
 	isCulled: boolean
+	dprMultiple: number
 }) {
 	const editor = useEditor()
 
@@ -61,10 +62,7 @@ export const Shape = track(function Shape({
 		setProperty('clip-path', clipPath ?? 'none')
 
 		const bounds = editor.getShapeGeometry(shape).bounds
-		const dpr = Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100
-		// dprMultiple is the smallest number we can multiply dpr by to get an integer
-		// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-		const dprMultiple = nearestMultiple(dpr)
+
 		// We round the shape width and height up to the nearest multiple of dprMultiple to avoid the browser
 		// making miscalculations when applying the transform.
 		const widthRemainder = bounds.w % dprMultiple
