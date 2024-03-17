@@ -467,7 +467,7 @@ describe('When in the select.crop.translating_crop state', () => {
 		})
 
 		editor.keyUp('Shift')
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 
 		const afterShiftUp = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 

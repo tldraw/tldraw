@@ -8276,6 +8276,37 @@
               "name": "clearOpenMenus"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#clock:member",
+              "docComment": "/**\n * A clock for the app's tick events.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "clock: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TickManager",
+                  "canonicalReference": "@tldraw/editor!~TickManager:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "clock",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#complete:member(1)",
               "docComment": "/**\n * Dispatch a complete event.\n *\n * @example\n * ```ts\n * editor.complete()\n * ```\n *\n * @public\n */\n",
@@ -19017,6 +19048,36 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "updatePage"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#updatePointerVelocity:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "updatePointerVelocity: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(elapsed: number) => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "updatePointerVelocity",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Method",

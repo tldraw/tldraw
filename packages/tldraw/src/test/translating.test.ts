@@ -239,7 +239,7 @@ describe('When cloning...', () => {
 
 		// Stop cloning!
 		editor.keyUp('Alt')
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 
 		editor.expectShapeToMatch({ id: ids.box1, x: 20, y: 0 }) // A should be at the translated position...
 		expect(editor.getShape(newShape.id)).toBeUndefined() // And the new node should be gone!
@@ -274,7 +274,7 @@ describe('When cloning...', () => {
 		editor.keyUp('Alt')
 
 		// wait 500ms
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 		editor
 			.expectShapeToMatch({ id: ids.box1, x: 20, y: 0 }) // A should be at the translated position...
 			.expectShapeToMatch({ id: ids.box2, x: 210, y: 190 }) // B should be at the translated position...
@@ -311,8 +311,8 @@ describe('When cloning...', () => {
 
 		// Stop cloning!
 		editor.keyUp('Alt')
-		// wait 500ms
-		jest.advanceTimersByTime(500)
+		// wait ~500ms
+		editor.forceTick(32)
 
 		editor.expectShapeToMatch({ id: ids.box2, x: 210, y: 190 }) // B should be at the translated position...
 		expect(editor.getShape(cloneB.id)).toBeUndefined() // And the new node A should be gone!
@@ -337,7 +337,7 @@ describe('When cloning...', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(count1 + 3) // 2 new box and group
 
 		editor.keyUp('Alt')
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 
 		expect(editor.getCurrentPageShapes().length).toBe(count1) // 2 new box and group
 
@@ -480,12 +480,13 @@ describe('snapping with single shapes', () => {
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 11, y: 0 })
 
 		// press ctrl key and it snaps to 10, 0
+		editor.forceTick(16) // wait for pointer velocity to decay
 		editor.keyDown('Control')
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 10, y: 0 })
 
 		// release ctrl key and it unsnaps
 		editor.keyUp('Control')
-		jest.advanceTimersByTime(200)
+		editor.forceTick(100)
 
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 11, y: 0 })
 
@@ -514,6 +515,9 @@ describe('snapping with single shapes', () => {
 		// │  A   │
 		// └──────┘
 		editor.pointerMove(16, -6, { ctrlKey: true })
+		editor.forceTick(16) // wait for pointer velocity to decay
+		// snapping only happens on pointer move, so we do need to trigger another
+		editor.pointerMove(16, -6, { ctrlKey: true })
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 10, y: -10 })
 
 		// ┌──────┐
@@ -531,6 +535,9 @@ describe('snapping with single shapes', () => {
 		// ┌──────┐
 		// │  B   │
 		// └──────┘
+		editor.pointerMove(-6, 16, { ctrlKey: true })
+		editor.forceTick(16) // wait for pointer velocity to decay
+		// snapping only happens on pointer move, so we do need to trigger another
 		editor.pointerMove(-6, 16, { ctrlKey: true })
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: -10, y: 10 })
 
@@ -652,6 +659,9 @@ describe('snapping with single shapes', () => {
 		// should still snap to things on the X axis
 		editor.createShapes([{ type: 'geo', id: ids.line1, x: 100, y: 0, props: { w: 10, h: 10 } }])
 		editor.pointerMove(106, 5, { ctrlKey: true, shiftKey: true })
+		editor.forceTick(16) // wait for pointer velocity to decay
+		// snapping only happens on pointer move, so we do need to trigger another
+		editor.pointerMove(106, 5, { ctrlKey: true, shiftKey: true })
 		expect(editor.getShape(ids.box2)).toMatchObject({ x: 100, y: -1 })
 	})
 
@@ -682,6 +692,10 @@ describe('snapping with single shapes', () => {
 		// should still snap to things on the Y axis
 		editor.createShapes([{ type: 'geo', id: ids.line1, x: 20, y: 100, props: { w: 10, h: 10 } }])
 		editor.pointerMove(6, 106, { ctrlKey: true, shiftKey: true })
+		editor.forceTick(16) // wait for pointer velocity to decay
+		// snapping only happens on pointer move, so we do need to trigger another
+		editor.pointerMove(6, 106, { ctrlKey: true, shiftKey: true })
+
 		expect(editor.getShape(ids.box2)).toMatchObject({ x: 1, y: 100 })
 	})
 })
@@ -1469,7 +1483,7 @@ describe('translating while the grid is enabled', () => {
 
 		editor.select(ids.box1).pointerDown(10, 10, ids.box1).pointerMove(39, 10)
 
-		// rounds to nearest 10
+		// rounds to nearest 10 because grid is on
 		expect(editor.getShapePageBounds(ids.box1)!.x).toEqual(30)
 
 		// engage snap mode and it should indeed snap to B
@@ -1479,6 +1493,8 @@ describe('translating while the grid is enabled', () => {
 		//          │ A │ B │
 		//          └───┴───┘
 		editor.keyDown('Control')
+		editor.forceTick(16) // wait for pointer velocity to decay
+		editor.pointerMove(39, 10) // snapping only happens on pointer move, so we do need to trigger another
 		expect(editor.getShapePageBounds(ids.box1)!.x).toEqual(30)
 
 		// and we can move the box anywhere if there are no snaps nearby

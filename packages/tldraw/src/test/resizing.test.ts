@@ -541,7 +541,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// └──────────────────O
 
 		editor.pointerMove(15, 8, { altKey: false, shiftKey: true })
-		jest.advanceTimersByTime(200)
+		editor.forceTick(13)
 
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
@@ -590,7 +590,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.pointerDown(30, 20, { target: 'selection', handle: 'top_left_rotate' })
 		editor.pointerMove(20, 20, { shiftKey: true })
 		editor.pointerUp(20, 20, { shiftKey: false })
-		jest.advanceTimersByTime(200)
+		editor.forceTick(13)
 
 		expect(editor.getShape(ids.boxB)!.rotation).toBeCloseTo(canonicalizeRotation(-PI / 2))
 
@@ -737,7 +737,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// └──────────────────O
 
 		editor.pointerMove(15, 8, { altKey: false, shiftKey: true })
-		jest.advanceTimersByTime(200)
+		editor.forceTick(13)
 
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
@@ -2361,7 +2361,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			.select(ids.boxX)
 			.pointerDown(100, 70, { target: 'selection', handle: 'top' })
 			.pointerMove(121, 70, { ctrlKey: true, shiftKey: false })
-		jest.advanceTimersByTime(200)
+		editor.forceTick(13)
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 40,
@@ -2429,7 +2429,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			.select(ids.boxX)
 			.pointerDown(70, 40, { target: 'selection', handle: 'bottom' })
 			.pointerMove(70, 18, { ctrlKey: true, shiftKey: false })
-		jest.advanceTimersByTime(200)
+		editor.forceTick(13)
 
 		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
 		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(20)
@@ -2561,7 +2561,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			.select(ids.boxX)
 			.pointerDown(100, 70, { target: 'selection', handle: 'right' })
 			.pointerMove(121, 70, { ctrlKey: true, shiftKey: false })
-		jest.advanceTimersByTime(200)
+		editor.forceTick(13)
 
 		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
 		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(40)

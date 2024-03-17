@@ -637,9 +637,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.updateRenderingBounds()
 
-		requestAnimationFrame(() => {
-			this._tickManager.start()
-		})
+		this.clock.start()
 	}
 
 	/**
@@ -663,8 +661,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly disposables = new Set<() => void>()
 
-	/** @internal */
-	private _tickManager = new TickManager(this)
+	/**
+	 * A clock for the app's tick events.
+	 *
+	 * @public */
+	clock = new TickManager(this)
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -1214,7 +1215,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._isChangingStyleTimeout)
 			if (partial.isChangingStyle === true) {
 				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
-				this._isChangingStyleTimeout = setTimeout(() => {
+				this._isChangingStyleTimeout = this.clock.setTimeout(() => {
 					this.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
 				}, 2000)
 			}
@@ -2664,7 +2665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.updateInstanceState({ highlightedUserIds: [...highlightedUserIds, userId] })
 
 			// Unhighlight the user's cursor after a few seconds
-			setTimeout(() => {
+			this.clock.setTimeout(() => {
 				const highlightedUserIds = [...this.getInstanceState().highlightedUserIds]
 				const index = highlightedUserIds.indexOf(userId)
 				if (index < 0) return
@@ -8444,7 +8445,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _prevCursor: TLCursorType = 'default'
 
 	/** @internal */
-	private _shiftKeyTimeout = -1 as any
+	private _shiftKeyTimeout = null as (() => void) | null
 
 	/** @internal */
 	private _setShiftKeyTimeout = () => {
@@ -8461,7 +8462,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _altKeyTimeout = -1 as any
+	private _altKeyTimeout = null as (() => void) | null
 
 	/** @internal */
 	private _setAltKeyTimeout = () => {
@@ -8478,7 +8479,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _ctrlKeyTimeout = -1 as any
+	private _ctrlKeyTimeout = null as (() => void) | null
 
 	/** @internal */
 	private _setCtrlKeyTimeout = () => {
@@ -8509,6 +8510,43 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
+	/** @internal */
+	private prevDispatch = Date.now()
+	private prevPoint: null | Vec = null
+	updatePointerVelocity = (elapsed: number) => {
+		const {
+			prevPoint,
+			inputs: { currentScreenPoint, pointerVelocity },
+		} = this
+
+		if (!prevPoint) {
+			this.prevPoint = currentScreenPoint.clone()
+			pointerVelocity.set(0, 0)
+			return
+		}
+
+		if (elapsed <= 0) return
+
+		const next = pointerVelocity.clone()
+		const delta = Vec.Sub(currentScreenPoint, prevPoint)
+		const length = delta.len() / 10
+
+		if (length > 0) {
+			next.add(delta.div(length).mul(length))
+			this.prevPoint!.setTo(currentScreenPoint)
+		}
+
+		next.div(2 * (elapsed / 16))
+
+		// if the velocity is very small, just set it to 0
+		if (Math.abs(next.x) < 0.01) next.x = 0
+		if (Math.abs(next.y) < 0.01) next.y = 0
+
+		if (!pointerVelocity.equals(next)) {
+			pointerVelocity.setTo(next)
+		}
+	}
+
 	/**
 	 * Dispatch an event to the editor.
 	 *
@@ -8528,6 +8566,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { inputs } = this
 		const { type } = info
+
+		const now = Date.now()
+		const elapsed = now - this.prevDispatch
+		this.prevDispatch = now
+		this.updatePointerVelocity(elapsed)
 
 		this.batch(() => {
 			if (info.type === 'misc') {
@@ -8551,27 +8594,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (info.shiftKey) {
-				clearInterval(this._shiftKeyTimeout)
-				this._shiftKeyTimeout = -1
+				if (this._shiftKeyTimeout) {
+					this._shiftKeyTimeout()
+					this._shiftKeyTimeout = null
+				}
 				inputs.shiftKey = true
-			} else if (!info.shiftKey && inputs.shiftKey && this._shiftKeyTimeout === -1) {
-				this._shiftKeyTimeout = setTimeout(this._setShiftKeyTimeout, 150)
+			} else if (!info.shiftKey && inputs.shiftKey && this._shiftKeyTimeout === null) {
+				this._shiftKeyTimeout = this.clock.setTimeout(this._setShiftKeyTimeout, 150)
 			}
 
 			if (info.altKey) {
-				clearInterval(this._altKeyTimeout)
-				this._altKeyTimeout = -1
+				if (this._altKeyTimeout) {
+					this._altKeyTimeout()
+					this._altKeyTimeout = null
+				}
 				inputs.altKey = true
-			} else if (!info.altKey && inputs.altKey && this._altKeyTimeout === -1) {
-				this._altKeyTimeout = setTimeout(this._setAltKeyTimeout, 150)
+			} else if (!info.altKey && inputs.altKey && this._altKeyTimeout === null) {
+				this._altKeyTimeout = this.clock.setTimeout(this._setAltKeyTimeout, 150)
 			}
 
 			if (info.ctrlKey) {
-				clearInterval(this._ctrlKeyTimeout)
-				this._ctrlKeyTimeout = -1
+				if (this._ctrlKeyTimeout) {
+					this._ctrlKeyTimeout()
+					this._ctrlKeyTimeout = null
+				}
 				inputs.ctrlKey = true /** @internal */ /** @internal */ /** @internal */
-			} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
-				this._ctrlKeyTimeout = setTimeout(this._setCtrlKeyTimeout, 150)
+			} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === null) {
+				this._ctrlKeyTimeout = this.clock.setTimeout(this._setCtrlKeyTimeout, 150)
 			}
 
 			const { originPagePoint, originScreenPoint, currentPagePoint, currentScreenPoint } = inputs
@@ -8637,7 +8686,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							if (this._didPinch) {
 								this._didPinch = false
-								requestAnimationFrame(() => {
+								this.once('tick', () => {
 									if (!this._didPinch) {
 										this.setSelectedShapes(_selectedShapeIdsAtPointerDown, { squashing: true })
 									}

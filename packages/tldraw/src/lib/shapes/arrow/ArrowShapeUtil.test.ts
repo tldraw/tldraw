@@ -20,14 +20,6 @@ const ids = {
 
 jest.useFakeTimers()
 
-window.requestAnimationFrame = function requestAnimationFrame(cb) {
-	return setTimeout(cb, 1000 / 60)
-}
-
-window.cancelAnimationFrame = function cancelAnimationFrame(id) {
-	clearTimeout(id)
-}
-
 beforeEach(() => {
 	editor = new TestEditor()
 	editor

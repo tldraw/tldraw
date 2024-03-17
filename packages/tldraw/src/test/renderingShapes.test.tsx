@@ -53,7 +53,7 @@ it('updates the rendering viewport when the camera stops moving', () => {
 
 	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
 	editor.pan({ x: -201, y: -201 })
-	jest.advanceTimersByTime(500)
+	editor.forceTick(32)
 
 	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
 	expect(editor.getRenderingBounds()).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
@@ -72,7 +72,7 @@ it('lists shapes in viewport', () => {
 
 	// Move the camera 201 pixels to the right and 201 pixels down
 	editor.pan({ x: -201, y: -201 })
-	jest.advanceTimersByTime(500)
+	editor.forceTick(32)
 
 	expect(editor.getRenderingShapes().map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
 		[ids.A, false], // A should not be culled, even though it's no longer in the viewport (because it's still in the EXPANDED viewport)
@@ -82,7 +82,7 @@ it('lists shapes in viewport', () => {
 	])
 
 	editor.pan({ x: -100, y: -100 })
-	jest.advanceTimersByTime(500)
+	editor.forceTick(32)
 
 	expect(editor.getRenderingShapes().map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
 		[ids.A, true], // A should be culled now that it's outside of the expanded viewport too
@@ -92,7 +92,7 @@ it('lists shapes in viewport', () => {
 	])
 
 	editor.pan({ x: -900, y: -900 })
-	jest.advanceTimersByTime(500)
+	editor.forceTick(32)
 	expect(editor.getRenderingShapes().map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
 		[ids.A, true],
 		[ids.B, true],

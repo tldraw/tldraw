@@ -66,3 +66,5 @@ export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export type { Expand, RecursivePartial, Required } from './lib/types'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'
 export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'
+
+export { globalTick } from './lib/global-tick'

@@ -33,7 +33,7 @@ export class ClickManager {
 	private _getClickTimeout = (state: TLClickState, id = uniqueId()) => {
 		this._clickId = id
 		clearTimeout(this._clickTimeout)
-		this._clickTimeout = setTimeout(
+		this._clickTimeout = this.editor.clock.setTimeout(
 			() => {
 				if (this._clickState === state && this._clickId === id) {
 					switch (this._clickState) {

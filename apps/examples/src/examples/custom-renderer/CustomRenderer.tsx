@@ -19,10 +19,7 @@ export function CustomRenderer() {
 
 		const ctx = canvas.getContext('2d')!
 
-		let isCancelled = false
-
 		function render() {
-			if (isCancelled) return
 			if (!canvas) return
 
 			ctx.resetTransform()
@@ -92,14 +89,11 @@ export function CustomRenderer() {
 				}
 				ctx.restore()
 			}
-
-			requestAnimationFrame(render)
 		}
-
-		render()
+		editor.on('tick', render)
 
 		return () => {
-			isCancelled = true
+			editor.off('tick', render)
 		}
 	}, [editor])
 

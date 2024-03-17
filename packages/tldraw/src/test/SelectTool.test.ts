@@ -60,7 +60,7 @@ describe('TLSelectTool.Translating', () => {
 		// There's a timer here! We shouldn't end the clone until the timer is done
 		expect(editor.getCurrentPageShapes().length).toBe(2)
 
-		jest.advanceTimersByTime(250) // tick tock
+		editor.forceTick(100) // tick tock
 
 		// Timer is done! We should have ended the clone.
 		expect(editor.getCurrentPageShapes().length).toBe(1)

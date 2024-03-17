@@ -5,12 +5,13 @@ const LAG_DURATION = 100
 /** @public */
 export class DragAndDropManager {
 	constructor(public editor: Editor) {
+		editor.addListener('tick', this.updateOnTick)
 		editor.disposables.add(this.dispose)
 	}
 
-	prevDroppingShapeId: TLShapeId | null = null
+	droppingNodeTimer = null as null | { remaining: number; cb: () => void }
 
-	droppingNodeTimer: ReturnType<typeof setTimeout> | null = null
+	prevDroppingShapeId: TLShapeId | null = null
 
 	first = true
 
@@ -23,20 +24,29 @@ export class DragAndDropManager {
 		}
 
 		if (this.droppingNodeTimer === null) {
-			this.setDragTimer(movingShapes, LAG_DURATION * 10, cb)
+			this.setTimer(movingShapes, LAG_DURATION * 10, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
-			clearInterval(this.droppingNodeTimer)
-			this.setDragTimer(movingShapes, LAG_DURATION, cb)
+			this.setTimer(movingShapes, LAG_DURATION, cb)
 		}
 	}
 
-	private setDragTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
-		this.droppingNodeTimer = setTimeout(() => {
-			this.editor.batch(() => {
-				this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
-			})
+	updateOnTick = (elapsed: number) => {
+		if (this.droppingNodeTimer === null) return
+
+		this.droppingNodeTimer.remaining -= elapsed
+		if (this.droppingNodeTimer.remaining < 0) {
+			this.droppingNodeTimer.cb()
 			this.droppingNodeTimer = null
-		}, duration)
+		}
+	}
+
+	private setTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
+		this.droppingNodeTimer = {
+			cb: () => {
+				this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
+			},
+			remaining: duration,
+		}
 	}
 
 	private handleDrag(point: Vec, movingShapes: TLShape[], cb?: () => void) {
@@ -96,17 +106,12 @@ export class DragAndDropManager {
 
 	clear() {
 		this.prevDroppingShapeId = null
-
-		if (this.droppingNodeTimer !== null) {
-			clearInterval(this.droppingNodeTimer)
-		}
-
-		this.droppingNodeTimer = null
 		this.editor.setHintingShapes([])
 		this.first = true
 	}
 
 	dispose = () => {
+		this.editor.removeListener('tick', this.updateOnTick)
 		this.clear()
 	}
 }

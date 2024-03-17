@@ -126,6 +126,9 @@ export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, 
 // @internal (undocumented)
 export function getOwnProperty(obj: object, key: string): unknown;
 
+// @public (undocumented)
+export const globalTick: GlobalTick;
+
 // @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
 

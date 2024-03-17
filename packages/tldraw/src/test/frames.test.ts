@@ -328,18 +328,20 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(275, 275).pointerMove(150, 150)
 
-		jest.advanceTimersByTime(300)
+		editor.forceTick(100)
 
 		expect(editor.getOnlySelectedShape()!.id).toBe(ids.boxA)
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 
 		editor.pointerMove(275, 275)
-		jest.advanceTimersByTime(250)
+
+		editor.forceTick(100)
 
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		editor.pointerMove(150, 150)
-		jest.advanceTimersByTime(250)
+
+		editor.forceTick(100)
 
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 
@@ -422,6 +424,8 @@ describe('frame shapes', () => {
 		editor.select(ids.boxA)
 		editor.pointerDown(275, 275, ids.boxA).pointerMove(275, 74)
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ y: 49 })
+
+		editor.forceTick(16) // wait for pointer velocity decay
 		editor.keyDown('Control')
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ y: 50 })
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
@@ -451,9 +455,8 @@ describe('frame shapes', () => {
 			.pointerDown(277.5, 127.5, editor.getOnlySelectedShape()!.id)
 			.pointerMove(287.5, 126.5)
 			.pointerMove(277.5, 126.5)
-
+		// wait for pointer velocity decay
 		// now try to snap
-		editor.keyDown('Control')
 		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 275,
 			y: 124,
@@ -465,6 +468,8 @@ describe('frame shapes', () => {
 		editor.reparentShapes([innerBoxId], editor.getCurrentPageId())
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
+		editor.forceTick(16) // wait for pointer velocity decay
+		editor.keyDown('Control')
 		expect(editor.snaps.getIndicators()).toHaveLength(1)
 		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 275,
@@ -930,7 +935,7 @@ describe('When dragging a shape inside a group inside a frame', () => {
 
 		editor.pointerMove(150, 150).pointerDown().pointerMove(140, 140)
 
-		jest.advanceTimersByTime(300)
+		editor.forceTick(13)
 
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
 	})
@@ -956,7 +961,7 @@ describe('When dragging a shape inside a group inside a frame', () => {
 			.pointerMove(-200, -200)
 			.pointerUp()
 
-		jest.advanceTimersByTime(300)
+		editor.forceTick(13)
 
 		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.getCurrentPageId())
 	})

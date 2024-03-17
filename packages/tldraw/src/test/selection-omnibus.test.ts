@@ -1616,7 +1616,7 @@ describe('shift brushes to add to the selection', () => {
 		editor.keyUp('Shift')
 		// there's a timer here—we should keep the shift mode until the timer expires
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 		// once the timer expires, we should be back in regular mode
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
@@ -1686,7 +1686,7 @@ describe('scribble brushes to add to the selection', () => {
 		editor.pointerMove(50, 50)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		editor.keyUp('Shift')
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
@@ -1703,7 +1703,7 @@ describe('scribble brushes to add to the selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
 		editor.keyUp('Alt') // scribble
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // still in timer
-		jest.advanceTimersByTime(1000) // let timer expire
+		editor.forceTick(300) // let timer expire
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box3, ids.box4]) // brushed!
 		editor.keyDown('Alt') // scribble
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // back to brushed only
@@ -1846,7 +1846,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerMove(0, 0)
 		// still only box 1...
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		jest.advanceTimersByTime(100)
+		editor.forceTick(10)
 		// ...but now viewport will have moved to select box2 as well
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		editor.pointerUp()

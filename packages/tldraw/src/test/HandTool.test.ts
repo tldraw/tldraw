@@ -22,9 +22,10 @@ describe(HandTool, () => {
 		expect(editor.getZoomLevel()).toBe(1)
 		editor.click()
 		editor.click() // double click!
-		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(1) // waiting to settle...
+		editor.forceTick(14) // wait for the settle
 		expect(editor.getZoomLevel()).not.toBe(1) // animating
-		jest.advanceTimersByTime(300)
+		editor.forceTick(19)
 		expect(editor.getZoomLevel()).toBe(2) // all done
 	})
 
@@ -34,9 +35,9 @@ describe(HandTool, () => {
 		editor.click()
 		editor.click()
 		editor.click() // triple click!
-		jest.advanceTimersByTime(300)
+		editor.forceTick(14) // wait for the settle
 		expect(editor.getZoomLevel()).not.toBe(1) // animating
-		jest.advanceTimersByTime(300)
+		editor.forceTick(19)
 		expect(editor.getZoomLevel()).toBe(0.5) // all done
 	})
 
@@ -48,9 +49,9 @@ describe(HandTool, () => {
 		editor.click()
 		editor.click()
 		editor.click() // quad click!
-		jest.advanceTimersByTime(300)
+		editor.forceTick(19)
 		expect(editor.getZoomLevel()).not.toBe(2) // animating
-		jest.advanceTimersByTime(300)
+		editor.forceTick(19)
 		expect(editor.getZoomLevel()).toBe(1) // all done
 	})
 
@@ -62,9 +63,9 @@ describe(HandTool, () => {
 		editor.click()
 		editor.click()
 		editor.click() // quad click!
-		jest.advanceTimersByTime(300)
+		editor.forceTick(19)
 		expect(editor.getZoomLevel()).not.toBe(1) // animating
-		jest.advanceTimersByTime(300)
+		editor.forceTick(19)
 		const z = editor.getZoomLevel()
 		editor.zoomToFit() // call zoom to fit manually to compare
 		expect(editor.getZoomLevel()).toBe(z) // zoom should not have changed

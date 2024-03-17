@@ -191,7 +191,7 @@ describe('When binding an arrow to a shape', () => {
 
 		editor.keyUp('Control')
 		expect(arrow().props.end.type).toBe('point') // there's a short delay here, it should still be a point
-		jest.advanceTimersByTime(1000) // once the timer runs out...
+		editor.forceTick(65) // once the timer runs out...
 		expect(arrow().props.end.type).toBe('binding')
 
 		editor.keyDown('Control') // no delay when pressing control again though
@@ -199,7 +199,7 @@ describe('When binding an arrow to a shape', () => {
 
 		editor.keyUp('Control')
 		editor.pointerUp()
-		jest.advanceTimersByTime(1000) // once the timer runs out...
+		editor.forceTick(65) // once the timer runs out...
 		expect(arrow().props.end.type).toBe('point') // still a point because interaction ended before timer ended
 	})
 })

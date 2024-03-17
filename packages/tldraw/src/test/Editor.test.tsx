@@ -252,41 +252,48 @@ describe('Editor.setOpacity', () => {
 })
 
 describe('Editor.TickManager', () => {
-	it('Does not produce NaN values when elapsed is 0', () => {
+	it.only('Does not produce NaN values when elapsed is 0', () => {
 		// a helper that calls update pointer velocity with a given elapsed time.
 		// usually this is called by the app's tick manager, using the elapsed time
 		// between two animation frames, but we're calling it directly here.
-		const tick = (ms: number) => {
-			// @ts-ignore
-			editor._tickManager.updatePointerVelocity(ms)
-		}
 
 		// 1. pointer velocity should be 0 when there is no movement
 		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0, y: 0 })
 
+		// in test mode, moving the pointer also causes a tick, so the velocity is updated immediately
 		editor.pointerMove(10, 10)
 
-		// 2. moving is not enough, we also need to wait a frame before the velocity is updated
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0, y: 0 })
+		// 2. Even though the move was 10,10, the velocity should be 0.5,0.5 (the difference / 2)
+		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 5, y: 5 })
 
-		// 3. once time passes, the pointer velocity should be updated
-		tick(16)
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.3125, y: 0.3125 })
-
-		// 4. let's do it again, it should be updated again. move, tick, measure
 		editor.pointerMove(20, 20)
-		tick(16)
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.46875, y: 0.46875 })
 
-		// 5. if we tick again without movement, the velocity should decay
-		tick(16)
+		// 3. Another 10,10 move, so again we should be half as close to the length
+		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 7.5, y: 7.5 })
 
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.23437, y: 0.23437 })
+		// 4. if we tick again without movement, the velocity should decay by half
+		editor.forceTick()
+		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 7.5 / 2, y: 7.5 / 2 })
 
-		// 6. if updatePointerVelocity is (for whatever reason) called with an elapsed time of zero milliseconds, it should be ignored
-		tick(0)
+		editor.forceTick()
+		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({
+			x: 7.5 / 2 / 2,
+			y: 7.5 / 2 / 2,
+		})
 
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.23437, y: 0.23437 })
+		// And so on...
+		editor.forceTick(2)
+		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({
+			x: 7.5 / 2 / 2 / 2 / 2,
+			y: 7.5 / 2 / 2 / 2 / 2,
+		})
+
+		// Once the velocity is below 0.01, it should be set to 0
+		editor.forceTick(6)
+		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({
+			x: 0,
+			y: 0,
+		})
 	})
 })
 

@@ -1358,6 +1358,30 @@
           "name": "getIndicesBetween"
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/utils!globalTick:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "globalTick: "
+            },
+            {
+              "kind": "Reference",
+              "text": "GlobalTick",
+              "canonicalReference": "@tldraw/utils!~GlobalTick:class"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/global-tick.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "globalTick",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/utils!IndexKey:type",
           "docComment": "/**\n * A string made up of an integer part followed by a fraction part. The fraction point consists of zero or more digits with no trailing zeros. Based on {@link https://observablehq.com/@dgreensp/implementing-fractional-indexing}.\n *\n * @public\n */\n",

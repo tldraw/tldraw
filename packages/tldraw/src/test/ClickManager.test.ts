@@ -23,7 +23,7 @@ describe('Handles events', () => {
 		const eventsBeforeSettle = [{ name: 'pointer_down' }, { name: 'pointer_up' }]
 
 		// allow time for settle
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 
 		// nothing should have settled
 		expect(events).toMatchObject(eventsBeforeSettle)
@@ -64,7 +64,7 @@ describe('Handles events', () => {
 		}
 
 		// allow double click to settle
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
@@ -110,7 +110,7 @@ describe('Handles events', () => {
 		expect(eventsBeforeSettle).toMatchObject(eventsBeforeSettle)
 
 		// allow double click to settle
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
@@ -162,7 +162,7 @@ describe('Handles events', () => {
 		expect(events).toMatchObject(eventsBeforeSettle)
 
 		// allow double click to settle
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
@@ -218,7 +218,7 @@ describe('Handles events', () => {
 		expect(events).toMatchObject(eventsBeforeSettle)
 
 		// allow double click to settle
-		jest.advanceTimersByTime(500)
+		editor.forceTick(32)
 
 		expect(events).toMatchObject(eventsBeforeSettle)
 

@@ -600,6 +600,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     clearOpenMenus(): this;
     // @internal
     protected _clickManager: ClickManager;
+    clock: TickManager;
     complete(): this;
     // @internal (undocumented)
     crash(error: unknown): this;
@@ -901,6 +902,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLCommandHistoryOptions): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: TLCommandHistoryOptions): this;
+    // (undocumented)
+    updatePointerVelocity: (elapsed: number) => void;
     // @internal
     updateRenderingBounds(): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, historyOptions?: TLCommandHistoryOptions): this;

@@ -295,7 +295,7 @@ export class TestEditor extends Editor {
 	*/
 	forceTick = (count = 1) => {
 		for (let i = 0; i < count; i++) {
-			this.emit('tick', 16)
+			this.clock.tick(16)
 		}
 		return this
 	}

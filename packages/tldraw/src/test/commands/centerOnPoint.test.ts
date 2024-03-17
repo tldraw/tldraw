@@ -14,8 +14,8 @@ it('centers on the point', () => {
 it('centers on the point with animation', () => {
 	editor.centerOnPoint({ x: 400, y: 400 }, { duration: 200 })
 	expect(editor.getViewportPageCenter()).not.toMatchObject({ x: 400, y: 400 })
-	jest.advanceTimersByTime(100)
+	editor.forceTick(10) // still animating...
 	expect(editor.getViewportPageCenter()).not.toMatchObject({ x: 400, y: 400 })
-	jest.advanceTimersByTime(200)
+	editor.forceTick(10) // should be complete now
 	expect(editor.getViewportPageCenter()).toMatchObject({ x: 400, y: 400 })
 })

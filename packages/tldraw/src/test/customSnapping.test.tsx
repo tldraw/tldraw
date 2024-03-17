@@ -60,7 +60,9 @@ describe('custom shape bounds snapping - translate', () => {
 			expect(editor.getOnlySelectedShape()?.x).toBe(100)
 
 			// move the left edge of the test shape to the center of the box shape - it should snap
-			editor.pointerMove(105, 250, undefined, { ctrlKey: true })
+			editor.pointerMove(105, 250, undefined)
+			editor.forceTick(16)
+			editor.keyDown('Control')
 			expect(editor.snaps.getIndicators()).toHaveLength(2)
 			expect(editor.getOnlySelectedShape()?.x).toBe(50)
 		})
@@ -75,7 +77,9 @@ describe('custom shape bounds snapping - translate', () => {
 			expect(editor.getOnlySelectedShape()?.x).toBe(100)
 
 			// move the left edge of the box shape to the center of the test shape - it should snap
-			editor.pointerMove(205, 50, undefined, { ctrlKey: true })
+			editor.pointerMove(205, 50)
+			editor.forceTick(16)
+			editor.keyDown('Control')
 			expect(editor.snaps.getIndicators()).toHaveLength(2)
 			expect(editor.getOnlySelectedShape()?.x).toBe(150)
 		})
