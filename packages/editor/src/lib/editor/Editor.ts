@@ -2140,7 +2140,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCamera(point: VecLike, animation?: TLAnimationOptions & { immediate?: boolean }): this {
+	setCamera(point: VecLike, animation?: TLAnimationOptions): this {
 		const x = Number.isFinite(point.x) ? point.x : 0
 		const y = Number.isFinite(point.y) ? point.y : 0
 		const z = Number.isFinite(point.z) ? point.z! : this.getZoomLevel()
@@ -8649,12 +8649,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { x: cx, y: cy, z: cz } = this.getCamera()
 
 						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
-
-						this.setCamera({
-							x: cx + dx / cz - x / cz + x / zoom,
-							y: cy + dy / cz - y / cz + y / zoom,
-							z: zoom,
-						})
+						this.stopCameraAnimation()
+						if (this.getInstanceState().followingUserId) {
+							this.stopFollowingUser()
+						}
+						this._setCamera(
+							{
+								x: cx + dx / cz - x / cz + x / zoom,
+								y: cy + dy / cz - y / cz + y / zoom,
+								z: zoom,
+							},
+							true
+						)
 
 						return // Stop here!
 					}
@@ -8687,6 +8693,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (this.getIsMenuOpen()) {
 					// noop
 				} else {
+					this.stopCameraAnimation()
+					if (this.getInstanceState().followingUserId) {
+						this.stopFollowingUser()
+					}
+
 					if (inputs.ctrlKey) {
 						// todo: Start or update the zoom end interval
 
@@ -8701,13 +8712,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
 
-						this.setCamera(
+						this._setCamera(
 							{
 								x: cx + (x / zoom - x) - (x / cz - x),
 								y: cy + (y / zoom - y) - (y / cz - y),
 								z: zoom,
 							},
-							{ immediate: true }
+							true
 						)
 
 						// We want to return here because none of the states in our
@@ -8717,7 +8728,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// Update the camera here, which will dispatch a pointer move...
 					// this will also update the pointer position, etc
-					this.pan(info.delta)
+					if (!this.getInstanceState().canMoveCamera) return this
+					const { x: cx, y: cy, z: cz } = this.getCamera()
+					this._setCamera({ x: cx + info.delta.x / cz, y: cy + info.delta.y / cz, z: cz }, true)
 
 					if (
 						!inputs.isDragging &&
