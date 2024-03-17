@@ -1964,6 +1964,7 @@ export type TLCollaboratorHintProps = {
 // @public (undocumented)
 export type TLCommand<Name extends string = any, Data = any> = {
     type: 'command';
+    id: string;
     data: Data;
     name: Name;
     preservesRedoStack?: boolean;
