@@ -916,28 +916,32 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 function squashHistoryEntries<T extends UnknownRecord>(
 	entries: HistoryEntry<T>[]
 ): HistoryEntry<T>[] {
-	const result: HistoryEntry<T>[] = []
-
 	let current = entries[0]
-	let entry: HistoryEntry<T>
+	let currentChunk: HistoryEntry<T>[] = [current]
+	const toProcess: HistoryEntry<T>[][] = []
 
+	let entry: HistoryEntry<T>
 	for (let i = 1, n = entries.length; i < n; i++) {
 		entry = entries[i]
 
 		if (current.source !== entry.source) {
-			result.push(current)
+			// result.push(current)
+			toProcess.push(currentChunk)
 			current = entry
+			currentChunk = [entry]
 		} else {
-			current = {
-				source: current.source,
-				changes: squashRecordDiffs([current.changes, entry.changes]),
-			}
+			currentChunk.push(entry)
 		}
 	}
 
-	result.push(current)
+	toProcess.push(currentChunk)
 
-	return devFreeze(result)
+	return devFreeze(
+		toProcess.map((entries) => ({
+			source: entries[0].source,
+			changes: squashRecordDiffs(entries.map((e) => e.changes)),
+		}))
+	)
 }
 
 /** @public */
