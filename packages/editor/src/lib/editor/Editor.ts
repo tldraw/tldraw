@@ -637,9 +637,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.updateRenderingBounds()
 
+		this.on('tick', this.tick)
+
 		requestAnimationFrame(() => {
 			this._tickManager.start()
-			this.on('tick', this.tick)
 		})
 	}
 
