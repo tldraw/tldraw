@@ -2683,7 +2683,7 @@ export function useEvent<Args extends Array<unknown>, Result>(handler: (...args:
 export function useIsCropping(shapeId: TLShapeId): boolean;
 
 // @public (undocumented)
-export function useIsDarkMode(source?: string): boolean;
+export function useIsDarkMode(): boolean;
 
 // @public (undocumented)
 export function useIsEditing(shapeId: TLShapeId): boolean;
