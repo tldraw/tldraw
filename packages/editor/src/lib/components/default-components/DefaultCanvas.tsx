@@ -206,6 +206,33 @@ function SnapIndicatorWrapper() {
 
 function HandlesWrapper() {
 	const editor = useEditor()
+
+	// We don't want this to update every time the shape changes
+	const shapeIdWithHandles = useValue(
+		'handles shapeIdWithHandles',
+		() => {
+			const { isReadonly, isChangingStyle } = editor.getInstanceState()
+			if (isReadonly || isChangingStyle) return false
+
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape) return false
+
+			// slightly redundant but saves us from updating the handles every time the shape changes
+			const handles = editor.getShapeHandles(onlySelectedShape)
+			if (!handles) return false
+
+			return onlySelectedShape.id
+		},
+		[editor]
+	)
+
+	if (!shapeIdWithHandles) return null
+
+	return <HandlesWrapperInner shapeId={shapeIdWithHandles} />
+}
+
+function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
+	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
@@ -214,36 +241,15 @@ function HandlesWrapper() {
 		editor,
 	])
 
-	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
+	const transform = useValue('handles transform', () => editor.getShapePageTransform(shapeId), [
 		editor,
+		shapeId,
 	])
-
-	const isChangingStyle = useValue(
-		'isChangingStyle',
-		() => editor.getInstanceState().isChangingStyle,
-		[editor]
-	)
-
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
-		editor,
-	])
-
-	const transform = useValue(
-		'transform',
-		() => {
-			if (!onlySelectedShape) return null
-
-			return editor.getShapePageTransform(onlySelectedShape)
-		},
-		[editor, onlySelectedShape]
-	)
 
 	const handles = useValue(
 		'handles',
 		() => {
-			if (!onlySelectedShape) return null
-
-			const handles = editor.getShapeHandles(onlySelectedShape)
+			const handles = editor.getShapeHandles(shapeId)
 			if (!handles) return null
 
 			const minDistBetweenVirtualHandlesAndRegularHandles =
@@ -270,10 +276,10 @@ function HandlesWrapper() {
 					.sort((a) => (a.type === 'vertex' ? 1 : -1))
 			)
 		},
-		[editor, onlySelectedShape, zoomLevel, isCoarse]
+		[editor, zoomLevel, isCoarse, shapeId]
 	)
 
-	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
+	if (!Handles || !handles || !transform) {
 		return null
 	}
 
@@ -284,7 +290,7 @@ function HandlesWrapper() {
 					return (
 						<HandleWrapper
 							key={handle.id}
-							shapeId={onlySelectedShape.id}
+							shapeId={shapeId}
 							handle={handle}
 							zoom={zoomLevel}
 							isCoarse={isCoarse}
