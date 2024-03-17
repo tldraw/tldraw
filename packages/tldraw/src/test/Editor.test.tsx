@@ -144,6 +144,7 @@ it('Begins dragging from wheel', () => {
 	editor.wheel(2, 2)
 	expect(editor.inputs.isDragging).toBe(false)
 	editor.wheel(10, 10)
+	editor.forceTick()
 	expect(editor.inputs.isDragging).toBe(true)
 })
 

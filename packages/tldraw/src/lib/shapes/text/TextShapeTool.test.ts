@@ -25,7 +25,7 @@ describe(TextShapeTool, () => {
 			{ ...editor.getCurrentPageShapes()[0]!, type: 'text', props: { text: 'Hello' } },
 		])
 		// Deselect the editing shape
-		editor.cancel()
+		editor.cancel().forceTick()
 		editor.expectToBeIn('select.idle')
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.expectShapeToMatch({
@@ -76,7 +76,7 @@ describe('When in idle state', () => {
 
 	it('returns to select on cancel', () => {
 		editor.setCurrentTool('text')
-		editor.cancel()
+		editor.cancel().forceTick()
 		editor.expectToBeIn('select.idle')
 	})
 })
@@ -85,7 +85,7 @@ describe('When in the pointing state', () => {
 	it('returns to idle on escape', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
-		editor.cancel()
+		editor.cancel().forceTick()
 		editor.expectToBeIn('text.idle')
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
@@ -104,7 +104,7 @@ describe('When in the pointing state', () => {
 		editor.pointerDown(0, 0)
 		editor.pointerMove(10, 10)
 		editor.expectToBeIn('select.resizing')
-		editor.pointerUp()
+		editor.pointerUp().forceTick()
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.expectToBeIn('select.editing_shape')
 	})
@@ -129,7 +129,7 @@ describe('When resizing', () => {
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
-		editor.cancel()
+		editor.cancel().forceTick()
 		editor.expectToBeIn('text.idle')
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
@@ -139,7 +139,7 @@ describe('When resizing', () => {
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
-		editor.interrupt()
+		editor.interrupt().forceTick()
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 

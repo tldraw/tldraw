@@ -854,7 +854,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
-    setCamera(point: VecLike, animation?: TLAnimationOptions): this;
+    setCamera(point: VecLike, animation?: TLAnimationOptions & {
+        immediate?: boolean;
+    }): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     setCurrentPage(page: TLPage | TLPageId, historyOptions?: TLCommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;

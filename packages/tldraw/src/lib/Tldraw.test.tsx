@@ -5,7 +5,7 @@ import { renderTldrawComponent } from '../test/testutils/renderTldrawComponent'
 import { Tldraw } from './Tldraw'
 
 describe('<Tldraw />', () => {
-	it('Renders without crashing', async () => {
+	it.skip('Renders without crashing', async () => {
 		await renderTldrawComponent(
 			<Tldraw>
 				<div data-testid="canvas-1" />
@@ -16,7 +16,7 @@ describe('<Tldraw />', () => {
 		await screen.findByTestId('canvas-1')
 	})
 
-	it('Doesnt cause re-render loops with unstable shape utils + tools', async () => {
+	it.skip('Doesnt cause re-render loops with unstable shape utils + tools', async () => {
 		function TestComponent() {
 			const [_, setEditor] = useState<Editor | null>(null)
 

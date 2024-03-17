@@ -18,7 +18,7 @@ describe('When in the idle state', () => {
 	it('Returns to select on cancel', () => {
 		editor.setCurrentTool('draw')
 		editor.expectToBeIn('draw.idle')
-		editor.cancel()
+		editor.cancel().forceTick()
 		editor.expectToBeIn('select.idle')
 	})
 
@@ -33,7 +33,7 @@ describe('When in the drawing state', () => {
 	it('Returns to idle on cancel', () => {
 		editor.setCurrentTool('draw')
 		editor.pointerDown(50, 50)
-		editor.cancel()
+		editor.cancel().forceTick()
 		editor.expectToBeIn('draw.idle')
 	})
 

@@ -137,7 +137,7 @@ describe('When translating...', () => {
 
 		const before = editor.getShape<TLGeoShape>(ids.box1)!
 
-		editor.forceTick(5)
+		editor.forceTick(7)
 		editor
 			// The change is bigger than expected because the camera moves
 			.expectShapeToMatch({ id: ids.box1, x: -160, y: 10 })
@@ -159,16 +159,16 @@ describe('When translating...', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
 
+		editor.expectShapeToMatch({ id: ids.box1, x: 1040, y: 10 })
 		editor
-			.forceTick(4)
-			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: 1140, y: 10 })
+			.forceTick()
+			.expectShapeToMatch({ id: ids.box1, x: 1040, y: 10 })
+			.forceTick()
+			.expectShapeToMatch({ id: ids.box1, x: 1060, y: 10 })
 			.pointerMove(1080, 800)
-			.forceTick(6)
-		editor
-			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1080, y: 760 })
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1100, y: 772.24 })
 	})
 
 	it('translates multiple shapes', () => {

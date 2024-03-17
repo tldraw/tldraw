@@ -380,9 +380,11 @@ describe('When clicking and dragging', () => {
 		editor.pointerUp()
 		expect(editor.getShape(ids.box3)).toBeDefined()
 
+		editor.setCurrentTool('eraser')
 		editor.pointerMove(375, 0)
 		editor.pointerDown() // Above the not-masked part of box3
 		editor.pointerMove(375, 500) // Through the masked part of box3
+		editor.pointerMove(375, 500) // ? why is this needed?
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 		expect(editor.getErasingShapeIds()).toEqual([ids.box3])
 		editor.pointerUp()

@@ -16866,6 +16866,10 @@
                 },
                 {
                   "kind": "Content",
+                  "text": " & {\n        immediate?: boolean;\n    }"
+                },
+                {
+                  "kind": "Content",
                   "text": "): "
                 },
                 {
@@ -16879,8 +16883,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 6,
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -16898,7 +16902,7 @@
                   "parameterName": "animation",
                   "parameterTypeTokenRange": {
                     "startIndex": 3,
-                    "endIndex": 4
+                    "endIndex": 5
                   },
                   "isOptional": true
                 }

@@ -322,7 +322,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_down',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -335,7 +335,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_up',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -357,29 +357,30 @@ export class TestEditor extends Editor {
 		modifiers?: EventModifiers
 	) => {
 		this.pointerDown(x, y, options, modifiers)
-		this.pointerUp(x, y, options, modifiers)
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			type: 'click',
-			name: 'double_click',
-			phase: 'down',
-		})
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			type: 'click',
-			name: 'double_click',
-			phase: 'up',
-		})
+			.pointerUp(x, y, options, modifiers)
+			.dispatch({
+				...this.getPointerEventInfo(x, y, options, modifiers),
+				type: 'click',
+				name: 'double_click',
+				phase: 'down',
+			})
+			.dispatch({
+				...this.getPointerEventInfo(x, y, options, modifiers),
+				type: 'click',
+				name: 'double_click',
+				phase: 'up',
+			})
+			.forceTick()
 		return this
 	}
 
 	keyDown = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
 	}
 
 	keyRepeat = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) }).forceTick()
 		return this
 	}
 
@@ -391,7 +392,7 @@ export class TestEditor extends Editor {
 				altKey: this.inputs.altKey && key !== 'Alt',
 				...options,
 			}),
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -405,7 +406,7 @@ export class TestEditor extends Editor {
 			altKey: this.inputs.altKey,
 			...options,
 			delta: { x: dx, y: dy },
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -427,7 +428,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -449,7 +450,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -471,7 +472,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 	/* ------ Interaction Helpers ------ */
@@ -499,6 +500,16 @@ export class TestEditor extends Editor {
 		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle })
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, { shiftKey })
 		this.pointerUp()
+		return this
+	}
+
+	override cancel() {
+		this.dispatch({ type: 'misc', name: 'cancel' }).forceTick()
+		return this
+	}
+
+	override interrupt() {
+		this.dispatch({ type: 'misc', name: 'interrupt' }).forceTick()
 		return this
 	}
 

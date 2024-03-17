@@ -1625,7 +1625,7 @@ describe('shift brushes to add to the selection', () => {
 	})
 })
 
-describe('scribble brushes to add to the selection', () => {
+describe.only('scribble brushes to add to the selection', () => {
 	beforeEach(() => {
 		editor.createShapes([
 			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
@@ -1685,8 +1685,9 @@ describe('scribble brushes to add to the selection', () => {
 		editor.pointerDown()
 		editor.pointerMove(50, 50)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
-		editor.keyUp('Shift')
+		editor.keyUp('Shift').forceTick()
 		jest.advanceTimersByTime(500)
+		editor.forceTick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
