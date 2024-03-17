@@ -55,8 +55,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
 			x + offset
 		)}px,${toDomPrecision(y + offset)}px)`
-		setProperty(rHtmlLayer, 'transform', transform)
-		setProperty(rHtmlLayer2, 'transform', transform)
+		setProperty(rHtmlLayer.current, 'transform', transform)
+		setProperty(rHtmlLayer2.current, 'transform', transform)
 	})
 
 	const events = useCanvasEvents()

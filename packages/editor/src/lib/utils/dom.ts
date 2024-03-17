@@ -13,7 +13,7 @@ if the user clicks on a handle but the pointerup does not fire for
 whatever reason.
 */
 
-import React, { RefObject } from 'react'
+import React from 'react'
 import { debugFlags, pointerCaptureTrackingObject } from './debug-flags'
 
 /** @public */
@@ -82,10 +82,7 @@ export function releasePointerCapture(
 export const stopEventPropagation = (e: any) => e.stopPropagation()
 
 /** @internal */
-export const setProperty = (
-	ref: RefObject<HTMLElement>,
-	property: string,
-	value: string | number
-) => {
-	ref.current?.style.setProperty(property, value as string)
+export const setProperty = (elm: HTMLElement | null, property: string, value: string | number) => {
+	if (!elm) return
+	elm.style.setProperty(property, value as string)
 }
