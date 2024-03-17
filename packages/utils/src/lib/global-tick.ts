@@ -1,4 +1,4 @@
-/** @public */
+/** @internal */
 export class GlobalTick {
 	prev = 0
 	tickLength = 1000 / 60
