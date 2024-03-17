@@ -9,7 +9,7 @@ export class TickManager {
 		this.start()
 	}
 
-	tickLength = 1000 / FPS
+	tickLength = Math.ceil(1000 / FPS)
 	raf: any
 	isPaused = true
 	last = 0

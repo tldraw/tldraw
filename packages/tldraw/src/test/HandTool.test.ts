@@ -64,7 +64,7 @@ describe(HandTool, () => {
 		editor.click() // quad click!
 		jest.advanceTimersByTime(300)
 		expect(editor.getZoomLevel()).not.toBe(1) // animating
-		jest.advanceTimersByTime(300)
+		jest.advanceTimersByTime(350)
 		const z = editor.getZoomLevel()
 		editor.zoomToFit() // call zoom to fit manually to compare
 		expect(editor.getZoomLevel()).toBe(z) // zoom should not have changed
