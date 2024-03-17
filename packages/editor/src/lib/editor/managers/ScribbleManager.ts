@@ -15,7 +15,6 @@ type ScribbleItem = {
 /** @public */
 export class ScribbleManager {
 	scribbleItems = new Map<string, ScribbleItem>()
-	state = 'paused' as 'paused' | 'running'
 
 	constructor(private editor: Editor) {}
 
@@ -40,26 +39,12 @@ export class ScribbleManager {
 			next: null,
 		}
 		this.scribbleItems.set(id, item)
-		if (this.state === 'paused') {
-			this.resume()
-		}
 		return item
-	}
-
-	resume() {
-		this.state = 'running'
-		this.editor.addListener('tick', this.tick)
-	}
-
-	pause() {
-		this.editor.removeListener('tick', this.tick)
-		this.state = 'paused'
 	}
 
 	reset() {
 		this.editor.updateInstanceState({ scribbles: [] })
 		this.scribbleItems.clear()
-		this.pause()
 	}
 
 	/**
@@ -99,101 +84,96 @@ export class ScribbleManager {
 	 * @public
 	 */
 	tick = (elapsed: number) => {
-		this.editor.batch(() => {
-			this.scribbleItems.forEach((item) => {
-				// let the item get at least eight points before
-				//  switching from starting to active
-				if (item.scribble.state === 'starting') {
-					const { next, prev } = item
+		if (this.scribbleItems.size === 0) return
+
+		this.scribbleItems.forEach((item) => {
+			// let the item get at least eight points before
+			//  switching from starting to active
+			if (item.scribble.state === 'starting') {
+				const { next, prev } = item
+				if (next && next !== prev) {
+					item.prev = next
+					item.scribble.points.push(next)
+				}
+
+				if (item.scribble.points.length > 8) {
+					item.scribble.state = 'active'
+				}
+				return
+			}
+
+			if (item.delayRemaining > 0) {
+				item.delayRemaining = Math.max(0, item.delayRemaining - elapsed)
+			}
+
+			item.timeoutMs += elapsed
+			if (item.timeoutMs >= 16) {
+				item.timeoutMs = 0
+			}
+
+			const { delayRemaining, timeoutMs, prev, next, scribble } = item
+
+			switch (scribble.state) {
+				case 'active': {
 					if (next && next !== prev) {
 						item.prev = next
-						item.scribble.points.push(next)
-					}
+						scribble.points.push(next)
 
-					if (item.scribble.points.length > 8) {
-						item.scribble.state = 'active'
-					}
-					return
-				}
-
-				if (item.delayRemaining > 0) {
-					item.delayRemaining = Math.max(0, item.delayRemaining - elapsed)
-				}
-
-				item.timeoutMs += elapsed
-				if (item.timeoutMs >= 16) {
-					item.timeoutMs = 0
-				}
-
-				const { delayRemaining, timeoutMs, prev, next, scribble } = item
-
-				switch (scribble.state) {
-					case 'active': {
-						if (next && next !== prev) {
-							item.prev = next
-							scribble.points.push(next)
-
-							// If we've run out of delay, then shrink the scribble from the start
-							if (delayRemaining === 0) {
-								if (scribble.points.length > 8) {
-									scribble.points.shift()
-								}
-							}
-						} else {
-							// While not moving, shrink the scribble from the start
-							if (timeoutMs === 0) {
-								if (scribble.points.length > 1) {
-									scribble.points.shift()
-								} else {
-									// Reset the item's delay
-									item.delayRemaining = scribble.delay
-								}
-							}
-						}
-						break
-					}
-					case 'stopping': {
-						if (item.delayRemaining === 0) {
-							if (timeoutMs === 0) {
-								// If the scribble is down to one point, we're done!
-								if (scribble.points.length === 1) {
-									this.scribbleItems.delete(item.id) // Remove the scribble
-									return
-								}
-
-								if (scribble.shrink) {
-									// Drop the scribble's size as it shrinks
-									scribble.size = Math.max(1, scribble.size * (1 - scribble.shrink))
-								}
-
-								// Drop the scribble's first point (its tail)
+						// If we've run out of delay, then shrink the scribble from the start
+						if (delayRemaining === 0) {
+							if (scribble.points.length > 8) {
 								scribble.points.shift()
 							}
 						}
-						break
+					} else {
+						// While not moving, shrink the scribble from the start
+						if (timeoutMs === 0) {
+							if (scribble.points.length > 1) {
+								scribble.points.shift()
+							} else {
+								// Reset the item's delay
+								item.delayRemaining = scribble.delay
+							}
+						}
 					}
-					case 'paused': {
-						// Nothing to do while paused.
-						break
-					}
+					break
 				}
-			})
+				case 'stopping': {
+					if (item.delayRemaining === 0) {
+						if (timeoutMs === 0) {
+							// If the scribble is down to one point, we're done!
+							if (scribble.points.length === 1) {
+								this.scribbleItems.delete(item.id) // Remove the scribble
+								return
+							}
 
-			// The object here will get frozen into the record, so we need to
-			// create a copies of the parts that what we'll be mutating later.
-			this.editor.updateInstanceState({
-				scribbles: Array.from(this.scribbleItems.values())
-					.map(({ scribble }) => ({
-						...scribble,
-						points: [...scribble.points],
-					}))
-					.slice(-5), // limit to three as a minor sanity check
-			})
+							if (scribble.shrink) {
+								// Drop the scribble's size as it shrinks
+								scribble.size = Math.max(1, scribble.size * (1 - scribble.shrink))
+							}
 
-			// If we've removed all the scribbles, stop ticking
-			if (this.scribbleItems.size === 0) {
-				this.pause()
+							// Drop the scribble's first point (its tail)
+							scribble.points.shift()
+						}
+					}
+					break
+				}
+				case 'paused': {
+					// Nothing to do while paused.
+					break
+				}
 			}
+		})
+
+		// The object here will get frozen into the record, so we need to
+		// create a copies of the parts that what we'll be mutating later.
+		this.editor.updateInstanceState({
+			scribbles: Array.from(this.scribbleItems.values())
+				.map(({ scribble }) => ({
+					...scribble,
+					points: [...scribble.points],
+				}))
+				.slice(-5), // limit to three as a minor sanity check
 		})
 	}
 }
