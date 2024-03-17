@@ -137,7 +137,7 @@ describe('When translating...', () => {
 
 		const before = editor.getShape<TLGeoShape>(ids.box1)!
 
-		editor.forceTick(7)
+		editor.forceTick(6)
 		editor
 			// The change is bigger than expected because the camera moves
 			.expectShapeToMatch({ id: ids.box1, x: -160, y: 10 })
@@ -161,8 +161,6 @@ describe('When translating...', () => {
 
 		editor.expectShapeToMatch({ id: ids.box1, x: 1040, y: 10 })
 		editor
-			.forceTick()
-			.expectShapeToMatch({ id: ids.box1, x: 1040, y: 10 })
 			.forceTick()
 			.expectShapeToMatch({ id: ids.box1, x: 1060, y: 10 })
 			.pointerMove(1080, 800)

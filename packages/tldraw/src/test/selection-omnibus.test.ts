@@ -1625,7 +1625,7 @@ describe('shift brushes to add to the selection', () => {
 	})
 })
 
-describe.only('scribble brushes to add to the selection', () => {
+describe('scribble brushes to add to the selection', () => {
 	beforeEach(() => {
 		editor.createShapes([
 			{ id: ids.box1, type: 'geo', x: 0, y: 0 },

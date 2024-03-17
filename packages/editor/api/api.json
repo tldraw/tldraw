@@ -34158,8 +34158,12 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLTickEventHandler",
-                  "canonicalReference": "@tldraw/editor!TLTickEventHandler:type"
+                  "text": "TLEventHandlers",
+                  "canonicalReference": "@tldraw/editor!TLEventHandlers:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "['onTick']"
                 },
                 {
                   "kind": "Content",
@@ -34172,7 +34176,7 @@
               "name": "onTick",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 3
               },
               "isStatic": false,
               "isProtected": false,
@@ -37540,6 +37544,34 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLEventHandlers#onTick:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onTick: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLTickEvent",
+                  "canonicalReference": "@tldraw/editor!TLTickEvent:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onTick",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEventHandlers#onTripleClick:member",
               "docComment": "",
               "excerptTokens": [
@@ -37671,6 +37703,15 @@
             },
             {
               "kind": "Reference",
+              "text": "TLTickEventInfo",
+              "canonicalReference": "@tldraw/editor!~TLTickEventInfo:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
               "text": "TLWheelEventInfo",
               "canonicalReference": "@tldraw/editor!TLWheelEventInfo:type"
             },
@@ -37684,7 +37725,7 @@
           "name": "TLEventInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 16
+            "endIndex": 18
           }
         },
         {
@@ -38137,7 +38178,7 @@
             },
             {
               "kind": "Content",
-              "text": "'cancel' | 'complete' | 'interrupt' | 'wheel' | "
+              "text": "'cancel' | 'complete' | 'interrupt' | 'tick' | 'wheel' | "
             },
             {
               "kind": "Reference",
@@ -41566,7 +41607,16 @@
             },
             {
               "kind": "Content",
-              "text": "(elapsed: number) => void"
+              "text": "(info: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLTickEventInfo",
+              "canonicalReference": "@tldraw/editor!~TLTickEventInfo:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void"
             },
             {
               "kind": "Content",
@@ -41578,33 +41628,7 @@
           "name": "TLTickEvent",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLTickEventHandler:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLTickEventHandler = "
-            },
-            {
-              "kind": "Content",
-              "text": "() => void"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/types/event-types.ts",
-          "releaseTag": "Public",
-          "name": "TLTickEventHandler",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 4
           }
         },
         {

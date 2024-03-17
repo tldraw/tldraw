@@ -328,18 +328,18 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(275, 275).pointerMove(150, 150)
 
-		jest.advanceTimersByTime(300)
+		jest.advanceTimersByTime(1000)
 
 		expect(editor.getOnlySelectedShape()!.id).toBe(ids.boxA)
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 
 		editor.pointerMove(275, 275)
-		jest.advanceTimersByTime(250)
+		jest.advanceTimersByTime(1000)
 
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.getCurrentPageId())
 
 		editor.pointerMove(150, 150)
-		jest.advanceTimersByTime(250)
+		jest.advanceTimersByTime(1000)
 
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 

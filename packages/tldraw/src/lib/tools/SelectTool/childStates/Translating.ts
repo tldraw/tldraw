@@ -10,7 +10,6 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
-	TLTickEventHandler,
 	Vec,
 	compact,
 	isPageId,
@@ -84,18 +83,15 @@ export class Translating extends StateNode {
 	}
 
 	override onExit = () => {
+		this.dragAndDropManager.clear()
 		this.parent.setCurrentToolIdMask(undefined)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clearIndicators()
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
-		this.dragAndDropManager.clear()
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
 			this.updateParentTransforms

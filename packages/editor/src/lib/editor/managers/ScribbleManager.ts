@@ -2,7 +2,6 @@ import { TLScribble, VecModel } from '@tldraw/tlschema'
 import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
-import { TLTickEvent } from '../types/event-types'
 
 type ScribbleItem = {
 	id: string
@@ -99,7 +98,7 @@ export class ScribbleManager {
 	 * @param elapsed - The number of milliseconds since the last tick.
 	 * @public
 	 */
-	tick: TLTickEvent = (elapsed) => {
+	tick = (elapsed: number) => {
 		this.editor.batch(() => {
 			this.scribbleItems.forEach((item) => {
 				// let the item get at least eight points before

@@ -8539,7 +8539,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _pendingEventsForNextTick: TLEventInfo[] = []
-	private _flushEventsForTick = () => {
+	private _flushEventsForTick = (elapsed: number) => {
 		if (this._pendingEventsForNextTick.length === 0) return
 		this.batch(() => {
 			const events = [...this._pendingEventsForNextTick]
@@ -8547,6 +8547,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			for (const info of events) {
 				this._flushEventForTick(info)
 			}
+			this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
 		})
 	}
 	private _flushEventForTick = (info: TLEventInfo) => {
