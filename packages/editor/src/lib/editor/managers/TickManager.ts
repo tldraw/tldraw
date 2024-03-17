@@ -1,12 +1,15 @@
 import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
 
+const FPS = 60
+
 export class TickManager {
 	constructor(public editor: Editor) {
 		this.editor.disposables.add(this.dispose)
 		this.start()
 	}
 
+	tickLength = 1000 / FPS
 	raf: any
 	isPaused = true
 	last = 0
@@ -31,12 +34,12 @@ export class TickManager {
 
 		this.editor.emit('frame', elapsed)
 
-		if (this.t < 16) {
+		if (this.t < this.tickLength) {
 			this.raf = requestAnimationFrame(this.tick)
 			return
 		}
 
-		this.t -= 16
+		this.t -= this.tickLength
 		this.updatePointerVelocity(elapsed)
 		this.editor.emit('tick', elapsed)
 		this.raf = requestAnimationFrame(this.tick)
