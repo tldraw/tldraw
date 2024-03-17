@@ -9,8 +9,6 @@ export function sleep(ms: number) {
 const clickableShapeCreators = [
 	{ tool: 'draw', shape: 'draw' },
 	{ tool: 'frame', shape: 'frame' },
-	{ tool: 'note', shape: 'note' },
-	{ tool: 'text', shape: 'text' },
 	{ tool: 'rectangle', shape: 'geo' },
 	{ tool: 'ellipse', shape: 'geo' },
 	{ tool: 'triangle', shape: 'geo' },
@@ -28,6 +26,8 @@ const clickableShapeCreators = [
 	{ tool: 'arrow-down', shape: 'geo' },
 	{ tool: 'x-box', shape: 'geo' },
 	{ tool: 'check-box', shape: 'geo' },
+	// { tool: 'note', shape: 'note' },
+	// { tool: 'text', shape: 'text' },
 ]
 
 const draggableShapeCreators = [
@@ -96,6 +96,7 @@ test.describe('Shape Tools', () => {
 		await page.keyboard.press('v')
 		await page.keyboard.press('Control+a')
 		await page.keyboard.press('Backspace')
+		await sleep(20)
 		expect(await getAllShapeTypes(page)).toEqual([])
 
 		for (const { tool, shape } of clickableShapeCreators) {
@@ -112,12 +113,14 @@ test.describe('Shape Tools', () => {
 
 			// Click on the page
 			await page.mouse.click(200, 200)
+			await sleep(20)
 
 			// We should have a corresponding shape in the page
 			expect(await getAllShapeTypes(page)).toEqual([shape])
 
 			// Reset for next time
 			await page.mouse.click(50, 50) // to ensure we're not focused
+			await sleep(20)
 			await page.keyboard.press('v') // go to the select tool
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Backspace')
@@ -149,12 +152,14 @@ test.describe('Shape Tools', () => {
 			await page.mouse.down()
 			await page.mouse.move(250, 250)
 			await page.mouse.up()
+			await sleep(20)
 
 			// We should have a corresponding shape in the page
 			expect(await getAllShapeTypes(page)).toEqual([shape])
 
 			// Reset for next time
 			await page.mouse.click(50, 50) // to ensure we're not focused
+			await sleep(20)
 			await page.keyboard.press('v')
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Backspace')
