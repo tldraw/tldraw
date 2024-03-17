@@ -1,8 +1,8 @@
-import { react, track, useLayoutReaction, useValue } from '@tldraw/state'
+import { react, useLayoutReaction, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
-import React from 'react'
+import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
@@ -17,6 +17,8 @@ import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
+import { setStyleProperty } from '../../utils/dom'
+import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -30,9 +32,9 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 
 	const { Background, SvgDefs } = useEditorComponents()
 
-	const rCanvas = React.useRef<HTMLDivElement>(null)
-	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
-	const rHtmlLayer2 = React.useRef<HTMLDivElement>(null)
+	const rCanvas = useRef<HTMLDivElement>(null)
+	const rHtmlLayer = useRef<HTMLDivElement>(null)
+	const rHtmlLayer2 = useRef<HTMLDivElement>(null)
 
 	useScreenBounds(rCanvas)
 	useDocumentEvents()
@@ -42,11 +44,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
 	useLayoutReaction('position layers', () => {
-		const htmlElm = rHtmlLayer.current
-		if (!htmlElm) return
-		const htmlElm2 = rHtmlLayer2.current
-		if (!htmlElm2) return
-
 		const { x, y, z } = editor.getCamera()
 
 		// Because the html container has a width/height of 1px, we
@@ -58,8 +55,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
 			x + offset
 		)}px,${toDomPrecision(y + offset)}px)`
-		htmlElm.style.setProperty('transform', transform)
-		htmlElm2.style.setProperty('transform', transform)
+		setStyleProperty(rHtmlLayer.current, 'transform', transform)
+		setStyleProperty(rHtmlLayer2.current, 'transform', transform)
 	})
 
 	const events = useCanvasEvents()
@@ -67,7 +64,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const shapeSvgDefs = useValue(
 		'shapeSvgDefs',
 		() => {
-			const shapeSvgDefsByKey = new Map<string, React.JSX.Element>()
+			const shapeSvgDefsByKey = new Map<string, JSX.Element>()
 			for (const util of objectMapValues(editor.shapeUtils)) {
 				if (!util) return
 				const defs = util.getCanvasSvgDefs()
@@ -98,10 +95,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			<svg className="tl-svg-context">
 				<defs>
 					{shapeSvgDefs}
-					{Cursor && <Cursor />}
-					<CollaboratorHint />
-					<ArrowheadDot />
-					<ArrowheadCross />
+					<CursorDef />
+					<CollaboratorHintDef />
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
@@ -330,13 +325,22 @@ function ShapesWithSVGs() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
+	const dprMultiple = useValue(
+		'dpr multiple',
+		() =>
+			// dprMultiple is the smallest number we can multiply dpr by to get an integer
+			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
+		[editor]
+	)
+
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<React.Fragment key={result.id + '_fragment'}>
-					<Shape {...result} />
+				<Fragment key={result.id + '_fragment'}>
+					<Shape {...result} dprMultiple={dprMultiple} />
 					<DebugSvgCopy id={result.id} />
-				</React.Fragment>
+				</Fragment>
 			))}
 		</>
 	)
@@ -347,10 +351,19 @@ function ShapesToDisplay() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
+	const dprMultiple = useValue(
+		'dpr multiple',
+		() =>
+			// dprMultiple is the smallest number we can multiply dpr by to get an integer
+			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
+		[editor]
+	)
+
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} />
+				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
 			))}
 		</>
 	)
@@ -420,11 +433,11 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }
 
-const HintedShapeIndicator = track(function HintedShapeIndicator() {
+function HintedShapeIndicator() {
 	const editor = useEditor()
 	const { ShapeIndicator } = useEditorComponents()
 
-	const ids = dedupe(editor.getHintingShapeIds())
+	const ids = useValue('hinting shape ids', () => dedupe(editor.getHintingShapeIds()), [editor])
 
 	if (!ids.length) return null
 	if (!ShapeIndicator) return null
@@ -436,9 +449,9 @@ const HintedShapeIndicator = track(function HintedShapeIndicator() {
 			))}
 		</>
 	)
-})
+}
 
-function Cursor() {
+function CursorDef() {
 	return (
 		<g id="cursor">
 			<g fill="rgba(0,0,0,.2)" transform="translate(-11,-11)">
@@ -457,36 +470,25 @@ function Cursor() {
 	)
 }
 
-function CollaboratorHint() {
+function CollaboratorHintDef() {
 	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }
 
-function ArrowheadDot() {
-	return (
-		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
-			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
-		</marker>
-	)
-}
-
-function ArrowheadCross() {
-	return (
-		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
-			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
-			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
-		</marker>
-	)
-}
-
-const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
+function DebugSvgCopy({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
-	const shape = editor.getShape(id)
 
-	const [html, setHtml] = React.useState('')
+	const [html, setHtml] = useState('')
 
-	const isInRoot = shape?.parentId === editor.getCurrentPageId()
+	const isInRoot = useValue(
+		'is in root',
+		() => {
+			const shape = editor.getShape(id)
+			return shape?.parentId === editor.getCurrentPageId()
+		},
+		[editor, id]
+	)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!isInRoot) return
 
 		let latest = null
@@ -520,7 +522,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			<div style={{ display: 'flex' }} dangerouslySetInnerHTML={{ __html: html }} />
 		</div>
 	)
-})
+}
 
 function SelectionForegroundWrapper() {
 	const editor = useEditor()
