@@ -17,7 +17,7 @@ import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
-import { setProperty } from '../../utils/dom'
+import { setStyleProperty } from '../../utils/dom'
 import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
@@ -55,8 +55,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
 			x + offset
 		)}px,${toDomPrecision(y + offset)}px)`
-		setProperty(rHtmlLayer.current, 'transform', transform)
-		setProperty(rHtmlLayer2.current, 'transform', transform)
+		setStyleProperty(rHtmlLayer.current, 'transform', transform)
+		setStyleProperty(rHtmlLayer2.current, 'transform', transform)
 	})
 
 	const events = useCanvasEvents()

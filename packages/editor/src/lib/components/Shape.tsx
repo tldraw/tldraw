@@ -7,7 +7,7 @@ import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
 import { toDomPrecision } from '../primitives/utils'
-import { setProperty } from '../utils/dom'
+import { setStyleProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
@@ -63,16 +63,16 @@ export const Shape = memo(function Shape({
 		// Clip path
 		const clipPath = editor.getShapeClipPath(id) ?? 'none'
 		if (clipPath !== prev.clipPath) {
-			setProperty(containerRef.current, 'clip-path', clipPath)
-			setProperty(bgContainerRef.current, 'clip-path', clipPath)
+			setStyleProperty(containerRef.current, 'clip-path', clipPath)
+			setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
 			prev.clipPath = clipPath
 		}
 
 		// Page transform
 		const transform = Mat.toCssString(editor.getShapePageTransform(id))
 		if (transform !== prev.transform) {
-			setProperty(containerRef.current, 'transform', transform)
-			setProperty(bgContainerRef.current, 'transform', transform)
+			setStyleProperty(containerRef.current, 'transform', transform)
+			setStyleProperty(bgContainerRef.current, 'transform', transform)
 			prev.transform = transform
 		}
 
@@ -86,10 +86,10 @@ export const Shape = memo(function Shape({
 		const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
 
 		if (width !== prev.width || height !== prev.height) {
-			setProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-			setProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-			setProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-			setProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+			setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
+			setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+			setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
+			setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 			prev.width = width
 			prev.height = height
 		}
@@ -101,12 +101,12 @@ export const Shape = memo(function Shape({
 		const bgContainer = bgContainerRef.current
 
 		// Opacity
-		setProperty(container, 'opacity', opacity)
-		setProperty(bgContainer, 'opacity', opacity)
+		setStyleProperty(container, 'opacity', opacity)
+		setStyleProperty(bgContainer, 'opacity', opacity)
 
 		// Z-Index
-		setProperty(container, 'z-index', index)
-		setProperty(bgContainer, 'z-index', backgroundIndex)
+		setStyleProperty(container, 'z-index', index)
+		setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 	}, [opacity, index, backgroundIndex])
 
 	const annotateError = useCallback(
@@ -171,7 +171,7 @@ const CulledShape = function CulledShape<T extends TLShape>({ shapeId }: { shape
 
 	useLayoutReaction('set shape stuff', () => {
 		const bounds = editor.getShapeGeometry(shapeId).bounds
-		setProperty(
+		setStyleProperty(
 			culledRef.current,
 			'transform',
 			`translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(bounds.minY)}px)`
