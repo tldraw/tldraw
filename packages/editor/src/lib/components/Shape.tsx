@@ -1,11 +1,12 @@
 import { useLayoutReaction, useStateTracking } from '@tldraw/state'
+import { IdOf } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import classNames from 'classnames'
 import { memo, useCallback, useLayoutEffect, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
+import { toDomPrecision } from '../primitives/utils'
 import { setProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -121,20 +122,17 @@ export const Shape = memo(function Shape({
 					data-shape-type={shape.type}
 					draggable={false}
 				>
-					{!isCulled && (
+					{isCulled ? null : (
 						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 							<InnerShapeBackground shape={shape} util={util} />
 						</OptionalErrorBoundary>
 					)}
 				</div>
 			)}
-			<div
-				ref={containerRef}
-				className={classNames('tl-shape', { 'tl-shape__culled': isCulled })}
-				data-shape-type={shape.type}
-				draggable={false}
-			>
-				{!isCulled && (
+			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
+				{isCulled ? (
+					<CulledShape shapeId={shape.id} />
+				) : (
 					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 						<InnerShape shape={shape} util={util} />
 					</OptionalErrorBoundary>
@@ -165,3 +163,23 @@ const InnerShapeBackground = memo(
 	// Only update when the shape's props or meta change
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
+
+const CulledShape = memo(function CulledShape<T extends TLShape>({
+	shapeId,
+}: {
+	shapeId: IdOf<T>
+}) {
+	const editor = useEditor()
+	const culledRef = useRef<HTMLDivElement>(null)
+
+	useLayoutReaction('set shape stuff', () => {
+		const bounds = editor.getShapeGeometry(shapeId).bounds
+		setProperty(
+			culledRef,
+			'transform',
+			`translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(bounds.minY)}px)`
+		)
+	})
+
+	return <div ref={culledRef} className="tl-shape__culled" />
+})

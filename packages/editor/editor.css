@@ -331,6 +331,8 @@ input,
 
 .tl-shape__culled {
 	background-color: var(--color-culled);
+	width: 100%;
+	height: 100%;
 }
 
 /* ---------------- Shape Containers ---------------- */
