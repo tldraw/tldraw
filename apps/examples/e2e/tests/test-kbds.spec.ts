@@ -1,5 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { setupPage, setupPageWithShapes } from '../shared-e2e'
+import { setupPage, setupPageWithShapes, sleep } from '../shared-e2e'
 
 declare const __tldraw_ui_event: { name: string }
 
@@ -87,6 +87,7 @@ test.describe('Keyboard Shortcuts', () => {
 		for (const [key, tool] of positionalToolKbds) {
 			await page.keyboard.press('v') // set back to select
 			await page.keyboard.press(key)
+			await sleep(20)
 			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'select-tool',
 				data: { id: tool, source: 'toolbar' },
