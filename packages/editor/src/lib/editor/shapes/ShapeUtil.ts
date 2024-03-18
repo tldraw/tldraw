@@ -4,7 +4,6 @@ import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@
 import { Box } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
-import { Rectangle2d } from '../../primitives/geometry/Rectangle2d'
 import type { Editor } from '../Editor'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
@@ -258,16 +257,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return []
-	}
-
-	/**
-	 * Retrieves the shape's label, if it has one.
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	getLabel(shape: Shape): Rectangle2d | null {
-		return null
 	}
 
 	/**

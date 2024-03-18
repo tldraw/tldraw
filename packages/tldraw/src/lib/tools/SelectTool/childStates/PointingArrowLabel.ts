@@ -16,6 +16,7 @@ export class PointingArrowLabel extends StateNode {
 
 	shapeId = '' as TLShapeId
 	markId = ''
+	wasAlreadySelected = false
 	didDrag = false
 
 	private info = {} as TLPointerEventInfo & {
@@ -40,6 +41,7 @@ export class PointingArrowLabel extends StateNode {
 		this.info = info
 		this.shapeId = shape.id
 		this.didDrag = false
+		this.wasAlreadySelected = this.editor.getOnlySelectedShape()?.id === shape.id
 		this.updateCursor()
 
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
@@ -113,7 +115,7 @@ export class PointingArrowLabel extends StateNode {
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
 		if (!shape) return
 
-		if (this.didDrag) {
+		if (this.didDrag || !this.wasAlreadySelected) {
 			this.complete()
 		} else {
 			// Go into edit mode.

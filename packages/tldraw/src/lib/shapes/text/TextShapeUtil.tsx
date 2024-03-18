@@ -57,11 +57,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			width: width * scale,
 			height: height * scale,
 			isFilled: true,
+			isLabel: true,
 		})
-	}
-
-	override getLabel(shape: TLTextShape) {
-		return this.getGeometry(shape)
 	}
 
 	override canEdit = () => true
@@ -117,10 +114,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 						// We add a key here because we need this component to 'reset' when this state changes
 						// and grab the latest defaultValue.
 						// XXX I need to land https://github.com/tldraw/tldraw/pull/3050 so I can do this right.
-						// key={isEditing ? undefined : 'not-editing'}
+						// key={initialText}
 						className="tl-text tl-text-input"
 						name="text"
 						tabIndex={-1}
+						readOnly={!isEditing}
+						disabled={!isEditing}
 						autoComplete="off"
 						autoCapitalize="off"
 						autoCorrect="off"
