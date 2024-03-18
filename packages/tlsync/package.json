@@ -46,7 +46,7 @@
 	},
 	"jest": {
 		"preset": "config/jest/node",
-		"testEnvironment": "./patchedJestJsDom.js",
+		"testEnvironment": "../../../patchedJestJsDom.js",
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
 		},

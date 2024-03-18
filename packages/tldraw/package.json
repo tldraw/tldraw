@@ -78,7 +78,7 @@
 	},
 	"jest": {
 		"preset": "config/jest/node",
-		"testEnvironment": "jsdom",
+		"testEnvironment": "../../../patchedJestJsDom.js",
 		"fakeTimers": {
 			"enableGlobally": true
 		},

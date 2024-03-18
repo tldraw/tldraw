@@ -47,3 +47,15 @@ export const structuredClone =
 				? (window.structuredClone as <T>(i: T) => T)
 				: // fallback
 					<T>(i: T): T => (i ? JSON.parse(JSON.stringify(i)) : i)
+
+/**
+ * When we patch structuredClone in jsdom for testing (see https://github.com/jsdom/jsdom/issues/3363),
+ * the Object that is used as a prototype for the cloned object is not the same as the Object in
+ * the code under test (that comes from jsdom's fake global context). This constant is used in
+ * our code to work around this case.
+ *
+ * This is also the case for Array prototype, but that problem can be worked around with an
+ * Array.isArray() check.
+ * @internal
+ */
+export const STRUCTURED_CLONE_OBJECT_PROTOTYPE = Object.getPrototypeOf(structuredClone({}))
