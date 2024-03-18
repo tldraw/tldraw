@@ -7188,6 +7188,7 @@ __metadata:
     "@microsoft/tsdoc": "npm:^0.14.2"
     "@radix-ui/react-accordion": "npm:^1.1.2"
     "@radix-ui/react-navigation-menu": "npm:^1.1.4"
+    "@tldraw/utils": "workspace:*"
     "@types/broken-link-checker": "npm:^0.7.1"
     "@types/node": "npm:~20.11"
     "@types/sqlite3": "npm:^3.1.9"
