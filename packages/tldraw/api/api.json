@@ -5188,7 +5188,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            points: import(\"@tldraw/editor\")."
+                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -5197,7 +5197,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n            type: \"free\" | \"straight\";\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10411,7 +10411,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            points: import(\"@tldraw/editor\")."
+                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10420,7 +10420,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n            type: \"free\" | \"straight\";\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12361,7 +12361,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, {\n            id: string;\n            index: import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            id: string;\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12370,7 +12370,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n            x: number;\n            y: number;\n        }>;\n    }"
+                  "text": ";\n        }>;\n    }"
                 },
                 {
                   "kind": "Content",
