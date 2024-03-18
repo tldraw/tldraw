@@ -33,9 +33,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override canReceiveNewChildrenOfType = () => true
 	override canDropShapes = () => true
-	override onDragShapesOver = () => ({ shouldHint: true })
-	override onDropShapesOver = (shape: TLNoteShape, shapes: TLShape[]) => {
+	override onDragShapesOver = (shape: TLNoteShape, shapes: TLShape[]) => {
 		this.editor.reparentShapes(shapes, shape.id)
+		return { shouldHint: true }
 	}
 
 	override onDragShapesOut = (shape: TLNoteShape, shapes: TLShape[]) => {

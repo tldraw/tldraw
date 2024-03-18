@@ -1156,11 +1156,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onDragShapesOut: (shape: TLNoteShape, shapes: TLShape[]) => void;
     // (undocumented)
-    onDragShapesOver: () => {
+    onDragShapesOver: (shape: TLNoteShape, shapes: TLShape[]) => {
         shouldHint: boolean;
     };
-    // (undocumented)
-    onDropShapesOver: (shape: TLNoteShape, shapes: TLShape[]) => void;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)

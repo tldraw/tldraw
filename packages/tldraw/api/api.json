@@ -13450,36 +13450,6 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "() => {\n        shouldHint: boolean;\n    }"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onDragShapesOver",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "tldraw!NoteShapeUtil#onDropShapesOver:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onDropShapesOver: "
-                },
-                {
-                  "kind": "Content",
                   "text": "(shape: "
                 },
                 {
@@ -13498,7 +13468,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[]) => void"
+                  "text": "[]) => {\n        shouldHint: boolean;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -13508,7 +13478,7 @@
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "onDropShapesOver",
+              "name": "onDragShapesOver",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 6
