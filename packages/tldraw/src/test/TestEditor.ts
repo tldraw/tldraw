@@ -316,8 +316,9 @@ export class TestEditor extends Editor {
 	You can use this helper to force the tick, which will then process all the updates.
 	*/
 	forceTick = (count = 1) => {
+		const tick = (this as any)._tickManager as { tick(): void }
 		for (let i = 0; i < count; i++) {
-			this.emit('tick', 16)
+			tick.tick()
 		}
 		return this
 	}

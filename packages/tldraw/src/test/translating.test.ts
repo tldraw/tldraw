@@ -1959,7 +1959,7 @@ describe('Moving the camera while panning', () => {
 			.expectScreenBoundsToBe(ids.box1, { x: 10, y: 10 })
 	})
 
-	it.failing('Correctly preserves screen point while dragging', () => {
+	it('Correctly preserves screen point while dragging', async () => {
 		editor.createShape({
 			type: 'geo',
 			id: ids.box1,
@@ -1990,16 +1990,10 @@ describe('Moving the camera while panning', () => {
 			// now we move the camera by -10,-10
 			// since we're dragging, they should still all move together
 			.wheel(-10, -10)
+			.forceTick()
+			// wait for a tick to allow the tick manager to dispatch to the translating tool
 
-			// Nothong has changed until the tick
-			.expectCameraToBe(0, 0, 1)
-			.expectScreenBoundsToBe(ids.box1, { x: 0, y: 0 })
-			.expectShapeToMatch({ id: ids.box1, x: 10, y: 10 })
-			.expectPageBoundsToBe(ids.box1, { x: 10, y: 10 })
-
-			.forceTick() // needed
-
-			// The dragging shape has moved...
+			// The camera has moved
 			.expectCameraToBe(-10, -10, 1)
 			.expectShapeToMatch({ id: ids.box1, x: 20, y: 20 })
 			.expectPageBoundsToBe(ids.box1, { x: 20, y: 20 })
