@@ -37,7 +37,6 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"devDependencies": {
-		"jest-environment-jsdom": "^29.4.3",
 		"tldraw": "workspace:*",
 		"typescript": "^5.3.3",
 		"uuid-by-string": "^4.0.0",
@@ -45,7 +44,7 @@
 	},
 	"jest": {
 		"preset": "config/jest/node",
-		"testEnvironment": "../../../patchedJestJsDom.js",
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
 		},

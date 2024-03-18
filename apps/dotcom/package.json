@@ -58,7 +58,7 @@
 		"roots": [
 			"<rootDir>"
 		],
-		"testEnvironment": "../../../patchedJestJsDom.js",
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"transformIgnorePatterns": [
 			"node_modules/(?!(nanoid|nanoevents)/)"
 		],
