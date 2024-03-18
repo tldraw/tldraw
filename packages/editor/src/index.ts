@@ -223,7 +223,6 @@ export {
 	type TLPointerEventName,
 	type TLPointerEventTarget,
 	type TLTickEvent,
-	type TLTickEventHandler,
 	type TLWheelEvent,
 	type TLWheelEventInfo,
 	type UiEvent,

@@ -62,6 +62,7 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -113,7 +114,6 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
-import { TLTickEventHandler } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnionValidator } from '@tldraw/editor';
@@ -308,8 +308,9 @@ export function ClipboardMenuGroup(): JSX_2.Element;
 export function CloudToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function CommonStylePickerSet({ styles }: {
+export function CommonStylePickerSet({ styles, theme, }: {
     styles: ReadonlySharedStyleMap;
+    theme: TLDefaultColorTheme;
 }): JSX_2.Element;
 
 // @public
@@ -1398,7 +1399,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-export function TextStylePickerSet({ styles }: {
+export function TextStylePickerSet({ theme, styles, }: {
+    theme: TLDefaultColorTheme;
     styles: ReadonlySharedStyleMap;
 }): JSX_2.Element | null;
 
@@ -1751,6 +1753,8 @@ export interface TLUiButtonPickerProps<T extends string> {
     onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void;
     // (undocumented)
     style: StyleProp<T>;
+    // (undocumented)
+    theme: TLDefaultColorTheme;
     // (undocumented)
     title: string;
     // (undocumented)

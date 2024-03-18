@@ -80,3 +80,13 @@ export function releasePointerCapture(
 
 /** @public */
 export const stopEventPropagation = (e: any) => e.stopPropagation()
+
+/** @internal */
+export const setStyleProperty = (
+	elm: HTMLElement | null,
+	property: string,
+	value: string | number
+) => {
+	if (!elm) return
+	elm.style.setProperty(property, value as string)
+}
