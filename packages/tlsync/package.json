@@ -37,7 +37,6 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"devDependencies": {
-		"fast-check": "^3.16.0",
 		"jest-environment-jsdom": "^29.4.3",
 		"tldraw": "workspace:*",
 		"typescript": "^5.3.3",
