@@ -47,7 +47,6 @@ import {
 	assert,
 	compact,
 	dedupe,
-	deepCopy,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -207,6 +206,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer ?? (() => document.body)
 
 		this.textMeasure = new TextManager(this)
+		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -637,6 +637,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.updateRenderingBounds()
 
+		this.on('tick', this.tick)
+
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
@@ -664,7 +666,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly disposables = new Set<() => void>()
 
 	/** @internal */
-	private _tickManager = new TickManager(this)
+	private readonly _tickManager
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -5221,7 +5223,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? getIndexBetween(shape.index, siblingAbove.index)
 					: getIndexAbove(shape.index)
 
-				let newShape: TLShape = deepCopy(shape)
+				let newShape: TLShape = structuredClone(shape)
 
 				if (
 					this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
@@ -7864,13 +7866,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let newShape: TLShape
 
 			if (preserveIds) {
-				newShape = deepCopy(shape)
+				newShape = structuredClone(shape)
 				idMap.set(shape.id, shape.id)
 			} else {
 				const id = idMap.get(shape.id)!
 
 				// Create the new shape (new except for the id)
-				newShape = deepCopy({ ...shape, id })
+				newShape = structuredClone({ ...shape, id })
 			}
 
 			if (rootShapeIds.includes(shape.id)) {
@@ -8378,6 +8380,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				meta: {},
 			},
 		])
+	}
+
+	/** @internal */
+	private tick = (elapsed = 0) => {
+		this.dispatch({ type: 'misc', name: 'tick', elapsed })
+		this.scribbles.tick(elapsed)
 	}
 
 	/**

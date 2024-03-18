@@ -13,7 +13,6 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
-	TLTickEventHandler,
 	Vec,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
@@ -67,7 +66,7 @@ export class Brushing extends StateNode {
 		this.editor.updateInstanceState({ brush: null })
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		moveCameraWhenCloseToEdge(this.editor)
 		if (this.isDirty) {
 			this.isDirty = false
