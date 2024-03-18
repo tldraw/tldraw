@@ -1,4 +1,5 @@
 import { StateNode, TLEventHandlers, TLFrameShape } from '@tldraw/editor'
+import { getTextLabels } from '../../../utils/shapes/shapes'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
@@ -58,7 +59,9 @@ export class EditingShape extends StateNode {
 				}
 
 				// for shapes with labels, check to see if the click was inside of the shape's label
-				const textLabel = this.editor.getShapeUtil(selectingShape).getLabel(selectingShape)
+				const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
+				const textLabels = getTextLabels(geometry)
+				const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
 				if (textLabel) {
 					const pointInShapeSpace = this.editor.getPointInShapeSpace(
 						selectingShape,
