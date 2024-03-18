@@ -247,6 +247,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		while (count < positions[direction].length) {
 			const position = positions[direction][count]
+			/* A better version of this is to draw a box where you want the shape to go 
+			and hit test for any shapes that may be inside the box, similar to the logic 
+			in the select tool. For now, we're just checking a single point */
 			const shapes = this.editor.getShapesAtPoint({
 				x: position.x + centerOffset,
 				y: position.y + centerOffset,
