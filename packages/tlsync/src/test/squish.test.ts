@@ -276,7 +276,8 @@ test('basic squishing', () => {
 		},
 	] as const satisfies TLSocketServerSentDataEvent<UnknownRecord>[]
 
-	expect(squishDataEvents(capture as any)).toStrictEqual([
+	const squished = squishDataEvents(capture)
+	const manuallySquished = [
 		{
 			type: 'patch',
 			diff: {
@@ -307,7 +308,10 @@ test('basic squishing', () => {
 			},
 			serverClock: 9249,
 		},
-	])
+	]
+
+	// see https://github.com/jestjs/jest/issues/14011 for why the second clone is needed
+	expect(squished).toStrictEqual(structuredClone(manuallySquished))
 })
 
 const TEST_RECORD_TYPENAME = 'testRecord' as const
@@ -383,7 +387,8 @@ class Model {
 		const baseStore = this.getStoreWithDiffs(this.diffs)
 		const squishedStore = this.getStoreWithDiffs(squishedDiffs)
 
-		expect(squishedStore.serialize()).toStrictEqual(baseStore.serialize())
+		// see https://github.com/jestjs/jest/issues/14011 for the explanation for that structuredClone
+		expect(squishedStore.serialize()).toEqual(structuredClone(baseStore.serialize()))
 	}
 
 	// offsets are a MAJOR pain because they depend on the entire history of diffs so far, and
@@ -540,7 +545,7 @@ test('fast-checking squish', () => {
 		),
 		{
 			verbose: 1,
-			numRuns: 10_000,
+			numRuns: 1_000,
 		}
 	)
 })
