@@ -230,6 +230,11 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 				if (!state.isEditing) setState((prev) => ({ ...prev, name: null }))
 				return
 			}
+			if (trimmed.length) {
+				document.title = `tldraw - ${trimmed}`
+			} else {
+				document.title = `tldraw`
+			}
 
 			editor.updateDocumentSettings({ name: trimmed })
 		}
