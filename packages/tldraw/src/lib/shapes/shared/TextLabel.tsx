@@ -55,6 +55,7 @@ export const TextLabel = React.memo(function TextLabel<
 	} = useEditableText(id, type, text)
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
+	const finalTextArray = TextHelpers.normalizeTextForDom(text).split('\n')
 	const hasText = finalText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
@@ -96,8 +97,13 @@ export const TextLabel = React.memo(function TextLabel<
 					color: theme[labelColor].solid,
 				}}
 			>
-				<div className="tl-text tl-text-content" dir="ltr">
-					{finalText}
+				<div className="tl-text tl-text-content" dir="auto">
+					{finalTextArray.map((lineOfText, index) => (
+						<span dir="auto" key={index}>
+							{lineOfText}
+							<br />
+						</span>
+					))}
 				</div>
 				{isEditing && (
 					<textarea
