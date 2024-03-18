@@ -1047,9 +1047,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
         }>;
     };

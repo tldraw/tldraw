@@ -37,9 +37,6 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 // @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
-// @public
-export function deepCopy<T = unknown>(obj: T): T;
-
 // @internal
 export function deleteFromLocalStorage(key: string): void;
 

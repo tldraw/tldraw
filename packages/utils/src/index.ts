@@ -27,7 +27,6 @@ export { MediaHelpers } from './lib/media'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
 	areObjectsShallowEqual,
-	deepCopy,
 	filterEntries,
 	getOwnProperty,
 	hasOwnProperty,

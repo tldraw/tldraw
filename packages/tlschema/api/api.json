@@ -2818,7 +2818,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
+              "text": "<string, {\n        x: number;\n        y: number;\n        id: string;\n        index: "
             },
             {
               "kind": "Reference",

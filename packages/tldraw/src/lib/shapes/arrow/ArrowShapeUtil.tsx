@@ -27,11 +27,11 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
 	mapObjectMapValues,
 	objectMapEntries,
+	structuredClone,
 	toDomPrecision,
 	useIsEditing,
 } from '@tldraw/editor'
@@ -194,7 +194,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// Start or end, pointing the arrow...
 
-		const next = deepCopy(shape) as TLArrowShape
+		const next = structuredClone(shape) as TLArrowShape
 
 		if (this.editor.inputs.ctrlKey) {
 			// todo: maybe double check that this isn't equal to the other handle too?
@@ -420,7 +420,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape)
 
-		const { start, end } = deepCopy<TLArrowShape['props']>(shape.props)
+		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
 		let { bend } = shape.props
 
 		// Rescale start handle if it's not bound to a shape
