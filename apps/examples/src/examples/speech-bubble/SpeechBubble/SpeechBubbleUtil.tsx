@@ -8,13 +8,10 @@ import {
 	TLBaseShape,
 	TLDefaultColorStyle,
 	TLDefaultSizeStyle,
-	TLHandle,
 	TLOnBeforeUpdateHandler,
-	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
 	VecModel,
-	ZERO_INDEX_KEY,
 	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
@@ -84,33 +81,33 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	}
 
 	// [4]
-	override getHandles(shape: SpeechBubbleShape): TLHandle[] {
-		const { tail, w, h } = shape.props
+	// override getHandles(shape: SpeechBubbleShape): TLHandle[] {
+	// 	const { tail, w, h } = shape.props
 
-		return [
-			{
-				id: 'tail',
-				type: 'vertex',
-				index: ZERO_INDEX_KEY,
-				// props.tail coordinates are normalized
-				// but here we need them in shape space
-				x: tail.x * w,
-				y: tail.y * h,
-			},
-		]
-	}
+	// 	return [
+	// 		{
+	// 			id: 'tail',
+	// 			type: 'vertex',
+	// 			index: ZERO_INDEX_KEY,
+	// 			// props.tail coordinates are normalized
+	// 			// but here we need them in shape space
+	// 			x: tail.x * w,
+	// 			y: tail.y * h,
+	// 		},
+	// 	]
+	// }
 
-	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (shape, { handle }) => {
-		return {
-			...shape,
-			props: {
-				tail: {
-					x: handle.x / shape.props.w,
-					y: handle.y / shape.props.h,
-				},
-			},
-		}
-	}
+	// override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (shape, { handle }) => {
+	// 	return {
+	// 		...shape,
+	// 		props: {
+	// 			tail: {
+	// 				x: handle.x / shape.props.w,
+	// 				y: handle.y / shape.props.h,
+	// 			},
+	// 		},
+	// 	}
+	// }
 
 	// [5]
 	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (

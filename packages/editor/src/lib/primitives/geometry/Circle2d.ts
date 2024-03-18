@@ -5,6 +5,13 @@ import { PI2, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
+type Circle2dOpts = Omit<Geometry2dOptions, 'isClosed'> & {
+	x?: number
+	y?: number
+	radius: number
+	isFilled: boolean
+}
+
 /** @public */
 export class Circle2d extends Geometry2d {
 	_center: Vec
@@ -12,14 +19,15 @@ export class Circle2d extends Geometry2d {
 	x: number
 	y: number
 
-	constructor(
-		public config: Omit<Geometry2dOptions, 'isClosed'> & {
-			x?: number
-			y?: number
-			radius: number
-			isFilled: boolean
-		}
-	) {
+	static fromCenter(config: Circle2dOpts) {
+		return new Circle2d({
+			...config,
+			x: (config.x ?? 0) - config.radius,
+			y: (config.y ?? 0) - config.radius,
+		})
+	}
+
+	constructor(public config: Circle2dOpts) {
 		super({ isClosed: true, ...config })
 		const { x = 0, y = 0, radius } = config
 		this.x = x

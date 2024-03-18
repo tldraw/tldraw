@@ -4,6 +4,7 @@ import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
+import { Control } from '../../editor/types/Control'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../../hooks/useDocumentEvents'
@@ -120,6 +121,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<HintedShapeIndicator />
 					<SnapIndicatorWrapper />
 					<SelectionForegroundWrapper />
+					<ControlsWrapper />
 					<LiveCollaborators />
 				</div>
 				<InFrontOfTheCanvasWrapper />
@@ -565,3 +567,41 @@ function InFrontOfTheCanvasWrapper() {
 	if (!InFrontOfTheCanvas) return null
 	return <InFrontOfTheCanvas />
 }
+
+function ControlsWrapper() {
+	const editor = useEditor()
+	const controls = useValue('controls', () => editor.getControls(), [editor])
+	const hoveredControl = useValue(
+		'hovered control',
+		() => {
+			const hovered = editor.getHovered()
+			if (!hovered || hovered.type !== 'control') return null
+			return hovered.control
+		},
+		[editor]
+	)
+	return (
+		<>
+			{controls.map((control) => {
+				return (
+					<ControlWrapper
+						key={control.id}
+						control={control}
+						isHovered={control === hoveredControl}
+					/>
+				)
+			})}
+		</>
+	)
+}
+
+const ControlWrapper = track(function ControlWrapper({
+	control,
+	isHovered,
+}: {
+	control: Control
+	isHovered: boolean
+}) {
+	if (!control.component) return null
+	return control.component({ isHovered })
+})

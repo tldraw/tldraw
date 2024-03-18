@@ -1,22 +1,9 @@
 import { track } from '@tldraw/state'
 import { modulate } from '@tldraw/utils'
-import { useEffect, useState } from 'react'
 import { useEditor } from '../hooks/useEditor'
+import { Vec } from '../primitives/Vec'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
-
-function useTick(isEnabled = true) {
-	const [_, setTick] = useState(0)
-	const editor = useEditor()
-	useEffect(() => {
-		if (!isEnabled) return
-		const update = () => setTick((tick) => tick + 1)
-		editor.on('tick', update)
-		return () => {
-			editor.off('tick', update)
-		}
-	}, [editor, isEnabled])
-}
 
 export const GeometryDebuggingView = track(function GeometryDebuggingView({
 	showStroke = true,
@@ -29,10 +16,9 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 }) {
 	const editor = useEditor()
 
-	useTick(showClosestPointOnOutline)
-
 	const zoomLevel = editor.getZoomLevel()
 	const renderingShapes = editor.getRenderingShapes()
+	const controls = editor.getControls()
 	const {
 		inputs: { currentPagePoint },
 	} = editor
@@ -71,17 +57,17 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 						strokeLinecap="round"
 						strokeLinejoin="round"
 					>
-						{showStroke && <GeometryStroke geometry={geometry} />}
+						{showStroke && <GeometryStroke geometry={geometry} zoomLevel={zoomLevel} />}
 						{showVertices &&
 							vertices.map((v, i) => (
 								<circle
 									key={`v${i}`}
 									cx={v.x}
 									cy={v.y}
-									r="2"
+									r={2 / zoomLevel}
 									fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 200])}, 100%, 50%)`}
 									stroke="black"
-									strokeWidth="1"
+									strokeWidth={0.5 / zoomLevel}
 								/>
 							))}
 						{showClosestPointOnOutline && dist < 150 && (
@@ -92,7 +78,49 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 								y2={pointInShapeSpace.y}
 								opacity={1 - dist / 150}
 								stroke={hitInside ? 'goldenrod' : 'dodgerblue'}
-								strokeWidth="2"
+								strokeWidth={2 / zoomLevel}
+							/>
+						)}
+					</g>
+				)
+			})}
+
+			{controls.map((control, i) => {
+				const geometry = control.getGeometry()
+
+				const nearestPointOnControl = geometry.nearestPoint(currentPagePoint)
+				const distanceToPoint = Vec.Dist(nearestPointOnControl, currentPagePoint)
+				const dist = distanceToPoint * zoomLevel
+				const hitInside = distanceToPoint < 0
+
+				const { vertices } = geometry
+
+				return (
+					<g key={i} strokeLinecap="round" strokeLinejoin="round">
+						{showStroke && (
+							<GeometryStroke geometry={geometry} defaultColor="teal" zoomLevel={zoomLevel} />
+						)}
+						{showVertices &&
+							vertices.map((v, i) => (
+								<circle
+									key={`v${i}`}
+									cx={v.x}
+									cy={v.y}
+									r={2 / zoomLevel}
+									fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 200])}, 100%, 50%)`}
+									stroke="black"
+									strokeWidth={0.5 / zoomLevel}
+								/>
+							))}
+						{showClosestPointOnOutline && dist < 150 && (
+							<line
+								x1={nearestPointOnControl.x}
+								y1={nearestPointOnControl.y}
+								x2={currentPagePoint.x}
+								y2={currentPagePoint.y}
+								opacity={1 - dist / 150}
+								stroke={hitInside ? 'goldenrod' : 'dodgerblue'}
+								strokeWidth={2 / zoomLevel}
 							/>
 						)}
 					</g>
@@ -102,12 +130,25 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 	)
 })
 
-function GeometryStroke({ geometry }: { geometry: Geometry2d }) {
+function GeometryStroke({
+	geometry,
+	defaultColor = 'red',
+	zoomLevel,
+}: {
+	geometry: Geometry2d
+	defaultColor?: string
+	zoomLevel: number
+}) {
 	if (geometry instanceof Group2d) {
 		return (
 			<>
 				{[...geometry.children, ...geometry.ignoredChildren].map((child, i) => (
-					<GeometryStroke geometry={child} key={i} />
+					<GeometryStroke
+						key={i}
+						geometry={child}
+						defaultColor={defaultColor}
+						zoomLevel={zoomLevel}
+					/>
 				))}
 			</>
 		)
@@ -115,8 +156,8 @@ function GeometryStroke({ geometry }: { geometry: Geometry2d }) {
 
 	return (
 		<path
-			stroke={geometry.debugColor ?? 'red'}
-			strokeWidth="2"
+			stroke={geometry.debugColor ?? defaultColor}
+			strokeWidth={2 / zoomLevel}
 			fill="none"
 			opacity="1"
 			d={geometry.toSimpleSvgPath()}

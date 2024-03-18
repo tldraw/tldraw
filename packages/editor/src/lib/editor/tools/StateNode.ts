@@ -1,4 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
+import { assert, assertExists } from '@tldraw/utils'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
@@ -8,6 +9,7 @@ import {
 	TLExitEventHandler,
 	TLPinchEventInfo,
 	TLTickEventHandler,
+	WithPreventDefault,
 } from '../types/event-types'
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
@@ -104,6 +106,34 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	}
 	private _isActive: Atom<boolean>
 
+	find(path: string | string[]): StateNode | undefined {
+		if (typeof path === 'string') {
+			return this.find(path.split('.'))
+		}
+
+		assert(path.length > 0, 'empty path')
+		const [childId, ...rest] = path
+
+		const child = this.children?.[childId]
+
+		if (!child) return undefined
+		if (rest.length) return child.find(rest)
+		return child
+	}
+
+	addChild(NodeCtor: TLStateNodeConstructor) {
+		if (this.type === 'leaf') {
+			throw new Error('Cannot add child to leaf node')
+		}
+
+		const children = assertExists(this.children)
+		if (children[NodeCtor.id]) return this
+
+		const node = new NodeCtor(this.editor, this)
+		children[node.id] = node
+		return this
+	}
+
 	/**
 	 * Transition to a new active child state node.
 	 *
@@ -145,7 +175,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		return this
 	}
 
-	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
+	handleEvent = (info: WithPreventDefault<Exclude<TLEventInfo, TLPinchEventInfo>>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
 		const x = this.getCurrent()
 		this[cbName]?.(info as any)
