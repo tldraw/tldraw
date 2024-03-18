@@ -1084,7 +1084,11 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
+    canDropShapes: () => boolean;
+    // (undocumented)
     canEdit: () => boolean;
+    // (undocumented)
+    canReceiveNewChildrenOfType: () => boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
@@ -1150,6 +1154,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         typeName: "shape";
     } | undefined;
     // (undocumented)
+    onDragShapesOut: (shape: TLNoteShape, shapes: TLShape[]) => void;
+    // (undocumented)
+    onDragShapesOver: () => {
+        shouldHint: boolean;
+    };
+    // (undocumented)
+    onDropShapesOver: (shape: TLNoteShape, shapes: TLShape[]) => void;
+    // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
     static props: {
@@ -1157,7 +1169,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
+        verticalAlign: EnumStyleProp<"end" | "middle" | "start">; /** @public */
         growY: Validator<number>;
         url: Validator<string>;
         text: Validator<string>;

@@ -6,6 +6,7 @@ import {
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShape,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -30,9 +31,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
 
+	override canReceiveNewChildrenOfType = () => true
+	override canDropShapes = () => true
+	override onDragShapesOver = () => ({ shouldHint: true })
+	override onDropShapesOver = (shape: TLNoteShape, shapes: TLShape[]) => {
+		this.editor.reparentShapes(shapes, shape.id)
+	}
+
+	override onDragShapesOut = (shape: TLNoteShape, shapes: TLShape[]) => {
+		this.editor.reparentShapes(shapes, this.editor.getCurrentPage().id)
+	}
+
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
 			color: 'black',
+
 			size: 'm',
 			text: '',
 			font: 'draw',
