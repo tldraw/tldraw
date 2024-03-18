@@ -33,7 +33,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
-	override hideRotateHandle = () => true
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -220,7 +219,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			left: [] as VecLike[],
 			right: [] as VecLike[],
 		}
-		const LAYERS = 10
+		const LAYERS = 7
 		for (let layer = 1; layer <= LAYERS; layer++) {
 			// Generate positions for up and down
 			for (let dx = -layer; dx <= layer; dx++) {
@@ -261,7 +260,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			count++
 		}
 		const newShapeId = createShapeId()
-
+		const arrowId = createShapeId()
 		this.editor.createShape({
 			type: 'note',
 			id: newShapeId,
@@ -269,6 +268,29 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			y: emptySpot.y,
 			props: { color: shape.props.color, size: shape.props.size },
 		})
+		this.editor.createShape({
+			type: 'arrow',
+			id: arrowId,
+			props: {
+				color: shape.props.color,
+				size: shape.props.size,
+				start: {
+					type: 'binding',
+					boundShapeId: shape.id,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: true,
+				},
+				end: {
+					type: 'binding',
+					boundShapeId: newShapeId,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+		})
+		this.editor.sendToBack([arrowId])
 		this.editor.setEditingShape(shape.id)
 	}
 	override onDoubleClickHandle = (shape: TLNoteShape) => shape
