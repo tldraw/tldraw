@@ -529,6 +529,8 @@ const initialStoreContentArb: Arbitrary<TestRecord[]> = fc.uniqueArray(TestRecor
 })
 
 test('fast-checking squish', () => {
+	// If you see this test failing, to reproduce you need both seed and path in fc.assert,
+	// and replayPath in fc.commands. See the next test for an examples
 	fc.assert(
 		fc.property(
 			initialStoreContentArb,
