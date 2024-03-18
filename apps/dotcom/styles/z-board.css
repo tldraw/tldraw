@@ -7,13 +7,13 @@
 .tlui-share-zone {
 	padding: 0px 0px 0px 0px;
 	display: flex;
-	height: 40px;
 	flex-direction: row;
 	justify-content: flex-end;
 	z-index: var(--layer-panels);
 	align-items: center;
 	padding-top: 2px;
 	padding-right: 4px;
+	margin-bottom: -2px;
 }
 
 .tlui-share-zone__connection-status {
