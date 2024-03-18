@@ -220,18 +220,61 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			right: [] as VecLike[],
 		}
 		const LAYERS = 7
+		const rotationRadians = this.editor.getShapePageTransform(shape).rotation()
 		for (let layer = 1; layer <= LAYERS; layer++) {
 			// Generate positions for up and down
 			for (let dx = -layer; dx <= layer; dx++) {
-				positions.up.push({ x: shape.x + dx * distance, y: shape.y - layer * distance })
-				positions.down.push({ x: shape.x + dx * distance, y: shape.y + layer * distance })
+				addPositionWithRotation(
+					positions.up,
+					shape,
+					dx * distance,
+					-layer * distance,
+					rotationRadians
+				)
+				addPositionWithRotation(
+					positions.down,
+					shape,
+					dx * distance,
+					layer * distance,
+					rotationRadians
+				)
 			}
 
 			// Generate positions for left and right
 			for (let dy = -layer; dy <= layer; dy++) {
-				positions.left.push({ x: shape.x - layer * distance, y: shape.y + dy * distance })
-				positions.right.push({ x: shape.x + layer * distance, y: shape.y + dy * distance })
+				addPositionWithRotation(
+					positions.left,
+					shape,
+					-layer * distance,
+					dy * distance,
+					rotationRadians
+				)
+				addPositionWithRotation(
+					positions.right,
+					shape,
+					layer * distance,
+					dy * distance,
+					rotationRadians
+				)
 			}
+		}
+
+		function addPositionWithRotation(
+			positionArray: VecLike[],
+			shape: TLNoteShape,
+			offsetX: number,
+			offsetY: number,
+			rotationRadians: number
+		) {
+			const cosR = Math.cos(rotationRadians)
+			const sinR = Math.sin(rotationRadians)
+
+			// Rotate offsetX and offsetY around (0, 0)
+			const rotatedX = offsetX * cosR - offsetY * sinR
+			const rotatedY = offsetX * sinR + offsetY * cosR
+
+			// Translate the position back to the shape's location
+			positionArray.push({ x: shape.x + rotatedX, y: shape.y + rotatedY })
 		}
 
 		// Function to calculate the Manhattan distance between two points
