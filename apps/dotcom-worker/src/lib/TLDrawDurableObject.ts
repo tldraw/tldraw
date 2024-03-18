@@ -119,9 +119,8 @@ export class TLDrawDurableObject extends TLServer {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
 	extractDocumentInfoFromRequest = async (req: IRequest, isReadonly: boolean) => {
-		const roomId = req.params.roomId
 		const slug = assertExists(
-			isReadonly ? await this.env.READONLY_SLUG_TO_SLUG.get(roomId) : roomId,
+			isReadonly ? await this.env.READONLY_SLUG_TO_SLUG.get(req.params.roomId) : req.params.roomId,
 			'roomId must be present'
 		)
 		if (this._documentInfo) {
