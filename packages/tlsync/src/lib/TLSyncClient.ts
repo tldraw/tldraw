@@ -195,6 +195,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					}
 				}
 			}),
+			interval(() => {
+				// eslint-disable-next-line no-console
+				console.log('avg time per rebase', this.stats.totalTimeRebasing / this.stats.numRebases)
+				this.stats = {
+					totalTimeRebasing: 0,
+					numRebases: 0,
+				}
+			}, 5000),
 			// Send a ping every PING_INTERVAL ms while online
 			interval(() => {
 				if (this.didCancel?.()) return this.close()
@@ -529,68 +537,79 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
+	stats = {
+		totalTimeRebasing: 0,
+		numRebases: 0,
+	}
 	private rebase = () => {
-		// need to make sure that our speculative changes are in sync with the actual store instance before
-		// proceeding, to avoid inconsistency bugs.
-		this.store._flushHistory()
-		if (this.incomingDiffBuffer.length === 0) return
-
-		const diffs = this.incomingDiffBuffer
-		this.incomingDiffBuffer = []
-
+		const now = performance.now()
 		try {
-			this.store.mergeRemoteChanges(() => {
-				// first undo speculative changes
-				this.store.applyDiff(reverseRecordsDiff(this.speculativeChanges), false)
+			// need to make sure that our speculative changes are in sync with the actual store instance before
+			// proceeding, to avoid inconsistency bugs.
+			this.store._flushHistory()
+			if (this.incomingDiffBuffer.length === 0) return
 
-				// then apply network diffs on top of known-to-be-synced data
-				for (const diff of diffs) {
-					if (diff.type === 'patch') {
-						this.applyNetworkDiff(diff.diff, true)
-						continue
-					}
-					// handling push_result
-					if (this.pendingPushRequests.length === 0) {
-						throw new Error('Received push_result but there are no pending push requests')
-					}
-					if (this.pendingPushRequests[0].request.clientClock !== diff.clientClock) {
-						throw new Error(
-							'Received push_result for a push request that is not at the front of the queue'
-						)
-					}
-					if (diff.action === 'discard') {
-						this.pendingPushRequests.shift()
-					} else if (diff.action === 'commit') {
-						const { request } = this.pendingPushRequests.shift()!
-						if ('diff' in request) {
-							this.applyNetworkDiff(request.diff, true)
+			const diffs = this.incomingDiffBuffer
+			this.incomingDiffBuffer = []
+
+			try {
+				this.store.mergeRemoteChanges(() => {
+					// first undo speculative changes
+					this.store.applyDiff(reverseRecordsDiff(this.speculativeChanges), false)
+
+					// then apply network diffs on top of known-to-be-synced data
+					for (const diff of diffs) {
+						if (diff.type === 'patch') {
+							this.applyNetworkDiff(diff.diff, true)
+							continue
 						}
-					} else {
-						this.applyNetworkDiff(diff.action.rebaseWithDiff, true)
-						this.pendingPushRequests.shift()
-					}
-				}
-				// update the speculative diff while re-applying pending changes
-				try {
-					this.speculativeChanges = this.store.extractingChanges(() => {
-						for (const { request } of this.pendingPushRequests) {
-							if (!('diff' in request)) continue
-							this.applyNetworkDiff(request.diff, true)
+						// handling push_result
+						if (this.pendingPushRequests.length === 0) {
+							throw new Error('Received push_result but there are no pending push requests')
 						}
-					})
-				} catch (e) {
-					console.error(e)
-					// throw away the speculative changes and start over
-					this.speculativeChanges = { added: {} as any, updated: {} as any, removed: {} as any }
-					this.resetConnection()
-				}
-			})
-			this.store.ensureStoreIsUsable()
-			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
-		} catch (e) {
-			console.error(e)
-			this.store.ensureStoreIsUsable()
-			this.resetConnection()
+						if (this.pendingPushRequests[0].request.clientClock !== diff.clientClock) {
+							throw new Error(
+								'Received push_result for a push request that is not at the front of the queue'
+							)
+						}
+						if (diff.action === 'discard') {
+							this.pendingPushRequests.shift()
+						} else if (diff.action === 'commit') {
+							const { request } = this.pendingPushRequests.shift()!
+							if ('diff' in request) {
+								this.applyNetworkDiff(request.diff, true)
+							}
+						} else {
+							this.applyNetworkDiff(diff.action.rebaseWithDiff, true)
+							this.pendingPushRequests.shift()
+						}
+					}
+					// update the speculative diff while re-applying pending changes
+					try {
+						this.speculativeChanges = this.store.extractingChanges(() => {
+							for (const { request } of this.pendingPushRequests) {
+								if (!('diff' in request)) continue
+								this.applyNetworkDiff(request.diff, true)
+							}
+						})
+					} catch (e) {
+						console.error(e)
+						// throw away the speculative changes and start over
+						this.speculativeChanges = { added: {} as any, updated: {} as any, removed: {} as any }
+						this.resetConnection()
+					}
+				})
+				this.store.ensureStoreIsUsable()
+				this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
+			} catch (e) {
+				console.error(e)
+				this.store.ensureStoreIsUsable()
+				this.resetConnection()
+			}
+		} finally {
+			const duration = performance.now() - now
+			this.stats.totalTimeRebasing += duration
+			this.stats.numRebases++
 		}
 	}
 
