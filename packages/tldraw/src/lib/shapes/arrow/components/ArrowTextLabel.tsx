@@ -87,7 +87,9 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 					onKeyDown={handleKeyDown}
 					onBlur={handleBlur}
 					onTouchEnd={stopEventPropagation}
-					onContextMenu={stopEventPropagation}
+					onContextMenu={(e) => {
+						isEditing && stopEventPropagation(e)
+					}}
 					onPointerDown={handleInputPointerDown}
 					onDoubleClick={handleDoubleClick}
 				/>

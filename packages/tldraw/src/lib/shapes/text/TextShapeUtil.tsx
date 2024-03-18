@@ -136,7 +136,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
 						onTouchEnd={stopEventPropagation}
-						onContextMenu={stopEventPropagation}
+						onContextMenu={(e) => {
+							isEditing && stopEventPropagation(e)
+						}}
 						onPointerDown={handleInputPointerDown}
 						onDoubleClick={handleDoubleClick}
 					/>
