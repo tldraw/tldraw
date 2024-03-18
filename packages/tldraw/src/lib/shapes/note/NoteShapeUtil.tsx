@@ -1,5 +1,4 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	DefaultFontFamilies,
 	Editor,
 	Rectangle2d,
@@ -8,7 +7,6 @@ import {
 	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
-	TLShapeId,
 	VecLike,
 	ZERO_INDEX_KEY,
 	createShapeId,
@@ -35,6 +33,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
+	override hideRotateHandle = () => true
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -207,85 +206,69 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 	onHandlePointerUp(info: { shape: TLNoteShape; handleId: 'up' | 'down' | 'left' | 'right' }) {
-		this.duplicateShape(info.shape.id, info.handleId)
+		this.duplicateShape(info.shape, info.handleId)
 	}
-	duplicateShape(shapeId: TLShapeId, direction: 'up' | 'down' | 'left' | 'right') {
-		const shape = this.editor.getShape(shapeId) as TLNoteShape
-
-		const rotationRadians = this.editor.getShapePageTransform(shape).rotation()
+	duplicateShape(shape: TLNoteShape, direction: 'up' | 'down' | 'left' | 'right') {
+		// give the shape a bit of padding to make the arrows look better
 		const distance = NOTE_SIZE + 100
+		const centerOffset = NOTE_SIZE / 2
+		let count = 0
+		let emptySpot = {} as VecLike
+		const positions = {
+			up: [] as VecLike[],
+			down: [] as VecLike[],
+			left: [] as VecLike[],
+			right: [] as VecLike[],
+		}
+		const LAYERS = 10
+		for (let layer = 1; layer <= LAYERS; layer++) {
+			// Generate positions for up and down
+			for (let dx = -layer; dx <= layer; dx++) {
+				positions.up.push({ x: shape.x + dx * distance, y: shape.y - layer * distance })
+				positions.down.push({ x: shape.x + dx * distance, y: shape.y + layer * distance })
+			}
 
-		// Calculate offsetX and offsetY based on the direction and rotation
-		let offsetX = 0
-		let offsetY = 0
-
-		switch (direction) {
-			case 'up':
-				offsetX = distance * Math.sin(rotationRadians)
-				offsetY = distance * -Math.cos(rotationRadians)
-				break
-			case 'down':
-				offsetX = distance * -Math.sin(rotationRadians)
-				offsetY = distance * Math.cos(rotationRadians)
-				break
-			case 'left':
-				offsetX = distance * -Math.cos(rotationRadians)
-				offsetY = distance * -Math.sin(rotationRadians)
-				break
-			case 'right':
-				offsetX = distance * Math.cos(rotationRadians)
-				offsetY = distance * Math.sin(rotationRadians)
-				break
+			// Generate positions for left and right
+			for (let dy = -layer; dy <= layer; dy++) {
+				positions.left.push({ x: shape.x - layer * distance, y: shape.y + dy * distance })
+				positions.right.push({ x: shape.x + layer * distance, y: shape.y + dy * distance })
+			}
 		}
 
-		const newShapeId = createShapeId()
-		const newShapeX = shape.x + offsetX
-		const newShapeY = shape.y + offsetY
-		const emptySpot = this.findPlaceForNewNoteShape({
-			x: newShapeX + NOTE_SIZE / 2,
-			y: newShapeY + NOTE_SIZE / 2,
+		// Function to calculate the Manhattan distance between two points
+		const manhattanDistance = (a: VecLike, b: VecLike) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+
+		// Sort the positions in each direction based on their Manhattan distance to the shape's origin
+		Object.keys(positions).forEach((direction) => {
+			positions[direction as 'up' | 'down' | 'left' | 'right'].sort(
+				(a: VecLike, b: VecLike) => manhattanDistance(a, shape) - manhattanDistance(b, shape)
+			)
 		})
-		this.editor.createShape({ type: 'note', id: newShapeId, x: emptySpot.x, y: emptySpot.y })
-		this.editor.createShape({
-			type: 'arrow',
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: shapeId,
-					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isExact: false,
-					isPrecise: true,
-				},
-				end: {
-					type: 'binding',
-					boundShapeId: newShapeId,
-					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isExact: false,
-					isPrecise: true,
-				},
-			},
-		})
-		this.editor.setEditingShape(newShapeId)
-		// copied from editor.duplicateShapes
-		const selectionPageBounds = this.editor.getSelectionPageBounds()
-		const viewportPageBounds = this.editor.getViewportPageBounds()
-		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-			this.editor.centerOnPoint(selectionPageBounds.center, {
-				duration: ANIMATION_MEDIUM_MS,
+
+		while (count < positions[direction].length) {
+			const position = positions[direction][count]
+			const shapes = this.editor.getShapesAtPoint({
+				x: position.x + centerOffset,
+				y: position.y + centerOffset,
 			})
+			if (!shapes.length) {
+				emptySpot = position
+				break
+			}
+			count++
 		}
-	}
+		const newShapeId = createShapeId()
 
-	findPlaceForNewNoteShape(pos: VecLike): VecLike {
-		console.log(this.editor.getShapeAtPoint(pos))
-		if (!this.editor.getShapeAtPoint(pos)) {
-			console.log('no shape at point')
-			return { x: pos.x - NOTE_SIZE / 2, y: pos.y - NOTE_SIZE / 2 }
-		} else {
-			console.log('shape at point')
-			return this.findPlaceForNewNoteShape({ x: pos.x + 50, y: pos.y + 50 })
-		}
+		this.editor.createShape({
+			type: 'note',
+			id: newShapeId,
+			x: emptySpot.x,
+			y: emptySpot.y,
+			props: { color: shape.props.color, size: shape.props.size },
+		})
+		this.editor.setEditingShape(shape.id)
 	}
+	override onDoubleClickHandle = (shape: TLNoteShape) => shape
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {

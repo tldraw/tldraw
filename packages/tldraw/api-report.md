@@ -1087,9 +1087,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
-    duplicateShape(shapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): void;
-    // (undocumented)
-    findPlaceForNewNoteShape(pos: VecLike): VecLike;
+    duplicateShape(shape: TLNoteShape, direction: 'down' | 'left' | 'right' | 'up'): void;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
@@ -1100,6 +1098,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     getHeight(shape: TLNoteShape): number;
     // (undocumented)
     hideResizeHandles: () => boolean;
+    // (undocumented)
+    hideRotateHandle: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
@@ -1156,6 +1156,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
+    // (undocumented)
+    onDoubleClickHandle: (shape: TLNoteShape) => TLNoteShape;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)

@@ -12886,12 +12886,12 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "duplicateShape(shapeId: "
+                  "text": "duplicateShape(shape: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
                 },
                 {
                   "kind": "Content",
@@ -12924,7 +12924,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "shapeId",
+                  "parameterName": "shape",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -12943,56 +12943,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "duplicateShape"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "tldraw!NoteShapeUtil#findPlaceForNewNoteShape:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "findPlaceForNewNoteShape(pos: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "VecLike",
-                  "canonicalReference": "@tldraw/editor!VecLike:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "VecLike",
-                  "canonicalReference": "@tldraw/editor!VecLike:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "pos",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "findPlaceForNewNoteShape"
             },
             {
               "kind": "Method",
@@ -13215,6 +13165,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#hideRotateHandle:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hideRotateHandle: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hideRotateHandle",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "tldraw!NoteShapeUtil#hideSelectionBoundsFg:member",
               "docComment": "",
               "excerptTokens": [
@@ -13388,7 +13368,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: "
+                  "text": ";\n        id: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13481,7 +13461,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: "
+                  "text": ";\n        id: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13504,6 +13484,50 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 16
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#onDoubleClickHandle:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onDoubleClickHandle: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onDoubleClickHandle",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
               },
               "isStatic": false,
               "isProtected": false,
