@@ -207,6 +207,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer ?? (() => document.body)
 
 		this.textMeasure = new TextManager(this)
+		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -664,7 +665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly disposables = new Set<() => void>()
 
 	/** @internal */
-	private _tickManager = new TickManager(this)
+	private readonly _tickManager
 
 	/**
 	 * A manager for the app's snapping feature.
