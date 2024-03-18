@@ -315,7 +315,7 @@ export { structuredClone_2 as structuredClone }
 export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
 
 // @internal
-export function throttleToNextFrame(fn: () => void): void;
+export function throttleToNextFrame(fn: () => void): () => void;
 
 // @internal (undocumented)
 export function validateIndexKey(key: string): asserts key is IndexKey;
