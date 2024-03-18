@@ -19,23 +19,51 @@ type ShareState = {
 	state: 'offline' | 'shared' | 'readonly'
 	qrCodeDataUrl: string
 	url: string
-	readonlyUrl: string
+	readonlyUrl: string | null
 	readonlyQrCodeDataUrl: string
 }
 
+function isReadonlyUrl(url: string) {
+	return url.includes('/v/')
+}
+
+function isSharedUrl(url: string) {
+	return url.includes('/r/')
+}
+
 function getFreshShareState(): ShareState {
-	const isShared = window.location.href.includes('/r/')
-	const isReadOnly = window.location.href.includes('/v/')
+	const href = window.location.href
+	const isShared = isSharedUrl(href)
+	const isReadOnly = isReadonlyUrl(href)
 
 	return {
 		state: isShared ? 'shared' : isReadOnly ? 'readonly' : 'offline',
 		url: window.location.href,
-		readonlyUrl: window.location.href.includes('/r/')
-			? getShareUrl(window.location.href, true)
-			: window.location.href,
+		readonlyUrl: isReadOnly ? window.location.href : null,
 		qrCodeDataUrl: '',
 		readonlyQrCodeDataUrl: '',
 	}
+}
+
+async function getReadonlyUrl() {
+	const href = window.location.href
+	const isReadOnly = isReadonlyUrl(href)
+	if (isReadOnly) return href
+
+	const segs = href.split('/')
+	segs[segs.length - 2] = 'v'
+
+	const [roomId, params] = segs[segs.length - 1].split('?')
+	const result = await fetch(`/api/readonly-slug/${roomId}`)
+	if (!result.ok) return
+
+	const slug = (await result.json()).slug
+	if (!slug) return
+
+	segs[segs.length - 1] = slug
+	if (params) segs[segs.length - 1] += '?' + params
+
+	return segs.join('/')
 }
 
 /** @public */
@@ -75,31 +103,16 @@ export const ShareMenu = React.memo(function ShareMenu() {
 			})
 		}
 
-		async function fetchReadonlyRoomId() {
-			const segs = window.location.href.split('/')
-			segs[segs.length - 2] = 'v'
-
-			const [roomId, params] = segs[segs.length - 1].split('?')
-			const result = await fetch(`/api/readonly-slug/${roomId}`)
-			if (!result.ok) return
-			const slug = (await result.json()).slug
-			if (!slug) return
-
-			segs[segs.length - 1] = slug
-			if (params) segs[segs.length - 1] += '?' + params
-
-			const readonlyShareUrl = segs.join('/')
-
-			if (!shareState.readonlyQrCodeDataUrl) {
+		getReadonlyUrl().then((readonlyUrl) => {
+			if (readonlyUrl && !shareState.readonlyQrCodeDataUrl) {
 				// fetch the readonly QR code data URL
-				createQRCodeImageDataString(readonlyShareUrl).then((dataUrl) => {
+				createQRCodeImageDataString(readonlyUrl).then((dataUrl) => {
 					if (!cancelled) {
-						setShareState((s) => ({ ...s, readonlyShareUrl, readonlyQrCodeDataUrl: dataUrl }))
+						setShareState((s) => ({ ...s, readonlyUrl, readonlyQrCodeDataUrl: dataUrl }))
 					}
 				})
 			}
-		}
-		fetchReadonlyRoomId()
+		})
 
 		const interval = setInterval(() => {
 			const url = window.location.href
@@ -139,6 +152,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										isReadOnlyLink ? 'share-menu.copy-readonly-link' : 'share-menu.copy-link'
 									)}
 									onClick={() => {
+										if (!currentShareLinkUrl) return
 										setDidCopy(true)
 										setTimeout(() => setDidCopy(false), 1000)
 										navigator.clipboard.writeText(currentShareLinkUrl)
@@ -153,6 +167,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 											isReadOnlyLink ? 'share-menu.copy-readonly-link' : 'share-menu.copy-link'
 										}
 										onSelect={() => {
+											if (!currentShareLinkUrl) return
 											setDidCopy(true)
 											setTimeout(() => setDidCopy(false), 750)
 											navigator.clipboard.writeText(currentShareLinkUrl)

@@ -18,8 +18,6 @@ import {
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	atom,
-	lns,
-	debugFlags,
 	useActions,
 	useValue,
 } from 'tldraw'
