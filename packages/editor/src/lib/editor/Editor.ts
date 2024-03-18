@@ -637,6 +637,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.updateRenderingBounds()
 
+		this.on('tick', this.tick)
+
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
@@ -8378,6 +8380,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				meta: {},
 			},
 		])
+	}
+
+	/** @internal */
+	private tick = (elapsed = 0) => {
+		this.dispatch({ type: 'misc', name: 'tick', elapsed })
+		this.scribbles.tick(elapsed)
 	}
 
 	/**
